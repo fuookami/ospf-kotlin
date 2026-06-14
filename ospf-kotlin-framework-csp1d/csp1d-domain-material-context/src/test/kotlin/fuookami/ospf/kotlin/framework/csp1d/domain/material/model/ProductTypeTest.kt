@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.KilogramPerSquareMeter
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
-class ProductGenericTypeTest {
+class ProductTypeTest {
     @Test
     fun productFlt64ShouldCompileAndInferWeight() {
         val product = Product(

@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * 约束管线不再直接引用 x 变量。
  *
  * 实现 CGPipeline 接口，通过 constraint.args = MaterialUsageShadowPriceKey
- * 关联影子价格，替代 constraint-name registry。
+ * 关联影子价格，替代约束名映射。
  *
  * Add available batch upper bound constraint for each material:
  * materialQuantity[i] <= available_batches
@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
  * Constraint pipelines no longer reference x variables directly.
  *
  * Implements CGPipeline interface, associating shadow prices via
- * constraint.args = MaterialUsageShadowPriceKey, replacing constraint-name registry.
+ * constraint.args = MaterialUsageShadowPriceKey, replacing the constraint-name based mechanism.
  *
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
@@ -42,7 +42,11 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 class MaterialConstraintPipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val materials: List<Material<V>>
-) : Csp1dCGPipeline {
+) : CGPipeline<
+        AbstractCsp1dShadowPriceArguments,
+        AbstractLinearMetaModel<Flt64>,
+        AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+        > {
 
     override val name: String = "material_constraint"
 
@@ -75,14 +79,17 @@ class MaterialConstraintPipeline<V : RealNumber<V>>(
     }
 
     override fun refresh(
-        shadowPriceMap: Csp1dShadowPriceMap,
+        shadowPriceMap: AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
     }
 
-    override fun extractor(): Csp1dShadowPriceExtractor? {
+    override fun extractor(): ShadowPriceExtractor<
+            AbstractCsp1dShadowPriceArguments,
+            AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+            >? {
         if (materials.isEmpty()) return null
         return { map, args ->
             if (args is Csp1dCuttingPlanShadowPriceArguments<*>) {

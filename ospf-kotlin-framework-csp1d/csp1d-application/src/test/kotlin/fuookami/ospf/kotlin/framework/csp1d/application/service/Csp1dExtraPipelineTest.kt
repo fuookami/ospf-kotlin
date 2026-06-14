@@ -10,11 +10,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -35,6 +37,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsag
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dIncrementalPipeline
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingContext
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
@@ -52,22 +56,22 @@ import kotlin.time.Duration
  * 扩展管线集成测试 / Extra pipeline integration test
  *
  * 验证 Csp1dProduceContext 的 extraPipelines 扩展接口能承载
- * POIT 的 same unit length / same width 类业务约束。
+ * 下游 same unit length / same width 类业务约束。
  *
  * Verify that Csp1dProduceContext's extraPipelines extension interface
- * can carry POIT's same unit length / same width business constraints.
+ * can carry downstream same unit length / same width business constraints.
  */
 class Csp1dExtraPipelineTest {
 
     /**
      * Fake 同单位长度约束管线 / Fake same unit length constraint pipeline
      *
-     * 模拟 POIT 中 withSameUnitLengthOnSide 约束：
+     * 模拟下游 withSameUnitLengthOnSide 类约束：
      * 对使用同一物料的切割方案，要求其分配的卷长相同。
      * 此处简化为：对指定物料的所有方案，添加一个辅助变量 same_length，
      * 并约束 same_length >= 各方案的 assigned_length。
      *
-     * Simulate POIT's withSameUnitLengthOnSide constraint:
+     * Simulate a downstream withSameUnitLengthOnSide-like constraint:
      * For cutting plans using the same material, require the assigned length to be the same.
      * Simplified here: for all plans of a specified material, add a helper variable same_length,
      * and constrain same_length >= each plan's assigned_length.
@@ -121,11 +125,11 @@ class Csp1dExtraPipelineTest {
     /**
      * Fake 同宽度约束管线 / Fake same width constraint pipeline
      *
-     * 模拟 POIT 中 withSameWidthOnSide 约束：
+     * 模拟下游 withSameWidthOnSide 类约束：
      * 对使用同一物料的切割方案，要求其宽度分配一致。
      * 此处简化为添加一个辅助变量和约束。
      *
-     * Simulate POIT's withSameWidthOnSide constraint.
+     * Simulate a downstream withSameWidthOnSide-like constraint.
      */
     class FakeSameWidthPipeline<V : RealNumber<V>>(
         private val materialId: String
@@ -158,6 +162,37 @@ class Csp1dExtraPipelineTest {
             )
 
             return ok
+        }
+    }
+
+    /**
+     * Fake 增量扩展管线 / Fake incremental extension pipeline
+     */
+    class FakeIncrementalPipeline<V : RealNumber<V>> : Csp1dIncrementalPipeline<V> {
+        override val name = "fake_incremental"
+
+        var registerCount = 0
+            private set
+
+        var addColumnsCount = 0
+            private set
+
+        val addedPlanIds = ArrayList<String>()
+
+        override fun invoke(model: LinearMetaModel<Flt64>): fuookami.ospf.kotlin.utils.functional.Try {
+            registerCount += 1
+            return ok
+        }
+
+        override suspend fun addColumns(
+            context: Csp1dModelingContext<V>,
+            iteration: UInt64,
+            newPlans: List<CuttingPlan<V>>,
+            model: AbstractLinearMetaModel<Flt64>
+        ): Ret<List<CuttingPlan<V>>> {
+            addColumnsCount += 1
+            addedPlanIds.addAll(newPlans.map { it.id })
+            return Ok(newPlans)
         }
     }
 
@@ -361,9 +396,9 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -407,9 +442,9 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -426,6 +461,73 @@ class Csp1dExtraPipelineTest {
         assertTrue(
             solver.constraintNames.contains("same_width_bound_mat-cg-ext"),
             "Same width constraint should be registered through CG public entry"
+        )
+    }
+
+    /**
+     * 验证 LP 上下文在同一个主问题上原地刷新增量扩展管线 /
+     * Verify LP context refreshes incremental extension pipelines in place on the same master
+     */
+    @Test
+    fun produceContextShouldRefreshIncrementalPipelineOnAddColumns(): Unit = runBlocking {
+        val material = testMaterial("mat-cg-incremental")
+        val product = testProduct("prod-cg-incremental")
+        val demand = ProductDemand(
+            product = product,
+            quantity = Quantity(Flt64(100.0), Meter)
+        )
+        val initialPlan = testCuttingPlan(
+            id = "plan-cg-incremental-initial",
+            material = material,
+            product = product,
+            contributionValue = Flt64(50.0)
+        )
+        val newPlan = testCuttingPlan(
+            id = "plan-cg-incremental-new",
+            material = material,
+            product = product,
+            contributionValue = Flt64(75.0)
+        )
+        val incrementalPipeline = FakeIncrementalPipeline<Flt64>()
+        val extension = Csp1dModelingExtension<Flt64>(
+            pipeline = incrementalPipeline,
+            mode = Csp1dExtensionMode.LP
+        )
+        val input = ProduceInput(
+            cuttingPlans = listOf(initialPlan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(Csp1dModelingMode.LP)
+            .extension(extension)
+            .build()
+        val model = LinearMetaModel(
+            name = "test_incremental_add_columns",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+        when (val result = context.register(model)) {
+            is Ok -> {}
+            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("register failed: ${result.error}")
+            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("register fatal: ${result.errors}")
+        }
+
+        val addedPlans = when (val result = context.addColumns(
+            iteration = UInt64.one,
+            newPlans = listOf(newPlan),
+            model = model
+        )) {
+            is Ok -> result.value
+            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("addColumns failed: ${result.error}")
+            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("addColumns fatal: ${result.errors}")
+        }
+        assertEquals(listOf(newPlan), addedPlans)
+        assertEquals(1, incrementalPipeline.registerCount)
+        assertEquals(1, incrementalPipeline.addColumnsCount)
+        assertTrue(
+            incrementalPipeline.addedPlanIds.contains("plan-cg-incremental-new"),
+            "Incremental pipeline should receive the priced plan through addColumns"
         )
     }
 
@@ -461,9 +563,9 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -518,9 +620,9 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -574,9 +676,9 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -632,16 +734,16 @@ class Csp1dExtraPipelineTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
             columnGeneration = problem.configuration,
             extensions = listOf(extension),
             allowPartialSolution = true,
-            topKPlanLimit = 1
+            topKPlanLimit = Int64.one
         )
 
         val result = Csp1dColumnGenerationRecovery<Flt64>(

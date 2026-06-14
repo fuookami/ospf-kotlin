@@ -6,6 +6,7 @@ import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
@@ -15,16 +16,16 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 
 @OptIn(ExperimentalCoroutinesApi::class)
 internal fun <T> runGenerationTasks(
-    parallelism: Int,
+    parallelism: Int64,
     tasks: List<() -> T>
 ): List<T> {
-    val normalizedParallelism = parallelism.coerceAtLeast(1)
-    if (normalizedParallelism == 1 || tasks.size <= 1) {
+    val normalizedParallelism = parallelism.coerceAtLeast(Int64.one)
+    if (normalizedParallelism == Int64.one || tasks.size <= 1) {
         return tasks.map { task -> task() }
     }
 
     return runBlocking {
-        val dispatcher = Dispatchers.Default.limitedParallelism(normalizedParallelism)
+        val dispatcher = Dispatchers.Default.limitedParallelism(normalizedParallelism.toInt())
         tasks.map { task ->
             async(dispatcher) {
                 task()
@@ -35,9 +36,9 @@ internal fun <T> runGenerationTasks(
 
 internal fun <V : RealNumber<V>> mergeGenerationReports(
     reports: List<CuttingPlanGenerationReport<V>>,
-    maxPlans: Int,
-    startedAt: Long,
-    deadline: Long?,
+    maxPlans: Int64,
+    startedAt: Int64,
+    deadline: Int64?,
     canonicalKeyOverride: ((CuttingPlan<V>) -> String?)? = null
 ): CuttingPlanGenerationReport<V> {
     val resolveCanonicalKey: (CuttingPlan<V>) -> CuttingPlanCanonicalKey = { plan ->
@@ -46,51 +47,51 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
     }
     val canonicalKeys = HashSet<CuttingPlanCanonicalKey>()
     val plans = ArrayList<CuttingPlan<V>>()
-    var duplicateCandidates = reports.sumOf { it.statistics.duplicateCandidates }
-    val dominatedCandidates = reports.sumOf { it.statistics.dominatedCandidates }
-    val widthBoundPrunedNodes = reports.sumOf { it.statistics.widthBoundPrunedNodes }
-    val knifeBoundPrunedNodes = reports.sumOf { it.statistics.knifeBoundPrunedNodes }
-    val lengthBoundPrunedEntries = reports.sumOf { it.statistics.lengthBoundPrunedEntries }
-    val materialWidthIndexCacheHits = reports.sumOf { it.statistics.materialWidthIndexCacheHits }
-    val materialSliceTemplateCacheHits = reports.sumOf { it.statistics.materialSliceTemplateCacheHits }
-    val materialSliceTemplateCacheMisses = reports.sumOf { it.statistics.materialSliceTemplateCacheMisses }
-    val quantityCacheHits = reports.sumOf { it.statistics.quantityCacheHits }
-    val quantityCacheMisses = reports.sumOf { it.statistics.quantityCacheMisses }
-    var crossWorkerDuplicateCandidates = 0L
+    var duplicateCandidates = Int64(reports.sumOf { it.statistics.duplicateCandidates.toLong() })
+    val dominatedCandidates = Int64(reports.sumOf { it.statistics.dominatedCandidates.toLong() })
+    val widthBoundPrunedNodes = Int64(reports.sumOf { it.statistics.widthBoundPrunedNodes.toLong() })
+    val knifeBoundPrunedNodes = Int64(reports.sumOf { it.statistics.knifeBoundPrunedNodes.toLong() })
+    val lengthBoundPrunedEntries = Int64(reports.sumOf { it.statistics.lengthBoundPrunedEntries.toLong() })
+    val materialWidthIndexCacheHits = Int64(reports.sumOf { it.statistics.materialWidthIndexCacheHits.toLong() })
+    val materialSliceTemplateCacheHits = Int64(reports.sumOf { it.statistics.materialSliceTemplateCacheHits.toLong() })
+    val materialSliceTemplateCacheMisses = Int64(reports.sumOf { it.statistics.materialSliceTemplateCacheMisses.toLong() })
+    val quantityCacheHits = Int64(reports.sumOf { it.statistics.quantityCacheHits.toLong() })
+    val quantityCacheMisses = Int64(reports.sumOf { it.statistics.quantityCacheMisses.toLong() })
+    var crossWorkerDuplicateCandidates = Int64.zero
 
     for (report in reports) {
         for (plan in report.plans) {
-            if (plans.size >= maxPlans) {
+            if (plans.size.toLong() >= maxPlans.toLong()) {
                 break
             }
             if (!canonicalKeys.add(resolveCanonicalKey(plan))) {
-                ++duplicateCandidates
-                ++crossWorkerDuplicateCandidates
+                duplicateCandidates = duplicateCandidates + Int64.one
+                crossWorkerDuplicateCandidates = crossWorkerDuplicateCandidates + Int64.one
                 continue
             }
             plans.add(plan)
         }
-        if (plans.size >= maxPlans) {
+        if (plans.size.toLong() >= maxPlans.toLong()) {
             break
         }
     }
 
     val timedOut = reports.any {
         it.statistics.stopReason == CuttingPlanGenerationStopReason.Timeout
-    } || (deadline != null && System.nanoTime() > deadline)
+    } || (deadline != null && System.nanoTime() > deadline.toLong())
     val stopReason = when {
         timedOut -> CuttingPlanGenerationStopReason.Timeout
-        plans.size >= maxPlans -> CuttingPlanGenerationStopReason.MaxPlans
+        plans.size.toLong() >= maxPlans.toLong() -> CuttingPlanGenerationStopReason.MaxPlans
         else -> CuttingPlanGenerationStopReason.Exhausted
     }
 
     return CuttingPlanGenerationReport(
         plans = plans,
         statistics = CuttingPlanGenerationStatistics(
-            visitedNodes = reports.sumOf { it.statistics.visitedNodes },
-            generatedCandidates = reports.sumOf { it.statistics.generatedCandidates },
-            acceptedPlans = plans.size,
-            infeasibleCandidates = reports.sumOf { it.statistics.infeasibleCandidates },
+            visitedNodes = Int64(reports.sumOf { it.statistics.visitedNodes.toLong() }),
+            generatedCandidates = Int64(reports.sumOf { it.statistics.generatedCandidates.toLong() }),
+            acceptedPlans = Int64(plans.size.toLong()),
+            infeasibleCandidates = Int64(reports.sumOf { it.statistics.infeasibleCandidates.toLong() }),
             duplicateCandidates = duplicateCandidates,
             dominatedCandidates = dominatedCandidates,
             widthBoundPrunedNodes = widthBoundPrunedNodes,
@@ -102,7 +103,7 @@ internal fun <V : RealNumber<V>> mergeGenerationReports(
             quantityCacheMisses = quantityCacheMisses,
             materialSliceTemplateCacheMisses = materialSliceTemplateCacheMisses,
             crossWorkerDuplicateCandidates = crossWorkerDuplicateCandidates,
-            elapsedMilliseconds = (System.nanoTime() - startedAt) / 1_000_000L,
+            elapsedMilliseconds = Int64((System.nanoTime() - startedAt.toLong()) / 1_000_000L),
             stopReason = stopReason
         )
     )

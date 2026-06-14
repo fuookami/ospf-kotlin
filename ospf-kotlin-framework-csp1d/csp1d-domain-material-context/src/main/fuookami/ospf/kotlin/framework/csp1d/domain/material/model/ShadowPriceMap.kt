@@ -12,8 +12,6 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.reflect.KClass
@@ -74,6 +72,19 @@ data class MachineCapacityShadowPriceKey(
 }
 
 /**
+ * 产出超产上限影子价格键 / Yield over-production bound shadow price key
+ *
+ * @property productId 产品 ID / Product id
+ * @property unitSymbol 需求单位符号 / Demand unit symbol
+ */
+data class YieldOverProductionBoundShadowPriceKey(
+    val productId: String,
+    val unitSymbol: String
+) : Csp1dShadowPriceKey(YieldOverProductionBoundShadowPriceKey::class) {
+    override val name = "yield-over-production-bound:$productId:$unitSymbol"
+}
+
+/**
  * CSP1D 影子价格参数接口 / CSP1D shadow price arguments interface
  *
  * 用于列生成管线计算 reduced cost 时传递参数。
@@ -103,33 +114,6 @@ open class AbstractCsp1dShadowPriceMap<
         > : AbstractShadowPriceMap<
         @UnsafeVariance Args, AbstractCsp1dShadowPriceMap<@UnsafeVariance Args>
         >()
-
-/** CSP1D 影子价格映射类型别名 / CSP1D shadow price map type alias */
-typealias Csp1dShadowPriceMap = AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
-
-/** 抽象 CSP1D 影子价格提取器类型别名 / Abstract CSP1D shadow price extractor type alias */
-typealias AbstractCsp1dShadowPriceExtractor<Args> = ShadowPriceExtractor<
-        Args, AbstractCsp1dShadowPriceMap<Args>
-        >
-
-/** CSP1D 影子价格提取器类型别名 / CSP1D shadow price extractor type alias */
-typealias Csp1dShadowPriceExtractor = AbstractCsp1dShadowPriceExtractor<AbstractCsp1dShadowPriceArguments>
-
-/** 抽象 CSP1D 列生成管线类型别名 / Abstract CSP1D CG pipeline type alias */
-typealias AbstractCsp1dCGPipeline<Args> = CGPipeline<
-        Args, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<Args>
-        >
-
-/** CSP1D 列生成管线类型别名 / CSP1D CG pipeline type alias */
-typealias Csp1dCGPipeline = AbstractCsp1dCGPipeline<AbstractCsp1dShadowPriceArguments>
-
-/** 抽象 CSP1D 列生成管线列表类型别名 / Abstract CSP1D CG pipeline list type alias */
-typealias AbstractCsp1dCGPipelineList<Args> = List<
-        CGPipeline<Args, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<Args>>
-        >
-
-/** CSP1D 列生成管线列表类型别名 / CSP1D CG pipeline list type alias */
-typealias Csp1dCGPipelineList = AbstractCsp1dCGPipelineList<AbstractCsp1dShadowPriceArguments>
 
 /**
  * 切割方案影子价格表（轻量级结果容器） / Cutting plan shadow price map (lightweight result container)

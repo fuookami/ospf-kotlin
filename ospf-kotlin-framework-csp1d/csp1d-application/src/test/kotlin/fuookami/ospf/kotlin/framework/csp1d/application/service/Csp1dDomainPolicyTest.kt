@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
@@ -46,9 +47,9 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dSolveConfig
 /**
  * 领域策略集成测试 / Domain policy integration test
  *
- * 验证 Csp1dDomainPolicy 能承载 POIT 的宽差、设备兼容等业务判断。
+ * 验证 Csp1dDomainPolicy 能承载下游宽差、设备兼容等业务判断。
  *
- * Verify that Csp1dDomainPolicy can carry POIT's width difference,
+ * Verify that Csp1dDomainPolicy can carry downstream width difference,
  * machine compatibility and other business judgments.
  */
 class Csp1dDomainPolicyTest {
@@ -95,8 +96,8 @@ class Csp1dDomainPolicyTest {
     /**
      * Fake 宽差策略 / Fake width difference policy
      *
-     * 模拟 POIT 中宽度差异约束：拒绝特定物料的方案。
-     * Simulate POIT's width difference constraint: reject plans for specific materials.
+     * 模拟下游宽度差异约束：拒绝特定物料的方案。
+     * Simulate downstream width difference constraint: reject plans for specific materials.
      */
     class FakeWidthDifferencePolicy<V : RealNumber<V>>(
         private val rejectedMaterialIds: Set<String>
@@ -111,8 +112,8 @@ class Csp1dDomainPolicyTest {
     /**
      * Fake 设备兼容策略 / Fake machine compatibility policy
      *
-     * 模拟 POIT 中设备兼容性约束：拒绝特定设备上的方案。
-     * Simulate POIT's machine compatibility constraint: reject plans on specific machines.
+     * 模拟下游设备兼容性约束：拒绝特定设备上的方案。
+     * Simulate downstream machine compatibility constraint: reject plans on specific machines.
      */
     class FakeMachineCompatibilityPolicy<V : RealNumber<V>>(
         private val rejectedMachineIds: Set<String>
@@ -138,7 +139,7 @@ class Csp1dDomainPolicyTest {
         val ctx = SimpleDomainCalculationContext(
             plan = plan,
             planIndex = 0,
-            vSample = Flt64(1.0)
+            domainValueSample = Flt64(1.0)
         )
         val policy = DefaultCsp1dDomainPolicy<Flt64>()
         assertTrue(policy.isFeasible(ctx))
@@ -158,7 +159,7 @@ class Csp1dDomainPolicyTest {
         val ctx = SimpleDomainCalculationContext(
             plan = plan,
             planIndex = 0,
-            vSample = Flt64(1.0)
+            domainValueSample = Flt64(1.0)
         )
         assertTrue(allFeasible(emptyList(), ctx))
     }
@@ -184,8 +185,8 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = setOf("mat-1"))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, vSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, vSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
+        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
 
         assertTrue(!policy.isFeasible(ctx1))
         assertTrue(policy.isFeasible(ctx2))
@@ -213,8 +214,8 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf("mc-rejected"))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = planOnRejected, planIndex = 0, vSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = planOnAccepted, planIndex = 1, vSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(plan = planOnRejected, planIndex = 0, domainValueSample = Flt64(1.0))
+        val ctx2 = SimpleDomainCalculationContext(plan = planOnAccepted, planIndex = 1, domainValueSample = Flt64(1.0))
 
         assertTrue(!policy.isFeasible(ctx1))
         assertTrue(policy.isFeasible(ctx2))
@@ -236,7 +237,7 @@ class Csp1dDomainPolicyTest {
         val widthPolicy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = emptySet())
         val machinePolicy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf("mc-rejected"))
 
-        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, vSample = Flt64(1.0))
+        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, domainValueSample = Flt64(1.0))
 
         // width policy passes, machine policy fails => allFeasible returns false
         assertTrue(!allFeasible(listOf(widthPolicy, machinePolicy), ctx))
@@ -349,8 +350,8 @@ class Csp1dDomainPolicyTest {
 
         val policy = FakeMaterialCostPolicy<Flt64>(extraCostByMaterial = mapOf("mat-1" to Flt64(5.0)))
 
-        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, vSample = Flt64(1.0))
-        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, vSample = Flt64(1.0))
+        val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
+        val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
 
         assertEquals(Flt64(6.0), policy.modifyBatchCoefficient(ctx1, Flt64.one),
             "mat-1 should get extra cost coefficient")
@@ -368,7 +369,7 @@ class Csp1dDomainPolicyTest {
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
-        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, vSample = Flt64(1.0))
+        val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, domainValueSample = Flt64(1.0))
         val policy = object : Csp1dObjectivePolicy<Flt64> {
             override val name = "empty"
         }
@@ -539,7 +540,7 @@ class Csp1dDomainPolicyTest {
         assertEquals(0, extensionSet.pricingPolicies.size)
     }
 
-    // ===== Fake POIT 扩展样例测试 / Fake POIT extension sample tests =====
+    // ===== Fake 下游扩展样例测试 / Fake downstream extension sample tests =====
 
     private fun <V : RealNumber<V>> fakeSameUnitLengthExtension(materialId: String): Csp1dModelingExtension<V> {
         return Csp1dModelingExtension(
@@ -600,8 +601,8 @@ class Csp1dDomainPolicyTest {
     /**
      * Fake 候选验收策略 / Fake candidate acceptance strategy
      *
-     * 模拟 POIT 中候选验收逻辑：只接受特定物料的方案。
-     * Simulate POIT's candidate acceptance: only accept plans for specific materials.
+     * 模拟下游候选验收逻辑：只接受特定物料的方案。
+     * Simulate downstream candidate acceptance: only accept plans for specific materials.
      */
     class FakeCandidateAcceptanceStrategy<V : RealNumber<V>>(
         private val acceptedMaterialIds: Set<String>
@@ -615,12 +616,12 @@ class Csp1dDomainPolicyTest {
     /**
      * Fake 输出扩展策略 / Fake extraction policy for output enrichment
      *
-     * 模拟 POIT 中输出扩展：向 solution details 和 render KPI 写入自定义信息。
-     * Simulate POIT's output enrichment: write custom information to solution details and render KPI.
+     * 模拟下游输出扩展：向 solution details 和 render KPI 写入自定义信息。
+     * Simulate downstream output enrichment: write custom information to solution details and render KPI.
      */
     class FakeOutputExtractionPolicy<V : RealNumber<V>>(
-        private val customDetailKey: String = "poit_custom_detail",
-        private val customDetailValue: String = "poit_enriched"
+        private val customDetailKey: String = "downstream_custom_detail",
+        private val customDetailValue: String = "downstream_enriched"
     ) : Csp1dExtractionPolicy<V> {
         override val name = "fake_output_extraction"
         override fun enrichOutput(
@@ -631,13 +632,13 @@ class Csp1dDomainPolicyTest {
             materials: List<Material<V>>,
             machines: List<Machine<V>>,
             generatedPlans: List<CuttingPlan<V>>,
-            iterationCount: Int,
+            iterationCount: Int64,
             terminationReason: String?,
             finalMilpStatus: String?,
             pricingStatistics: CuttingPlanGenerationStatistics?
         ) {
             details[customDetailKey] = customDetailValue
-            renderKpi["poit_custom_kpi"] = "enabled"
+            renderKpi["downstream_custom_kpi"] = "enabled"
         }
     }
 
@@ -713,17 +714,17 @@ class Csp1dDomainPolicyTest {
             materials = emptyList(),
             machines = emptyList(),
             generatedPlans = emptyList(),
-            iterationCount = 0,
+            iterationCount = Int64.zero,
             terminationReason = null,
             finalMilpStatus = null,
             pricingStatistics = null
         )
-        assertEquals("poit_enriched", details["poit_custom_detail"])
-        assertEquals("enabled", renderKpi["poit_custom_kpi"])
+        assertEquals("downstream_enriched", details["downstream_custom_detail"])
+        assertEquals("enabled", renderKpi["downstream_custom_kpi"])
     }
 
     @Test
-    fun allFakePoitExtensionsCanBeCombinedInExtensionSet() {
+    fun allFakeDownstreamExtensionsCanBeCombinedInExtensionSet() {
         val extensionSet = Csp1dExtensionSet<Flt64>(
             modelingExtensions = listOf(
                 fakeSameUnitLengthExtension("m1"),
@@ -744,7 +745,7 @@ class Csp1dDomainPolicyTest {
                 FakeOutputExtractionPolicy()
             )
         )
-        // 验证 6+ 类 fake POIT 能力均已装入 extension set / Verify 6+ fake POIT categories are carried by extension set
+        // 验证 6+ 类 fake 下游扩展能力均已装入 extension set / Verify 6+ fake downstream categories are carried by extension set
         assertEquals(2, extensionSet.modelingExtensions.size)
         assertEquals(2, extensionSet.domainPolicies.size)
         assertEquals(1, extensionSet.objectivePolicies.size)
@@ -755,11 +756,11 @@ class Csp1dDomainPolicyTest {
     // ===== Builder DSL 注入测试 / Builder DSL injection tests =====
 
     /**
-     * 验证 Csp1dSolveConfigBuilder 能注入所有 6+ 类 POIT 扩展
-     * Verify Csp1dSolveConfigBuilder can inject all 6+ POIT extension categories
+     * 验证 Csp1dSolveConfigBuilder 能注入所有 6+ 类下游扩展
+     * Verify Csp1dSolveConfigBuilder can inject all 6+ downstream extension categories
      */
     @Test
-    fun allPoitExtensionsCanBeInjectedViaSolveConfigBuilder() {
+    fun allDownstreamExtensionsCanBeInjectedViaSolveConfigBuilder() {
         val solveConfig = csp1dSolveConfig<Flt64> {
             extension(fakeSameUnitLengthExtension("m1"))
             extension(fakeSameWidthExtension("mc1"))
@@ -826,13 +827,13 @@ class Csp1dDomainPolicyTest {
     }
 
     /**
-     * 验证 fake POIT 样例覆盖 6+ 类扩展能力
+     * 验证 fake 下游扩展样例覆盖 6+ 类扩展能力
      * 验收 7.1.10: same unit length, same width, 宽差, 设备/材质兼容, 业务成本, 候选过滤, 候选验收, 输出扩展
-     * Verify fake POIT samples cover 6+ extension categories
+     * Verify fake downstream samples cover 6+ extension categories
      * Acceptance 7.1.10: same unit length, same width, width diff, machine/material compat, business cost, candidate filter, candidate acceptance, output enrichment
      */
     @Test
-    fun fakePoitSamplesCoverSixPlusCategories() {
+    fun fakeDownstreamSamplesCoverSixPlusCategories() {
         val categories = mutableSetOf<String>()
 
         // 1. 同单位长度 / same unit length
@@ -869,7 +870,7 @@ class Csp1dDomainPolicyTest {
 
         // 验证至少覆盖 6 类能力 / Verify at least 6 categories are covered
         assertTrue(categories.size >= 6,
-            "Should cover at least 6 POIT categories, got ${categories.size}: $categories")
+            "Should cover at least 6 downstream categories, got ${categories.size}: $categories")
 
         // 验证可组合到同一个 extension set / Verify all samples can be combined in one extension set
         val combined = Csp1dExtensionSet<Flt64>(

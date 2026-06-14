@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
@@ -43,9 +44,9 @@ data class Csp1dProblem<V : RealNumber<V>>(
  * @property iterationLimit 列生成迭代上限 / Column generation iteration limit
  */
 data class Csp1dConfiguration<V : RealNumber<V>>(
-    val maxInitialPlans: Int = 1024,
-    val maxPricingPlans: Int = 64,
-    val iterationLimit: Int = 8
+    val maxInitialPlans: Int64 = Int64(1024),
+    val maxPricingPlans: Int64 = Int64(64),
+    val iterationLimit: Int64 = Int64(8)
 )
 
 /**
@@ -65,7 +66,7 @@ data class Csp1dSolveConfig<V : RealNumber<V>>(
     val yieldConfig: YieldModelingConfig<V>? = null,
     val wasteConfig: WasteMinimizationConfig<V>? = null,
     val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
-    val topKPlanLimit: Int? = null,
+    val topKPlanLimit: Int64? = null,
     val allowPartialSolution: Boolean = true,
     val extensions: List<Csp1dModelingExtension<V>> = emptyList(),
     val extensionSet: Csp1dExtensionSet<V> = Csp1dExtensionSet()

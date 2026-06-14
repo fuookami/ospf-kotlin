@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
@@ -40,8 +41,8 @@ class NSameGenerator<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>,
     private val allAmount: Boolean = false,
     private val timeout: Duration? = null,
-    private val maxPlans: Int = 1000,
-    private val parallelism: Int = 1,
+    private val maxPlans: Int64 = Int64(1000),
+    private val parallelism: Int64 = Int64.one,
     private val enableDominancePruning: Boolean = false,
     private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
@@ -51,7 +52,7 @@ class NSameGenerator<V : RealNumber<V>>(
         arithmetic: QuantityArithmetic<V>,
         allAmount: Boolean = false,
         timeout: Duration? = null,
-        maxPlans: Int = 1000
+        maxPlans: Int64 = Int64(1000)
     ) : this(
         constraints = constraints.toConstraints(),
         arithmetic = arithmetic,
@@ -76,7 +77,7 @@ class NSameGenerator<V : RealNumber<V>>(
     override fun generateWithReport(input: CuttingPlanGenerationInput<V>): CuttingPlanGenerationReport<V> {
         val startTime = System.nanoTime()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
-        val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
+        val deadline = timeout?.let { Int64(System.nanoTime() + it.inWholeNanoseconds) }
         val canonicalKeyOverride = if (input.canonicalKeyOverrides.isNotEmpty()) {
             { plan: CuttingPlan<V> -> input.canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) } }
         } else null
@@ -94,7 +95,7 @@ class NSameGenerator<V : RealNumber<V>>(
         val quantityCache = GenerationQuantityCache(arithmetic)
         val widthCheck = input.widthFeasibilityCheck
 
-        if (parallelism > 1 && input.materials.size > 1) {
+        if (parallelism > Int64.one && input.materials.size > 1) {
             val reports = runGenerationTasks(
                 parallelism = parallelism,
                 tasks = input.materials.map { material ->
@@ -136,7 +137,7 @@ class NSameGenerator<V : RealNumber<V>>(
             return mergeGenerationReports(
                 reports = reports,
                 maxPlans = maxPlans,
-                startedAt = startTime,
+                startedAt = Int64(startTime),
                 deadline = deadline,
                 canonicalKeyOverride = canonicalKeyOverride
             )

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationReport
@@ -12,8 +13,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 
 internal class GenerationCollector<V : RealNumber<V>>(
-    private val maxPlans: Int,
-    private val deadline: Long?,
+    private val maxPlans: Int64,
+    private val deadline: Int64?,
     private val enableDominancePruning: Boolean = false,
     private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution,
     /**
@@ -32,48 +33,48 @@ internal class GenerationCollector<V : RealNumber<V>>(
     private val dominanceIndex = HashMap<DominanceKey, Int>()
     private val relaxedDominanceIndex = HashMap<RelaxedDominanceKey, Int>()
     private val acceptedPlans = ArrayList<CuttingPlan<V>>()
-    private var generatedCandidates = 0L
-    private var infeasibleCandidates = 0L
-    private var duplicateCandidates = 0L
-    private var dominatedCandidates = 0L
-    private var crossContributionDominated = 0L
-    private var widthBoundPrunedNodes = 0L
-    private var knifeBoundPrunedNodes = 0L
-    private var lengthBoundPrunedEntries = 0L
-    private var materialWidthIndexCacheHits = 0L
-    private var materialSliceTemplateCacheHits = 0L
-    private var materialSliceTemplateCacheMisses = 0L
-    private var visitedNodes = 0L
+    private var generatedCandidates = Int64.zero
+    private var infeasibleCandidates = Int64.zero
+    private var duplicateCandidates = Int64.zero
+    private var dominatedCandidates = Int64.zero
+    private var crossContributionDominated = Int64.zero
+    private var widthBoundPrunedNodes = Int64.zero
+    private var knifeBoundPrunedNodes = Int64.zero
+    private var lengthBoundPrunedEntries = Int64.zero
+    private var materialWidthIndexCacheHits = Int64.zero
+    private var materialSliceTemplateCacheHits = Int64.zero
+    private var materialSliceTemplateCacheMisses = Int64.zero
+    private var visitedNodes = Int64.zero
     private var timedOut = false
 
     val plans: List<CuttingPlan<V>> get() = acceptedPlans
 
     fun visitNode() {
-        ++visitedNodes
+        visitedNodes = visitedNodes + Int64.one
     }
 
     fun recordWidthBoundPrunedNode() {
-        ++widthBoundPrunedNodes
+        widthBoundPrunedNodes = widthBoundPrunedNodes + Int64.one
     }
 
     fun recordKnifeBoundPrunedNode() {
-        ++knifeBoundPrunedNodes
+        knifeBoundPrunedNodes = knifeBoundPrunedNodes + Int64.one
     }
 
-    fun recordLengthBoundPrunedEntries(count: Long = 1L) {
-        lengthBoundPrunedEntries += count
+    fun recordLengthBoundPrunedEntries(count: Int64 = Int64.one) {
+        lengthBoundPrunedEntries = lengthBoundPrunedEntries + count
     }
 
     fun recordMaterialWidthIndexCacheHit() {
-        ++materialWidthIndexCacheHits
+        materialWidthIndexCacheHits = materialWidthIndexCacheHits + Int64.one
     }
 
     fun recordMaterialSliceTemplateCacheHit() {
-        ++materialSliceTemplateCacheHits
+        materialSliceTemplateCacheHits = materialSliceTemplateCacheHits + Int64.one
     }
 
     fun recordMaterialSliceTemplateCacheMiss() {
-        ++materialSliceTemplateCacheMisses
+        materialSliceTemplateCacheMisses = materialSliceTemplateCacheMisses + Int64.one
     }
 
     fun shouldStop(): Boolean {
@@ -84,22 +85,22 @@ internal class GenerationCollector<V : RealNumber<V>>(
         if (timedOut) {
             return true
         }
-        if (deadline != null && System.nanoTime() > deadline) {
+        if (deadline != null && System.nanoTime() > deadline.toLong()) {
             timedOut = true
         }
         return timedOut
     }
 
     fun record(plan: CuttingPlan<V>, feasible: Boolean): Boolean {
-        ++generatedCandidates
+        generatedCandidates = generatedCandidates + Int64.one
         if (!feasible) {
-            ++infeasibleCandidates
+            infeasibleCandidates = infeasibleCandidates + Int64.one
             return false
         }
 
         val key = resolveCanonicalKey(plan)
         if (!canonicalKeys.add(key)) {
-            ++duplicateCandidates
+            duplicateCandidates = duplicateCandidates + Int64.one
             return false
         }
 
@@ -108,7 +109,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
         // even when built-in dominance pruning is disabled (the default).
         if (dominanceAcceptOverride != null && !dominanceAcceptOverride(plan, acceptedPlans.toList())) {
             canonicalKeys.remove(key)
-            ++dominatedCandidates
+            dominatedCandidates = dominatedCandidates + Int64.one
             return false
         }
 
@@ -117,12 +118,12 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 DominanceAction.Accept -> {}
                 DominanceAction.Reject -> {
                     canonicalKeys.remove(key)
-                    ++dominatedCandidates
+                    dominatedCandidates = dominatedCandidates + Int64.one
                     return false
                 }
 
                 DominanceAction.Replace -> {
-                    ++dominatedCandidates
+                    dominatedCandidates = dominatedCandidates + Int64.one
                     return true
                 }
             }
@@ -153,7 +154,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
             statistics = CuttingPlanGenerationStatistics(
                 visitedNodes = visitedNodes,
                 generatedCandidates = generatedCandidates,
-                acceptedPlans = acceptedPlans.size,
+                acceptedPlans = Int64(acceptedPlans.size.toLong()),
                 infeasibleCandidates = infeasibleCandidates,
                 duplicateCandidates = duplicateCandidates,
                 dominatedCandidates = dominatedCandidates,
@@ -164,7 +165,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                 materialSliceTemplateCacheHits = materialSliceTemplateCacheHits,
                 materialSliceTemplateCacheMisses = materialSliceTemplateCacheMisses,
                 crossContributionDominated = crossContributionDominated,
-                elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L,
+                elapsedMilliseconds = Int64((System.nanoTime() - startTime) / 1_000_000L),
                 stopReason = stopReason()
             )
         )
@@ -202,7 +203,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
             if (relaxedIndex != null) {
                 val existingPlan = acceptedPlans.getOrNull(relaxedIndex) ?: return DominanceAction.Accept
                 if (canCrossContributionDominate(plan, existingPlan)) {
-                    ++crossContributionDominated
+                    crossContributionDominated = crossContributionDominated + Int64.one
                     return DominanceAction.Reject
                 }
             }
@@ -264,7 +265,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     }
 
     private fun isFull(): Boolean {
-        return acceptedPlans.size >= maxPlans
+        return acceptedPlans.size.toLong() >= maxPlans.toLong()
     }
 
     private fun stopReason(): CuttingPlanGenerationStopReason {

@@ -6,10 +6,15 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
+import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.YieldOverProductionBoundShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.YieldAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 
@@ -29,17 +34,25 @@ class YieldConstraintPipeline<V : RealNumber<V>>(
     private val yield: YieldAggregation<V>,
     private val config: YieldModelingConfig<V>,
     private val demands: List<ProductDemand<V>>
-) : Pipeline<LinearMetaModel<Flt64>> {
+) : CGPipeline<
+        AbstractCsp1dShadowPriceArguments,
+        AbstractLinearMetaModel<Flt64>,
+        AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+        > {
 
     override val name: String = "yield_constraint"
 
-    override fun invoke(model: LinearMetaModel<Flt64>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (config.overProductionUpperBound.isEmpty()) return ok
 
         for ((demandIndex, demand) in demands.withIndex()) {
             val demandKey = YieldAggregation.demandShadowPriceKey(demand)
             val upperBound = config.overProductionUpperBound[demandKey] ?: continue
             val overVar = yield.overProduction.getOrNull(demandIndex) ?: continue
+            val priceKey = YieldOverProductionBoundShadowPriceKey(
+                productId = demandKey.productId,
+                unitSymbol = demandKey.unitSymbol
+            )
 
             model.addConstraint(
                 relation = LinearInequality(
@@ -50,10 +63,27 @@ class YieldConstraintPipeline<V : RealNumber<V>>(
                     rhs = LinearPolynomial(emptyList(), upperBound.toFlt64()),
                     comparison = Comparison.LE
                 ),
+                group = this,
+                args = priceKey,
                 name = "over_production_bound_$demandIndex"
             )
         }
 
         return ok
+    }
+
+    override fun refresh(
+        shadowPriceMap: AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>,
+        model: AbstractLinearMetaModel<Flt64>,
+        shadowPrices: MetaDualSolution
+    ): Try {
+        return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
+    }
+
+    override fun extractor(): ShadowPriceExtractor<
+            AbstractCsp1dShadowPriceArguments,
+            AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+            >? {
+        return { _, _ -> Flt64.zero }
     }
 }

@@ -92,7 +92,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
  * 以及约束中间符号（demandQuantity / materialQuantity / machineBatchQuantity / machineCapacityQuantity）。
  *
  * 支持 MILP 注册和列生成迭代模式（addColumns 原地增量）。
- * 参考 BPP3D ImpreciseAssignment 和 POIT CuttingPlanIterativeProduce 的模式：
+ * 参考 BPP3D ImpreciseAssignment 和 downstream CuttingPlanIterativeProduce 的模式：
  * - 初始注册时创建 x 变量组和中间符号
  * - addColumns 时创建新的 x_$iteration 变量组和 batch_$iteration 中间符号，
  *   并对已有中间符号执行 flush + asMutable 追加新列系数
@@ -101,7 +101,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
  * and constraint intermediate symbols (demandQuantity / materialQuantity / machineBatchQuantity / machineCapacityQuantity).
  *
  * Support MILP registration and column generation iterative mode (addColumns in-place increment).
- * Following the pattern from BPP3D ImpreciseAssignment and POIT CuttingPlanIterativeProduce:
+ * Following the pattern from BPP3D ImpreciseAssignment and downstream CuttingPlanIterativeProduce:
  * - Initial registration creates x variable group and intermediate symbols
  * - addColumns creates new x_$iteration variable group and batch_$iteration intermediate symbols,
  *   and performs flush + asMutable on existing intermediate symbols to append new column coefficients

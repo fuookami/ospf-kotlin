@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo3
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -14,11 +15,11 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Reduc
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.FullSumGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.NSameGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 
 class CSP {
@@ -62,9 +63,9 @@ class CSP {
             )
             configuration(
                 Csp1dConfiguration(
-                    maxInitialPlans = 16,
-                    maxPricingPlans = 32,
-                    iterationLimit = 16
+                    maxInitialPlans = Int64(16),
+                    maxPricingPlans = Int64(32),
+                    iterationLimit = Int64(16)
                 )
             )
         }
@@ -72,14 +73,14 @@ class CSP {
             constraints = GenerationConstraints(
                 maxKnifeCount = UInt64(8UL)
             ),
-            arithmetic = Flt64QuantityArithmetic,
-            maxPlans = 256
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one),
+            maxPlans = Int64(256)
         )
         val solver = Csp1dColumnGeneration(
             solver = ScipColumnGenerationSolver(),
             initialGenerator = NSameGenerator(
-                arithmetic = Flt64QuantityArithmetic,
-                maxPlans = 16
+                arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one),
+                maxPlans = Int64(16)
             ),
             pricingGenerator = ReducedCostPricingGenerator(pricingEnumerator)
         )

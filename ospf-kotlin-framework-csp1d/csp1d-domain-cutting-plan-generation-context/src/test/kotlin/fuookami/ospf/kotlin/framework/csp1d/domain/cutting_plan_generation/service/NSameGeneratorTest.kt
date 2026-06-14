@@ -4,6 +4,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
@@ -15,7 +16,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class NSameGeneratorTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
         return Product(
@@ -183,7 +184,7 @@ class NSameGeneratorTest {
         val report = NSameGenerator(arithmetic = arithmetic).generateWithReport(input)
 
         assertTrue(report.plans.isEmpty())
-        assertEquals(1, report.statistics.infeasibleCandidates)
+        assertEquals(Int64.one, report.statistics.infeasibleCandidates)
     }
 
     @Test
@@ -208,8 +209,8 @@ class NSameGeneratorTest {
         val report = NSameGenerator(arithmetic = arithmetic).generateWithReport(input)
 
         assertEquals(1, report.plans.size)
-        assertEquals(2, report.statistics.generatedCandidates)
-        assertEquals(1, report.statistics.duplicateCandidates)
+        assertEquals(Int64(2), report.statistics.generatedCandidates)
+        assertEquals(Int64.one, report.statistics.duplicateCandidates)
         assertEquals(CuttingPlanGenerationStopReason.Exhausted, report.statistics.stopReason)
     }
 
@@ -242,8 +243,8 @@ class NSameGeneratorTest {
         ).generateWithReport(input)
 
         assertEquals(1, report.plans.size)
-        assertEquals(2, report.statistics.generatedCandidates)
-        assertEquals(1, report.statistics.dominatedCandidates)
+        assertEquals(Int64(2), report.statistics.generatedCandidates)
+        assertEquals(Int64.one, report.statistics.dominatedCandidates)
         assertTrue(report.plans.single().restWidth!! eq Quantity(Flt64.zero, Meter))
     }
 
@@ -265,11 +266,11 @@ class NSameGeneratorTest {
 
         val report = NSameGenerator(
             arithmetic = arithmetic,
-            maxPlans = 1
+            maxPlans = Int64(1)
         ).generateWithReport(input)
 
         assertEquals(1, report.plans.size)
-        assertEquals(1, report.statistics.acceptedPlans)
+        assertEquals(Int64.one, report.statistics.acceptedPlans)
         assertEquals(CuttingPlanGenerationStopReason.MaxPlans, report.statistics.stopReason)
     }
 

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanConstraint
@@ -28,15 +29,15 @@ internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
     if (maxOverProduceLength == null) {
         return GenerationLengthBoundFilterResult(
             widthIndex = this,
-            prunedEntries = 0L
+            prunedEntries = Int64.zero
         )
     }
 
-    var prunedEntries = 0L
+    var prunedEntries = Int64.zero
     val filtered = filter { entry ->
         val accepted = entry.product.fitsGenerationLengthBound(maxOverProduceLength)
         if (!accepted) {
-            ++prunedEntries
+            prunedEntries = prunedEntries + Int64.one
         }
         accepted
     }
@@ -57,5 +58,5 @@ internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
 
 internal data class GenerationLengthBoundFilterResult<V : RealNumber<V>>(
     val widthIndex: GenerationWidthIndex<V>,
-    val prunedEntries: Long
+    val prunedEntries: Int64
 )

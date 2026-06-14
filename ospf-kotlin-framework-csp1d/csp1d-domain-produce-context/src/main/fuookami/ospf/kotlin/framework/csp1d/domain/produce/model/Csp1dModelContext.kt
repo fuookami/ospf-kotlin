@@ -2,15 +2,19 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainCalculationContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
@@ -87,13 +91,11 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
      *
      * 从 LP 松弛的对偶解中提取各约束的影子价格，
      * 用于定价子问题计算 reduced cost。
-     * 通过 CGPipeline refresh / extractor 机制自动提取，
-     * 不再依赖 constraint-name registry。
+     * 通过 CGPipeline refresh / extractor 机制自动提取。
      *
      * Extract shadow prices of each constraint from the LP relaxation dual solution,
      * for use in the pricing sub-problem to compute reduced cost.
-     * Extraction is automatic via CGPipeline refresh / extractor mechanism,
-     * no longer depending on constraint-name registry.
+     * Extraction is automatic via CGPipeline refresh / extractor mechanism.
      *
      * @param model 元模型 / Meta model
      * @param shadowPrices 对偶解 / Dual solution
@@ -153,14 +155,6 @@ enum class Csp1dModelingMode {
     /** 列生成 LP 松弛模式 / Column generation LP relaxation mode */
     LP
 }
-
-/**
- * CSP1D 管线列表类型别名 / CSP1D pipeline list type alias
- *
- * CSP1D 建模管线的有序列表，按注册顺序执行。
- * Ordered list of CSP1D modeling pipelines, executed in registration order.
- */
-typealias Csp1dPipelineList = List<Pipeline<LinearMetaModel<Flt64>>>
 
 /**
  * CSP1D 扩展适用模式 / CSP1D extension applicable mode
@@ -243,25 +237,6 @@ data class Csp1dModelingExtension<V : RealNumber<V>>(
     }
 }
 
-// ===== 结构化扩展上下文 =====
-
-// Domain policy types are defined in csp1d-domain-material-context (Csp1dDomainPolicy.kt)
-// and re-exported here for backward compatibility.
-// 领域策略类型定义在 csp1d-domain-material-context（Csp1dDomainPolicy.kt）中，
-// 此处通过 type alias 重新导出以保持向后兼容。
-
-/** @see fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainCalculationContext */
-typealias Csp1dDomainCalculationContext<V> = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainCalculationContext<V>
-
-/** @see fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext */
-typealias SimpleDomainCalculationContext<V> = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext<V>
-
-/** @see fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy */
-typealias Csp1dDomainPolicy<V> = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy<V>
-
-/** @see fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultCsp1dDomainPolicy */
-typealias DefaultCsp1dDomainPolicy<V> = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultCsp1dDomainPolicy<V>
-
 /**
  * CSP1D 建模上下文 / CSP1D modeling context
  *
@@ -297,11 +272,43 @@ interface Csp1dModelingContext<V : RealNumber<V>> {
     /** 切割方案列表（引用 produce.cuttingPlans）/ Cutting plan list */
     val cuttingPlans: List<CuttingPlan<V>> get() = produce.cuttingPlans
 
-    /** V 样本值，用于 Flt64 → V 显式转换 / V sample value for explicit Flt64 → V conversion */
-    val vSample: V
+    /** 领域数值样本，用于 solver 值显式转换 / Domain value sample for explicit solver value conversion */
+    val domainValueSample: V
 
-    /** Flt64 → V 显式转换 / Explicit Flt64 → V conversion */
-    fun flt64ToV(value: Flt64): V
+    /** 转换为领域数值 / Convert to domain value */
+    fun toDomainValue(value: Flt64): V
+}
+
+/**
+ * CSP1D 增量扩展管线 / CSP1D incremental extension pipeline
+ *
+ * 普通 Pipeline 只描述首次注册。若扩展约束或目标需要在列生成新增列时同步刷新，
+ * 应实现此接口，让 Csp1dProduceContext.addColumns 在同一个主模型上调用。
+ *
+ * Plain Pipeline only describes initial registration. When an extension constraint or
+ * objective must be refreshed for newly generated columns, implement this interface so
+ * Csp1dProduceContext.addColumns can invoke it on the same master model.
+ *
+ * @param V 数值类型 / Numeric value type
+ */
+interface Csp1dIncrementalPipeline<V : RealNumber<V>> : Pipeline<LinearMetaModel<Flt64>> {
+    /**
+     * 新增列后的增量刷新 / Incremental refresh after adding columns
+     *
+     * @param context 建模上下文 / Modeling context
+     * @param iteration 当前迭代号 / Current iteration number
+     * @param newPlans 已完成去重并注册的新增方案 / Newly added plans after deduplication and registration
+     * @param model 元模型 / Meta model
+     * @return 增量刷新结果 / Incremental refresh result
+     */
+    suspend fun addColumns(
+        context: Csp1dModelingContext<V>,
+        iteration: UInt64,
+        newPlans: List<CuttingPlan<V>>,
+        model: AbstractLinearMetaModel<Flt64>
+    ): Ret<List<CuttingPlan<V>>> {
+        return Ok(newPlans)
+    }
 }
 
 /**
@@ -477,13 +484,13 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
  */
 interface Csp1dFlowContext<V : RealNumber<V>> {
     /** 当前迭代号（0-based）/ Current iteration number (0-based) */
-    val iteration: Int
+    val iteration: Int64
 
     /** 当前方案池 / Current plan pool */
     val currentPlans: List<CuttingPlan<V>>
 
     /** 列生成迭代上限 / Column generation iteration limit */
-    val iterationLimit: Int
+    val iterationLimit: Int64
 
     /** 是否允许部分解 / Whether partial solution is allowed */
     val allowPartialSolution: Boolean
@@ -503,7 +510,7 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
      * 非 recovery 场景默认为 0。下游 policy 可据此判断 warm start 可复用方案规模。
      * Default 0 in non-recovery scenarios. Downstream can use this to gauge warm-start reusable plan scale.
      */
-    val warmStartPlanCount: Int get() = 0
+    val warmStartPlanCount: Int64 get() = Int64.zero
 
     /**
      * warm start 是否需要 fallback（recovery 场景可用）/ Whether warm start requires fallback (recovery scenarios)
@@ -740,7 +747,7 @@ interface Csp1dExtractionPolicy<V : RealNumber<V>> {
         materials: List<Material<V>>,
         machines: List<Machine<V>>,
         generatedPlans: List<CuttingPlan<V>>,
-        iterationCount: Int,
+        iterationCount: Int64,
         terminationReason: String?,
         finalMilpStatus: String?,
         pricingStatistics: CuttingPlanGenerationStatistics?

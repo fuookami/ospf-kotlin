@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class CostarFillerTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     private fun product(id: String, width: Quantity<Flt64>): Product<Flt64> {
         return Product(id = id, name = "product-$id", width = listOf(width))

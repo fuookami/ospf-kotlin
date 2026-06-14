@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.quantities.quantity.eq
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class WastingMinimizationContextTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     private fun material(): Material<Flt64> {
         return Material(

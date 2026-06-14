@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
@@ -13,26 +14,26 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     private val repeatWidthCache = HashMap<RepeatWidthKey<V>, Quantity<V>>()
     private val maxRepeatCountCache = HashMap<MaxRepeatCountKey<V>, UInt64>()
 
-    var repeatWidthHits: Long = 0L
+    var repeatWidthHits: Int64 = Int64.zero
         private set
-    var repeatWidthMisses: Long = 0L
+    var repeatWidthMisses: Int64 = Int64.zero
         private set
-    var maxRepeatCountHits: Long = 0L
+    var maxRepeatCountHits: Int64 = Int64.zero
         private set
-    var maxRepeatCountMisses: Long = 0L
+    var maxRepeatCountMisses: Int64 = Int64.zero
         private set
 
-    val totalHits: Long get() = repeatWidthHits + maxRepeatCountHits
-    val totalMisses: Long get() = repeatWidthMisses + maxRepeatCountMisses
+    val totalHits: Int64 get() = repeatWidthHits + maxRepeatCountHits
+    val totalMisses: Int64 get() = repeatWidthMisses + maxRepeatCountMisses
 
     fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         val key = RepeatWidthKey(width, times)
         val existing = repeatWidthCache[key]
         if (existing != null) {
-            ++repeatWidthHits
+            repeatWidthHits = repeatWidthHits + Int64.one
             return existing
         }
-        ++repeatWidthMisses
+        repeatWidthMisses = repeatWidthMisses + Int64.one
         val result = computeRepeatWidth(width, times)
         repeatWidthCache[key] = result
         return result
@@ -42,10 +43,10 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
         val key = MaxRepeatCountKey(width, availableWidth)
         val existing = maxRepeatCountCache[key]
         if (existing != null) {
-            ++maxRepeatCountHits
+            maxRepeatCountHits = maxRepeatCountHits + Int64.one
             return existing
         }
-        ++maxRepeatCountMisses
+        maxRepeatCountMisses = maxRepeatCountMisses + Int64.one
         val result = computeMaxRepeatCount(width, availableWidth)
         maxRepeatCountCache[key] = result
         return result

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
@@ -15,9 +16,9 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatu
 
 internal fun <V : RealNumber<V>> topCuttingPlans(
     plans: List<CuttingPlan<V>>,
-    limit: Int?
+    limit: Int64?
 ): List<CuttingPlan<V>> {
-    if (limit == null || limit <= 0) {
+    if (limit == null || limit.toLong() <= 0L) {
         return emptyList()
     }
     val topK = TopKCuttingPlans<V>(limit)
@@ -53,9 +54,9 @@ internal fun <V : RealNumber<V>> enrichSolution(
     )
     val kpi = solution.kpi.copy(
         topPlanCount = UInt64(topPlans.size),
-        yieldMetricCount = UInt64(yieldMetricCount(solution)),
-        wasteMetricCount = UInt64(wasteMetricCount(solution)),
-        lengthMetricCount = UInt64(lengthMetricCount(solution)),
+        yieldMetricCount = yieldMetricCount(solution),
+        wasteMetricCount = wasteMetricCount(solution),
+        lengthMetricCount = lengthMetricCount(solution),
         details = details
     )
     val renderKpi = LinkedHashMap(solution.render.kpi)
@@ -137,7 +138,7 @@ internal fun <V : RealNumber<V>> enrichSolution(
                     materials = materials,
                     machines = machines,
                     generatedPlans = solution.generatedPlans,
-                    iterationCount = iterationRecords.size,
+                    iterationCount = Int64(iterationRecords.size.toLong()),
                     terminationReason = terminationReason?.name,
                     finalMilpStatus = finalMilpStatus?.name,
                     pricingStatistics = pricingGenerationStatistics
@@ -279,27 +280,27 @@ private fun <V : RealNumber<V>> kpiDetails(
     return details
 }
 
-private fun <V : RealNumber<V>> yieldMetricCount(solution: Csp1dSolution<V>): Int {
-    val result = solution.yieldResult ?: return 0
-    return result.underProductions.size + result.overProductions.size
+private fun <V : RealNumber<V>> yieldMetricCount(solution: Csp1dSolution<V>): UInt64 {
+    val result = solution.yieldResult ?: return UInt64.zero
+    return UInt64(result.underProductions.size) + UInt64(result.overProductions.size)
 }
 
-private fun <V : RealNumber<V>> wasteMetricCount(solution: Csp1dSolution<V>): Int {
-    val result = solution.wasteResult ?: return 0
-    var count = result.materialCosts.size
+private fun <V : RealNumber<V>> wasteMetricCount(solution: Csp1dSolution<V>): UInt64 {
+    val result = solution.wasteResult ?: return UInt64.zero
+    var count = UInt64(result.materialCosts.size)
     if (result.totalTrimWidth != null) {
-        ++count
+        count += UInt64.one
     }
     if (result.totalRestMaterial != null) {
-        ++count
+        count += UInt64.one
     }
     if (result.overProductionArea != null) {
-        ++count
+        count += UInt64.one
     }
     return count
 }
 
-private fun <V : RealNumber<V>> lengthMetricCount(solution: Csp1dSolution<V>): Int {
-    val result = solution.lengthResult ?: return 0
-    return result.assignedLengths.size + result.overLengths.size
+private fun <V : RealNumber<V>> lengthMetricCount(solution: Csp1dSolution<V>): UInt64 {
+    val result = solution.lengthResult ?: return UInt64.zero
+    return UInt64(result.assignedLengths.size) + UInt64(result.overLengths.size)
 }

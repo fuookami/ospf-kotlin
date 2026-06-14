@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPri
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
+import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
@@ -200,11 +200,11 @@ class Csp1dMilpSolver(
 
         // 从 Csp1dProduceContext 获取 CG 管线列表，传入 lifecycle
         // Get CG pipeline list from Csp1dProduceContext, pass to lifecycle
-        val vSample = resolveVSampleForLP(input)
-        val lifecycle = Csp1dShadowPriceLifecycle<V>(vSample, context.cgPipelines)
+        val domainValueSample = resolveDomainValueSampleForLP(input)
+        val lifecycle = Csp1dShadowPriceLifecycle<V>(domainValueSample, context.cgPipelines)
 
-        // 通过 lifecycle 统一提取影子价格（CGPipeline 主路径 + registry fallback）
-        // Extract shadow prices through lifecycle (CGPipeline primary path + registry fallback)
+        // 通过 lifecycle 统一提取影子价格（CGPipeline refresh / extractor）
+        // Extract shadow prices through lifecycle (CGPipeline refresh / extractor)
         val shadowPrices = lifecycle.extractFromDualSolution(model, lpResult.dualSolution)
         return LpResult(
             shadowPrices = shadowPrices,
@@ -218,7 +218,7 @@ class Csp1dMilpSolver(
      * 从 ProduceInput 推导 V 样本值，用于影子价格 Flt64 → V 转换
      * Derive V sample value from ProduceInput for shadow price Flt64 → V conversion
      */
-    private fun <V : RealNumber<V>> resolveVSampleForLP(input: ProduceInput<V>): V {
+    private fun <V : RealNumber<V>> resolveDomainValueSampleForLP(input: ProduceInput<V>): V {
         input.demands.firstOrNull()?.quantity?.value?.let { return it }
         input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return it }
         input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return it }

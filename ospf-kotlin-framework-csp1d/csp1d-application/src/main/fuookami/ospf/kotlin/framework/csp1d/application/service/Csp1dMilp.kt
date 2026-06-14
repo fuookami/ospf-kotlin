@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
@@ -57,9 +58,9 @@ class Csp1dMilp<V : RealNumber<V>>(
             solveConfig = solveConfig
         )
         val domainPolicies = resolvedConfig.extensionSet.domainPolicies
-        val vSample = problem.demands.firstOrNull()?.quantity?.value
+        val domainValueSample = problem.demands.firstOrNull()?.quantity?.value
             ?: problem.materials.firstOrNull()?.widthRange?.upperBound?.value
-        val widthCheck = if (vSample != null) widthFeasibilityCheckFromPolicies(domainPolicies, vSample) else null
+        val widthCheck = if (domainValueSample != null) widthFeasibilityCheckFromPolicies(domainPolicies, domainValueSample) else null
         val generatedPlans = initialPlans(
             problem = problem,
             configuration = resolvedConfig.columnGeneration,
@@ -146,7 +147,7 @@ class Csp1dMilp<V : RealNumber<V>>(
         flowPolicies: List<fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy<V>> = emptyList(),
         widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): List<CuttingPlan<V>> {
-        if (configuration.maxInitialPlans <= 0) {
+        if (configuration.maxInitialPlans.toLong() <= 0L) {
             return emptyList()
         }
         val report = initialGenerator.generateWithReport(
@@ -169,11 +170,11 @@ class Csp1dMilp<V : RealNumber<V>>(
             if (customKey != null) fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
         }
         val generatedPlans = report.plans.distinctBy { resolveCanonicalKey(it) }
-            .take(configuration.maxInitialPlans)
+            .take(configuration.maxInitialPlans.toInt())
         // Apply flow policy initial plan filter with context
         return if (flowPolicies.isNotEmpty()) {
             val flowContext = object : fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext<V> {
-                override val iteration = 0
+                override val iteration = Int64.zero
                 override val currentPlans: List<CuttingPlan<V>> = generatedPlans
                 override val iterationLimit = configuration.iterationLimit
                 override val allowPartialSolution = true

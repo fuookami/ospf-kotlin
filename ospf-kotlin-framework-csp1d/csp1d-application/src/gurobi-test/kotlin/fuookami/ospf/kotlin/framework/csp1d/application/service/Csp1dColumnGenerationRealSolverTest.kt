@@ -7,6 +7,7 @@ import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
@@ -85,9 +86,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
 
@@ -119,7 +120,7 @@ class Csp1dColumnGenerationRealSolverTest {
         // 验证迭代记录 / Verify iteration records
         if (trace.iterations.isNotEmpty()) {
             for (record in trace.iterations) {
-                assertTrue(record.planCountBefore > 0, "Plan count before should be positive")
+                assertTrue(record.planCountBefore > Int64.zero, "Plan count before should be positive")
                 assertTrue(record.planCountAfter >= record.planCountBefore, "Plan count should not decrease")
                 // LP 目标值应 ≥ 0（最小化批次） / LP objective should be >= 0 (minimizing batches)
                 assertTrue(
@@ -187,9 +188,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = p3, rollAmount = Flt64(12.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
 
@@ -218,7 +219,7 @@ class Csp1dColumnGenerationRealSolverTest {
                 record.lpObjective >= Flt64.zero,
                 "LP objective should be non-negative in iteration ${record.iteration}: ${record.lpObjective}"
             )
-            assertTrue(record.iteration >= 0, "Iteration number should be non-negative")
+            assertTrue(record.iteration >= Int64.zero, "Iteration number should be non-negative")
         }
 
         // 验证 pricing 轮次中 pricedPlanCount 与 iteration records 对应 / Verify pricedPlanCount matches iteration records
@@ -257,9 +258,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -363,9 +364,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -430,9 +431,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -458,8 +459,8 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(2, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         val packedUsage = result.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == packedPlan.id
         }
@@ -505,9 +506,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -534,8 +535,8 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(2, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         assertTrue(result.solution.produce.unmetDemands.isEmpty(), "Column-generation recovery should meet demand")
         val packedUsage = result.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == packedPlan.id
@@ -576,9 +577,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val seedSolution = Csp1dMilp<Flt64>(
@@ -621,8 +622,8 @@ class Csp1dColumnGenerationRealSolverTest {
         assertEquals(Csp1dWarmStartStatus.Applied, firstResult.trace.warmStartStatus)
         assertEquals(Csp1dRecoveryStatus.Solved, secondResult.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, secondResult.trace.warmStartStatus)
-        assertEquals(1, secondResult.trace.appliedWarmStartPlanCount)
-        assertEquals(1, secondResult.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, secondResult.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, secondResult.trace.appliedWarmStartUsageCount)
         val packedUsage = secondResult.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == packedPlan.id
         }
@@ -673,9 +674,9 @@ class Csp1dColumnGenerationRealSolverTest {
             machines = listOf(machine),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -711,8 +712,8 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         val usage = result.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == plan.id
         }
@@ -800,9 +801,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -826,9 +827,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -848,9 +849,9 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(2, result.trace.warmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64(2), result.trace.warmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartUsageCount)
         assertTrue(result.solution.generatedPlans.none { it.id == stalePlan.id })
         val rollUsage = result.solution.produce.cuttingPlans.firstOrNull {
             it.plan.id == rollPlan.id
@@ -968,9 +969,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -1008,9 +1009,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -1048,9 +1049,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -1083,9 +1084,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacySheet(product = p2, sheetAmount = Flt64(3.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
 
@@ -1129,9 +1130,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(5.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 10
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(10)
             )
         )
 
@@ -1209,9 +1210,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(4.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -1644,9 +1645,9 @@ class Csp1dColumnGenerationRealSolverTest {
             machines = emptyList(),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -1699,9 +1700,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = p2, rollAmount = Flt64(5.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -1775,9 +1776,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = fixedProduct, rollAmount = Flt64(3.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -2182,9 +2183,9 @@ class Csp1dColumnGenerationRealSolverTest {
                 ProductDemand.legacyRoll(product = fixedProduct, rollAmount = Flt64(4.0))
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 64,
-                maxPricingPlans = 16,
-                iterationLimit = 8
+                maxInitialPlans = Int64(64),
+                maxPricingPlans = Int64(16),
+                iterationLimit = Int64(8)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(

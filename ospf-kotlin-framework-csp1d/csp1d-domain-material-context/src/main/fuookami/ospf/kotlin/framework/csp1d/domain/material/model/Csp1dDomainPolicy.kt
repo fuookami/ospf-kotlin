@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
@@ -37,11 +36,11 @@ interface Csp1dDomainCalculationContext<V : RealNumber<V>> {
     /** 方案需求贡献 / Plan demand contributions */
     val demandContributions: List<CuttingPlanDemandContribution<V>> get() = plan.demandContributions
 
-    /** V 样本值 / V sample value */
-    val vSample: V
+    /** 领域数值样本 / Domain value sample */
+    val domainValueSample: V
 
-    /** Flt64 → V 显式转换 / Explicit Flt64 → V conversion */
-    fun flt64ToV(value: Flt64): V
+    /** 转换为领域数值 / Convert to domain value */
+    fun toDomainValue(value: Flt64): V
 
     /** 计算指定产品的需求贡献量 / Compute demand contribution for specified product */
     fun contributionFor(productId: String): Flt64?
@@ -59,16 +58,15 @@ interface Csp1dDomainCalculationContext<V : RealNumber<V>> {
 data class SimpleDomainCalculationContext<V : RealNumber<V>>(
     override val plan: CuttingPlan<V>,
     override val planIndex: Int = 0,
-    override val vSample: V,
-    private val flt64ToVFn: (Flt64) -> V = { value -> solverValueLike(vSample, value) }
+    override val domainValueSample: V,
+    private val domainValueConverter: (Flt64) -> V = { value -> convertSolverValue(domainValueSample, value) }
 ) : Csp1dDomainCalculationContext<V> {
-    override fun flt64ToV(value: Flt64): V = flt64ToVFn(value)
+    override fun toDomainValue(value: Flt64): V = domainValueConverter(value)
 
     override fun contributionFor(productId: String): Flt64? {
         return plan.demandContributions.find { it.product.id == productId }?.quantity?.value?.toFlt64()
     }
 }
-
 /**
  * CSP1D 领域策略接口 / CSP1D domain policy interface
  *
@@ -187,12 +185,12 @@ fun <V : RealNumber<V>> allWidthFeasible(
  *
  * @param V 数值类型 / Numeric value type
  * @param domainPolicies 领域策略列表 / Domain policy list
- * @param vSample V 样本值 / V sample value
+ * @param domainValueSample 领域数值样本 / Domain value sample
  * @return 宽度可行性判断函数，或 null 表示使用默认逻辑 / Width feasibility check function, or null for default logic
  */
 fun <V : RealNumber<V>> widthFeasibilityCheckFromPolicies(
     domainPolicies: List<Csp1dDomainPolicy<V>>,
-    vSample: V
+    domainValueSample: V
 ): ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? {
     val widthOverridingPolicies = domainPolicies.filter { it.overridesWidthFeasibility }
     if (widthOverridingPolicies.isEmpty()) return null
@@ -207,17 +205,8 @@ fun <V : RealNumber<V>> widthFeasibilityCheckFromPolicies(
                 demandContributions = emptyList()
             ),
             planIndex = -1,
-            vSample = vSample
+            domainValueSample = domainValueSample
         )
         allWidthFeasible(widthOverridingPolicies, ctx)
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
-    return when (sample) {
-        is Flt64 -> value as V
-        is FltX -> value.toFltX() as V
-        else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
     }
 }

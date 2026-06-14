@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -29,7 +30,6 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
@@ -39,11 +39,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.YieldOverProductionBoundShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
@@ -193,9 +195,9 @@ class Csp1dCgLifecycleTest {
             costars = emptyList(),
             demands = listOf(ProductDemand.legacyRoll(product, Flt64(6.0))),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 16,
-                maxPricingPlans = 4,
-                iterationLimit = 3
+                maxInitialPlans = Int64(16),
+                maxPricingPlans = Int64(4),
+                iterationLimit = Int64(3)
             )
         )
     }
@@ -222,7 +224,7 @@ class Csp1dCgLifecycleTest {
      */
     @Test
     fun flowPolicyShouldStopIterationTerminatesEarly(): Unit = runBlocking {
-        val stopAtIteration = 1
+        val stopAtIteration = Int64.one
         val customFlowPolicy = object : Csp1dFlowPolicy<Flt64> {
             override val name = "stop-at-1"
             override fun shouldStopIteration(context: Csp1dFlowContext<Flt64>): Boolean {
@@ -245,7 +247,7 @@ class Csp1dCgLifecycleTest {
 
         // The CG loop should have stopped at or before iteration 1 due to flow policy
         assertTrue(
-            result.trace.iterations.size <= stopAtIteration + 1,
+            result.trace.iterations.size <= stopAtIteration.toInt() + 1,
             "Expected early stop at iteration $stopAtIteration, but got ${result.trace.iterations.size} iterations"
         )
     }
@@ -261,7 +263,7 @@ class Csp1dCgLifecycleTest {
         val customFlowPolicy = object : Csp1dFlowPolicy<Flt64> {
             override val name = "custom-termination"
             override fun shouldStopIteration(context: Csp1dFlowContext<Flt64>): Boolean {
-                return context.iteration >= 0
+                return context.iteration >= Int64.zero
             }
             override fun selectTermination(
                 context: Csp1dFlowContext<Flt64>,
@@ -369,7 +371,7 @@ class Csp1dCgLifecycleTest {
                 materials: List<Material<Flt64>>,
                 machines: List<Machine<Flt64>>,
                 generatedPlans: List<CuttingPlan<Flt64>>,
-                iterationCount: Int,
+                iterationCount: Int64,
                 terminationReason: String?,
                 finalMilpStatus: String?,
                 pricingStatistics: CuttingPlanGenerationStatistics?
@@ -443,7 +445,7 @@ class Csp1dCgLifecycleTest {
                 materials: List<Material<Flt64>>,
                 machines: List<Machine<Flt64>>,
                 generatedPlans: List<CuttingPlan<Flt64>>,
-                iterationCount: Int,
+                iterationCount: Int64,
                 terminationReason: String?,
                 finalMilpStatus: String?,
                 pricingStatistics: CuttingPlanGenerationStatistics?
@@ -470,33 +472,16 @@ class Csp1dCgLifecycleTest {
     // ===== Shadow Price Lifecycle Tests =====
 
     /**
-     * 验证 Csp1dShadowPriceLifecycle 正确提取影子价格并填充两级映射
-     * Verify Csp1dShadowPriceLifecycle correctly extracts shadow prices and populates both maps
+     * 验证 Csp1dShadowPriceLifecycle 持有统一影子价格表并执行显式数值转换
+     * Verify Csp1dShadowPriceLifecycle owns the unified shadow price map and converts values explicitly
      */
     @Test
-    fun shadowPriceLifecycleExtractsAndPopulatesBothMaps() {
-        val vSample = Flt64(1.0)
-        val lifecycle = Csp1dShadowPriceLifecycle(vSample)
+    fun shadowPriceLifecycleOwnsMapAndConvertsDualValues() {
+        val domainValueSample = Flt64(1.0)
+        val lifecycle = Csp1dShadowPriceLifecycle(domainValueSample)
 
-        // Register constraint name → shadow price key mappings
-        val demandKey = ProductDemandShadowPriceKey("prod-1", "roll")
-        val materialKey = MaterialUsageShadowPriceKey("mat-1")
-        val machineKey = MachineBatchShadowPriceKey("machine-1")
-        lifecycle.registry["demand_0"] = demandKey
-        lifecycle.registry["material_0"] = materialKey
-        lifecycle.registry["machine_batch_0"] = machineKey
-
-        // Create a mock dual solution with Flt64 values
-        // Since we can't easily create real Constraint objects, test the registry and conversion
-        assertEquals(demandKey, lifecycle.registry["demand_0"])
-        assertEquals(materialKey, lifecycle.registry["material_0"])
-        assertEquals(machineKey, lifecycle.registry["machine_batch_0"])
-
-        // Test Flt64 → V conversion
         val converted = lifecycle.convertDualValue(Flt64(3.14))
         assertEquals(Flt64(3.14), converted)
-
-        // Verify framework map is initialized
         assertNotNull(lifecycle.frameworkShadowPriceMap)
     }
 
@@ -506,7 +491,7 @@ class Csp1dCgLifecycleTest {
      */
     @Test
     fun shadowPriceLifecycleWorksWithCGPipelineProduceContext(): Unit = runBlocking {
-        val vSample = Flt64(1.0)
+        val domainValueSample = Flt64(1.0)
 
         val product = product("p-sp", 1.0)
         val material = material("m-sp", 0.5, 2.0)
@@ -538,7 +523,7 @@ class Csp1dCgLifecycleTest {
         assertTrue(hasDemandPipeline, "CG pipeline list should contain demand_constraint pipeline")
 
         // Create lifecycle with CG pipelines from context
-        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(vSample, context.cgPipelines)
+        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(domainValueSample, context.cgPipelines)
 
         // Verify framework map is initialized
         assertNotNull(lifecycle.frameworkShadowPriceMap)
@@ -646,7 +631,7 @@ class Csp1dCgLifecycleTest {
                 materials: List<Material<Flt64>>,
                 machines: List<Machine<Flt64>>,
                 generatedPlans: List<CuttingPlan<Flt64>>,
-                iterationCount: Int,
+                iterationCount: Int64,
                 terminationReason: String?,
                 finalMilpStatus: String?,
                 pricingStatistics: CuttingPlanGenerationStatistics?
@@ -844,7 +829,7 @@ class Csp1dCgLifecycleTest {
             ): Boolean {
                 // Verify context carries warm start info
                 assertTrue(
-                    context.warmStartPlanCount >= 0,
+                    context.warmStartPlanCount >= Int64.zero,
                     "warmStartPlanCount should be non-negative"
                 )
                 return false
@@ -989,12 +974,12 @@ class Csp1dCgLifecycleTest {
     }
 
     /**
-     * 验证 Csp1dShadowPriceLifecycle 通过 CGPipeline 优先提取影子价格
-     * Verify Csp1dShadowPriceLifecycle prioritizes CGPipeline extraction over registry
+     * 验证 Csp1dShadowPriceLifecycle 通过 CGPipeline 提取影子价格
+     * Verify Csp1dShadowPriceLifecycle extracts shadow prices through CGPipeline
      */
     @Test
-    fun lifecyclePrioritizesCGPipelineOverRegistry(): Unit = runBlocking {
-        val vSample = Flt64(1.0)
+    fun lifecycleUsesCGPipelineShadowPricePath(): Unit = runBlocking {
+        val domainValueSample = Flt64(1.0)
         val product = product("p-priority", 1.0)
         val material = material("m-priority", 0.5, 2.0)
         val plan = simpleCuttingPlan(product, material, Flt64(1.0))
@@ -1011,19 +996,9 @@ class Csp1dCgLifecycleTest {
             .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.LP)
             .build()
 
-        // 同时配置 CGPipeline 主路径和 registry fallback / Configure both CGPipeline primary path and registry fallback
-        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(vSample, context.cgPipelines)
-        @Suppress("DEPRECATION")
-        lifecycle.registry["demand_0"] = ProductDemandShadowPriceKey("p-priority", "roll")
+        val lifecycle = Csp1dShadowPriceLifecycle<Flt64>(domainValueSample, context.cgPipelines)
 
-        // 验证 CGPipeline 主路径存在 / Verify CGPipeline primary path exists
         assertTrue(context.cgPipelines.isNotEmpty())
-
-        // 验证 registry fallback 可用 / Verify registry fallback is available
-        @Suppress("DEPRECATION")
-        assertTrue(lifecycle.registry.isNotEmpty())
-
-        // 验证 lifecycle 持有统一影子价格表 / Verify lifecycle owns the unified shadow price map
         assertNotNull(lifecycle.frameworkShadowPriceMap)
     }
 
@@ -1062,9 +1037,79 @@ class Csp1dCgLifecycleTest {
         val priceKey = MaterialUsageShadowPriceKey("m-ext")
         mockMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(priceKey, Flt64(5.0)))
         // 直接验证 extractor 计算，避免测试依赖通用 sumOf 的伴生对象 fallback。
-        // Verify extractor directly to avoid relying on generic sumOf companion fallback in tests.
+        // Verify extractor directly to avoid relying on broad sumOf companion fallback in tests.
         val args = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCuttingPlanShadowPriceArguments(plan)
         val contribution = extractor!!(mockMap, args)
         assertEquals(Flt64(5.0), contribution, "Material extractor should return material shadow price")
+    }
+
+    /**
+     * 验证 yield 超产上限通过 CGPipeline 注册和刷新影子价格
+     * Verify yield over-production bound uses CGPipeline registration and shadow price refresh
+     */
+    @Test
+    fun yieldCGPipelineRegistersBoundKeyAndRefreshesShadowPrice(): Unit = runBlocking {
+        val product = product("p-yield", 1.0)
+        val material = material("m-yield", 0.5, 2.0)
+        val plan = simpleCuttingPlan(product, material, Flt64(1.0))
+        val demand = ProductDemand.legacyRoll(product, Flt64(3.0))
+        val demandKey = ProductDemandShadowPriceKey(
+            productId = product.id,
+            unitSymbol = RollCountUnit.symbol ?: RollCountUnit.toString()
+        )
+
+        val input = fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput<Flt64>(
+            cuttingPlans = listOf(plan),
+            demands = listOf(demand),
+            materials = listOf(material),
+            machines = emptyList()
+        )
+
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode.MILP)
+            .yieldConfig(YieldModelingConfig(overProductionUpperBound = mapOf(demandKey to Flt64(1.0))))
+            .build()
+
+        val model = LinearMetaModel(
+            name = "test_yield_cg_refresh",
+            converter = fuookami.ospf.kotlin.core.solver.value.IntoValue.Identity
+        )
+        context.register(model)
+
+        val yieldPipeline = context.cgPipelines.find { it.name == "yield_constraint" }
+        assertNotNull(yieldPipeline, "Yield constraint should be registered as a CG pipeline")
+        assertTrue(
+            context.constraintPipelines.none { it.name == "yield_constraint" },
+            "Yield constraint should not stay in plain constraint pipelines"
+        )
+
+        val yieldConstraint = model.constraintsOfGroup(yieldPipeline!!).firstOrNull {
+            it.args is YieldOverProductionBoundShadowPriceKey
+        }
+        assertNotNull(yieldConstraint, "Yield bound constraint should carry a shadow price key")
+        val key = yieldConstraint.args as YieldOverProductionBoundShadowPriceKey
+        assertEquals("p-yield", key.productId)
+        assertEquals(RollCountUnit.symbol ?: RollCountUnit.toString(), key.unitSymbol)
+
+        val frameworkMap = Csp1dDefaultShadowPriceMap()
+        val refreshResult = yieldPipeline.refresh(
+            shadowPriceMap = frameworkMap,
+            model = model,
+            shadowPrices = MetaDualSolution(
+                constraints = mapOf(yieldConstraint to Flt64(2.0)),
+                symbols = emptyMap()
+            )
+        )
+        assertEquals(fuookami.ospf.kotlin.utils.functional.ok, refreshResult)
+        assertEquals(Flt64(2.0), frameworkMap[key]?.price)
+
+        val extractor = yieldPipeline.extractor()
+        assertNotNull(extractor, "Yield CG pipeline should expose an extractor")
+        val args = fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCuttingPlanShadowPriceArguments(plan)
+        assertEquals(
+            Flt64.zero,
+            extractor!!(frameworkMap, args),
+            "Yield bound shadow price is tracked for lifecycle diagnostics and has no pricing benefit contribution"
+        )
     }
 }

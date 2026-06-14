@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -22,7 +23,7 @@ data class GenerationConstraints<V : RealNumber<V>>(
     val maxKnifeCount: UInt64? = null,
     val minKnifeCount: UInt64? = null,
     val maxOverProduceLength: Quantity<V>? = null,
-    val parallelism: Int = 1,
+    val parallelism: Int64 = Int64.one,
     val enableDominancePruning: Boolean = false,
     val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) {

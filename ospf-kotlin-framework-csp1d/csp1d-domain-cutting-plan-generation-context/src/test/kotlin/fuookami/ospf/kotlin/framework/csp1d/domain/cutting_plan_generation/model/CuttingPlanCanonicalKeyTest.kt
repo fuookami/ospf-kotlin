@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
@@ -82,7 +82,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand2.quantity
                 )
             ),
-            arithmetic = Flt64QuantityArithmetic
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
         )
         val second = CuttingPlan(
             id = "second",
@@ -109,7 +109,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand1.quantity
                 )
             ),
-            arithmetic = Flt64QuantityArithmetic
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
         )
 
         assertEquals(
@@ -186,7 +186,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand.quantity
                 )
             ),
-            arithmetic = Flt64QuantityArithmetic
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
         )
     }
 }

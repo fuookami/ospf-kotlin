@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
@@ -101,10 +102,10 @@ data class Csp1dRecoveryInput<V : RealNumber<V>>(
 data class Csp1dRecoveryTrace(
     val status: Csp1dRecoveryStatus,
     val warmStartStatus: Csp1dWarmStartStatus,
-    val attemptCount: Int,
-    val warmStartPlanCount: Int = 0,
-    val appliedWarmStartPlanCount: Int = 0,
-    val appliedWarmStartUsageCount: Int = 0,
+    val attemptCount: Int64,
+    val warmStartPlanCount: Int64 = Int64.zero,
+    val appliedWarmStartPlanCount: Int64 = Int64.zero,
+    val appliedWarmStartUsageCount: Int64 = Int64.zero,
     val message: String? = null
 )
 
@@ -149,8 +150,8 @@ data class Csp1dWarmStartAdapterInput<V : RealNumber<V>>(
 data class Csp1dWarmStartAdapterResult<V : RealNumber<V>>(
     val initialGenerator: Csp1dInitialCuttingPlanGenerator<V>?,
     val initialPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
-    val appliedPlanCount: Int = 0,
-    val appliedUsageCount: Int = initialPlanUsages.size,
+    val appliedPlanCount: Int64 = Int64.zero,
+    val appliedUsageCount: Int64 = Int64(initialPlanUsages.size.toLong()),
     val message: String? = null
 )
 
@@ -180,8 +181,6 @@ fun interface Csp1dWarmStartAdapter<V : RealNumber<V>> {
                 Csp1dWarmStartAdapterResult(
                     initialGenerator = null,
                     initialPlanUsages = emptyList(),
-                    appliedPlanCount = 0,
-                    appliedUsageCount = 0,
                     message = "Warm start adapter is not configured"
                 )
             }
@@ -212,8 +211,8 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
                 input.cuttingPlans + fallbackPlans
             },
             initialPlanUsages = initialPlanUsages,
-            appliedPlanCount = input.cuttingPlans.size,
-            appliedUsageCount = initialPlanUsages.size,
+            appliedPlanCount = Int64(input.cuttingPlans.size.toLong()),
+            appliedUsageCount = Int64(initialPlanUsages.size.toLong()),
             message = "Warm start cutting plan pool was applied as initial plan pool"
         )
     }
@@ -296,7 +295,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
         val allowFallback = if (csp1dRequiresFallback(warmStart.status) && effectiveFlowPolicies.isNotEmpty()) {
             val flowCtx = csp1dRecoveryFlowContext(
                 input = input,
-                warmStartPlanCount = warmStart.plans.size,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
                 warmStartRequiresFallback = csp1dRequiresFallback(warmStart.status)
             )
             allowRecoveryFallbackByPolicies(effectiveFlowPolicies, flowCtx, input.options.retryWithoutWarmStart)
@@ -306,7 +305,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
         if (csp1dRequiresFallback(warmStart.status) && !allowFallback) {
             val trace = csp1dFallbackDisabledTrace(
                 status = warmStart.status,
-                planCount = warmStart.plans.size
+                planCount = Int64(warmStart.plans.size.toLong())
             )
             throw Csp1dRecoveryFallbackDisabledException(
                 message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
@@ -330,10 +329,10 @@ class Csp1dRecovery<V : RealNumber<V>>(
             val trace = Csp1dRecoveryTrace(
                 status = Csp1dRecoveryStatus.SolveFailed,
                 warmStartStatus = warmStart.status,
-                attemptCount = 1,
-                warmStartPlanCount = warmStart.plans.size,
-                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                attemptCount = Int64.one,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: Int64.zero,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = error.message ?: "Recovery solve failed"
             )
             throw Csp1dRecoverySolveException(
@@ -352,10 +351,10 @@ class Csp1dRecovery<V : RealNumber<V>>(
             trace = Csp1dRecoveryTrace(
                 status = status,
                 warmStartStatus = warmStart.status,
-                attemptCount = 1,
-                warmStartPlanCount = warmStart.plans.size,
-                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                attemptCount = Int64.one,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: Int64.zero,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
             )
         )
@@ -430,7 +429,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
         val allowFallback = if (csp1dRequiresFallback(warmStart.status) && effectiveFlowPolicies.isNotEmpty()) {
             val flowCtx = csp1dRecoveryFlowContext(
                 input = input,
-                warmStartPlanCount = warmStart.plans.size,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
                 warmStartRequiresFallback = csp1dRequiresFallback(warmStart.status)
             )
             allowRecoveryFallbackByPolicies(effectiveFlowPolicies, flowCtx, input.options.retryWithoutWarmStart)
@@ -440,7 +439,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
         if (csp1dRequiresFallback(warmStart.status) && !allowFallback) {
             val trace = csp1dFallbackDisabledTrace(
                 status = warmStart.status,
-                planCount = warmStart.plans.size
+                planCount = Int64(warmStart.plans.size.toLong())
             )
             throw Csp1dRecoveryFallbackDisabledException(
                 message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
@@ -469,10 +468,10 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
             val trace = Csp1dRecoveryTrace(
                 status = Csp1dRecoveryStatus.SolveFailed,
                 warmStartStatus = warmStart.status,
-                attemptCount = 1,
-                warmStartPlanCount = warmStart.plans.size,
-                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                attemptCount = Int64.one,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: Int64.zero,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = error.message ?: "Column generation recovery solve failed"
             )
             throw Csp1dRecoverySolveException(
@@ -491,10 +490,10 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
             trace = Csp1dRecoveryTrace(
                 status = status,
                 warmStartStatus = warmStart.status,
-                attemptCount = 1,
-                warmStartPlanCount = warmStart.plans.size,
-                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: 0,
-                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: 0,
+                attemptCount = Int64.one,
+                warmStartPlanCount = Int64(warmStart.plans.size.toLong()),
+                appliedWarmStartPlanCount = warmStart.adapterResult?.appliedPlanCount ?: Int64.zero,
+                appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
             )
         )
@@ -629,15 +628,15 @@ private fun csp1dWarmStartMessage(status: Csp1dWarmStartStatus): String? {
 
 private fun csp1dFallbackDisabledTrace(
     status: Csp1dWarmStartStatus,
-    planCount: Int
+    planCount: Int64
 ): Csp1dRecoveryTrace {
     return Csp1dRecoveryTrace(
         status = Csp1dRecoveryStatus.FallbackDisabled,
         warmStartStatus = status,
-        attemptCount = 0,
+        attemptCount = Int64.zero,
         warmStartPlanCount = planCount,
-        appliedWarmStartPlanCount = 0,
-        appliedWarmStartUsageCount = 0,
+        appliedWarmStartPlanCount = Int64.zero,
+        appliedWarmStartUsageCount = Int64.zero,
         message = csp1dFallbackDisabledMessage(status)
     )
 }
@@ -670,14 +669,14 @@ private fun <V : RealNumber<V>> csp1dRecoveryFlowPolicies(
 
 private fun <V : RealNumber<V>> csp1dRecoveryFlowContext(
     input: Csp1dRecoveryInput<V>,
-    warmStartPlanCount: Int,
+    warmStartPlanCount: Int64,
     warmStartRequiresFallback: Boolean = false
 ): Csp1dFlowContext<V> {
     val config = input.solveConfig ?: input.problem.solveConfig
     return object : Csp1dFlowContext<V> {
-        override val iteration = 0
+        override val iteration = Int64.zero
         override val currentPlans: List<CuttingPlan<V>> = emptyList()
-        override val iterationLimit = config?.columnGeneration?.iterationLimit ?: 0
+        override val iterationLimit = config?.columnGeneration?.iterationLimit ?: Int64.zero
         override val allowPartialSolution = config?.allowPartialSolution ?: true
         override val warmStartPlanCount = warmStartPlanCount
         override val warmStartRequiresFallback = warmStartRequiresFallback

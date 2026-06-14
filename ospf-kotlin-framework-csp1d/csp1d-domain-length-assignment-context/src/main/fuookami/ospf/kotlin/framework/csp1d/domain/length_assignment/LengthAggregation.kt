@@ -2,13 +2,13 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.convertSolverValue
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
@@ -100,7 +100,7 @@ class LengthAggregation<V : RealNumber<V>>(
                 if (doubleValue != null && doubleValue >= 0.0) {
                     assignedLengths.add(ModeledAssignedLength(
                         productId = demand.product.id,
-                        assignedLength = solverValueLike(demand.quantity.value, Flt64(doubleValue))
+                        assignedLength = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
                     ))
                 }
             }
@@ -111,7 +111,7 @@ class LengthAggregation<V : RealNumber<V>>(
                 if (doubleValue != null && doubleValue > 0.0) {
                     overLengths.add(ModeledOverLength(
                         productId = demand.product.id,
-                        overLength = solverValueLike(demand.quantity.value, Flt64(doubleValue))
+                        overLength = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
                     ))
                 }
             }
@@ -123,12 +123,4 @@ class LengthAggregation<V : RealNumber<V>>(
         )
     }
 
-    @Suppress("UNCHECKED_CAST")
-    private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
-        return when (sample) {
-            is Flt64 -> value as V
-            is FltX -> value.toFltX() as V
-            else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
-        }
-    }
 }

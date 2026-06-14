@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.eq
@@ -200,7 +201,7 @@ class Csp1dApplicationAcceptanceTest {
     private val fakeSolver = Csp1dFakeSolver()
 
     @Test
-    fun milpShouldSolveRollDemandWithoutPoitDependency(): Unit = runBlocking {
+    fun milpShouldSolveRollDemandWithoutDownstreamDependency(): Unit = runBlocking {
         val product = product(
             id = "p-roll",
             width = 1.2
@@ -228,9 +229,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -272,19 +273,19 @@ class Csp1dApplicationAcceptanceTest {
             )
             configuration(
                 Csp1dConfiguration(
-                    maxInitialPlans = 1,
-                    maxPricingPlans = 1,
-                    iterationLimit = 1
+                    maxInitialPlans = Int64(1),
+                    maxPricingPlans = Int64(1),
+                    iterationLimit = Int64(1)
                 )
             )
             solveConfig {
                 columnGeneration(
-                    maxInitialPlans = 8,
-                    maxPricingPlans = 1,
-                    iterationLimit = 1
+                    maxInitialPlans = Int64(8),
+                    maxPricingPlans = Int64(1),
+                    iterationLimit = Int64(1)
                 )
                 lengthConfig(lengthConfig)
-                topKPlanLimit(1)
+                topKPlanLimit(Int64(1))
             }
         }
 
@@ -336,9 +337,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 32,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(32),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
 
@@ -541,9 +542,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -588,9 +589,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 8,
-                iterationLimit = 4
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(4)
             )
         )
         val lengthConfig = LengthAssignmentModelingConfig<Flt64>(
@@ -649,9 +650,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 8,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(1)
             )
         )
         val columnGeneration = Csp1dColumnGeneration(
@@ -708,9 +709,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 8,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(1)
             )
         )
         val columnGeneration = Csp1dColumnGeneration(
@@ -725,8 +726,8 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(UInt64.one, result.trace.initialPlanCount)
         assertEquals(UInt64.one, result.trace.finalPlanCount)
         val pricingStatistics = assertNotNull(result.trace.pricingGenerationStatistics)
-        assertEquals(1L, pricingStatistics.generatedCandidates)
-        assertEquals(1, pricingStatistics.acceptedPlans)
+        assertEquals(Int64.one, pricingStatistics.generatedCandidates)
+        assertEquals(Int64.one, pricingStatistics.acceptedPlans)
     }
 
     /**
@@ -772,9 +773,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 1,
-                maxPricingPlans = 8,
-                iterationLimit = 1
+                maxInitialPlans = Int64(1),
+                maxPricingPlans = Int64(8),
+                iterationLimit = Int64(1)
             )
         )
         val columnGeneration = Csp1dColumnGeneration(
@@ -796,8 +797,8 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dTerminationReason.PricingConverged, result.trace.terminationReason)
         val statistics = result.trace.initialGenerationStatistics
         assertNotNull(statistics)
-        assertEquals(3, statistics.generatedCandidates)
-        assertEquals(3, statistics.acceptedPlans)
+        assertEquals(Int64(3), statistics.generatedCandidates)
+        assertEquals(Int64(3), statistics.acceptedPlans)
     }
 
     /**
@@ -844,18 +845,18 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 1,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(1),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
             columnGeneration = Csp1dConfiguration(
-                maxInitialPlans = 2,
-                maxPricingPlans = 3,
-                iterationLimit = 1
+                maxInitialPlans = Int64(2),
+                maxPricingPlans = Int64(3),
+                iterationLimit = Int64(1)
             ),
-            topKPlanLimit = 1
+            topKPlanLimit = Int64(1)
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
             solver = fakeSolver,
@@ -934,9 +935,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -949,11 +950,11 @@ class Csp1dApplicationAcceptanceTest {
             problem = problem,
             solveConfig = Csp1dSolveConfig<Flt64>(
                 columnGeneration = Csp1dConfiguration(
-                    maxInitialPlans = 8,
-                    maxPricingPlans = 1,
-                    iterationLimit = 1
+                    maxInitialPlans = Int64(8),
+                    maxPricingPlans = Int64(1),
+                    iterationLimit = Int64(1)
                 ),
-                topKPlanLimit = 1,
+                topKPlanLimit = Int64(1),
                 allowPartialSolution = true
             )
         )
@@ -1002,9 +1003,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -1017,9 +1018,9 @@ class Csp1dApplicationAcceptanceTest {
             problem = problem,
             solveConfig = Csp1dSolveConfig<Flt64>(
                 columnGeneration = Csp1dConfiguration(
-                    maxInitialPlans = 8,
-                    maxPricingPlans = 1,
-                    iterationLimit = 1
+                    maxInitialPlans = Int64(8),
+                    maxPricingPlans = Int64(1),
+                    iterationLimit = Int64(1)
                 ),
                 allowPartialSolution = false
             )
@@ -1061,9 +1062,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -1078,9 +1079,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.attemptCount)
-        assertEquals(1, result.trace.warmStartPlanCount)
-        assertEquals(0, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.attemptCount)
+        assertEquals(Int64.one, result.trace.warmStartPlanCount)
+        assertEquals(Int64.zero, result.trace.appliedWarmStartPlanCount)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 
@@ -1115,9 +1116,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -1137,9 +1138,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.warmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartPlanCount)
-        assertEquals(0, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, result.trace.warmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.zero, result.trace.appliedWarmStartUsageCount)
         assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
@@ -1230,9 +1231,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -1257,8 +1258,8 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
@@ -1307,9 +1308,9 @@ class Csp1dApplicationAcceptanceTest {
             machines = listOf(machine),
             demands = listOf(demand),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solveConfig = Csp1dSolveConfig<Flt64>(
@@ -1326,7 +1327,7 @@ class Csp1dApplicationAcceptanceTest {
                 dynamicProductIds = setOf(product.id),
                 overLengthPenalty = mapOf(product.id to Flt64(3.0))
             ),
-            topKPlanLimit = 1
+            topKPlanLimit = Int64(1)
         )
         val previousSolution = Csp1dMilp<Flt64>(
             solver = fakeSolver,
@@ -1356,8 +1357,8 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         val machineUsage = assertNotNull(
             result.solution.produce.machineUsages.firstOrNull { usage -> usage.machine.id == machine.id }?.used,
@@ -1442,9 +1443,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -1468,9 +1469,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val solver = Csp1dInitialResultCapturingSolver()
@@ -1491,9 +1492,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(2, result.trace.warmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64(2), result.trace.warmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartUsageCount)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_1"]!!)
         assertTrue(result.solution.generatedPlans.none { it.id == stalePlan.id })
@@ -1536,9 +1537,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -1614,9 +1615,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -1644,9 +1645,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(2, result.trace.warmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartPlanCount)
-        assertEquals(2, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64(2), result.trace.warmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64(2), result.trace.appliedWarmStartUsageCount)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_1"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
@@ -1683,9 +1684,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val seedSolution = Csp1dMilp<Flt64>(
@@ -1729,8 +1730,8 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals(Csp1dWarmStartStatus.Applied, firstResult.trace.warmStartStatus)
         assertEquals(Csp1dRecoveryStatus.Solved, secondResult.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, secondResult.trace.warmStartStatus)
-        assertEquals(1, secondResult.trace.appliedWarmStartPlanCount)
-        assertEquals(1, secondResult.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, secondResult.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, secondResult.trace.appliedWarmStartUsageCount)
         assertTrue(Flt64.one eq solver.lastInitialResults["x_0_0"]!!)
         assertEquals(Csp1dSolutionStatus.Feasible, secondResult.solution.status)
     }
@@ -1766,9 +1767,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
         val previousSolution = Csp1dMilp<Flt64>(
@@ -1789,7 +1790,7 @@ class Csp1dApplicationAcceptanceTest {
                 problem = problem,
                 solveConfig = Csp1dSolveConfig(
                     columnGeneration = problem.configuration,
-                    topKPlanLimit = 1,
+                    topKPlanLimit = Int64(1),
                     allowPartialSolution = true
                 ),
                 warmStart = Csp1dWarmStart(
@@ -1800,8 +1801,8 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.appliedWarmStartPlanCount)
-        assertEquals(1, result.trace.appliedWarmStartUsageCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.one, result.trace.appliedWarmStartUsageCount)
         assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
         assertTrue(result.solution.failureMessage?.contains("MILP") == true)
         assertTrue(result.solution.generatedPlans.any { it.id == warmStartPlan.id })
@@ -1837,9 +1838,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -1852,7 +1853,7 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Ignored, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.attemptCount)
+        assertEquals(Int64.one, result.trace.attemptCount)
         assertEquals(Csp1dSolutionStatus.Feasible, result.solution.status)
     }
 
@@ -1892,9 +1893,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -1943,9 +1944,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -1973,7 +1974,7 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
         assertEquals(Csp1dWarmStartStatus.Invalid, error.trace.warmStartStatus)
-        assertEquals(0, error.trace.attemptCount)
+        assertEquals(Int64.zero, error.trace.attemptCount)
     }
 
     /**
@@ -2007,9 +2008,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -2031,9 +2032,9 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
         assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, error.trace.warmStartStatus)
-        assertEquals(0, error.trace.attemptCount)
-        assertEquals(1, error.trace.warmStartPlanCount)
-        assertEquals(0, error.trace.appliedWarmStartPlanCount)
+        assertEquals(Int64.zero, error.trace.attemptCount)
+        assertEquals(Int64.one, error.trace.warmStartPlanCount)
+        assertEquals(Int64.zero, error.trace.appliedWarmStartPlanCount)
     }
 
     /**
@@ -2062,9 +2063,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 1
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(1)
             )
         )
 
@@ -2080,7 +2081,7 @@ class Csp1dApplicationAcceptanceTest {
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
-        assertEquals(1, result.trace.attemptCount)
+        assertEquals(Int64.one, result.trace.attemptCount)
         assertEquals(Csp1dSolutionStatus.Failed, result.solution.status)
     }
 
@@ -2115,9 +2116,9 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8,
-                maxPricingPlans = 1,
-                iterationLimit = 3
+                maxInitialPlans = Int64(8),
+                maxPricingPlans = Int64(1),
+                iterationLimit = Int64(3)
             )
         )
         val columnGeneration = Csp1dColumnGeneration<Flt64>(
@@ -2167,7 +2168,7 @@ class Csp1dApplicationAcceptanceTest {
                 )
             ),
             configuration = Csp1dConfiguration(
-                maxInitialPlans = 8
+                maxInitialPlans = Int64(8)
             )
         )
         val milp = Csp1dMilp<Flt64>(

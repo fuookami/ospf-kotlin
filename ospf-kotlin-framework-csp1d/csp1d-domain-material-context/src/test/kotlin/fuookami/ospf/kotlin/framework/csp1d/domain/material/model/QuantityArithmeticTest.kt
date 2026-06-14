@@ -1,7 +1,5 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -14,7 +12,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 class QuantityArithmeticTest {
     @Test
     fun flt64AddAndSubtract() {
-        val arith = Flt64QuantityArithmetic
+        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one)
         val a = Quantity(Flt64(3.0), Meter)
         val b = Quantity(Flt64(2.0), Meter)
 
@@ -27,7 +25,7 @@ class QuantityArithmeticTest {
 
     @Test
     fun fltXAddAndSubtract() {
-        val arith = FltXQuantityArithmetic
+        val arith = DefaultQuantityArithmetic.resolveFor(FltX.one)
         val a = Quantity(FltX("3.0"), Kilogram)
         val b = Quantity(FltX("1.5"), Kilogram)
 
@@ -39,38 +37,8 @@ class QuantityArithmeticTest {
     }
 
     @Test
-    fun resolveForFlt64ReturnsFlt64Arithmetic() {
-        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one)
-        assertEquals(Flt64QuantityArithmetic, arith)
-    }
-
-    @Test
-    fun resolveForFltXReturnsFltXArithmetic() {
-        val arith = DefaultQuantityArithmetic.resolveFor(FltX.one)
-        assertEquals(FltXQuantityArithmetic, arith)
-    }
-
-    @Test
-    fun resolveForUnsupportedTypeThrows() {
-        // Test that an unsupported type throws
-        // We use a mock-like approach: RealNumber is abstract, so we test with known types only
-        val arithFlt64 = DefaultQuantityArithmetic.resolveFor(Flt64.zero)
-        assertTrue(arithFlt64 is Flt64QuantityArithmetic)
-    }
-
-    @Test
-    @Suppress("DEPRECATION_ERROR")
-    fun resolveIsDeprecatedWithErrorLevel() {
-        // Verify that resolve() has ERROR deprecation level
-        // This test confirms the API is no longer usable without suppression
-        val arith = DefaultQuantityArithmetic.resolve<Flt64>()
-        // If we get here, the suppression worked; verify the fallback
-        assertTrue(arith is Flt64QuantityArithmetic)
-    }
-
-    @Test
     fun zeroCreatesCorrectQuantity() {
-        val arith = Flt64QuantityArithmetic
+        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one)
         val zero = arith.zero(Meter)
         assertTrue(zero eq Quantity(Flt64.zero, Meter))
     }

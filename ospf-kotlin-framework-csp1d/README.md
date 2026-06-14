@@ -2,7 +2,7 @@
 
 [中文](README_ch.md)
 
-`ospf-kotlin-framework-csp1d` is a reusable one-dimensional cutting stock framework. It keeps the generic CSP1D kernel in this repository and leaves downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection to business adapters.
+`ospf-kotlin-framework-csp1d` is a reusable one-dimensional cutting stock framework. It keeps the reusable CSP1D kernel in this repository and leaves downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection to business adapters.
 
 ## Boundary
 
@@ -14,7 +14,7 @@ The current public model is limited to entities already expressed by `csp1d-doma
 - `CuttingPlanSlice`, `CuttingPlan`
 - demand contribution, render DTOs, and the currently integrated yield, waste, and length assignment contexts
 
-POIT-specific concepts such as defects, segmentation, position constraints, `unitBatch`, material-level costar attributes, business DTO protocols, and formula languages are not modeled here until they first become generic domain entities.
+Downstream-specific concepts such as defects, segmentation, position constraints, `unitBatch`, material-level costar attributes, business DTO protocols, and formula languages are not modeled here until they first become general domain entities.
 
 ## Basic Use
 
@@ -111,7 +111,7 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 Extensions propagate through all solve paths: plain MILP, column-generation LP master and final MILP, and recovery/partial fallback MILP. The default empty `extensions` list preserves backward compatibility.
 
-`Csp1dProduceContext.addColumns` implements true in-place incremental column generation: `ProduceAggregation.addColumns()` creates `x_$iteration` variable groups and `batch_$iteration` intermediate symbol groups, flushes intermediate symbols via `flush+asMutable` so constraints automatically include new column coefficients, and appends objective terms. Since constraint pipelines reference intermediate symbols (not x variables directly), addColumns only needs to flush intermediate symbols without refreshing constraints. Extension pipelines are not refreshed here; they use rebuild mode or `Csp1dModelingExtension.addColumns()` (to be supported after CGPipeline migration).
+`Csp1dColumnGeneration` keeps one LP master model during the pricing loop and calls `Csp1dProduceContext.addColumns` in place after each accepted pricing batch. `ProduceAggregation.addColumns()` creates `x_$iteration` variable groups and `batch_$iteration` intermediate symbol groups, flushes intermediate symbols via `flush+asMutable` so constraints automatically include new column coefficients, and appends objective terms. Built-in constraint pipelines reference intermediate symbols instead of x variables directly; extension pipelines that also need incremental refresh can implement `Csp1dIncrementalPipeline`. The returned plan list is chained through incremental pipelines and becomes the confirmed plan set appended to the column-generation pool.
 
 ## Extension Policies
 
@@ -132,13 +132,13 @@ Extraction policies receive `Produce<V>`, demands, materials, machines, generate
 
 ## Shadow Price Lifecycle
 
-LP shadow price extraction is managed through `Csp1dShadowPriceLifecycle<V>`, which prioritizes CGPipeline-based extraction and falls back to constraint-name registry for non-CGPipeline constraints.
+LP shadow price extraction is managed through `Csp1dShadowPriceLifecycle<V>`, which uses the CGPipeline refresh / extractor mechanism.
 
-The three main constraint pipelines — `DemandConstraintPipeline`, `MaterialConstraintPipeline`, and `MachineConstraintPipeline` — implement `Csp1dCGPipeline` (the CSP1D specialization of `CGPipeline<Args, Model, Map>`). During model construction, each constraint is registered with `constraint.args = Csp1dShadowPriceKey` (e.g., `ProductDemandShadowPriceKey`, `MaterialUsageShadowPriceKey`, `MachineBatchShadowPriceKey`, `MachineCapacityShadowPriceKey`). After LP solve, `Csp1dShadowPriceLifecycle` calls each CGPipeline's `refresh` method, which uses `model.constraintsOfGroup(this)` to find the pipeline's constraints and extracts dual values via `constraint.args` — no constraint-name lookup needed.
+The built-in non-length constraint pipelines — `DemandConstraintPipeline`, `MaterialConstraintPipeline`, `MachineConstraintPipeline`, and `YieldConstraintPipeline` — implement `CGPipeline<Args, Model, Map>` directly. During model construction, each shadow-price-aware constraint is registered with `constraint.args = Csp1dShadowPriceKey` (e.g., `ProductDemandShadowPriceKey`, `MaterialUsageShadowPriceKey`, `MachineBatchShadowPriceKey`, `MachineCapacityShadowPriceKey`, `YieldOverProductionBoundShadowPriceKey`). After LP solve, `Csp1dShadowPriceLifecycle` calls each CGPipeline's `refresh` method, which uses `model.constraintsOfGroup(this)` to find the pipeline's constraints and extracts dual values via `constraint.args` — no constraint-name lookup needed.
 
-Each CGPipeline also implements `extractor()`, which computes the reduced cost contribution for a given cutting plan by looking up shadow prices from `AbstractCsp1dShadowPriceMap`. This allows the framework to compute pricing benefits directly from the shadow price map without external key resolution.
+Each CGPipeline also implements `extractor()`, which computes the reduced cost contribution for a given cutting plan by looking up shadow prices from `AbstractCsp1dShadowPriceMap`. Yield over-production bounds participate in the same refresh lifecycle but return an explicit zero reduced-cost contribution, because the bound constrains aggregate yield slack rather than an individual cutting plan benefit. Length-assignment remains the plain `Pipeline` exception and does not register length shadow price keys.
 
-The lifecycle populates both the framework-compatible `AbstractCsp1dShadowPriceMap` (for downstream CGPipeline consumers) and the lightweight `ShadowPriceMap<V>` (for pricing). LP dual values are converted with explicit `Flt64 → V` conversion instead of direct generic casts. The constraint-name registry is retained as a `@Deprecated` fallback for extension pipelines that are plain `Pipeline` (not `CGPipeline`).
+The lifecycle populates both the framework-compatible `AbstractCsp1dShadowPriceMap` (for downstream CGPipeline consumers) and the lightweight `ShadowPriceMap<V>` (for pricing). LP dual values are converted through the explicit domain-value converter instead of direct casts. Plain extension pipelines that need pricing shadow prices should be modeled as CGPipeline-based extensions.
 
 ## Outputs
 

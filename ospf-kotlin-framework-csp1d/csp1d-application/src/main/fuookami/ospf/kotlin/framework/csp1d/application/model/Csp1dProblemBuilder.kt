@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
@@ -201,7 +202,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
     private var yieldConfigValue: YieldModelingConfig<V>? = null
     private var wasteConfigValue: WasteMinimizationConfig<V>? = null
     private var lengthConfigValue: LengthAssignmentModelingConfig<V>? = null
-    private var topKPlanLimitValue: Int? = null
+    private var topKPlanLimitValue: Int64? = null
     private var allowPartialSolutionValue: Boolean = true
     private val extensionsBuffer = ArrayList<Csp1dModelingExtension<V>>()
     private val domainPolicyBuffer = ArrayList<Csp1dDomainPolicy<V>>()
@@ -229,9 +230,9 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      * @param iterationLimit 迭代上限 / Iteration limit
      */
     fun columnGeneration(
-        maxInitialPlans: Int,
-        maxPricingPlans: Int,
-        iterationLimit: Int
+        maxInitialPlans: Int64,
+        maxPricingPlans: Int64,
+        iterationLimit: Int64
     ): Csp1dSolveConfigBuilder<V> {
         columnGenerationValue = Csp1dConfiguration(
             maxInitialPlans = maxInitialPlans,
@@ -276,7 +277,7 @@ class Csp1dSolveConfigBuilder<V : RealNumber<V>> {
      *
      * @param limit Top-K 方案上限 / Top-K plan limit
      */
-    fun topKPlanLimit(limit: Int?): Csp1dSolveConfigBuilder<V> {
+    fun topKPlanLimit(limit: Int64?): Csp1dSolveConfigBuilder<V> {
         topKPlanLimitValue = limit
         return this
     }

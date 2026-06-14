@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation
 import java.util.Comparator
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -108,23 +109,23 @@ enum class CuttingPlanGenerationStopReason {
  * @property stopReason 终止原因 / Stop reason
  */
 data class CuttingPlanGenerationStatistics(
-    val visitedNodes: Long = 0L,
-    val generatedCandidates: Long = 0L,
-    val acceptedPlans: Int = 0,
-    val infeasibleCandidates: Long = 0L,
-    val duplicateCandidates: Long = 0L,
-    val dominatedCandidates: Long = 0L,
-    val widthBoundPrunedNodes: Long = 0L,
-    val knifeBoundPrunedNodes: Long = 0L,
-    val lengthBoundPrunedEntries: Long = 0L,
-    val materialWidthIndexCacheHits: Long = 0L,
-    val materialSliceTemplateCacheHits: Long = 0L,
-    val quantityCacheHits: Long = 0L,
-    val quantityCacheMisses: Long = 0L,
-    val materialSliceTemplateCacheMisses: Long = 0L,
-    val crossWorkerDuplicateCandidates: Long = 0L,
-    val crossContributionDominated: Long = 0L,
-    val elapsedMilliseconds: Long = 0L,
+    val visitedNodes: Int64 = Int64.zero,
+    val generatedCandidates: Int64 = Int64.zero,
+    val acceptedPlans: Int64 = Int64.zero,
+    val infeasibleCandidates: Int64 = Int64.zero,
+    val duplicateCandidates: Int64 = Int64.zero,
+    val dominatedCandidates: Int64 = Int64.zero,
+    val widthBoundPrunedNodes: Int64 = Int64.zero,
+    val knifeBoundPrunedNodes: Int64 = Int64.zero,
+    val lengthBoundPrunedEntries: Int64 = Int64.zero,
+    val materialWidthIndexCacheHits: Int64 = Int64.zero,
+    val materialSliceTemplateCacheHits: Int64 = Int64.zero,
+    val quantityCacheHits: Int64 = Int64.zero,
+    val quantityCacheMisses: Int64 = Int64.zero,
+    val materialSliceTemplateCacheMisses: Int64 = Int64.zero,
+    val crossWorkerDuplicateCandidates: Int64 = Int64.zero,
+    val crossContributionDominated: Int64 = Int64.zero,
+    val elapsedMilliseconds: Int64 = Int64.zero,
     val stopReason: CuttingPlanGenerationStopReason = CuttingPlanGenerationStopReason.Exhausted
 )
 
@@ -156,22 +157,22 @@ data class CuttingPlanGenerationStatistics(
  */
 data class CuttingPlanGenerationBenchmarkSnapshot(
     val generatorName: String,
-    val visitedNodes: Long,
-    val generatedCandidates: Long,
-    val acceptedPlans: Int,
-    val infeasibleCandidates: Long,
-    val duplicateCandidates: Long,
-    val dominatedCandidates: Long,
-    val widthBoundPrunedNodes: Long,
-    val knifeBoundPrunedNodes: Long,
-    val lengthBoundPrunedEntries: Long,
-    val materialWidthIndexCacheHits: Long,
-    val materialSliceTemplateCacheHits: Long,
-    val quantityCacheHits: Long,
-    val quantityCacheMisses: Long,
-    val materialSliceTemplateCacheMisses: Long,
-    val crossWorkerDuplicateCandidates: Long,
-    val crossContributionDominated: Long,
+    val visitedNodes: Int64,
+    val generatedCandidates: Int64,
+    val acceptedPlans: Int64,
+    val infeasibleCandidates: Int64,
+    val duplicateCandidates: Int64,
+    val dominatedCandidates: Int64,
+    val widthBoundPrunedNodes: Int64,
+    val knifeBoundPrunedNodes: Int64,
+    val lengthBoundPrunedEntries: Int64,
+    val materialWidthIndexCacheHits: Int64,
+    val materialSliceTemplateCacheHits: Int64,
+    val quantityCacheHits: Int64,
+    val quantityCacheMisses: Int64,
+    val materialSliceTemplateCacheMisses: Int64,
+    val crossWorkerDuplicateCandidates: Int64,
+    val crossContributionDominated: Int64,
     val stopReason: CuttingPlanGenerationStopReason
 ) {
     /**
@@ -276,9 +277,9 @@ fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
         return CuttingPlanGenerationReport(
             plans = plans,
             statistics = CuttingPlanGenerationStatistics(
-                generatedCandidates = plans.size.toLong(),
-                acceptedPlans = plans.size,
-                elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L
+                generatedCandidates = Int64(plans.size.toLong()),
+                acceptedPlans = Int64(plans.size.toLong()),
+                elapsedMilliseconds = Int64((System.nanoTime() - startTime) / 1_000_000L)
             )
         )
     }
@@ -354,9 +355,9 @@ fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
         return CuttingPlanGenerationReport(
             plans = plans,
             statistics = CuttingPlanGenerationStatistics(
-                generatedCandidates = plans.size.toLong(),
-                acceptedPlans = plans.size,
-                elapsedMilliseconds = (System.nanoTime() - startTime) / 1_000_000L
+                generatedCandidates = Int64(plans.size.toLong()),
+                acceptedPlans = Int64(plans.size.toLong()),
+                elapsedMilliseconds = Int64((System.nanoTime() - startTime) / 1_000_000L)
             )
         )
     }
@@ -372,7 +373,7 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
         val domainPolicies = input.domainPolicies
         val candidateFilters = input.candidateFilters
         val widthCheck = input.widthFeasibilityCheck
-        val vSample = input.demands.firstOrNull()?.quantity?.value
+        val domainValueSample = input.demands.firstOrNull()?.quantity?.value
             ?: input.materials.firstOrNull()?.widthRange?.upperBound?.value
             ?: return emptyList()
         val plans = ArrayList<CuttingPlan<V>>()
@@ -408,7 +409,7 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
                         val ctx = SimpleDomainCalculationContext(
                             plan = plan,
                             planIndex = plans.size,
-                            vSample = vSample
+                            domainValueSample = domainValueSample
                         )
                         if (!allFeasible(domainPolicies, ctx) || !allWidthFeasible(domainPolicies, ctx)) {
                             continue
@@ -439,7 +440,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
         val domainPolicies = input.generationInput.domainPolicies
         val candidateFilters = input.generationInput.candidateFilters
         val widthCheck = input.generationInput.widthFeasibilityCheck
-        val vSample = input.generationInput.demands.firstOrNull()?.quantity?.value
+        val domainValueSample = input.generationInput.demands.firstOrNull()?.quantity?.value
             ?: input.generationInput.materials.firstOrNull()?.widthRange?.upperBound?.value
             ?: return emptyList()
         val pricedPlans = ArrayList<CuttingPlan<V>>()
@@ -488,7 +489,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
                     val ctx = SimpleDomainCalculationContext(
                         plan = plan,
                         planIndex = pricedPlans.size,
-                        vSample = vSample
+                        domainValueSample = domainValueSample
                     )
                     if (!allFeasible(domainPolicies, ctx) || !allWidthFeasible(domainPolicies, ctx)) {
                         continue
@@ -587,7 +588,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         return report.copy(
             plans = pricedPlans,
             statistics = report.statistics.copy(
-                acceptedPlans = pricedPlans.size
+                acceptedPlans = Int64(pricedPlans.size.toLong())
             )
         )
     }

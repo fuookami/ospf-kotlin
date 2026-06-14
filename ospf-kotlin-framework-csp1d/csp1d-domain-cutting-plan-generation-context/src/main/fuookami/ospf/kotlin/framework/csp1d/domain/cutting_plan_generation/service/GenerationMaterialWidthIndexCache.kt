@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
@@ -46,6 +47,6 @@ internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
 
     private data class CachedWidthIndex<V : RealNumber<V>>(
         val widthIndex: GenerationWidthIndex<V>,
-        val lengthBoundPrunedEntries: Long
+        val lengthBoundPrunedEntries: Int64
     )
 }

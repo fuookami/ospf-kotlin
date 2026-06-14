@@ -4,13 +4,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
@@ -21,7 +22,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class GeneratorParallelismTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     @Test
     fun parallelGeneratorsShouldKeepCanonicalForms() {
@@ -62,49 +63,49 @@ class GeneratorParallelismTest {
         )
         val parallelConstraints = GenerationConstraints<Flt64>(
             maxKnifeCount = UInt64(4UL),
-            parallelism = 2
+            parallelism = Int64(2)
         )
 
         val generators = listOf(
             DFSGenerator(
                 constraints = sequentialConstraints,
                 arithmetic = arithmetic,
-                maxPlans = 256
+                maxPlans = Int64(256)
             ) to DFSGenerator(
                 constraints = parallelConstraints,
                 arithmetic = arithmetic,
-                maxPlans = 256
+                maxPlans = Int64(256)
             ),
             NSumGenerator(
                 constraints = sequentialConstraints,
                 arithmetic = arithmetic,
                 maxDepth = UInt64(4UL),
-                maxPlans = 256
+                maxPlans = Int64(256)
             ) to NSumGenerator(
                 constraints = parallelConstraints,
                 arithmetic = arithmetic,
                 maxDepth = UInt64(4UL),
-                maxPlans = 256
+                maxPlans = Int64(256)
             ),
             NSameGenerator(
                 constraints = sequentialConstraints,
                 arithmetic = arithmetic,
                 allAmount = true,
-                maxPlans = 256
+                maxPlans = Int64(256)
             ) to NSameGenerator(
                 constraints = parallelConstraints,
                 arithmetic = arithmetic,
                 allAmount = true,
-                maxPlans = 256
+                maxPlans = Int64(256)
             ),
             FullSumGenerator(
                 constraints = sequentialConstraints,
                 arithmetic = arithmetic,
-                maxPlans = 256
+                maxPlans = Int64(256)
             ) to FullSumGenerator(
                 constraints = parallelConstraints,
                 arithmetic = arithmetic,
-                maxPlans = 256
+                maxPlans = Int64(256)
             )
         )
 
@@ -127,7 +128,7 @@ class GeneratorParallelismTest {
 
         assertTrue(sequentialReport.plans.isNotEmpty())
         assertEquals(canonicalForms(sequentialReport.plans), canonicalForms(parallelReport.plans))
-        assertEquals(parallelReport.plans.size, parallelReport.statistics.acceptedPlans)
+        assertEquals(Int64(parallelReport.plans.size.toLong()), parallelReport.statistics.acceptedPlans)
     }
 
     private fun canonicalForms(plans: List<CuttingPlan<Flt64>>): Set<Any> {

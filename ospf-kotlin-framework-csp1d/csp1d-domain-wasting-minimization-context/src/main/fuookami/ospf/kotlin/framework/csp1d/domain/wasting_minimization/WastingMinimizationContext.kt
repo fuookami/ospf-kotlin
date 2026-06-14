@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
@@ -50,7 +51,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
             val restWidth = plan.restWidth ?: continue
 
             // 计入批次数倍数 / Account for batch multiplier
-            val batchRestWidth = repeatQuantity(restWidth, usage.amount.toULong())
+            val batchRestWidth = repeatQuantity(restWidth, usage.amount)
             restWidthWastes.add(RestWidthWaste(plan = plan, restWidth = batchRestWidth))
             totalRestWidth = if (totalRestWidth == null) {
                 batchRestWidth
@@ -63,7 +64,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
             if (materialLength != null) {
                 val batchRestMaterial = repeatQuantity(
                     multiplyQuantities(restWidth, materialLength),
-                    usage.amount.toULong()
+                    usage.amount
                 )
                 restMaterialWastes.add(
                     RestMaterialWaste(plan = plan, restMaterial = batchRestMaterial)
@@ -84,10 +85,12 @@ class WastingMinimizationContext<V : RealNumber<V>>(
         )
     }
 
-    private fun repeatQuantity(q: Quantity<V>, times: ULong): Quantity<V> {
+    private fun repeatQuantity(q: Quantity<V>, times: UInt64): Quantity<V> {
         var result = Quantity(q.value.constants.zero, q.unit)
-        for (i in 0UL until times) {
+        var count = UInt64.zero
+        while (count < times) {
             result = arithmetic.add(result, q)
+            count += UInt64.one
         }
         return result
     }

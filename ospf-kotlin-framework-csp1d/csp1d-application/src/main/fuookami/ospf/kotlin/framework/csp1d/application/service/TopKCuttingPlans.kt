@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import java.util.PriorityQueue
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.toFlt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 
@@ -12,10 +14,10 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
  * @property limit 保留上限 / Top-K limit
  */
 class TopKCuttingPlans<V : RealNumber<V>>(
-    private val limit: Int
+    private val limit: Int64
 ) {
-    private val comparator = compareBy<CuttingPlan<V>> { plan ->
-        plan.usedWidth?.value?.toFlt64()?.toDouble() ?: Double.NEGATIVE_INFINITY
+    private val comparator = Comparator<CuttingPlan<V>> { left, right ->
+        compareScore(left.usedWidth?.value?.toFlt64(), right.usedWidth?.value?.toFlt64())
     }
     private val heap = PriorityQueue(comparator)
 
@@ -25,10 +27,10 @@ class TopKCuttingPlans<V : RealNumber<V>>(
      * @param plan 切割方案 / Cutting plan
      */
     fun offer(plan: CuttingPlan<V>) {
-        if (limit <= 0) {
+        if (limit.toLong() <= 0L) {
             return
         }
-        if (heap.size < limit) {
+        if (heap.size.toLong() < limit.toLong()) {
             heap.offer(plan)
             return
         }
@@ -58,5 +60,15 @@ class TopKCuttingPlans<V : RealNumber<V>>(
     fun toSortedList(): List<CuttingPlan<V>> {
         return heap.toList().sortedWith(comparator.reversed())
     }
-}
 
+    private fun compareScore(left: Flt64?, right: Flt64?): Int {
+        return when {
+            left == null && right == null -> 0
+            left == null -> -1
+            right == null -> 1
+            left < right -> -1
+            left > right -> 1
+            else -> 0
+        }
+    }
+}

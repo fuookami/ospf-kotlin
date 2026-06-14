@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Reduc
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
@@ -82,7 +82,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine()
         val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         val generationInput = CuttingPlanGenerationInput(
@@ -111,7 +111,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine()
         val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         val generationInput = CuttingPlanGenerationInput(
@@ -149,7 +149,7 @@ class ReducedCostPricingGeneratorTest {
             ProductDemand.roll(p1, Quantity(Flt64(5.0), RollCountUnit)),
             ProductDemand.roll(p2, Quantity(Flt64(3.0), RollCountUnit))
         )
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         val generationInput = CuttingPlanGenerationInput(
@@ -258,7 +258,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine()
         val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         // 先生成初始方案作为 existing plans / Generate initial plans to use as existing plans
@@ -304,7 +304,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine()
         val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         val initialInput = CuttingPlanGenerationInput(
@@ -351,7 +351,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine()
         val demand = ProductDemand.roll(p, Quantity(Flt64(5.0), RollCountUnit))
-        val enumerator = NSameGenerator<Flt64>(arithmetic = Flt64QuantityArithmetic)
+        val enumerator = NSameGenerator<Flt64>(arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one))
         val generator = ReducedCostPricingGenerator(enumerator)
 
         val generationInput = CuttingPlanGenerationInput(

@@ -4,6 +4,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -14,7 +15,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Cutti
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStopReason
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.DominanceStrategy
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Flt64QuantityArithmetic
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
@@ -24,7 +25,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
 
 class GeneratorMediumScaleBaselineTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     @Test
     fun generatorsShouldReportMediumScaleBaselineStatistics() {
@@ -54,12 +55,12 @@ class GeneratorMediumScaleBaselineTest {
         )
         val constraints = GenerationConstraints<Flt64>(
             maxKnifeCount = UInt64(5UL),
-            parallelism = 2,
+            parallelism = Int64(2),
             enableDominancePruning = true
         )
         val generatorCases = generatorCases(
             constraints = constraints,
-            maxPlans = 512,
+            maxPlans = Int64(512),
             nSumDepth = UInt64(5UL)
         )
 
@@ -80,7 +81,7 @@ class GeneratorMediumScaleBaselineTest {
             assertTrue(report.plans.size <= 512, "${case.name} should respect maxPlans")
         }
         assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
-        assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
+        assertTrue(snapshots.values.all { it.acceptedPlans > Int64.zero })
         assertEquals(
             listOf(
                 "generator=DFS;visitedNodes=685;generatedCandidates=405;acceptedPlans=405;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=421;quantityCacheMisses=265;materialSliceTemplateCacheMisses=3;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
@@ -134,12 +135,12 @@ class GeneratorMediumScaleBaselineTest {
         )
         val constraints = GenerationConstraints<Flt64>(
             maxKnifeCount = UInt64(4UL),
-            parallelism = 2,
+            parallelism = Int64(2),
             enableDominancePruning = true
         )
         val generatorCases = generatorCases(
             constraints = constraints,
-            maxPlans = 384,
+            maxPlans = Int64(384),
             nSumDepth = UInt64(4UL)
         )
 
@@ -160,7 +161,7 @@ class GeneratorMediumScaleBaselineTest {
             assertTrue(report.plans.size <= 384, "${case.name} should respect maxPlans")
         }
         assertTrue(snapshots.keys == setOf("DFS", "NSum", "NSame", "FullSum"))
-        assertTrue(snapshots.values.all { it.acceptedPlans > 0 })
+        assertTrue(snapshots.values.all { it.acceptedPlans > Int64.zero })
         assertEquals(
             listOf(
                 "generator=DFS;visitedNodes=100;generatedCandidates=59;acceptedPlans=59;infeasibleCandidates=0;duplicateCandidates=0;dominatedCandidates=0;widthBoundPrunedNodes=3;knifeBoundPrunedNodes=0;lengthBoundPrunedEntries=0;materialWidthIndexCacheHits=0;materialSliceTemplateCacheHits=0;quantityCacheHits=35;quantityCacheMisses=66;materialSliceTemplateCacheMisses=3;crossWorkerDuplicateCandidates=0;crossContributionDominated=0;stopReason=Exhausted",
@@ -204,12 +205,12 @@ class GeneratorMediumScaleBaselineTest {
         val constraints = GenerationConstraints<Flt64>(
             maxKnifeCount = UInt64(5UL),
             minKnifeCount = UInt64(2UL),
-            parallelism = 3,
+            parallelism = Int64(3),
             enableDominancePruning = true
         )
         val generatorCases = generatorCases(
             constraints = constraints,
-            maxPlans = 8192,
+            maxPlans = Int64(8192),
             nSumDepth = UInt64(5UL)
         )
 
@@ -278,13 +279,13 @@ class GeneratorMediumScaleBaselineTest {
 
         for (case in generatorCases(
             constraints = constraints,
-            maxPlans = 64,
+            maxPlans = Int64(64),
             nSumDepth = UInt64(3UL)
         )) {
             val report = case.generator.generateWithReport(input)
 
             assertEquals(
-                expected = 1L,
+                expected = Int64.one,
                 actual = report.statistics.lengthBoundPrunedEntries,
                 message = "${case.name} should prune the long entry"
             )
@@ -329,14 +330,14 @@ class GeneratorMediumScaleBaselineTest {
 
         for (case in generatorCases(
             constraints = constraints,
-            maxPlans = 128,
+            maxPlans = Int64(128),
             nSumDepth = UInt64(4UL)
         )) {
             val report = case.generator.generateWithReport(input)
             val expectedCacheHits = if (case.name == "NSame") {
-                0L
+                Int64.zero
             } else {
-                1L
+                Int64.one
             }
             val materialIds = report.plans.map { it.material.id }.toSet()
 
@@ -388,14 +389,14 @@ class GeneratorMediumScaleBaselineTest {
 
         for (case in generatorCases(
             constraints = constraints,
-            maxPlans = 64,
+            maxPlans = Int64(64),
             nSumDepth = UInt64(4UL)
         )) {
             val report = case.generator.generateWithReport(input)
             val expectedPrunedNodes = if (case.name == "NSame") {
-                0L
+                Int64.zero
             } else {
-                1L
+                Int64.one
             }
 
             assertEquals(
@@ -435,13 +436,13 @@ class GeneratorMediumScaleBaselineTest {
         )
         val constraints = GenerationConstraints<Flt64>(
             maxKnifeCount = UInt64(4UL),
-            parallelism = 2,
+            parallelism = Int64(2),
             enableDominancePruning = true
         )
 
         for (case in generatorCases(
             constraints = constraints,
-            maxPlans = 128,
+            maxPlans = Int64(128),
             nSumDepth = UInt64(4UL)
         )) {
             val report = case.generator.generateWithReport(input)
@@ -454,11 +455,11 @@ class GeneratorMediumScaleBaselineTest {
             )
             assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans under parallelism")
             assertTrue(
-                report.statistics.materialSliceTemplateCacheHits >= 0L,
+                report.statistics.materialSliceTemplateCacheHits >= Int64.zero,
                 "${case.name} template cache hit count should be non-negative under parallelism"
             )
             assertTrue(
-                report.statistics.materialSliceTemplateCacheMisses >= 0L,
+                report.statistics.materialSliceTemplateCacheMisses >= Int64.zero,
                 "${case.name} template cache miss count should be non-negative under parallelism"
             )
         }
@@ -495,17 +496,17 @@ class GeneratorMediumScaleBaselineTest {
 
         for (case in generatorCases(
             constraints = constraints,
-            maxPlans = 256,
+            maxPlans = Int64(256),
             nSumDepth = UInt64(4UL)
         )) {
             val report = case.generator.generateWithReport(input)
             assertTrue(report.plans.isNotEmpty(), "${case.name} should generate plans with cross-contribution dominance")
             assertTrue(
-                report.statistics.crossContributionDominated >= 0L,
+                report.statistics.crossContributionDominated >= Int64.zero,
                 "${case.name} cross-contribution dominated count should be non-negative"
             )
             assertTrue(
-                report.statistics.dominatedCandidates >= 0L,
+                report.statistics.dominatedCandidates >= Int64.zero,
                 "${case.name} total dominated count should be non-negative"
             )
         }
@@ -518,7 +519,7 @@ class GeneratorMediumScaleBaselineTest {
 
     private fun generatorCases(
         constraints: GenerationConstraints<Flt64>,
-        maxPlans: Int,
+        maxPlans: Int64,
         nSumDepth: UInt64
     ): List<GeneratorCase> {
         return listOf(
@@ -563,26 +564,26 @@ class GeneratorMediumScaleBaselineTest {
         name: String,
         statistics: CuttingPlanGenerationStatistics
     ) {
-        assertTrue(statistics.visitedNodes > 0L, "$name should visit nodes")
-        assertTrue(statistics.generatedCandidates > 0L, "$name should generate candidates")
-        assertTrue(statistics.acceptedPlans > 0, "$name should accept plans")
+        assertTrue(statistics.visitedNodes > Int64.zero, "$name should visit nodes")
+        assertTrue(statistics.generatedCandidates > Int64.zero, "$name should generate candidates")
+        assertTrue(statistics.acceptedPlans > Int64.zero, "$name should accept plans")
         assertTrue(
-            statistics.generatedCandidates >= statistics.acceptedPlans.toLong(),
+            statistics.generatedCandidates >= statistics.acceptedPlans,
             "$name generated candidates should cover accepted plans"
         )
-        assertTrue(statistics.duplicateCandidates >= 0L, "$name duplicate count should be non-negative")
-        assertTrue(statistics.dominatedCandidates >= 0L, "$name dominance count should be non-negative")
-        assertTrue(statistics.widthBoundPrunedNodes >= 0L, "$name width-bound pruning count should be non-negative")
-        assertTrue(statistics.knifeBoundPrunedNodes >= 0L, "$name knife-bound pruning count should be non-negative")
-        assertTrue(statistics.lengthBoundPrunedEntries >= 0L, "$name length-bound pruning count should be non-negative")
-        assertTrue(statistics.materialWidthIndexCacheHits >= 0L, "$name width-index cache hit count should be non-negative")
-        assertTrue(statistics.materialSliceTemplateCacheHits >= 0L, "$name slice-template cache hit count should be non-negative")
-        assertTrue(statistics.quantityCacheHits >= 0L, "$name quantity cache hit count should be non-negative")
-        assertTrue(statistics.quantityCacheMisses >= 0L, "$name quantity cache miss count should be non-negative")
-        assertTrue(statistics.materialSliceTemplateCacheMisses >= 0L, "$name slice-template cache miss count should be non-negative")
-        assertTrue(statistics.crossWorkerDuplicateCandidates >= 0L, "$name cross-worker duplicate count should be non-negative")
-        assertTrue(statistics.crossContributionDominated >= 0L, "$name cross-contribution dominated count should be non-negative")
-        assertTrue(statistics.elapsedMilliseconds >= 0L, "$name elapsed time should be non-negative")
+        assertTrue(statistics.duplicateCandidates >= Int64.zero, "$name duplicate count should be non-negative")
+        assertTrue(statistics.dominatedCandidates >= Int64.zero, "$name dominance count should be non-negative")
+        assertTrue(statistics.widthBoundPrunedNodes >= Int64.zero, "$name width-bound pruning count should be non-negative")
+        assertTrue(statistics.knifeBoundPrunedNodes >= Int64.zero, "$name knife-bound pruning count should be non-negative")
+        assertTrue(statistics.lengthBoundPrunedEntries >= Int64.zero, "$name length-bound pruning count should be non-negative")
+        assertTrue(statistics.materialWidthIndexCacheHits >= Int64.zero, "$name width-index cache hit count should be non-negative")
+        assertTrue(statistics.materialSliceTemplateCacheHits >= Int64.zero, "$name slice-template cache hit count should be non-negative")
+        assertTrue(statistics.quantityCacheHits >= Int64.zero, "$name quantity cache hit count should be non-negative")
+        assertTrue(statistics.quantityCacheMisses >= Int64.zero, "$name quantity cache miss count should be non-negative")
+        assertTrue(statistics.materialSliceTemplateCacheMisses >= Int64.zero, "$name slice-template cache miss count should be non-negative")
+        assertTrue(statistics.crossWorkerDuplicateCandidates >= Int64.zero, "$name cross-worker duplicate count should be non-negative")
+        assertTrue(statistics.crossContributionDominated >= Int64.zero, "$name cross-contribution dominated count should be non-negative")
+        assertTrue(statistics.elapsedMilliseconds >= Int64.zero, "$name elapsed time should be non-negative")
         assertTrue(
             statistics.stopReason == CuttingPlanGenerationStopReason.Exhausted ||
                     statistics.stopReason == CuttingPlanGenerationStopReason.MaxPlans,

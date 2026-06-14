@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
  * 约束管线不再直接引用 x 变量，因此 addColumns 时只需 flush 中间符号，无需刷新约束。
  *
  * 实现 CGPipeline 接口，通过 constraint.args = Csp1dShadowPriceKey 关联影子价格，
- * 替代原先的 constraint-name registry 机制。LP 对偶值提取通过 refresh / extractor
+ * 替代原先的约束名映射机制。LP 对偶值提取通过 refresh / extractor
  * 直接从 AbstractCsp1dShadowPriceMap 获取，无需手动遍历 constraint name。
  *
  * Add balance constraint for each product demand:
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
  * only needs to flush intermediate symbols without refreshing constraints.
  *
  * Implements CGPipeline interface, associating shadow prices via constraint.args = Csp1dShadowPriceKey,
- * replacing the previous constraint-name registry mechanism. LP dual value extraction uses
+ * replacing the previous constraint-name based mechanism. LP dual value extraction uses
  * refresh / extractor to obtain values directly from AbstractCsp1dShadowPriceMap without
  * manual constraint name traversal.
  *
@@ -55,7 +55,11 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
     private val demands: List<ProductDemand<V>>,
     private val yieldUnderVars: List<URealVar?> = emptyList(),
     private val yieldOverVars: List<URealVar?> = emptyList()
-) : Csp1dCGPipeline {
+) : CGPipeline<
+        AbstractCsp1dShadowPriceArguments,
+        AbstractLinearMetaModel<Flt64>,
+        AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+        > {
 
     override val name: String = "demand_constraint"
 
@@ -148,14 +152,17 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
     }
 
     override fun refresh(
-        shadowPriceMap: Csp1dShadowPriceMap,
+        shadowPriceMap: AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         return CGPipeline.refreshByKeyAsArgs(this, shadowPriceMap, model, shadowPrices)
     }
 
-    override fun extractor(): Csp1dShadowPriceExtractor? {
+    override fun extractor(): ShadowPriceExtractor<
+            AbstractCsp1dShadowPriceArguments,
+            AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>
+            >? {
         if (demands.isEmpty()) return null
         return { map, args ->
             if (args is Csp1dCuttingPlanShadowPriceArguments<*>) {

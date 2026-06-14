@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -10,6 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.convertSolverValue
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
@@ -100,7 +100,7 @@ class YieldAggregation<V : RealNumber<V>>(
                     underProductions.add(ModeledUnderProduction(
                         productId = demand.product.id,
                         unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.toString(),
-                        amount = solverValueLike(demand.quantity.value, Flt64(doubleValue))
+                        amount = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
                     ))
                 }
             }
@@ -112,7 +112,7 @@ class YieldAggregation<V : RealNumber<V>>(
                     overProductions.add(ModeledOverProduction(
                         productId = demand.product.id,
                         unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.toString(),
-                        amount = solverValueLike(demand.quantity.value, Flt64(doubleValue))
+                        amount = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
                     ))
                 }
             }
@@ -122,15 +122,6 @@ class YieldAggregation<V : RealNumber<V>>(
             underProductions = underProductions,
             overProductions = overProductions
         )
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
-        return when (sample) {
-            is Flt64 -> value as V
-            is FltX -> value.toFltX() as V
-            else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
-        }
     }
 
     companion object {

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
@@ -35,9 +36,9 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 class DFSGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
-    private val maxPlans: Int = 1000,
+    private val maxPlans: Int64 = Int64(1000),
     private val timeout: Duration? = null,
-    private val parallelism: Int = 1,
+    private val parallelism: Int64 = Int64.one,
     private val enableDominancePruning: Boolean = false,
     private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
@@ -45,7 +46,7 @@ class DFSGenerator<V : RealNumber<V>>(
     constructor(
         constraints: GenerationConstraints<V>,
         arithmetic: QuantityArithmetic<V>,
-        maxPlans: Int = 1000,
+        maxPlans: Int64 = Int64(1000),
         timeout: Duration? = null
     ) : this(
         constraints = constraints.toConstraints(),
@@ -70,7 +71,7 @@ class DFSGenerator<V : RealNumber<V>>(
     override fun generateWithReport(input: CuttingPlanGenerationInput<V>): CuttingPlanGenerationReport<V> {
         val startTime = System.nanoTime()
         val planIndex = java.util.concurrent.atomic.AtomicInteger(0)
-        val deadline = timeout?.let { System.nanoTime() + it.inWholeNanoseconds }
+        val deadline = timeout?.let { Int64(System.nanoTime() + it.inWholeNanoseconds) }
         val canonicalKeyOverride = if (input.canonicalKeyOverrides.isNotEmpty()) {
             { plan: CuttingPlan<V> -> input.canonicalKeyOverrides.firstNotNullOfOrNull { it(plan) } }
         } else null
@@ -96,7 +97,7 @@ class DFSGenerator<V : RealNumber<V>>(
             widthCheck = input.widthFeasibilityCheck
         )
         val materialSliceTemplateCache: GenerationSliceTemplateCache<V>? = if (canReuseMaterialSliceTemplates(constraints)) {
-            if (parallelism == 1) {
+            if (parallelism == Int64.one) {
                 SequentialGenerationSliceTemplateCache<V>()
             } else {
                 ConcurrentGenerationSliceTemplateCache<V>()
@@ -105,7 +106,7 @@ class DFSGenerator<V : RealNumber<V>>(
             null
         }
 
-        if (parallelism > 1 && input.materials.size > 1) {
+        if (parallelism > Int64.one && input.materials.size > 1) {
             val reports = runGenerationTasks(
                 parallelism = parallelism,
                 tasks = input.materials.map { material ->
@@ -171,7 +172,7 @@ class DFSGenerator<V : RealNumber<V>>(
             return mergeGenerationReports(
                 reports = reports,
                 maxPlans = maxPlans,
-                startedAt = startTime,
+                startedAt = Int64(startTime),
                 deadline = deadline,
                 canonicalKeyOverride = canonicalKeyOverride
             )

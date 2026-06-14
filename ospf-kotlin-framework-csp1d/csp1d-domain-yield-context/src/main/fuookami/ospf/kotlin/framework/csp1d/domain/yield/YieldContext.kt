@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
@@ -100,7 +101,7 @@ class YieldContext<V : RealNumber<V>>(
         val map = LinkedHashMap<DemandAggregationKey<V>, MutableList<CuttingPlanDemandContribution<V>>>()
         for (usage in produce.cuttingPlans) {
             for (contribution in usage.plan.demandContributions) {
-                val multiplied = multiplyContribution(contribution, usage.amount.toULong())
+                val multiplied = multiplyContribution(contribution, usage.amount)
                 val key = DemandAggregationKey<V>(contribution.product.id, multiplied.quantity.unit)
                 map.getOrPut(key) { ArrayList() }.add(multiplied)
             }
@@ -110,11 +111,13 @@ class YieldContext<V : RealNumber<V>>(
 
     private fun multiplyContribution(
         contribution: CuttingPlanDemandContribution<V>,
-        times: ULong
+        times: UInt64
     ): CuttingPlanDemandContribution<V> {
         var total = Quantity(contribution.quantity.value.constants.zero, contribution.quantity.unit)
-        for (i in 0UL until times) {
+        var count = UInt64.zero
+        while (count < times) {
             total = arithmetic.add(total, contribution.quantity)
+            count += UInt64.one
         }
         return CuttingPlanDemandContribution(
             product = contribution.product,

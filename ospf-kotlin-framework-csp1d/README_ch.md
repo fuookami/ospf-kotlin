@@ -14,7 +14,7 @@
 - `CuttingPlanSlice`、`CuttingPlan`
 - 需求贡献、render DTO，以及当前已经接入的 yield、waste、length assignment 增强上下文
 
-POIT 特有的缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、业务 DTO 协议和公式语言暂不在 framework 中建模；只有当它们先成为通用领域实体后，才进入本包。
+特定下游业务的缺陷、分段、位置约束、`unitBatch`、物料级 costar 属性、业务 DTO 协议和公式语言暂不在 framework 中建模；只有当它们先成为通用领域实体后，才进入本包。
 
 ## 基本使用
 
@@ -111,7 +111,7 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 扩展配置会传播到所有求解路径：普通 MILP、列生成 LP master 和最终 MILP、以及 recovery/partial 回退 MILP。默认空 `extensions` 列表保持向后兼容。
 
-`Csp1dProduceContext.addColumns` 实现真实原地增量列生成：`ProduceAggregation.addColumns()` 创建 `x_$iteration` 变量组和 `batch_$iteration` 中间符号组，通过 `flush+asMutable` 刷新约束中间符号使约束自动包含新列系数，并追加目标项。由于约束管线引用中间符号而非直接引用 x 变量，addColumns 只需 flush 中间符号无需刷新约束。扩展管线不在此处刷新；扩展管线使用 rebuild 模式或 `Csp1dModelingExtension.addColumns()`（待 CGPipeline 迁移后支持）。
+`Csp1dColumnGeneration` 在 pricing 循环中保留同一个 LP master，并在每批 pricing 方案被接受后调用 `Csp1dProduceContext.addColumns` 原地加列。`ProduceAggregation.addColumns()` 创建 `x_$iteration` 变量组和 `batch_$iteration` 中间符号组，通过 `flush+asMutable` 刷新约束中间符号使约束自动包含新列系数，并追加目标项。由于内置约束管线引用中间符号而非直接引用 x 变量，addColumns 只需 flush 中间符号无需刷新约束。扩展管线若也需要在新增列时同步刷新，可实现 `Csp1dIncrementalPipeline`，其 `addColumns` 返回值会继续作为后续扩展和列生成方案池的确认结果。
 
 ## 扩展策略
 
@@ -132,13 +132,13 @@ val solution = Csp1dMilp<Flt64>(solver).solve(problem, solveConfig)
 
 ## 影子价格生命周期
 
-LP 影子价格提取通过 `Csp1dShadowPriceLifecycle<V>` 管理，优先使用 CGPipeline 机制提取，constraint-name registry 保留为非 CGPipeline 约束的兼容 fallback。
+LP 影子价格提取通过 `Csp1dShadowPriceLifecycle<V>` 管理，使用 CGPipeline 机制提取。
 
-三个主约束管线——`DemandConstraintPipeline`、`MaterialConstraintPipeline` 和 `MachineConstraintPipeline`——已实现 `Csp1dCGPipeline`（即 `CGPipeline<Args, Model, Map>` 的 CSP1D 特化）。模型构建时，每个约束通过 `constraint.args = Csp1dShadowPriceKey`（如 `ProductDemandShadowPriceKey`、`MaterialUsageShadowPriceKey`、`MachineBatchShadowPriceKey`、`MachineCapacityShadowPriceKey`）注册影子价格键。LP 求解后，`Csp1dShadowPriceLifecycle` 调用每个 CGPipeline 的 `refresh` 方法，通过 `model.constraintsOfGroup(this)` 查找管线注册的约束，利用 `constraint.args` 提取对偶值——无需约束名查找。
+内置非 length 约束管线——`DemandConstraintPipeline`、`MaterialConstraintPipeline`、`MachineConstraintPipeline` 和 `YieldConstraintPipeline`——已直接实现 `CGPipeline<Args, Model, Map>`。模型构建时，每个需要影子价格的约束通过 `constraint.args = Csp1dShadowPriceKey`（如 `ProductDemandShadowPriceKey`、`MaterialUsageShadowPriceKey`、`MachineBatchShadowPriceKey`、`MachineCapacityShadowPriceKey`、`YieldOverProductionBoundShadowPriceKey`）注册影子价格键。LP 求解后，`Csp1dShadowPriceLifecycle` 调用每个 CGPipeline 的 `refresh` 方法，通过 `model.constraintsOfGroup(this)` 查找管线注册的约束，利用 `constraint.args` 提取对偶值——无需约束名查找。
 
-每个 CGPipeline 还实现了 `extractor()`，通过查找 `AbstractCsp1dShadowPriceMap` 中的影子价格计算给定切割方案的 reduced cost 贡献。这使得框架可以直接从影子价格映射计算 pricing benefit，无需外部键解析。
+每个 CGPipeline 还实现了 `extractor()`，通过查找 `AbstractCsp1dShadowPriceMap` 中的影子价格计算给定切割方案的 reduced cost 贡献。yield 超产上限约束进入同一 refresh 生命周期，但显式返回零 reduced-cost 贡献，因为该约束限制的是聚合 yield slack，而不是单个切割方案的 benefit。length-assignment 仍是普通 `Pipeline` 例外，不注册 length shadow price key。
 
-lifecycle 同时填充框架兼容的 `AbstractCsp1dShadowPriceMap`（供下游 CGPipeline 消费）和轻量级 `ShadowPriceMap<V>`（供 pricing 消费）。LP 对偶值通过显式 `Flt64 → V` 转换，禁止直接泛型强转。constraint-name registry 保留为 `@Deprecated` fallback，用于扩展管线中普通 `Pipeline`（非 `CGPipeline`）的影子价格提取。
+lifecycle 同时填充框架兼容的 `AbstractCsp1dShadowPriceMap`（供下游 CGPipeline 消费）和轻量级 `ShadowPriceMap<V>`（供 pricing 消费）。LP 对偶值通过显式 `Flt64 → V` 转换，禁止直接泛型强转。若扩展管线也需要在加列时同步刷新，应实现 `Csp1dIncrementalPipeline`。
 
 ## 输出
 

@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
 class FullSumGeneratorTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
         return Product(

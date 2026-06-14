@@ -22,17 +22,18 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dShadowPri
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceMap
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.AbstractCsp1dShadowPriceArguments
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipeline
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dCGPipelineList
+import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.convertSolverValue
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dIterativeContext
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dIncrementalPipeline
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dPipelineList
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.SimpleDomainCalculationContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MaterialUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.MachineCapacityUsage
@@ -72,18 +73,18 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     val yield: YieldAggregation<V>?,
     val waste: WasteAggregation<V>?,
     val length: LengthAggregation<V>?,
-    val constraintPipelines: Csp1dPipelineList,
-    val cgPipelines: Csp1dCGPipelineList,
+    val constraintPipelines: List<Pipeline<LinearMetaModel<Flt64>>>,
+    val cgPipelines: List<CGPipeline<AbstractCsp1dShadowPriceArguments, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>>>,
     private val yieldObjective: YieldObjectivePipeline<V>?,
     private val wasteObjective: WasteObjectivePipeline<V>?,
     private val lengthObjective: LengthObjectivePipeline<V>?,
-    private val extraPipelines: Csp1dPipelineList = emptyList(),
+    private val extraPipelines: List<Pipeline<LinearMetaModel<Flt64>>> = emptyList(),
     override val mode: Csp1dModelingMode = Csp1dModelingMode.MILP,
     private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
     private val wasteOverProductionAreaMeasure: OverProductionAreaMeasure = OverProductionAreaMeasure.ProductMaxWidthProxy,
     private val wasteRestMaterialMeasure: RestMaterialMeasure = RestMaterialMeasure.RestWidthByMaterialLengthProxy,
     private val objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
-    override val vSample: V,
+    override val domainValueSample: V,
     override val isFinalMilp: Boolean = false
 ) : Csp1dIterativeContext<V>, Csp1dModelingContext<V> {
 
@@ -91,7 +92,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     override val materials: List<Material<V>> get() = produce.materials
     override val machines: List<Machine<V>> get() = produce.machines
 
-    override fun flt64ToV(value: Flt64): V = solverValueLike(vSample, value)
+    override fun toDomainValue(value: Flt64): V = convertSolverValue(domainValueSample, value)
 
     override fun register(model: LinearMetaModel<Flt64>): Try {
         // 1. 注册变量
@@ -129,7 +130,8 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             }
         }
 
-        // 3. 注册非 CG 约束管线（yield/length 等）
+        // 3. 注册普通约束管线（length-assignment 例外）
+        //    Register plain constraint pipelines (length-assignment exception)
         for (pipeline in constraintPipelines) {
             pipeline.register(model)
             when (val result = pipeline(model)) {
@@ -173,7 +175,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val ctx = SimpleDomainCalculationContext(
                     plan = plan,
                     planIndex = index,
-                    vSample = vSample
+                    domainValueSample = domainValueSample
                 )
                 objectivePolicies.fold(baseBatchCoefficient) { coeff, policy ->
                     policy.modifyBatchCoefficient(ctx, coeff)
@@ -277,7 +279,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                         return@fold acc
                     }
                     val contribution = Quantity(
-                        consumption.value * solverValueLike(
+                        consumption.value * convertSolverValue(
                             sample = consumption.value,
                             value = usage.amount.toFlt64()
                         ),
@@ -322,7 +324,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val batchCount = solutionAmount(model, index)
                 if (batchCount > UInt64.zero) {
                     val restWidthValue = plan.restWidth?.value ?: continue
-                    val contribution = restWidthValue * solverValueLike(restWidthValue, batchCount.toFlt64())
+                    val contribution = restWidthValue * convertSolverValue(restWidthValue, batchCount.toFlt64())
                     sum = if (sum != null) sum + contribution else contribution
                 }
             }
@@ -339,7 +341,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                     val restMaterialValue = restMaterialValue(plan, when (wasteRestMaterialMeasure) {
                         RestMaterialMeasure.RestWidthByMaterialLengthProxy -> DomainRestMaterialMeasure.RestWidthByMaterialLengthProxy
                     }) ?: continue
-                    val contribution = restMaterialValue * solverValueLike(restMaterialValue, batchCount.toFlt64())
+                    val contribution = restMaterialValue * convertSolverValue(restMaterialValue, batchCount.toFlt64())
                     sum = if (sum != null) sum + contribution else contribution
                 }
             }
@@ -354,7 +356,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val batchCount = solutionAmount(model, index)
                 if (batchCount > UInt64.zero) {
                     val costPenalty = wasteAgg.materialCostPenalty[plan.material.id] ?: continue
-                    val cost = costPenalty * solverValueLike(costPenalty, batchCount.toFlt64())
+                    val cost = costPenalty * convertSolverValue(costPenalty, batchCount.toFlt64())
                     val existing = costByMaterial[plan.material.id]
                     costByMaterial[plan.material.id] = if (existing != null) existing + cost else cost
                 }
@@ -379,7 +381,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                             OverProductionAreaMeasure.ProductMaxWidthProxy -> DomainOverProductionAreaMeasure.ProductMaxWidthProxy
                         }
                     ) ?: continue
-                    val area = productWidthValue * solverValueLike(productWidthValue, Flt64(overDouble))
+                    val area = productWidthValue * convertSolverValue(productWidthValue, Flt64(overDouble))
                     areaSum = if (areaSum != null) areaSum + area else area
                 }
             }
@@ -403,10 +405,12 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         newPlans: List<CuttingPlan<V>>,
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<CuttingPlan<V>>> {
+        val planCountBefore = produce.planCount
+
         // 1. 委托 ProduceAggregation.addColumns() 完成变量、batch 和约束中间符号的原地增量
         //    Delegate to ProduceAggregation.addColumns() for in-place variable, batch and
         //    constraint intermediate symbol increment
-        val addedPlans = when (val result = produce.addColumns(iteration, newPlans, model)) {
+        var addedPlans = when (val result = produce.addColumns(iteration, newPlans, model)) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
@@ -424,8 +428,8 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val batchCoefficient = if (objectivePolicies.isNotEmpty()) {
                     val ctx = SimpleDomainCalculationContext(
                         plan = plan,
-                        planIndex = produce.planCount + planIndex,
-                        vSample = vSample
+                        planIndex = planCountBefore + planIndex,
+                        domainValueSample = domainValueSample
                     )
                     objectivePolicies.fold(baseBatchCoefficient) { coeff, policy ->
                         policy.modifyBatchCoefficient(ctx, coeff)
@@ -444,10 +448,23 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             }
         }
 
-        // 3. 扩展管线不在此处刷新；扩展管线通过 rebuild 模式或
-        //    Csp1dModelingExtension.addColumns()（待后续 CGPipeline 迁移后支持）
-        //    Extension pipelines are not refreshed here; they use rebuild mode or
-        //    Csp1dModelingExtension.addColumns() (to be supported after CGPipeline migration)
+        // 3. 刷新支持增量加列的扩展管线 / Refresh extension pipelines that support incremental addColumns
+        val incrementalContext = this
+        for (pipeline in extraPipelines) {
+            @Suppress("UNCHECKED_CAST")
+            val incrementalPipeline = pipeline as? Csp1dIncrementalPipeline<V> ?: continue
+            addedPlans = when (val result = incrementalPipeline.addColumns(
+                context = incrementalContext,
+                iteration = iteration,
+                newPlans = addedPlans,
+                model = model
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            if (addedPlans.isEmpty()) return Ok(emptyList())
+        }
 
         return Ok(addedPlans)
     }
@@ -457,9 +474,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         shadowPrices: MetaDualSolution
     ): Try {
         // 通过 CGPipeline refresh 机制自动提取影子价格到 AbstractCsp1dShadowPriceMap
-        // 不再依赖 constraint-name registry
         // Extract shadow prices automatically via CGPipeline refresh mechanism
-        // No longer depending on constraint-name registry
         val frameworkMap = Csp1dDefaultShadowPriceMap()
         for (pipeline in cgPipelines) {
             when (val result = pipeline.refresh(frameworkMap, model, shadowPrices)) {
@@ -480,14 +495,15 @@ class Csp1dProduceContext<V : RealNumber<V>>(
      * pricing 可消费的轻量级 ShadowPriceMap<V>。
      *
      * 注意：此方法不传 model，因此无法执行 CGPipeline refresh（需要 model.constraintsOfGroup）。
-     * 仅通过 constraint.args 回退提取。推荐使用 Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution)
+     * 仅适用于已经把 shadow price key 写入 constraint.args 的对偶解。推荐使用 Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution)
      * 走 CGPipeline 主路径。
      *
      * Use CGPipeline extractor mechanism to convert from AbstractCsp1dShadowPriceMap
      * to lightweight ShadowPriceMap<V> for pricing consumption.
      *
      * Note: This method does not receive model, so CGPipeline refresh (which needs model.constraintsOfGroup)
-     * cannot be executed. Only constraint.args fallback extraction is available. Recommend using
+     * cannot be executed. It only works for dual solutions whose constraints already carry shadow price keys
+     * in constraint.args. Recommend using
      * Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution) for the CGPipeline primary path.
      */
     fun extractShadowPriceMap(
@@ -499,7 +515,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         val prices = HashMap<Csp1dShadowPriceKey, V>()
         for ((constraint, dualValue) in dualSolution) {
             val args = constraint.origin?.args as? Csp1dShadowPriceKey ?: continue
-            val vDual = solverValueLike(vSample, dualValue)
+            val vDual = convertSolverValue(domainValueSample, dualValue)
             frameworkMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(args, dualValue))
             val existingValue = prices[args]
             prices[args] = if (existingValue != null) existingValue + vDual else vDual
@@ -543,15 +559,6 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     companion object {
         private val UInt64.Companion.ZERO: UInt64 get() = UInt64(0UL)
-    }
-}
-
-@Suppress("UNCHECKED_CAST")
-private fun <V : RealNumber<V>> solverValueLike(sample: V, value: Flt64): V {
-    return when (sample) {
-        is Flt64 -> value as V
-        is fuookami.ospf.kotlin.math.algebra.number.FltX -> value.toFltX() as V
-        else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
     }
 }
 
@@ -629,7 +636,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
 
         // 为 context-aware 扩展构建只读建模上下文
         // Build read-only modeling context for context-aware extension resolution
-        val vSample = resolveVSample(input)
+        val domainValueSample = resolveDomainValueSample(input)
         val modelingContext = object : Csp1dModelingContext<V> {
             override val mode = _mode
             override val isFinalMilp = _isFinalMilp
@@ -637,8 +644,8 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             override val demands: List<ProductDemand<V>> get() = produce.demands
             override val materials: List<Material<V>> get() = produce.materials
             override val machines: List<Machine<V>> get() = produce.machines
-            override val vSample = vSample
-            override fun flt64ToV(value: Flt64): V = solverValueLike(vSample, value)
+            override val domainValueSample = domainValueSample
+            override fun toDomainValue(value: Flt64): V = convertSolverValue(domainValueSample, value)
         }
 
         // 解析 context-aware 扩展管线
@@ -684,8 +691,9 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             null
         }
 
-        // 构建 CG 约束管线（demand/material/machine）
-        val cgPipelines = mutableListOf<Csp1dCGPipeline>()
+        // 构建 CG 约束管线（demand/material/machine，MILP 下包含 yield）
+        // Build CG constraint pipelines (demand/material/machine, plus yield in MILP)
+        val cgPipelines = mutableListOf<CGPipeline<AbstractCsp1dShadowPriceArguments, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>>>()
         cgPipelines.add(DemandConstraintPipeline(
             produce = produce,
             demands = input.demands,
@@ -700,16 +708,17 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             produce = produce,
             machines = input.machines
         ))
-
-        // 非_cg 约束管线（yield/length 等）
-        val constraintPipelines = mutableListOf<Pipeline<LinearMetaModel<Flt64>>>()
         if (yieldAgg != null && yieldCfg != null) {
-            constraintPipelines.add(YieldConstraintPipeline(
+            cgPipelines.add(YieldConstraintPipeline(
                 yield = yieldAgg,
                 config = yieldCfg,
                 demands = input.demands
             ))
         }
+
+        // 普通约束管线只保留 length-assignment 例外
+        // Plain constraint pipelines keep only the length-assignment exception
+        val constraintPipelines = mutableListOf<Pipeline<LinearMetaModel<Flt64>>>()
         if (lengthAgg != null && lengthCfg != null) {
             constraintPipelines.add(LengthConstraintPipeline(
                 length = lengthAgg,
@@ -763,16 +772,16 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             wasteOverProductionAreaMeasure = wasteCfg?.overProductionAreaMeasure ?: OverProductionAreaMeasure.ProductMaxWidthProxy,
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,
             objectivePolicies = _objectivePolicies,
-            vSample = resolveVSample(input),
+            domainValueSample = resolveDomainValueSample(input),
             isFinalMilp = _isFinalMilp
         )
     }
 
     /**
-     * 从输入数据推导 V 的样本值，用于 Flt64 → V 显式转换
-     * Derive a sample V value from input data, used for explicit Flt64 → V conversion
+     * 从输入数据推导领域数值样本，用于 solver 值显式转换
+     * Derive a domain value sample from input data for explicit solver value conversion
      */
-    private fun resolveVSample(input: ProduceInput<V>): V {
+    private fun resolveDomainValueSample(input: ProduceInput<V>): V {
         // 优先从 demand 的 quantity 获取 / Prefer demand quantity
         input.demands.firstOrNull()?.quantity?.value?.let { return it }
         // 其次从 material 的 widthRange 获取 / Fallback to material width range
@@ -784,7 +793,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
         _wasteConfig?.trimWidthPenalty?.let { return it }
         _lengthConfig?.batchMinPenalty?.let { return it }
         throw IllegalArgumentException(
-            "Cannot derive V sample from ProduceInput; at least one demand, material, or config with V value is required"
+            "Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"
         )
     }
 }

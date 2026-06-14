@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicLong
+import java.util.concurrent.atomic.AtomicReference
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
 
@@ -17,8 +18,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
  */
 internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>> {
     private val cache = ConcurrentHashMap<GenerationMaterialWidthRangeKey, List<List<CuttingPlanSlice<V>>>>()
-    private val hits = AtomicLong(0L)
-    private val misses = AtomicLong(0L)
+    private val hits = AtomicReference(Int64.zero)
+    private val misses = AtomicReference(Int64.zero)
 
     fun get(
         material: Material<V>,
@@ -26,11 +27,11 @@ internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>>
     ): List<List<CuttingPlanSlice<V>>>? {
         val templates = cache[material.generationWidthRangeKey()]
         return if (templates != null) {
-            hits.incrementAndGet()
+            hits.updateAndGet { it + Int64.one }
             collector.recordMaterialSliceTemplateCacheHit()
             templates
         } else {
-            misses.incrementAndGet()
+            misses.updateAndGet { it + Int64.one }
             collector.recordMaterialSliceTemplateCacheMiss()
             null
         }
@@ -46,6 +47,6 @@ internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>>
         )
     }
 
-    fun totalHits(): Long = hits.get()
-    fun totalMisses(): Long = misses.get()
+    fun totalHits(): Int64 = hits.get()
+    fun totalMisses(): Int64 = misses.get()
 }

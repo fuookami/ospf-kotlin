@@ -2,7 +2,14 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
@@ -25,6 +32,8 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowContext
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingMode
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.filterInitialPlansByPolicies
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.isEquivalentByPolicies
@@ -69,11 +78,11 @@ enum class Csp1dTerminationReason {
  * @property planCountAfter 本轮结束时方案池大小 / Plan pool size after this iteration
  */
 data class Csp1dIterationRecord(
-    val iteration: Int,
+    val iteration: Int64,
     val lpObjective: Flt64,
-    val planCountBefore: Int,
+    val planCountBefore: Int64,
     val pricedPlanCount: UInt64,
-    val planCountAfter: Int
+    val planCountAfter: Int64
 )
 
 /**
@@ -115,6 +124,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
     private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList()
 ) {
+    private data class LpMaster<V : RealNumber<V>>(
+        val model: LinearMetaModel<Flt64>,
+        val context: Csp1dProduceContext<V>,
+        val domainValueSample: V
+    )
+
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -144,9 +159,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptDominance(candidate, existing) }
         }
         val domainPolicies = resolvedConfig.extensionSet.domainPolicies
-        val vSample = problem.demands.firstOrNull()?.quantity?.value
+        val domainValueSample = problem.demands.firstOrNull()?.quantity?.value
             ?: problem.materials.firstOrNull()?.widthRange?.upperBound?.value
-        val widthCheck = if (vSample != null) widthFeasibilityCheckFromPolicies(domainPolicies, vSample) else null
+        val widthCheck = if (domainValueSample != null) widthFeasibilityCheckFromPolicies(domainPolicies, domainValueSample) else null
         val initialPlanPool = initialPlanPool(
             problem = problem,
             configuration = columnConfig,
@@ -207,41 +222,38 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         var lpFailureMessage: String? = null
         var pricingGenerationStatistics: CuttingPlanGenerationStatistics? = null
         val flowPolicies = resolvedConfig.extensionSet.flowPolicies
-
-        for (iteration in 0 until columnConfig.iterationLimit) {
-            val planCountBefore = currentPlans.size
-            val lpResult = Csp1dMilpSolver(solver).solveLP(
-                ProduceInput(
+        val iterationLimit = columnConfig.iterationLimit
+        val iterationLimitIndexBound = iterationLimit.toInt()
+        val lpDomainValueSample = domainValueSample
+            ?: currentPlans.firstOrNull()?.restWidth?.value
+            ?: currentPlans.firstOrNull()?.demandContributions?.firstOrNull()?.quantity?.value
+            ?: throw IllegalArgumentException("Cannot derive domain value sample for CSP1D LP master")
+        val lpMaster = if (iterationLimitIndexBound > 0) {
+            try {
+                buildLpMaster(
+                    problem = problem,
                     cuttingPlans = currentPlans,
-                    demands = problem.demands,
-                    materials = problem.materials,
-                    machines = problem.machines
-                ),
-                extensions = resolvedConfig.allExtensions
-            )
-            if (lpResult == null) {
+                    extensions = resolvedConfig.allExtensions,
+                    domainValueSample = lpDomainValueSample
+                )
+            } catch (error: Exception) {
                 pricedPlanCounts.add(UInt64.zero)
                 iterationRecords.add(
                     Csp1dIterationRecord(
-                        iteration = iteration,
+                        iteration = Int64.zero,
                         lpObjective = Flt64.zero,
-                        planCountBefore = planCountBefore,
+                        planCountBefore = Int64(currentPlans.size.toLong()),
                         pricedPlanCount = UInt64.zero,
-                        planCountAfter = planCountBefore
+                        planCountAfter = Int64(currentPlans.size.toLong())
                     )
                 )
-                terminationReason = if (!hasValidLpResult) {
-                    Csp1dTerminationReason.LpInfeasible
-                } else {
-                    Csp1dTerminationReason.LpSolveFailed
-                }
-                lpFailureMessage = "LP solve returned null at iteration $iteration"
-                // Apply flow policy selectTermination
+                terminationReason = Csp1dTerminationReason.LpInfeasible
+                lpFailureMessage = error.message ?: "LP master build failed"
                 if (flowPolicies.isNotEmpty()) {
                     val flowCtx = buildFlowContext(
-                        iteration = iteration,
+                        iteration = Int64.zero,
                         currentPlans = currentPlans,
-                        iterationLimit = columnConfig.iterationLimit,
+                        iterationLimit = iterationLimit,
                         allowPartialSolution = resolvedConfig.allowPartialSolution,
                         hasValidLpResult = hasValidLpResult,
                         pricingStatistics = pricingGenerationStatistics
@@ -252,180 +264,297 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
                     terminationReason = resolveTerminationReason(customReason, terminationReason)
                     lpFailureMessage = customMessage ?: lpFailureMessage
                 }
-                break
+                null
             }
+        } else {
+            null
+        }
 
-            hasValidLpResult = true
-
-            val lpObjective = lpResult.lpOutput.result.obj
-            val shadowPrices = lpResult.shadowPrices
-
-            val pricingCandidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
-                { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
-            }
-            val pricingCostModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
-                { candidate: CuttingPlan<V>, baseCost: V -> policy.modifyCost(candidate, baseCost) }
-            }
-            val pricingBenefitModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
-                { candidate: CuttingPlan<V>, baseBenefit: V -> policy.modifyBenefit(candidate, baseBenefit) }
-            }
-            val isImprovingJudges = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
-                { candidate: CuttingPlan<V>, benefit: V, cost: V -> policy.isImproving(candidate, benefit, cost) }
-            }
-            val pricingInput = Csp1dPricingInput(
-                generationInput = CuttingPlanGenerationInput(
-                    products = problem.products,
-                    materials = problem.materials,
-                    machines = problem.machines,
-                    costars = problem.costars,
-                    demands = problem.demands,
-                    existingPlans = currentPlans,
-                    domainPolicies = domainPolicies,
-                    candidateFilters = pricingCandidateFilters,
-                    widthFeasibilityCheck = widthCheck,
-                    canonicalKeyOverrides = canonicalKeyOverrides,
-                    dominanceAcceptOverrides = dominanceAcceptOverrides
-                ),
-                shadowPrices = shadowPrices,
-                maxGeneratedPlans = UInt64(columnConfig.maxPricingPlans.coerceAtLeast(0)),
-                objectiveConfig = pricingObjectiveConfig(resolvedConfig),
-                pricingCostModifiers = pricingCostModifiers,
-                pricingBenefitModifiers = pricingBenefitModifiers,
-                isImprovingJudges = isImprovingJudges,
-                canonicalKeyOverrides = canonicalKeyOverrides
-            )
-            val pricingReport = pricingGenerator.generateWithReport(pricingInput)
-            pricingGenerationStatistics = mergeGenerationStatistics(
-                left = pricingGenerationStatistics,
-                right = pricingReport.statistics
-            )
-            val newPlans = pricingReport.plans
-
-            if (newPlans.isEmpty()) {
-                pricedPlanCounts.add(UInt64.zero)
-                iterationRecords.add(
-                    Csp1dIterationRecord(
-                        iteration = iteration,
-                        lpObjective = lpObjective,
-                        planCountBefore = planCountBefore,
-                        pricedPlanCount = UInt64.zero,
-                        planCountAfter = planCountBefore
-                    )
+        if (lpMaster != null) {
+            for (iteration in 0 until iterationLimitIndexBound) {
+                val iterationNumber = Int64(iteration.toLong())
+                val planCountBefore = currentPlans.size
+                val lpResult = solveLpMaster(
+                    master = lpMaster,
+                    iteration = iterationNumber
                 )
-                terminationReason = Csp1dTerminationReason.PricingConverged
-                // Apply flow policy selectTermination
-                if (flowPolicies.isNotEmpty()) {
-                    val flowCtx = buildFlowContext(
-                        iteration = iteration,
-                        currentPlans = currentPlans,
-                        iterationLimit = columnConfig.iterationLimit,
-                        allowPartialSolution = resolvedConfig.allowPartialSolution,
-                        hasValidLpResult = hasValidLpResult,
-                        pricingStatistics = pricingGenerationStatistics
+                if (lpResult == null) {
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = iterationNumber,
+                            lpObjective = Flt64.zero,
+                            planCountBefore = Int64(planCountBefore.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(planCountBefore.toLong())
+                        )
                     )
-                    val (customReason, customMessage) = selectTerminationByPolicies(
-                        flowPolicies, flowCtx, terminationReason.name, null
-                    )
-                    terminationReason = resolveTerminationReason(customReason, terminationReason)
-                    if (customMessage != null) {
-                        lpFailureMessage = customMessage
+                    terminationReason = if (!hasValidLpResult) {
+                        Csp1dTerminationReason.LpInfeasible
+                    } else {
+                        Csp1dTerminationReason.LpSolveFailed
                     }
+                    lpFailureMessage = "LP solve returned null at iteration $iteration"
+                    // Apply flow policy selectTermination
+                    if (flowPolicies.isNotEmpty()) {
+                        val flowCtx = buildFlowContext(
+                            iteration = iterationNumber,
+                            currentPlans = currentPlans,
+                            iterationLimit = iterationLimit,
+                            allowPartialSolution = resolvedConfig.allowPartialSolution,
+                            hasValidLpResult = hasValidLpResult,
+                            pricingStatistics = pricingGenerationStatistics
+                        )
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowCtx, terminationReason.name, lpFailureMessage
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        lpFailureMessage = customMessage ?: lpFailureMessage
+                    }
+                    break
                 }
-                break
-            }
 
-            // Build flow context for deduplication and iteration control
-            val flowContext = buildFlowContext(
-                iteration = iteration,
-                currentPlans = currentPlans,
-                iterationLimit = columnConfig.iterationLimit,
-                allowPartialSolution = resolvedConfig.allowPartialSolution,
-                newPlans = newPlans,
-                hasValidLpResult = hasValidLpResult,
-                pricingStatistics = pricingGenerationStatistics
-            )
+                hasValidLpResult = true
 
-            val addedPlans = deduplicatePlans(currentPlans, newPlans, flowPolicies, flowContext, canonicalKeyOverrides)
-            if (addedPlans.isEmpty()) {
-                pricedPlanCounts.add(UInt64.zero)
-                iterationRecords.add(
-                    Csp1dIterationRecord(
-                        iteration = iteration,
-                        lpObjective = lpObjective,
-                        planCountBefore = planCountBefore,
-                        pricedPlanCount = UInt64.zero,
-                        planCountAfter = planCountBefore
-                    )
+                val lpObjective = lpResult.lpOutput.result.obj
+                val shadowPrices = lpResult.shadowPrices
+
+                val pricingCandidateFilters = resolvedConfig.extensionSet.generationStrategies.map { strategy ->
+                    { candidate: CuttingPlan<V>, existing: List<CuttingPlan<V>> -> strategy.acceptCandidate(candidate, existing) }
+                }
+                val pricingCostModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                    { candidate: CuttingPlan<V>, baseCost: V -> policy.modifyCost(candidate, baseCost) }
+                }
+                val pricingBenefitModifiers = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                    { candidate: CuttingPlan<V>, baseBenefit: V -> policy.modifyBenefit(candidate, baseBenefit) }
+                }
+                val isImprovingJudges = resolvedConfig.extensionSet.pricingPolicies.map { policy ->
+                    { candidate: CuttingPlan<V>, benefit: V, cost: V -> policy.isImproving(candidate, benefit, cost) }
+                }
+                val pricingInput = Csp1dPricingInput(
+                    generationInput = CuttingPlanGenerationInput(
+                        products = problem.products,
+                        materials = problem.materials,
+                        machines = problem.machines,
+                        costars = problem.costars,
+                        demands = problem.demands,
+                        existingPlans = currentPlans,
+                        domainPolicies = domainPolicies,
+                        candidateFilters = pricingCandidateFilters,
+                        widthFeasibilityCheck = widthCheck,
+                        canonicalKeyOverrides = canonicalKeyOverrides,
+                        dominanceAcceptOverrides = dominanceAcceptOverrides
+                    ),
+                    shadowPrices = shadowPrices,
+                    maxGeneratedPlans = UInt64(columnConfig.maxPricingPlans.toLong().coerceAtLeast(0L).toULong()),
+                    objectiveConfig = pricingObjectiveConfig(resolvedConfig),
+                    pricingCostModifiers = pricingCostModifiers,
+                    pricingBenefitModifiers = pricingBenefitModifiers,
+                    isImprovingJudges = isImprovingJudges,
+                    canonicalKeyOverrides = canonicalKeyOverrides
                 )
-                terminationReason = Csp1dTerminationReason.AllDuplicates
-                // Apply flow policy selectTermination
-                if (flowPolicies.isNotEmpty()) {
-                    val (customReason, customMessage) = selectTerminationByPolicies(
-                        flowPolicies, flowContext, terminationReason.name, null
-                    )
-                    terminationReason = resolveTerminationReason(customReason, terminationReason)
-                    if (customMessage != null) {
-                        lpFailureMessage = customMessage
-                    }
-                }
-                break
-            }
-
-            currentPlans = currentPlans + addedPlans
-            pricedPlanCounts.add(UInt64(addedPlans.size))
-            iterationRecords.add(
-                Csp1dIterationRecord(
-                    iteration = iteration,
-                    lpObjective = lpObjective,
-                    planCountBefore = planCountBefore,
-                    pricedPlanCount = UInt64(addedPlans.size),
-                    planCountAfter = currentPlans.size
+                val pricingReport = pricingGenerator.generateWithReport(pricingInput)
+                pricingGenerationStatistics = mergeGenerationStatistics(
+                    left = pricingGenerationStatistics,
+                    right = pricingReport.statistics
                 )
-            )
+                val newPlans = pricingReport.plans
 
-            if (iteration == columnConfig.iterationLimit - 1) {
-                terminationReason = Csp1dTerminationReason.IterationLimitReached
-                // Apply flow policy selectTermination
-                if (flowPolicies.isNotEmpty()) {
-                    val limitContext = buildFlowContext(
-                        iteration = iteration,
-                        currentPlans = currentPlans,
-                        iterationLimit = columnConfig.iterationLimit,
-                        allowPartialSolution = resolvedConfig.allowPartialSolution,
-                        hasValidLpResult = hasValidLpResult,
-                        pricingStatistics = pricingGenerationStatistics
+                if (newPlans.isEmpty()) {
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = iterationNumber,
+                            lpObjective = lpObjective,
+                            planCountBefore = Int64(planCountBefore.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(planCountBefore.toLong())
+                        )
                     )
-                    val (customReason, customMessage) = selectTerminationByPolicies(
-                        flowPolicies, limitContext, terminationReason.name, null
-                    )
-                    terminationReason = resolveTerminationReason(customReason, terminationReason)
-                    if (customMessage != null) {
-                        lpFailureMessage = customMessage
+                    terminationReason = Csp1dTerminationReason.PricingConverged
+                    // Apply flow policy selectTermination
+                    if (flowPolicies.isNotEmpty()) {
+                        val flowCtx = buildFlowContext(
+                            iteration = iterationNumber,
+                            currentPlans = currentPlans,
+                            iterationLimit = iterationLimit,
+                            allowPartialSolution = resolvedConfig.allowPartialSolution,
+                            hasValidLpResult = hasValidLpResult,
+                            pricingStatistics = pricingGenerationStatistics
+                        )
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowCtx, terminationReason.name, null
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        if (customMessage != null) {
+                            lpFailureMessage = customMessage
+                        }
                     }
+                    break
                 }
-            }
 
-            // Check flow policy early stop condition
-            if (iteration < columnConfig.iterationLimit - 1 && flowPolicies.isNotEmpty()) {
-                val stopContext = buildFlowContext(
-                    iteration = iteration,
+                // Build flow context for deduplication and iteration control
+                val flowContext = buildFlowContext(
+                    iteration = iterationNumber,
                     currentPlans = currentPlans,
-                    iterationLimit = columnConfig.iterationLimit,
+                    iterationLimit = iterationLimit,
                     allowPartialSolution = resolvedConfig.allowPartialSolution,
+                    newPlans = newPlans,
                     hasValidLpResult = hasValidLpResult,
                     pricingStatistics = pricingGenerationStatistics
                 )
-                if (shouldStopByPolicies(flowPolicies, stopContext)) {
-                    terminationReason = Csp1dTerminationReason.PricingConverged
-                    // Apply custom termination reason/message from flow policy
-                    val (customReason, customMessage) = selectTerminationByPolicies(
-                        flowPolicies, stopContext, terminationReason.name, null
+
+                val addedPlans = deduplicatePlans(currentPlans, newPlans, flowPolicies, flowContext, canonicalKeyOverrides)
+                if (addedPlans.isEmpty()) {
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = iterationNumber,
+                            lpObjective = lpObjective,
+                            planCountBefore = Int64(planCountBefore.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(planCountBefore.toLong())
+                        )
                     )
-                    terminationReason = resolveTerminationReason(customReason, terminationReason)
-                    if (customMessage != null) {
-                        lpFailureMessage = customMessage
+                    terminationReason = Csp1dTerminationReason.AllDuplicates
+                    // Apply flow policy selectTermination
+                    if (flowPolicies.isNotEmpty()) {
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowContext, terminationReason.name, null
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        if (customMessage != null) {
+                            lpFailureMessage = customMessage
+                        }
                     }
                     break
+                }
+
+                val addColumnsResult = lpMaster.context.addColumns(
+                    iteration = UInt64((iteration + 1).toULong()),
+                    newPlans = addedPlans,
+                    model = lpMaster.model
+                )
+                val modelAddedPlans = when (addColumnsResult) {
+                    is Ok -> addColumnsResult.value
+                    is Failed -> null
+                    is Fatal -> null
+                }
+                if (modelAddedPlans == null) {
+                    val message = when (addColumnsResult) {
+                        is Failed -> "addColumns failed at iteration $iteration: ${addColumnsResult.error}"
+                        is Fatal -> "addColumns fatal at iteration $iteration: ${addColumnsResult.errors}"
+                        is Ok -> "addColumns returned no result at iteration $iteration"
+                    }
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = iterationNumber,
+                            lpObjective = lpObjective,
+                            planCountBefore = Int64(planCountBefore.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(planCountBefore.toLong())
+                        )
+                    )
+                    terminationReason = Csp1dTerminationReason.LpSolveFailed
+                    lpFailureMessage = message
+                    if (flowPolicies.isNotEmpty()) {
+                        val flowCtx = buildFlowContext(
+                            iteration = iterationNumber,
+                            currentPlans = currentPlans,
+                            iterationLimit = iterationLimit,
+                            allowPartialSolution = resolvedConfig.allowPartialSolution,
+                            hasValidLpResult = hasValidLpResult,
+                            pricingStatistics = pricingGenerationStatistics
+                        )
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowCtx, terminationReason.name, lpFailureMessage
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        lpFailureMessage = customMessage ?: lpFailureMessage
+                    }
+                    break
+                }
+                if (modelAddedPlans.isEmpty()) {
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = iterationNumber,
+                            lpObjective = lpObjective,
+                            planCountBefore = Int64(planCountBefore.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(planCountBefore.toLong())
+                        )
+                    )
+                    terminationReason = Csp1dTerminationReason.AllDuplicates
+                    if (flowPolicies.isNotEmpty()) {
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowContext, terminationReason.name, null
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        if (customMessage != null) {
+                            lpFailureMessage = customMessage
+                        }
+                    }
+                    break
+                }
+
+                currentPlans = currentPlans + modelAddedPlans
+                pricedPlanCounts.add(UInt64(modelAddedPlans.size))
+                iterationRecords.add(
+                    Csp1dIterationRecord(
+                        iteration = iterationNumber,
+                        lpObjective = lpObjective,
+                        planCountBefore = Int64(planCountBefore.toLong()),
+                        pricedPlanCount = UInt64(modelAddedPlans.size),
+                        planCountAfter = Int64(currentPlans.size.toLong())
+                    )
+                )
+
+                if (iteration == iterationLimitIndexBound - 1) {
+                    terminationReason = Csp1dTerminationReason.IterationLimitReached
+                    // Apply flow policy selectTermination
+                    if (flowPolicies.isNotEmpty()) {
+                        val limitContext = buildFlowContext(
+                            iteration = iterationNumber,
+                            currentPlans = currentPlans,
+                            iterationLimit = iterationLimit,
+                            allowPartialSolution = resolvedConfig.allowPartialSolution,
+                            hasValidLpResult = hasValidLpResult,
+                            pricingStatistics = pricingGenerationStatistics
+                        )
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, limitContext, terminationReason.name, null
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        if (customMessage != null) {
+                            lpFailureMessage = customMessage
+                        }
+                    }
+                }
+
+                // Check flow policy early stop condition
+                if (iteration < iterationLimitIndexBound - 1 && flowPolicies.isNotEmpty()) {
+                    val stopContext = buildFlowContext(
+                        iteration = iterationNumber,
+                        currentPlans = currentPlans,
+                        iterationLimit = iterationLimit,
+                        allowPartialSolution = resolvedConfig.allowPartialSolution,
+                        hasValidLpResult = hasValidLpResult,
+                        pricingStatistics = pricingGenerationStatistics
+                    )
+                    if (shouldStopByPolicies(flowPolicies, stopContext)) {
+                        terminationReason = Csp1dTerminationReason.PricingConverged
+                        // Apply custom termination reason/message from flow policy
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, stopContext, terminationReason.name, null
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        if (customMessage != null) {
+                            lpFailureMessage = customMessage
+                        }
+                        break
+                    }
                 }
             }
         }
@@ -448,9 +577,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         // Apply flow policy acceptPartial when final MILP fails
         val allowPartial = if (finalMilp.status == Csp1dFinalMilpStatus.Failed && flowPolicies.isNotEmpty()) {
             val postFlowContext = buildFlowContext(
-                iteration = iterationRecords.size,
+                iteration = Int64(iterationRecords.size.toLong()),
                 currentPlans = currentPlans,
-                iterationLimit = columnConfig.iterationLimit,
+                iterationLimit = iterationLimit,
                 allowPartialSolution = resolvedConfig.allowPartialSolution,
                 hasValidLpResult = hasValidLpResult,
                 pricingStatistics = pricingGenerationStatistics
@@ -519,7 +648,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         flowPolicies: List<Csp1dFlowPolicy<V>> = emptyList(),
         widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null
     ): InitialPlanPool<V> {
-        if (configuration.maxInitialPlans <= 0) {
+        if (configuration.maxInitialPlans.toLong() <= 0L) {
             return InitialPlanPool(
                 plans = emptyList(),
                 statistics = null
@@ -545,11 +674,11 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             if (customKey != null) CuttingPlanCanonicalKey(customKey) else plan.canonicalKey()
         }
         val generatedPlans = report.plans.distinctBy { resolveCanonicalKey(it) }
-            .take(configuration.maxInitialPlans)
+            .take(configuration.maxInitialPlans.toInt())
         // Apply flow policy initial plan filter with context
         val filteredPlans = if (flowPolicies.isNotEmpty()) {
             val flowContext = object : Csp1dFlowContext<V> {
-                override val iteration = 0
+                override val iteration = Int64.zero
                 override val currentPlans: List<CuttingPlan<V>> = generatedPlans
                 override val iterationLimit = configuration.iterationLimit
                 override val allowPartialSolution = true
@@ -642,6 +771,83 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+    private fun buildLpMaster(
+        problem: Csp1dProblem<V>,
+        cuttingPlans: List<CuttingPlan<V>>,
+        extensions: List<Csp1dModelingExtension<V>>,
+        domainValueSample: V
+    ): LpMaster<V> {
+        val model = LinearMetaModel(
+            name = "csp1d_produce_lp",
+            converter = IntoValue.Identity
+        )
+        val input = ProduceInput(
+            cuttingPlans = cuttingPlans,
+            demands = problem.demands,
+            materials = problem.materials,
+            machines = problem.machines
+        )
+        val context = Csp1dProduceContextBuilder(input)
+            .mode(Csp1dModelingMode.LP)
+            .apply {
+                for (ext in extensions) {
+                    extension(ext)
+                }
+            }
+            .build()
+        when (val result = context.register(model)) {
+            is Ok -> {}
+            is Failed -> throw IllegalStateException("register LP context failed: ${result.error}")
+            is Fatal -> throw IllegalStateException("register LP context fatal: ${result.errors}")
+        }
+        return LpMaster(
+            model = model,
+            context = context,
+            domainValueSample = domainValueSample
+        )
+    }
+
+    private suspend fun solveLpMaster(
+        master: LpMaster<V>,
+        iteration: Int64
+    ): Csp1dMilpSolver.LpResult<V>? {
+        val lpResult = try {
+            ensureRet(
+                result = solver.solveLP(
+                    name = "csp1d-produce-lp-${iteration}",
+                    metaModel = master.model
+                ),
+                stage = "solve CSP1D produce LP"
+            )
+        } catch (_: Exception) {
+            return null
+        }
+        val lifecycle = try {
+            Csp1dShadowPriceLifecycle<V>(master.domainValueSample, master.context.cgPipelines)
+        } catch (_: Exception) {
+            return null
+        }
+        val shadowPrices = try {
+            lifecycle.extractFromDualSolution(master.model, lpResult.dualSolution)
+        } catch (_: Exception) {
+            return null
+        }
+        return Csp1dMilpSolver.LpResult(
+            shadowPrices = shadowPrices,
+            model = master.model,
+            lpOutput = lpResult,
+            frameworkShadowPriceMap = lifecycle.frameworkShadowPriceMap
+        )
+    }
+
+    private fun <T> ensureRet(result: Ret<T>, stage: String): T {
+        return when (result) {
+            is Ok -> result.value
+            is Failed -> throw IllegalStateException("$stage failed: ${result.error}")
+            is Fatal -> throw IllegalStateException("$stage fatal: ${result.errors}")
+        }
+    }
+
     private fun resolveSolveConfig(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>?
@@ -711,9 +917,9 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     }
 
     private fun buildFlowContext(
-        iteration: Int,
+        iteration: Int64,
         currentPlans: List<CuttingPlan<V>>,
-        iterationLimit: Int,
+        iterationLimit: Int64,
         allowPartialSolution: Boolean,
         newPlans: List<CuttingPlan<V>> = emptyList(),
         hasValidLpResult: Boolean = false,

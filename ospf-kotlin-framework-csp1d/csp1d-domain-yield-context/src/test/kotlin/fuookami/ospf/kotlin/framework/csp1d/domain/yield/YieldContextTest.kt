@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.DemandAggregationKey
 
 class YieldContextTest {
-    private val arithmetic = Flt64QuantityArithmetic
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
 
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
