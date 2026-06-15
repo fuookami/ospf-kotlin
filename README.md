@@ -150,24 +150,9 @@ If you need to use the network scheduling development package, add the dependenc
 ```
 
 
-## Generic API Migration
+## Changelog
 
-From `1.1.0`, the core modeling and solver bridge are aligned to generic numeric APIs (`Flt64` / `Rtn64` / `FltX` / `RtnX`).
-
-Recommended usage:
-
-1. Use `LinearMetaModel<V>` / `QuadraticMetaModel<V>` with explicit `IntoValue<V>`.
-2. Prefer generic objective value fields from solver output:
-   - `objValue`
-   - `possibleBestObjValue`
-   - `bestBoundValue`
-3. Keep legacy `Flt64` fields (`obj`, `possibleBestObj`, `bestBound`) only for compatibility.
-
-Example generic demo verification (isolated profile):
-
-```bash
-mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
-```
+See [1.1.0 release notes](changelog/1.1.0.md) for the full change record.
 
 ## Benchmark Baseline
 
@@ -250,45 +235,6 @@ Baseline environment used in P21-1:
      - ``setx MAVEN_OPTS "-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"``
    - bash/zsh:
      - `export MAVEN_OPTS="-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=192m -XX:ProfiledCodeHeapSize=192m"`
-
-## Migration Release Gate (Compatibility-Free Core/Math)
-
-Use one command to run the default migration acceptance gate:
-
-```powershell
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1
-```
-
-Optional solver-gated run (requires SCIP/JNI environment):
-
-```powershell
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1 -WithSolverIntegration
-```
-
-This script covers:
-
-1. Core source-compat and math bridge/DSL tests.
-2. Default example compile/test.
-3. `core-demo-only`, `build-only-function-tests`, `business-source-compat`, `framework-starter-compat`.
-4. `check-c8-guards.ps1` in `P6` and `P7` modes (including P10/P11/P12/P14/P16/P17 static guards).
-5. Compatibility-free checks: no `src/non-default-main` / `src/non-default-test` roots, no legacy `core.frontend.*` / `core.backend.*` / `utils.math.*` imports, no `math.symbol.adapter.*` / `FunctionCompat` / `MetaModelFlt64Adapter` backflow, and no old direct `solver(metaModel)` / `SlackFunction` compatibility calls in default example source sets.
-
-## Migration Entry Quick Reference
-
-1. Package migration direction:
-   - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.symbol.*`
-   - `core.backend.*` -> `core.solver.*`
-   - modeling expressions and inequalities are migrated under `math.symbol.*`
-   - `math.symbol.adapter.*` -> `math.symbol.operation.*`
-   - direct meta-model solver calls -> explicit dump to mechanism/triad solver flow
-2. Four-number-type converter entry:
-   - `Flt64`: `IntoValue.Identity`
-   - `FltX`: `FltX.toIntoValue()`
-   - `Rtn64`: `Rtn64.toIntoValue()`
-   - `RtnX`: `RtnX.toIntoValue()`
-3. Starter/framework migration verification entry:
-   - run `-Pbusiness-source-compat` for business-facing source-compat fixtures
-   - run `-Pframework-starter-compat` for starter/framework dependency-closure fixtures
 
 ## License
 
