@@ -3,11 +3,9 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 internal data class GenerationProductWidthEntry<V : RealNumber<V>>(
     val product: Product<V>,

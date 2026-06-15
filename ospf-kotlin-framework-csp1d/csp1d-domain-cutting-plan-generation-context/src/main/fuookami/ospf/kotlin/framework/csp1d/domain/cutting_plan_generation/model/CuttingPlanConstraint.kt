@@ -2,8 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.mode
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 /**
  * 切割方案约束评估上下文 / Cutting plan constraint evaluation context

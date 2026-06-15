@@ -2,13 +2,10 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
-import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.model.RestMaterialWaste
-import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.model.RestWidthWaste
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.model.*
 
 /**
  * 浪费分析结果 / Waste analysis result

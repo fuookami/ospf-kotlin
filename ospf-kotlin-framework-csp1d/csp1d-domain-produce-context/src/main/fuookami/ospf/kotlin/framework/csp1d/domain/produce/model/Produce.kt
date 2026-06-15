@@ -3,11 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce.model
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 /**
  * 切割方案使用量 / Cutting plan usage

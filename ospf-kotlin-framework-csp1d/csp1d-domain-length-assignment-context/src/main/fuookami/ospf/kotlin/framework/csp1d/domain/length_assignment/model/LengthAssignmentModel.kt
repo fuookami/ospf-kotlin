@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 
 /**
  * 卷长分配结果，描述单个产品被分配的卷长 / Length assignment result for a single product

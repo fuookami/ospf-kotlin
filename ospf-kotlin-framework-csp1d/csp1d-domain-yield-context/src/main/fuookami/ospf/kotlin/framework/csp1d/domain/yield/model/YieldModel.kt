@@ -1,12 +1,9 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.yield.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DemandMode
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 /**
  * 需求聚合键，确保相同产品不同单位的产出不混算 / Demand aggregation key ensuring same-product different-unit outputs are not mixed

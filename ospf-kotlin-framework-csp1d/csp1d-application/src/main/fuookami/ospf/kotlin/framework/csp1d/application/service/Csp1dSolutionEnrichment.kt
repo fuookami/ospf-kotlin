@@ -1,18 +1,11 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dKpiKeys
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 
 internal fun <V : RealNumber<V>> topCuttingPlans(
     plans: List<CuttingPlan<V>>,

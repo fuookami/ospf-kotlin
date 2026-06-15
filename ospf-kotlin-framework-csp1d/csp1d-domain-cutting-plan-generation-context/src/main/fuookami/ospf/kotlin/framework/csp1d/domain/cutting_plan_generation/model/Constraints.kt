@@ -1,10 +1,9 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 最大刀数约束：slices 中 amount 总和不超过 maxKnifeCount / Max knife count constraint

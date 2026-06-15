@@ -67,6 +67,7 @@ data class SimpleDomainCalculationContext<V : RealNumber<V>>(
         return plan.demandContributions.find { it.product.id == productId }?.quantity?.value?.toFlt64()
     }
 }
+
 /**
  * CSP1D 领域策略接口 / CSP1D domain policy interface
  *

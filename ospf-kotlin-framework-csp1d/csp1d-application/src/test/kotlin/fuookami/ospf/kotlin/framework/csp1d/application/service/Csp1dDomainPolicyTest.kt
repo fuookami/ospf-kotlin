@@ -1,48 +1,19 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.model.Pipeline
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainCalculationContext
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultCsp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allFeasible
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allWidthFeasible
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionMode
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtensionSet
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dExtractionPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dFlowPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dModelingExtension
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dSolveConfig
 
 /**
  * 领域策略集成测试 / Domain policy integration test

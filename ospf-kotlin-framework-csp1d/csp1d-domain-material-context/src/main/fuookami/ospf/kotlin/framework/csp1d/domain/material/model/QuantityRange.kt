@@ -2,8 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 物理量区间，使用显式上下界和开闭区间语义 / Quantity range with explicit bounds and interval semantics

@@ -1,9 +1,8 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 /**
  * 余宽浪费记录 / Rest width waste record for a cutting plan

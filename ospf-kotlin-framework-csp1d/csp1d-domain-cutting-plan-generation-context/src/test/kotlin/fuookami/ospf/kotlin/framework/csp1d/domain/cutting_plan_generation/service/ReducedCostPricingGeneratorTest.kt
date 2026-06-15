@@ -1,36 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingObjectiveConfig
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.ReducedCostPricingGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class ReducedCostPricingGeneratorTest {
 

@@ -1,20 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityArithmetic
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.DemandAggregationKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.OverProduction
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.ProductOutput
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.UnderProduction
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldAnalysis
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
 
 /**
  * 产出上下文，按产品+单位聚合贡献并与需求对比 / Yield context: aggregates contributions by product+unit and compares with demands

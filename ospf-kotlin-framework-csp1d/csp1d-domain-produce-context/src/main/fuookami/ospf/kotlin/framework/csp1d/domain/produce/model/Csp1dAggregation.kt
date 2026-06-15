@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.produce.model
 
+import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 
 /**

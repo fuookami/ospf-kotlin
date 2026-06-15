@@ -3,8 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.toFltX
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanProductionDTO
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderProductionType
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.*
 
 /**
  * 将领域 Product 映射到渲染 DTO / Map domain Product to render DTO

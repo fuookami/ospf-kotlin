@@ -13,4 +13,3 @@ enum class DemandMode {
     /** 张数需求 / Sheet demand */
     Sheet
 }
-

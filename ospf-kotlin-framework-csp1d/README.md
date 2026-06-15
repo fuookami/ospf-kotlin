@@ -4,6 +4,19 @@
 
 `ospf-kotlin-framework-csp1d` is a reusable one-dimensional cutting stock framework. It keeps the reusable CSP1D kernel in this repository and leaves downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection to business adapters.
 
+## Module Structure
+
+| Module | Description | README |
+|--------|-------------|--------|
+| `csp1d-infrastructure` | Infrastructure layer: render DTOs and shared enums | [EN](csp1d-infrastructure/README.md) / [中文](csp1d-infrastructure/README_ch.md) |
+| `csp1d-domain-material-context` | Material domain: products, materials, machines, cutting plans, demands, domain policies, shadow prices | [EN](csp1d-domain-material-context/README.md) / [中文](csp1d-domain-material-context/README_ch.md) |
+| `csp1d-domain-cutting-plan-generation-context` | Plan generation: DFS, N-Sum, N-Same, FullSum enumerators, reduced-cost pricing, constraints, caches | [EN](csp1d-domain-cutting-plan-generation-context/README.md) / [中文](csp1d-domain-cutting-plan-generation-context/README_ch.md) |
+| `csp1d-domain-produce-context` | Produce context: master problem variables, intermediate symbols, modeling extensions, policy interfaces | [EN](csp1d-domain-produce-context/README.md) / [中文](csp1d-domain-produce-context/README_ch.md) |
+| `csp1d-domain-yield-context` | Yield context: under/over-production analysis, yield constraints and objectives | [EN](csp1d-domain-yield-context/README.md) / [中文](csp1d-domain-yield-context/README_ch.md) |
+| `csp1d-domain-wasting-minimization-context` | Waste minimization: rest width/material analysis, waste penalty objectives | [EN](csp1d-domain-wasting-minimization-context/README.md) / [中文](csp1d-domain-wasting-minimization-context/README_ch.md) |
+| `csp1d-domain-length-assignment-context` | Length assignment: dynamic coil length derivation, over-length detection | [EN](csp1d-domain-length-assignment-context/README.md) / [中文](csp1d-domain-length-assignment-context/README_ch.md) |
+| `csp1d-application` | Application layer: problem definition, MILP/column-generation solving, recovery, solution enrichment | [EN](csp1d-application/README.md) / [中文](csp1d-application/README_ch.md) |
+
 ## Boundary
 
 The current public model is limited to entities already expressed by `csp1d-domain-material-context`:

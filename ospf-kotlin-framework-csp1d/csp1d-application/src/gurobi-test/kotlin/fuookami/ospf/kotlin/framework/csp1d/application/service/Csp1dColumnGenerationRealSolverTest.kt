@@ -1,45 +1,22 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
-import kotlin.test.assertEquals
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
+import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dPricingGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.RollCountUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SheetCountUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
-import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
 
 /**
  * CSP1D 列生成真实 solver 收敛验证 / CSP1D column generation real solver convergence verification

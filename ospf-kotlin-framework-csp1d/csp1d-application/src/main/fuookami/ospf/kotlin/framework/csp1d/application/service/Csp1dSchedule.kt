@@ -1,10 +1,8 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
 
 /**
  * CSP1D 排程入口（最小实现）/ CSP1D schedule entry point (minimal implementation)

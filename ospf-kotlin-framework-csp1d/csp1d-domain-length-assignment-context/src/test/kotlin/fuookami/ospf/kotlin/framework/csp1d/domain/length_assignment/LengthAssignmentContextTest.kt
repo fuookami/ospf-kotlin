@@ -1,16 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment
 
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignment
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.OverLengthRecord
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.quantity.eq
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class LengthAssignmentContextTest {
     private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)

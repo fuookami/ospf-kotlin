@@ -2,8 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 internal fun <V : RealNumber<V>> generationContributionLength(
     product: Product<V>,

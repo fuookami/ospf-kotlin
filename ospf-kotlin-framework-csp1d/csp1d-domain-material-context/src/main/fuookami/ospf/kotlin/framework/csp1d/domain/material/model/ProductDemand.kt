@@ -2,12 +2,9 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
-import fuookami.ospf.kotlin.quantities.dimension.QuantityDomain
+import fuookami.ospf.kotlin.quantities.dimension.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.Kilogram
-import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
+import fuookami.ospf.kotlin.quantities.unit.*
 
 /**
  * 卷数离散单位 / Discrete unit for roll count
@@ -171,4 +168,3 @@ data class ProductDemand<V : RealNumber<V>>(
     /** 是否连续需求，仅基于 quantity.unit.domain / Whether continuous demand based only on quantity.unit.domain */
     val isContinuous get() = quantity.unit.domain == QuantityDomain.Continuous
 }
-

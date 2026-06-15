@@ -1,12 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.produce.service.pipeline
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
+import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
  * 批次最小化目标管线 / Batch minimization objective pipeline

@@ -1,21 +1,14 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.toFltX
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanDTO
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderCuttingPlanProductionDTO
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderProductionType
-import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.RenderSchemaDTO
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.toRenderDto
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
 import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizationResult
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingResult
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingResult
+import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.*
 
 /**
  * CSP1D 解状态 / CSP1D solution status

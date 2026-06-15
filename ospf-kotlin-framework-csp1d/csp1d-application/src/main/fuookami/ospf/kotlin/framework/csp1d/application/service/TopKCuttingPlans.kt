@@ -2,9 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import java.util.PriorityQueue
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.toFlt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 
 /**

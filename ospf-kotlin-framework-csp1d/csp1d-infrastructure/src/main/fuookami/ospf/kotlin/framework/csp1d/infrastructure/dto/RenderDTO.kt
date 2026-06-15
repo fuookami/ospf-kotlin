@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.serialization.Serializable
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /** 渲染生产类型 / Render production type */
 enum class RenderProductionType {
@@ -54,5 +53,3 @@ data class RenderSchemaDTO(
     /** 切割方案列表 / List of cutting plans */
     val cuttingPlans: List<RenderCuttingPlanDTO>,
 )
-
-

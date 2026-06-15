@@ -3,30 +3,11 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation
 import java.util.Comparator
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.partialOrd
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.CuttingPlanCanonicalKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Costar
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanDemandContribution
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlanSlice
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Machine
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineBatchShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineCapacityShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialUsageShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ShadowPriceMap
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.SimpleDomainCalculationContext
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allFeasible
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.allWidthFeasible
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
     return unit.symbol ?: unit.name ?: unit.toString()

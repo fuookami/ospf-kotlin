@@ -2,31 +2,16 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Csp1dInitialCuttingPlanGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.SimpleInitialCuttingPlanGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.canonicalKey
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Csp1dDomainPolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.widthFeasibilityCheckFromPolicies
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dObjectivePolicy
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dGenerationStrategy
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dProblem
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolveConfig
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolution
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionAnalyzer
-import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dSolutionStatus
-import fuookami.ospf.kotlin.framework.csp1d.application.model.DefaultCsp1dSolutionAnalyzer
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
+import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
 /**
  * CSP1D 普通 MILP 求解入口 / CSP1D plain MILP solve entry

@@ -1,16 +1,15 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.WasteAggregation
+import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
  * 浪费最小化目标管线 / Waste minimization objective pipeline

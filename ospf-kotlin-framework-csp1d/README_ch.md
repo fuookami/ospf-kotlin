@@ -4,6 +4,19 @@
 
 `ospf-kotlin-framework-csp1d` 是可复用的一维分切开发包。它只沉淀通用 CSP1D 内核；下游请求 DTO、公式语言、项目运行参数、租户上下文、心跳逻辑和 solver 插件选择留给业务适配层。
 
+## 模块结构
+
+| 模块 | 描述 | README |
+|------|------|--------|
+| `csp1d-infrastructure` | 基础设施层：渲染 DTO 和共享枚举 | [EN](csp1d-infrastructure/README.md) / [中文](csp1d-infrastructure/README_ch.md) |
+| `csp1d-domain-material-context` | 物料领域：产品、物料、设备、切割方案、需求、领域策略、影子价格 | [EN](csp1d-domain-material-context/README.md) / [中文](csp1d-domain-material-context/README_ch.md) |
+| `csp1d-domain-cutting-plan-generation-context` | 方案生成：DFS、N-Sum、N-Same、FullSum 枚举器、reduced cost 定价、约束、缓存 | [EN](csp1d-domain-cutting-plan-generation-context/README.md) / [中文](csp1d-domain-cutting-plan-generation-context/README_ch.md) |
+| `csp1d-domain-produce-context` | 产出上下文：主问题变量、中间符号、建模扩展、策略接口 | [EN](csp1d-domain-produce-context/README.md) / [中文](csp1d-domain-produce-context/README_ch.md) |
+| `csp1d-domain-yield-context` | 产出偏差：欠产/超产分析、产出约束和目标 | [EN](csp1d-domain-yield-context/README.md) / [中文](csp1d-domain-yield-context/README_ch.md) |
+| `csp1d-domain-wasting-minimization-context` | 浪费最小化：余宽/余料分析、浪费惩罚目标 | [EN](csp1d-domain-wasting-minimization-context/README.md) / [中文](csp1d-domain-wasting-minimization-context/README_ch.md) |
+| `csp1d-domain-length-assignment-context` | 长度分配：动态卷长推导、超长检测 | [EN](csp1d-domain-length-assignment-context/README.md) / [中文](csp1d-domain-length-assignment-context/README_ch.md) |
+| `csp1d-application` | 应用层：问题定义、MILP/列生成求解、恢复、求解结果丰富 | [EN](csp1d-application/README.md) / [中文](csp1d-application/README_ch.md) |
+
 ## 边界
 
 当前 public 模型只覆盖 `csp1d-domain-material-context` 已表达的实体：
