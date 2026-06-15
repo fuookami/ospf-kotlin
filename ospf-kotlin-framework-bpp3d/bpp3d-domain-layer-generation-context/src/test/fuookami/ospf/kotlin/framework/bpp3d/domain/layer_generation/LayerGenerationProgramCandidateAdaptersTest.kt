@@ -21,16 +21,16 @@ class LayerGenerationProgramCandidateAdaptersTest {
     private fun makeProgram(material: Material<FltX>): PackingProgram<FltX> {
         return PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(0.8) * Meter,
-                depth = fltX(0.6) * Meter,
-                weight = fltX(0.2) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(0.8) * Meter,
+                depth = FltX(0.6) * Meter,
+                weight = FltX(0.2) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
                     amount = UInt64(3),
-                    weight = fltX(6.0) * Kilogram
+                    weight = FltX(6.0) * Kilogram
                 )
             )
         )
@@ -43,7 +43,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-ADAPTER",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-a",
@@ -71,15 +71,15 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-CYLINDER",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(1.2) * Meter,
-                depth = fltX(1.0) * Meter,
-                weight = fltX(0.2) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(1.2) * Meter,
+                depth = FltX(1.0) * Meter,
+                weight = FltX(0.2) * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = PackageShapeSpec.VerticalCylinder(
                     radius = radius,
@@ -116,7 +116,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-DEMAND",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val first = MaterialPackingProgramCandidate(
             id = "candidate-first",
@@ -152,7 +152,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-REQUEST",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-request",
@@ -184,7 +184,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-PROG-GEN",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val candidate = MaterialPackingProgramCandidate(
             id = "candidate-gen",
@@ -195,9 +195,9 @@ class LayerGenerationProgramCandidateAdaptersTest {
             iteration = Int64.zero,
             from = LayerGenerationProgramCandidateAdaptersTest::class,
             shape = fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape(
-                width = fltX(1.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter
+                width = FltX(1.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter
             ),
             units = emptyList()
         )

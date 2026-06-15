@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 自底向上左对齐算法。
  * Bottom-up left-justified algorithm.
@@ -340,11 +339,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         placement: QuantityPlacement2<*, FltX, *>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
     ): QuantityPoint2<FltX>? {
-        if (point.x eq fltXZero()) {
+        if (point.x eq FltX.zero) {
             return null
         }
 
-        var maxX = fltXNegativeInfinity() * point.x.unit
+        var maxX = FltX.minimum * point.x.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
@@ -358,8 +357,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
             }
         }
-        return if (maxX eq fltXNegativeInfinity()) {
-            point2(x = fltXZero() * point.x.unit, y = point.y)
+        return if (maxX eq FltX.minimum) {
+            point2(x = FltX.zero * point.x.unit, y = point.y)
         } else {
             point2(x = maxX, y = point.y)
         }
@@ -370,11 +369,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         placement: QuantityPlacement2<*, FltX, *>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
     ): QuantityPoint2<FltX>? {
-        if (point.y eq fltXZero()) {
+        if (point.y eq FltX.zero) {
             return null
         }
 
-        var maxY = fltXNegativeInfinity() * point.y.unit
+        var maxY = FltX.minimum * point.y.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
@@ -388,8 +387,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
             }
         }
-        return if (maxY eq fltXNegativeInfinity()) {
-            point2(x = point.x, y = fltXZero() * point.y.unit)
+        return if (maxY eq FltX.minimum) {
+            point2(x = point.x, y = FltX.zero * point.y.unit)
         } else {
             point2(x = point.x, y = maxY)
         }

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 货物高度组合器。
  * Item height combinator.
@@ -12,7 +11,10 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.geq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.gr
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.leq
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 
 data object ItemHeightCombinator {
@@ -39,7 +41,7 @@ data object ItemHeightCombinator {
                 }
             }
             if (map.isNotEmpty()) {
-                return map.sortedBy { height - (it.first + it.second) }
+                return map.sortedBy { height - it.first - it.second }
             }
         }
         return emptyList()
@@ -70,7 +72,7 @@ data object ItemHeightCombinator {
                 }
             }
             if (map.isNotEmpty()) {
-                return map.sortedBy { height - (it.first + it.second + it.third) }
+                return map.sortedBy { height - it.first - it.second - it.third }
             }
         }
         return emptyList()
@@ -80,7 +82,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<FltX, FltX>,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
@@ -98,7 +100,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Pair<FltX, FltX>,
         mapper: Extractor<Item, T>,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null
     ): List<Item>? {
         var items: List<Item>? = null
@@ -123,7 +125,9 @@ data object ItemHeightCombinator {
                         averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value },
                         scope = this
                     )) {
-                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending { it.weight.value.toDouble() }
+                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending {
+                            it.weight.value.toDouble()
+                        }
                         var flag = true
                         for (i in thisItems.indices) {
                             if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -152,7 +156,7 @@ data object ItemHeightCombinator {
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<FltX, FltX, FltX>,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
@@ -170,7 +174,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         heights: Triple<FltX, FltX, FltX>,
         mapper: (T) -> Item,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
     ): List<Item>? {
         var items: List<Item>? = null
@@ -196,7 +200,9 @@ data object ItemHeightCombinator {
                             averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value - mapper(secondItem).weight.value },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.value.toDouble() }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                it.weight.value.toDouble()
+                            }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -229,7 +235,9 @@ data object ItemHeightCombinator {
                             averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / FltX.two },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.value.toDouble() }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                it.weight.value.toDouble()
+                            }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -271,7 +279,9 @@ data object ItemHeightCombinator {
                                 averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value - mapper(secondItem).weight.value },
                                 scope = this
                             )) {
-                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight.value.toDouble() }
+                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                    it.weight.value.toDouble()
+                                }
                                 var flag = true
                                 for (i in thisItems.indices) {
                                     if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -303,7 +313,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: FltX,
         mapper: (T) -> Item,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
@@ -343,7 +353,7 @@ data object ItemHeightCombinator {
         itemsAmount: Map<Item, UInt64>,
         height: FltX,
         mapper: (T) -> Item,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         averageWeight: FltX? = null,
         scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {

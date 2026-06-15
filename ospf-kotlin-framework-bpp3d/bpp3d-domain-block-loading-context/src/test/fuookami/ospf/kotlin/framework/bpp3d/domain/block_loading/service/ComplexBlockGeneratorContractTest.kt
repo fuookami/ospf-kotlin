@@ -18,8 +18,8 @@ class ComplexBlockGeneratorContractTest {
         return PackageAttribute(
             packageType = type,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
@@ -31,10 +31,10 @@ class ComplexBlockGeneratorContractTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -53,9 +53,9 @@ class ComplexBlockGeneratorContractTest {
         ).invoke(
             items = mapOf(actualItem to UInt64(2)),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter
             ),
             patterns = emptyList(),
             restWeight = FltX.maximum
@@ -69,9 +69,9 @@ class ComplexBlockGeneratorContractTest {
         ).invoke(
             items = mapOf(actualItem to UInt64(2)),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter
             ),
             simpleBlocks = simpleBlocks,
             restWeight = FltX.maximum
@@ -92,9 +92,9 @@ class ComplexBlockGeneratorContractTest {
         ).invoke(
             items = mapOf(actualItem to UInt64(2)),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter
             ),
             patterns = emptyList(),
             restWeight = FltX.maximum
@@ -108,9 +108,9 @@ class ComplexBlockGeneratorContractTest {
         ).invoke(
             items = mapOf(actualItem to UInt64(2)),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter
             ),
             simpleBlocks = simpleBlocks,
             restWeight = FltX.one

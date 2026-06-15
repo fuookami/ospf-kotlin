@@ -57,10 +57,10 @@ class LinearFunctionBuildOnlyStructureTest {
             assertTrue(slackRange.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(4, appended.size, "abs(2条)+slackRange(2条) 应追加 4 条约束")
+            assertEquals(6, appended.size, "abs(4条)+slackRange(2条) 应追加 6 条约束")
             val absRows = appended.filter { it.name.startsWith("example_abs_build") }
             val slackRows = appended.filter { it.name.startsWith("example_slack_range_build") }
-            assertEquals(2, absRows.size)
+            assertEquals(4, absRows.size)
             assertEquals(2, slackRows.size)
 
             assertTrue(absRows.any { it.sign == ConstraintRelation.Equal })

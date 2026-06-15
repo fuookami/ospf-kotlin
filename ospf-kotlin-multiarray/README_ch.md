@@ -1,6 +1,6 @@
 # OSPF Kotlin Multiarray
 
-[English](README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 高性能 Kotlin 多维数组库，支持多种存储顺序、视图、基于分块的稀疏数组和表格数据结构。
 

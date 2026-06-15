@@ -39,7 +39,7 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-AMOUNT",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
 
         val entries = demandEntriesFromMaterialAmounts(
@@ -59,11 +59,11 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
 
         val entries = demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, fltX(12.5) * Kilogram))
+            materials = listOf(Pair(material, FltX(12.5) * Kilogram))
         )
 
         assertEquals(1, entries.size)
@@ -79,12 +79,12 @@ class MaterialDemandEntriesTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-DOMAIN",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val discreteMassUnit = DomainAwareMassUnit(MockDomain.Discrete)
 
         val entries = demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, fltX(5.0) * discreteMassUnit))
+            materials = listOf(Pair(material, FltX(5.0) * discreteMassUnit))
         )
 
         assertEquals(1, entries.size)

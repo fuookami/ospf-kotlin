@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 符号缓存上下文 / Token cache context
  */

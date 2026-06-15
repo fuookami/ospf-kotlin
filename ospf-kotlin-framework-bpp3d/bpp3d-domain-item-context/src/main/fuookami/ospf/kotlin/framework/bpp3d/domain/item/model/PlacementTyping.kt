@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 放置类型模型。
  * Placement typing model.

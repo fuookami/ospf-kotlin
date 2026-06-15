@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 泛型需求统计模型。
  * Quantity demand statistics model.
@@ -8,7 +7,6 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltX
 
 /**
  * 泛型需求键。
@@ -53,7 +51,7 @@ private fun <V : FloatingNumber<V>> quantityScale(
     value: Quantity<V>,
     amount: UInt64
 ): Quantity<V> {
-    val scalarF64 = fltX(amount)
+    val scalarF64 = FltX(amount.toULong().toDouble())
     return when (value.value) {
         is FltX -> ((value as Quantity<FltX>) * scalarF64) as Quantity<V>
         else -> throw IllegalArgumentException("Unsupported numeric type: ${value.value::class.simpleName}")

@@ -351,8 +351,6 @@ class BasicQuadraticTetradModel(
             name = name
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
@@ -632,8 +630,6 @@ data class QuadraticTetradModel(
             objective = objective.copy()
         )
     }
-
-    @Suppress("DEPRECATION")
     override suspend fun dual(): QuadraticTetradModel {
         val dualVariables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
@@ -906,8 +902,6 @@ data class QuadraticTetradModel(
             dualOrigin = this
         )
     }
-
-    @Suppress("DEPRECATION")
     override suspend fun farkasDual(): QuadraticTetradModel {
         var colIndex = this.constraints.size
         val farkasVariables = ArrayList<Variable>()
@@ -1232,8 +1226,6 @@ data class QuadraticTetradModel(
             dualOrigin = this
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun feasibility(): QuadraticTetradModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
@@ -1397,8 +1389,6 @@ data class QuadraticTetradModel(
             objective = QuadraticObjective(ObjectCategory.Minimum, objective)
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun elastic(): QuadraticTetradModel {
         return buildElasticModel()
     }

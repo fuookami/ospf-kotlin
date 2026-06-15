@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 容器基础设施。
  * Container infrastructure.
@@ -10,6 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -88,8 +88,8 @@ interface AbstractContainer2Shape<P : ProjectivePlane> : Container2Geometry<P, F
 }
 
 class Container2Shape<P : ProjectivePlane>(
-    override val length: Quantity<FltX> = fltXInfinity() * Meter,
-    override val width: Quantity<FltX> = fltXInfinity() * Meter,
+    override val length: Quantity<FltX> = FltX.maximum * Meter,
+    override val width: Quantity<FltX> = FltX.maximum * Meter,
     override val plane: P
 ) : AbstractContainer2Shape<P> {
     companion object {
@@ -161,9 +161,9 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
         val y = position.y
         val z = position.z
 
-        val withinLowerBound = (x geq (fltXZero() * x.unit)) == true
-                && (y geq (fltXZero() * y.unit)) == true
-                && (z geq (fltXZero() * z.unit)) == true
+        val withinLowerBound = (x geq (FltX.zero * x.unit)) == true
+                && (y geq (FltX.zero * y.unit)) == true
+                && (z geq (FltX.zero * z.unit)) == true
         if (!withinLowerBound) {
             return false
         }
@@ -177,8 +177,8 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
                     val right = centerX + shape.radius
                     val front = centerZ - shape.radius
                     val back = centerZ + shape.radius
-                    (left geq (fltXZero() * left.unit)) == true
-                            && (front geq (fltXZero() * front.unit)) == true
+                    (left geq (FltX.zero * left.unit)) == true
+                            && (front geq (FltX.zero * front.unit)) == true
                             && (width geq right) == true
                             && (depth geq back) == true
                             && (height geq (y + shape.boundingHeight)) == true
@@ -198,9 +198,9 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
     }
 
     override fun enabled(units: List<QuantityPlacement3<*, FltX>>): Boolean {
-        return (units.maxOfOrNull { it.maxX }?.let { width geq it } ?: true) == true
-                && (units.maxOfOrNull { it.maxY }?.let { height geq it } ?: true) == true
-                && (units.maxOfOrNull { it.maxZ }?.let { depth geq it } ?: true) == true
+        return (units.maxOfOrNullQuantity { it.maxX }?.let { width geq it } ?: true) == true
+                && (units.maxOfOrNullQuantity { it.maxY }?.let { height geq it } ?: true) == true
+                && (units.maxOfOrNullQuantity { it.maxZ }?.let { depth geq it } ?: true) == true
     }
 
     fun maxAmount(
@@ -246,9 +246,9 @@ interface AbstractContainer3Shape : Container3Geometry<FltX> {
 }
 
 data class Container3Shape(
-    override val width: Quantity<FltX> = fltXInfinity() * Meter,
-    override val height: Quantity<FltX> = fltXInfinity() * Meter,
-    override val depth: Quantity<FltX> = fltXInfinity() * Meter
+    override val width: Quantity<FltX> = FltX.maximum * Meter,
+    override val height: Quantity<FltX> = FltX.maximum * Meter,
+    override val depth: Quantity<FltX> = FltX.maximum * Meter
 ) : AbstractContainer3Shape {
     companion object {
         operator fun invoke(space: AbstractContainer2Shape<*>): Container3Shape {
@@ -300,7 +300,7 @@ interface Container3<
         actualVolume,
         quantityPlusByValue(
             volume,
-            quantityScaleByFltXValue(volume, fltXEpsilon())
+            quantityScaleByFltXValue(volume, FltX.epsilon)
         )
     )
 

@@ -14,6 +14,35 @@ ospf：https://github.com/fuookami/ospf
 
 :us: [English](README.md) | :cn: 简体中文
 
+## 模块文档
+
+顶层 Maven 模块现在统一遵循双语 README 约定：英文文档使用 `README.md`，简体中文文档使用 `README_ch.md`，两个文件都包含语言互链。
+
+| 模块 | 用途 | README |
+| --- | --- | --- |
+| `ospf-kotlin-dependencies` | 仓库依赖管理 BOM | [EN](ospf-kotlin-dependencies/README.md) / [中文](ospf-kotlin-dependencies/README_ch.md) |
+| `ospf-kotlin-parent` | 共享 Maven 父 POM 与构建默认值 | [EN](ospf-kotlin-parent/README.md) / [中文](ospf-kotlin-parent/README_ch.md) |
+| `ospf-kotlin-utils` | 通用工具和函数式结果类型 | [EN](ospf-kotlin-utils/README.md) / [中文](ospf-kotlin-utils/README_ch.md) |
+| `ospf-kotlin-multiarray` | 多维数组基础 | [EN](ospf-kotlin-multiarray/README.md) / [中文](ospf-kotlin-multiarray/README_ch.md) |
+| `ospf-kotlin-math` | 数学、代数、几何和符号表达式 | [EN](ospf-kotlin-math/README.md) / [中文](ospf-kotlin-math/README_ch.md) |
+| `ospf-kotlin-quantities` | 物理量与单位系统 | [EN](ospf-kotlin-quantities/README.md) / [中文](ospf-kotlin-quantities/README_ch.md) |
+| `ospf-kotlin-core` | 优化建模核心 | [EN](ospf-kotlin-core/README.md) / [中文](ospf-kotlin-core/README_ch.md) |
+| `ospf-kotlin-framework` | 共享 framework 抽象 | [EN](ospf-kotlin-framework/README.md) / [中文](ospf-kotlin-framework/README_ch.md) |
+| `ospf-kotlin-core-plugin` | 求解器后端插件 | [EN](ospf-kotlin-core-plugin/README.md) / [中文](ospf-kotlin-core-plugin/README_ch.md) |
+| `ospf-kotlin-framework-plugin` | framework 基础设施插件 | [EN](ospf-kotlin-framework-plugin/README.md) / [中文](ospf-kotlin-framework-plugin/README_ch.md) |
+| `ospf-kotlin-framework-bpp1d` | 规划中的一维装箱框架 | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
+| `ospf-kotlin-framework-bpp2d` | 早期阶段二维装箱框架 | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
+| `ospf-kotlin-framework-bpp3d` | 三维装箱框架 | [EN](ospf-kotlin-framework-bpp3d/README.md) / [中文](ospf-kotlin-framework-bpp3d/README_ch.md) |
+| `ospf-kotlin-framework-csp1d` | 一维下料框架 | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
+| `ospf-kotlin-framework-csp2d` | 规划中的二维下料框架 | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
+| `ospf-kotlin-framework-gantt-scheduling` | 甘特调度框架 | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | 规划中的网络调度框架 | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-starters` | starter 依赖包 | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
+| `ospf-kotlin-example` | 示例和兼容性测试 | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
+| `ospf-kotlin-benchmark` | JMH benchmark smoke 与报告 | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |
+
+新增模块文档时，请使用 [docs/README_TEMPLATE.md](docs/README_TEMPLATE.md) 和 [docs/README_TEMPLATE_ch.md](docs/README_TEMPLATE_ch.md)。
+
 ## 安装
 
 版本要求：

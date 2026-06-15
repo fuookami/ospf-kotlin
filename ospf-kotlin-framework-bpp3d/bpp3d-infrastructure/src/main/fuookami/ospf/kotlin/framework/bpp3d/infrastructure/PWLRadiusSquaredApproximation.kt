@@ -226,8 +226,8 @@ data class PWLRadiusSquaredApproximation(
             rMax: FltX,
             numSegments: Int
         ): List<FltX> {
-            val delta = (rMax - rMin) / fltX(numSegments.toDouble())
-            return (0..numSegments).map { i -> rMin + delta * fltX(i.toDouble()) }
+            val delta = (rMax - rMin) / FltX(numSegments.toDouble())
+            return (0..numSegments).map { i -> rMin + delta * FltX(i.toDouble()) }
         }
 
         /**
@@ -242,12 +242,12 @@ data class PWLRadiusSquaredApproximation(
         ): List<FltX> {
             val result = ArrayList<FltX>()
             for (i in 0..numSegments) {
-                val t = fltX(i.toDouble()) / fltX(numSegments.toDouble())
+                val t = FltX(i.toDouble()) / FltX(numSegments.toDouble())
                 // Chebyshev node: map t to [0, 1] with concentration near 0 (rMin side)
                 // theta = pi * t, Chebyshev node = 0.5 * (1 - cos(theta))
                 // This places more nodes near t=0 (mapped to rMin) and t=1 (mapped to rMax)
                 // For r², relative error is worse at small r, so we bias toward rMin.
-                val chebyshev = fltX(0.5) * (fltX(1.0) - fltX(kotlin.math.cos(kotlin.math.PI * t.toDouble())))
+                val chebyshev = FltX(0.5) * (FltX(1.0) - FltX(kotlin.math.cos(kotlin.math.PI * t.toDouble())))
                 val r = rMin + (rMax - rMin) * chebyshev
                 result.add(r)
             }
@@ -280,7 +280,7 @@ data class PWLRadiusSquaredApproximation(
 
                 // Find the segment with highest relative error and bisect it
                 val worstSegment = segmentErrors.indices.maxByOrNull { segmentErrors[it].toDouble() } ?: break
-                val mid = (breakpoints[worstSegment] + breakpoints[worstSegment + 1]) / fltX(2.0)
+                val mid = (breakpoints[worstSegment] + breakpoints[worstSegment + 1]) / FltX(2.0)
                 val newBreakpoints = breakpoints.toMutableList()
                 newBreakpoints.add(worstSegment + 1, mid)
                 if (newBreakpoints.size - 1 > maxSegments * 2) break // Safety limit
@@ -309,12 +309,12 @@ data class PWLRadiusSquaredApproximation(
                 val intercept = intercepts[i]
                 var segMaxRelError = FltX.zero
                 for (j in 0..numSamples) {
-                    val t = fltX(j.toDouble()) / fltX(numSamples.toDouble())
+                    val t = FltX(j.toDouble()) / FltX(numSamples.toDouble())
                     val r = r0 + (r1 - r0) * t
                     val actualRSquared = r * r
                     val approxRSquared = slope * r + intercept
                     val absError = (approxRSquared - actualRSquared).abs()
-                    if (actualRSquared > fltX(1e-12)) {
+                    if (actualRSquared > FltX(1e-12)) {
                         val relError = absError / actualRSquared
                         if (relError > segMaxRelError) segMaxRelError = relError
                     }
@@ -339,13 +339,13 @@ data class PWLRadiusSquaredApproximation(
                 val slope = slopes[i]
                 val intercept = intercepts[i]
                 for (j in 0..numSamples) {
-                    val t = fltX(j.toDouble()) / fltX(numSamples.toDouble())
+                    val t = FltX(j.toDouble()) / FltX(numSamples.toDouble())
                     val r = r0 + (r1 - r0) * t
                     val actualRSquared = r * r
                     val approxRSquared = slope * r + intercept
                     val absError = (approxRSquared - actualRSquared).abs()
                     if (absError > maxAbsError) maxAbsError = absError
-                    if (actualRSquared > fltX(1e-12)) {
+                    if (actualRSquared > FltX(1e-12)) {
                         val relError = absError / actualRSquared
                         if (relError > maxRelError) maxRelError = relError
                     }
@@ -398,7 +398,7 @@ data class PWLRadiusSquaredApproximation(
     fun actualRelativeError(r: FltX): FltX {
         val absError = actualError(r)
         val actualRSquared = r * r
-        if (actualRSquared < fltX(1e-12)) return FltX.zero
+        if (actualRSquared < FltX(1e-12)) return FltX.zero
         return absError / actualRSquared
     }
 }

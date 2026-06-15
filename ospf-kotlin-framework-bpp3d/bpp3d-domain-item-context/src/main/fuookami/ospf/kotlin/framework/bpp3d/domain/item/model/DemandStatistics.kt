@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 需求统计模型。
  * Demand statistics model.
@@ -217,4 +216,4 @@ fun Iterable<QuantityPlacement3<*, FltX>>.statistics(mode: Bpp3dDemandMode): Map
     return counter
 }
 
-fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(fltXZero() * Kilogram)
+fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(FltX.zero * Kilogram)

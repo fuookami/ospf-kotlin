@@ -62,6 +62,7 @@
     <properties>
         <!-- maven -->
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <gpg.skip>true</gpg.skip>
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
         <!-- kotlin -->
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -94,6 +95,9 @@
                 <artifactId>maven-gpg-plugin</artifactId>
                 <version>${maven-gpg-plugin.version}</version>
                 <inherited>true</inherited>
+                <configuration>
+                    <skip>${gpg.skip}</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>verify</phase>

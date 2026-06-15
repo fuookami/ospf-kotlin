@@ -18,8 +18,8 @@ class SearchAlgorithmCylinderGuardTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
@@ -28,14 +28,14 @@ class SearchAlgorithmCylinderGuardTest {
     }
 
     private fun cylinderItem(id: String, axis: Axis3 = Axis3.Y): ActualItem {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -48,9 +48,9 @@ class SearchAlgorithmCylinderGuardTest {
 
     private fun shape(): Container3Shape {
         return Container3Shape(
-            width = fltX(2.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(2.0) * Meter
+            width = FltX(2.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(2.0) * Meter
         )
     }
 

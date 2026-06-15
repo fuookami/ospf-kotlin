@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.SchemaDTO
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.fltXInfinity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.DemandModeKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
@@ -61,7 +60,7 @@ private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
         width = layer.shape.width,
         height = layer.shape.height,
         depth = layer.shape.depth,
-        capacity = fltXInfinity() * Kilogram,
+        capacity = FltX.maximum * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
         typeCode = "QUANTITY-KNOWN-COORDINATE-${index + 1}"

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 深度优先搜索算法。
  * Depth-first search algorithm.
@@ -19,9 +18,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun infraPoint3(
-    x: FltX = fltXZero(),
-    y: FltX = fltXZero(),
-    z: FltX = fltXZero()
+    x: FltX = FltX.zero,
+    y: FltX = FltX.zero,
+    z: FltX = FltX.zero
 ): Point<Dim3, FltX> {
     return Point(x, y, z)
 }
@@ -596,7 +595,7 @@ class DepthFirstSearchAlgorithm(
             mergedSpaces[i] = space1
         }
         return mergedSpaces
-            .filter { it.value.shape.volume neq fltXZero() }
+            .filter { it.value.shape.volume neq FltX.zero }
             .sortedWith(compareBy { it.index })
             .map { it.value }
     }

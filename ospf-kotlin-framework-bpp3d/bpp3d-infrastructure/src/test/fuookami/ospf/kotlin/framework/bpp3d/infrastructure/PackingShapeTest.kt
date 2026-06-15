@@ -38,33 +38,33 @@ class PackingShapeTest {
     @Test
     fun cuboidPackingShapeShouldKeepBoundingAndVolumeContract() {
         val box = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(5.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(5.0) * Kilogram
         )
         val shape = box.asPackingShape3()
 
         assertEquals(PackingShapeType.Cuboid, shape.shapeType)
         assertEquals(PackingAlgorithmShapeType.Cuboid, shape.algorithmShapeType)
-        assertTrue(shape.boundingWidth eq (fltX(2.0) * Meter))
-        assertTrue(shape.boundingHeight eq (fltX(3.0) * Meter))
-        assertTrue(shape.boundingDepth eq (fltX(4.0) * Meter))
-        assertTrue(shape.actualVolume eq (fltX(24.0) * CubicMeter))
+        assertTrue(shape.boundingWidth eq (FltX(2.0) * Meter))
+        assertTrue(shape.boundingHeight eq (FltX(3.0) * Meter))
+        assertTrue(shape.boundingDepth eq (FltX(4.0) * Meter))
+        assertTrue(shape.actualVolume eq (FltX(24.0) * CubicMeter))
 
         val footprint = shape.footprint()
         assertIs<ShapeFootprint2.Rectangle<FltX>>(footprint)
-        assertTrue(footprint.width eq (fltX(2.0) * Meter))
-        assertTrue(footprint.depth eq (fltX(4.0) * Meter))
+        assertTrue(footprint.width eq (FltX(2.0) * Meter))
+        assertTrue(footprint.depth eq (FltX(4.0) * Meter))
     }
 
     @Test
     fun verticalCylinderPackingShapeShouldExposeRealGeometry() {
         val cylinder = Column(
-            radius = fltX(1.5) * Meter,
-            height = fltX(5.0) * Meter,
+            radius = FltX(1.5) * Meter,
+            height = FltX(5.0) * Meter,
             axis = Axis3.Y,
-            weight = fltX(7.0) * Kilogram,
+            weight = FltX(7.0) * Kilogram,
             enabledAxes = listOf(Axis3.Y)
         )
         val shape = cylinder.asPackingShape3()
@@ -72,23 +72,23 @@ class PackingShapeTest {
         assertEquals(PackingShapeType.Cylinder, shape.shapeType)
         assertEquals(PackingAlgorithmShapeType.VerticalCylinder, shape.algorithmShapeType)
         assertEquals(PackingAxis3.Y, cylinder.axis.asPackingAxis3())
-        assertTrue(shape.boundingWidth eq (fltX(3.0) * Meter))
-        assertTrue(shape.boundingHeight eq (fltX(5.0) * Meter))
-        assertTrue(shape.boundingDepth eq (fltX(3.0) * Meter))
-        assertTrue(shape.actualVolume eq ((fltX(PI) * fltX(1.5) * fltX(1.5) * fltX(5.0)) * CubicMeter))
+        assertTrue(shape.boundingWidth eq (FltX(3.0) * Meter))
+        assertTrue(shape.boundingHeight eq (FltX(5.0) * Meter))
+        assertTrue(shape.boundingDepth eq (FltX(3.0) * Meter))
+        assertTrue(shape.actualVolume eq ((FltX(PI) * FltX(1.5) * FltX(1.5) * FltX(5.0)) * CubicMeter))
 
         val footprint = shape.footprint()
         assertIs<ShapeFootprint2.Circle<FltX>>(footprint)
-        assertTrue(footprint.radius eq (fltX(1.5) * Meter))
+        assertTrue(footprint.radius eq (FltX(1.5) * Meter))
     }
 
     @Test
     fun horizontalCylinderXShouldExposeShapeMetadata() {
         val cylinder = Column(
-            radius = fltX(2.0) * Meter,
-            height = fltX(6.0) * Meter,
+            radius = FltX(2.0) * Meter,
+            height = FltX(6.0) * Meter,
             axis = Axis3.X,
-            weight = fltX(9.0) * Kilogram,
+            weight = FltX(9.0) * Kilogram,
             enabledAxes = listOf(Axis3.X)
         )
         val shape = cylinder.asPackingShape3()
@@ -96,24 +96,24 @@ class PackingShapeTest {
         assertEquals(PackingShapeType.Cylinder, shape.shapeType)
         assertEquals(PackingAlgorithmShapeType.HorizontalCylinderX, shape.algorithmShapeType)
         assertEquals(PackingAxis3.X, cylinder.axis.asPackingAxis3())
-        assertTrue(shape.boundingWidth eq (fltX(6.0) * Meter))
-        assertTrue(shape.boundingHeight eq (fltX(4.0) * Meter))
-        assertTrue(shape.boundingDepth eq (fltX(4.0) * Meter))
-        assertTrue(shape.actualVolume eq ((fltX(PI) * fltX(2.0) * fltX(2.0) * fltX(6.0)) * CubicMeter))
+        assertTrue(shape.boundingWidth eq (FltX(6.0) * Meter))
+        assertTrue(shape.boundingHeight eq (FltX(4.0) * Meter))
+        assertTrue(shape.boundingDepth eq (FltX(4.0) * Meter))
+        assertTrue(shape.actualVolume eq ((FltX(PI) * FltX(2.0) * FltX(2.0) * FltX(6.0)) * CubicMeter))
 
         val footprint = shape.footprint()
         assertIs<ShapeFootprint2.Rectangle<FltX>>(footprint)
-        assertTrue(footprint.width eq (fltX(6.0) * Meter))
-        assertTrue(footprint.depth eq (fltX(4.0) * Meter))
+        assertTrue(footprint.width eq (FltX(6.0) * Meter))
+        assertTrue(footprint.depth eq (FltX(4.0) * Meter))
     }
 
     @Test
     fun horizontalCylinderZShouldExposeShapeMetadata() {
         val cylinder = Column(
-            radius = fltX(2.0) * Meter,
-            height = fltX(6.0) * Meter,
+            radius = FltX(2.0) * Meter,
+            height = FltX(6.0) * Meter,
             axis = Axis3.Z,
-            weight = fltX(9.0) * Kilogram,
+            weight = FltX(9.0) * Kilogram,
             enabledAxes = listOf(Axis3.Z)
         )
         val shape = cylinder.asPackingShape3()
@@ -121,14 +121,14 @@ class PackingShapeTest {
         assertEquals(PackingShapeType.Cylinder, shape.shapeType)
         assertEquals(PackingAlgorithmShapeType.HorizontalCylinderZ, shape.algorithmShapeType)
         assertEquals(PackingAxis3.Z, cylinder.axis.asPackingAxis3())
-        assertTrue(shape.boundingWidth eq (fltX(4.0) * Meter))
-        assertTrue(shape.boundingHeight eq (fltX(4.0) * Meter))
-        assertTrue(shape.boundingDepth eq (fltX(6.0) * Meter))
-        assertTrue(shape.actualVolume eq ((fltX(PI) * fltX(2.0) * fltX(2.0) * fltX(6.0)) * CubicMeter))
+        assertTrue(shape.boundingWidth eq (FltX(4.0) * Meter))
+        assertTrue(shape.boundingHeight eq (FltX(4.0) * Meter))
+        assertTrue(shape.boundingDepth eq (FltX(6.0) * Meter))
+        assertTrue(shape.actualVolume eq ((FltX(PI) * FltX(2.0) * FltX(2.0) * FltX(6.0)) * CubicMeter))
 
         val footprint = shape.footprint()
         assertIs<ShapeFootprint2.Rectangle<FltX>>(footprint)
-        assertTrue(footprint.width eq (fltX(4.0) * Meter))
-        assertTrue(footprint.depth eq (fltX(6.0) * Meter))
+        assertTrue(footprint.width eq (FltX(4.0) * Meter))
+        assertTrue(footprint.depth eq (FltX(6.0) * Meter))
     }
 }

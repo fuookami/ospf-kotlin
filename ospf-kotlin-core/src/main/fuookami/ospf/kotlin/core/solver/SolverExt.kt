@@ -112,7 +112,6 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
  */
-@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -183,7 +182,6 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果与解列表 / Solve result with solution list
  */
-@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -284,7 +282,6 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
  */
-@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -355,7 +352,6 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果与解列表 / Solve result with solution list
  */
-@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
     options: SolveOptions,

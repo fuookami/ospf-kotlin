@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装箱器。
  * Packer.

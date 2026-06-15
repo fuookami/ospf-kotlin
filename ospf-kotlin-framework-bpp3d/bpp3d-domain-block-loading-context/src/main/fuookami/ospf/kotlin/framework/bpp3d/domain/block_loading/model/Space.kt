@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 空间模型。
  * Space model.
@@ -7,22 +6,24 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun infraPoint3(
-    x: FltX = fltXZero(),
-    y: FltX = fltXZero(),
-    z: FltX = fltXZero()
+    x: FltX = FltX.zero,
+    y: FltX = FltX.zero,
+    z: FltX = FltX.zero
 ): Point<Dim3, FltX> {
     return Point(x, y, z)
 }
 
 private fun infraVector3(
-    x: FltX = fltXZero(),
-    y: FltX = fltXZero(),
-    z: FltX = fltXZero()
+    x: FltX = FltX.zero,
+    y: FltX = FltX.zero,
+    z: FltX = FltX.zero
 ): Vector<Dim3, FltX> {
     return Vector(x, y, z)
 }
@@ -151,7 +152,7 @@ data class Space(
             val spaces = ArrayList<Space>()
             var forwardSpace = forwardLink
             while (forwardSpace != null) {
-                if (forwardSpace.second.position[1] eq fltXZero() && forwardSpace.first != Bottom) {
+                if (forwardSpace.second.position[1] eq FltX.zero && forwardSpace.first != Bottom) {
                     break
                 }
                 if (forwardSpace.first == Bottom) {
@@ -209,7 +210,7 @@ data class Space(
                 }
             }
             var layer = thisLayer - UInt64.one
-            var height = fltX((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
+            var height = FltX((thisLayer - UInt64.one).toULong().toDouble()) * thisItem.height
             for (space in thisBottomSpaces) {
                 when (val bottomBlock = space.block!!) {
                     is SimpleBlock -> {

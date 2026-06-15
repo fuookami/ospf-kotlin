@@ -66,26 +66,26 @@ class ContainerGeometryContractTest {
     @Test
     fun naturalCuboidShouldUseContainerGeometryDirectly() {
         val box = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(5.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(5.0) * Kilogram
         )
         val space = Container3Shape(
-            width = fltX(4.0) * Meter,
-            height = fltX(4.0) * Meter,
-            depth = fltX(4.0) * Meter
+            width = FltX(4.0) * Meter,
+            height = FltX(4.0) * Meter,
+            depth = FltX(4.0) * Meter
         )
         val space2 = Container2Shape(
-            length = fltX(5.0) * Meter,
-            width = fltX(6.0) * Meter,
+            length = FltX(5.0) * Meter,
+            width = FltX(6.0) * Meter,
             plane = Bottom
         )
 
         assertTrue(box.enabledOrientationsAt(space).contains(Orientation.Upright))
         assertEquals(Orientation.entries.size, box.enabledOrientationsAt(space, withRotation = true).size)
-        assertTrue(space2.length eq (fltX(5.0) * Meter))
-        assertTrue(space2.width eq (fltX(6.0) * Meter))
+        assertTrue(space2.length eq (FltX(5.0) * Meter))
+        assertTrue(space2.width eq (FltX(6.0) * Meter))
     }
 
     @Test

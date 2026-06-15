@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 列生成算法。
  * Column generation algorithm.

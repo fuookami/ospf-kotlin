@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 复杂块生成器。
  * Complex block generator.
@@ -101,7 +100,7 @@ class ComplexBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         simpleBlocks: List<Block>,
-        restWeight: FltX = fltXInfinity()
+        restWeight: FltX = FltX.maximum
     ): List<ComplexBlock> {
         if (simpleBlocks.isEmpty()) {
             return emptyList()

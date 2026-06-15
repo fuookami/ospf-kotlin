@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 影子价格映射基础设施。
  * Shadow price map infrastructure.

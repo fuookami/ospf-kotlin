@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 包装模型。
  * Package model.
@@ -14,6 +13,8 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.minus
 
 data class PackageBottomShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
@@ -247,7 +248,7 @@ private fun Quantity<FltX>.toRadiusQuantity(
     fieldName: String
 ): Quantity<FltX> {
     val converted = toPositiveQuantity(unit, fieldName)
-    return Quantity(fltX(converted.value.toDouble() / 2.0), unit)
+    return Quantity(FltX(converted.value.toDouble() / 2.0), unit)
 }
 
 private fun distinctSortedRadiusCandidates(
@@ -293,7 +294,7 @@ private fun intervalCandidates(
     if (abs(values.last() - maxValue) > CylinderRadiusCandidateTolerance) {
         values.add(maxValue)
     }
-    return values.map { Quantity(fltX(it), unit) }
+    return values.map { Quantity(FltX(it), unit) }
 }
 
 private fun diameterIntervalRadiusCandidates(
@@ -309,7 +310,7 @@ private fun diameterIntervalRadiusCandidates(
         unit = unit,
         fieldPrefix = "diameter"
     ).map {
-        Quantity(fltX(it.value.toDouble() / 2.0), unit)
+        Quantity(FltX(it.value.toDouble() / 2.0), unit)
     }
 }
 

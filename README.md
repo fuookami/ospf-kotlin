@@ -14,6 +14,35 @@ documentation: https://fuookami.github.io/ospf/
 
 :us: English | :cn: [简体中文](README_ch.md)
 
+## Module Documentation
+
+Top-level Maven modules now follow the same bilingual README convention: English documentation in `README.md`, Simplified Chinese documentation in `README_ch.md`, and language links in both files.
+
+| Module | Purpose | README |
+| --- | --- | --- |
+| `ospf-kotlin-dependencies` | Repository dependency-management BOM | [EN](ospf-kotlin-dependencies/README.md) / [中文](ospf-kotlin-dependencies/README_ch.md) |
+| `ospf-kotlin-parent` | Shared Maven parent and build defaults | [EN](ospf-kotlin-parent/README.md) / [中文](ospf-kotlin-parent/README_ch.md) |
+| `ospf-kotlin-utils` | Common utilities and functional result types | [EN](ospf-kotlin-utils/README.md) / [中文](ospf-kotlin-utils/README_ch.md) |
+| `ospf-kotlin-multiarray` | Multi-dimensional array foundation | [EN](ospf-kotlin-multiarray/README.md) / [中文](ospf-kotlin-multiarray/README_ch.md) |
+| `ospf-kotlin-math` | Math, algebra, geometry, and symbolic expressions | [EN](ospf-kotlin-math/README.md) / [中文](ospf-kotlin-math/README_ch.md) |
+| `ospf-kotlin-quantities` | Physical quantities and unit system | [EN](ospf-kotlin-quantities/README.md) / [中文](ospf-kotlin-quantities/README_ch.md) |
+| `ospf-kotlin-core` | Optimization modeling core | [EN](ospf-kotlin-core/README.md) / [中文](ospf-kotlin-core/README_ch.md) |
+| `ospf-kotlin-framework` | Shared framework abstractions | [EN](ospf-kotlin-framework/README.md) / [中文](ospf-kotlin-framework/README_ch.md) |
+| `ospf-kotlin-core-plugin` | Solver backend plugins | [EN](ospf-kotlin-core-plugin/README.md) / [中文](ospf-kotlin-core-plugin/README_ch.md) |
+| `ospf-kotlin-framework-plugin` | Framework infrastructure plugins | [EN](ospf-kotlin-framework-plugin/README.md) / [中文](ospf-kotlin-framework-plugin/README_ch.md) |
+| `ospf-kotlin-framework-bpp1d` | Planned 1D bin packing framework | [EN](ospf-kotlin-framework-bpp1d/README.md) / [中文](ospf-kotlin-framework-bpp1d/README_ch.md) |
+| `ospf-kotlin-framework-bpp2d` | Early-stage 2D bin packing framework | [EN](ospf-kotlin-framework-bpp2d/README.md) / [中文](ospf-kotlin-framework-bpp2d/README_ch.md) |
+| `ospf-kotlin-framework-bpp3d` | 3D bin packing framework | [EN](ospf-kotlin-framework-bpp3d/README.md) / [中文](ospf-kotlin-framework-bpp3d/README_ch.md) |
+| `ospf-kotlin-framework-csp1d` | 1D cutting stock framework | [EN](ospf-kotlin-framework-csp1d/README.md) / [中文](ospf-kotlin-framework-csp1d/README_ch.md) |
+| `ospf-kotlin-framework-csp2d` | Planned 2D cutting stock framework | [EN](ospf-kotlin-framework-csp2d/README.md) / [中文](ospf-kotlin-framework-csp2d/README_ch.md) |
+| `ospf-kotlin-framework-gantt-scheduling` | Gantt scheduling framework | [EN](ospf-kotlin-framework-gantt-scheduling/README.md) / [中文](ospf-kotlin-framework-gantt-scheduling/README_ch.md) |
+| `ospf-kotlin-framework-network-scheduling` | Planned network scheduling framework | [EN](ospf-kotlin-framework-network-scheduling/README.md) / [中文](ospf-kotlin-framework-network-scheduling/README_ch.md) |
+| `ospf-kotlin-starters` | Starter dependency bundles | [EN](ospf-kotlin-starters/README.md) / [中文](ospf-kotlin-starters/README_ch.md) |
+| `ospf-kotlin-example` | Examples and compatibility tests | [EN](ospf-kotlin-example/README.md) / [中文](ospf-kotlin-example/README_ch.md) |
+| `ospf-kotlin-benchmark` | JMH benchmark smoke and reports | [EN](ospf-kotlin-benchmark/README.md) / [中文](ospf-kotlin-benchmark/README_ch.md) |
+
+For new module documentation, use [docs/README_TEMPLATE.md](docs/README_TEMPLATE.md) and [docs/README_TEMPLATE_ch.md](docs/README_TEMPLATE_ch.md).
+
 ## Installation
 
 Requirements:

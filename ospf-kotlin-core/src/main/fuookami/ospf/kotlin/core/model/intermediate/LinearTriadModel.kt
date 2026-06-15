@@ -45,6 +45,12 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     // && from?.second != true (commented-out additional check / 注释掉的附加检查)
 }
 
+/** 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token */
+@Suppress("UNCHECKED_CAST")
+private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
+    return token as Token<Flt64>
+}
+
 /**
  * 线性约束单元
  * Linear constraint cell
@@ -387,8 +393,6 @@ class BasicLinearTriadModel(
             name = name
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
@@ -595,13 +599,13 @@ data class LinearTriadModel(
                 .flatMap { constraint ->
                     val thisConstraint = constraint as LinearConstraintImpl<*>
                     if ((dumpConstraintsToBounds ?: true) && constraint.isBound()) {
-                        listOf(Quadruple(constraint, thisConstraint.lhs.first().token as Token<Flt64>, constraint.sign, thisConstraint.rhs.toSolverFlt64()))
+                        listOf(Quadruple(constraint, thisConstraint.lhs.first().tokenAsFlt64(), constraint.sign, thisConstraint.rhs.toSolverFlt64()))
                     } else if (forceDumpBounds ?: false) {
                         if (thisConstraint.lhs.size == 1) {
                             listOf(
                                 Quadruple(
                                     constraint,
-                                    thisConstraint.lhs.first().token as Token<Flt64>,
+                                    thisConstraint.lhs.first().tokenAsFlt64(),
                                     constraint.sign,
                                     thisConstraint.rhs.toSolverFlt64() / thisConstraint.lhs.first().coefficient.toSolverFlt64()
                                 )
@@ -610,12 +614,12 @@ data class LinearTriadModel(
                             && (constraint.sign == ConstraintRelation.LessEqual || constraint.sign == ConstraintRelation.Equal)
                             && thisConstraint.rhs.toSolverFlt64() eq Flt64.zero
                         ) {
-                            thisConstraint.lhs.map { Quadruple(constraint, it.token as Token<Flt64>, ConstraintRelation.Equal, Flt64.zero) }
+                            thisConstraint.lhs.map { Quadruple(constraint, it.tokenAsFlt64(), ConstraintRelation.Equal, Flt64.zero) }
                         } else if (thisConstraint.lhs.all { it.coefficient.toSolverFlt64() eq -Flt64.one && it.token.lowerBound!!.value.unwrap().toSolverFlt64() geq Flt64.zero }
                             && (constraint.sign == ConstraintRelation.GreaterEqual || constraint.sign == ConstraintRelation.Equal)
                             && thisConstraint.rhs.toSolverFlt64() eq Flt64.zero
                         ) {
-                            thisConstraint.lhs.map { Quadruple(constraint, it.token as Token<Flt64>, ConstraintRelation.Equal, Flt64.zero) }
+                            thisConstraint.lhs.map { Quadruple(constraint, it.tokenAsFlt64(), ConstraintRelation.Equal, Flt64.zero) }
                         } else {
                             emptyList()
                         }
@@ -719,7 +723,6 @@ data class LinearTriadModel(
      *
      * @return 对偶线性三元模型 / Dual linear triad model
      */
-    @Suppress("DEPRECATION")
     suspend fun dual(): LinearTriadModel {
         val dualVariables = this.constraints.indices.map {
             var lowerBound = Flt64.negativeInfinity
@@ -1002,8 +1005,6 @@ data class LinearTriadModel(
             dualOrigin = this
         )
     }
-
-    @Suppress("DEPRECATION")
     override suspend fun farkasDual(): LinearTriadModel {
         var colIndex = this.constraints.size
         val farkasVariables = ArrayList<Variable>()
@@ -1320,8 +1321,6 @@ data class LinearTriadModel(
             dualOrigin = this
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun feasibility(): LinearTriadModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
@@ -1481,8 +1480,6 @@ data class LinearTriadModel(
             objective = LinearObjective(ObjectCategory.Minimum, objective)
         )
     }
-
-    @Suppress("DEPRECATION")
     override fun elastic(
         minmaxSlack: Boolean,
         minSlackAmount: Pair<UInt64, Flt64>?

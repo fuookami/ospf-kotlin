@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装箱几何守卫。
  * Packing geometry guard.

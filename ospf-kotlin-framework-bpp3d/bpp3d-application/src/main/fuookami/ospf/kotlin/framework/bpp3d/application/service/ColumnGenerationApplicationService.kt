@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 列生成应用服务。
  * Column generation application service.

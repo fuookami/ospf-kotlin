@@ -32,10 +32,10 @@ class PackingProgramLayerCandidateAdapterTest {
 
     private fun shape(): PackageShape<FltX> {
         return PackageShape(
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer
         )
     }
@@ -77,7 +77,7 @@ class PackingProgramLayerCandidateAdapterTest {
                 shape = shape(),
                 materials = mapOf(
                     material.key to PackingProgramMaterialValue(
-                        weight = fltX(5.0) * Kilogram
+                        weight = FltX(5.0) * Kilogram
                     )
                 )
             )
@@ -101,7 +101,7 @@ class PackingProgramLayerCandidateAdapterTest {
                 materials = mapOf(
                     material.key to PackingProgramMaterialValue(
                         amount = UInt64(3),
-                        weight = fltX(9.0) * Kilogram
+                        weight = FltX(9.0) * Kilogram
                     )
                 )
             )

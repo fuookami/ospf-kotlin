@@ -227,8 +227,6 @@ private fun filterConstraintByRowIndex(
     oldToNewVariableIndexMap: Map<Int, Int>
 ): QuadraticConstraintBatch {
     val relatedRows = rows.distinct().sorted()
-
-    @Suppress("DEPRECATION")
     val lhs = relatedRows.mapIndexed { newRowIndex, rowIndex ->
         constraints.lhs[rowIndex].mapNotNull { cell ->
             val newColIndex1 = oldToNewVariableIndexMap[cell.colIndex1] ?: return@mapNotNull null

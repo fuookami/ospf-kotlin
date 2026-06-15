@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 终态装箱几何契约。
  * Final packing geometry contract.

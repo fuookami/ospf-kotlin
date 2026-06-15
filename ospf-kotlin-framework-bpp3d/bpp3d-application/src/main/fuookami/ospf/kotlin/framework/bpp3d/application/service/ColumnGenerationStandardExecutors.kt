@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 列生成标准执行器。
  * Column generation standard executors.

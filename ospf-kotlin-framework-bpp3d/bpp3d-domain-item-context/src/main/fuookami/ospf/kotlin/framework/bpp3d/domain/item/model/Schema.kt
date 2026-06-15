@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 方案模型。
  * Schema model.

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物料装箱求解器执行器。
  * Material packing solver executor.

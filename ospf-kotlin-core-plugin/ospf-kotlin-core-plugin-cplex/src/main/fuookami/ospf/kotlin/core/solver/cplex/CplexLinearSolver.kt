@@ -324,9 +324,9 @@ private class CplexLinearSolverImpl(
      * @return 操作结果 / operation result
      */
     private suspend fun configure(model: LinearTriadModelView): Try {
-        cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
-        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toSolverDouble("linear.config.gap"))
-        cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
+        cplex.setParam(IloCplex.Param.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
+        cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, config.gap.toSolverDouble("linear.config.gap"))
+        cplex.setParam(IloCplex.Param.Threads, config.threadNum.toInt())
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
             cplex.use(object : IloCplex.MIPInfoCallback() {

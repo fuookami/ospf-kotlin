@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 放置基础设施。
  * Placement infrastructure.
@@ -309,7 +308,7 @@ data class ShapePlacement3(
     }
 
     private fun zeroArea(unit: Quantity<FltX>): Quantity<FltX> {
-        return unit * unit * fltXZero()
+        return unit * unit * FltX.zero
     }
 
     private fun rectangleRectangleOverlapArea(
@@ -318,7 +317,7 @@ data class ShapePlacement3(
     ): Quantity<FltX> {
         val overlapX = quantityMin(lhs.maxX, rhs.maxX, "x") - quantityMax(lhs.minX, rhs.minX, "x")
         val overlapZ = quantityMin(lhs.maxZ, rhs.maxZ, "z") - quantityMax(lhs.minZ, rhs.minZ, "z")
-        if ((overlapX gr (fltXZero() * overlapX.unit)) != true || (overlapZ gr (fltXZero() * overlapZ.unit)) != true) {
+        if ((overlapX gr (FltX.zero * overlapX.unit)) != true || (overlapZ gr (FltX.zero * overlapZ.unit)) != true) {
             return zeroArea(overlapX)
         }
         return overlapX * overlapZ
@@ -328,18 +327,18 @@ data class ShapePlacement3(
         lhs: CircleFootprint,
         rhs: CircleFootprint
     ): Quantity<FltX> {
-        val r1 = lhs.radius.toDouble()
-        val r2 = rhs.radius.toDouble()
-        val dx = (lhs.centerX - rhs.centerX).toDouble()
-        val dz = (lhs.centerZ - rhs.centerZ).toDouble()
+        val r1 = lhs.radius.value.toDouble()
+        val r2 = rhs.radius.value.toDouble()
+        val dx = (lhs.centerX - rhs.centerX).value.toDouble()
+        val dz = (lhs.centerZ - rhs.centerZ).value.toDouble()
         val d = sqrt(dx * dx + dz * dz)
         val areaUnit = (lhs.radius * lhs.radius).unit
         if (d >= r1 + r2) {
-            return fltXZero() * areaUnit
+            return FltX.zero * areaUnit
         }
         if (d <= kotlin.math.abs(r1 - r2)) {
             val minRadius = min(r1, r2)
-            return fltX(PI * minRadius * minRadius) * areaUnit
+            return FltX(PI * minRadius * minRadius) * areaUnit
         }
         val dSafe = if (d == 0.0) 1e-12 else d
         val cosA = ((d * d + r1 * r1 - r2 * r2) / (2.0 * dSafe * r1)).coerceIn(-1.0, 1.0)
@@ -347,20 +346,20 @@ data class ShapePlacement3(
         val alpha = 2.0 * acos(cosA)
         val beta = 2.0 * acos(cosB)
         val area = 0.5 * r1 * r1 * (alpha - sin(alpha)) + 0.5 * r2 * r2 * (beta - sin(beta))
-        return fltX(area) * areaUnit
+        return FltX(area) * areaUnit
     }
 
     private fun circleRectangleOverlapArea(
         circle: CircleFootprint,
         rectangle: RectangleFootprint
     ): Quantity<FltX> {
-        val radius = circle.radius.toDouble()
-        val centerX = circle.centerX.toDouble()
-        val centerZ = circle.centerZ.toDouble()
-        val left = rectangle.minX.toDouble()
-        val right = rectangle.maxX.toDouble()
-        val front = rectangle.minZ.toDouble()
-        val back = rectangle.maxZ.toDouble()
+        val radius = circle.radius.value.toDouble()
+        val centerX = circle.centerX.value.toDouble()
+        val centerZ = circle.centerZ.value.toDouble()
+        val left = rectangle.minX.value.toDouble()
+        val right = rectangle.maxX.value.toDouble()
+        val front = rectangle.minZ.value.toDouble()
+        val back = rectangle.maxZ.value.toDouble()
         val integrationLb = max(left, centerX - radius)
         val integrationUb = min(right, centerX + radius)
         val areaUnit = (circle.radius * circle.radius).unit
@@ -369,10 +368,10 @@ data class ShapePlacement3(
             && front <= centerZ - radius
             && back >= centerZ + radius
         ) {
-            return fltX(PI * radius * radius) * areaUnit
+            return FltX(PI * radius * radius) * areaUnit
         }
         if (integrationLb >= integrationUb) {
-            return fltXZero() * areaUnit
+            return FltX.zero * areaUnit
         }
 
         fun verticalLengthAt(xValue: Double): Double {
@@ -413,7 +412,7 @@ data class ShapePlacement3(
             epsilon = 1e-7,
             depth = 12
         )
-        return fltX(area) * areaUnit
+        return FltX(area) * areaUnit
     }
 
     fun footprintOverlapArea(rhs: ShapePlacement3): Quantity<FltX> {
@@ -480,7 +479,7 @@ data class ShapePlacement3(
             return false
         }
         val overlapArea = footprintOverlapArea(rhs)
-        return (overlapArea gr (fltXZero() * overlapArea.unit)) == true || footprintPlacement.overlapped(rhs.footprintPlacement)
+        return (overlapArea gr (FltX.zero * overlapArea.unit)) == true || footprintPlacement.overlapped(rhs.footprintPlacement)
     }
 
     override fun copy(): ShapePlacement3 {

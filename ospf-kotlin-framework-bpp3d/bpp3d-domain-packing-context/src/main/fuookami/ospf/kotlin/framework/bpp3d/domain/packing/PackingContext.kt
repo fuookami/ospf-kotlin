@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装箱上下文。
  * Packing context.

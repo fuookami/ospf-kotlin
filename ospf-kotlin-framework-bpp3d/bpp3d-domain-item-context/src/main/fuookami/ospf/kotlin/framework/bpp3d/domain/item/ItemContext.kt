@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 货物上下文。
  * Item context.

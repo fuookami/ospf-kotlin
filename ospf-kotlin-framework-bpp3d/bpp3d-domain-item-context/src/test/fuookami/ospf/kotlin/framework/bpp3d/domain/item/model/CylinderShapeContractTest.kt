@@ -24,13 +24,13 @@ class CylinderShapeContractTest {
     }
 
     private fun cylinderShape(axis: Axis3): PackingShape3<FltX> {
-        val radius = fltX(0.5) * Meter
-        val height = fltX(1.0) * Meter
+        val radius = FltX(0.5) * Meter
+        val height = FltX(1.0) * Meter
         val shape = PackageShape(
             width = radius + radius,
             height = height,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
@@ -41,14 +41,14 @@ class CylinderShapeContractTest {
     }
 
     private fun cylinderItem(axis: Axis3): ActualItem {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         return ActualItem(
             id = "cylinder-$axis",
             name = "cylinder-$axis",
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CYL-$axis"),
             packageAttribute = packageAttribute(),

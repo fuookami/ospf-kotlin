@@ -38,9 +38,9 @@ class MaterialPackerTest {
             program = PackingProgram.innerPackage(
                 shape = PackageShape(
                     width = widthMeter * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(1.0) * Kilogram,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(1.0) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = materials.map { (material, amount) -> Pair(material.key, amount) }.toMap()
@@ -59,8 +59,8 @@ class MaterialPackerTest {
                 )
             ),
             candidates = listOf(
-                candidate("pack-5", fltX(5.0), mapOf(material to UInt64(5))),
-                candidate("pack-2", fltX(2.0), mapOf(material to UInt64(2)))
+                candidate("pack-5", FltX(5.0), mapOf(material to UInt64(5))),
+                candidate("pack-2", FltX(2.0), mapOf(material to UInt64(2)))
             )
         )
 
@@ -73,12 +73,12 @@ class MaterialPackerTest {
 
     @Test
     fun shouldConvertWeightDemandToAmountByCeilRule() = runBlocking {
-        val material = material("M-2", fltX(2.0))
+        val material = material("M-2", FltX(2.0))
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(
                     material = material,
-                    weight = fltX(5.0) * Kilogram
+                    weight = FltX(5.0) * Kilogram
                 )
             ),
             candidates = listOf(
@@ -93,7 +93,7 @@ class MaterialPackerTest {
 
     @Test
     fun shouldConvertFltXWeightDemandToAmountByCeilRule() = runBlocking {
-        val material = material("M-2X", fltX(2.0))
+        val material = material("M-2X", FltX(2.0))
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(
@@ -129,8 +129,8 @@ class MaterialPackerTest {
                         materialB to UInt64.one
                     )
                 ),
-                candidate("single-a", fltX(0.5), mapOf(materialA to UInt64.one)),
-                candidate("single-b", fltX(0.5), mapOf(materialB to UInt64.one))
+                candidate("single-a", FltX(0.5), mapOf(materialA to UInt64.one)),
+                candidate("single-b", FltX(0.5), mapOf(materialB to UInt64.one))
             )
         )
 
@@ -145,7 +145,7 @@ class MaterialPackerTest {
         val material = material("M-4", FltX.one)
         val plan = MaterialPacker().plan(
             demands = listOf(MaterialPackingDemand(material, UInt64(6))),
-            candidates = listOf(candidate("pack-5", fltX(5.0), mapOf(material to UInt64(5))))
+            candidates = listOf(candidate("pack-5", FltX(5.0), mapOf(material to UInt64(5))))
         )
 
         assertEquals(2, plan.packages.size)
@@ -156,7 +156,7 @@ class MaterialPackerTest {
     @Test
     fun shouldPreserveCylinderShapeSpecOnPackagedItems() = runBlocking {
         val material = material("M-CYLINDER", FltX.one)
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         val plan = MaterialPacker().plan(
             demands = listOf(
                 MaterialPackingDemand(
@@ -169,10 +169,10 @@ class MaterialPackerTest {
                     id = "pack-cylinder",
                     program = PackingProgram.innerPackage(
                         shape = PackageShape(
-                            width = fltX(1.0) * Meter,
-                            height = fltX(1.2) * Meter,
-                            depth = fltX(1.0) * Meter,
-                            weight = fltX(1.0) * Kilogram,
+                            width = FltX(1.0) * Meter,
+                            height = FltX(1.2) * Meter,
+                            depth = FltX(1.0) * Meter,
+                            weight = FltX(1.0) * Kilogram,
                             packageType = PackageType.CartonContainer,
                             shapeSpec = PackageShapeSpec.VerticalCylinder(
                                 radius = radius,
@@ -210,12 +210,12 @@ class MaterialPackerTest {
         val plan = MaterialPacker().plan(
             demands = listOf(MaterialPackingDemand(material, UInt64(4))),
             candidates = listOf(
-                candidate("high-volume", fltX(8.0), mapOf(material to UInt64(4u))),
-                candidate("low-volume", fltX(4.0), mapOf(material to UInt64(4u)))
+                candidate("high-volume", FltX(8.0), mapOf(material to UInt64(4u))),
+                candidate("low-volume", FltX(4.0), mapOf(material to UInt64(4u)))
             ),
             objective = MaterialPackingObjectiveConfig(
-                packageCountWeight = fltX(1_000_000.0),
-                volumeWeight = fltX(1_000.0),
+                packageCountWeight = FltX(1_000_000.0),
+                volumeWeight = FltX(1_000.0),
                 slackWeight = FltX.one
             )
         )

@@ -117,7 +117,7 @@ data class CylinderPackingShape3(
             Axis3.X, Axis3.Y -> diameter
         }
     override val actualVolume: Quantity<FltX>
-        get() = fltX(PI) * radius * radius * cylinder.height
+        get() = FltX(PI) * radius * radius * cylinder.height
 
     override fun footprint(): ShapeFootprint2<FltX> {
         return when (cylinder.axis) {

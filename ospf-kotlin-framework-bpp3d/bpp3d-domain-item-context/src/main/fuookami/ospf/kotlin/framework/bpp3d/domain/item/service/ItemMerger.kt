@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 货物合并服务。
  * Item merger service.
@@ -194,7 +193,7 @@ data object ItemMerger {
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: FltX = fltXInfinity()
+        restWeight: FltX = FltX.maximum
     ): Pair<List<Pile>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
@@ -280,7 +279,7 @@ data object ItemMerger {
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         config: Config = Config()
     ): Pair<List<SimpleBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -390,7 +389,7 @@ data object ItemMerger {
         items: List<Item>,
         space: AbstractContainer3Shape,
         patterns: List<Pattern>,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
     ): Pair<List<CommonBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -461,7 +460,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, List<Item>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -480,7 +479,7 @@ data object ItemMerger {
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
-        restWeight: FltX = fltXInfinity(),
+        restWeight: FltX = FltX.maximum,
         config: Config = Config()
     ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
         requireNoCylinderItemsForCuboidOnlyPath(
@@ -686,7 +685,7 @@ data object ItemMerger {
                                 position = itemPlacement.position + offset
                             )
                         )
-                    } ?: emptyList()
+                    } ?: emptyList<QuantityPlacement3<Item, FltX>>()
                 }
 
                 is Block -> {
@@ -704,7 +703,7 @@ data object ItemMerger {
                     layer.units.dump(it.position + offset)
                 }
 
-                else -> emptyList()
+                else -> emptyList<QuantityPlacement3<Item, FltX>>()
             }
         }.flatten()
     }

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 立方体基础设施。
  * Cuboid infrastructure.
@@ -159,10 +158,10 @@ fun CuboidView<*, FltX>.bottomSupport(bottomView: CuboidView<*, FltX>): BottomSu
     )
     val supportArea = shapePlacement.footprintOverlapArea(bottomShapePlacement)
     val bottomArea = bottomShapePlacement.footprintOverlapArea(bottomShapePlacement)
-    return if ((bottomArea eq (fltXZero() * bottomArea.unit)) == true) {
+    return if ((bottomArea eq (FltX.zero * bottomArea.unit)) == true) {
         BottomSupport(
             area = supportArea,
-            weight = bottomView.weight * fltXZero()
+            weight = bottomView.weight * FltX.zero
         )
     } else {
         BottomSupport(
@@ -181,17 +180,17 @@ fun bottomSupport(
 ): BottomSupport {
     val unitShapePlacement = unit.asShapePlacement3(shapeResolver)
     var support = BottomSupport(
-        area = unit.depth * unit.width * fltXZero(),
-        weight = unit.weight * fltXZero()
+        area = unit.depth * unit.width * FltX.zero,
+        weight = unit.weight * FltX.zero
     )
 
     for (fixedPlacement in bottomUnits) {
         if (fixedPlacement.maxY eq unit.y) {
             val bottomShapePlacement = fixedPlacement.asShapePlacement3(shapeResolver)
             val overlapArea = unitShapePlacement.footprintOverlapArea(bottomShapePlacement)
-            if ((overlapArea gr (fltXZero() * overlapArea.unit)) == true) {
+            if ((overlapArea gr (FltX.zero * overlapArea.unit)) == true) {
                 val bottomArea = bottomShapePlacement.footprintOverlapArea(bottomShapePlacement)
-                if ((bottomArea gr (fltXZero() * bottomArea.unit)) == true) {
+                if ((bottomArea gr (FltX.zero * bottomArea.unit)) == true) {
                     val thisSupport = BottomSupport(
                         area = overlapArea,
                         weight = (overlapArea / bottomArea).value * fixedPlacement.weight

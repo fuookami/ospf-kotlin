@@ -354,7 +354,6 @@ interface AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<LinearMechanismModel<Flt64>> {
-        @Suppress("DEPRECATION")
         return LinearMechanismModel.invoke<Flt64>(
             metaModel = model,
             registrationStatusCallBack = registrationStatusCallBack,
@@ -387,7 +386,6 @@ interface LinearSolver : AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<LinearMechanismModel<Flt64>> {
-        @Suppress("DEPRECATION")
         return LinearMechanismModel.invoke<Flt64>(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,

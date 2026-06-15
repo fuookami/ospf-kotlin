@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 3D 自底向上左对齐算法。
  * 3D bottom-up left-justified algorithm.

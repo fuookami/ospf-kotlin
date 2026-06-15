@@ -41,17 +41,17 @@ class QuantityDemandStatisticsTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-64",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
             id = "item-64",
             name = "item-64",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.2) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(2))
@@ -63,12 +63,12 @@ class QuantityDemandStatisticsTest {
         val layer = QuantityBinLayer(
             iteration = Int64.zero,
             from = QuantityDemandStatisticsTest::class,
-            width = fltX(10.0) * Meter,
-            height = fltX(10.0) * Meter,
-            depth = fltX(10.0) * Meter,
+            width = FltX(10.0) * Meter,
+            height = FltX(10.0) * Meter,
+            depth = FltX(10.0) * Meter,
             units = listOf(
-                QuantityItemPlacement(item, fltX(0.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter),
-                QuantityItemPlacement(item, fltX(1.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter)
+                QuantityItemPlacement(item, FltX(0.0) * Meter, FltX(0.0) * Meter, FltX(0.0) * Meter),
+                QuantityItemPlacement(item, FltX(1.0) * Meter, FltX(0.0) * Meter, FltX(0.0) * Meter)
             )
         )
 

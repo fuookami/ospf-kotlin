@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 层生成程序候选适配器。
  * Layer generation program candidate adapters.

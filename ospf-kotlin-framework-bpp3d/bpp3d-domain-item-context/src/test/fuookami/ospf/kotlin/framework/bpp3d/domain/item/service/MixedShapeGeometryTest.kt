@@ -21,8 +21,8 @@ class MixedShapeGeometryTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero, withWeight = withWeight),
@@ -40,10 +40,10 @@ class MixedShapeGeometryTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(width) * Meter,
-            height = fltX(height) * Meter,
-            depth = fltX(depth) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(width) * Meter,
+            height = FltX(height) * Meter,
+            depth = FltX(depth) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = attribute
@@ -57,8 +57,8 @@ class MixedShapeGeometryTest {
         attribute: PackageAttribute = packageAttribute(),
         axis: Axis3 = Axis3.Y
     ): ActualItem {
-        val radius = fltX(radiusValue) * Meter
-        val length = fltX(heightValue) * Meter
+        val radius = FltX(radiusValue) * Meter
+        val length = FltX(heightValue) * Meter
         val diameter = radius + radius
         return ActualItem(
             id = id,
@@ -75,7 +75,7 @@ class MixedShapeGeometryTest {
                 Axis3.Z -> length
                 Axis3.X, Axis3.Y -> diameter
             },
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = attribute,
@@ -94,17 +94,17 @@ class MixedShapeGeometryTest {
     ) = itemPlacement3Of(
         view = item.view(Orientation.Upright),
         position = point3(
-            x = fltX(x) * Meter,
-            y = fltX(y) * Meter,
-            z = fltX(z) * Meter
+            x = FltX(x) * Meter,
+            y = FltX(y) * Meter,
+            z = FltX(z) * Meter
         )
     )
 
     private fun space(): Container3Shape {
         return Container3Shape(
-            width = fltX(10.0) * Meter,
-            height = fltX(10.0) * Meter,
-            depth = fltX(10.0) * Meter
+            width = FltX(10.0) * Meter,
+            height = FltX(10.0) * Meter,
+            depth = FltX(10.0) * Meter
         )
     }
 
@@ -167,8 +167,8 @@ class MixedShapeGeometryTest {
     fun `direct cylinder bottom support uses circular footprint area`() {
         val cylinder = cylinderItem("cyl1", 0.5, 1.0)
         val support = BottomSupport(
-            area = (fltX(0.8) * Meter) * (fltX(1.0) * Meter),
-            weight = fltX(10.0) * Kilogram
+            area = (FltX(0.8) * Meter) * (FltX(1.0) * Meter),
+            weight = FltX(10.0) * Kilogram
         )
 
         assertTrue(cylinder.enabledStackingOn(support))
@@ -294,8 +294,8 @@ class MixedShapeGeometryTest {
             axis = Axis3.X
         )
         val support = BottomSupport(
-            area = (fltX(1.0) * Meter) * (fltX(1.0) * Meter),
-            weight = fltX(10.0) * Kilogram
+            area = (FltX(1.0) * Meter) * (FltX(1.0) * Meter),
+            weight = FltX(10.0) * Kilogram
         )
 
         val error = assertFailsWith<IllegalArgumentException> {
@@ -378,8 +378,8 @@ class MixedShapeGeometryTest {
             heightValue = 1.0
         )
         val support = BottomSupport(
-            area = (fltX(1.0) * Meter) * (fltX(1.0) * Meter),
-            weight = fltX(10.0) * Kilogram
+            area = (FltX(1.0) * Meter) * (FltX(1.0) * Meter),
+            weight = FltX(10.0) * Kilogram
         )
 
         val error = assertFailsWith<IllegalArgumentException> {

@@ -7,7 +7,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.*
+import org.junit.jupiter.api.BeforeAll
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -66,10 +67,10 @@ class MaterialPackingApplicationIntegrationTest {
             itemName = id,
             program = PackingProgram.innerPackage(
                 shape = PackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(1.0) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(1.0) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material.key to amountPerPackage)
@@ -80,10 +81,10 @@ class MaterialPackingApplicationIntegrationTest {
     private fun seedItem(id: String, material: Material<FltX>): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter,
-                weight = fltX(1.0) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter,
+                weight = FltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -103,10 +104,10 @@ class MaterialPackingApplicationIntegrationTest {
         binDepthMeter: Double = 3.0
     ): BinLayer {
         val binType = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(binDepthMeter) * Meter,
-            capacity = fltX(100.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(binDepthMeter) * Meter,
+            capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-SEED"
@@ -222,7 +223,7 @@ class MaterialPackingApplicationIntegrationTest {
         val response = service.solve(
             request = ColumnGenerationApplicationRequest(
                 itemDemands = emptyList(),
-                materialWeightDemands = listOf(Pair(material, fltX(5.0) * Kilogram)),
+                materialWeightDemands = listOf(Pair(material, FltX(5.0) * Kilogram)),
                 materialPackingCandidates = listOf(candidate("pack-w1", material, UInt64.one)),
                 initialColumns = listOf(layer),
                 finalBins = listOf(finalBinOf(layer)),
@@ -286,10 +287,10 @@ class MaterialPackingApplicationIntegrationTest {
             id = "program-direct",
             program = PackingProgram.innerPackageWithMaterialValues(
                 shape = PackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(1.0) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(1.0) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(

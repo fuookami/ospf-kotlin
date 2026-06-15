@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 简单块生成器。
  * Simple block generator.
@@ -78,7 +77,7 @@ class SimpleBlockGenerator(
         items: Map<Item, UInt64>,
         space: Container3Shape,
         patterns: List<Pattern>,
-        restWeight: FltX = fltXInfinity()
+        restWeight: FltX = FltX.maximum
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
@@ -134,7 +133,7 @@ class SimpleBlockGenerator(
                 val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                 val itemMaxYAmount = min(view.maxLayer, (view.maxHeight / view.height.value).floor().toUInt64())
                 val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                val itemMinZAmount = if (view.minDepth eq fltXZero()) {
+                val itemMinZAmount = if (view.minDepth eq FltX.zero) {
                     UInt64.one
                 } else {
                     (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -161,7 +160,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.sideOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq fltXZero()) {
+                    val itemMinZAmount = if (view.minDepth eq FltX.zero) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -189,7 +188,7 @@ class SimpleBlockGenerator(
                     val spaceMaxYAmount = (space.height / view.height).floor().toUInt64()
                     val itemMaxYAmount = item.lieOnTopLayer
                     val spaceMaxZAmount = (space.depth / view.depth).floor().toUInt64()
-                    val itemMinZAmount = if (view.minDepth eq fltXZero()) {
+                    val itemMinZAmount = if (view.minDepth eq FltX.zero) {
                         UInt64.one
                     } else {
                         (view.minDepth / view.depth.value).ceil().toUInt64()
@@ -277,7 +276,7 @@ class SimpleBlockGenerator(
                                     position = point3(
                                         x = x,
                                         y = y,
-                                        z = fltXZero() * zUnit(item, orientation)
+                                        z = FltX.zero * zUnit(item, orientation)
                                     )
                                 )
                             )
@@ -293,8 +292,8 @@ class SimpleBlockGenerator(
                                 view = item.view(orientation),
                                 position = point3(
                                     x = x,
-                                    y = fltXZero() * yUnit(item, orientation),
-                                    z = fltXZero() * zUnit(item, orientation)
+                                    y = FltX.zero * yUnit(item, orientation),
+                                    z = FltX.zero * zUnit(item, orientation)
                                 )
                             )
                         )
@@ -312,9 +311,9 @@ class SimpleBlockGenerator(
                                 blockPlacement3Of(
                                     view = SimpleBlock(remainderPlacements).view()!!,
                                     position = point3(
-                                        x = fltXZero() * xUnit(item, orientation),
+                                        x = FltX.zero * xUnit(item, orientation),
                                         y = orientation.height(item) * remainderMaxYAmount.toFltXScalar(),
-                                        z = fltXZero() * zUnit(item, orientation)
+                                        z = FltX.zero * zUnit(item, orientation)
                                     )
                                 )
                             )
@@ -352,7 +351,7 @@ class SimpleBlockGenerator(
                                     position = point3(
                                         x = x,
                                         y = y,
-                                        z = fltXZero() * zUnit(item, orientation)
+                                        z = FltX.zero * zUnit(item, orientation)
                                     )
                                 )
                             )
@@ -368,8 +367,8 @@ class SimpleBlockGenerator(
                                 view = item.view(orientation),
                                 position = point3(
                                     x = x,
-                                    y = fltXZero() * yUnit(item, orientation),
-                                    z = fltXZero() * zUnit(item, orientation)
+                                    y = FltX.zero * yUnit(item, orientation),
+                                    z = FltX.zero * zUnit(item, orientation)
                                 )
                             )
                         )
@@ -382,8 +381,8 @@ class SimpleBlockGenerator(
                         blockPlacement3Of(
                             view = SimpleBlock(remainderPlacements).view()!!,
                             position = point3(
-                                x = fltXZero() * xUnit(item, orientation),
-                                y = fltXZero() * yUnit(item, orientation),
+                                x = FltX.zero * xUnit(item, orientation),
+                                y = FltX.zero * yUnit(item, orientation),
                                 z = orientation.depth(item) * remainderMaxZAmount.toFltXScalar()
                             )
                         )
@@ -394,7 +393,7 @@ class SimpleBlockGenerator(
                         blockPlacement3Of(
                             view = SimpleBlock(remainderRemainderPlacements).view()!!,
                             position = point3(
-                                x = fltXZero() * xUnit(item, orientation),
+                                x = FltX.zero * xUnit(item, orientation),
                                 y = orientation.height(item) * remainderMaxYAmount.toFltXScalar(),
                                 z = orientation.depth(item) * remainderMaxZAmount.toFltXScalar()
                             )
@@ -408,7 +407,7 @@ class SimpleBlockGenerator(
     }
 
     private fun UInt64.toFltXScalar(): FltX {
-        return fltX(this)
+        return FltX(this.toULong().toDouble())
     }
 
     private fun xUnit(item: Item, orientation: Orientation) = orientation.width(item).unit

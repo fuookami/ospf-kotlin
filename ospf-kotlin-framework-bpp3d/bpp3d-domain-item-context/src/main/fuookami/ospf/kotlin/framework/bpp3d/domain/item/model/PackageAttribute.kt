@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 包装属性模型。
  * Package attribute model.
@@ -7,7 +6,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -112,7 +112,7 @@ data class AbsoluteHangingPolicy(
 
         val footprintArea = item.bottomFootprintArea()
         val footprintMinSpan = item.bottomFootprintMinSpan()
-        val maxDifferenceSpan = maxDifference * (fltXOne() * footprintMinSpan.unit)
+        val maxDifferenceSpan = maxDifference * (FltX.one * footprintMinSpan.unit)
         val maxHangingArea = maxDifferenceSpan * footprintMinSpan
         val hangingArea = footprintArea - bottomSupport.area
         return hangingArea leq maxHangingArea
@@ -317,9 +317,9 @@ interface AbstractCargoAttribute
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
-    val maxHeight: Quantity<FltX> = fltXInfinity() * Meter,
+    val maxHeight: Quantity<FltX> = FltX.maximum * Meter,
     val minDepth: Quantity<FltX> = FltX.zero * Meter,
-    val maxDepth: Quantity<FltX> = fltXInfinity() * Meter,
+    val maxDepth: Quantity<FltX> = FltX.maximum * Meter,
     val overPackageTypes: List<PackageType> = PackageType.entries.toList(),
     val bottomOnly: Boolean = false,
     val topFlat: Boolean = true,

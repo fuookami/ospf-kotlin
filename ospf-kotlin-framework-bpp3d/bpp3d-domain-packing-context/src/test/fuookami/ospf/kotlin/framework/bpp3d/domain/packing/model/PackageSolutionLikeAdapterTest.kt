@@ -61,13 +61,13 @@ class PackageSolutionLikeAdapterTest {
                 ),
                 PackageSolutionLikeMaterialItem(
                     material = materialWeight.key,
-                    quantity = PackageSolutionLikeQuantity.Weight(fltX(5.0) * Kilogram)
+                    quantity = PackageSolutionLikeQuantity.Weight(FltX(5.0) * Kilogram)
                 ),
                 PackageSolutionLikeMaterialItem(
                     material = materialBoth.key,
                     quantity = PackageSolutionLikeQuantity.AmountAndWeight(
                         amount = UInt64(3),
-                        weight = fltX(7.0) * Kilogram
+                        weight = FltX(7.0) * Kilogram
                     )
                 )
             )
@@ -101,22 +101,22 @@ class PackageSolutionLikeAdapterTest {
             )
         )
         val childByWeight = PackageSolutionLikeNode(
-            shape = shape(fltX(1.2)),
+            shape = shape(FltX(1.2)),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,
-                    quantity = PackageSolutionLikeQuantity.Weight(fltX(4.0) * Kilogram)
+                    quantity = PackageSolutionLikeQuantity.Weight(FltX(4.0) * Kilogram)
                 )
             )
         )
         val parent = PackageSolutionLikeNode(
-            shape = shape(fltX(2.0)),
+            shape = shape(FltX(2.0)),
             materialItems = listOf(
                 PackageSolutionLikeMaterialItem(
                     material = material.key,
                     quantity = PackageSolutionLikeQuantity.AmountAndWeight(
                         amount = UInt64.one,
-                        weight = fltX(1.0) * Kilogram
+                        weight = FltX(1.0) * Kilogram
                     )
                 )
             ),

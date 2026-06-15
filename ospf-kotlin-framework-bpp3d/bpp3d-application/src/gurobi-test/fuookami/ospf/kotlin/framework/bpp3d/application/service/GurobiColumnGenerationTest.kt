@@ -29,6 +29,14 @@ import java.util.Locale
 class GurobiColumnGenerationTest {
     private object CargoAttr : fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 
+    private fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
+        return fold(0) { acc, item -> acc + selector(item) }
+    }
+
+    private fun <T> Iterable<T>.sumOfLong(selector: (T) -> Long): Long {
+        return fold(0L) { acc, item -> acc + selector(item) }
+    }
+
     private fun packageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
@@ -854,7 +862,7 @@ class GurobiColumnGenerationTest {
             val layerCount = rowsByLayer.size
             val maxItemsPerLayer = rowsByLayer.values.maxOf { it.size }
             val maxLayerWidth = rowsByLayer.values.maxOf { layerRows ->
-                layerRows.sumOf { row -> row.widthMeter?.toDouble() ?: 1.0 }
+                layerRows.fold(0.0) { acc, row -> acc + (row.widthMeter?.toDouble() ?: 1.0) }
             }
             val maxLayerHeight = rowsByLayer.values.maxOf { layerRows ->
                 layerRows.maxOf { row -> row.heightMeter?.toDouble() ?: 1.0 }
@@ -2039,7 +2047,7 @@ class GurobiColumnGenerationTest {
             "Should have material amount demands"
         )
         // MAT-PWL-MA 的 amount=2, MAT-PWL-MC 的 amount=3
-        val totalExpectedAmount = scenario.itemDemands.sumOf { it.second.toLong().toLong() }
+        val totalExpectedAmount = scenario.itemDemands.sumOfLong { it.second.toLong().toLong() }
         assertTrue(
             totalExpectedAmount >= 7L,
             "Total amount should be at least 7 (2 + 1 + 3 + 1): actual=$totalExpectedAmount"
@@ -2859,7 +2867,7 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(2, snapshot.bins.size)
-        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         val renderedItems = snapshot.schema.loadingPlans.flatMap { plan -> plan.items }
         assertTrue(
             renderedItems.any { item ->
@@ -2971,7 +2979,7 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(1, snapshot.bins.size)
-        assertEquals(3, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(3, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         val renderedItems = snapshot.schema.loadingPlans.flatMap { plan -> plan.items }
         assertTrue(
             renderedItems.any { item ->
@@ -3044,9 +3052,9 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(1, snapshot.bins.size)
-        assertEquals(1, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(1, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(1, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(2, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
@@ -3151,9 +3159,9 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(finalBinCount, snapshot.bins.size)
-        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(layerCount, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(1, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
@@ -3260,9 +3268,9 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(finalBinCount, snapshot.bins.size)
-        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(layerCount, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(1, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(layerCount * itemsPerLayer, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
@@ -3392,9 +3400,9 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(groupCount, snapshot.bins.size)
-        assertEquals(totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(totalLayerCount, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(groupCount, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
@@ -3484,12 +3492,12 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(expectedGroupCount, snapshot.bins.size)
-        assertEquals(expectedPackedLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(expectedPackedLayerCount, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(expectedGroupCount, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(expectedItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(expectedItemCount, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(expectedMaterialCount, snapshot.packingResult.materialSummary.size)
         assertEquals(expectedGroupCount, snapshot.schema.loadingPlans.size)
-        assertEquals(expectedItemCount, snapshot.schema.loadingPlans.sumOf { plan -> plan.items.size })
+        assertEquals(expectedItemCount, snapshot.schema.loadingPlans.sumOfInt { plan -> plan.items.size })
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
         }
@@ -3586,12 +3594,12 @@ class GurobiColumnGenerationTest {
             val snapshot = response.packingSnapshot
             assertNotNull(snapshot, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.bins.size, scenarioCase.name)
-            assertEquals(scenario.packedLayerCount, snapshot.bins.sumOf { bin -> bin.units.size }, scenarioCase.name)
+            assertEquals(scenario.packedLayerCount, snapshot.bins.sumOfInt { bin -> bin.units.size }, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.packingResult.aggregation.bins.size, scenarioCase.name)
-            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size }, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size }, scenarioCase.name)
             assertEquals(scenario.materialCount, snapshot.packingResult.materialSummary.size, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.schema.loadingPlans.size, scenarioCase.name)
-            assertEquals(scenario.totalItemCount, snapshot.schema.loadingPlans.sumOf { plan -> plan.items.size }, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.schema.loadingPlans.sumOfInt { plan -> plan.items.size }, scenarioCase.name)
             val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
                 entry.material to entry.amount
             }
@@ -3692,12 +3700,12 @@ class GurobiColumnGenerationTest {
             val snapshot = response.packingSnapshot
             assertNotNull(snapshot, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.bins.size, scenarioCase.name)
-            assertEquals(scenario.packedLayerCount, snapshot.bins.sumOf { bin -> bin.units.size }, scenarioCase.name)
+            assertEquals(scenario.packedLayerCount, snapshot.bins.sumOfInt { bin -> bin.units.size }, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.packingResult.aggregation.bins.size, scenarioCase.name)
-            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size }, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size }, scenarioCase.name)
             assertEquals(scenario.materialCount, snapshot.packingResult.materialSummary.size, scenarioCase.name)
             assertEquals(scenario.groupCount, snapshot.schema.loadingPlans.size, scenarioCase.name)
-            assertEquals(scenario.totalItemCount, snapshot.schema.loadingPlans.sumOf { plan -> plan.items.size }, scenarioCase.name)
+            assertEquals(scenario.totalItemCount, snapshot.schema.loadingPlans.sumOfInt { plan -> plan.items.size }, scenarioCase.name)
             val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
                 entry.material to entry.amount
             }
@@ -3846,11 +3854,11 @@ class GurobiColumnGenerationTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(groupCount, snapshot.bins.size)
-        assertEquals(totalLayerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(totalLayerCount, snapshot.bins.sumOfInt { bin -> bin.units.size })
         assertEquals(groupCount, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(totalItemCount, snapshot.packingResult.aggregation.bins.sumOfInt { bin -> bin.items.size })
         assertEquals(groupCount, snapshot.schema.loadingPlans.size)
-        assertEquals(totalItemCount, snapshot.schema.loadingPlans.sumOf { plan -> plan.items.size })
+        assertEquals(totalItemCount, snapshot.schema.loadingPlans.sumOfInt { plan -> plan.items.size })
         assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount

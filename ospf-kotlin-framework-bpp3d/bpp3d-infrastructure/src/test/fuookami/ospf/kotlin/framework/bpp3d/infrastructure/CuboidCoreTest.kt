@@ -25,13 +25,13 @@ class CuboidCoreTest {
     @Test
     fun abstractCuboidVolumeAndLinearDensityShouldKeepDimensions() {
         val box = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(8.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(8.0) * Kilogram
         )
 
-        assertTrue(box.volume eq (fltX(24.0) * CubicMeter))
+        assertTrue(box.volume eq (FltX(24.0) * CubicMeter))
         assertEquals((Kilogram / Meter).quantity.dimensionSymbol(), box.linearDensity.unit.quantity.dimensionSymbol())
         assertEquals(2.0, box.linearDensity.value.toDouble(), 1e-10)
     }
@@ -39,37 +39,37 @@ class CuboidCoreTest {
     @Test
     fun bottomSupportPlusShouldWorkWithQuantity() {
         val lhs = BottomSupport(
-            area = fltX(2.0) * SquareMeter,
-            weight = fltX(3.0) * Kilogram
+            area = FltX(2.0) * SquareMeter,
+            weight = FltX(3.0) * Kilogram
         )
         val rhs = BottomSupport(
-            area = fltX(1.5) * SquareMeter,
-            weight = fltX(1.0) * Kilogram
+            area = FltX(1.5) * SquareMeter,
+            weight = FltX(1.0) * Kilogram
         )
         val sum = lhs + rhs
 
-        assertTrue(sum.area eq (fltX(3.5) * SquareMeter))
-        assertTrue(sum.weight eq (fltX(4.0) * Kilogram))
+        assertTrue(sum.area eq (FltX(3.5) * SquareMeter))
+        assertTrue(sum.weight eq (FltX(4.0) * Kilogram))
     }
 
     @Test
     fun cuboidViewShouldExposeOrientationDimensionsAsQuantity() {
         val box = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(1.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(1.0) * Kilogram
         )
 
         val upright = box.view(Orientation.Upright)!!
         val rotated = box.view(Orientation.UprightRotated)!!
 
-        assertTrue(upright.width eq (fltX(2.0) * Meter))
-        assertTrue(upright.height eq (fltX(3.0) * Meter))
-        assertTrue(upright.depth eq (fltX(4.0) * Meter))
+        assertTrue(upright.width eq (FltX(2.0) * Meter))
+        assertTrue(upright.height eq (FltX(3.0) * Meter))
+        assertTrue(upright.depth eq (FltX(4.0) * Meter))
 
-        assertTrue(rotated.width eq (fltX(4.0) * Meter))
-        assertTrue(rotated.height eq (fltX(3.0) * Meter))
-        assertTrue(rotated.depth eq (fltX(2.0) * Meter))
+        assertTrue(rotated.width eq (FltX(4.0) * Meter))
+        assertTrue(rotated.height eq (FltX(3.0) * Meter))
+        assertTrue(rotated.depth eq (FltX(2.0) * Meter))
     }
 }

@@ -308,10 +308,10 @@ private class CplexQuadraticSolverImpl(
     }
 
     private suspend fun configure(model: QuadraticTetradModelView): Try {
-        cplex.setParam(IloCplex.DoubleParam.TiLim, config.time.toDouble(DurationUnit.SECONDS))
-        cplex.setParam(IloCplex.DoubleParam.EpGap, config.gap.toSolverDouble("quadratic.config.gap"))
-        cplex.setParam(IloCplex.IntParam.Threads, config.threadNum.toInt())
-        cplex.setParam(IloCplex.IntParam.OptimalityTarget, IloCplex.OptimalityTarget.OptimalGlobal)
+        cplex.setParam(IloCplex.Param.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
+        cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, config.gap.toSolverDouble("quadratic.config.gap"))
+        cplex.setParam(IloCplex.Param.Threads, config.threadNum.toInt())
+        cplex.setParam(IloCplex.Param.OptimalityTarget, IloCplex.OptimalityTarget.OptimalGlobal)
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
             cplex.use(object : IloCplex.MIPInfoCallback() {

@@ -51,15 +51,15 @@ class MaterialDemandReducedCostTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-                radius = fltX(0.5) * Meter,
+                radius = FltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
@@ -74,9 +74,9 @@ class MaterialDemandReducedCostTest {
         return itemPlacement3Of(
             view = item.view(Orientation.Upright),
             position = point3(
-                x = fltX(x) * Meter,
-                y = fltX(y) * Meter,
-                z = fltX(z) * Meter
+                x = FltX(x) * Meter,
+                y = FltX(y) * Meter,
+                z = FltX(z) * Meter
             )
         )
     }
@@ -92,17 +92,17 @@ class MaterialDemandReducedCostTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val item = ActualItem(
             id = "item-rc",
             name = "item-rc",
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.1) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(3))
@@ -123,12 +123,12 @@ class MaterialDemandReducedCostTest {
             demandEntries = listOf(Pair(Bpp3dDemandMode.ItemMaterialAmount, Bpp3dDemandKey.Material(material.key))),
             shadowPriceOf = { mode, key ->
                 shadowPriceMap[LocalDemandShadowPriceKey(mode, key)]?.price?.toDouble()?.let(::FltX)
-                    ?: fltX(0.0)
+                    ?: FltX(0.0)
             },
             demandValueToScalar = { value ->
                 when (value) {
-                    is Bpp3dDemandValue.Amount -> fltX(value.value.toULong().toDouble())
-                    is Bpp3dDemandValue.Weight -> fltX(value.value.value.toDouble())
+                    is Bpp3dDemandValue.Amount -> FltX(value.value.toULong().toDouble())
+                    is Bpp3dDemandValue.Weight -> FltX(value.value.value.toDouble())
                 }
             }
         )
@@ -151,9 +151,9 @@ class MaterialDemandReducedCostTest {
         val second = cylinderItem("cyl-rc-b")
         val container = ReducedCostContainer(
             shape = Container3Shape(
-                width = fltX(3.0) * Meter,
-                height = fltX(2.0) * Meter,
-                depth = fltX(2.0) * Meter
+                width = FltX(3.0) * Meter,
+                height = FltX(2.0) * Meter,
+                depth = FltX(2.0) * Meter
             ),
             units = listOf(
                 placementOf(item = first),

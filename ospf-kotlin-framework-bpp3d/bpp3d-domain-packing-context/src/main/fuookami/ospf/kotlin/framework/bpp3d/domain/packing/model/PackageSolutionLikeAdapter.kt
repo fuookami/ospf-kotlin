@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 包装解决方案适配器。
  * Package solution like adapter.

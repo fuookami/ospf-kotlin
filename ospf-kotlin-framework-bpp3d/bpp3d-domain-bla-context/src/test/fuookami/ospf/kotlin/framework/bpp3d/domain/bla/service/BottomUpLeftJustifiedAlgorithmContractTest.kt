@@ -28,10 +28,10 @@ class BottomUpLeftJustifiedAlgorithmContractTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -42,7 +42,7 @@ class BottomUpLeftJustifiedAlgorithmContractTest {
     fun singleProjectionShouldProduceAPlacement() = runBlocking {
         val projection = PlaneProjection(item("item-1").view(), Bottom)
         val algorithm = BottomUpLeftJustifiedAlgorithm(
-            space = Container2Shape(length = fltX(5.0) * Meter, width = fltX(5.0) * Meter, plane = Bottom),
+            space = Container2Shape(length = FltX(5.0) * Meter, width = FltX(5.0) * Meter, plane = Bottom),
             plane = Bottom
         )
 

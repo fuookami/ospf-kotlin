@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 层模型。
  * Layer model.
@@ -98,7 +97,7 @@ class BinLayer(
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: Quantity<FltX> = units.maxOfOrNull { it.maxZ } ?: (shape.depth * fltXZero())
+    override val depth: Quantity<FltX> = units.maxOfOrNullQuantity { it.maxZ } ?: (shape.depth * FltX.zero)
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -164,7 +163,7 @@ class PalletLayer(
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: Quantity<FltX> = units.maxOfOrNull { it.maxY } ?: (shape.height * fltXZero())
+    override val height: Quantity<FltX> = units.maxOfOrNullQuantity { it.maxY } ?: (shape.height * FltX.zero)
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true

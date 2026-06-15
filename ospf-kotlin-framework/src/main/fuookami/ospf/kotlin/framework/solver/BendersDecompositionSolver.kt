@@ -80,7 +80,6 @@ private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>):
  * @param V 目标数值类型 / Target number type
  * @return 转换后的求解器输出 / Solver output in target number type
  */
-@Suppress("DEPRECATION")
 private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
         where V : RealNumber<V>, V : NumberField<V> {
     return when (this) {

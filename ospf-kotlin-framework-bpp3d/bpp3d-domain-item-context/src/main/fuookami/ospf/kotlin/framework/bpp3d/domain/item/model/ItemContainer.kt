@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 货物容器模型。
  * Item container model.
@@ -26,13 +25,13 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, F
 
     val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }
     val bottomOnlyHeight: Quantity<FltX>
-        get() = items.maxOfOrNull { item ->
+        get() = items.maxOfOrNullQuantity { item ->
             if (item.bottomOnly) {
                 item.maxY
             } else {
-                shape.height * fltXZero()
+                shape.height * FltX.zero
             }
-        } ?: (shape.height * fltXZero())
+        } ?: (shape.height * FltX.zero)
 
     val topFlat: Boolean get() = topPlacements(units).all { (it.view as ItemView).topFlat }
 

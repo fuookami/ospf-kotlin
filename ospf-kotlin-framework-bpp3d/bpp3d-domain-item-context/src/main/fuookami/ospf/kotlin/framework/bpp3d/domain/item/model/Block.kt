@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 块模型。
  * Block model.
@@ -16,9 +15,9 @@ sealed class Block(
 ) : ItemContainer<Block> {
     // inherited from Container3<Block>
     final override val shape = Container3Shape(
-        width = units.maxOf { it.maxX } - units.minOf { it.x },
-        height = units.maxOf { it.maxY } - units.minOf { it.y },
-        depth = units.maxOf { it.maxZ } - units.minOf { it.z }
+        width = units.maxOfQuantity { it.maxX } - units.minOfQuantity { it.x },
+        height = units.maxOfQuantity { it.maxY } - units.minOfQuantity { it.y },
+        depth = units.maxOfQuantity { it.maxZ } - units.minOfQuantity { it.z }
     )
 
     // inherited from ItemContainer<Block>
@@ -112,8 +111,8 @@ class HollowSquareBlock(
     override fun copy() = HollowSquareBlock(units.map { it.copy() })
 
     override fun toString(): String {
-        val amount = units.count { it.view == itemView && it.position.y eq fltXZero() }
-        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq fltXZero() }.size
+        val amount = units.count { it.view == itemView && it.position.y eq FltX.zero }
+        val rotationAmount = units.filter { it.view == itemRotationView && it.position.y eq FltX.zero }.size
         return "$item (${amount} + ${rotationAmount})*$layer"
     }
 }
@@ -124,15 +123,15 @@ class Pile(
     companion object {
         private fun dump(items: List<ItemView>): List<QuantityPlacement3<Item, FltX>> {
             val units = ArrayList<QuantityPlacement3<Item, FltX>>()
-            var y = fltXZero() * items.first().height.unit
+            var y = FltX.zero * items.first().height.unit
             for (item in items) {
                 units.add(
                     itemPlacement3Of(
                         view = item,
                         position = QuantityPoint3(
-                            x = fltXZero() * item.height.unit,
+                            x = FltX.zero * item.height.unit,
                             y = y,
-                            z = fltXZero() * item.height.unit
+                            z = FltX.zero * item.height.unit
                         )
                     )
                 )
@@ -159,9 +158,9 @@ class Pile(
                 } else {
                     bottomItems.subList(notSameIndex + 1, bottomItems.size)
                 }
-                Pair(UInt64(sameItems.size), sameItems.sumOf { it.height })
+                Pair(UInt64(sameItems.size), sameItems.sumOfQuantity { it.height })
             } else {
-                Pair(UInt64.zero, item.height * fltXZero())
+                Pair(UInt64.zero, item.height * FltX.zero)
             }
         }
     }
@@ -209,15 +208,15 @@ class LayeredBlock(
 ) : Block(dump(blocks)) {
     companion object {
         private fun dump(blocks: List<SimpleBlock>): List<QuantityPlacement3<Item, FltX>> {
-            var y = fltXZero() * blocks.first().height.unit
+            var y = FltX.zero * blocks.first().height.unit
             val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
             for (block in blocks) {
                 placements.addAll(
                     block.units.dump(
                         QuantityPoint3(
-                            x = fltXZero() * block.height.unit,
+                            x = FltX.zero * block.height.unit,
                             y = y,
-                            z = fltXZero() * block.height.unit
+                            z = FltX.zero * block.height.unit
                         )
                     )
                 )

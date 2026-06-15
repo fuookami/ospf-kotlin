@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 层放置适配器。
  * Layer placement adapter.

@@ -21,8 +21,8 @@ class ItemMergerCylinderTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
@@ -31,14 +31,14 @@ class ItemMergerCylinderTest {
     }
 
     private fun cylinderItem(id: String): ActualItem {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -51,16 +51,16 @@ class ItemMergerCylinderTest {
 
     private fun space(): Container3Shape {
         return Container3Shape(
-            width = fltX(4.0) * Meter,
-            height = fltX(4.0) * Meter,
-            depth = fltX(4.0) * Meter
+            width = FltX(4.0) * Meter,
+            height = FltX(4.0) * Meter,
+            depth = FltX(4.0) * Meter
         )
     }
 
     private fun pattern(): Pattern {
         val range = ValueRange(
             lb = FltX.zero,
-            ub = fltX(10.0),
+            ub = FltX(10.0),
             lbInterval = Interval.Closed,
             ubInterval = Interval.Closed,
             constants = FltX

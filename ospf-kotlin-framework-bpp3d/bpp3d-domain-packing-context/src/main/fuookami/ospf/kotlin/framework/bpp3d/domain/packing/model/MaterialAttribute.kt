@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物料属性模型。
  * Material attribute model.

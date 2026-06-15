@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装箱渲染适配器。
  * Packing renderer adapter.
@@ -119,13 +118,13 @@ class PackingRendererAdapter {
                         // PWL path: use actualRadiusSquared (r²) for true volume, not solverRadiusSquared (q ≈ r²).
                         pwlMetadata.actualVolume(
                             height = cylinderShape.cylinder.height.value,
-                            pi = fltX(PI)
+                            pi = FltX(PI)
                         ).toFltX()
                     } else {
                         // 非 PWL 路径：直接使用 solver 选出的半径。
                         // Non-PWL path: use solver-selected radius directly.
                         val solverRadius = solverResult.selectedRadius
-                        (fltX(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                        (FltX(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
                     }
                 } else {
                     shape.actualVolume.value.toFltX()
@@ -137,7 +136,7 @@ class PackingRendererAdapter {
                     cylinderShape?.radius?.value?.toFltX()
                 }
                 val diameter: FltX? = if (cylinderShape != null && solverResult != null) {
-                    (solverResult.selectedRadius * fltX(2.0)).value.toFltX()
+                    (solverResult.selectedRadius * FltX(2.0)).value.toFltX()
                 } else {
                     cylinderShape?.diameter?.value?.toFltX()
                 }
@@ -149,7 +148,7 @@ class PackingRendererAdapter {
                     mapOf(
                         "pwl_volume" to pwl.pwlVolume(
                             height = cylinderShape.cylinder.height.value,
-                            pi = fltX(PI)
+                            pi = FltX(PI)
                         ).toDouble().toString(),
                         "pwl_absolute_error" to pwl.pwlAbsoluteError.toDouble().toString(),
                         "pwl_relative_error" to pwl.pwlRelativeError.toDouble().toString(),

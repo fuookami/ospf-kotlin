@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 量纲域模型。
  * Quantity domain models.
@@ -13,11 +12,11 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
-    return Quantity(fltX(this.value.toString().toDouble()), this.unit)
+    return Quantity(FltX(this.value.toString().toDouble()), this.unit)
 }
 
 private fun Quantity<*>.toFltXQuantityUnsafe(): Quantity<FltX> {
-    return Quantity(fltX(this.value.toString().toDouble()), this.unit)
+    return Quantity(FltX(this.value.toString().toDouble()), this.unit)
 }
 
 sealed interface QuantityPackageShapeSpec {

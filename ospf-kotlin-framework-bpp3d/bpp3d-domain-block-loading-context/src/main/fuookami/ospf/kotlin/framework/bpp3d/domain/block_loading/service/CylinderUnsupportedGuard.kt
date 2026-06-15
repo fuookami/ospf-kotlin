@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 圆柱未开放路径门禁。
  * Cylinder unsupported-path guards.

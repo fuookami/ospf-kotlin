@@ -13,6 +13,12 @@ import org.ktorm.schema.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
+/** 设置动态解析列的值 / Set value for a dynamically resolved column */
+@Suppress("UNCHECKED_CAST")
+private fun UpdateStatementBuilder.setDynamicValue(column: ColumnDeclaring<*>, value: Any?) {
+    set(column as Column<Any>, value)
+}
+
 /**
  * Ktorm 更新翻译器
  * Ktorm Update Translator
@@ -49,13 +55,13 @@ class KtormUpdateTranslator(
                     is SetValue -> {
                         val column = resolveColumn(item.path)
                         if (column != null) {
-                            set(column as Column<Any>, item.value)
+                            setDynamicValue(column, item.value)
                         }
                     }
                     is SetNull -> {
                         val column = resolveColumn(item.path)
                         if (column != null) {
-                            set(column as Column<Any>, null)
+                            setDynamicValue(column, null)
                         }
                     }
                     is SetFromExpression -> {
@@ -63,7 +69,7 @@ class KtormUpdateTranslator(
                         if (column != null) {
                             val exprValue = (item.expression as? ScalarConstant<*>)?.value
                             if (exprValue != null) {
-                                set(column as Column<Any>, exprValue)
+                                setDynamicValue(column, exprValue)
                             }
                         }
                     }

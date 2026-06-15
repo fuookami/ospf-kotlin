@@ -14,18 +14,18 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 class QuantityGeometryContractTest {
     @Test
     fun quantityArithmeticShouldRespectUnits() {
-        val width = (fltX(2.0) * Meter) + (fltX(50.0) * Centimeter)
-        val height = fltX(3.0) * Meter
-        val depth = fltX(4.0) * Meter
-        val weight = fltX(12.0) * Kilogram
+        val width = (FltX(2.0) * Meter) + (FltX(50.0) * Centimeter)
+        val height = FltX(3.0) * Meter
+        val depth = FltX(4.0) * Meter
+        val weight = FltX(12.0) * Kilogram
 
         val area = width * height
         val volume = area * depth
         val linearDensity = weight / depth
 
-        assertTrue(width eq (fltX(2.5) * Meter))
-        assertTrue(area eq (fltX(7.5) * SquareMeter))
-        assertTrue(volume eq (fltX(30.0) * CubicMeter))
+        assertTrue(width eq (FltX(2.5) * Meter))
+        assertTrue(area eq (FltX(7.5) * SquareMeter))
+        assertTrue(volume eq (FltX(30.0) * CubicMeter))
         assertEquals((Kilogram / Meter).quantity.dimensionSymbol(), linearDensity.unit.quantity.dimensionSymbol())
         assertEquals(3.0, linearDensity.value.toDouble(), 1e-10)
     }
@@ -33,19 +33,19 @@ class QuantityGeometryContractTest {
     @Test
     fun quantityPoint2TranslateAndOrder() {
         val point = QuantityPoint2(
-            x = fltX(1.0) * Meter,
-            y = fltX(2.0) * Meter
+            x = FltX(1.0) * Meter,
+            y = FltX(2.0) * Meter
         )
         val offset = QuantityVector2(
-            x = fltX(50.0) * Centimeter,
-            y = fltX(100.0) * Centimeter
+            x = FltX(50.0) * Centimeter,
+            y = FltX(100.0) * Centimeter
         )
 
         val moved = point + offset
         val restored = moved - offset
 
-        assertTrue(moved.x eq (fltX(1.5) * Meter))
-        assertTrue(moved.y eq (fltX(3.0) * Meter))
+        assertTrue(moved.x eq (FltX(1.5) * Meter))
+        assertTrue(moved.y eq (FltX(3.0) * Meter))
         assertTrue(restored.x eq point.x)
         assertTrue(restored.y eq point.y)
         assertTrue((point ord moved) is Order.Less)
@@ -54,19 +54,19 @@ class QuantityGeometryContractTest {
     @Test
     fun quantityPoint3OrderPriority() {
         val p1 = QuantityPoint3(
-            x = fltX(1.0) * Meter,
-            y = fltX(2.0) * Meter,
-            z = fltX(3.0) * Meter
+            x = FltX(1.0) * Meter,
+            y = FltX(2.0) * Meter,
+            z = FltX(3.0) * Meter
         )
         val p2 = QuantityPoint3(
-            x = fltX(100.0) * Meter,
-            y = fltX(0.0) * Meter,
-            z = fltX(4.0) * Meter
+            x = FltX(100.0) * Meter,
+            y = FltX(0.0) * Meter,
+            z = FltX(4.0) * Meter
         )
         val p3 = QuantityPoint3(
-            x = fltX(0.0) * Meter,
-            y = fltX(3.0) * Meter,
-            z = fltX(3.0) * Meter
+            x = FltX(0.0) * Meter,
+            y = FltX(3.0) * Meter,
+            z = FltX(3.0) * Meter
         )
 
         assertTrue((p1 ord p2) is Order.Less)
@@ -76,39 +76,39 @@ class QuantityGeometryContractTest {
     @Test
     fun rectangleIntersectArea() {
         val lhs = Rectangle2(
-            minX = fltX(0.0) * Meter,
-            minY = fltX(0.0) * Meter,
-            maxX = fltX(4.0) * Meter,
-            maxY = fltX(3.0) * Meter
+            minX = FltX(0.0) * Meter,
+            minY = FltX(0.0) * Meter,
+            maxX = FltX(4.0) * Meter,
+            maxY = FltX(3.0) * Meter
         )
         val rhs = Rectangle2(
-            minX = fltX(2.0) * Meter,
-            minY = fltX(1.0) * Meter,
-            maxX = fltX(6.0) * Meter,
-            maxY = fltX(5.0) * Meter
+            minX = FltX(2.0) * Meter,
+            minY = FltX(1.0) * Meter,
+            maxX = FltX(6.0) * Meter,
+            maxY = FltX(5.0) * Meter
         )
 
         val intersect = lhs.intersect(rhs)
         assertNotNull(intersect)
-        assertTrue(intersect.width eq (fltX(2.0) * Meter))
-        assertTrue(intersect.height eq (fltX(2.0) * Meter))
-        assertTrue(intersect.area eq (fltX(4.0) * SquareMeter))
-        assertTrue(lhs.intersectArea(rhs)!! eq (fltX(4.0) * SquareMeter))
+        assertTrue(intersect.width eq (FltX(2.0) * Meter))
+        assertTrue(intersect.height eq (FltX(2.0) * Meter))
+        assertTrue(intersect.area eq (FltX(4.0) * SquareMeter))
+        assertTrue(lhs.intersectArea(rhs)!! eq (FltX(4.0) * SquareMeter))
     }
 
     @Test
     fun rectangleNoIntersectWhenOnlyTouchingBorder() {
         val lhs = Rectangle2(
-            minX = fltX(0.0) * Meter,
-            minY = fltX(0.0) * Meter,
-            maxX = fltX(4.0) * Meter,
-            maxY = fltX(3.0) * Meter
+            minX = FltX(0.0) * Meter,
+            minY = FltX(0.0) * Meter,
+            maxX = FltX(4.0) * Meter,
+            maxY = FltX(3.0) * Meter
         )
         val rhs = Rectangle2(
-            minX = fltX(4.0) * Meter,
-            minY = fltX(1.0) * Meter,
-            maxX = fltX(6.0) * Meter,
-            maxY = fltX(2.0) * Meter
+            minX = FltX(4.0) * Meter,
+            minY = FltX(1.0) * Meter,
+            maxX = FltX(6.0) * Meter,
+            maxY = FltX(2.0) * Meter
         )
 
         assertNull(lhs.intersect(rhs))
@@ -118,12 +118,12 @@ class QuantityGeometryContractTest {
     @Test
     fun quantityPointRejectsIncomparableUnits() {
         val lhs = QuantityPoint2(
-            x = fltX(1.0) * Meter,
-            y = fltX(1.0) * Meter
+            x = FltX(1.0) * Meter,
+            y = FltX(1.0) * Meter
         )
         val rhs = QuantityPoint2(
-            x = fltX(1.0) * Kilogram,
-            y = fltX(1.0) * Meter
+            x = FltX(1.0) * Kilogram,
+            y = FltX(1.0) * Meter
         )
 
         assertFailsWith<IllegalArgumentException> {

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 货物聚合。
  * Item aggregation.
@@ -8,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
@@ -42,7 +42,7 @@ class Aggregation(
                 rhs.volume ord lhs.volume
             }
         }
-    val mainBin = bins.keys.find { it.isMain } ?: usedBins.keys.maxBy { it.volume }
+    val mainBin = bins.keys.find { it.isMain } ?: usedBins.keys.maxByQuantity { it.volume }
 
     private fun mergeDemandValue(
         lhs: Bpp3dDemandValue,

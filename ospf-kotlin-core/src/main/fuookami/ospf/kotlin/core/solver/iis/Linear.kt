@@ -176,7 +176,6 @@ private fun getRelatedVariables(
             null
         }
     } + relatedConstraints.flatMap { i ->
-        @Suppress("DEPRECATION")
         model.constraints.lhs[i].map { cell ->
             Triple(model.variables[cell.colIndex], false, false)
         }

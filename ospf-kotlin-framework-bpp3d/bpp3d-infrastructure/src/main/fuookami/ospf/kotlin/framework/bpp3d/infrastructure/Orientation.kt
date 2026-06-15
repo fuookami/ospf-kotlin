@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 方向基础设施。
  * Orientation infrastructure.

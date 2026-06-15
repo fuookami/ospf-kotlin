@@ -136,8 +136,8 @@ fun pwlContinuousRadiusSolverVariables(
 
             // Build core UnivariateLinearPiecewiseFunction: q ≈ r²
             val x = LinearPolynomial(
-                listOf(LinearMonomial(fltX(1.0), radiusVariable)),
-                fltX(0.0)
+                listOf(LinearMonomial(FltX(1.0), radiusVariable)),
+                FltX(0.0)
             )
             val pwlFunction = UnivariateLinearPiecewiseFunction(
                 x = x,
@@ -563,7 +563,7 @@ class ContinuousRadiusModelComponent(
 
             val actualRSquared = rValue * rValue
             val pwlError = (qValue - actualRSquared).abs()
-            val pwlRelativeError = if (actualRSquared > fltX(1e-12)) pwlError / actualRSquared else FltX.zero
+            val pwlRelativeError = if (actualRSquared > FltX(1e-12)) pwlError / actualRSquared else FltX.zero
             val isWithinEnvelope = pwlVar.envelope.isRadiusValid(rValue)
 
             pwlResultsMap[pwlVar.variableName] = mapOf(
@@ -615,13 +615,13 @@ class ContinuousRadiusModelComponent(
         val totalPrototypes = pwlVariables.size
         val segmentCounts = pwlVariables.map { it.pwlApproximation.numSegments }
         val totalSegments = segmentCounts.sum()
-        val totalSelectorVars = pwlVariables.sumOf { it.pwlFunction.selectorVars.size }
-        val totalHelperVars = pwlVariables.sumOf { it.pwlFunction.helperVariables.size }
+        val totalSelectorVars: Int = pwlVariables.map { it.pwlFunction.selectorVars.size }.sum()
+        val totalHelperVars: Int = pwlVariables.map { it.pwlFunction.helperVariables.size }.sum()
         // Per PWL variable: 1 select-one constraint + 4 Big-M constraints per segment.
         // These constraints are expanded by the core mechanism model lifecycle.
         // 每个 PWL 变量：1 个 select-one 约束 + 4 个 Big-M 约束/线段。
         // 这些约束由 core mechanism model 生命周期展开。
-        val totalConstraints = pwlVariables.sumOf { 1 + 4 * it.pwlApproximation.numSegments }
+        val totalConstraints: Int = pwlVariables.map { 1 + 4 * it.pwlApproximation.numSegments }.sum()
         val maxSegments = segmentCounts.maxOrNull() ?: 0
         val avgSegments = segmentCounts.average()
         val relativeErrors = pwlVariables.map { it.pwlApproximation.maxRelativeError.toDouble() }

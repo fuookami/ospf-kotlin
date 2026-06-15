@@ -193,12 +193,3 @@ class RemoteQuadraticSolver(
     }
 }
 
-/**
- * 已弃用的远程二次求解器别名。
- * Deprecated remote quadratic solver alias.
- */
-@Deprecated(
-    message = "Use RemoteQuadraticSolver instead.",
-    replaceWith = ReplaceWith("RemoteQuadraticSolver")
-)
-typealias RemoveQuadraticSolver = RemoteQuadraticSolver

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 层生成上下文。
  * Layer generation context.
@@ -13,6 +12,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.quantity.minus
+import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.quantity.div
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -41,7 +44,7 @@ private fun layerPoint3(
     unit: PhysicalUnit? = null
 ): QuantityPoint3<FltX> {
     val actualUnit = unit ?: x?.unit ?: y?.unit ?: z?.unit ?: Meter
-    val zero = Quantity(fltXZero(), actualUnit)
+    val zero = Quantity(FltX.zero, actualUnit)
     return point3(
         x = x ?: zero,
         y = y ?: zero,
@@ -483,7 +486,7 @@ private suspend fun <V> mapItemsToPileLayers(
         for (index in UInt64.zero until maxByBinHeight) {
             val placement = QuantityPlacement3<Item, FltX>(
                 view = itemView,
-                position = layerPoint3(y = itemView.height * fltX(index.toULong().toDouble()))
+                position = layerPoint3(y = itemView.height * FltX(index.toULong().toDouble()))
             )
             val isEnabled = item.packageAttribute.enabledStackingOn(
                 item = placement,
@@ -672,7 +675,7 @@ private fun circlePackingSource(
 }
 
 private fun circlePackingVolume(placements: List<QuantityPlacement3<Item, FltX>>): Double {
-    return placements.sumOf { placement -> placement.resolvedPackingShape().actualVolume.value.toDouble() }
+    return placements.map { placement -> placement.resolvedPackingShape().actualVolume.value.toDouble() }.sum()
 }
 
 private fun canFullySupportHorizontalCylinder(
@@ -717,7 +720,7 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
         return null
     }
 
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * fltX(0.5)
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * FltX(0.5)
     val supportPosition = when (axis) {
         Axis3.X -> layerPoint3(z = radialOffset)
         Axis3.Y -> point3FltX()
@@ -793,10 +796,10 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
         view = supportView,
         axis = axis
     )
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * fltX(0.5)
+    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * FltX(0.5)
     val placements = ArrayList<QuantityPlacement3<Item, FltX>>(supportCount + 1)
     for (index in 0 until supportCount) {
-        val axisOffset = supportAxisSpan * fltX(index.toDouble())
+        val axisOffset = supportAxisSpan * FltX(index.toDouble())
         val position = when (axis) {
             Axis3.X -> layerPoint3(x = axisOffset, z = radialOffset)
             Axis3.Y -> point3FltX()
@@ -883,9 +886,9 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
             continue
         }
 
-        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * fltX(0.5)
+        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * FltX(0.5)
         val placements = ArrayList<QuantityPlacement3<Item, FltX>>(supportCount + 1)
-        var axisOffset = cylinderAxisSpan * fltX(0.0)
+        var axisOffset = cylinderAxisSpan * FltX(0.0)
         for (supportView in eligibleSupports.take(supportCount)) {
             val position = when (axis) {
                 Axis3.X -> layerPoint3(x = axisOffset, z = radialOffset)
@@ -981,7 +984,7 @@ private fun horizontalCylinderRepeatedSupportPlacements(
         axis = axis
     )
     for (index in 0 until supportCount) {
-        val axisOffset = supportAxisSpan * fltX(index.toDouble())
+        val axisOffset = supportAxisSpan * FltX(index.toDouble())
         val position = when (axis) {
             Axis3.X -> layerPoint3(x = axisOffset)
             Axis3.Y -> point3FltX()
@@ -1054,7 +1057,7 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
 
         val supportPlacements = ArrayList<QuantityPlacement3<Item, FltX>>()
         var coveredAxisSpan = 0.0
-        var axisOffset = cylinderAxisSpan * fltX(0.0)
+        var axisOffset = cylinderAxisSpan * FltX(0.0)
         for (supportView in eligibleSupports) {
             val supportAxisSpan = horizontalCylinderSupportAxisSpan(
                 view = supportView,
@@ -1423,9 +1426,9 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                 }
                 val placements = ArrayList<QuantityPlacement3<Item, FltX>>(cols * rows)
                 for (row in 0 until rows) {
-                    val z = cellDepth * fltX(row.toDouble())
+                    val z = cellDepth * FltX(row.toDouble())
                     for (col in 0 until cols) {
-                        val x = cellWidth * fltX(col.toDouble())
+                        val x = cellWidth * FltX(col.toDouble())
                         placements.add(
                             QuantityPlacement3<Item, FltX>(
                                 view = itemView,
@@ -1507,9 +1510,9 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
             if (rectCols > 0 && rectRows > 0) {
                 val placements = ArrayList<QuantityPlacement3<Item, FltX>>(rectCols * rectRows)
                 for (row in 0 until rectRows) {
-                    val z = diameter * fltX(row.toDouble())
+                    val z = diameter * FltX(row.toDouble())
                     for (col in 0 until rectCols) {
-                        val x = diameter * fltX(col.toDouble())
+                        val x = diameter * FltX(col.toDouble())
                         placements.add(
                             QuantityPlacement3<Item, FltX>(
                                 view = itemView,
@@ -1537,13 +1540,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
             }
 
             val hexRowStepScale = sqrt(3.0) / 2.0
-            val hexRowStep = diameter * fltX(hexRowStepScale)
+            val hexRowStep = diameter * FltX(hexRowStepScale)
             val hexRowStepValue = hexRowStep.value.toDouble()
             if (hexRowStepValue > 0.0) {
                 val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
                 var row = 0
                 while (true) {
-                    val z = hexRowStep * fltX(row.toDouble())
+                    val z = hexRowStep * FltX(row.toDouble())
                     if (z.value.toDouble() + diameterValue > binDepth) {
                         break
                     }
@@ -1551,7 +1554,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                     var col = 0
                     while (true) {
                         val xScale = col.toDouble() + offset
-                        val x = diameter * fltX(xScale)
+                        val x = diameter * FltX(xScale)
                         if (x.value.toDouble() + diameterValue > binWidth) {
                             break
                         }

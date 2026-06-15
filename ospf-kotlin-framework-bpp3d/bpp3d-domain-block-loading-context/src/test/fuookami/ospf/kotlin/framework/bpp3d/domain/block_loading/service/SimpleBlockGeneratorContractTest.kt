@@ -19,8 +19,8 @@ class SimpleBlockGeneratorContractTest {
         return PackageAttribute(
             packageType = type,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
@@ -32,10 +32,10 @@ class SimpleBlockGeneratorContractTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -47,9 +47,9 @@ class SimpleBlockGeneratorContractTest {
         axis: Axis3,
         enabledOrientations: List<Orientation>
     ): ActualItem {
-        val radius = fltX(0.5) * Meter
-        val height = fltX(1.0) * Meter
-        val weight = fltX(1.0) * Kilogram
+        val radius = FltX(0.5) * Meter
+        val height = FltX(1.0) * Meter
+        val weight = FltX(1.0) * Kilogram
         return ActualItem(
             id = id,
             name = id,
@@ -79,9 +79,9 @@ class SimpleBlockGeneratorContractTest {
         val blocks = generator(
             items = mapOf(item("item-1") to UInt64(8)),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(2.0) * Meter,
-                depth = fltX(2.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(2.0) * Meter,
+                depth = FltX(2.0) * Meter
             ),
             patterns = emptyList(),
             restWeight = FltX.maximum
@@ -110,9 +110,9 @@ class SimpleBlockGeneratorContractTest {
                         ) to UInt64(8)
                     ),
                     space = Container3Shape(
-                        width = fltX(2.0) * Meter,
-                        height = fltX(2.0) * Meter,
-                        depth = fltX(2.0) * Meter
+                        width = FltX(2.0) * Meter,
+                        height = FltX(2.0) * Meter,
+                        depth = FltX(2.0) * Meter
                     ),
                     patterns = emptyList(),
                     restWeight = FltX.maximum
@@ -143,9 +143,9 @@ class SimpleBlockGeneratorContractTest {
                     ) to UInt64(8)
                 ),
                 space = Container3Shape(
-                    width = fltX(2.0) * Meter,
-                    height = fltX(2.0) * Meter,
-                    depth = fltX(2.0) * Meter
+                    width = FltX(2.0) * Meter,
+                    height = FltX(2.0) * Meter,
+                    depth = FltX(2.0) * Meter
                 ),
                 patterns = emptyList(),
                 restWeight = FltX.maximum
@@ -173,9 +173,9 @@ class SimpleBlockGeneratorContractTest {
                 ) to UInt64(8)
             ),
             space = Container3Shape(
-                width = fltX(2.0) * Meter,
-                height = fltX(2.0) * Meter,
-                depth = fltX(2.0) * Meter
+                width = FltX(2.0) * Meter,
+                height = FltX(2.0) * Meter,
+                depth = FltX(2.0) * Meter
             ),
             patterns = emptyList(),
             restWeight = FltX.maximum

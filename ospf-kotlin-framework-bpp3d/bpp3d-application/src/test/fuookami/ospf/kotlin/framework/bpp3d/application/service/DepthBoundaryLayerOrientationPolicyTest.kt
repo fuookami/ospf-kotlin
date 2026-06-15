@@ -15,10 +15,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 class DepthBoundaryLayerOrientationPolicyTest {
     private val binType = BinType(
-        width = fltX(4.0) * Meter,
-        height = fltX(4.0) * Meter,
-        depth = fltX(12.0) * Meter,
-        capacity = fltX(100.0) * Kilogram,
+        width = FltX(4.0) * Meter,
+        height = FltX(4.0) * Meter,
+        depth = FltX(12.0) * Meter,
+        capacity = FltX(100.0) * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
         typeCode = "BIN-DEPTH-POLICY"
@@ -366,7 +366,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
 
     private fun placedLayer(layer: BinLayer, z: Double): QuantityPlacement3<BinLayer, FltX> {
         return layer.toKnownCoordinateLayerPlacement(
-            z = fltX(z) * Meter
+            z = FltX(z) * Meter
         )
     }
 
@@ -379,7 +379,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
 
     private fun cylinder(axis: Axis3): PackageShapeSpec.VerticalCylinder {
         return PackageShapeSpec.VerticalCylinder(
-            radius = fltX(0.4) * Meter,
+            radius = FltX(0.4) * Meter,
             axis = axis
         )
     }

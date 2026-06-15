@@ -29,10 +29,10 @@ class SolverAdapterBoundaryTest {
         return ActualItem(
             id = id,
             name = id,
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute()
@@ -42,8 +42,8 @@ class SolverAdapterBoundaryTest {
     @Test
     fun defaultAdapterShouldExposeFlt64Path() {
         assertEquals(3.0, DefaultBpp3dSolverValueAdapter.amountToSolver(UInt64(3)).toDouble(), 1e-10)
-        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.lengthToSolver(fltX(2.5) * Meter).toDouble(), 1e-10)
-        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.weightToSolver(fltX(2.5) * Kilogram).toDouble(), 1e-10)
+        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.lengthToSolver(FltX(2.5) * Meter).toDouble(), 1e-10)
+        assertEquals(2.5, DefaultBpp3dSolverValueAdapter.weightToSolver(FltX(2.5) * Kilogram).toDouble(), 1e-10)
     }
 
     @Test
@@ -86,11 +86,11 @@ class SolverAdapterBoundaryTest {
         )
 
         assertEquals(6.0, adapter.amountToSolver(UInt64(3)).toDouble(), 1e-10)
-        assertEquals(6.0, adapter.lengthToSolver(fltX(2.0) * Meter).toDouble(), 1e-10)
-        assertEquals(8.0, adapter.areaToSolver(fltX(2.0) * SquareMeter).toDouble(), 1e-10)
-        assertEquals(10.0, adapter.volumeToSolver(fltX(2.0) * fuookami.ospf.kotlin.quantities.unit.CubicMeter).toDouble(), 1e-10)
-        assertEquals(12.0, adapter.depthToSolver(fltX(2.0) * Meter).toDouble(), 1e-10)
-        assertEquals(14.0, adapter.weightToSolver(fltX(2.0) * Kilogram).toDouble(), 1e-10)
+        assertEquals(6.0, adapter.lengthToSolver(FltX(2.0) * Meter).toDouble(), 1e-10)
+        assertEquals(8.0, adapter.areaToSolver(FltX(2.0) * SquareMeter).toDouble(), 1e-10)
+        assertEquals(10.0, adapter.volumeToSolver(FltX(2.0) * fuookami.ospf.kotlin.quantities.unit.CubicMeter).toDouble(), 1e-10)
+        assertEquals(12.0, adapter.depthToSolver(FltX(2.0) * Meter).toDouble(), 1e-10)
+        assertEquals(14.0, adapter.weightToSolver(FltX(2.0) * Kilogram).toDouble(), 1e-10)
     }
 
     @Test

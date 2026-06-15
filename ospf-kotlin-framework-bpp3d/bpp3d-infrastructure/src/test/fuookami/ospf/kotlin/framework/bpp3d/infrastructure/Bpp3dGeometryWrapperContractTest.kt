@@ -47,10 +47,10 @@ class Bpp3dGeometryWrapperContractTest {
     @Test
     fun cuboidViewShouldKeepExistingOrientationBehavior() {
         val box = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(1.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(1.0) * Kilogram
         )
 
         val upright = box.view(Orientation.Upright)
@@ -60,31 +60,31 @@ class Bpp3dGeometryWrapperContractTest {
         assertNotNull(uprightRotated)
         assertNotNull(side)
 
-        assertTrue(upright.width eq (fltX(2.0) * Meter))
-        assertTrue(upright.height eq (fltX(3.0) * Meter))
-        assertTrue(upright.depth eq (fltX(4.0) * Meter))
-        assertTrue(uprightRotated.width eq (fltX(4.0) * Meter))
-        assertTrue(uprightRotated.height eq (fltX(3.0) * Meter))
-        assertTrue(uprightRotated.depth eq (fltX(2.0) * Meter))
-        assertTrue(side.width eq (fltX(3.0) * Meter))
-        assertTrue(side.height eq (fltX(2.0) * Meter))
-        assertTrue(side.depth eq (fltX(4.0) * Meter))
+        assertTrue(upright.width eq (FltX(2.0) * Meter))
+        assertTrue(upright.height eq (FltX(3.0) * Meter))
+        assertTrue(upright.depth eq (FltX(4.0) * Meter))
+        assertTrue(uprightRotated.width eq (FltX(4.0) * Meter))
+        assertTrue(uprightRotated.height eq (FltX(3.0) * Meter))
+        assertTrue(uprightRotated.depth eq (FltX(2.0) * Meter))
+        assertTrue(side.width eq (FltX(3.0) * Meter))
+        assertTrue(side.height eq (FltX(2.0) * Meter))
+        assertTrue(side.depth eq (FltX(4.0) * Meter))
         assertEquals(Orientation.UprightRotated, upright.rotation?.orientation)
     }
 
     @Test
     fun projectionShouldKeepWeightAndAmountAggregation() {
         val boxA = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(2.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(2.0) * Kilogram
         )
         val boxB = Box(
-            width = fltX(1.0) * Meter,
-            height = fltX(5.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            weight = fltX(4.0) * Kilogram
+            width = FltX(1.0) * Meter,
+            height = FltX(5.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            weight = FltX(4.0) * Kilogram
         )
         val viewA = boxA.view(Orientation.Upright)
         val viewB = boxB.view(Orientation.Lie)
@@ -95,11 +95,11 @@ class Bpp3dGeometryWrapperContractTest {
             plane = PlaneProjection(viewA, Bottom),
             layer = UInt64(3)
         )
-        assertTrue(pile.weight eq (fltX(6.0) * Kilogram))
+        assertTrue(pile.weight eq (FltX(6.0) * Kilogram))
         assertEquals(UInt64(3), pile.amount(boxA))
 
         val multi = MultiPileProjection(listOf(viewA, viewB), Bottom)
-        assertTrue(multi.weight eq (fltX(6.0) * Kilogram))
+        assertTrue(multi.weight eq (FltX(6.0) * Kilogram))
         assertEquals(UInt64.one, multi.amount(boxA))
         assertEquals(UInt64.one, multi.amount(boxB))
     }
@@ -107,77 +107,77 @@ class Bpp3dGeometryWrapperContractTest {
     @Test
     fun placementShouldKeepParentAndSupportSemantics() {
         val childBox = Box(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            weight = fltX(3.0) * Kilogram
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            weight = FltX(3.0) * Kilogram
         )
         val childPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = fltX(1.0) * Meter,
-                y = fltX(2.0) * Meter,
-                z = fltX(3.0) * Meter
+                x = FltX(1.0) * Meter,
+                y = FltX(2.0) * Meter,
+                z = FltX(3.0) * Meter
             )
         )
         val container = NestingContainer(
             shape = Container3Shape(
-                width = fltX(10.0) * Meter,
-                height = fltX(10.0) * Meter,
-                depth = fltX(10.0) * Meter
+                width = FltX(10.0) * Meter,
+                height = FltX(10.0) * Meter,
+                depth = FltX(10.0) * Meter
             ),
             units = listOf(childPlacement)
         )
         val parentPlacement = QuantityPlacement3(
             view = container.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = fltX(5.0) * Meter,
-                y = fltX(6.0) * Meter,
-                z = fltX(7.0) * Meter
+                x = FltX(5.0) * Meter,
+                y = FltX(6.0) * Meter,
+                z = FltX(7.0) * Meter
             )
         )
 
         assertEquals(parentPlacement, childPlacement.parent)
-        assertTrue(childPlacement.absoluteX eq (fltX(6.0) * Meter))
-        assertTrue(childPlacement.absoluteY eq (fltX(8.0) * Meter))
-        assertTrue(childPlacement.absoluteZ eq (fltX(10.0) * Meter))
+        assertTrue(childPlacement.absoluteX eq (FltX(6.0) * Meter))
+        assertTrue(childPlacement.absoluteY eq (FltX(8.0) * Meter))
+        assertTrue(childPlacement.absoluteZ eq (FltX(10.0) * Meter))
 
         val topPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = fltX(0.0) * Meter,
-                y = fltX(1.0) * Meter,
-                z = fltX(0.0) * Meter
+                x = FltX(0.0) * Meter,
+                y = FltX(1.0) * Meter,
+                z = FltX(0.0) * Meter
             )
         )
         val bottomPlacement = QuantityPlacement3(
             view = childBox.view(Orientation.Upright)!!,
             position = QuantityPoint3(
-                x = fltX(0.0) * Meter,
-                y = fltX(0.0) * Meter,
-                z = fltX(0.0) * Meter
+                x = FltX(0.0) * Meter,
+                y = FltX(0.0) * Meter,
+                z = FltX(0.0) * Meter
             )
         )
         val support = bottomSupport(topPlacement, listOf(bottomPlacement))
 
-        assertTrue(support.area eq (fltX(4.0) * SquareMeter))
-        assertTrue(support.weight eq (fltX(3.0) * Kilogram))
+        assertTrue(support.area eq (FltX(4.0) * SquareMeter))
+        assertTrue(support.weight eq (FltX(3.0) * Kilogram))
     }
 
     @Test
     fun cylinderAndOrientationBridgeShouldKeepGeometryContract() {
         val column = Column(
-            radius = fltX(1.0) * Meter,
-            height = fltX(5.0) * Meter,
+            radius = FltX(1.0) * Meter,
+            height = FltX(5.0) * Meter,
             axis = Axis3.Z,
-            weight = fltX(2.0) * Kilogram,
+            weight = FltX(2.0) * Kilogram,
             enabledAxes = listOf(Axis3.X, Axis3.Z)
         )
 
         val defaultGeometry = column.geometry()
         val axisXGeometry = column.geometry(Axis3.X)
-        assertTrue(defaultGeometry.radius eq (fltX(1.0) * Meter))
-        assertTrue(defaultGeometry.height eq (fltX(5.0) * Meter))
+        assertTrue(defaultGeometry.radius eq (FltX(1.0) * Meter))
+        assertTrue(defaultGeometry.height eq (FltX(5.0) * Meter))
         assertEquals(Axis3.Z, defaultGeometry.axis)
         assertEquals(Axis3.X, axisXGeometry.axis)
 

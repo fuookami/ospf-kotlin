@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 模式模型。
  * Pattern model.
@@ -158,14 +157,14 @@ abstract class Pattern {
 
         val rightBottom: (Projection<Item, FltX, Bottom>, List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX> = { _, placements ->
             QuantityPoint2(
-                x = placements.filter { it.y eq FltX.zero }.maxOf { it.maxX },
+                x = placements.filter { it.y eq FltX.zero }.maxOfQuantity { it.maxX },
                 y = FltX.zero * placements.first().y.unit
             )
         }
 
         val leftUpper: (Projection<Item, FltX, Bottom>, List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX> = { projection, placements ->
-            val y = placements.filter { it.y eq FltX.zero }.maxOf { it.maxY }
-            val maxY = max(placements.maxOf { it.maxY }, y + projection.height)
+            val y = placements.filter { it.y eq FltX.zero }.maxOfQuantity { it.maxY }
+            val maxY = max(placements.maxOfQuantity { it.maxY }, y + projection.height)
             var x = y * FltX.zero
             for (placement in placements) {
                 if (!((placement.maxY leq y) || (placement.y geq maxY))) {
@@ -314,7 +313,7 @@ abstract class Pattern {
                 when (planePlacement) {
                     is Ok -> {
                         val placements = planePlacement.value.flatMap { it.toPlacement3() }
-                        val maxZ = placements.fold(fltXNegativeInfinity()) { acc, placement ->
+                        val maxZ = placements.fold(FltX.minimum) { acc, placement ->
                             val current = FltX(placement.maxZ.toDouble())
                             if (current gr acc) current else acc
                         }
@@ -530,7 +529,7 @@ abstract class Pattern {
                                         (space.height / Bottom.height(item)).floor().toUInt64()
                                     )
                                 if (heightAmount == UInt64.zero) {
-                                    fltXInfinity()
+                                    FltX.maximum
                                 } else {
                                     abs(FltX(heightAmount.toULong().toDouble()) * item.weight.value - thisRestPileAverageWeight)
                                 }

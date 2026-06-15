@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import kotlin.math.abs
 import kotlin.test.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 
 class PWLContinuousRadiusNegativeTest {
 
@@ -13,8 +14,8 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testBigMBoundMustCoverRadiusRange() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -32,8 +33,8 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testBigMBoundAtMaximumRadius() {
-        val rMin = fltX(1.0)
-        val rMax = fltX(10.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(10.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -47,8 +48,8 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testBigMBoundAtMinimumRadius() {
-        val rMin = fltX(1.5)
-        val rMax = fltX(6.0)
+        val rMin = FltX(1.5)
+        val rMax = FltX(6.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -65,46 +66,46 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testEnvelopeRejectsRadiusBelowMin() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(5.0)
+            rMin = FltX(2.0),
+            rMax = FltX(5.0)
         )
-        assertFalse(envelope.isRadiusValid(fltX(1.5)),
+        assertFalse(envelope.isRadiusValid(FltX(1.5)),
             "Radius below rMin should be invalid")
-        assertFalse(envelope.isRadiusValid(fltX(0.5)),
+        assertFalse(envelope.isRadiusValid(FltX(0.5)),
             "Radius well below rMin should be invalid")
     }
 
     @Test
     fun testEnvelopeRejectsRadiusAboveMax() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(5.0)
+            rMin = FltX(2.0),
+            rMax = FltX(5.0)
         )
-        assertFalse(envelope.isRadiusValid(fltX(5.5)),
+        assertFalse(envelope.isRadiusValid(FltX(5.5)),
             "Radius above rMax should be invalid")
-        assertFalse(envelope.isRadiusValid(fltX(10.0)),
+        assertFalse(envelope.isRadiusValid(FltX(10.0)),
             "Radius well above rMax should be invalid")
     }
 
     @Test
     fun testEnvelopeAcceptsRadiusWithinBounds() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(5.0)
+            rMin = FltX(2.0),
+            rMax = FltX(5.0)
         )
-        assertTrue(envelope.isRadiusValid(fltX(2.0)), "rMin should be valid")
-        assertTrue(envelope.isRadiusValid(fltX(3.5)), "Mid-range should be valid")
-        assertTrue(envelope.isRadiusValid(fltX(5.0)), "rMax should be valid")
+        assertTrue(envelope.isRadiusValid(FltX(2.0)), "rMin should be valid")
+        assertTrue(envelope.isRadiusValid(FltX(3.5)), "Mid-range should be valid")
+        assertTrue(envelope.isRadiusValid(FltX(5.0)), "rMax should be valid")
     }
 
     @Test
     fun testEnvelopeOverflowExceedsConservativeBounds() {
         // 当 solver 选出 r > rMax 时，保守 envelope 不再安全
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(3.0)
+            rMin = FltX(2.0),
+            rMax = FltX(3.0)
         )
-        val overflowRadius = fltX(3.5)
+        val overflowRadius = FltX(3.5)
         // rMax-based envelope diameter = 6.0
         assertEquals(6.0, envelope.envelopeDiameter.toDouble(), 1e-10)
         // 真实 diameter with overflow = 7.0 > envelope 6.0
@@ -117,10 +118,10 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testEnvelopeUnderflowViolatesVariableConstraint() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(3.0)
+            rMin = FltX(2.0),
+            rMax = FltX(3.0)
         )
-        val underflowRadius = fltX(1.5)
+        val underflowRadius = FltX(1.5)
         assertFalse(envelope.isRadiusValid(underflowRadius),
             "Underflow radius should be invalid (violates variable lower bound)")
     }
@@ -129,8 +130,8 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testPWLExceedsToleranceWithTooFewSegments() {
-        val rMin = fltX(1.0)
-        val rMax = fltX(10.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(10.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -144,15 +145,15 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testPWLMeetsToleranceWithEnoughSegments() {
-        val rMin = fltX(1.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(5.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
             config = PWLRadiusApproximationConfig(
                 maxSegments = 32,
                 breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
-                relativeErrorTolerance = fltX(0.005)
+                relativeErrorTolerance = FltX(0.005)
             )
         )
         assertTrue(
@@ -163,8 +164,8 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testPWLAlwaysOverapproximates() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -173,7 +174,7 @@ class PWLContinuousRadiusNegativeTest {
         for (i in 0 until pwl.numSegments) {
             val r0 = pwl.breakpoints[i].toDouble()
             val r1 = pwl.breakpoints[i + 1].toDouble()
-            val midR = fltX((r0 + r1) / 2.0)
+            val midR = FltX((r0 + r1) / 2.0)
             val q = pwl.evaluate(midR).toDouble()
             val actualRSquared = midR.toDouble() * midR.toDouble()
             assertTrue(
@@ -185,14 +186,14 @@ class PWLContinuousRadiusNegativeTest {
 
     @Test
     fun testPWLDoesNotProduceNegativeVolume() {
-        val rMin = fltX(1.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(5.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
             config = PWLRadiusApproximationConfig(maxSegments = 4, breakpointStrategy = PWLBreakpointStrategy.Uniform)
         )
-        val testPoints = (0..20).map { rMin + (rMax - rMin) * fltX(it.toDouble() / 20.0) }
+        val testPoints = (0..20).map { rMin + (rMax - rMin) * FltX(it.toDouble() / 20.0) }
         for (r in testPoints) {
             val q = pwl.evaluate(r).toDouble()
             assertTrue(q > 0.0,
@@ -226,8 +227,8 @@ class PWLContinuousRadiusNegativeTest {
     fun testPWLRequiresContinuousRadiusInterval() {
         try {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
-                rMin = fltX(3.0),
-                rMax = fltX(3.0),
+                rMin = FltX(3.0),
+                rMax = FltX(3.0),
                 config = PWLRadiusApproximationConfig()
             )
             throw AssertionError("Should have thrown for rMax == rMin (degenerate interval)")
@@ -240,8 +241,8 @@ class PWLContinuousRadiusNegativeTest {
     fun testEnvelopeRequiresNonDegenerateInterval() {
         try {
             ConservativeRadiusEnvelope(
-                rMin = fltX(0.0),
-                rMax = fltX(3.0)
+                rMin = FltX(0.0),
+                rMax = FltX(3.0)
             )
             throw AssertionError("Should have thrown for rMin = 0")
         } catch (_: IllegalArgumentException) {
@@ -253,8 +254,8 @@ class PWLContinuousRadiusNegativeTest {
     fun testPWLRequiresRMaxGreaterThanRMin() {
         try {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
-                rMin = fltX(5.0),
-                rMax = fltX(3.0),
+                rMin = FltX(5.0),
+                rMax = FltX(3.0),
                 config = PWLRadiusApproximationConfig()
             )
             throw AssertionError("Should have thrown for rMax < rMin")
@@ -269,8 +270,8 @@ class PWLContinuousRadiusNegativeTest {
     fun testEnvelopeConservativeForAllValidRadii() {
         // 保守 envelope 必须对所有有效半径 [rMin, rMax] 都是安全的
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(4.0)
+            rMin = FltX(2.0),
+            rMax = FltX(4.0)
         )
         // 验证 envelope 半径 >= 任何有效半径
         val testRadii = listOf(2.0, 2.5, 3.0, 3.5, 4.0)
@@ -289,8 +290,8 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testEnvelopeSupportCoverageConservativeForAllValidRadii() {
         val envelope = ConservativeRadiusEnvelope(
-            rMin = fltX(2.0),
-            rMax = fltX(4.0)
+            rMin = FltX(2.0),
+            rMax = FltX(4.0)
         )
         // 支撑覆盖半径使用 rMax，必须 >= 任何有效半径
         val supportRadius = envelope.supportCoverageRadius().toDouble()
@@ -307,8 +308,8 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testPWLWithVerySmallRMin() {
         // rMin 接近 0 但仍为正数，比例适中 / rMin close to 0 but still positive, moderate ratio
-        val rMin = fltX(0.01)
-        val rMax = fltX(1.0)
+        val rMin = FltX(0.01)
+        val rMax = FltX(1.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -326,7 +327,7 @@ class PWLContinuousRadiusNegativeTest {
             rMin = rMin,
             rMax = rMax,
             config = PWLRadiusApproximationConfig(maxSegments = 32, breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
-                relativeErrorTolerance = fltX(0.01))
+                relativeErrorTolerance = FltX(0.01))
         )
         assertTrue(
             pwlMoreSegments.maxRelativeError.toDouble() < pwl.maxRelativeError.toDouble(),
@@ -337,8 +338,8 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testPWLWithLargeRatio() {
         // rMax / rMin 跨度大 / large rMax/rMin ratio
-        val rMin = fltX(1.0)
-        val rMax = fltX(100.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(100.0)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -354,8 +355,8 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testPWLWithNarrowInterval() {
         // 极窄区间 / very narrow interval
-        val rMin = fltX(5.0)
-        val rMax = fltX(5.01)
+        val rMin = FltX(5.0)
+        val rMax = FltX(5.01)
         val pwl = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -372,11 +373,11 @@ class PWLContinuousRadiusNegativeTest {
     fun testCustomBreakpointsInsufficientCoverage() {
         // Custom breakpoints 不覆盖 [rMin, rMax] 时应抛出异常
         // Custom breakpoints should throw when not covering [rMin, rMax]
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
 
         // Case 1: breakpoints.first() > rMin / 断点起点超过 rMin
-        val breakpointsNotCoveringMin = listOf(fltX(2.5), fltX(5.0), fltX(6.0))
+        val breakpointsNotCoveringMin = listOf(FltX(2.5), FltX(5.0), FltX(6.0))
         val exception1 = kotlin.test.assertFailsWith<IllegalArgumentException> {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
                 rMin = rMin,
@@ -390,7 +391,7 @@ class PWLContinuousRadiusNegativeTest {
         )
 
         // Case 2: breakpoints.last() < rMax / 断点终点不到 rMax
-        val breakpointsNotCoveringMax = listOf(fltX(1.5), fltX(2.0), fltX(4.5))
+        val breakpointsNotCoveringMax = listOf(FltX(1.5), FltX(2.0), FltX(4.5))
         val exception2 = kotlin.test.assertFailsWith<IllegalArgumentException> {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
                 rMin = rMin,
@@ -408,12 +409,12 @@ class PWLContinuousRadiusNegativeTest {
     fun testCustomBreakpointsNonMonotonic() {
         // Custom breakpoints 递减时应抛出异常
         // Custom breakpoints should throw when non-monotonic (decreasing)
-        val rMin = fltX(1.0)
-        val rMax = fltX(4.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(4.0)
 
         // Case 1: 覆盖范围但内部递减 / covers range but internally decreasing
         // [1.0, 3.0, 2.0, 4.0] — 3.0 > 2.0 违反单调性
-        val partiallyDecreasing1 = listOf(fltX(1.0), fltX(3.0), fltX(2.0), fltX(4.0))
+        val partiallyDecreasing1 = listOf(FltX(1.0), FltX(3.0), FltX(2.0), FltX(4.0))
         val exception1 = kotlin.test.assertFailsWith<IllegalArgumentException> {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
                 rMin = rMin,
@@ -428,7 +429,7 @@ class PWLContinuousRadiusNegativeTest {
 
         // Case 2: 另一组部分递减 / another partially decreasing set
         // [0.5, 2.0, 1.5, 3.0, 5.0] — 2.0 > 1.5 违反单调性
-        val partiallyDecreasing2 = listOf(fltX(0.5), fltX(2.0), fltX(1.5), fltX(3.0), fltX(5.0))
+        val partiallyDecreasing2 = listOf(FltX(0.5), FltX(2.0), FltX(1.5), FltX(3.0), FltX(5.0))
         val exception2 = kotlin.test.assertFailsWith<IllegalArgumentException> {
             PWLRadiusSquaredApproximation.fromRadiusInterval(
                 rMin = rMin,
@@ -450,10 +451,10 @@ class PWLContinuousRadiusNegativeTest {
 
         // Case 1: 直径区间 [0.30, 0.36] -> 半径区间 [0.15, 0.18]
         // 比例 0.18/0.15 = 1.2，相对较小，PWL 应精确
-        val diameterMin = fltX(0.30)
-        val diameterMax = fltX(0.36)
-        val radiusMin = fltX(diameterMin.toDouble() / 2.0)  // 0.15
-        val radiusMax = fltX(diameterMax.toDouble() / 2.0)  // 0.18
+        val diameterMin = FltX(0.30)
+        val diameterMax = FltX(0.36)
+        val radiusMin = FltX(diameterMin.toDouble() / 2.0)  // 0.15
+        val radiusMax = FltX(diameterMax.toDouble() / 2.0)  // 0.18
 
         val pwl1 = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = radiusMin,
@@ -461,7 +462,7 @@ class PWLContinuousRadiusNegativeTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 4,
                 breakpointStrategy = PWLBreakpointStrategy.Uniform,
-                relativeErrorTolerance = fltX(0.01)
+                relativeErrorTolerance = FltX(0.01)
             )
         )
         // 窄区间应达到高精度 / narrow interval should achieve high precision
@@ -472,8 +473,8 @@ class PWLContinuousRadiusNegativeTest {
 
         // Case 2: 直径区间 [0.10, 1.00] -> 半径区间 [0.05, 0.50]
         // 比例 0.50/0.05 = 10，跨度大，需要更多段
-        val largeRadiusMin = fltX(0.10 / 2.0)   // 0.05
-        val largeRadiusMax = fltX(1.00 / 2.0)   // 0.50
+        val largeRadiusMin = FltX(0.10 / 2.0)   // 0.05
+        val largeRadiusMax = FltX(1.00 / 2.0)   // 0.50
 
         val pwl2FewSegments = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = largeRadiusMin,
@@ -481,7 +482,7 @@ class PWLContinuousRadiusNegativeTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 2,
                 breakpointStrategy = PWLBreakpointStrategy.Uniform,
-                relativeErrorTolerance = fltX(0.01)
+                relativeErrorTolerance = FltX(0.01)
             )
         )
         // 少段数下误差应较大 / few segments should have significant error
@@ -496,7 +497,7 @@ class PWLContinuousRadiusNegativeTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 16,
                 breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
-                relativeErrorTolerance = fltX(0.01)
+                relativeErrorTolerance = FltX(0.01)
             )
         )
         // 更多段 + error-driven 应满足 tolerance / more segments + error-driven should meet tolerance
@@ -508,8 +509,8 @@ class PWLContinuousRadiusNegativeTest {
         // Case 3: 边界值接近 tolerance 临界点
         // 直径 [0.1998, 0.2002] -> 半径 [0.0999, 0.1001]
         // 极窄区间，即使 1 段也应远超 tolerance
-        val boundaryRadiusMin = fltX(0.1998 / 2.0)   // 0.0999
-        val boundaryRadiusMax = fltX(0.2002 / 2.0)   // 0.1001
+        val boundaryRadiusMin = FltX(0.1998 / 2.0)   // 0.0999
+        val boundaryRadiusMax = FltX(0.2002 / 2.0)   // 0.1001
 
         val pwl3 = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = boundaryRadiusMin,
@@ -517,7 +518,7 @@ class PWLContinuousRadiusNegativeTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 1,
                 breakpointStrategy = PWLBreakpointStrategy.Uniform,
-                relativeErrorTolerance = fltX(0.01)
+                relativeErrorTolerance = FltX(0.01)
             )
         )
         assertTrue(
@@ -531,9 +532,9 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testDeriveSegmentCountMeetsTolerance() {
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = fltX(2.0),
-            rMax = fltX(5.0),
-            relativeErrorTolerance = fltX(0.01),
+            rMin = FltX(2.0),
+            rMax = FltX(5.0),
+            relativeErrorTolerance = FltX(0.01),
             maxSegments = 32
         )
         assertTrue(result.meetsTolerance, "Should meet 1% tolerance for [2, 5] within 32 segments")
@@ -548,9 +549,9 @@ class PWLContinuousRadiusNegativeTest {
     fun testDeriveSegmentCountExceedsMaxSegments() {
         // 极严精度 + 极少段数 = 无法满足 / very strict tolerance + very few segments = cannot meet
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = fltX(1.0),
-            rMax = fltX(100.0),
-            relativeErrorTolerance = fltX(0.0001),
+            rMin = FltX(1.0),
+            rMax = FltX(100.0),
+            relativeErrorTolerance = FltX(0.0001),
             maxSegments = 4
         )
         assertFalse(result.meetsTolerance, "Should NOT meet 0.01% tolerance for [1, 100] with only 4 segments")
@@ -564,10 +565,10 @@ class PWLContinuousRadiusNegativeTest {
     @Test
     fun testDeriveSegmentCountDoesNotSilentlyRelax() {
         // 验证 deriveSegmentCount 不会静默放宽误差 / verify no silent relaxation
-        val strictTolerance = fltX(0.0001)
+        val strictTolerance = FltX(0.0001)
         val result = PWLRadiusSquaredApproximation.deriveSegmentCount(
-            rMin = fltX(1.0),
-            rMax = fltX(50.0),
+            rMin = FltX(1.0),
+            rMax = FltX(50.0),
             relativeErrorTolerance = strictTolerance,
             maxSegments = 4
         )

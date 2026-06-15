@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物料装箱计划模型。
  * Material packing plan model.

@@ -28,10 +28,10 @@ class OrientationTest {
     ) : AbstractCuboid<FltX>
 
     private val unit = StubCuboid(
-        width = fltX(2.0) * Meter,
-        height = fltX(2.0) * Meter,
-        depth = fltX(3.0) * Meter,
-        weight = fltX(5.0) * Kilogram
+        width = FltX(2.0) * Meter,
+        height = FltX(2.0) * Meter,
+        depth = FltX(3.0) * Meter,
+        weight = FltX(5.0) * Kilogram
     )
 
     @Test
@@ -51,29 +51,29 @@ class OrientationTest {
 
     @Test
     fun eachOrientationShouldMapDimensionsCorrectly() {
-        assertTrue(Orientation.Upright.width(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.Upright.height(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.Upright.depth(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.Upright.width(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.Upright.height(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.Upright.depth(unit) eq (FltX(3.0) * Meter))
 
-        assertTrue(Orientation.UprightRotated.width(unit) eq (fltX(3.0) * Meter))
-        assertTrue(Orientation.UprightRotated.height(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.UprightRotated.depth(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.UprightRotated.width(unit) eq (FltX(3.0) * Meter))
+        assertTrue(Orientation.UprightRotated.height(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.UprightRotated.depth(unit) eq (FltX(2.0) * Meter))
 
-        assertTrue(Orientation.Side.width(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.Side.height(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.Side.depth(unit) eq (fltX(3.0) * Meter))
+        assertTrue(Orientation.Side.width(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.Side.height(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.Side.depth(unit) eq (FltX(3.0) * Meter))
 
-        assertTrue(Orientation.SideRotated.width(unit) eq (fltX(3.0) * Meter))
-        assertTrue(Orientation.SideRotated.height(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.SideRotated.depth(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.SideRotated.width(unit) eq (FltX(3.0) * Meter))
+        assertTrue(Orientation.SideRotated.height(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.SideRotated.depth(unit) eq (FltX(2.0) * Meter))
 
-        assertTrue(Orientation.Lie.width(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.Lie.height(unit) eq (fltX(3.0) * Meter))
-        assertTrue(Orientation.Lie.depth(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.Lie.width(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.Lie.height(unit) eq (FltX(3.0) * Meter))
+        assertTrue(Orientation.Lie.depth(unit) eq (FltX(2.0) * Meter))
 
-        assertTrue(Orientation.LieRotated.width(unit) eq (fltX(2.0) * Meter))
-        assertTrue(Orientation.LieRotated.height(unit) eq (fltX(3.0) * Meter))
-        assertTrue(Orientation.LieRotated.depth(unit) eq (fltX(2.0) * Meter))
+        assertTrue(Orientation.LieRotated.width(unit) eq (FltX(2.0) * Meter))
+        assertTrue(Orientation.LieRotated.height(unit) eq (FltX(3.0) * Meter))
+        assertTrue(Orientation.LieRotated.depth(unit) eq (FltX(2.0) * Meter))
     }
 
     @Test

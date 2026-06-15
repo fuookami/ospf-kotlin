@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物料模型。
  * Material model.
@@ -6,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -45,7 +45,7 @@ open class MaterialKey(
 
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> defaultMaterialWeight(): Quantity<V> {
-    return Quantity(fltXZero(), Kilogram) as Quantity<V>
+    return Quantity(FltX.zero, Kilogram) as Quantity<V>
 }
 
 open class Material<V : FloatingNumber<V>>(

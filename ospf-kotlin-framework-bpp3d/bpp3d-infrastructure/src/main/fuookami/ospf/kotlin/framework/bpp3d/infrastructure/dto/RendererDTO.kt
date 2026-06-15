@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 渲染器数据传输对象。
  * Renderer data transfer objects.

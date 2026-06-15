@@ -32,14 +32,14 @@ class QuantityDomainModelExampleTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "MAT-64",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val pack: QuantityPackage<FltX> = QuantityPackage.innerPackage(
             shape = QuantityPackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(2.0) * Meter,
-                depth = fltX(3.0) * Meter,
-                weight = fltX(1.2) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(2.0) * Meter,
+                depth = FltX(3.0) * Meter,
+                weight = FltX(1.2) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64(2))
@@ -55,17 +55,17 @@ class QuantityDomainModelExampleTest {
         val layer: QuantityBinLayer<FltX> = QuantityBinLayer(
             iteration = Int64.zero,
             from = QuantityDomainModelExampleTest::class,
-            width = fltX(5.0) * Meter,
-            height = fltX(5.0) * Meter,
-            depth = fltX(5.0) * Meter,
+            width = FltX(5.0) * Meter,
+            height = FltX(5.0) * Meter,
+            depth = FltX(5.0) * Meter,
             units = listOf(
-                QuantityItemPlacement(item, fltX(0.0) * Meter, fltX(0.0) * Meter, fltX(0.0) * Meter)
+                QuantityItemPlacement(item, FltX(0.0) * Meter, FltX(0.0) * Meter, FltX(0.0) * Meter)
             )
         )
 
-        assertTrue(layer.width eq (fltX(5.0) * Meter))
+        assertTrue(layer.width eq (FltX(5.0) * Meter))
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toModel().shape.width eq (fltX(5.0) * Meter))
+        assertTrue(layer.toModel().shape.width eq (FltX(5.0) * Meter))
     }
 
     @Test
@@ -109,7 +109,7 @@ class QuantityDomainModelExampleTest {
         assertEquals(Meter, layer.width.unit)
         assertEquals(5.0, layer.width.value.toDouble(), 1e-10)
         assertEquals(1, layer.units.size)
-        assertTrue(layer.toModel().shape.width eq (fltX(5.0) * Meter))
+        assertTrue(layer.toModel().shape.width eq (FltX(5.0) * Meter))
     }
 
     @Test
@@ -134,11 +134,11 @@ class QuantityDomainModelExampleTest {
         val modelShape = quantityShape.toModel()
         val cylinderSpec = modelShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
         assertNotNull(cylinderSpec)
-        assertTrue(cylinderSpec.radius eq (fltX(0.5) * Meter))
+        assertTrue(cylinderSpec.radius eq (FltX(0.5) * Meter))
         assertEquals(Axis3.Y, cylinderSpec.axis)
         assertEquals("radius-weight-v1", cylinderSpec.radiusWeightFunctionKey)
-        assertTrue(cylinderSpec.diameterMin!! eq (fltX(1.0) * Meter))
-        assertTrue(cylinderSpec.diameterMax!! eq (fltX(1.2) * Meter))
+        assertTrue(cylinderSpec.diameterMin!! eq (FltX(1.0) * Meter))
+        assertTrue(cylinderSpec.diameterMax!! eq (FltX(1.2) * Meter))
         assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
     }
 }

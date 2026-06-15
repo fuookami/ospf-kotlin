@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装箱聚合。
  * Packing aggregation.

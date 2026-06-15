@@ -18,8 +18,8 @@ class LoadingOrderCalculatorCylinderTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             packageMaxLayer = UInt64(10),
-            maxHeight = fltX(10.0) * Meter,
-            maxDepth = fltX(10.0) * Meter,
+            maxHeight = FltX(10.0) * Meter,
+            maxDepth = FltX(10.0) * Meter,
             weightAttribute = WeightAttribute(),
             deformationAttribute = LinearDeformationAttribute(FltX.zero),
             hangingPolicy = AbsoluteHangingPolicy(FltX.zero),
@@ -28,14 +28,14 @@ class LoadingOrderCalculatorCylinderTest {
     }
 
     private fun cylinderItem(id: String): ActualItem {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -47,14 +47,14 @@ class LoadingOrderCalculatorCylinderTest {
     }
 
     private fun cylinderItem(id: String, axis: Axis3): ActualItem {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         return ActualItem(
             id = id,
             name = id,
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute(),
@@ -73,17 +73,17 @@ class LoadingOrderCalculatorCylinderTest {
             itemPlacement3Of(
                 view = higherItem.view(Orientation.Upright),
                 position = QuantityPoint3(
-                    x = fltX(0.0) * Meter,
-                    y = fltX(1.1) * Meter,
-                    z = fltX(0.0) * Meter
+                    x = FltX(0.0) * Meter,
+                    y = FltX(1.1) * Meter,
+                    z = FltX(0.0) * Meter
                 )
             ),
             itemPlacement3Of(
                 view = lowerItem.view(Orientation.Upright),
                 position = QuantityPoint3(
-                    x = fltX(0.8) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(0.8) * Meter
+                    x = FltX(0.8) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(0.8) * Meter
                 )
             )
         )
@@ -105,9 +105,9 @@ class LoadingOrderCalculatorCylinderTest {
             itemPlacement3Of(
                 view = cylinderItem(id = "cyl-x", axis = Axis3.X).view(Orientation.Upright),
                 position = QuantityPoint3(
-                    x = fltX(0.0) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(0.0) * Meter
+                    x = FltX(0.0) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(0.0) * Meter
                 )
             )
         )
@@ -126,15 +126,15 @@ class LoadingOrderCalculatorCylinderTest {
 
     @Test
     fun loadingOrderSideFrontShouldUseShapeAwareBoundingForVerticalCylinder() {
-        val radius = fltX(0.5) * Meter
+        val radius = FltX(0.5) * Meter
         val frontFirst = ActualItem(
             id = "front-first",
             name = "front-first",
             // inflate cuboid dimensions on purpose to ensure Side plane would overlap if old cuboid projection were used
-            width = fltX(4.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(4.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-front-first"),
             packageAttribute = packageAttribute(),
@@ -146,10 +146,10 @@ class LoadingOrderCalculatorCylinderTest {
         val sideCandidate = ActualItem(
             id = "side-candidate",
             name = "side-candidate",
-            width = fltX(4.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(4.0) * Meter,
-            weight = fltX(1.0) * Kilogram,
+            width = FltX(4.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(4.0) * Meter,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-side-candidate"),
             packageAttribute = packageAttribute(),
@@ -163,17 +163,17 @@ class LoadingOrderCalculatorCylinderTest {
             itemPlacement3Of(
                 view = frontFirst.view(Orientation.Upright),
                 position = QuantityPoint3(
-                    x = fltX(2.0) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(0.0) * Meter
+                    x = FltX(2.0) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(0.0) * Meter
                 )
             ),
             itemPlacement3Of(
                 view = sideCandidate.view(Orientation.Upright),
                 position = QuantityPoint3(
-                    x = fltX(0.0) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(0.4) * Meter
+                    x = FltX(0.0) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(0.4) * Meter
                 )
             )
         )

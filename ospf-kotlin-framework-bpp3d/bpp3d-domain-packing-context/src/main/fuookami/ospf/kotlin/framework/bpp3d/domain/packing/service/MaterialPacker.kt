@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物料装箱器。
  * Material packer.

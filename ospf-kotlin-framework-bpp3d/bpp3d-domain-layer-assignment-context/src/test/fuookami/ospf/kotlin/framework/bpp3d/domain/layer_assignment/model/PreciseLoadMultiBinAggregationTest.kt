@@ -38,10 +38,10 @@ class PreciseLoadMultiBinAggregationTest {
     ): ActualItem {
         val pack = Package.innerPackage(
             shape = PackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter,
-                weight = fltX(1.0) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter,
+                weight = FltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = shapeSpec
             ),
@@ -64,17 +64,17 @@ class PreciseLoadMultiBinAggregationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-LOAD-MULTI-BIN",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val actualItem = item(
             id = "item-load-multi-bin",
             material = material
         )
         val sharedBinType = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(20.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LOAD-MULTI-BIN"
@@ -154,14 +154,14 @@ class PreciseLoadMultiBinAggregationTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-LOAD-MIX-A",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val materialB = Material(
             no = MaterialNo("M-LOAD-MIX-B"),
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-LOAD-MIX-B",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val cuboidItem = item(
             id = "item-load-cuboid",
@@ -173,15 +173,15 @@ class PreciseLoadMultiBinAggregationTest {
             material = materialB,
             materialAmount = UInt64(3),
             shapeSpec = PackageShapeSpec.VerticalCylinder(
-                radius = fltX(0.5) * Meter,
+                radius = FltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
         val sharedBinType = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(20.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LOAD-MIXED-DEMAND"
@@ -207,9 +207,9 @@ class PreciseLoadMultiBinAggregationTest {
                 itemPlacement3Of(
                     view = cylinderItem.view(Orientation.Upright),
                     position = point3(
-                        x = fltX(1.0) * Meter,
-                        y = fltX(0.0) * Meter,
-                        z = fltX(0.0) * Meter
+                        x = FltX(1.0) * Meter,
+                        y = FltX(0.0) * Meter,
+                        z = FltX(0.0) * Meter
                     )
                 )
             )
@@ -242,7 +242,7 @@ class PreciseLoadMultiBinAggregationTest {
         ) + demandEntriesFromMaterialAmounts(
             materials = listOf(Pair(materialA, UInt64(2)))
         ) + demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(materialB, fltX(6.0) * Kilogram))
+            materials = listOf(Pair(materialB, FltX(6.0) * Kilogram))
         )
 
         val layers = listOf(layerWithCuboid, layerWithCylinder)

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 容器几何核心。
  * Container geometry core.

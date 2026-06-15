@@ -21,6 +21,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.service.pipeline.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.WasteAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.OverProductionAreaMeasure as DomainOverProductionAreaMeasure
+import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.RestMaterialMeasure as DomainRestMaterialMeasure
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.YieldAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.service.pipeline.*

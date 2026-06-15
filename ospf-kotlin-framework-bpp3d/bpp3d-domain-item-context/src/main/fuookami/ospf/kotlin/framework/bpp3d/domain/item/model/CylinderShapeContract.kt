@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 圆柱形状契约。
  * Cylinder shape contract.
@@ -357,7 +356,7 @@ private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameter(
     val targetUnit = radiusUnitSource?.unit ?: unit
     val converted = convertTo(targetUnit)
         ?: throw IllegalArgumentException("Cylinder diameter bound must use a length-compatible unit.")
-    return Quantity(fltX(converted.value.toDouble() / 2.0), targetUnit)
+    return Quantity(FltX(converted.value.toDouble() / 2.0), targetUnit)
 }
 
 private fun Quantity<FltX>.radiusValueText(): String {

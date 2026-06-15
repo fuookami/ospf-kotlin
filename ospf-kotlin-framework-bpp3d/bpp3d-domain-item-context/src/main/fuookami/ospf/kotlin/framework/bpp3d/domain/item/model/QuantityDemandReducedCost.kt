@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 泛型需求缩减成本模型。
  * Quantity demand reduced cost model.

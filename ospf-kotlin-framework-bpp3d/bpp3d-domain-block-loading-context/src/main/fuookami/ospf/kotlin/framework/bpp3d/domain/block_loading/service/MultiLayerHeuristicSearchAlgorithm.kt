@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 多层启发式搜索算法。
  * Multi-layer heuristic search algorithm.
@@ -48,7 +47,7 @@ class MultiLayerHeuristicSearchAlgorithm(
             }
         },
         val binComparator: (AbstractContainer3Shape, List<Block>, List<Block>) -> Order = { _, lhs, rhs ->
-            rhs.sumOf { it.volume } ord lhs.sumOf { it.volume }
+            rhs.sumOfQuantity { it.volume } ord lhs.sumOfQuantity { it.volume }
         }
     )
 

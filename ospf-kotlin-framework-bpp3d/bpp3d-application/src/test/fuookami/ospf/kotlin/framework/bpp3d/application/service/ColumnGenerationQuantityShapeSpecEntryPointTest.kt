@@ -20,8 +20,8 @@ class ColumnGenerationQuantityShapeSpecEntryPointTest {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
             weightAttribute = WeightAttribute(),
-            deformationAttribute = LinearDeformationAttribute(fltX(0.0)),
-            hangingPolicy = AbsoluteHangingPolicy(fltX(0.0)),
+            deformationAttribute = LinearDeformationAttribute(FltX(0.0)),
+            hangingPolicy = AbsoluteHangingPolicy(FltX(0.0)),
             stackingOnPolicy = FilterStackingOnPolicy()
         )
     }
@@ -69,24 +69,24 @@ class ColumnGenerationQuantityShapeSpecEntryPointTest {
         val modelItem = modelRequest.itemDemands.single().first
         val cylinderSpec = modelItem.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
         assertNotNull(cylinderSpec)
-        assertTrue(cylinderSpec.radius eq (fltX(0.5) * Meter))
+        assertTrue(cylinderSpec.radius eq (FltX(0.5) * Meter))
         assertEquals(Axis3.Y, cylinderSpec.axis)
         assertEquals(0, cylinderSpec.radiusCandidates.size)
-        assertTrue(cylinderSpec.radiusMin!! eq (fltX(0.5) * Meter))
-        assertTrue(cylinderSpec.radiusMax!! eq (fltX(0.6) * Meter))
+        assertTrue(cylinderSpec.radiusMin!! eq (FltX(0.5) * Meter))
+        assertTrue(cylinderSpec.radiusMax!! eq (FltX(0.6) * Meter))
         assertEquals("quantity-shape-spec-v1", cylinderSpec.radiusWeightFunctionKey)
         assertEquals(null, cylinderSpec.radiusStep)
-        assertTrue(cylinderSpec.diameterMin!! eq (fltX(1.0) * Meter))
-        assertTrue(cylinderSpec.diameterMax!! eq (fltX(1.2) * Meter))
+        assertTrue(cylinderSpec.diameterMin!! eq (FltX(1.0) * Meter))
+        assertTrue(cylinderSpec.diameterMax!! eq (FltX(1.2) * Meter))
         assertEquals(null, cylinderSpec.diameterStep)
         assertEquals(1, cylinderSpec.resolvedRadiusCandidates.size)
         val selectedRadius = assertNotNull(cylinderSpec.continuousRadiusSelectionResult())
         assertEquals("quantity-shape-spec-v1", selectedRadius.key)
-        assertTrue(selectedRadius.selectedRadius eq (fltX(0.5) * Meter))
+        assertTrue(selectedRadius.selectedRadius eq (FltX(0.5) * Meter))
         val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "quantity DTO"))
         assertEquals("quantity-shape-spec-v1", solverPrototype.radiusWeightFunctionKey)
         assertEquals("cylinder_radius_quantity_DTO_quantity_shape_spec_v1_Y", solverPrototype.variableName)
-        assertTrue(solverPrototype.initialRadius!! eq (fltX(0.5) * Meter))
+        assertTrue(solverPrototype.initialRadius!! eq (FltX(0.5) * Meter))
         assertTrue(solverPrototype.isProductionReady)
     }
 

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 放置平面桥接。
  * Placement plane bridge.

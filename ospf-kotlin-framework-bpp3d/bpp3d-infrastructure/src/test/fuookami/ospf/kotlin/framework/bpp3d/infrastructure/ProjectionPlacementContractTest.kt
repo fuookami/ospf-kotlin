@@ -75,23 +75,23 @@ class ProjectionPlacementContractTest {
     @Test
     fun placementShouldExposeGeometryWithoutAdapter() {
         val box = Box(
-            width = fltX(1.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            weight = fltX(4.0) * Kilogram
+            width = FltX(1.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            weight = FltX(4.0) * Kilogram
         )
         val placement = QuantityPlacement3(
             view = box.view(Orientation.Upright)!!,
             position = point3(
-                x = fltX(5.0) * Meter,
-                y = fltX(6.0) * Meter,
-                z = fltX(7.0) * Meter
+                x = FltX(5.0) * Meter,
+                y = FltX(6.0) * Meter,
+                z = FltX(7.0) * Meter
             )
         )
 
-        assertTrue(placement.x eq (fltX(5.0) * Meter))
-        assertTrue(placement.y eq (fltX(6.0) * Meter))
-        assertTrue(placement.z eq (fltX(7.0) * Meter))
+        assertTrue(placement.x eq (FltX(5.0) * Meter))
+        assertTrue(placement.y eq (FltX(6.0) * Meter))
+        assertTrue(placement.z eq (FltX(7.0) * Meter))
         assertTrue(placement.width eq box.width)
         assertTrue(placement.depth eq box.depth)
     }
@@ -99,10 +99,10 @@ class ProjectionPlacementContractTest {
     @Test
     fun projectionShouldExpandWithoutAdapter() {
         val box = Box(
-            width = fltX(1.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            weight = fltX(4.0) * Kilogram
+            width = FltX(1.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            weight = FltX(4.0) * Kilogram
         )
         val projection = PileProjection(
             plane = PlaneProjection(box.view(Orientation.Upright)!!, Bottom),
@@ -110,14 +110,14 @@ class ProjectionPlacementContractTest {
         )
         val placements = projection.toPlacement3At(
             QuantityPoint2(
-                x = fltX(0.0) * Meter,
-                y = fltX(0.0) * Meter
+                x = FltX(0.0) * Meter,
+                y = FltX(0.0) * Meter
             )
         )
 
         assertEquals(2, placements.size)
-        assertTrue(projection.length eq (fltX(3.0) * Meter))
-        assertTrue(projection.width eq (fltX(1.0) * Meter))
+        assertTrue(projection.length eq (FltX(3.0) * Meter))
+        assertTrue(projection.width eq (FltX(1.0) * Meter))
     }
 
     @Test

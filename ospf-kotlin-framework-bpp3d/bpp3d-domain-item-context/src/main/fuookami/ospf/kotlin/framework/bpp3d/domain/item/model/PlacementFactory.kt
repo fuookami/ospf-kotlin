@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 放置构造与底面重叠辅助。
  * Placement factory and bottom-overlap helpers.

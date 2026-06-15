@@ -25,9 +25,9 @@ class ContinuousRadiusSelectionExtractorTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = Axis3.Y,
             variableName = variableName,
-            radiusLowerBound = Quantity(fltX(2.0), Meter),
-            radiusUpperBound = Quantity(fltX(2.0), Meter),
-            initialRadius = Quantity(fltX(2.0), Meter),
+            radiusLowerBound = Quantity(FltX(2.0), Meter),
+            radiusUpperBound = Quantity(FltX(2.0), Meter),
+            initialRadius = Quantity(FltX(2.0), Meter),
             gaps = emptyList()
         )
     }
@@ -42,8 +42,8 @@ class ContinuousRadiusSelectionExtractorTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = Axis3.Y,
             variableName = variableName,
-            radiusLowerBound = Quantity(fltX(rMin), Meter),
-            radiusUpperBound = Quantity(fltX(rMax), Meter),
+            radiusLowerBound = Quantity(FltX(rMin), Meter),
+            radiusUpperBound = Quantity(FltX(rMax), Meter),
             initialRadius = null,
             gaps = listOf(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
         )
@@ -55,8 +55,8 @@ class ContinuousRadiusSelectionExtractorTest {
     fun testBuildNativeSelectionResultsFromSolverValues() {
         val prototypes = listOf(nativePrototype("r1"), nativePrototype("r2"))
         val solverResults = mapOf(
-            "r1" to fltX(2.5),
-            "r2" to fltX(3.0)
+            "r1" to FltX(2.5),
+            "r2" to FltX(3.0)
         )
         val results = buildNativeContinuousRadiusSelectionResults(prototypes, solverResults)
         assertEquals(2, results.size, "Should build 2 selection results")
@@ -69,7 +69,7 @@ class ContinuousRadiusSelectionExtractorTest {
     @Test
     fun testBuildNativeSelectionResultsSkipsMissingValues() {
         val prototypes = listOf(nativePrototype("r1"), nativePrototype("r2"))
-        val solverResults = mapOf("r1" to fltX(2.5))
+        val solverResults = mapOf("r1" to FltX(2.5))
         val results = buildNativeContinuousRadiusSelectionResults(prototypes, solverResults)
         assertEquals(1, results.size, "Should build 1 result (r2 has no solver value)")
         assertEquals("key_r1", results[0].key)
@@ -87,7 +87,7 @@ class ContinuousRadiusSelectionExtractorTest {
     @Test
     fun testBuildNativeSelectionResultsHasNoPWLMetadata() {
         val prototypes = listOf(nativePrototype())
-        val solverResults = mapOf("native_r" to fltX(2.0))
+        val solverResults = mapOf("native_r" to FltX(2.0))
         val results = buildNativeContinuousRadiusSelectionResults(prototypes, solverResults)
         assertEquals(1, results.size)
         assertEquals(null, results[0].pwlMetadata, "Native result should not have PWL metadata")
@@ -100,13 +100,13 @@ class ContinuousRadiusSelectionExtractorTest {
         val prototypes = listOf(pwlPrototype("pwl1"))
         val pwlResults = mapOf(
             "pwl1" to mapOf(
-                "solverRadius" to fltX(3.0),
-                "solverRadiusSquared" to fltX(9.5),
-                "actualRadiusSquared" to fltX(9.0),
-                "pwlAbsoluteError" to fltX(0.5),
-                "pwlRelativeError" to fltX(0.5 / 9.0),
+                "solverRadius" to FltX(3.0),
+                "solverRadiusSquared" to FltX(9.5),
+                "actualRadiusSquared" to FltX(9.0),
+                "pwlAbsoluteError" to FltX(0.5),
+                "pwlRelativeError" to FltX(0.5 / 9.0),
                 "isWithinEnvelope" to FltX(1.0),
-                "maxPWLRelativeError" to fltX(0.05),
+                "maxPWLRelativeError" to FltX(0.05),
                 "numSegments" to FltX(4.0)
             )
         )
@@ -127,9 +127,9 @@ class ContinuousRadiusSelectionExtractorTest {
         val prototypes = listOf(pwlPrototype("pwl1"))
         val pwlResults = mapOf(
             "unknown_var" to mapOf(
-                "solverRadius" to fltX(3.0),
-                "solverRadiusSquared" to fltX(9.0),
-                "actualRadiusSquared" to fltX(9.0),
+                "solverRadius" to FltX(3.0),
+                "solverRadiusSquared" to FltX(9.0),
+                "actualRadiusSquared" to FltX(9.0),
                 "pwlAbsoluteError" to FltX.zero,
                 "pwlRelativeError" to FltX.zero,
                 "isWithinEnvelope" to FltX(1.0),
@@ -155,13 +155,13 @@ class ContinuousRadiusSelectionExtractorTest {
         val prototypes = listOf(pwlPrototype("pwl1"))
         val pwlResults = mapOf(
             "pwl1" to mapOf(
-                "solverRadius" to fltX(3.0),
-                "solverRadiusSquared" to fltX(9.5),
-                "actualRadiusSquared" to fltX(9.0),
-                "pwlAbsoluteError" to fltX(0.5),
-                "pwlRelativeError" to fltX(0.5 / 9.0),
+                "solverRadius" to FltX(3.0),
+                "solverRadiusSquared" to FltX(9.5),
+                "actualRadiusSquared" to FltX(9.0),
+                "pwlAbsoluteError" to FltX(0.5),
+                "pwlRelativeError" to FltX(0.5 / 9.0),
                 "isWithinEnvelope" to FltX(0.0),
-                "maxPWLRelativeError" to fltX(0.05),
+                "maxPWLRelativeError" to FltX(0.05),
                 "numSegments" to FltX(4.0)
             )
         )
@@ -176,8 +176,8 @@ class ContinuousRadiusSelectionExtractorTest {
 
     @Test
     fun testBuildPWLSelectionResultsFromExtractedRadius() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -189,11 +189,11 @@ class ContinuousRadiusSelectionExtractorTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "pwl1",
-            solverRadius = fltX(3.0),
-            solverRadiusSquared = fltX(9.5),
-            actualRadiusSquared = fltX(9.0),
-            pwlAbsoluteError = fltX(0.5),
-            pwlRelativeError = fltX(0.5 / 9.0),
+            solverRadius = FltX(3.0),
+            solverRadiusSquared = FltX(9.5),
+            actualRadiusSquared = FltX(9.0),
+            pwlAbsoluteError = FltX(0.5),
+            pwlRelativeError = FltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
@@ -212,8 +212,8 @@ class ContinuousRadiusSelectionExtractorTest {
 
     @Test
     fun testBuildPWLSelectionResultsFromExtractedUsesPWLApproximationNumSegments() {
-        val rMin = fltX(1.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(1.0)
+        val rMax = FltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -225,11 +225,11 @@ class ContinuousRadiusSelectionExtractorTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "pwl1",
-            solverRadius = fltX(3.0),
-            solverRadiusSquared = fltX(9.5),
-            actualRadiusSquared = fltX(9.0),
-            pwlAbsoluteError = fltX(0.5),
-            pwlRelativeError = fltX(0.5 / 9.0),
+            solverRadius = FltX(3.0),
+            solverRadiusSquared = FltX(9.5),
+            actualRadiusSquared = FltX(9.0),
+            pwlAbsoluteError = FltX(0.5),
+            pwlRelativeError = FltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
@@ -261,21 +261,21 @@ class ContinuousRadiusSelectionExtractorTest {
         val prototypes = listOf(pwlPrototype("pwl1"))
         val pwlResults = mapOf(
             "pwl1" to mapOf(
-                "solverRadius" to fltX(3.0),
-                "solverRadiusSquared" to fltX(9.5),
-                "actualRadiusSquared" to fltX(9.0),
-                "pwlAbsoluteError" to fltX(0.5),
-                "pwlRelativeError" to fltX(0.5 / 9.0),
+                "solverRadius" to FltX(3.0),
+                "solverRadiusSquared" to FltX(9.5),
+                "actualRadiusSquared" to FltX(9.0),
+                "pwlAbsoluteError" to FltX(0.5),
+                "pwlRelativeError" to FltX(0.5 / 9.0),
                 "isWithinEnvelope" to FltX(1.0),
-                "maxPWLRelativeError" to fltX(0.05),
+                "maxPWLRelativeError" to FltX(0.05),
                 "numSegments" to FltX(4.0)
             )
         )
         val results = buildPWLContinuousRadiusSelectionResults(prototypes, pwlResults)
         assertEquals(1, results.size)
         val metadata = results[0].pwlMetadata!!
-        val height = fltX(10.0)
-        val pi = fltX(PI)
+        val height = FltX(10.0)
+        val pi = FltX(PI)
         // actualVolume = π * r² * h = π * 9 * 10 = 90π
         assertEquals(PI * 9.0 * 10.0, metadata.actualVolume(height, pi).toDouble(), 1e-6,
             "actualVolume should use actualRadiusSquared (r²), not solverRadiusSquared (q)")
@@ -286,8 +286,8 @@ class ContinuousRadiusSelectionExtractorTest {
 
     @Test
     fun testExtractedPWLSelectionResultMatchesOpaqueMapResult() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -299,11 +299,11 @@ class ContinuousRadiusSelectionExtractorTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "pwl1",
-            solverRadius = fltX(3.0),
-            solverRadiusSquared = fltX(9.5),
-            actualRadiusSquared = fltX(9.0),
-            pwlAbsoluteError = fltX(0.5),
-            pwlRelativeError = fltX(0.5 / 9.0),
+            solverRadius = FltX(3.0),
+            solverRadiusSquared = FltX(9.5),
+            actualRadiusSquared = FltX(9.0),
+            pwlAbsoluteError = FltX(0.5),
+            pwlRelativeError = FltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
@@ -315,11 +315,11 @@ class ContinuousRadiusSelectionExtractorTest {
             prototypes,
             mapOf(
                 "pwl1" to mapOf(
-                    "solverRadius" to fltX(3.0),
-                    "solverRadiusSquared" to fltX(9.5),
-                    "actualRadiusSquared" to fltX(9.0),
-                    "pwlAbsoluteError" to fltX(0.5),
-                    "pwlRelativeError" to fltX(0.5 / 9.0),
+                    "solverRadius" to FltX(3.0),
+                    "solverRadiusSquared" to FltX(9.5),
+                    "actualRadiusSquared" to FltX(9.0),
+                    "pwlAbsoluteError" to FltX(0.5),
+                    "pwlRelativeError" to FltX(0.5 / 9.0),
                     "isWithinEnvelope" to FltX(1.0),
                     "maxPWLRelativeError" to pwlApproximation.maxRelativeError,
                     "numSegments" to FltX(pwlApproximation.numSegments.toDouble())

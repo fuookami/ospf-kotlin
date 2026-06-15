@@ -36,15 +36,15 @@ class PackerAndRendererAdapterTest {
         heightValue: Double = 1.0,
         depthValue: Double = 1.0
     ): ActualItem {
-        val width = fltX(widthValue) * Meter
-        val height = fltX(heightValue) * Meter
-        val depth = fltX(depthValue) * Meter
+        val width = FltX(widthValue) * Meter
+        val height = FltX(heightValue) * Meter
+        val depth = FltX(depthValue) * Meter
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = width,
                 height = height,
                 depth = depth,
-                weight = fltX(1.0) * Kilogram,
+                weight = FltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(material to UInt64.one)
@@ -56,7 +56,7 @@ class PackerAndRendererAdapterTest {
             width = width,
             height = height,
             depth = depth,
-            weight = fltX(1.0) * Kilogram,
+            weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = packageAttribute()
@@ -71,9 +71,9 @@ class PackerAndRendererAdapterTest {
         lengthValue: Double = 1.2,
         radiusWeightFunctionKey: String? = null
     ): ActualItem {
-        val radius = fltX(radiusValue) * Meter
-        val height = fltX(lengthValue) * Meter
-        val cylinderWeight = fltX(1.0) * Kilogram
+        val radius = FltX(radiusValue) * Meter
+        val height = FltX(lengthValue) * Meter
+        val cylinderWeight = FltX(1.0) * Kilogram
         val diameter = radius + radius
         val pack = Package.innerPackage(
             shape = PackageShape(
@@ -137,10 +137,10 @@ class PackerAndRendererAdapterTest {
 
     private fun binType(): BinType<FltX> {
         return BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            capacity = fltX(100.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-A"
@@ -157,9 +157,9 @@ class PackerAndRendererAdapterTest {
             itemPlacement3Of(
                 view = item.view(Orientation.Upright),
                 position = point3(
-                    x = fltX(x) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(z) * Meter
+                    x = FltX(x) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(z) * Meter
                 )
             )
         }
@@ -199,9 +199,9 @@ class PackerAndRendererAdapterTest {
             binLayerPlacementOf(
                 view = layer.view(Orientation.Upright)!!,
                 position = point3(
-                    x = fltX(0.0) * Meter,
-                    y = fltX(0.0) * Meter,
-                    z = fltX(z) * Meter
+                    x = FltX(0.0) * Meter,
+                    y = FltX(0.0) * Meter,
+                    z = FltX(z) * Meter
                 )
             )
         }
@@ -218,7 +218,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-SHARED-RADIUS-KEY",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val itemA = cylinderItem(
             id = "cyl-shared-key-a",
@@ -242,7 +242,7 @@ class PackerAndRendererAdapterTest {
                     source = continuousCylinderRadiusSolverSource(item)
                 )
             ).withSolverSelectedRadius(
-                solverRadius = fltX(radiusValue) * Meter
+                solverRadius = FltX(radiusValue) * Meter
             )
 
         val schema = PackingRendererAdapter().toSchema(
@@ -265,7 +265,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-1",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(listOf(item("item-1", material), item("item-2", material)))
 
@@ -291,7 +291,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-LAYER-OFFSET",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val binType = binType()
         val firstLayer = BinLayer(
@@ -328,9 +328,9 @@ class PackerAndRendererAdapterTest {
                 binLayerPlacementOf(
                     view = secondLayer.view(Orientation.Upright)!!,
                     position = point3(
-                        x = fltX(0.0) * Meter,
-                        y = fltX(0.0) * Meter,
-                        z = fltX(1.0) * Meter
+                        x = FltX(0.0) * Meter,
+                        y = FltX(0.0) * Meter,
+                        z = FltX(1.0) * Meter
                     )
                 )
             )
@@ -354,7 +354,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(listOf(cylinderItem("cyl-1", material)))
 
@@ -381,7 +381,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-MIX",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(listOf(item("box-1", material), cylinderItem("cyl-1", material)))
 
@@ -414,7 +414,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-OUT",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(cylinderItem("cyl-out", material)),
@@ -439,7 +439,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-OVERLAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(item("box-overlap", material), cylinderItem("cyl-overlap", material)),
@@ -464,7 +464,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-TANGENT",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(item("box-tangent", material), cylinderItem("cyl-tangent", material)),
@@ -486,7 +486,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-RENDER-OVERLAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(item("box-render-overlap", material), cylinderItem("cyl-render-overlap", material)),
@@ -508,7 +508,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-RENDER-OUTSIDE-HORIZONTAL",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(cylinderItem("cyl-x-render-outside", material, Axis3.X)),
@@ -531,7 +531,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-X",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = multiLayerBin(
             layers = listOf(
@@ -558,7 +558,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-MULTI-BIN",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val binX = layerBin(
             items = listOf(cylinderItem("cyl-x-bin", material, Axis3.X)),
@@ -588,7 +588,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-MIXED-AXIS",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(cylinderItem("cyl-x-mixed", material, Axis3.X), cylinderItem("cyl-z-mixed", material, Axis3.Z)),
@@ -611,7 +611,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-OVERLAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(item("box-horizontal-overlap", material), cylinderItem("cyl-x-overlap", material, Axis3.X)),
@@ -634,7 +634,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-HV-OVERLAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(cylinderItem("cyl-x-render-overlap", material, Axis3.X), cylinderItem("cyl-y-render-overlap", material)),
@@ -655,7 +655,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-XZ-OVERLAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val bin = layerBin(
             items = listOf(cylinderItem("cyl-x-render-overlap", material, Axis3.X), cylinderItem("cyl-z-render-overlap", material, Axis3.Z)),
@@ -676,7 +676,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-SUSPENDED",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val binType = binType()
         val layer = BinLayer(
@@ -688,9 +688,9 @@ class PackerAndRendererAdapterTest {
                 itemPlacement3Of(
                     view = cylinderItem("cyl-x-suspended", material, Axis3.X).view(Orientation.Upright),
                     position = point3(
-                        x = fltX(0.0) * Meter,
-                        y = fltX(0.2) * Meter,
-                        z = fltX(0.0) * Meter
+                        x = FltX(0.0) * Meter,
+                        y = FltX(0.2) * Meter,
+                        z = FltX(0.0) * Meter
                     )
                 )
             )
@@ -722,7 +722,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-SUPPORTED",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val result = PackingResult(
             aggregation = PackingAggregation(
@@ -747,9 +747,9 @@ class PackerAndRendererAdapterTest {
                                         lengthValue = 1.0
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(1.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(1.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -773,7 +773,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-Z-SUPPORTED",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val result = PackingResult(
             aggregation = PackingAggregation(
@@ -798,9 +798,9 @@ class PackerAndRendererAdapterTest {
                                         lengthValue = 1.0
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(1.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(1.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -824,7 +824,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-MULTI-SUPPORT",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val result = PackingResult(
             aggregation = PackingAggregation(
@@ -856,9 +856,9 @@ class PackerAndRendererAdapterTest {
                                         depthValue = 1.0
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.5) * Meter,
-                                        y = fltX(0.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.5) * Meter,
+                                        y = FltX(0.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -872,9 +872,9 @@ class PackerAndRendererAdapterTest {
                                         lengthValue = 1.2
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(1.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(1.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(3)
@@ -898,7 +898,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-PARTIAL-SUPPORT",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val result = PackingResult(
             aggregation = PackingAggregation(
@@ -923,9 +923,9 @@ class PackerAndRendererAdapterTest {
                                         lengthValue = 1.2
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(1.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(1.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -950,7 +950,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-H-SUPPORT-LINE",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val result = PackingResult(
             aggregation = PackingAggregation(
@@ -981,9 +981,9 @@ class PackerAndRendererAdapterTest {
                                         lengthValue = 1.2
                                     ).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(1.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(1.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -1008,7 +1008,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-SAME-AXIS",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val tangentResult = PackingResult(
             aggregation = PackingAggregation(
@@ -1021,9 +1021,9 @@ class PackerAndRendererAdapterTest {
                                 placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-tangent-1", material, radiusValue = 0.4).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(0.0) * Meter,
-                                        z = fltX(0.2) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(0.0) * Meter,
+                                        z = FltX(0.2) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64.one
@@ -1032,9 +1032,9 @@ class PackerAndRendererAdapterTest {
                                 placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-tangent-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.8) * Meter,
-                                        y = fltX(0.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.8) * Meter,
+                                        y = FltX(0.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -1059,9 +1059,9 @@ class PackerAndRendererAdapterTest {
                                 placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-overlap-1", material, radiusValue = 0.4).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.0) * Meter,
-                                        y = fltX(0.0) * Meter,
-                                        z = fltX(0.2) * Meter
+                                        x = FltX(0.0) * Meter,
+                                        y = FltX(0.0) * Meter,
+                                        z = FltX(0.2) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64.one
@@ -1070,9 +1070,9 @@ class PackerAndRendererAdapterTest {
                                 placement = itemPlacement3Of(
                                     view = cylinderItem("cyl-y-overlap-2", material, radiusValue = 0.6, lengthValue = 1.8).view(Orientation.Upright),
                                     position = point3(
-                                        x = fltX(0.799) * Meter,
-                                        y = fltX(0.0) * Meter,
-                                        z = fltX(0.0) * Meter
+                                        x = FltX(0.799) * Meter,
+                                        y = FltX(0.0) * Meter,
+                                        z = FltX(0.0) * Meter
                                     )
                                 ),
                                 loadingOrder = UInt64(2)
@@ -1097,7 +1097,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-DIFF-AXIS",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val separatedBin = layerBin(
             items = listOf(
@@ -1135,7 +1135,7 @@ class PackerAndRendererAdapterTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-CYL-BOX-CORNER",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val tangentBin = layerBin(
             items = listOf(item("box-corner-tangent", material), cylinderItem("cyl-corner-tangent", material)),

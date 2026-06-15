@@ -72,15 +72,15 @@ class ColumnGenerationAlgorithmTest {
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = FltX.one * Meter,
-                height = fltX(1.2) * Meter,
+                height = FltX(1.2) * Meter,
                 depth = FltX.one * Meter,
                 weight = FltX.one * Kilogram,
                 packageType = PackageType.CartonContainer,
                 shapeSpec = PackageShapeSpec.VerticalCylinder(
-                    radius = fltX(0.5) * Meter,
+                    radius = FltX(0.5) * Meter,
                     axis = Axis3.Y,
-                    radiusMin = fltX(0.4) * Meter,
-                    radiusMax = fltX(0.6) * Meter,
+                    radiusMin = FltX(0.4) * Meter,
+                    radiusMax = FltX(0.6) * Meter,
                     radiusWeightFunctionKey = "cg-radius-key"
                 )
             ),
@@ -120,17 +120,17 @@ class ColumnGenerationAlgorithmTest {
         typeCode: String = "BIN-A"
     ): Bin<BinLayer, FltX> {
         val binType = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            capacity = fltX(100.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = typeCode
         )
         val placements = items.mapIndexed { index, item ->
             item.toItemPlacement(
-                x = fltX(index.toDouble()) * Meter
+                x = FltX(index.toDouble()) * Meter
             )
         }
         val layer = BinLayer(
@@ -291,7 +291,7 @@ class ColumnGenerationAlgorithmTest {
                 rmpCallStates.add(Pair(state.iteration, state.columns.size))
                 ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
-                    objective = FltX(100.0) - fltX(state.iteration.toDouble()),
+                    objective = FltX(100.0) - FltX(state.iteration.toDouble()),
                     info = mapOf(
                         Pair("solver", "stub-lp"),
                         Pair("iteration", state.iteration.toString())
@@ -712,8 +712,8 @@ class ColumnGenerationAlgorithmTest {
                 source = "ColumnGenerationState.item.interval",
                 radiusWeightFunctionKey = "prefer-large-radius",
                 axis = Axis3.Y,
-                radiusMin = fltX(0.4) * Meter,
-                radiusMax = fltX(0.6) * Meter
+                radiusMin = FltX(0.4) * Meter,
+                radiusMax = FltX(0.6) * Meter
             )
         )
         val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
@@ -866,8 +866,8 @@ class ColumnGenerationAlgorithmTest {
                 source = "ColumnGenerationState.item.interval-no-key",
                 radiusWeightFunctionKey = null,
                 axis = Axis3.Y,
-                radiusMin = fltX(0.4) * Meter,
-                radiusMax = fltX(0.6) * Meter
+                radiusMin = FltX(0.4) * Meter,
+                radiusMax = FltX(0.6) * Meter
             )
         )
         val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
@@ -1771,7 +1771,7 @@ class ColumnGenerationAlgorithmTest {
             type = MaterialType.RawMaterial,
             cargo = CargoAttr,
             name = "M-5B",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val itemA = item("item-5a", materialA)
         val itemB = item("item-5b", materialB)
@@ -1886,9 +1886,9 @@ class ColumnGenerationAlgorithmTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(2, snapshot.bins.size)
-        assertEquals(2, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(2, snapshot.bins.fold(0) { acc, bin -> acc + bin.units.size })
         assertEquals(2, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(2, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(2, snapshot.packingResult.aggregation.bins.fold(0) { acc, bin -> acc + bin.items.size })
         assertEquals(2, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount
@@ -1946,7 +1946,7 @@ class ColumnGenerationAlgorithmTest {
                 fixedDemandEntry(
                     mode = Bpp3dDemandMode.ItemMaterialWeight,
                     key = Bpp3dDemandKey.Material(material.key),
-                    demand = fltX(layerCount.toDouble() / materialCount.toDouble())
+                    demand = FltX(layerCount.toDouble() / materialCount.toDouble())
                 )
             })
         }
@@ -2020,9 +2020,9 @@ class ColumnGenerationAlgorithmTest {
         val snapshot = response.packingSnapshot
         assertNotNull(snapshot)
         assertEquals(layerCount, snapshot.bins.size)
-        assertEquals(layerCount, snapshot.bins.sumOf { bin -> bin.units.size })
+        assertEquals(layerCount, snapshot.bins.fold(0) { acc, bin -> acc + bin.units.size })
         assertEquals(layerCount, snapshot.packingResult.aggregation.bins.size)
-        assertEquals(layerCount, snapshot.packingResult.aggregation.bins.sumOf { bin -> bin.items.size })
+        assertEquals(layerCount, snapshot.packingResult.aggregation.bins.fold(0) { acc, bin -> acc + bin.items.size })
         assertEquals(materialCount, snapshot.packingResult.materialSummary.size)
         val materialSummary = snapshot.packingResult.materialSummary.associate { entry ->
             entry.material to entry.amount

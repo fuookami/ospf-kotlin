@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 物品模型。
  * Item model.
@@ -10,7 +9,9 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
@@ -177,7 +178,7 @@ interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
     fun enabledStackingOn(
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<FltX> = width * fltXZero(),
+        height: Quantity<FltX> = width * FltX.zero,
         space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
@@ -240,7 +241,7 @@ open class ActualItem(
         for ((material, amount) in pack?.materials ?: emptyMap()) {
             val key = material.key
             val weight = material.weight * FltX(amount.toULong().toDouble())
-            counter[key] = (counter[key] ?: (weight * fltXZero())) + weight
+            counter[key] = (counter[key] ?: (weight * FltX.zero)) + weight
         }
         counter
     }
@@ -291,11 +292,11 @@ open class PatternedItem(
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
     override val volume: Quantity<FltX> = run {
-        val totalAmount = actualItems.fold(fltXZero()) { acc, (_, amount, _) -> acc + FltX(amount.toULong().toDouble()) }
-        if (totalAmount eq fltXZero()) {
-            width * height * depth * fltXZero()
+        val totalAmount = actualItems.fold(FltX.zero) { acc, (_, amount, _) -> acc + FltX(amount.toULong().toDouble()) }
+        if (totalAmount eq FltX.zero) {
+            width * height * depth * FltX.zero
         } else {
-            actualItems.sumOf { it.first.volume * FltX(it.second.toULong().toDouble()) } / totalAmount
+            actualItems.sumOfQuantity { it.first.volume * FltX(it.second.toULong().toDouble()) } / totalAmount
         }
     }
     override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
@@ -312,7 +313,7 @@ open class PatternedItem(
         for ((item, amount, _) in actualItems) {
             for ((material, weight) in item.materialWeights) {
                 val thisWeight = weight * FltX(amount.toULong().toDouble())
-                counter[material] = (counter[material] ?: (thisWeight * fltXZero())) + thisWeight
+                counter[material] = (counter[material] ?: (thisWeight * FltX.zero)) + thisWeight
             }
         }
         counter
@@ -325,7 +326,9 @@ open class PatternedItem(
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
             val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
             val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
-            val volume = actualItems.sumOf { it.first.volume * FltX(it.second.toULong().toDouble()) } / FltX(amount.toULong().toDouble())
+            val volume = actualItems.sumOfQuantity {
+                it.first.volume * FltX(it.second.toULong().toDouble())
+            } / FltX(amount.toULong().toDouble())
             val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.value)
             return Triple(
                 PatternedItem(
@@ -333,7 +336,9 @@ open class PatternedItem(
                 width = pattern.shape.width + deformation[0],
                 height = pattern.shape.height + deformation[1],
                 depth = pattern.shape.depth + deformation[2],
-                weight = actualItems.sumOf { it.first.weight * FltX(it.second.toULong().toDouble()) } / FltX(amount.toULong().toDouble()),
+                weight = actualItems.sumOfQuantity {
+                    it.first.weight * FltX(it.second.toULong().toDouble())
+                } / FltX(amount.toULong().toDouble()),
                 enabledOrientations = Orientation.merge(actualItems.first().first, pattern.enabledOrientations),
                 batchNo = pattern.batchNo,
                 priorities = pattern.priorities,
@@ -485,7 +490,7 @@ open class ItemView(
     fun enabledStackingOn(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
-        height: Quantity<FltX> = this.height * fltXZero(),
+        height: Quantity<FltX> = this.height * FltX.zero,
         space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
@@ -641,7 +646,7 @@ private fun hasHorizontalCylinderStackingSupportCoverage(
 ): Boolean {
     val cylinder = item.resolvedPackingShape() as? CylinderPackingShape3 ?: return true
     val axis = cylinder.axis
-    if (axis == Axis3.Y || item.absoluteY eq fltXZero()) {
+    if (axis == Axis3.Y || item.absoluteY eq FltX.zero) {
         return true
     }
 
@@ -808,7 +813,7 @@ suspend fun QuantityPlacement3<Item, FltX>.enabledStackingOn(
             space = space
         )
     }
-    return if (absoluteY eq fltXZero()) {
+    return if (absoluteY eq FltX.zero) {
         unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = emptyList(),

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 箱位模型。
  * Bin model.
@@ -77,13 +76,13 @@ class BinType<V : FloatingNumber<V>>(
             } else if (!lhs.bottomOnly && rhs.bottomOnly) {
                 Order.Greater()
             } else {
-                val lhsMaxY = lhs.units.maxOf {
+                val lhsMaxY = lhs.units.maxOfQuantity {
                     it.y + when (val unit = it.unit) {
                         is Item -> {
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * fltXZero()
+                                it.y * FltX.zero
                             }
                         }
 
@@ -92,17 +91,17 @@ class BinType<V : FloatingNumber<V>>(
                         }
 
                         else -> {
-                            it.y * fltXZero()
+                            it.y * FltX.zero
                         }
                     }
                 }
-                val rhsMaxY = rhs.units.maxOf {
+                val rhsMaxY = rhs.units.maxOfQuantity {
                     it.y + when (val unit = it.unit) {
                         is Item -> {
                             if (unit.bottomOnly) {
                                 it.maxY
                             } else {
-                                it.y * fltXZero()
+                                it.y * FltX.zero
                             }
                         }
 
@@ -111,7 +110,7 @@ class BinType<V : FloatingNumber<V>>(
                         }
 
                         else -> {
-                            it.y * fltXZero()
+                            it.y * FltX.zero
                         }
                     }
                 }
@@ -133,13 +132,13 @@ class BinType<V : FloatingNumber<V>>(
                     scope = this
                 )
                 for (thisLayers in layersPromise) {
-                    var z = fltXZero() * depth.unit
+                    var z = FltX.zero * depth.unit
                     val thisPlacements = thisLayers.map {
                         val ret = binLayerPlacementOf(
                             view = CuboidView<BinLayer, FltX>(it.copy()),
                             position = QuantityPoint3(
-                                x = fltXZero() * depth.unit,
-                                y = fltXZero() * depth.unit,
+                                x = FltX.zero * depth.unit,
+                                y = FltX.zero * depth.unit,
                                 z = z
                             )
                         )
@@ -178,13 +177,13 @@ fun BinType<FltX>.enabled(unit: QuantityPlacement3<*, FltX>): Boolean {
 
 fun BinType<FltX>.enabled(units: List<QuantityPlacement3<*, FltX>>): Boolean {
     val geometry: Container3Geometry<FltX> = this
-    return geometry.enabled(units) && units.sumOf { it.weight } leq capacity
+    return geometry.enabled(units) && units.sumOfQuantity { it.weight } leq capacity
 }
 
 fun BinType<FltX>.estimateAmount(
     totalVolume: Quantity<FltX>,
     totalWeight: Quantity<FltX>,
-    estimatedLoadingRate: FltX = fltXOne()
+    estimatedLoadingRate: FltX = FltX.one
 ): FltX {
     return max(
         ((totalVolume / volume).value / estimatedLoadingRate),
@@ -196,7 +195,7 @@ fun BinType<FltX>.estimateAmount(
 private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
     return when (value) {
         is FltX -> this as Quantity<FltX>
-        else -> Quantity(fltX(value.toString().toDouble()), unit)
+        else -> Quantity(FltX(value.toString().toDouble()), unit)
     }
 }
 

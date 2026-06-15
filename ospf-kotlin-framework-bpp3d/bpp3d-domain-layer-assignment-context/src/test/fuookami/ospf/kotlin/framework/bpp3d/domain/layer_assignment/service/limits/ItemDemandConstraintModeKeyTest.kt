@@ -47,10 +47,10 @@ class ItemDemandConstraintModeKeyTest {
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.1) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to materialAmount)
@@ -71,27 +71,27 @@ class ItemDemandConstraintModeKeyTest {
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.1) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.1) * Kilogram,
                     packageType = PackageType.CartonContainer,
                     shapeSpec = PackageShapeSpec.VerticalCylinder(
-                        radius = fltX(0.5) * Meter,
+                        radius = FltX(0.5) * Meter,
                         axis = Axis3.Y
                     )
                 ),
                 materials = mapOf(material to materialAmount)
             ),
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            weight = fltX(0.1) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            weight = FltX(0.1) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
             packageAttribute = defaultPackageAttribute(),
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
-                radius = fltX(0.5) * Meter,
+                radius = FltX(0.5) * Meter,
                 axis = Axis3.Y
             )
         )
@@ -128,7 +128,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-AMOUNT",
-            weight = fltX(1.0) * Kilogram
+            weight = FltX(1.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialAmounts(
@@ -152,11 +152,11 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, fltX(12.5) * Kilogram))
+                materials = listOf(Pair(material, FltX(12.5) * Kilogram))
             )
         )
         val model = LinearMetaModel(
@@ -176,7 +176,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-MIX",
-            weight = fltX(3.0) * Kilogram
+            weight = FltX(3.0) * Kilogram
         )
         val item = createItem("item-mix", material, UInt64(3))
         val load = testLoad(
@@ -187,7 +187,7 @@ class ItemDemandConstraintModeKeyTest {
                     demand = FltX.one,
                     demandRange = fixedRange(FltX.one)
                 )
-            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, fltX(9.0) * Kilogram)))
+            ) + demandEntriesFromMaterialWeights(listOf(Pair(material, FltX(9.0) * Kilogram)))
         )
         val model = LinearMetaModel(
             name = "mixed-demand-modes",
@@ -209,7 +209,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "A",
-            weight = fltX(5.0) * Kilogram
+            weight = FltX(5.0) * Kilogram
         )
         val item = createItem("item-1", material, UInt64(2))
 
@@ -273,12 +273,12 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-ACTIVE",
-            weight = fltX(4.0) * Kilogram
+            weight = FltX(4.0) * Kilogram
         )
         val item = createItem("item-active", material, UInt64(3))
         val load = testLoad(
             demandEntriesFromMaterialWeights(
-                materials = listOf(Pair(material, fltX(12.0) * Kilogram))
+                materials = listOf(Pair(material, FltX(12.0) * Kilogram))
             )
         )
         val constraint = itemDemandConstraint(load)
@@ -305,7 +305,7 @@ class ItemDemandConstraintModeKeyTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-CYL-SEM",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val cylinder = createCylinderItem(
             id = "cylinder-semantics",
@@ -323,7 +323,7 @@ class ItemDemandConstraintModeKeyTest {
         ) + demandEntriesFromMaterialAmounts(
             materials = listOf(Pair(material, UInt64(3)))
         ) + demandEntriesFromMaterialWeights(
-            materials = listOf(Pair(material, fltX(6.0) * Kilogram))
+            materials = listOf(Pair(material, FltX(6.0) * Kilogram))
         )
         val load = object : Load<FltX> {
             override val demandEntries: List<Bpp3dDemandEntry<FltX>> = demandEntries

@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 装载顺序计算器。
  * Loading order calculator.
@@ -23,7 +22,7 @@ class LoadingOrderCalculator(
         val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
         val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
         val overlapArea = lhsShapePlacement.footprintOverlapArea(rhsShapePlacement)
-        return (overlapArea gr (fltXZero() * overlapArea.unit)) == true
+        return (overlapArea gr (FltX.zero * overlapArea.unit)) == true
     }
 
     private fun axisOverlapped(
@@ -43,7 +42,7 @@ class LoadingOrderCalculator(
             rhsEnd
         }
         val overlap = overlapEnd - overlapStart
-        return (overlap gr (fltXZero() * overlap.unit)) == true
+        return (overlap gr (FltX.zero * overlap.unit)) == true
     }
 
     private fun overlappedAt(

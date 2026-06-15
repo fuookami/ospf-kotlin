@@ -12,6 +12,13 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.*
 import com.mongodb.client.MongoDatabase
 
+/** 获取运行时 DTO 序列化器 / Get runtime DTO serializer */
+@OptIn(InternalSerializationApi::class)
+@Suppress("UNCHECKED_CAST")
+private fun <T : Any> serializerOf(value: T): KSerializer<T> {
+    return value::class.serializer() as KSerializer<T>
+}
+
 /**
  * MongoDB 持久化 API 控制器接口
  * MongoDB persistence API controller interface
@@ -36,7 +43,6 @@ interface MongoPersistenceApiController {
      * @param process 请求处理函数 / Request processing function
      * @return 响应对象 / Response object
      */
-    @OptIn(InternalSerializationApi::class)
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -46,8 +52,7 @@ interface MongoPersistenceApiController {
         process: (Req) -> Rep
     ): Rep {
         frameworkPluginAsyncScope.launch(Dispatchers.IO) {
-            val cls = request::class
-            val serializer = cls.serializer() as KSerializer<Req>
+            val serializer = serializerOf(request)
             mongoClient?.insertRequest(
                 path = api,
                 app = "",
@@ -59,8 +64,7 @@ interface MongoPersistenceApiController {
         }
         val response = process(request)
         frameworkPluginAsyncScope.launch(Dispatchers.IO) {
-            val cls = response::class
-            val serializer = cls.serializer() as KSerializer<Rep>
+            val serializer = serializerOf(response)
             mongoClient?.insertResponse(
                 path = api,
                 app = app,
@@ -90,7 +94,6 @@ interface MongoPersistenceApiController {
      * @param syncResponse 同步响应对象 / Sync response object
      * @return 同步响应对象 / Sync response object
      */
-    @OptIn(InternalSerializationApi::class)
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>, SyncRep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -102,8 +105,7 @@ interface MongoPersistenceApiController {
         syncResponse: SyncRep
     ): SyncRep {
         frameworkPluginAsyncScope.launch(Dispatchers.IO) {
-            val cls = request::class
-            val serializer = cls.serializer() as KSerializer<Req>
+            val serializer = serializerOf(request)
             mongoClient?.insertRequest(
                 path = api,
                 app = "",
@@ -116,8 +118,7 @@ interface MongoPersistenceApiController {
         frameworkPluginAsyncScope.launch(Dispatchers.Default) {
             val response = process(request)
             frameworkPluginAsyncScope.launch(Dispatchers.IO) {
-                val cls = response::class
-                val serializer = cls.serializer() as KSerializer<Rep>
+                val serializer = serializerOf(response)
                 mongoClient?.insertResponse(
                     path = api,
                     app = app,

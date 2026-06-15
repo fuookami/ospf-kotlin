@@ -1,4 +1,3 @@
-@file:Suppress("DEPRECATION")
 /**
  * 投影基础设施。
  * Projection infrastructure.

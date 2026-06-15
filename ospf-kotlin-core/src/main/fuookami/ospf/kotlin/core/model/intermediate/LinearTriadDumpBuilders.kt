@@ -23,6 +23,12 @@ private fun Any?.toSolverFlt64(): Flt64 {
     }
 }
 
+/** 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token */
+@Suppress("UNCHECKED_CAST")
+private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
+    return token as Token<Flt64>
+}
+
 /**
  * 从约束单元格行列表构建稀疏矩阵。
  * Build a sparse matrix from a list of constraint cell rows.
@@ -117,7 +123,7 @@ internal fun dumpLinearTriadConstraints(
         val lhs = ArrayList<LinearConstraintCell>()
         var rhs = thisConstraint.rhs.toSolverFlt64()
         for (cell in thisConstraint.lhs) {
-            val token = cell.token as Token<Flt64>
+            val token = cell.tokenAsFlt64()
             if (tokenIndexes.containsKey(token)) {
                 lhs.add(
                     LinearConstraintCell(
@@ -200,7 +206,7 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
                         val lhs = ArrayList<LinearConstraintCell>()
                         var rhs = constraint.rhs.toSolverFlt64()
                         for (cell in constraint.lhs) {
-                            val token = cell.token as Token<Flt64>
+                            val token = cell.tokenAsFlt64()
                             if (tokenIndexes.containsKey(token)) {
                                 lhs.add(
                                     LinearConstraintCell(
@@ -266,7 +272,7 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
             val thisLhs = ArrayList<LinearConstraintCell>()
             var thisRhs = thisConstraint.rhs.toSolverFlt64()
             for (cell in thisConstraint.lhs) {
-                val token = cell.token as Token<Flt64>
+                val token = cell.tokenAsFlt64()
                 if (tokenIndexes.containsKey(token)) {
                     thisLhs.add(
                         LinearConstraintCell(
@@ -327,7 +333,7 @@ internal fun dumpLinearTriadObjectives(
         val thisSubObject = subObject as LinearSubObject<*>
         if (subObject.category == objectiveCategory) {
             for (cell in thisSubObject.cells) {
-                val token = cell.token as Token<Flt64>
+                val token = cell.tokenAsFlt64()
                 val cellCoefficient = cell.coefficient.toSolverFlt64()
                 if (fixedVariables?.containsKey(cell.token.variable) == true) {
                     constant += cellCoefficient * fixedVariables[cell.token.variable]!!
@@ -339,7 +345,7 @@ internal fun dumpLinearTriadObjectives(
             constant += thisSubObject.constant.toSolverFlt64()
         } else {
             for (cell in thisSubObject.cells) {
-                val token = cell.token as Token<Flt64>
+                val token = cell.tokenAsFlt64()
                 val cellCoefficient = cell.coefficient.toSolverFlt64()
                 if (fixedVariables?.containsKey(cell.token.variable) == true) {
                     constant -= cellCoefficient * fixedVariables[cell.token.variable]!!

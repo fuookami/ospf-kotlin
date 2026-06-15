@@ -31,17 +31,17 @@ class QuantityDemandReducedCostTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MODEL-G64",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
             id = "item-rc-model-g64",
             name = "item-rc-model-g64",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.2) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(3))
@@ -118,17 +118,17 @@ class QuantityDemandReducedCostTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-RC-MODEL-MAP",
-            weight = fltX(0.5) * Kilogram
+            weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
             id = "item-rc-model-map",
             name = "item-rc-model-map",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
-                    width = fltX(1.0) * Meter,
-                    height = fltX(1.0) * Meter,
-                    depth = fltX(1.0) * Meter,
-                    weight = fltX(0.2) * Kilogram,
+                    width = FltX(1.0) * Meter,
+                    height = FltX(1.0) * Meter,
+                    depth = FltX(1.0) * Meter,
+                    weight = FltX(0.2) * Kilogram,
                     packageType = PackageType.CartonContainer
                 ),
                 materials = mapOf(material to UInt64(2))

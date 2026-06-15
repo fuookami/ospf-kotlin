@@ -39,10 +39,10 @@ class LayerGenerationQuantityContractTest {
         axis: Axis3,
         radiusValue: Double = 0.5
     ): ActualItem {
-        val radius = fltX(radiusValue) * Meter
+        val radius = FltX(radiusValue) * Meter
         val diameter = radius + radius
-        val length = fltX(1.0) * Meter
-        val weight = fltX(0.2) * Kilogram
+        val length = FltX(1.0) * Meter
+        val weight = FltX(0.2) * Kilogram
         val shape = when (axis) {
             Axis3.X -> PackageShape(
                 width = length,
@@ -96,10 +96,10 @@ class LayerGenerationQuantityContractTest {
         depthValue: Double = 1.0
     ): ActualItem {
         val shape = PackageShape(
-            width = fltX(widthValue) * Meter,
-            height = fltX(heightValue) * Meter,
-            depth = fltX(depthValue) * Meter,
-            weight = fltX(0.2) * Kilogram,
+            width = FltX(widthValue) * Meter,
+            height = FltX(heightValue) * Meter,
+            depth = FltX(depthValue) * Meter,
+            weight = FltX(0.2) * Kilogram,
             packageType = PackageType.CartonContainer
         )
         val pack = PackingProgram.innerPackage(
@@ -409,19 +409,19 @@ class LayerGenerationQuantityContractTest {
             type = MaterialType.RawMaterial,
             cargo = cargo,
             name = "M-WEIGHT-ONLY",
-            weight = fltX(2.0) * Kilogram
+            weight = FltX(2.0) * Kilogram
         )
         val program = PackingProgram.innerPackageWithMaterialValues(
             shape = PackageShape(
-                width = fltX(1.0) * Meter,
-                height = fltX(1.0) * Meter,
-                depth = fltX(1.0) * Meter,
-                weight = fltX(1.0) * Kilogram,
+                width = FltX(1.0) * Meter,
+                height = FltX(1.0) * Meter,
+                depth = FltX(1.0) * Meter,
+                weight = FltX(1.0) * Kilogram,
                 packageType = PackageType.CartonContainer
             ),
             materials = mapOf(
                 material.key to PackingProgramMaterialValue(
-                    weight = fltX(3.0) * Kilogram
+                    weight = FltX(3.0) * Kilogram
                 )
             )
         )
@@ -498,10 +498,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK"
@@ -545,10 +545,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK-GEN"
@@ -590,10 +590,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PATTERN"
@@ -637,10 +637,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PILE"
@@ -662,10 +662,10 @@ class LayerGenerationQuantityContractTest {
     @Test
     fun pileLayerGeneratorShouldRejectHorizontalCylinderAxes() = runBlocking {
         val bin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(3.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(3.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-PILE-HORIZONTAL-CYLINDER"
@@ -736,10 +736,10 @@ class LayerGenerationQuantityContractTest {
             "pattern" to PatternLayerGenerator<FltX>()
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(2.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(2.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-BLOCK-LOADING-HORIZONTAL-CYLINDER"
@@ -795,10 +795,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE"
@@ -844,10 +844,10 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-TIE"
@@ -873,10 +873,10 @@ class LayerGenerationQuantityContractTest {
             axis = Axis3.X
         )
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-X"
@@ -932,10 +932,10 @@ class LayerGenerationQuantityContractTest {
             axis = Axis3.Z
         )
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-Z"
@@ -998,10 +998,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-STACK"
@@ -1075,10 +1075,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.2) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-STACK"
@@ -1161,10 +1161,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.2) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HETEROGENEOUS-STACK"
@@ -1247,10 +1247,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-PARTIAL-STACK"
@@ -1288,10 +1288,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val singleBin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-STACK"
@@ -1322,10 +1322,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val multiBin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.2) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.2) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-MULTI-STACK"
@@ -1389,10 +1389,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-CYLINDER-BOTTOM-STACK"
@@ -1430,10 +1430,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.2) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING"
@@ -1470,10 +1470,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.2) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-HANGING"
@@ -1550,10 +1550,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.2) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.2) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-HANGING"
@@ -1590,10 +1590,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.5
         )
         val bin = BinType(
-            width = fltX(1.2) * Meter,
-            height = fltX(1.5) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.2) * Meter,
+            height = FltX(1.5) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING-PARTIAL"
@@ -1617,11 +1617,11 @@ class LayerGenerationQuantityContractTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldAcceptSelectedContinuousRadiusWeightFunctionKey() = runBlocking {
-        val radius = fltX(0.5) * Meter
-        val weight = fltX(0.2) * Kilogram
+        val radius = FltX(0.5) * Meter
+        val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
             width = radius + radius,
-            height = fltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
             depth = radius + radius,
             weight = weight,
             packageType = PackageType.CartonContainer
@@ -1643,16 +1643,16 @@ class LayerGenerationQuantityContractTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.Y,
-                radiusMin = fltX(0.4) * Meter,
-                radiusMax = fltX(0.6) * Meter,
+                radiusMin = FltX(0.4) * Meter,
+                radiusMax = FltX(0.6) * Meter,
                 radiusWeightFunctionKey = "prefer-large-radius"
             )
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY"
@@ -1696,10 +1696,10 @@ class LayerGenerationQuantityContractTest {
             axis = Axis3.Y
         )
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-AXIS-Y"
@@ -1734,10 +1734,10 @@ class LayerGenerationQuantityContractTest {
             axis = Axis3.Y
         )
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-GEOMETRY"
@@ -1775,10 +1775,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 0.75
         )
         val bin = BinType(
-            width = fltX(3.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(3.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(3.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(3.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-MIXED"
@@ -1807,10 +1807,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 1.0
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-BOUNDARY"
@@ -1832,9 +1832,9 @@ class LayerGenerationQuantityContractTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusCandidates() = runBlocking {
-        val radius = fltX(0.15) * Meter
-        val height = fltX(1.0) * Meter
-        val weight = fltX(0.2) * Kilogram
+        val radius = FltX(0.15) * Meter
+        val height = FltX(1.0) * Meter
+        val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
             width = radius + radius,
             height = height,
@@ -1859,16 +1859,16 @@ class LayerGenerationQuantityContractTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.Y,
-                diameterMin = fltX(0.30) * Meter,
-                diameterMax = fltX(0.36) * Meter,
-                diameterStep = fltX(0.01) * Meter
+                diameterMin = FltX(0.30) * Meter,
+                diameterMax = FltX(0.36) * Meter,
+                diameterStep = FltX(0.01) * Meter
             )
         )
         val bin = BinType(
-            width = fltX(1.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(1.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-DYNAMIC-RADIUS"
@@ -1924,10 +1924,10 @@ class LayerGenerationQuantityContractTest {
 
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusHorizontalCandidates() = runBlocking {
-        val radius = fltX(0.15) * Meter
+        val radius = FltX(0.15) * Meter
         val diameter = radius + radius
-        val length = fltX(1.0) * Meter
-        val weight = fltX(0.2) * Kilogram
+        val length = FltX(1.0) * Meter
+        val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
             width = length,
             height = diameter,
@@ -1952,16 +1952,16 @@ class LayerGenerationQuantityContractTest {
             shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
                 radius = radius,
                 axis = Axis3.X,
-                diameterMin = fltX(0.30) * Meter,
-                diameterMax = fltX(0.36) * Meter,
-                diameterStep = fltX(0.01) * Meter
+                diameterMin = FltX(0.30) * Meter,
+                diameterMax = FltX(0.36) * Meter,
+                diameterStep = FltX(0.01) * Meter
             )
         )
         val bin = BinType(
-            width = fltX(2.2) * Meter,
-            height = fltX(0.4) * Meter,
-            depth = fltX(1.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.2) * Meter,
+            height = FltX(0.4) * Meter,
+            depth = FltX(1.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS"
@@ -2020,10 +2020,10 @@ class LayerGenerationQuantityContractTest {
             radiusValue = 1.1
         )
         val bin = BinType(
-            width = fltX(2.0) * Meter,
-            height = fltX(1.0) * Meter,
-            depth = fltX(2.0) * Meter,
-            capacity = fltX(10.0) * Kilogram,
+            width = FltX(2.0) * Meter,
+            height = FltX(1.0) * Meter,
+            depth = FltX(2.0) * Meter,
+            capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
             typeCode = "BIN-LG-CIRCLE-OVERSIZED"

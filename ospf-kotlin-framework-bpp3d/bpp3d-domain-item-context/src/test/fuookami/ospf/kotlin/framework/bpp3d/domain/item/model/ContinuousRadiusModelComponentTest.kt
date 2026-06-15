@@ -34,9 +34,9 @@ class ContinuousRadiusModelComponentTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = axis,
             variableName = variableName,
-            radiusLowerBound = Quantity(fltX(radius), Meter),
-            radiusUpperBound = Quantity(fltX(radius), Meter),
-            initialRadius = Quantity(fltX(radius), Meter),
+            radiusLowerBound = Quantity(FltX(radius), Meter),
+            radiusUpperBound = Quantity(FltX(radius), Meter),
+            initialRadius = Quantity(FltX(radius), Meter),
             gaps = emptyList()
         )
     }
@@ -56,8 +56,8 @@ class ContinuousRadiusModelComponentTest {
             radiusWeightFunctionKey = "key_$variableName",
             axis = axis,
             variableName = variableName,
-            radiusLowerBound = Quantity(fltX(rMin), Meter),
-            radiusUpperBound = Quantity(fltX(rMax), Meter),
+            radiusLowerBound = Quantity(FltX(rMin), Meter),
+            radiusUpperBound = Quantity(FltX(rMax), Meter),
             initialRadius = null,
             gaps = listOf(ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported)
         )
@@ -202,7 +202,7 @@ class ContinuousRadiusModelComponentTest {
             config = PWLRadiusApproximationConfig(
                 maxSegments = 8,
                 breakpointStrategy = PWLBreakpointStrategy.ErrorDriven,
-                relativeErrorTolerance = fltX(0.005)
+                relativeErrorTolerance = FltX(0.005)
             )
         )
         val pwlVar = component.pwlVariables[0]
@@ -291,8 +291,8 @@ class ContinuousRadiusModelComponentTest {
 
     @Test
     fun testPWLExtractedRadiusComputesVolumes() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -304,17 +304,17 @@ class ContinuousRadiusModelComponentTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "test_r",
-            solverRadius = fltX(3.0),
-            solverRadiusSquared = fltX(9.5),
-            actualRadiusSquared = fltX(9.0),
-            pwlAbsoluteError = fltX(0.5),
-            pwlRelativeError = fltX(0.5 / 9.0),
+            solverRadius = FltX(3.0),
+            solverRadiusSquared = FltX(9.5),
+            actualRadiusSquared = FltX(9.0),
+            pwlAbsoluteError = FltX(0.5),
+            pwlRelativeError = FltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation
         )
-        val height = fltX(10.0)
-        val pi = fltX(Math.PI)
+        val height = FltX(10.0)
+        val pi = FltX(Math.PI)
         // actualVolume = π * r² * h = π * 9 * 10 = 90π
         assertEquals(Math.PI * 9.0 * 10.0, extracted.actualVolume(height, pi).toDouble(), 1e-6)
         // pwlVolume = π * q * h = π * 9.5 * 10 = 95π
@@ -323,8 +323,8 @@ class ContinuousRadiusModelComponentTest {
 
     @Test
     fun testPWLExtractedRadiusInfoContainsDiagnostics() {
-        val rMin = fltX(2.0)
-        val rMax = fltX(5.0)
+        val rMin = FltX(2.0)
+        val rMax = FltX(5.0)
         val pwlApproximation = PWLRadiusSquaredApproximation.fromRadiusInterval(
             rMin = rMin,
             rMax = rMax,
@@ -336,11 +336,11 @@ class ContinuousRadiusModelComponentTest {
         )
         val extracted = PWLExtractedRadius(
             variableName = "test_r",
-            solverRadius = fltX(3.0),
-            solverRadiusSquared = fltX(9.5),
-            actualRadiusSquared = fltX(9.0),
-            pwlAbsoluteError = fltX(0.5),
-            pwlRelativeError = fltX(0.5 / 9.0),
+            solverRadius = FltX(3.0),
+            solverRadiusSquared = FltX(9.5),
+            actualRadiusSquared = FltX(9.0),
+            pwlAbsoluteError = FltX(0.5),
+            pwlRelativeError = FltX(0.5 / 9.0),
             isWithinEnvelope = true,
             envelope = envelope,
             pwlApproximation = pwlApproximation

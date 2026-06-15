@@ -1,6 +1,6 @@
 # OSPF Kotlin Multiarray
 
-[中文](README.zh-CN.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 A high-performance multi-dimensional array library for Kotlin, supporting various storage orders, views, block-based sparse arrays, and tabular data structures.
 
