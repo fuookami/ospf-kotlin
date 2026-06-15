@@ -59,7 +59,7 @@ fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
     serializer: KSerializer<T>,
     request: T
 ) {
-    val record = RequestRecordPO(
+    val record = RequestRecord(
         app = app,
         requester = requester,
         version = version,
@@ -67,7 +67,7 @@ fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
     )
     this.insert(
         collection = "${path.replace('/', '_')}_input",
-        serializer = RequestRecordPO.serializer(serializer),
+        serializer = RequestRecord.serializer(serializer),
         data = record
     )
 }
@@ -110,7 +110,7 @@ fun <T : RequestDTO<T>> MongoDatabase.getRequest(
 ): List<T> {
     return this.get(
         collectionName = "${path.replace('/', '_')}_input",
-        deserializer = RequestRecordPO.serializer(serializer),
+        deserializer = RequestRecord.serializer(serializer),
         query = query
     ).map { it.request }
 }
@@ -164,7 +164,7 @@ fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
     serializer: KSerializer<T>,
     response: T
 ) {
-    val record = ResponseRecordPO(
+    val record = ResponseRecord(
         app = app,
         requester = requester,
         version = version,
@@ -172,7 +172,7 @@ fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
     )
     this.insert(
         collection = "${path.replace('/', '_')}_output",
-        serializer = ResponseRecordPO.serializer(serializer),
+        serializer = ResponseRecord.serializer(serializer),
         data = record
     )
 }
@@ -215,27 +215,7 @@ fun <T : ResponseDTO<T>> MongoDatabase.getResponse(
 ): List<T> {
     return this.get(
         collectionName = "${path.replace('/', '_')}_output",
-        deserializer = ResponseRecordPO.serializer(serializer),
+        deserializer = ResponseRecord.serializer(serializer),
         query = query
     ).map { it.response }
-}
-
-/**
- * 查询请求记录（DAO 扩展方法）
- * Query request records (DAO extension method)
- *
- * @param T 请求类型 / Request type
- * @param db MongoDB 管理器实例 / MongoDB manager instance
- * @param id 记录 ID（可选）/ Record ID (optional)
- * @param requester 请求者标识（可选）/ Requester identifier (optional)
- * @param time 时间戳（可选）/ Timestamp (optional)
- * @return 请求记录列表 / Request record list
- */
-inline fun <reified T : RequestDTO<T>> RequestRecordDAO.find(
-    db: MongoDB,
-    id: String? = null,
-    requester: String? = null,
-    time: String?
-): List<RequestRecordPO<T>> {
-    TODO("not implement yet")
 }

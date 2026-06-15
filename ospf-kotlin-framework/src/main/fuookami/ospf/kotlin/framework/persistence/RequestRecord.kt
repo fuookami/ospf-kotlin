@@ -1,31 +1,26 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 请求/响应记录持久化层
- * Request/Response Record Persistence Layer
+ * 请求/响应记录数据模型
+ * Request/Response Record Data Model
  *
- * 提供请求和响应记录的数据库表定义、DAO 和持久化对象。
- * Provides database table definitions, DAO, and persistence objects for request and response records.
+ * 提供请求和响应记录的纯数据类定义。
+ * Provides pure data class definitions for request and response records.
+ *
+ * ORM 特有的 Entity/Table/DAO 实现已迁移至 plugin-persistence-ktorm 模块。
+ * ORM-specific Entity/Table/DAO implementations have been migrated to the plugin-persistence-ktorm module.
  */
 package fuookami.ospf.kotlin.framework.persistence
 
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
+import java.io.*
+import kotlin.time.*
 import kotlin.time.Clock
-import kotlin.time.ExperimentalTime
-import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.datetime.*
+import kotlinx.serialization.*
 import kotlinx.serialization.serializer
-import org.ktorm.database.Database
-import org.ktorm.dsl.*
-import org.ktorm.entity.*
-import org.ktorm.schema.*
+import kotlinx.serialization.Serializable
 import fuookami.ospf.kotlin.utils.serialization.*
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * 获取运行时请求序列化器
@@ -60,74 +55,150 @@ private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerial
 }
 
 /**
- * 请求记录持久化对象接口
- * Request record persistence object interface
- */
-interface RequestRecordRPO : Entity<RequestRecordRPO> {
-    companion object : Entity.Factory<RequestRecordRPO>()
-
-    var requestId: String
-    var app: String
-    var requester: String
-    var version: String
-    var time: LocalDateTime
-    var request: ByteArray
-}
-
-/**
- * 请求记录 DAO
- * Request record DAO
+ * 请求记录持久化数据类
+ * Request record persistence data class
  *
- * @param tableName 表名 / Table name
+ * @property requestId 请求标识 / Request identifier
+ * @property app 应用名 / Application name
+ * @property requester 请求者 / Requester
+ * @property version 版本 / Version
+ * @property time 时间 / Time
+ * @property request 请求数据（字节） / Request data (bytes)
  */
-open class RequestRecordRDAO(tableName: String) : Table<RequestRecordRPO>(tableName) {
-    val id = long("id").primaryKey()
-    val requestId = varchar("request_id").bindTo { it.requestId }
-    val app = varchar("app").bindTo { it.app }
-    val requester = varchar("requester").bindTo { it.requester }
-    val version = varchar("version").bindTo { it.version }
-    val time = kotlinDatetime("time").bindTo { it.time }
-    val request = blob("request").bindTo { it.request }
+data class RequestRecordPO(
+    val requestId: String,
+    val app: String,
+    val requester: String,
+    val version: String,
+    val time: LocalDateTime,
+    val request: ByteArray
+) {
+    companion object {
+        /**
+         * 从请求记录创建 PO
+         * Create PO from request record
+         *
+         * @param record 请求记录 / Request record
+         * @param serializer 序列化函数 / Serialization function
+         * @param T 请求 DTO 类型 / Request DTO type
+         * @return 请求记录 PO / Request record PO
+         */
+        operator fun <T : RequestDTO<T>> invoke(
+            record: RequestRecord<T>,
+            serializer: (T) -> ByteArray
+        ): RequestRecordPO {
+            return RequestRecordPO(
+                requestId = record.id,
+                app = record.app,
+                requester = record.requester,
+                version = record.version,
+                time = record.time,
+                request = serializer(record.request)
+            )
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is RequestRecordPO) return false
+        return requestId == other.requestId &&
+               app == other.app &&
+               requester == other.requester &&
+               version == other.version &&
+               time == other.time &&
+               request.contentEquals(other.request)
+    }
+
+    override fun hashCode(): Int {
+        var result = requestId.hashCode()
+        result = 31 * result + app.hashCode()
+        result = 31 * result + requester.hashCode()
+        result = 31 * result + version.hashCode()
+        result = 31 * result + time.hashCode()
+        result = 31 * result + request.contentHashCode()
+        return result
+    }
 }
 
 /**
- * 响应记录持久化对象接口
- * Response record persistence object interface
- */
-interface ResponseRecordRPO : Entity<ResponseRecordRPO> {
-    companion object : Entity.Factory<ResponseRecordRPO>()
-
-    var requestId: String
-    var app: String
-    var code: UInt64
-    var requester: String
-    var version: String
-    var msg: String
-    var time: LocalDateTime
-    var response: ByteArray
-}
-
-/**
- * 响应记录 DAO
- * Response record DAO
+ * 响应记录持久化数据类
+ * Response record persistence data class
  *
- * @param tableName 表名 / Table name
+ * @property requestId 请求标识 / Request identifier
+ * @property app 应用名 / Application name
+ * @property requester 请求者 / Requester
+ * @property version 版本 / Version
+ * @property code 状态码 / Status code
+ * @property msg 消息 / Message
+ * @property time 时间 / Time
+ * @property response 响应数据（字节） / Response data (bytes)
  */
-open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tableName) {
-    val id = long("id").primaryKey()
-    val requestId = varchar("request_id").bindTo { it.requestId }
-    val app = varchar("app").bindTo { it.app }
-    val requester = varchar("requester").bindTo { it.requester }
-    val version = varchar("version").bindTo { it.version }
-    val code = long("code").transform({ UInt64(it.toULong()) }, { it.toLong() }).bindTo { it.code }
-    val msg = varchar("msg").bindTo { it.msg }
-    val time = kotlinDatetime("time").bindTo { it.time }
-    val response = blob("response").bindTo { it.response }
+data class ResponseRecordPO(
+    val requestId: String,
+    val app: String,
+    val requester: String,
+    val version: String,
+    val code: UInt64,
+    val msg: String,
+    val time: LocalDateTime,
+    val response: ByteArray
+) {
+    companion object {
+        /**
+         * 从响应记录创建 PO
+         * Create PO from response record
+         *
+         * @param record 响应记录 / Response record
+         * @param serializer 序列化函数 / Serialization function
+         * @param T 响应 DTO 类型 / Response DTO type
+         * @return 响应记录 PO / Response record PO
+         */
+        operator fun <T : ResponseDTO<T>> invoke(
+            record: ResponseRecord<T>,
+            serializer: (T) -> ByteArray
+        ): ResponseRecordPO {
+            return ResponseRecordPO(
+                requestId = record.id,
+                app = record.app,
+                requester = record.requester,
+                version = record.version,
+                code = record.code,
+                msg = record.response.msg,
+                time = record.time,
+                response = serializer(record.response)
+            )
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is ResponseRecordPO) return false
+        return requestId == other.requestId &&
+               app == other.app &&
+               requester == other.requester &&
+               version == other.version &&
+               code == other.code &&
+               msg == other.msg &&
+               time == other.time &&
+               response.contentEquals(other.response)
+    }
+
+    override fun hashCode(): Int {
+        var result = requestId.hashCode()
+        result = 31 * result + app.hashCode()
+        result = 31 * result + requester.hashCode()
+        result = 31 * result + version.hashCode()
+        result = 31 * result + code.hashCode()
+        result = 31 * result + msg.hashCode()
+        result = 31 * result + time.hashCode()
+        result = 31 * result + response.contentHashCode()
+        return result
+    }
 }
 
 /**
- * 请求记录持久化对象
- * Request record persistence object
+ * 请求记录
+ * Request record
  *
  * @property id 请求标识 / Request identifier
  * @property app 应用名 / Application name
@@ -139,7 +210,7 @@ open class ResponseRecordRDAO(tableName: String) : Table<ResponseRecordRPO>(tabl
  */
 @OptIn(ExperimentalTime::class)
 @Serializable
-data class RequestRecordPO<T>(
+data class RequestRecord<T>(
     val id: String,
     val app: String,
     val requester: String,
@@ -150,25 +221,25 @@ data class RequestRecordPO<T>(
 ) where T : RequestDTO<T> {
     companion object {
         @OptIn(InternalSerializationApi::class)
-        inline operator fun <reified T : RequestDTO<T>> invoke(rpo: RequestRecordRPO): RequestRecordPO<T>? {
-            return this(rpo) {
+        inline operator fun <reified T : RequestDTO<T>> invoke(po: RequestRecordPO): RequestRecord<T>? {
+            return this(po) {
                 val stream = ByteArrayInputStream(it)
                 readFromJson(T::class.serializer(), stream)
             }
         }
 
         inline operator fun <reified T : RequestDTO<T>> invoke(
-            rpo: RequestRecordRPO,
+            po: RequestRecordPO,
             deserializer: (ByteArray) -> T
-        ): RequestRecordPO<T>? {
+        ): RequestRecord<T>? {
             return try {
-                RequestRecordPO(
-                    id = rpo.requestId,
-                    app = rpo.app,
-                    requester = rpo.requester,
-                    version = rpo.version,
-                    time = rpo.time,
-                    request = deserializer(rpo.request)
+                RequestRecord(
+                    id = po.requestId,
+                    app = po.app,
+                    requester = po.requester,
+                    version = po.version,
+                    time = po.time,
+                    request = deserializer(po.request)
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -185,9 +256,10 @@ data class RequestRecordPO<T>(
         time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         request = request
     )
+
     @OptIn(InternalSerializationApi::class)
-    val rpo: RequestRecordRPO by lazy {
-        rpo {
+    val po: RequestRecordPO by lazy {
+        po {
             val stream = ByteArrayOutputStream()
             writeJsonToStream(
                 stream = stream,
@@ -198,112 +270,21 @@ data class RequestRecordPO<T>(
         }
     }
 
-    fun rpo(serializer: (T) -> ByteArray): RequestRecordRPO {
-        return RequestRecordRPO {
-            requestId = this@RequestRecordPO.id
-            app = this@RequestRecordPO.app
-            requester = this@RequestRecordPO.requester
-            version = this@RequestRecordPO.version
-            time = this@RequestRecordPO.time
-            request = serializer(this@RequestRecordPO.request)
-        }
+    fun po(serializer: (T) -> ByteArray): RequestRecordPO {
+        return RequestRecordPO(
+            requestId = this.id,
+            app = this.app,
+            requester = this.requester,
+            version = this.version,
+            time = this.time,
+            request = serializer(this.request)
+        )
     }
 }
 
 /**
- * 请求记录数据访问对象
- * Request record data access object
- */
-data object RequestRecordDAO {
-    fun <T : RequestDTO<T>> insert(
-        db: Database,
-        tableName: String,
-        record: RequestRecordPO<T>,
-        serializer: ((T) -> ByteArray)? = null
-    ) {
-        val table = RequestRecordRDAO(tableName)
-        db.useTransaction {
-            db.sequenceOf(table).add(
-                if (serializer == null) {
-                    record.rpo
-                } else {
-                    record.rpo(serializer)
-                }
-            )
-        }
-    }
-
-    inline fun <reified T : RequestDTO<T>> get(
-        db: Database,
-        tableName: String,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null
-    ): List<RequestRecordPO<T>> {
-        val table = RequestRecordRDAO(tableName)
-        return query(
-            db = db,
-            table = table,
-            id = id,
-            app = app,
-            requester = requester,
-            time = time
-        ).mapNotNull {
-            RequestRecordPO<T>(table.createEntity(it))
-        }
-    }
-
-    inline fun <reified T : RequestDTO<T>> get(
-        db: Database,
-        tableName: String,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null,
-        deserializer: (ByteArray) -> T
-    ): List<RequestRecordPO<T>> {
-        val table = RequestRecordRDAO(tableName)
-        return query(
-            db = db,
-            table = table,
-            id = id,
-            app = app,
-            requester = requester,
-            time = time
-        ).mapNotNull {
-            RequestRecordPO<T>(table.createEntity(it), deserializer)
-        }
-    }
-
-    fun query(
-        db: Database,
-        table: RequestRecordRDAO,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null,
-    ): Query {
-        var query = db.from(table).select()
-        if (id != null) {
-            query = query.where { table.id like id }
-        }
-        if (app != null) {
-            query = query.where { table.app like app }
-        }
-        if (requester != null) {
-            query = query.where { table.requester like requester }
-        }
-        if (time != null) {
-            query = query.where { (table.time greaterEq time.first) and (table.time less time.second) }
-        }
-        return query
-    }
-}
-
-/**
- * 响应记录持久化对象
- * Response record persistence object
+ * 响应记录
+ * Response record
  *
  * @property id 响应标识 / Response identifier
  * @property app 应用名 / Application name
@@ -316,7 +297,7 @@ data object RequestRecordDAO {
  */
 @OptIn(ExperimentalTime::class)
 @Serializable
-data class ResponseRecordPO<T>(
+data class ResponseRecord<T>(
     val id: String,
     val app: String,
     val requester: String,
@@ -328,26 +309,26 @@ data class ResponseRecordPO<T>(
 ) where T : ResponseDTO<T> {
     companion object {
         @OptIn(InternalSerializationApi::class)
-        inline operator fun <reified T : ResponseDTO<T>> invoke(rpo: ResponseRecordRPO): ResponseRecordPO<T>? {
-            return this(rpo) {
+        inline operator fun <reified T : ResponseDTO<T>> invoke(po: ResponseRecordPO): ResponseRecord<T>? {
+            return this(po) {
                 val stream = ByteArrayInputStream(it)
                 readFromJson(T::class.serializer(), stream)
             }
         }
 
         inline operator fun <reified T : ResponseDTO<T>> invoke(
-            rpo: ResponseRecordRPO,
+            po: ResponseRecordPO,
             deserializer: (ByteArray) -> T
-        ): ResponseRecordPO<T>? {
+        ): ResponseRecord<T>? {
             return try {
-                ResponseRecordPO(
-                    id = rpo.requestId,
-                    app = rpo.app,
-                    requester = rpo.requester,
-                    version = rpo.version,
-                    code = rpo.code,
-                    time = rpo.time,
-                    response = deserializer(rpo.response)
+                ResponseRecord(
+                    id = po.requestId,
+                    app = po.app,
+                    requester = po.requester,
+                    version = po.version,
+                    code = po.code,
+                    time = po.time,
+                    response = deserializer(po.response)
                 )
             } catch (e: Exception) {
                 e.printStackTrace()
@@ -365,134 +346,26 @@ data class ResponseRecordPO<T>(
         time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         response = response
     )
+
     @OptIn(InternalSerializationApi::class)
-    val rpo: ResponseRecordRPO by lazy {
-        rpo {
+    val po: ResponseRecordPO by lazy {
+        po {
             val stream = ByteArrayOutputStream()
             writeJsonToStream(stream, runtimeResponseSerializer(response), response)
             stream.toByteArray()
         }
     }
 
-    fun rpo(serializer: (T) -> ByteArray): ResponseRecordRPO {
-        return ResponseRecordRPO {
-            requestId = this@ResponseRecordPO.id
-            app = this@ResponseRecordPO.app
-            requester = this@ResponseRecordPO.requester
-            version = this@ResponseRecordPO.version
-            code = this@ResponseRecordPO.code
-            msg = this@ResponseRecordPO.response.msg
-            time = this@ResponseRecordPO.time
-            response = serializer(this@ResponseRecordPO.response)
-        }
+    fun po(serializer: (T) -> ByteArray): ResponseRecordPO {
+        return ResponseRecordPO(
+            requestId = this.id,
+            app = this.app,
+            requester = this.requester,
+            version = this.version,
+            code = this.code,
+            msg = this.response.msg,
+            time = this.time,
+            response = serializer(this.response)
+        )
     }
 }
-
-/**
- * 响应记录数据访问对象
- * Response record data access object
- */
-data object ResponseRecordDAO {
-    fun <T : ResponseDTO<T>> insert(
-        db: Database,
-        tableName: String,
-        record: ResponseRecordPO<T>,
-        serializer: ((T) -> ByteArray)? = null
-    ) {
-        val table = ResponseRecordRDAO(tableName)
-        db.useTransaction {
-            db.sequenceOf(table).add(
-                if (serializer == null) {
-                    record.rpo
-                } else {
-                    record.rpo(serializer)
-                }
-            )
-        }
-    }
-
-    inline fun <reified T : ResponseDTO<T>> get(
-        db: Database,
-        tableName: String,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null
-    ): List<ResponseRecordPO<T>> {
-        val requestTable = RequestRecordRDAO(tableName.replace("response", "request"))
-        val responseTable = ResponseRecordRDAO(tableName)
-        return query(
-            db = db,
-            requestTable = requestTable,
-            responseTable = responseTable,
-            id = id,
-            app = app,
-            requester = requester,
-            time = time
-        ).mapNotNull {
-            ResponseRecordPO(responseTable.createEntity(it))
-        }
-    }
-
-    inline fun <reified T : ResponseDTO<T>> get(
-        db: Database,
-        tableName: String,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null,
-        deserializer: (ByteArray) -> T
-    ): List<ResponseRecordPO<T>> {
-        val requestTable = RequestRecordRDAO(tableName.replace("response", "request"))
-        val responseTable = ResponseRecordRDAO(tableName)
-        return query(
-            db = db,
-            requestTable = requestTable,
-            responseTable = responseTable,
-            id = id,
-            app = app,
-            requester = requester,
-            time = time
-        ).mapNotNull {
-            ResponseRecordPO(responseTable.createEntity(it), deserializer)
-        }
-    }
-
-    fun query(
-        db: Database,
-        requestTable: RequestRecordRDAO,
-        responseTable: ResponseRecordRDAO,
-        id: String? = null,
-        app: String? = null,
-        requester: String? = null,
-        time: Pair<LocalDateTime, LocalDateTime>? = null,
-    ): Query {
-        var query = db.from(responseTable)
-            .leftJoin(
-                requestTable,
-                on = (responseTable.requestId eq requestTable.requestId) and
-                        (responseTable.app eq requestTable.app) and
-                        (responseTable.requester eq requestTable.requester) and
-                        (responseTable.version eq requestTable.version)
-            )
-            .select()
-        if (id != null) {
-            query = query.where { responseTable.id like id }
-        }
-        if (app != null) {
-            query = query.where { responseTable.app like app }
-        }
-        if (requester != null) {
-            query = query.where { responseTable.requester like requester }
-        }
-        if (time != null) {
-            query = query.where {
-                ((requestTable.time greaterEq time.first) and (requestTable.time less time.second)) or
-                        ((responseTable.time greaterEq time.first) and (responseTable.time less time.second))
-            }
-        }
-        return query
-    }
-}
-
-

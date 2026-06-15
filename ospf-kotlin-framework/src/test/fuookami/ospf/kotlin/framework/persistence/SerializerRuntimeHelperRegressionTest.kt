@@ -29,7 +29,7 @@ private data class DemoResponseDTO(
 
 class SerializerRuntimeHelperRegressionTest {
     @Test
-    fun logRecordRpoRoundTripKeepsPayload() {
+    fun logRecordPoRoundTripKeepsPayload() {
         val record = LogRecordPO(
             app = "framework",
             version = "test",
@@ -41,8 +41,8 @@ class SerializerRuntimeHelperRegressionTest {
             value = LogPayload("hello", 3)
         )
 
-        val rpo = record.rpo
-        val decoded = LogRecordPO<LogPayload>(rpo)
+        val po = record.po
+        val decoded = LogRecordPO<LogPayload>(po)
 
         assertNotNull(decoded)
         assertEquals(record.value, decoded!!.value)
@@ -51,17 +51,17 @@ class SerializerRuntimeHelperRegressionTest {
     }
 
     @Test
-    fun requestRecordRpoRoundTripKeepsPayload() {
+    fun requestRecordPoRoundTripKeepsPayload() {
         val request = DemoRequestDTO(id = "req-1", payload = "request-body")
-        val record = RequestRecordPO(
+        val record = RequestRecord(
             app = "framework",
             requester = "tester",
             version = "v1",
             request = request
         )
 
-        val rpo = record.rpo
-        val decoded = RequestRecordPO<DemoRequestDTO>(rpo)
+        val po = record.po
+        val decoded = RequestRecord<DemoRequestDTO>(po)
 
         assertNotNull(decoded)
         assertEquals(record.id, decoded!!.id)
@@ -70,22 +70,22 @@ class SerializerRuntimeHelperRegressionTest {
     }
 
     @Test
-    fun responseRecordRpoRoundTripKeepsPayload() {
+    fun responseRecordPoRoundTripKeepsPayload() {
         val response = DemoResponseDTO(
             id = "resp-1",
             code = UInt64.one,
             msg = "ok",
             payload = "response-body"
         )
-        val record = ResponseRecordPO(
+        val record = ResponseRecord(
             app = "framework",
             requester = "tester",
             version = "v1",
             response = response
         )
 
-        val rpo = record.rpo
-        val decoded = ResponseRecordPO<DemoResponseDTO>(rpo)
+        val po = record.po
+        val decoded = ResponseRecord<DemoResponseDTO>(po)
 
         assertNotNull(decoded)
         assertEquals(record.id, decoded!!.id)

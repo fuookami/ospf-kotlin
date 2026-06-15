@@ -60,6 +60,8 @@ enum class LogRecordType {
  * Log record interface
  */
 interface LogRecord {
+    companion object {}
+
     /** 应用名 / Application name */
     val app: String
     /** 版本 / Version */
@@ -128,10 +130,11 @@ data class LogRecordPO<T : Any>(
         availableTime = (Clock.System.now() + availableTime).toLocalDateTime(TimeZone.currentSystemDefault()),
         value = value
     )
+
     /** 字节数组持久化对象（懒加载） / Byte array persistence object (lazy loaded) */
     @OptIn(InternalSerializationApi::class)
-    val rpo by lazy {
-        byteRPO {
+    val po by lazy {
+        bytePO {
             val stream = ByteArrayOutputStream()
             writeJsonToStream(
                 stream = stream,
@@ -149,8 +152,8 @@ data class LogRecordPO<T : Any>(
      * @param serializer 序列化器 / Serializer
      * @return 字符串持久化对象 / String persistence object
      */
-    fun stringRPO(serializer: KSerializer<T>): LogRecordStringRPO {
-        return stringRPO { writeJson(serializer, it) }
+    fun stringPO(serializer: KSerializer<T>): LogRecordStringPO {
+        return stringPO { writeJson(serializer, it) }
     }
 
     /**
@@ -160,17 +163,17 @@ data class LogRecordPO<T : Any>(
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字符串持久化对象 / String persistence object
      */
-    fun stringRPO(serializer: (T) -> String): LogRecordStringRPO {
-        return LogRecordStringRPO {
-            app = this@LogRecordPO.app
-            version = this@LogRecordPO.version
-            serviceId = this@LogRecordPO.serviceId
-            step = this@LogRecordPO.step
-            type = this@LogRecordPO.type
-            time = this@LogRecordPO.time
-            availableTime = this@LogRecordPO.availableTime
+    fun stringPO(serializer: (T) -> String): LogRecordStringPO {
+        return LogRecordStringPO(
+            app = this@LogRecordPO.app,
+            version = this@LogRecordPO.version,
+            serviceId = this@LogRecordPO.serviceId,
+            step = this@LogRecordPO.step,
+            type = this@LogRecordPO.type,
+            time = this@LogRecordPO.time,
+            availableTime = this@LogRecordPO.availableTime,
             value = serializer(this@LogRecordPO.value)
-        }
+        )
     }
 
     /**
@@ -180,8 +183,8 @@ data class LogRecordPO<T : Any>(
      * @param serializer 序列化器 / Serializer
      * @return 字节数组持久化对象 / Byte array persistence object
      */
-    fun byteRPO(serializer: KSerializer<T>): LogRecordByteRPO {
-        return byteRPO {
+    fun bytePO(serializer: KSerializer<T>): LogRecordBytePO {
+        return bytePO {
             val stream = ByteArrayOutputStream()
             writeJsonToStream(
                 stream = stream,
@@ -199,16 +202,16 @@ data class LogRecordPO<T : Any>(
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字节数组持久化对象 / Byte array persistence object
      */
-    fun byteRPO(serializer: (T) -> ByteArray): LogRecordByteRPO {
-        return LogRecordByteRPO {
-            app = this@LogRecordPO.app
-            version = this@LogRecordPO.version
-            serviceId = this@LogRecordPO.serviceId
-            step = this@LogRecordPO.step
-            type = this@LogRecordPO.type
-            time = this@LogRecordPO.time
-            availableTime = this@LogRecordPO.availableTime
+    fun bytePO(serializer: (T) -> ByteArray): LogRecordBytePO {
+        return LogRecordBytePO(
+            app = this@LogRecordPO.app,
+            version = this@LogRecordPO.version,
+            serviceId = this@LogRecordPO.serviceId,
+            step = this@LogRecordPO.step,
+            type = this@LogRecordPO.type,
+            time = this@LogRecordPO.time,
+            availableTime = this@LogRecordPO.availableTime,
             value = serializer(this@LogRecordPO.value)
-        }
+        )
     }
 }

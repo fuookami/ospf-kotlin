@@ -27,7 +27,7 @@
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
         <maven-jar-plugin.version>3.3.0</maven-jar-plugin.version>
         <maven-enforcer-plugin.version>3.3.0</maven-enforcer-plugin.version>
-        <maven-dokka-plugin.version>1.9.0</maven-dokka-plugin.version>
+        <maven-dokka-plugin.version>2.2.0</maven-dokka-plugin.version>
     </properties>
 
     <dependencyManagement>
@@ -316,6 +316,10 @@
                 <artifactId>dokka-maven-plugin</artifactId>
                 <version>${maven-dokka-plugin.version}</version>
                 <inherited>true</inherited>
+                <configuration>
+                    <skip>true</skip>
+                    <failOnWarning>false</failOnWarning>
+                </configuration>
                 <executions>
                     <execution>
                         <phase>package</phase>
