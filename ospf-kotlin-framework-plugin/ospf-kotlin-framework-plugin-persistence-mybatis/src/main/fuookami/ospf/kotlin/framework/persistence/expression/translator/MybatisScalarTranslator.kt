@@ -65,7 +65,7 @@ class MybatisScalarTranslator(
                     ?: return unsupported("Unresolved path: ${expr.path.value}")
                 MybatisScalarSql(column, isColumnOnly = true)
             }
-            is ScalarConstant<*> -> MybatisScalarSql("{0}", listOf(expr.value), isColumnOnly = false)
+            is ScalarConstant<*> -> MybatisScalarSql("{0}", listOf(MybatisValueConverter.convert(expr.value)), isColumnOnly = false)
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
             is ScalarFunction<*> -> translateFunction(expr)

@@ -48,7 +48,7 @@ class MybatisUpdateTranslator<T : Any>(
 
     private fun applySetValue(wrapper: UpdateWrapper<T>, item: SetValue): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
-        return wrapper.set(column, item.value)
+        return wrapper.set(column, MybatisValueConverter.convert(item.value))
     }
 
     private fun applySetNull(wrapper: UpdateWrapper<T>, item: SetNull): UpdateWrapper<T> {
@@ -63,7 +63,7 @@ class MybatisUpdateTranslator<T : Any>(
         // Currently only supports ScalarConstant
         val exprValue = (item.expression as? ScalarConstant<*>)?.value
         return if (exprValue != null) {
-            wrapper.set(column, exprValue)
+            wrapper.set(column, MybatisValueConverter.convert(exprValue))
         } else {
             // 对于复杂表达式，可以使用 setSql
             // For complex expressions, can use setSql

@@ -115,14 +115,15 @@ class MybatisBooleanTranslator<T : Any>(
                 ?: return unsupported(wrapper, "Unresolved comparison path: ${leftRef.path.value}", expr)
             val value = rightConst.value
                 ?: return unsupported(wrapper, "Null comparison constant is not supported", expr)
+            val jdbcValue = MybatisValueConverter.convert(value)
 
             return when (expr.operator) {
-                ComparisonOperator.Eq -> wrapper.eq(column, value)
-                ComparisonOperator.Ne -> wrapper.ne(column, value)
-                ComparisonOperator.Lt -> wrapper.lt(column, value)
-                ComparisonOperator.Le -> wrapper.le(column, value)
-                ComparisonOperator.Gt -> wrapper.gt(column, value)
-                ComparisonOperator.Ge -> wrapper.ge(column, value)
+                ComparisonOperator.Eq -> wrapper.eq(column, jdbcValue)
+                ComparisonOperator.Ne -> wrapper.ne(column, jdbcValue)
+                ComparisonOperator.Lt -> wrapper.lt(column, jdbcValue)
+                ComparisonOperator.Le -> wrapper.le(column, jdbcValue)
+                ComparisonOperator.Gt -> wrapper.gt(column, jdbcValue)
+                ComparisonOperator.Ge -> wrapper.ge(column, jdbcValue)
             }
         }
 
@@ -133,14 +134,15 @@ class MybatisBooleanTranslator<T : Any>(
                 ?: return unsupported(wrapper, "Unresolved comparison path: ${rightRef.path.value}", expr)
             val value = leftConst.value
                 ?: return unsupported(wrapper, "Null comparison constant is not supported", expr)
+            val jdbcValue = MybatisValueConverter.convert(value)
 
             return when (expr.operator) {
-                ComparisonOperator.Eq -> wrapper.eq(column, value)
-                ComparisonOperator.Ne -> wrapper.ne(column, value)
-                ComparisonOperator.Lt -> wrapper.gt(column, value)  // 反转
-                ComparisonOperator.Le -> wrapper.ge(column, value)  // 反转
-                ComparisonOperator.Gt -> wrapper.lt(column, value)  // 反转
-                ComparisonOperator.Ge -> wrapper.le(column, value)  // 反转
+                ComparisonOperator.Eq -> wrapper.eq(column, jdbcValue)
+                ComparisonOperator.Ne -> wrapper.ne(column, jdbcValue)
+                ComparisonOperator.Lt -> wrapper.gt(column, jdbcValue)  // 反转
+                ComparisonOperator.Le -> wrapper.ge(column, jdbcValue)  // 反转
+                ComparisonOperator.Gt -> wrapper.lt(column, jdbcValue)  // 反转
+                ComparisonOperator.Ge -> wrapper.le(column, jdbcValue)  // 反转
             }
         }
 
@@ -163,11 +165,12 @@ class MybatisBooleanTranslator<T : Any>(
         if (values.size != expr.candidates.size || values.isEmpty()) {
             return unsupported(wrapper, "IN candidates must be non-empty scalar constants", expr)
         }
+        val jdbcValues = values.map { MybatisValueConverter.convert(it) }
 
         return if (expr.negated) {
-            wrapper.notIn(column, values)
+            wrapper.notIn(column, jdbcValues)
         } else {
-            wrapper.`in`(column, values)
+            wrapper.`in`(column, jdbcValues)
         }
     }
 

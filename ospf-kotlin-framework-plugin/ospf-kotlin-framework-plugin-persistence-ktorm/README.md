@@ -53,3 +53,25 @@ repository.delete(where)
 ## PatternMatchPolicy
 
 Pass a `PatternMatchPolicy` to `KtormRepository` to control how `PatternMatch` expressions are translated. Default uses standard SQL `LIKE`. Custom implementations can override `translateLike` and `translateRegex` for dialect-specific behavior.
+
+## Column Type Extensions
+
+`SqlType.kt` provides extension functions on `BaseTable<*>` for declaring columns backed by OSPF custom types. Each function defines bidirectional transforms between Kotlin types and JDBC/SQL types.
+
+| Function | Kotlin Type | SQL Type | JDBC Type (`java.sql.Types`) | Notes |
+| --- | --- | --- | --- | --- |
+| `ui32` | `UInt32` | `INT` | `INTEGER` (4) | |
+| `i32` | `Int32` | `INT` | `INTEGER` (4) | |
+| `ui64` | `UInt64` | `BIGINT` | `BIGINT` (-5) | |
+| `i64` | `Int64` | `BIGINT` | `BIGINT` (-5) | |
+| `f32` | `Flt32` | `FLOAT` | `FLOAT` (6) | |
+| `f64` | `Flt64` | `DOUBLE` | `DOUBLE` (8) | |
+| `fltx` | `FltX` | `DECIMAL` | `DECIMAL` (3) | Default scale = 2 |
+| `fltx` | `FltX` | `DECIMAL` | `DECIMAL` (3) | Custom rounding mode |
+| `kotlinDatetime` | `kotlinx.datetime.LocalDateTime` | `DATETIME` | `TIMESTAMP` (93) | |
+| `instant` | `kotlin.time.Instant` | `TIMESTAMP` | `TIMESTAMP` (93) | |
+| `duration` | `kotlin.time.Duration` | `VARCHAR` | `VARCHAR` (12) | Stored as ISO-8601 string (`Duration.toIsoString`) |
+| `zoneId` | `java.time.ZoneId` | `VARCHAR` | `VARCHAR` (12) | Stored as IANA zone id (e.g. `America/New_York`) |
+| `zoneOffset` | `java.time.ZoneOffset` | `VARCHAR` | `VARCHAR` (12) | Stored as offset id (e.g. `+08:00`) |
+| `kotlinTimeZone` | `kotlinx.datetime.TimeZone` | `VARCHAR` | `VARCHAR` (12) | Stored as IANA zone id (e.g. `Europe/Berlin`) |
+| `enums<T>` | `List<T : Enum<*>>` | `VARCHAR` | `VARCHAR` (12) | Stored as comma-separated enum names (e.g. `A,B,C`) |
