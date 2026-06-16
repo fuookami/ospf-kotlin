@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 
-/**
- * 是否在同一侧（宽体机）
- *
- * @param position1             舱位 1
- * @param position2             舱位 2
- * @return                      是否在同一侧
- */
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
 private fun onSameSide(
     position1: Position,
     position2: Position
@@ -24,16 +19,8 @@ private fun onSameSide(
             || (position1.coordinate.onRight && position2.coordinate.onRight)
 }
 
-/**
- * 物理相邻计算器
- */
+/** Calculates physical adjacency between cargo positions on the same deck. */
 data object PhysicalNeighbourCalculator {
-    /**
-     * 计算物理相邻
-     *
-     * @param decks                 舱
-     * @return                      物理相邻
-     */
     operator fun invoke(
         decks: List<Deck>
     ): Ret<List<Neighbour>> {
@@ -48,11 +35,8 @@ data object PhysicalNeighbourCalculator {
                     val position2 = deck.positions[j]
 
                     if (onSameLine(position1, position2) && !onSameSide(position1, position2)) {
-                        // 如果在同一条线上且不在同一侧，则说明横向相邻
                         neighbours.add(Neighbour(NeighbourType.Physics, position1 to position2))
                     } else if (onSameSide(position1, position2)) {
-                        // 如果是在同一侧，则需要判断是否有阻隔舱位，如果没有则说明纵向相邻
-                        // 整个舱位都在中间才能判定为阻隔，不是整个舱位都在中间应当要判定为冲突舱位
                         val frontArm = min(position1.coordinate.backArm, position2.coordinate.backArm)!!
                         val backArm = max(position1.coordinate.frontArm, position2.coordinate.frontArm)!!
                         if (deck.positions.none { otherPosition -> otherPosition.coordinate.between(frontArm, backArm) }) {
@@ -65,13 +49,6 @@ data object PhysicalNeighbourCalculator {
         return Ok(neighbours)
     }
 
-    /**
-     * 是否在（横向）同一条线上：两个舱位的纵向力臂范围有交集
-     *
-     * @param position1             舱位 1
-     * @param position2             舱位 2
-     * @return                      是否在同一条线上
-     */
     private fun onSameLine(
         position1: Position,
         position2: Position
@@ -82,19 +59,10 @@ data object PhysicalNeighbourCalculator {
     }
 }
 
-/**
- * 间接物理相邻计算器
- */
+/** Calculates indirect physical adjacency through shared physical neighbours. */
 data object IndirectPhysicsNeighbourCalculator {
     private val nearEnoughLongitudinalRatio = Flt64(0.5)
 
-    /**
-     * 计算间隔物理相邻
-     *
-     * @param decks                 舱
-     * @param physicalNeighbours    物理相邻
-     * @return                      间接物理相邻
-     */
     operator fun invoke(
         decks: List<Deck>,
         physicalNeighbours: List<Neighbour>
@@ -138,12 +106,6 @@ data object IndirectPhysicsNeighbourCalculator {
         return Ok(neighbours)
     }
 
-    /**
-     * 整理物理相邻
-     *
-     * @param physicalNeighbours        物料相邻
-     * @return                          舱位-物理相邻舱位映射
-     */
     private fun tidy(
         physicalNeighbours: List<Neighbour>
     ): Map<Position, List<Position>> {
@@ -155,13 +117,6 @@ data object IndirectPhysicsNeighbourCalculator {
         return map
     }
 
-    /**
-     * 是否足够近：两个舱位的纵向距离足够近
-     *
-     * @param position1                 舱位 1
-     * @param position2                 舱位 2
-     * @return                          是否足够近
-     */
     private fun nearEnough(
         position1: Position,
         position2: Position
@@ -177,16 +132,8 @@ data object IndirectPhysicsNeighbourCalculator {
     }
 }
 
-/**
- * 线性装载顺序相邻计算器
- */
+/** Calculates linear loading order adjacency between consecutive positions on each deck. */
 class LinearLoadingOrderNeighbourCalculator {
-    /**
-     * 计算线性装载顺序相邻
-     *
-     * @param decks                 舱
-     * @return                      线性装载相邻
-     */
     operator fun invoke(
         decks: List<Deck>
     ): Ret<List<Neighbour>> {
@@ -209,16 +156,8 @@ class LinearLoadingOrderNeighbourCalculator {
     }
 }
 
-/**
- * 拓扑装载顺序相邻计算器
- */
+/** Calculates topological loading order adjacency from direct successor relationships. */
 class TopologicalLoadingOrderNeighbourCalculator {
-    /**
-     * 计算拓扑装载顺序相邻
-     *
-     * @param decks                 舱
-     * @return                      拓扑装载相邻
-     */
     operator fun invoke(
         decks: List<Deck>
     ): Ret<List<Neighbour>> {

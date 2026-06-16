@@ -1,12 +1,9 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlinx.coroutines.runBlocking
+
+import fuookami.ospf.kotlin.utils.functional.Ok
+
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -20,14 +17,22 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
 
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** A test case pairing a numeric type name with its IntoValue converter. */
 private data class GenericNumberCase<V>(
     val name: String,
     val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V>
 
+/** Predefined generic number test cases for Flt64, Rtn64, FltX, and RtnX. */
 private object GenericNumberCases {
     val flt64 = GenericNumberCase(
         name = "Flt64",
@@ -65,7 +70,9 @@ private object GenericNumberCases {
     )
 }
 
+/** Demonstrates that the linear and quadratic model builders work correctly across multiple numeric types. */
 data object GenericNumberDemo {
+    /** Summary of a linear model build, including constraint count and objective coefficients. */
     data class LinearBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -73,6 +80,7 @@ data object GenericNumberDemo {
         val objectiveCoefficients: Map<String, Flt64>
     )
 
+    /** Summary of a quadratic model build, including constraint count and objective coefficients. */
     data class QuadraticBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -80,12 +88,14 @@ data object GenericNumberDemo {
         val objectiveCoefficients: Map<Pair<String, String?>, Flt64>
     )
 
+    /** Combined linear and quadratic build summary for a given numeric type. */
     data class GenericNumberBuildSummary(
         val numberType: String,
         val linear: LinearBuildSummary,
         val quadratic: QuadraticBuildSummary
     )
 
+    /** Runs linear and quadratic build-and-dump for all predefined numeric types. */
     fun runBuildAndDump(): List<GenericNumberBuildSummary> {
         return runBlocking {
             return@runBlocking listOf(
@@ -97,6 +107,7 @@ data object GenericNumberDemo {
         }
     }
 
+    /** Builds both linear and quadratic summaries for a single numeric type case. */
     private suspend fun <V> buildCase(numberCase: GenericNumberCase<V>): GenericNumberBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val linear = buildLinear(numberCase)
@@ -108,6 +119,7 @@ data object GenericNumberDemo {
         )
     }
 
+    /** Constructs a linear MetaModel, extracts mechanism-level summary. */
     private suspend fun <V> buildLinear(numberCase: GenericNumberCase<V>): LinearBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_linear_x")
@@ -168,6 +180,7 @@ data object GenericNumberDemo {
         }
     }
 
+    /** Constructs a quadratic MetaModel, extracts mechanism-level summary. */
     private suspend fun <V> buildQuadratic(numberCase: GenericNumberCase<V>): QuadraticBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_quad_x")

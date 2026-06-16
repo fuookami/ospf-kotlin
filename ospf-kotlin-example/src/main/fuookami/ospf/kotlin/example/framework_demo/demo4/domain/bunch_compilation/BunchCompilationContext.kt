@@ -2,23 +2,29 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
+
+/** Context for bunch compilation managing aggregation and pipeline registration. */
 class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext<
     ShadowPriceArguments, FlightTaskBunch, FltX, FlightTask, Aircraft, FlightTaskAssignment
 > {
     override lateinit var aggregation: Aggregation
     override lateinit var pipelineList: CGPipelineList
 
+    /** Registers the pipeline list and delegates to the parent registration. */
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         pipelineList = when (val result = PipelineListGenerator(aggregation)()) {
             is Ok -> {
@@ -37,6 +43,7 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         return super.register(model)
     }
 
+    /** Selects free executors based on shadow prices for the branch-and-price algorithm. */
     override fun <Map : ShadowPriceMap> selectFreeExecutors(
         fixedBunches: Set<FlightTaskBunch>,
         hiddenExecutors: Set<Aircraft>,
@@ -46,10 +53,3 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         TODO("Not yet implemented")
     }
 }
-
-
-
-
-
-
-

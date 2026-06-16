@@ -2,15 +2,19 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.math.*
 import kotlin.time.Instant
+
 import kotlinx.datetime.LocalDate
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Enumerates the flight types based on departure/arrival airport types. */
 enum class FlightType {
     Domestic {
         override val isDomainType: Boolean get() = true
@@ -19,10 +23,12 @@ enum class FlightType {
     International;
 
     companion object {
+        /** Determines the flight type from departure and arrival airports. */
         operator fun invoke(dep: Airport, arr: Airport): FlightType {
             return invoke(dep.type, arr.type)
         }
 
+        /** Determines the flight type from departure and arrival airport types. */
         operator fun invoke(dep: AirportType, arr: AirportType): FlightType {
             return when (AirportType.entries.find { it.ordinal == max(dep.ordinal, arr.ordinal) }!!) {
                 AirportType.Domestic -> {
@@ -43,6 +49,7 @@ enum class FlightType {
     open val isDomainType: Boolean get() = false
 }
 
+/** A flight leg plan with scheduled/estimated/actual times, aircraft, and route information. */
 class FlightLegPlan(
     override val actualId: String,
     val no: String,
@@ -71,15 +78,18 @@ class FlightLegPlan(
 
     override val time: TimeRange? get() = actualTime ?: estimatedTime ?: super.time
 
+    /** Checks whether this flight leg is eligible for recovery (no actual time or out time). */
     fun recoveryEnabled(): Boolean {
         return actualTime == null && outTime == null
     }
 }
 
+/** Task type object for flight legs. */
 object FlightLegTaskType : FlightTaskType(FlightTaskCategory.Flight, FlightLegTaskType::class) {
     override val type get() = "flight"
 }
 
+/** A flight leg task with optional recovery aircraft and time. */
 class FlightLeg internal constructor(
     override val plan: FlightLegPlan,
     val recoveryAircraft: Aircraft? = null,
@@ -87,10 +97,12 @@ class FlightLeg internal constructor(
     origin: FlightLeg? = null
 ) : FlightTask(FlightLegTaskType, origin) {
     companion object {
+        /** Creates a [FlightLeg] from a plan. */
         operator fun invoke(plan: FlightLegPlan): FlightLeg {
             return FlightLeg(plan = plan)
         }
 
+        /** Creates a recovered [FlightLeg] applying the given recovery policy. */
         operator fun invoke(origin: FlightLeg, recoveryPolicy: FlightTaskAssignment): FlightLeg {
             val recoveryAircraft = if (recoveryPolicy.aircraft == null || recoveryPolicy.aircraft == origin.aircraft) {
                 null

@@ -3,26 +3,35 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
 import java.util.*
+
 import kotlin.time.*
+
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
+
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
+/** Condition interface for evaluating whether a flight task matches flow control criteria. */
 interface AbstractFlowControlCondition {
+    /** Evaluates whether the given task matches this condition. */
     operator fun invoke(task: FlightTask): Boolean
 }
 
+/** Concrete flow control condition filtering by flight types and aircraft minor types. */
 data class FlowControlCondition(
     val flightTypes: Set<FlightType> = emptySet(),
     val aircraftMinorTypes: Set<AircraftMinorType> = emptySet()
 ) {
+    /** Evaluates whether the given task matches this condition. */
     operator fun invoke(task: FlightTask): Boolean {
         if (task.isFlight) {
             return false
@@ -53,6 +62,7 @@ data class FlowControlCondition(
     }
 }
 
+/** Enumerates the flow control scenes describing when tasks interact with an airport. */
 enum class FlowControlScene {
     Departure {
         override operator fun invoke(
@@ -116,6 +126,7 @@ enum class FlowControlScene {
         }
     };
 
+    /** Evaluates whether the given task pair matches this scene at the specified airport and time. */
     abstract operator fun invoke(
         prevTask: FlightTask?,
         task: FlightTask?,
@@ -124,6 +135,7 @@ enum class FlowControlScene {
         condition: AbstractFlowControlCondition? = null
     ): Boolean
 
+    /** Counts how many tasks in the bunch match this scene at the specified airport and time. */
     open operator fun invoke(
         bunch: FlightTaskBunch,
         airport: Airport,
@@ -140,11 +152,13 @@ enum class FlowControlScene {
     }
 }
 
+/** Capacity specification for a flow control, including amount and time interval. */
 data class FlowControlCapacity(
     val amount: UInt64,
     val interval: Duration,
 ) {
     companion object {
+        /** Creates a closed (zero capacity) flow control for the given time range. */
         fun close(time: TimeRange) = FlowControlCapacity(UInt64.zero, time.duration)
     }
 
@@ -153,6 +167,7 @@ data class FlowControlCapacity(
     override fun toString() = if (closed) "closed" else "${amount}_${interval.toInt(DurationUnit.MINUTES)}m"
 }
 
+/** A flow control rule specifying capacity limits at an airport for a given scene and time range. */
 data class FlowControl(
     val id: String = UUID.randomUUID().toString(),
     val airport: Airport,
@@ -192,6 +207,7 @@ data class FlowControl(
     }
 }
 
+/** A flow resource representing a set of flow control rules at an airport for a specific scene. */
 class Flow(
     id: String = UUID.randomUUID().toString(),
     val airport: Airport,

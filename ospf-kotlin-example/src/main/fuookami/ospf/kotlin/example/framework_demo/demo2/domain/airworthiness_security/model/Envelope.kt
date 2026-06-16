@@ -1,27 +1,30 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import java.util.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.geometry.*
-import fuookami.ospf.kotlin.quantities.quantity.*
+
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+
 import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.math.geometry.point2
 
+/** Interface for CG envelope constraints that define min/max index bounds per flight phase. */
 interface AbstractEnvelope {
     data class Point(
         val totalWeight: Quantity<Flt64>,
@@ -79,6 +82,7 @@ interface AbstractEnvelope {
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
+/** Standard CG envelope with left and right sides defining min/max index bounds. */
 class Envelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,
@@ -157,6 +161,7 @@ class Envelope(
     }
 }
 
+/** CG envelope with conditional sides that switch based on a runtime condition. */
 class ConditionalEnvelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,
@@ -393,16 +398,3 @@ class ConditionalEnvelope(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-

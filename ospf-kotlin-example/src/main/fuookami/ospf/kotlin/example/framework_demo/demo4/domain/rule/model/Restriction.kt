@@ -2,56 +2,72 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Enumerates the restriction severity levels. */
 enum class RestrictionType {
     Weak,
     ViolableStrong,
     Strong,
 }
 
+/** Sealed interface for restrictions that can be checked against flight tasks. */
 sealed interface Restriction {
     val type: RestrictionType
 
+    /** Checks whether this restriction is related to the given aircraft. */
     fun related(aircraft: Aircraft): Boolean
 
+    /** Checks this restriction against a flight task. */
     fun check(task: FlightTask): RestrictionCheckingResult
+
+    /** Checks this restriction against a flight task with a specific aircraft. */
     fun check(task: FlightTask, aircraft: Aircraft): RestrictionCheckingResult
+
+    /** Checks this restriction against a flight task with a recovery policy. */
     fun check(task: FlightTask, recoveryPolicy: FlightTaskAssignment): RestrictionCheckingResult
 }
 
+/** Sealed interface for restriction checking results. */
 sealed interface RestrictionCheckingResult {
     val restriction: Restriction
 
     val type get() = restriction.type
 }
 
+/** Result indicating the restriction does not apply. */
 data class NotMatter(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
+/** Result indicating a strong violation. */
 data class Violate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
+/** Result indicating no violation. */
 data class NotViolate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
+/** Result indicating a violable (soft) violation. */
 data class ViolableViolate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
+/** Enumerates the relation restriction categories. */
 enum class RelationRestrictionCategory {
     BlackList,
     WhiteList
 }
 
+/** A restriction based on airport pair and aircraft set relationships. */
 class RelationRestriction(
     override val type: RestrictionType,
     val category: RelationRestrictionCategory,
@@ -82,7 +98,7 @@ class RelationRestriction(
         val aircraft = recoveryPolicy.aircraft ?: task.aircraft
         return check(dep, arr, aircraft)
     }
-    
+
     private fun check(dep: Airport, arr: Airport, aircraft: Aircraft?): RestrictionCheckingResult {
         if (dep != this.dep || arr != this.arr) {
             return NotMatter(this)
@@ -118,8 +134,10 @@ class RelationRestriction(
     }
 }
 
+/** Type alias for a general restriction condition function. */
 typealias AbstractGeneralRestrictionCondition = (task: FlightTask, recoveryPolicy: FlightTaskAssignment?) -> Boolean
 
+/** Condition filtering by specific flight task keys. */
 data class FlightGeneralRestrictionCondition(
     val flights: Set<TaskKey>
 ) : AbstractGeneralRestrictionCondition {
@@ -128,6 +146,7 @@ data class FlightGeneralRestrictionCondition(
     }
 }
 
+/** Condition filtering by departure airport and optional time range. */
 data class DepartureAirportGeneralRestrictionCondition(
     val airports: Set<Airport>,
     val time: TimeRange? = null
@@ -138,6 +157,7 @@ data class DepartureAirportGeneralRestrictionCondition(
     }
 }
 
+/** Condition filtering by arrival airport and optional time range. */
 data class ArrivalAirportGeneralRestrictionCondition(
     val airports: Set<Airport>,
     val time: TimeRange? = null
@@ -148,6 +168,7 @@ data class ArrivalAirportGeneralRestrictionCondition(
     }
 }
 
+/** Condition filtering by bidirectional airport pairs and optional time range. */
 data class BidirectionalAirportGeneralRestrictionCondition(
     val airports1: Set<Airport>,
     val airports2: Set<Airport>,
@@ -161,6 +182,7 @@ data class BidirectionalAirportGeneralRestrictionCondition(
     }
 }
 
+/** Condition filtering by enabled aircraft set. */
 data class EnabledAircraftGeneralRestrictionCondition(
     val aircrafts: Set<Aircraft>
 ) : AbstractGeneralRestrictionCondition {
@@ -169,6 +191,7 @@ data class EnabledAircraftGeneralRestrictionCondition(
     }
 }
 
+/** Condition filtering by disabled aircraft set. */
 data class DisabledAircraftGeneralRestrictionCondition(
     val aircrafts: Set<Aircraft>
 ) : AbstractGeneralRestrictionCondition {
@@ -177,6 +200,7 @@ data class DisabledAircraftGeneralRestrictionCondition(
     }
 }
 
+/** A general restriction with configurable conditions and aircraft filters. */
 class GeneralRestriction(
     override val type: RestrictionType,
     condition: AbstractGeneralRestrictionCondition? = null,

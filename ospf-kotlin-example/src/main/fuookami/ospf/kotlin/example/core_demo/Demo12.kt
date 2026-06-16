@@ -1,40 +1,43 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.symbol.function.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Investment portfolio: maximize yield subject to risk and fund allocation constraints. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example12.html
  */
 data object Demo12 {
+    /** An investment product with yield, risk, premium, and minimum premium. */
     data class Product(
         val yield: Flt64,
         val risk: Flt64,
@@ -70,6 +73,7 @@ data object Demo12 {
         Demo12::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -87,12 +91,14 @@ data object Demo12 {
         return ok
     }
 
+    /** Initializes unsigned integer variables for product investment amounts. */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
         metaModel.add(x)
         return ok
     }
 
+    /** Creates assignment, premium, risk, and yield expression symbols. */
     private suspend fun initSymbol(): Try {
         assignment = LinearIntermediateSymbols1<Flt64>(
             "assignment",
@@ -143,11 +149,13 @@ data object Demo12 {
         return ok
     }
 
+    /** Sets the objective to maximize total yield. */
     private suspend fun initObject(): Try {
         metaModel.maximize(yield, "yield")
         return ok
     }
 
+    /** Adds fund allocation and risk limit constraints. */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
             sum(products.map { p -> x[p] + premium[p] }) eq funds,
@@ -162,6 +170,7 @@ data object Demo12 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -173,13 +182,14 @@ data object Demo12 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the investment amounts per product from the solution. */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()
         for (token in metaModel.tokens.tokens) {
@@ -192,21 +202,3 @@ data object Demo12 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

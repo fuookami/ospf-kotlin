@@ -1,21 +1,27 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlinx.coroutines.runBlocking
+
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.utils.functional.Ok
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** Verifies that the product function appends a quadratic equality constraint without invoking a solver. */
 class QuadraticProductBuildOnlyStructureTest {
     @Test
     fun productFunctionShouldAppendQuadraticEqualityWithoutSolver() {
@@ -31,7 +37,7 @@ class QuadraticProductBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val function = fuookami.ospf.kotlin.core.symbol.function.ProductFunction(
+        val function = ProductFunction(
             left = left,
             right = right,
             converter = IntoValue.Identity,

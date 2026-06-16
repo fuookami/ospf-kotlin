@@ -1,16 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+import fuookami.ospf.kotlin.framework.model.*
+
+/** Constrains horizontal stabilizer trim within min/max bounds, using warning limits in recommendation mode. */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
     private val stowageMode: StowageMode,
@@ -85,19 +90,3 @@ class HorizontalStabilizerLimit(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

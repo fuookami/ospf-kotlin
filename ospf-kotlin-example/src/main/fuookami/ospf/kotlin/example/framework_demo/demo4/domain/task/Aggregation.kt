@@ -2,9 +2,11 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Aggregation for the task domain combining airports, aircraft, flight legs, and origin bunches. */
 class Aggregation(
     val timeWindow: TimeWindow<*>,
     val airports: List<Airport>,
@@ -29,6 +31,7 @@ class Aggregation(
         this.flightTasks = flightTasks
     }
 
+    /** Checks whether the aircraft is enabled for the given recovery policy and task. */
     fun enabled(
         aircraft: Aircraft,
         recoveryPolicy: FlightTaskAssignment,

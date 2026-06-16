@@ -1,40 +1,44 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Production optimization: maximize profit with material and production difference constraints. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example4.html
  */
 data object Demo4 {
+    /** A material with an available quantity. */
     data class Material(val available: Flt64) : AutoIndexed(Material::class)
 
+    /** A product with profit, max yield, and material usage. */
     data class Product(
         val profit: Flt64,
         val maxYield: Flt64,
@@ -77,6 +81,7 @@ data object Demo4 {
         Demo4::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -94,6 +99,7 @@ data object Demo4 {
         return ok
     }
 
+    /** Initializes real-valued decision variables for product quantities. */
     private suspend fun initVariable(): Try {
         x = RealVariable1("x", Shape1(products.size))
         for (p in products) {
@@ -103,6 +109,7 @@ data object Demo4 {
         return ok
     }
 
+    /** Creates profit and material usage expression symbols. */
     private suspend fun initSymbol(): Try {
         profit = LinearExpressionSymbol(
             sum(products) { p -> p.profit * x[p] },
@@ -122,12 +129,13 @@ data object Demo4 {
         return ok
     }
 
-
+    /** Sets the objective to maximize profit. */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit, "profit")
         return ok
     }
 
+    /** Adds material availability and production difference constraints. */
     private suspend fun initConstraint(): Try {
         for (p in products) {
             x[p].range.ls(p.maxYield)
@@ -149,6 +157,7 @@ data object Demo4 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -160,13 +169,14 @@ data object Demo4 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the product quantities from the solution. */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, Flt64>()
         for (token in metaModel.tokens.tokens) {
@@ -179,21 +189,3 @@ data object Demo4 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

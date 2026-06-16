@@ -41,3 +41,4 @@ Cargo.lock
 .VSCodeCounter/
 .tmp-*/
 /.codegraph/
+.claude/

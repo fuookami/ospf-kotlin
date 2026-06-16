@@ -11,4 +11,5 @@ private val shortTimeFormatter: DateTimeFormatter = DateTimeFormatter
         .ofPattern("MMddHHmm")
         .withZone(TimeZone.currentSystemDefault().toJavaZoneId())
 
+/** Formats an [Instant] as a short string using the "MMddHHmm" pattern. */
 fun Instant.toShortString(): String = shortTimeFormatter.format(java.time.Instant.ofEpochMilli(this.toEpochMilliseconds()))

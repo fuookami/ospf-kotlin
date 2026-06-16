@@ -2,15 +2,17 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+/** Enumerates the types of crew members in the flight recovery system. */
 enum class CrewType {
     Operator,
     Attendant,
     Other
 }
 
+/** Sealed interface representing a crew member with identity and nationality information. */
 sealed interface CrewMember {
     val type: CrewType
     val workerNo: WorkerNo?
@@ -19,6 +21,7 @@ sealed interface CrewMember {
     val nationality: String
 }
 
+/** A crew member who is a pilot, delegating identity fields to the underlying [Pilot]. */
 data class CrewPilotMember(
     override val type: CrewType,
     val rank: PilotRank,
@@ -34,6 +37,7 @@ data class CrewPilotMember(
     }
 }
 
+/** A crew member who is not a pilot, delegating identity fields to the underlying [CrewMan]. */
 data class CrewNotPilotMember(
     override val type: CrewType,
     val rank: CrewManRank,
@@ -49,16 +53,19 @@ data class CrewNotPilotMember(
     }
 }
 
+/** A crew assigned to a flight task, composed of pilot and non-pilot members. */
 data class Crew(
     val flight: FlightTask,
     val members: List<CrewMember>
 ) {
+    /** Returns pilot members grouped by their rank. */
     val pilotMembers: Map<PilotRank, List<Pilot>> by lazy {
         members.filterIsInstance<CrewPilotMember>()
            .groupBy { it.rank }
            .mapValues { (rank, members) -> members.map { it.pilot } }
     }
 
+    /** Returns non-pilot members grouped by their rank. */
     val notPilotMembers: Map<CrewManRank, List<CrewMan>> by lazy {
         members.filterIsInstance<CrewNotPilotMember>()
            .groupBy { it.rank }

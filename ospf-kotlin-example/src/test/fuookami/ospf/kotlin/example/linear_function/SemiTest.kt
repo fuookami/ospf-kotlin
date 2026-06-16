@@ -1,11 +1,15 @@
 package fuookami.ospf.kotlin.example.linear_function
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.eq
+
+import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
+
+/** Tests the semi-continuous function bound properties. */
 class SemiTest {
     @Test
     fun semiBounds() {

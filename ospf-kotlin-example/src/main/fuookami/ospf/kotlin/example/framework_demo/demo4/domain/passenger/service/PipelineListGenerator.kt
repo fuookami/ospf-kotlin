@@ -2,14 +2,17 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+/** Generator for the passenger pipeline list including capacity, cancel, and change constraints. */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
+    /** Creates and returns the pipeline list with all passenger constraints and objectives. */
     operator fun invoke(): Ret<CGPipelineList> {
         val pipelines = ArrayList<CGPipeline>()
 

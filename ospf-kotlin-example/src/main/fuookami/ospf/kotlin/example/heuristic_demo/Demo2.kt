@@ -1,36 +1,39 @@
 package fuookami.ospf.kotlin.example.heuristic_demo
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Duration.Companion.seconds
+
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.math.*
+
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.function.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.model.callback.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.config.*
-import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.heuristic.pso.*
+import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
+/** Flt64 identity converter for use with [IntoValue] in [LinearMetaModel]. */
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Demonstrates PSO-based heuristic optimization on a linear model built via [LinearMetaModel]. */
 class Demo2 {
+    /** Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO. */
     operator fun invoke(): Try {
         val metaModel = LinearMetaModel<Flt64>(converter = flt64Converter)
         val x = URealVar("x")
@@ -76,13 +79,3 @@ class Demo2 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-

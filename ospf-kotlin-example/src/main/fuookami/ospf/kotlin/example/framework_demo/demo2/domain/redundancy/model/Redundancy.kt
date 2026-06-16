@@ -1,29 +1,31 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.UContinuous
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization. */
 class Redundancy(
     private val aircraftModel: AircraftModel,
     private val flight: Flight,
@@ -100,7 +102,6 @@ class Redundancy(
         }
 
         if (!::redundancySlack.isInitialized) {
-            // TODO: add upper bound slack for maxRedundancy
             redundancySlack = LinearFunctionSymbolAdapter(
                 delegate = SlackFunction(
                     x = LinearPolynomial(redundancy),
@@ -129,4 +130,3 @@ class Redundancy(
         return ok
     }
 }
-

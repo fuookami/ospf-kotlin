@@ -1,25 +1,28 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Edge
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.NormalNode
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.multiarray.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
+
+/** Decision variables and intermediate symbols for per-edge bandwidth allocation across services. */
 class EdgeBandwidth(
     private val edges: List<Edge>,
     private val services: List<Service>
@@ -61,4 +64,3 @@ class EdgeBandwidth(
         return ok
     }
 }
-

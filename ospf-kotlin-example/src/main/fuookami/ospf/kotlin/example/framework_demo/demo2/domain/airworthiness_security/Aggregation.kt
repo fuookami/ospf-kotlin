@@ -1,21 +1,22 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+/** Aggregates airworthiness and safety constraints including density limits, envelopes, and weight constraints. */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     internal val fuselage: Fuselage,
@@ -145,7 +146,6 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Airworthiness constraints go into the sub problem, not master.
         return ok
     }
 
@@ -153,7 +153,6 @@ class Aggregation(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
-        // Airworthiness constraints form the sub problem.
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
@@ -164,15 +163,3 @@ class Aggregation(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

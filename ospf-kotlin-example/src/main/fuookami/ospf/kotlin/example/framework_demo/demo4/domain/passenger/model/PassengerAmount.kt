@@ -2,20 +2,27 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+
 import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.multiarray.*
+
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+
+/**
+ * Tracks passenger amount expressions per flight and class,
+ * accounting for cancellations and class/flight changes.
+ */
 class PassengerAmount(
     private val flights: List<FlightTask>,
     private val passengers: Map<FlightTask, List<FlightPassenger>>,
@@ -24,6 +31,7 @@ class PassengerAmount(
 ) {
     lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbol<Flt64>>>
 
+    /** Registers passenger amount expressions with the model. */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerAmount.isInitialized) {
             passengerAmount = flights.associateWith { flight ->
@@ -69,13 +77,3 @@ class PassengerAmount(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-

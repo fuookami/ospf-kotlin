@@ -1,31 +1,37 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
-import fuookami.ospf.kotlin.example.flt64Constant
-import fuookami.ospf.kotlin.example.flt64Linear
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.multiarray._a
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.BeforeEach
-import org.junit.jupiter.api.Test
 import kotlin.reflect.KClass
 import kotlin.test.assertTrue
 
+import kotlinx.coroutines.runBlocking
+
+import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
+import fuookami.ospf.kotlin.example.flt64Constant
+import fuookami.ospf.kotlin.example.flt64Linear
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.utils.concept.AutoIndexed
+import fuookami.ospf.kotlin.utils.functional.Ok
+
+import fuookami.ospf.kotlin.multiarray.*
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.variable.*
+
+/** Build-only structure tests for classic LP/IP demo models (demo1 through demo17). */
 class CoreDemoBuildOnlyStructureTest {
     @BeforeEach
     fun resetAutoIndices() {

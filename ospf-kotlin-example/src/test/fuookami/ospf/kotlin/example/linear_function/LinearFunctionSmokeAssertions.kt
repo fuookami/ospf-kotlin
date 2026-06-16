@@ -1,37 +1,20 @@
 package fuookami.ospf.kotlin.example.linear_function
 
 import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.symbol.function.AbsFunction
-import fuookami.ospf.kotlin.core.symbol.function.AndFunction
-import fuookami.ospf.kotlin.core.symbol.function.BalanceTernaryzationFunction
-import fuookami.ospf.kotlin.core.symbol.function.BinaryzationFunction
-import fuookami.ospf.kotlin.core.symbol.function.BivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.symbol.function.CeilingFunction
-import fuookami.ospf.kotlin.core.symbol.function.FloorFunction
-import fuookami.ospf.kotlin.core.symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.symbol.function.MaxFunction
-import fuookami.ospf.kotlin.core.symbol.function.MinFunction
-import fuookami.ospf.kotlin.core.symbol.function.ModFunction
-import fuookami.ospf.kotlin.core.symbol.function.NotFunction
-import fuookami.ospf.kotlin.core.symbol.function.OneOfFunction
-import fuookami.ospf.kotlin.core.symbol.function.OrFunction
-import fuookami.ospf.kotlin.core.symbol.function.RoundingFunction
-import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.symbol.function.SlackRangeFunction
-import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.RealVar
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNull
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Triangle
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNull
-import fuookami.ospf.kotlin.math.geometry.point3
 
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** Shared smoke-test assertions for all supported linear function types. */
 object LinearFunctionSmokeAssertions {
     private fun polyOf(symbol: Symbol): LinearPolynomial<Flt64> {
         return LinearPolynomial(

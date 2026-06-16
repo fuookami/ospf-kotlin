@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 import kotlin.math.abs
+
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 
 object FeasibilityDiagnostics {
     private const val CRITICAL_RATIO = 0.98

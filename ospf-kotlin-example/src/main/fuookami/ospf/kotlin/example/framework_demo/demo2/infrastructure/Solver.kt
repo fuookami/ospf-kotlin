@@ -1,11 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 import java.util.*
+
 import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.gurobi.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+
 import fuookami.ospf.kotlin.framework.solver.*
 
 data object LinearSolverBuilder {

@@ -3,9 +3,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import java.util.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** An AOG (Aircraft On Ground) plan with fixed aircraft, time, and airport. */
 class AOGPlan(
     override val aircraft: Aircraft,
     override val scheduledTime: TimeRange,
@@ -29,6 +32,7 @@ class AOGPlan(
 
         private const val prefix = "a"
 
+        /** Creates an [AOGPlan] with stable status for the given aircraft, time, and airport. */
         operator fun invoke(aircraft: Aircraft, scheduledTime: TimeRange, airport: Airport): AOGPlan {
             val status = stableStatus.toMutableSet()
             return AOGPlan(
@@ -61,18 +65,22 @@ class AOGPlan(
     override fun connectionTime(aircraft: Aircraft, succTask: FlightTask?) = NotFlightStaticConnectionTime
 }
 
+/** Task type object for AOG (Aircraft On Ground) events. */
 object AOGFlightTask : FlightTaskType(FlightTaskCategory.Maintenance, AOGFlightTask::class) {
     override val type get() = "AOG"
 }
 
+/** An AOG flight task with optional recovery airport. */
 class AOG internal constructor(
     override val plan: AOGPlan,
     val recoveryAirport: Airport? = null,
     origin: AOG? = null
 ) : FlightTask(AOGFlightTask, origin) {
     companion object {
+        /** Creates an [AOG] from a plan. */
         operator fun invoke(plan: AOGPlan) = AOG(plan)
 
+        /** Creates a recovered [AOG] applying the given recovery policy. */
         operator fun invoke(origin: AOG, recoveryPolicy: FlightTaskAssignment): AOG {
             val recoveryAirport =
                 if (recoveryPolicy.route == null || (recoveryPolicy.route.dep == origin.dep && recoveryPolicy.route.arr == origin.arr)) {

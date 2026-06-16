@@ -1,23 +1,25 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 
 internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
 internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
 
+/** Context for managing express effectiveness constraints that optimize item priority ordering. */
 class ExpressEffectivenessContext {
     lateinit var aggregation: Aggregation
 
@@ -107,7 +109,6 @@ class ExpressEffectivenessContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Express effectiveness constraints go into the master problem.
         return register(
             stowageMode = StowageMode.FullLoad,
             parameter = Parameter(),
@@ -118,7 +119,6 @@ class ExpressEffectivenessContext {
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Express effectiveness does not contribute to the sub problem.
         return ok
     }
 
@@ -129,15 +129,3 @@ class ExpressEffectivenessContext {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

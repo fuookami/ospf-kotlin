@@ -1,14 +1,5 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.ServiceBandwidth
@@ -17,8 +8,20 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.servi
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.RouteContext
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
 import fuookami.ospf.kotlin.framework.model.invoke
 
+/** Manages bandwidth allocation context, building bandwidth models from the route graph and analyzing solutions. */
 class BandwidthContext(
     private val routeContext: RouteContext
 ) {
@@ -97,12 +100,3 @@ class BandwidthContext(
         return analyzer(model, result)
     }
 }
-
-
-
-
-
-
-
-
-

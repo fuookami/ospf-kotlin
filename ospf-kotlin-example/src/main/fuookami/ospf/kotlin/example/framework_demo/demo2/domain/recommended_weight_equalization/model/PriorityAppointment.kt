@@ -1,10 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/** Maps cargo priorities to sets of loading order depths for weight equalization appointments. */
 data class PriorityAppointment(
     private val appointment: HashMap<CargoPriority, Set<UInt8>>
 ) {

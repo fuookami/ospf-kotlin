@@ -1,44 +1,48 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Duration.Companion.seconds
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.geometry.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
+
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.geometry.Point as GeometryPoint
+import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point as GeometryPoint
-import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example17.html
  */
 data object Demo17 {
+    /** A node in the VRPTW network with position, time window, and optional demand. */
     sealed interface Node : Indexed {
         val demand: UInt64 get() = UInt64.zero
         val position: GeometryPoint<Dim2, Flt64>
@@ -57,16 +61,19 @@ data object Demo17 {
         }
     }
 
+    /** The depot origin node. */
     data class OriginNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
     ) : Node, AutoIndexed(Node::class)
 
+    /** The depot end (return) node. */
     data class EndNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
     ) : Node, AutoIndexed(Node::class)
 
+    /** A customer node with demand and service duration. */
     data class DemandNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>,
@@ -74,6 +81,7 @@ data object Demo17 {
         val serviceTime: UInt64
     ) : Node, AutoIndexed(Node::class)
 
+    /** A vehicle with cargo capacity and fixed usage cost. */
     data class Vehicle(
         val capacity: UInt64,
         val fixedUsedCost: UInt64,
@@ -209,6 +217,7 @@ data object Demo17 {
         Demo17::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -226,6 +235,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Initializes binary route variables and continuous service-time variables. */
     private suspend fun initVariable(): Try {
         x = BinVariable3(
             "x",
@@ -260,6 +270,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Creates origin, destination, flow, service, and capacity expression symbols. */
     private suspend fun initSymbol(): Try {
         origin = LinearIntermediateSymbols1<Flt64>(
             "origin",
@@ -363,6 +374,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Sets the objective to minimize fixed vehicle cost and travel cost. */
     private suspend fun initObject(): Try {
         metaModel.minimize(
             sum(vehicles.map { v -> v.fixedUsedCost * origin[v] }),
@@ -381,6 +393,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Adds flow balance, service, time-window, and capacity constraints. */
     private suspend fun initConstraint(): Try {
         for (v in vehicles) {
             metaModel.addConstraint(
@@ -458,6 +471,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver with a 5-minute time limit. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver(config = SolverConfig(time = 300.seconds))
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -469,7 +483,7 @@ data object Demo17 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
@@ -477,6 +491,7 @@ data object Demo17 {
         return ok
     }
 
+    /** Extracts routes and service times from the solution. */
     private suspend fun analyzeSolution(): Try {
         val route: MutableMap<Vehicle, MutableList<Pair<Node, Node>>> = HashMap()
         val time: MutableMap<Vehicle, MutableMap<Node, UInt64>> = HashMap()
@@ -501,20 +516,3 @@ data object Demo17 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

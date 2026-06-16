@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.example.test
 
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
 /**
- * example 测试侧通用 Flt64 converter，避免重复样板定义。
- * Shared Flt64 converter for example tests to avoid duplicated boilerplate.
+ * Example-test-shared Flt64 converter to avoid duplicated boilerplate.
  */
 val flt64TestConverter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value

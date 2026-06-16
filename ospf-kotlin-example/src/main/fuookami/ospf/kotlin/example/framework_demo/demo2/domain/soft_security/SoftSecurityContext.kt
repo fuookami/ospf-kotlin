@@ -1,19 +1,20 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 
 internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
 internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
@@ -128,15 +129,4 @@ class SoftSecurityContext {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
 

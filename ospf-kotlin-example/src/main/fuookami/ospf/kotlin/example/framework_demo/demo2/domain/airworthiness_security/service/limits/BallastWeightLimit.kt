@@ -1,15 +1,19 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+import fuookami.ospf.kotlin.framework.model.*
+
+/** Constrains ballast weight to meet the minimum required ballast weight. */
 class BallastWeightLimit(
     private val ballast: Ballast,
     override val name: String = "ballast_weight_limit"
@@ -37,23 +41,3 @@ class BallastWeightLimit(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

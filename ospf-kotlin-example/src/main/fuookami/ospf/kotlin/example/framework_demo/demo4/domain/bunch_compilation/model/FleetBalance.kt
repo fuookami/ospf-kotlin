@@ -2,34 +2,42 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
 
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.multiarray.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.exampleThresholdSlack
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * Models fleet balance constraints ensuring aircraft distribution across airports
+ * matches the expected fleet composition at each checkpoint.
+ */
 class FleetBalance(
     aircrafts: List<Aircraft>,
     originBunches: List<FlightTaskBunch>,
     private val compilation: Compilation
 ) {
+    /** Checkpoint representing an airport and aircraft minor type combination for fleet balance tracking. */
     data class CheckPoint(
         val airport: Airport,
         val aircraftMinorType: AircraftMinorType
     ) : ManualIndexed() {
+        /** Checks whether the given bunch arrives at this checkpoint with the matching aircraft minor type. */
         operator fun invoke(bunch: FlightTaskBunch): Boolean {
             return bunch.aircraft.minorType == aircraftMinorType && bunch.arr == airport
         }
@@ -51,11 +59,13 @@ class FleetBalance(
         }
     }
 
+    /** Limit specifying the expected aircraft count and associated aircraft list at a checkpoint. */
     data class Limit(
         val amount: UInt64,
         val aircrafts: List<Aircraft>
     )
 
+    /** Lazily computed list of checkpoint-limit pairs for fleet balance constraints. */
     val limits: List<Pair<CheckPoint, Limit>> by lazy {
         ManualIndexed.flush<CheckPoint>()
 
@@ -79,6 +89,7 @@ class FleetBalance(
     lateinit var fleet: LinearExpressionSymbols1<Flt64>
     lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
+    /** Registers fleet balance symbols and slack variables with the model. */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (limits.isNotEmpty()) {
             if (!::fleet.isInitialized) {
@@ -141,6 +152,7 @@ class FleetBalance(
         return ok
     }
 
+    /** Adds columns for new bunches to the fleet balance expressions. */
     fun addColumns(
         iteration: UInt64,
         bunches: List<FlightTaskBunch>,
@@ -161,14 +173,3 @@ class FleetBalance(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-

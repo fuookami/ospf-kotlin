@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+/** Cumulative load weight limits along the fuselage in forward or aft direction. */
 class MaxCumulativeLoadWeight(
     val limitZones: List<LimitZone>,
 ) {
@@ -26,6 +27,7 @@ class MaxCumulativeLoadWeight(
         val maxSum: Quantity<Flt64>,
         val parts: List<Part>
     )
+
     data class Point(
         val toArm: Quantity<Flt64>,
         val maxSum: Quantity<Flt64>,

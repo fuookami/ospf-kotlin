@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnostics
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnostics
 
+/** Tests structured diagnostics parsing and grouped-note formatting for the cargo-loading domain. */
 class DiagnosticsTest {
     @Test
     fun `buildStructured parses grouped note`() {

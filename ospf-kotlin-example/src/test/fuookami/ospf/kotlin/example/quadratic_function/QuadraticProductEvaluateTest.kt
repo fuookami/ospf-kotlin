@@ -1,18 +1,21 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.variable.RealVar
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Test
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** Tests direct evaluation of a product function (x+2)*(y-1) at known sample points. */
 class QuadraticProductEvaluateTest {
     @Test
     fun productFunctionEvaluateShouldComputeCorrectValue() {

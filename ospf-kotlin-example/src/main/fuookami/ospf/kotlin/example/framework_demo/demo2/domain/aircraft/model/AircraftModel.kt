@@ -1,13 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+
+/** Enumeration of supported aircraft types with properties for body type and loading preferences. */
 enum class AircraftType {
     B737,
     B757 {
@@ -31,6 +32,7 @@ enum class AircraftType {
     open val mainDeckDoorEmptyPrefer = false
 }
 
+/** Aircraft model with type classification, physical unit definitions, and gravity conversion. */
 data class AircraftModel(
     val type: AircraftType?,
     val model: String,

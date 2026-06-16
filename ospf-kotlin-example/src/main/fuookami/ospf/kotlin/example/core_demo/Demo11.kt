@@ -1,40 +1,46 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Maximum flow problem: find the maximum flow from source to sink in a capacitated network. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example11.html
  */
 data object Demo11 {
+    /** A node in the flow network. */
     sealed class Node : AutoIndexed(Node::class)
+    /** The source node of the flow network. */
     class RootNode : Node()
+    /** The sink node of the flow network. */
     class EndNode : Node()
+    /** An intermediate node in the flow network. */
     class NormalNode : Node()
 
     val nodes: List<Node> = listOf(
@@ -43,6 +49,7 @@ data object Demo11 {
         listOf(EndNode())
     ).flatten()
 
+    /** Edge capacity between connected nodes. */
     val capacities = mapOf(
         nodes[0] to mapOf(
             nodes[1] to UInt64(15),
@@ -91,6 +98,7 @@ data object Demo11 {
         Demo11::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -108,6 +116,7 @@ data object Demo11 {
         return ok
     }
 
+    /** Initializes edge flow variables and the total flow variable. */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
         for (node1 in nodes) {
@@ -127,6 +136,7 @@ data object Demo11 {
         return ok
     }
 
+    /** Creates flow-in and flow-out expression symbols for each node. */
     private suspend fun initSymbol(): Try {
         flowIn = LinearIntermediateSymbols1<Flt64>(
             "flow_in",
@@ -151,11 +161,13 @@ data object Demo11 {
         return ok
     }
 
+    /** Sets the objective to maximize total flow. */
     private suspend fun initObject(): Try {
         metaModel.maximize(flow, "flow")
         return ok
     }
 
+    /** Adds flow conservation constraints for source, sink, and intermediate nodes. */
     private suspend fun initConstraint(): Try {
         val rootNode = nodes.first { it is RootNode }
         metaModel.addConstraint(
@@ -180,6 +192,7 @@ data object Demo11 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -191,13 +204,14 @@ data object Demo11 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the edge flows from the solution. */
     private suspend fun analyzeSolution(): Try {
         val flow: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {
@@ -211,20 +225,3 @@ data object Demo11 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

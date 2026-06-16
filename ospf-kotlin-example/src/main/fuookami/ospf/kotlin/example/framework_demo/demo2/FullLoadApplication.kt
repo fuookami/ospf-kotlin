@@ -2,40 +2,41 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.Duration.Companion.minutes
+import kotlin.time.Duration.Companion.seconds
+
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.BendersStrategy
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnostics
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.FeasibilityDiagnostics
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.SolveMode
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
+
+import fuookami.ospf.kotlin.utils.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.ordinary.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.UContinuousVariableItem
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -102,10 +103,9 @@ private class FullLoadAlgorithmImpl {
 
         val solution = when (solveMode) {
             is SolveMode.Benders -> {
-                notes.add("solver_path=benders")
                 when (val result = solveWithBendersAlgorithm(
-                    parameter = parameter,
-                    runningHeartBeatCallBack = runningHeartBeatCallBack
+                    request = request,
+                    notes = notes
                 )) {
                     is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
                     is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
@@ -579,29 +579,160 @@ private class FullLoadAlgorithmImpl {
         return ok
     }
 
-    private fun solveWithBendersAlgorithm(
-        parameter: Parameter,
-        runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
+    private suspend fun solveWithBendersAlgorithm(
+        request: RequestDTO,
+        notes: MutableList<String>
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        TODO("not implemented yet")
+        val bendersModels = buildBendersModels()
+        val bendersConfig = BendersStrategy.tuneAdaptiveConfig(
+            request.bendersAdaptive,
+            request.cargos.size * request.positions.size
+        )
+
+        notes.add("benders_adaptive=max_iterations=${bendersConfig.maxIterations},tolerance=${bendersConfig.tolerance}")
+        Diagnostics.pushGroupedNote(
+            notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+            Diagnostics.CODE_BENDERS_ADAPTIVE_EFFECTIVE,
+            "max_iterations=${bendersConfig.maxIterations},tolerance=${String.format("%.6f", bendersConfig.tolerance)}"
+        )
+
+        val solver = GurobiLinearBendersDecompositionSolver()
+        val bendersResult = when (val result = BendersSolver.solve(
+            solver = solver,
+            masterModel = bendersModels.masterModel,
+            subModel = bendersModels.subModel,
+            fixedVariables = bendersModels.fixedVariables,
+            objectVariable = bendersModels.objectVariable,
+            config = bendersConfig,
+            notes = notes
+        )) {
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
+        }
+
+        // Quality guard check (aligns with Rust domain.rs)
+        val qualityGuard = BendersStrategy.resolveQualityGuardConfig(request.bendersQualityOverrides)
+        val qualityReason = BendersStrategy.resolveQualityReason(
+            adaptive = bendersConfig,
+            qualityGuard = qualityGuard,
+            bendersIterations = bendersResult.bendersIterations,
+            bendersGap = bendersResult.gap,
+            bendersTimeMs = bendersResult.timeMs,
+            executedIterations = bendersResult.runtimeMetrics?.executedIterations,
+            totalCuts = bendersResult.runtimeMetrics?.totalCuts,
+            iterationSnapshots = bendersResult.runtimeMetrics?.iterationSnapshots?.map { it.masterObj }
+        )
+
+        if (qualityReason != null) {
+            val qualityCode = when (qualityReason) {
+                "gap_guard_exceeded" -> Diagnostics.CODE_BENDERS_GAP_GUARD_EXCEEDED
+                "time_guard_exceeded" -> Diagnostics.CODE_BENDERS_TIME_GUARD_EXCEEDED
+                "progress_guard_triggered" -> Diagnostics.CODE_BENDERS_PROGRESS_GUARD_TRIGGERED
+                "cut_efficiency_low" -> Diagnostics.CODE_BENDERS_CUT_EFFICIENCY_LOW
+                "trajectory_weak" -> Diagnostics.CODE_BENDERS_TRAJECTORY_WEAK
+                else -> Diagnostics.CODE_BENDERS_FAILED
+            }
+            Diagnostics.pushGroupedNote(
+                notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+                qualityCode, "benders quality reason: $qualityReason"
+            )
+
+            val qualityScore = BendersStrategy.resolveQualityScore(
+                adaptive = bendersConfig,
+                qualityGuard = qualityGuard,
+                bendersIterations = bendersResult.bendersIterations,
+                bendersGap = bendersResult.gap,
+                bendersTimeMs = bendersResult.timeMs,
+                executedIterations = bendersResult.runtimeMetrics?.executedIterations,
+                totalCuts = bendersResult.runtimeMetrics?.totalCuts,
+                iterationSnapshots = bendersResult.runtimeMetrics?.iterationSnapshots?.map { it.masterObj }
+            )
+            Diagnostics.pushGroupedNote(
+                notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+                Diagnostics.CODE_BENDERS_QUALITY_SCORE,
+                "quality_score=${String.format("%.2f", qualityScore)}"
+            )
+
+            if (request.solvePolicy.bendersFallbackToMilp) {
+                Diagnostics.pushGroupedNote(
+                    notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+                    Diagnostics.CODE_BENDERS_QUALITY_ACTION,
+                    "action=fallback_to_milp reason=$qualityReason"
+                )
+                return Failed(fuookami.ospf.kotlin.utils.error.Err(
+                    fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationError,
+                    "Benders quality insufficient: $qualityReason"
+                ))
+            } else {
+                Diagnostics.pushGroupedNote(
+                    notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+                    Diagnostics.CODE_BENDERS_QUALITY_ACTION,
+                    "action=accept_benders reason=$qualityReason"
+                )
+            }
+        }
+
+        // Convert Benders solution to stowage Solution
+        val solutionList = bendersResult.solution.map { Flt64(it) }
+        return when (val result = stowageContext.analyze(
+            solution = solutionList,
+            model = bendersModels.masterModel
+        )) {
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Ok(result.value!!)
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Failed(result.error)
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> Fatal(result.errors)
+        }
+    }
+
+    private fun buildBendersModels(): BendersModels {
+        val masterModel = LinearMetaModel<Flt64>(
+            name = "demo2_full_load_master",
+            converter = flt64Converter
+        )
+        val subModel = LinearMetaModel<Flt64>(
+            name = "demo2_full_load_sub",
+            converter = flt64Converter
+        )
+
+        // Master problem: stowage + mac + soft_security + mac_optimization + express + loading
+        stowageContext.registerForBendersMP(masterModel)
+        macContext.registerForBendersMP(masterModel)
+        softSecurityContext.registerForBendersMP(masterModel)
+        macOptimizationContext.registerForBendersMP(masterModel)
+        expressEffectivenessContext.registerForBendersMP(masterModel)
+        loadingEffectivenessContext.registerForBendersMP(masterModel)
+
+        // Sub problem: stowage (shared variables) + airworthiness constraints
+        stowageContext.registerForBendersSP(subModel, emptyList())
+        airworthinessSecurityContext.registerForBendersSP(subModel)
+
+        // Create a dummy theta variable for cut generation (FullLoad has no z variable)
+        val thetaVar = UContinuousVariableItem.auto("benders_theta")
+        masterModel.add(thetaVar)
+
+        // Build fixedVariables from stowage x variables
+        val stowageAgg = stowageContext.aggregation
+        val fixedVariables = mutableMapOf<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>()
+        for (i in stowageAgg.items.indices) {
+            for (j in stowageAgg.positions.indices) {
+                fixedVariables[stowageAgg.stowage.x[i, j]] = Flt64.zero
+            }
+        }
+
+        return BendersModels(
+            masterModel = masterModel,
+            subModel = subModel,
+            objectVariable = thetaVar,
+            fixedVariables = fixedVariables
+        )
     }
 }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+private data class BendersModels(
+    val masterModel: LinearMetaModel<Flt64>,
+    val subModel: LinearMetaModel<Flt64>,
+    val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+    val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+)
 

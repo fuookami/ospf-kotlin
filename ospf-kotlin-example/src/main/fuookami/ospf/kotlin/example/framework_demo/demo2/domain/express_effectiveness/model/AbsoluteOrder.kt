@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/** Computes absolute priority coefficients for cargo items at each position. */
 class AbsoluteOrder(
     private val coefficient: HashMap<CargoPriority, (Position) -> Flt64>
 ) {

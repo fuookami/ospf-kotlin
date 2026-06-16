@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 import fuookami.ospf.kotlin.quantities.quantity.*
 
+/** Tags describing the location of a cargo position within the aircraft. */
 enum class PositionLocationTag {
     Main,
     Low,
@@ -17,6 +18,7 @@ enum class PositionLocationTag {
     Tail
 }
 
+/** A set of location tags that classify a cargo position's placement. */
 data class PositionLocation(
     val tags: Set<PositionLocationTag>
 ) {
@@ -54,6 +56,7 @@ operator fun DeckLocation.contains(location: PositionLocation): Boolean {
     return location.location == this
 }
 
+/** Coordinate system for a cargo position with longitudinal and lateral arm measurements. */
 class PositionCoordinate(
     private val aircraftModel: AircraftModel,
     val frontArm: Quantity<Flt64>,
@@ -118,6 +121,7 @@ class PositionCoordinate(
     }
 }
 
+/** Physical dimensions and area of a cargo position. */
 data class PositionShape(
     private val aircraftModel: AircraftModel,
     val length: Quantity<Flt64>,
@@ -127,6 +131,7 @@ data class PositionShape(
     val area = (length * width).to(aircraftModel.areaUnit)!!
 }
 
+/** A cargo position on the aircraft with its coordinates, shape, location, and loading order. */
 data class Position(
     val id: UInt64,
     val spaceName: String,

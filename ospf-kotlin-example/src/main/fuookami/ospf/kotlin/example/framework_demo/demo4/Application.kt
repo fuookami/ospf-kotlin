@@ -4,64 +4,37 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import kotlin.time.toDuration
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.symbol.LinearIntermediateSymbols3
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.multiarray.Shape1
-import fuookami.ospf.kotlin.multiarray.Shape2
-import fuookami.ospf.kotlin.multiarray.Shape3
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.WorkingCalendar
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.convertTo
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ExecutorCapacityResult
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Material
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResource
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceUsage
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Cost
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.CostItem
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.SchedulingSolverValueAdapter
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Switch
-import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
+
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 
+import fuookami.ospf.kotlin.multiarray.*
+
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Main application entry point for the flight recovery scheduling demo. */
 class Application {
 }
 
+/** Sample demonstrating generic quantity usage across gantt scheduling framework types. */
 object Demo4GenericQuantitySample {
     private val time = TimeRange(
         start = Instant.parse("2026-06-07T00:00:00Z"),
@@ -247,6 +220,7 @@ object Demo4GenericQuantitySample {
     val quantityFieldSum = quantityFieldCost.costSum
 }
 
+/** Demo task implementation for testing generic quantity conversions. */
 private data class Demo4Task(
     override val index: Int = 0,
     override val id: String,
@@ -258,6 +232,7 @@ private data class Demo4Task(
     }
 }
 
+/** Demo task time configuration with constant symbol values for testing. */
 private class Demo4TaskTime : TaskTime {
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = false
@@ -281,6 +256,7 @@ private class Demo4TaskTime : TaskTime {
     }
 }
 
+/** Demo switch implementation for task transition modeling. */
 private class Demo4Switch : Switch {
     override val switch = LinearIntermediateSymbols3<Flt64>(
         name = "demo4_switch",
@@ -300,6 +276,7 @@ private class Demo4Switch : Switch {
     }
 }
 
+/** Demo execution resource for capacity scheduling samples. */
 private class Demo4Resource(
     override val capacities: List<ResourceCapacity<FltX>>
 ) : ExecutionResource<ResourceCapacity<FltX>, FltX>(
@@ -315,6 +292,7 @@ private class Demo4Resource(
     }
 }
 
+/** Demo resource usage tracking for capacity samples. */
 private class Demo4ResourceUsage(
     slot: ExecutionResourceTimeSlot<Demo4Resource, ResourceCapacity<FltX>, FltX>
 ) : ResourceUsage<ExecutionResourceTimeSlot<Demo4Resource, ResourceCapacity<FltX>, FltX>, Demo4Resource, ResourceCapacity<FltX>, FltX> {
@@ -331,6 +309,7 @@ private class Demo4ResourceUsage(
     }
 }
 
+/** Demo material for production/consumption modeling. */
 private data class Demo4Material(
     override val index: Int,
     val label: String
@@ -338,6 +317,7 @@ private data class Demo4Material(
     override val material: Material get() = this
 }
 
+/** Demo production quantity for material output modeling. */
 private class Demo4Produce(product: AbstractMaterial) : Produce {
     override val quantity = constantSymbols("demo4_produce_quantity", Flt64(5.0), product.index + 1)
     override val overQuantity = constantSymbols("demo4_produce_over_quantity", Flt64.zero, product.index + 1)
@@ -350,6 +330,7 @@ private class Demo4Produce(product: AbstractMaterial) : Produce {
     }
 }
 
+/** Demo consumption quantity for material input modeling. */
 private class Demo4Consumption(material: AbstractMaterial) : Consumption {
     override val quantity = constantSymbols("demo4_consumption_quantity", Flt64(2.0), material.index + 1)
     override val overQuantity = constantSymbols("demo4_consumption_over_quantity", Flt64.zero, material.index + 1)
@@ -362,6 +343,7 @@ private class Demo4Consumption(material: AbstractMaterial) : Consumption {
     }
 }
 
+/** Creates a 1D array of constant [LinearExpressionSymbol] with the given name and value. */
 private fun constantSymbols(
     name: String,
     value: Flt64,
@@ -375,6 +357,7 @@ private fun constantSymbols(
     }
 }
 
+/** Demo production action for capacity allocation samples. */
 private object Demo4Action : ProductionAction {
     override val id: String = "demo4-action"
     override val name: String = "demo4-action"

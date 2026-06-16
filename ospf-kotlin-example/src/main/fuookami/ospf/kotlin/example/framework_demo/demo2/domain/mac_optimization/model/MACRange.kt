@@ -1,14 +1,15 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+/** Defines the MAC (Mean Aerodynamic Chord) range with optimal and boundary points for balance optimization. */
 class MACRange(
     val points: List<Point>
 ) {

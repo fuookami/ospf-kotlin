@@ -26,6 +26,36 @@ This module demonstrates:
 | `framework_demo` | Framework-oriented example applications and DTOs |
 | `business_compat` | Source compatibility checks for business-facing integration paths |
 
+## Sub-modules
+
+| Sub-module | Description | Details |
+| --- | --- | --- |
+| [`core_demo`](src/main/fuookami/ospf/kotlin/example/core_demo/README.md) | Core optimization model construction demos (Demo1-17 + GenericNumberDemo) showcasing linear/quadratic model building, intermediate symbols, and SCIP solving across classic OR problem types | [README](src/main/fuookami/ospf/kotlin/example/core_demo/README.md) |
+| [`framework_demo`](src/main/fuookami/ospf/kotlin/example/framework_demo/README.md) | DDD-style framework examples: network routing, aircraft cargo stowage, 1D cutting stock (column generation), and gantt scheduling generic quantity samples | [README](src/main/fuookami/ospf/kotlin/example/framework_demo/README.md) |
+| [`heuristic_demo`](src/main/fuookami/ospf/kotlin/example/heuristic_demo/README.md) | Heuristic solver demos using Particle Swarm Optimization (PSO) with `CallBackModel` and `LinearMetaModel` | [README](src/main/fuookami/ospf/kotlin/example/heuristic_demo/README.md) |
+
+## Getting Started
+
+A minimal example using `Demo1` (capital investment selection):
+
+```kotlin
+import fuookami.ospf.kotlin.example.core_demo.Demo1
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+
+suspend fun main() {
+    val result = Demo1()
+    when (result) {
+        is Ok -> println("Solved successfully")
+        is Failed -> println("Failed: ${result.error}")
+        is Fatal -> println("Fatal: ${result.errors}")
+    }
+}
+```
+
+See [`core_demo/README.md`](src/main/fuookami/ospf/kotlin/example/core_demo/README.md) for the full list of demos and their problem types.
+
 ## Maven Profiles
 
 | Profile | Purpose |

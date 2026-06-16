@@ -2,12 +2,14 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.utils.concept.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/** Sealed class representing a link between two consecutive flight tasks with a split cost. */
 sealed class Link(
     val type: String
 ) : ManualIndexed() {
@@ -18,6 +20,7 @@ sealed class Link(
     override fun toString() = "${type}_${prevTask}_${succTask}"
 }
 
+/** A connecting link between two unrecovered flight legs. */
 data class ConnectingLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -45,6 +48,7 @@ data class ConnectingLink(
     }
 }
 
+/** A stopover link between two unrecovered flight legs with computed connection time. */
 data class StopoverLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -74,6 +78,7 @@ data class StopoverLink(
     }
 }
 
+/** A link between two unrecovered flight legs that ignores connection time constraints. */
 data class ConnectionTimeIgnoringLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -101,6 +106,7 @@ data class ConnectionTimeIgnoringLink(
     }
 }
 
+/** A map of all link types providing lookup by predecessor and successor tasks. */
 class LinkMap(
     val connectingLinks: List<ConnectingLink>,
     val stopoverLinks: List<StopoverLink>,
@@ -110,10 +116,12 @@ class LinkMap(
     val leftMapper by lazy { links.groupBy { it.prevTask } }
     val rightMapper by lazy { links.groupBy { it.succTask } }
 
+    /** Returns all links where the given task is the predecessor. */
     fun linksAfter(task: FlightTask): List<Link> {
         return leftMapper[task] ?: emptyList()
     }
 
+    /** Returns all links where the given task is the successor. */
     fun linksBefore(task: FlightTask): List<Link> {
         return rightMapper[task] ?: emptyList()
     }

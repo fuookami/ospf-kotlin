@@ -1,25 +1,31 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.core.symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.symbol.function.OneOfFunction
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlin.test.assertNotNull
+import kotlin.test.assertTrue
+
+import kotlinx.coroutines.runBlocking
+
 import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
 import fuookami.ospf.kotlin.example.solveLinearMetaModel
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.utils.functional.Ok
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.minus
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.Test
-import kotlin.test.assertNotNull
-import kotlin.test.assertTrue
 
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.symbol.function.OneOfFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** End-to-end solve tests for if and one-of conditional linear functions using SCIP. */
 class ConditionalFunctionSolveTest {
     private val converter = IntoValue.Identity
 

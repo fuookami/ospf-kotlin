@@ -2,12 +2,13 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Duration
 import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/** A flight hour value wrapping a duration, supporting arithmetic and comparison. */
 data class FlightHour(
     val hours: Duration
 ) {
@@ -32,6 +33,7 @@ data class FlightHour(
     }
 }
 
+/** A flight cycle value wrapping a count, supporting arithmetic and comparison. */
 data class FlightCycle(
     val cycles: UInt64
 ) {
@@ -56,19 +58,23 @@ data class FlightCycle(
     }
 }
 
+/** A flight cycle maintenance period with expiration time and remaining flight hour/cycle limits. */
 data class FlightCyclePeriod(
     val expirationTime: Instant,
     val remainingFlightHour: FlightHour?,
     val remainingFlightCycle: FlightCycle?
 ) {
+    /** Checks whether the given flight hour is within the remaining limit. */
     fun enabled(flightHour: FlightHour): Boolean {
         return remainingFlightHour == null || flightHour leq remainingFlightHour
     }
 
+    /** Checks whether the given flight cycle is within the remaining limit. */
     fun enabled(flightCycle: FlightCycle): Boolean {
         return remainingFlightCycle == null || flightCycle leq remainingFlightCycle
     }
 
+    /** Returns the excess flight hours beyond the remaining limit. */
     fun overFlightHour(flightHour: FlightHour): FlightHour {
         return if (remainingFlightHour != null && remainingFlightHour ls flightHour) {
             flightHour - remainingFlightHour
@@ -77,6 +83,7 @@ data class FlightCyclePeriod(
         }
     }
 
+    /** Returns the excess flight cycles beyond the remaining limit. */
     fun overFlightCycle(flightCycle: FlightCycle): FlightCycle {
         return if (remainingFlightCycle != null && remainingFlightCycle leq flightCycle) {
             flightCycle - remainingFlightCycle

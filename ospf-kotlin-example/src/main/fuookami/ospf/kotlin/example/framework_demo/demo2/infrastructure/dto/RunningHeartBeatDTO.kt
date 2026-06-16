@@ -2,12 +2,14 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.*
+
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.math.*
+
 import fuookami.ospf.kotlin.utils.error.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 data class RunningHeartBeatDTO(
     val id: String,
@@ -65,7 +67,4 @@ data class FinnishHeartBeatDTO(
         }
     }
 }
-
-
-
 

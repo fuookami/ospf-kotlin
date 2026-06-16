@@ -1,47 +1,52 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Vehicle routing: minimize distribution distance from centers to dealers with truck capacity. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example13.html
  */
 data object Demo13 {
+    /** A dealer with a demand quantity. */
     data class Dealer(
         val demand: UInt64
     ) : AutoIndexed(Dealer::class)
 
+    /** A distribution center with supply and distances to dealers. */
     data class DistributionCenter(
         val supply: UInt64,
         val distance: Map<Dealer, UInt64>
     ) : AutoIndexed(DistributionCenter::class)
 
+    /** Maximum cargo capacity per truck. */
     val carCapacity = UInt64(18)
 
     val dealers = listOf(
@@ -100,6 +105,7 @@ data object Demo13 {
         Demo13::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -117,6 +123,7 @@ data object Demo13 {
         return ok
     }
 
+    /** Initializes shipment and truck count variables. */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(dealers.size, distributionCenters.size))
         metaModel.add(x)
@@ -127,6 +134,7 @@ data object Demo13 {
         return ok
     }
 
+    /** Creates transport, receive, and cost expression symbols. */
     private suspend fun initSymbol(): Try {
         trans = LinearIntermediateSymbols1<Flt64>(
             "trans",
@@ -166,12 +174,14 @@ data object Demo13 {
         return ok
     }
 
+    /** Sets the objective to minimize total distribution distance. */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
 
         return ok
     }
 
+    /** Adds supply, demand, and truck capacity constraints. */
     private suspend fun initConstraint(): Try {
         for (distributionCenter in distributionCenters) {
             metaModel.addConstraint(
@@ -199,6 +209,7 @@ data object Demo13 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -210,7 +221,7 @@ data object Demo13 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
@@ -218,6 +229,7 @@ data object Demo13 {
         return ok
     }
 
+    /** Extracts the shipment quantities per distribution center and dealer. */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<DistributionCenter, MutableMap<Dealer, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {
@@ -232,21 +244,3 @@ data object Demo13 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

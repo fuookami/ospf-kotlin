@@ -1,39 +1,42 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Traveling Salesman Problem: find the shortest route visiting all cities exactly once. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example10.html
  */
 data object Demo10 {
+    /** A city in the TSP route. */
     data class City(
         val name: String
     ) : AutoIndexed(City::class)
@@ -93,6 +96,7 @@ data object Demo10 {
         Demo10::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -110,6 +114,7 @@ data object Demo10 {
         return ok
     }
 
+    /** Initializes binary route variables and integer subtour elimination variables. */
     private suspend fun initVariable(): Try {
         x = BinVariable2("x", Shape2(cities.size, cities.size))
         for (city1 in cities) {
@@ -137,6 +142,7 @@ data object Demo10 {
         return ok
     }
 
+    /** Creates distance, departure, and arrival expression symbols. */
     private suspend fun initSymbol(): Try {
         distance = LinearExpressionSymbol(
             sum(cities.flatMap { city1 ->
@@ -170,11 +176,13 @@ data object Demo10 {
         return ok
     }
 
+    /** Sets the objective to minimize total travel distance. */
     private suspend fun initObject(): Try {
         metaModel.minimize(distance, "distance")
         return ok
     }
 
+    /** Adds arrival/departure and subtour elimination (MTZ) constraints. */
     private suspend fun initConstraint(): Try {
         for (city in cities) {
             metaModel.addConstraint(
@@ -210,6 +218,7 @@ data object Demo10 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -221,13 +230,14 @@ data object Demo10 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the optimal route as a city-to-city mapping from the solution. */
     private suspend fun analyzeSolution(): Try {
         val route: MutableMap<City, City> = hashMapOf()
         for (token in metaModel.tokens.tokens) {
@@ -241,21 +251,3 @@ data object Demo10 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

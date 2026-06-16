@@ -1,15 +1,18 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.core.symbol.function.XorFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.BinVar
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.XorFunction
+import fuookami.ospf.kotlin.core.variable.BinVar
+
+/** Tests evaluation of the XOR function on binary variables. */
 class XorTest {
     @Test
     fun xorEvaluate() {

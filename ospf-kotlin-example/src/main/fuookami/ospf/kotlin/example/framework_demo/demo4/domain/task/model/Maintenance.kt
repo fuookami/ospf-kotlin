@@ -3,10 +3,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import java.util.*
+
 import kotlin.time.Instant
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Enumerates the maintenance categories with their stable status flags. */
 enum class MaintenanceCategory {
     Line {
         override val stableStatus = setOf(
@@ -33,6 +37,7 @@ enum class MaintenanceCategory {
     abstract val stableStatus: Set<FlightTaskStatus>
 }
 
+/** A maintenance plan with aircraft, time, airport, category, and expiration information. */
 class MaintenancePlan internal constructor(
     override val aircraft: Aircraft,
     override val scheduledTime: TimeRange,
@@ -50,6 +55,7 @@ class MaintenancePlan internal constructor(
     companion object {
         private const val prefix = "m"
 
+        /** Creates a [MaintenancePlan] with appropriate status based on category and expiration. */
         operator fun invoke(
             aircraft: Aircraft,
             scheduledTime: TimeRange,
@@ -111,10 +117,12 @@ class MaintenancePlan internal constructor(
     override fun connectionTime(aircraft: Aircraft, succTask: FlightTask?) = NotFlightStaticConnectionTime
 }
 
+/** Task type object for maintenance events. */
 object MaintenanceFlightTask : FlightTaskType(FlightTaskCategory.Maintenance, MaintenanceFlightTask::class) {
     override val type get() = "Maintenance"
 }
 
+/** A maintenance flight task with optional recovery time and airport. */
 class Maintenance internal constructor(
     override val plan: MaintenancePlan,
     val recoveryTime: TimeRange? = null,
@@ -122,10 +130,12 @@ class Maintenance internal constructor(
     origin: Maintenance? = null
 ) : FlightTask(MaintenanceFlightTask, origin) {
     companion object {
+        /** Creates a [Maintenance] from a plan. */
         operator fun invoke(plan: MaintenancePlan): Maintenance {
             return Maintenance(plan = plan)
         }
 
+        /** Creates a recovered [Maintenance] applying the given recovery policy. */
         operator fun invoke(origin: Maintenance, recoveryPolicy: FlightTaskAssignment): Maintenance {
             val recoveryTime = if (recoveryPolicy.time == null || recoveryPolicy.time == origin.scheduledTime!!) {
                 null

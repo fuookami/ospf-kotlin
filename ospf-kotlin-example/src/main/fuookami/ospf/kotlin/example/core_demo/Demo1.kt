@@ -1,38 +1,41 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Capital investment optimization: maximize profit subject to capital and liability constraints. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example1.html
  */
 data object Demo1 {
+    /** A company with capital, liability, and profit attributes. */
     data class Company(
         val capital: Flt64,
         val liability: Flt64,
@@ -65,6 +68,7 @@ data object Demo1 {
         Demo1::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -82,6 +86,7 @@ data object Demo1 {
         return ok
     }
 
+    /** Initializes binary decision variables for each company. */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
@@ -91,6 +96,7 @@ data object Demo1 {
         return ok
     }
 
+    /** Creates linear expression symbols for capital, liability, and profit. */
     private suspend fun initSymbol(): Try {
         capital = LinearExpressionSymbol(
             sum(companies) { it.capital * x[it] },
@@ -112,17 +118,20 @@ data object Demo1 {
         return ok
     }
 
+    /** Sets the objective to maximize total profit. */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit)
         return ok
     }
 
+    /** Adds capital lower bound and liability upper bound constraints. */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(capital geq minCapital)
         metaModel.addConstraint(liability leq maxLiability)
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -134,13 +143,14 @@ data object Demo1 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the selected companies from the solution. */
     private suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Company>()
         for (token in metaModel.tokens.tokens) {
@@ -151,20 +161,3 @@ data object Demo1 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

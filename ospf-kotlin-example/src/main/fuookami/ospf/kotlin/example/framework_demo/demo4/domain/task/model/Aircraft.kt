@@ -2,13 +2,16 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
+/** An aircraft identified by register number, with minor type and capacity information. */
 data class Aircraft(
     val regNo: AircraftRegisterNumber,
     val minorType: AircraftMinorType,
@@ -29,6 +32,7 @@ data class Aircraft(
         private val pool = HashMap<AircraftRegisterNumber, Aircraft>()
         val values by pool::values
 
+        /** Retrieves an [Aircraft] by register number from the pool. */
         operator fun invoke(regNo: AircraftRegisterNumber): Aircraft? {
             return pool[regNo]
         }
@@ -38,6 +42,7 @@ data class Aircraft(
         pool[regNo] = this
     }
 
+    /** Returns the passenger capacity for the given class, or zero if not a passenger aircraft. */
     fun capacity(cls: PassengerClass): UInt64 {
         return when (val capacity = this.capacity) {
             is AircraftCapacity.Passenger -> { capacity[cls] }
@@ -72,24 +77,28 @@ data class Aircraft(
     override fun toString() = "$regNo"
 }
 
+/** Tracks aircraft usability including location, enabled time, and flight cycle periods. */
 class AircraftUsability(
     lastTask: FlightTask?,
     val location: Airport,
     enabledTime: Instant,
     val flightCyclePeriods: List<FlightCyclePeriod> = emptyList()
 ) : ExecutorInitialUsability<FlightTask, Aircraft, FlightTaskAssignment>(lastTask, enabledTime) {
+    /** Returns the number of flight cycle periods exceeded for the given time and flight hour. */
     fun overFlightHourTimes(time: Instant, flightHour: FlightHour): UInt64 {
         return UInt64(flightCyclePeriods.count {
             time < it.expirationTime && !it.enabled(flightHour)
         })
     }
 
+    /** Returns the number of flight cycle periods exceeded for the given time and flight cycle. */
     fun overFlightCycleTimes(time: Instant, flightCycle: FlightCycle): UInt64 {
         return UInt64(flightCyclePeriods.count {
             time < it.expirationTime && !it.enabled(flightCycle)
         })
     }
 
+    /** Returns the total excess flight hours across all periods. */
     fun overFlightHour(time: Instant, flightHour: FlightHour): FlightHour {
         var ret = FlightHour.zero
         for (period in flightCyclePeriods) {
@@ -101,6 +110,7 @@ class AircraftUsability(
         return ret
     }
 
+    /** Returns the total excess flight cycles across all periods. */
     fun overFlightCycle(time: Instant, flightCycle: FlightCycle): FlightCycle {
         var ret = FlightCycle.zero
         for (period in flightCyclePeriods) {

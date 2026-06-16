@@ -2,24 +2,26 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+
 import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.symbol.inequality.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
+
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
-import fuookami.ospf.kotlin.utils.functional.get
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -28,6 +30,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** Pipeline enforcing transfer time feasibility constraints for passenger flight changes. */
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow<*>,
     private val passengers: List<FlightPassenger>,
@@ -37,6 +40,7 @@ class PassengerFlightChangeConstraint(
 ) : CGPipeline {
     private val solverTimeWindow = timeWindow.toFlt64Boundary()
 
+    /** Adds flight change feasibility constraints using if-functions for transfer time checks. */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
             if (passenger.prev != null) {
@@ -164,11 +168,3 @@ class PassengerFlightChangeConstraint(
         return ok
     }
 }
-
-
-
-
-
-
-
-

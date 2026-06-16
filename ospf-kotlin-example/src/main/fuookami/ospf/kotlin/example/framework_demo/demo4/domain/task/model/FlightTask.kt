@@ -2,17 +2,20 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import kotlin.time.Duration
 import kotlin.reflect.*
+import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
+import fuookami.ospf.kotlin.utils.concept.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** Enumerates the flight task categories. */
 enum class FlightTaskCategory {
     Flight {
         override val isFlightType: Boolean get() = true
@@ -29,6 +32,7 @@ enum class FlightTaskCategory {
     open val isFlightType: Boolean get() = false
 }
 
+/** Abstract base for flight task types, linking a category to a Kotlin class. */
 abstract class FlightTaskType(
     val category: FlightTaskCategory,
     cls: KClass<*>
@@ -65,6 +69,7 @@ abstract class FlightTaskType(
     }
 }
 
+/** Enumerates the status flags that can be set on flight tasks. */
 enum class FlightTaskStatus {
     NotAdvance,
     NotDelay,
@@ -78,6 +83,7 @@ enum class FlightTaskStatus {
     StrongLimitIgnored
 }
 
+/** Recovery policy specifying optional aircraft, time, and route changes. */
 open class FlightTaskAssignment(
     val aircraft: Aircraft? = null,
     time: TimeRange? = null,
@@ -88,6 +94,7 @@ open class FlightTaskAssignment(
     }
 }
 
+/** Abstract base for flight task plans with status, aircraft, airports, and connection time logic. */
 abstract class FlightTaskPlan(
     override val id: String,
     override val name: String,
@@ -153,6 +160,7 @@ abstract class FlightTaskPlan(
     val strongLimitIgnored: Boolean get() = flightTaskStatus.contains(FlightTaskStatus.StrongLimitIgnored)
 }
 
+/** Abstract base for flight tasks with plan, recovery, delay/advance tracking, and change detection. */
 abstract class FlightTask(
     override val type: FlightTaskType,
     private val origin: FlightTask? = null

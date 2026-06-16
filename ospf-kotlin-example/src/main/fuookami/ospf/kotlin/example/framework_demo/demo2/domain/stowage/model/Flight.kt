@@ -3,8 +3,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 import kotlinx.datetime.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.IATA
 
 data class Flight(
     val leg: IATA,

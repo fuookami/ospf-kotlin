@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
+
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
 
 data object LoadingOrderAlgorithm {
     suspend operator fun invoke(
@@ -51,6 +52,4 @@ private class LoadingOrderAlgorithmImpl {
         return loadingOrders
     }
 }
-
-
 

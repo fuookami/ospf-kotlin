@@ -26,6 +26,36 @@
 | `framework_demo` | 面向 framework 的示例应用和 DTO |
 | `business_compat` | 面向业务集成路径的源码兼容性检查 |
 
+## 子模块
+
+| 子模块 | 说明 | 详情 |
+| --- | --- | --- |
+| [`core_demo`](src/main/fuookami/ospf/kotlin/example/core_demo/README_ch.md) | 核心优化模型构建演示（Demo1-17 + GenericNumberDemo），展示线性/二次模型构建、中间符号和 SCIP 求解，覆盖经典运筹学问题类型 | [README](src/main/fuookami/ospf/kotlin/example/core_demo/README_ch.md) |
+| [`framework_demo`](src/main/fuookami/ospf/kotlin/example/framework_demo/README_ch.md) | DDD 风格框架示例：网络路由、飞机货物装载、一维下料（列生成）和甘特排程泛型数量示例 | [README](src/main/fuookami/ospf/kotlin/example/framework_demo/README_ch.md) |
+| [`heuristic_demo`](src/main/fuookami/ospf/kotlin/example/heuristic_demo/README_ch.md) | 使用粒子群优化 (PSO) 的启发式求解器演示，配合 `CallBackModel` 和 `LinearMetaModel` | [README](src/main/fuookami/ospf/kotlin/example/heuristic_demo/README_ch.md) |
+
+## 快速开始
+
+使用 `Demo1`（资本投资选择）的最小示例：
+
+```kotlin
+import fuookami.ospf.kotlin.example.core_demo.Demo1
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+
+suspend fun main() {
+    val result = Demo1()
+    when (result) {
+        is Ok -> println("求解成功")
+        is Failed -> println("失败: ${result.error}")
+        is Fatal -> println("致命错误: ${result.errors}")
+    }
+}
+```
+
+完整演示列表及其问题类型请参阅 [`core_demo/README_ch.md`](src/main/fuookami/ospf/kotlin/example/core_demo/README_ch.md)。
+
 ## Maven Profiles
 
 | Profile | 用途 |

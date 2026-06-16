@@ -2,26 +2,32 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
 
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
+
 import fuookami.ospf.kotlin.multiarray.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.exampleThresholdSlack
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+/**
+ * Models flight link expressions tracking connections between consecutive flight tasks
+ * and their associated slack variables for the column generation formulation.
+ */
 class FlightLink(
     val links: List<Link>,
     private val compilation: Compilation
@@ -36,6 +42,7 @@ class FlightLink(
     lateinit var link: LinearExpressionSymbols1<Flt64>
     lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
+    /** Registers link and slack symbols with the model. */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (links.isNotEmpty()) {
             if (!::link.isInitialized) {
@@ -95,6 +102,7 @@ class FlightLink(
         return ok
     }
 
+    /** Adds columns for new bunches to the link expressions. */
     fun addColumns(
         iteration: UInt64,
         bunches: List<FlightTaskBunch>,
@@ -115,14 +123,3 @@ class FlightLink(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-

@@ -2,14 +2,17 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import kotlin.time.Instant
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** A bunch of flight tasks assigned to a single aircraft with cost and time tracking. */
 class FlightTaskBunch(
     val aircraft: Aircraft,
     time: TimeRange,
@@ -58,10 +61,12 @@ class FlightTaskBunch(
         cost = cost
     )
 
+    /** Checks whether this bunch contains the given task. */
     fun contains(task: FlightTask): Boolean {
         return keys.contains(task.key)
     }
 
+    /** Checks whether this bunch contains two consecutive tasks. */
     fun contains(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         val prevTask = keys[prevFlightTask.key]
         val succTask = keys[succFlightTask.key]
@@ -72,6 +77,7 @@ class FlightTaskBunch(
         }
     }
 
+    /** Returns the recovered version of the given origin task within this bunch. */
     fun get(originTask: FlightTask): FlightTask? {
         val task = keys[originTask.key]
         return if (task != null) {
@@ -82,6 +88,7 @@ class FlightTaskBunch(
         }
     }
 
+    /** Checks whether any task in this bunch arrives at the airport within the time window. */
     fun arrivedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
             return false
@@ -98,6 +105,7 @@ class FlightTaskBunch(
         return false
     }
 
+    /** Checks whether any task in this bunch departs from the airport within the time window. */
     fun departedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
             return false
@@ -114,6 +122,7 @@ class FlightTaskBunch(
         return false
     }
 
+    /** Checks whether the aircraft is located at the airport within the time window. */
     fun locatedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (tasks.first().departedWhen(airport, timeWindow)) {
             return true

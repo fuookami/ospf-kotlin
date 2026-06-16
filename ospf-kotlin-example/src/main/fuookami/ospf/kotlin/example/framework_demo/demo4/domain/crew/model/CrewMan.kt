@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+/** Sealed interface for crew man entities with worker number and identity information. */
 sealed interface AbstractCrewMan {
     val workerNo: WorkerNo?
     val name: String
@@ -11,6 +12,7 @@ sealed interface AbstractCrewMan {
     val nationality: String
 }
 
+/** A non-pilot crew member identified by worker number, with pooled instance management. */
 data class CrewMan(
     override val workerNo: WorkerNo,
     override val name: String,
@@ -21,6 +23,7 @@ data class CrewMan(
         private val pool = HashMap<WorkerNo, CrewMan>()
         val values by pool::values
 
+        /** Retrieves a [CrewMan] by worker number from the pool. */
         operator fun invoke(workerNo: WorkerNo): CrewMan? {
             return pool[workerNo]
         }

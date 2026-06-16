@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+/** Enumerates the predefined pilot rank classes with their rank numbers. */
 enum class PilotRankClass(val no: PilotRankNo) {
     Captain(PilotRankNo("A001")),
     SecondInCommand(PilotRankNo("A002")),
@@ -14,6 +15,7 @@ enum class PilotRankClass(val no: PilotRankNo) {
     PilotObserver(PilotRankNo("K001")),
 }
 
+/** A pilot rank with optional class, number, name, and pooled instance management. */
 data class PilotRank(
     val cls: PilotRankClass?,
     val no: PilotRankNo,
@@ -24,10 +26,12 @@ data class PilotRank(
         private val pool = HashMap<PilotRankNo, PilotRank>()
         val values by pool::values
 
+        /** Retrieves a [PilotRank] by class from the pool. */
         operator fun invoke(cls: PilotRankClass): PilotRank? {
             return pool[cls.no]
         }
 
+        /** Retrieves a [PilotRank] by rank number from the pool. */
         operator fun invoke(no: PilotRankNo): PilotRank? {
             return pool[no]
         }

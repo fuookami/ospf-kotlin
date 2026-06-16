@@ -1,21 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.PositionPair
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+/** Aggregates express effectiveness models for item priority ordering based on stowage mode. */
 class Aggregation(
     stowageMode: StowageMode,
     internal val items: List<Item>,
@@ -73,7 +73,6 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Express effectiveness constraints go into the master problem.
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
@@ -81,7 +80,6 @@ class Aggregation(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
-        // Express effectiveness does not contribute to the sub problem.
         return ok
     }
 
@@ -92,15 +90,3 @@ class Aggregation(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

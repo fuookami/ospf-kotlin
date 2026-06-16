@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.*
 
+/** Enumerates the passenger classes with their index and short string representation. */
 enum class PassengerClass: Indexed {
     First {
         override fun toShortString() = "F"
@@ -20,6 +21,7 @@ enum class PassengerClass: Indexed {
     override val index: Int get() = this.ordinal
 
     companion object {
+        /** Converts an infrastructure [fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.PassengerClass] to this enum. */
         operator fun invoke(cls: fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.PassengerClass): PassengerClass {
             return valueOf(cls.cls)
         }

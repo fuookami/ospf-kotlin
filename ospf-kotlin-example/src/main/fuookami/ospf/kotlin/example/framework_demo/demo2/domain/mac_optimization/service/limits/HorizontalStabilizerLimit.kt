@@ -1,18 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+import fuookami.ospf.kotlin.framework.model.*
+
+/** Minimizes horizontal stabilizer warning slack weighted by a coefficient per stabilizer key. */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
     private val coefficient: (HorizontalStabilizer.Key) -> Flt64,
@@ -39,20 +42,3 @@ class HorizontalStabilizerLimit(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

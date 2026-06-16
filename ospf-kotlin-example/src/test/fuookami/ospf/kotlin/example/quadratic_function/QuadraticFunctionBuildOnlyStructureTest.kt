@@ -1,14 +1,15 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.symbol.function.QuadraticLinearFunction
-import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlinx.coroutines.runBlocking
+
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.utils.functional.Ok
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
@@ -16,14 +17,18 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.symbol.function.QuadraticLinearFunction
+import fuookami.ospf.kotlin.core.symbol.function.SemiFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** Verifies the constraint-shape structure of quadratic function types without invoking a solver. */
 class QuadraticFunctionBuildOnlyStructureTest {
     @Test
     fun semiFunctionShouldExposeBoundsAndNoHelperVariables() {

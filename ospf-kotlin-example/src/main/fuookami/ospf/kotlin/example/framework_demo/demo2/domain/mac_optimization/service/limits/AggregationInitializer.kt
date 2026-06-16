@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+/** Initializes the MAC optimization aggregation for the limits sub-package. */
 data object AggregationInitializer {
     operator fun invoke(
         aircraftAggregation: AircraftAggregation,

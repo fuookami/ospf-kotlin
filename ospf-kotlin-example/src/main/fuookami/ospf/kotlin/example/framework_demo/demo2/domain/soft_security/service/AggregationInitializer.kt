@@ -1,8 +1,9 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
+
+import fuookami.ospf.kotlin.utils.functional.*
 
 data object AggregationInitializer {
     operator fun invoke(

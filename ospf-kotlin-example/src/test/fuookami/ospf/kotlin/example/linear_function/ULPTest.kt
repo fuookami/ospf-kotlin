@@ -1,18 +1,19 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.URealVar
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Test
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Dim2
+import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.geometry.point2
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.UnivariateLinearPiecewiseFunction
+import fuookami.ospf.kotlin.core.variable.URealVar
+
+/** Tests evaluation of a univariate linear piecewise function built from sample points. */
 class ULPTest {
     @Test
     fun univariateFromPointsEvaluate() {

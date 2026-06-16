@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 data class Parameter(
     // 业务目标参数：重心优化上下文

@@ -1,52 +1,58 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** Multi-commodity distribution: minimize shipping cost with production, sales, and transshipment nodes. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example14.html
  */
 data object Demo14 {
+    /** A node in the distribution network. */
     sealed interface Node : Indexed {
         val name: String
     }
 
+    /** A production node with storage capacity. */
     class Product(
         override val name: String,
         val storage: UInt64
     ) : Node, AutoIndexed(Node::class)
 
+    /** A sales node with demand quantity. */
     class Sale(
         override val name: String,
         val demand: UInt64
     ) : Node, AutoIndexed(Node::class)
 
+    /** A transshipment (distribution) node. */
     class Distribution(
         override val name: String
     ) : Node, AutoIndexed(Node::class)
@@ -62,6 +68,7 @@ data object Demo14 {
         Distribution("天津")
     )
 
+    /** Unit shipping cost between connected nodes. */
     val unitCost = mapOf(
         nodes[0] to mapOf(
             nodes[6] to UInt64(2),
@@ -103,6 +110,7 @@ data object Demo14 {
         Demo14::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -120,6 +128,7 @@ data object Demo14 {
         return ok
     }
 
+    /** Initializes flow variables between connected nodes. */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
         for (node1 in nodes) {
@@ -139,6 +148,7 @@ data object Demo14 {
         return ok
     }
 
+    /** Creates cost, outgoing flow, and incoming flow expression symbols. */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
             sum(
@@ -181,12 +191,14 @@ data object Demo14 {
         return ok
     }
 
+    /** Sets the objective to minimize total shipping cost. */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
 
         return ok
     }
 
+    /** Adds production, demand, and transshipment balance constraints. */
     private suspend fun initConstraint(): Try {
         for (node in nodes.filterIsInstance<Product>()) {
             metaModel.addConstraint(
@@ -216,6 +228,7 @@ data object Demo14 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -227,7 +240,7 @@ data object Demo14 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
@@ -235,6 +248,7 @@ data object Demo14 {
         return ok
     }
 
+    /** Extracts the flow quantities between nodes from the solution. */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {
@@ -249,21 +263,3 @@ data object Demo14 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

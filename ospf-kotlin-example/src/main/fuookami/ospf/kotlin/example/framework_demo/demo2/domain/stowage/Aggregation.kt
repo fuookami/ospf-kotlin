@@ -1,19 +1,20 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 
 class Aggregation(
     internal val aircraftModel: AircraftModel,
@@ -84,7 +85,7 @@ class Aggregation(
     } else {
         null
     }
-    
+
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -136,7 +137,6 @@ class Aggregation(
                     return Fatal(result.errors)
                 }
         }
-
 
         when (val result = maxLoadWeight.register(model)) {
             is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
@@ -203,15 +203,3 @@ class Aggregation(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

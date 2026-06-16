@@ -1,16 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+import fuookami.ospf.kotlin.framework.model.*
+
+/** Constrains the low-deck payload to meet the minimum required value. */
 class LowPayloadLimit(
     private val payload: Payload,
     private val minLowPayload: MinLowPayload,
@@ -35,18 +40,3 @@ class LowPayloadLimit(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

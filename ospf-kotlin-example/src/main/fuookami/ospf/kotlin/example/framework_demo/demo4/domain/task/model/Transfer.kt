@@ -3,10 +3,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import java.util.*
+
 import kotlin.time.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+
+/** A transfer flight plan with departure, arrival, time window, and enabled aircraft set. */
 class TransferPlan internal constructor(
     override val dep: Airport,
     override val arr: Airport,
@@ -30,6 +34,7 @@ class TransferPlan internal constructor(
             FlightTaskStatus.NotTerminalChange
         )
 
+        /** Creates a [TransferPlan] with the given parameters, adjusting status for single-aircraft sets. */
         operator fun invoke(
             dep: Airport,
             arr: Airport,
@@ -72,15 +77,18 @@ class TransferPlan internal constructor(
         return duration ?: executor.routeFlyTime[dep, arr] ?: executor.maxRouteFlyTime
     }
 
+    /** Checks whether the given aircraft is enabled for this transfer plan. */
     fun enabled(aircraft: Aircraft): Boolean {
         return enabledAircrafts.contains(aircraft)
     }
 }
 
+/** Task type object for transfer flights. */
 object TransferFlightTask : FlightTaskType(FlightTaskCategory.Flight, TransferFlightTask::class) {
     override val type = "transfer"
 }
 
+/** A transfer flight task with optional recovery aircraft and time. */
 class Transfer internal constructor(
     override val plan: TransferPlan,
     val recoveryAircraft: Aircraft? = null,
@@ -88,10 +96,12 @@ class Transfer internal constructor(
     origin: Transfer? = null
 ) : FlightTask(TransferFlightTask, origin) {
     companion object {
+        /** Creates a [Transfer] from a plan (identity constructor). */
         operator fun invoke(plan: Transfer): Transfer {
             return Transfer(plan = plan)
         }
 
+        /** Creates a recovered [Transfer] applying the given recovery policy. */
         operator fun invoke(origin: Transfer, recoveryPolicy: FlightTaskAssignment): Transfer {
             val recoveryAircraft =
                 if (origin.plan.aircraft != null && (recoveryPolicy.aircraft == null || recoveryPolicy.aircraft == origin.plan.aircraft)) {

@@ -1,15 +1,17 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
 
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.*
+
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.ServiceBandwidth
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+/** Aggregates edge, service, and node bandwidth models and registers them with the optimization model. */
 class Aggregation(
     val edgeBandwidth: EdgeBandwidth,
     val serviceBandwidth: ServiceBandwidth,
@@ -38,11 +40,3 @@ class Aggregation(
         return ok
     }
 }
-
-
-
-
-
-
-
-

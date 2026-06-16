@@ -1,30 +1,34 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.solver.scip.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
 /**
- * @see     https://fuookami.github.io/ospf/examples/framework-example1.html
+ * Shortest Service Path (SSP) solver that models route assignment and bandwidth allocation
+ * as a linear optimization problem on a network graph.
+ *
+ * @see https://fuookami.github.io/ospf/examples/framework-example1.html
  */
 class SSP {
     lateinit var routeContext: RouteContext
@@ -180,14 +184,3 @@ class SSP {
         }
     }
 }
-
-
-
-
-
-
-
-
-
-
-

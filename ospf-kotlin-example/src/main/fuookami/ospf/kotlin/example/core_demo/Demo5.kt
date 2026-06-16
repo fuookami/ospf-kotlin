@@ -1,38 +1,41 @@
 package fuookami.ospf.kotlin.example.core_demo
 
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.Error
+
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.core.variable.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.symbol.*
+
 import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
 
+/** 0-1 knapsack: maximize cargo value subject to a weight limit. */
 /**
  * @see     https://fuookami.github.io/ospf/examples/example5.html
  */
 data object Demo5 {
+    /** A cargo item with weight and value. */
     data class Cargo(
         val weight: UInt64,
         val value: UInt64
@@ -62,6 +65,7 @@ data object Demo5 {
         Demo5::analyzeSolution
     )
 
+    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -79,6 +83,7 @@ data object Demo5 {
         return ok
     }
 
+    /** Initializes binary decision variables for cargo selection. */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(cargos.size))
         for (c in cargos) {
@@ -88,6 +93,7 @@ data object Demo5 {
         return ok
     }
 
+    /** Creates cargo value and weight expression symbols. */
     private suspend fun initSymbol(): Try {
         cargoValue = LinearExpressionSymbol(
             sum(cargos) { c -> c.value * x[c] },
@@ -103,11 +109,13 @@ data object Demo5 {
         return ok
     }
 
+    /** Sets the objective to maximize total cargo value. */
     private suspend fun initObject(): Try {
         metaModel.maximize(cargoValue, "value")
         return ok
     }
 
+    /** Adds weight capacity constraint. */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
             cargoWeight leq maxWeight,
@@ -116,6 +124,7 @@ data object Demo5 {
         return ok
     }
 
+    /** Solves the linear model using the SCIP solver. */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -127,13 +136,14 @@ data object Demo5 {
                 return Failed(ret.error)
             }
 
-                is Fatal -> {
+            is Fatal -> {
                 return Fatal(ret.errors)
             }
         }
         return ok
     }
 
+    /** Extracts the selected cargo items from the solution. */
     private suspend fun analyzeSolution(): Try {
         val ret = HashSet<Cargo>()
         for (token in metaModel.tokens.tokens) {
@@ -146,21 +156,3 @@ data object Demo5 {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

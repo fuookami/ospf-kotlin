@@ -2,24 +2,28 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
-import fuookami.ospf.kotlin.utils.functional.get
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+/** Pipeline enforcing that passenger amounts per flight and class do not exceed aircraft capacity. */
 class PassengerFlightCapacityConstraint(
     private val flights: List<FlightTask>,
     private val amount: PassengerAmount,
     private val capacity: FlightCapacity,
     override val name: String = "passenger_flight_capacity_constraint"
 ) : CGPipeline {
+    /** Adds passenger flight capacity constraints to the model. */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (flight in flights) {
             for (cls in PassengerClass.entries) {
@@ -30,12 +34,12 @@ class PassengerFlightCapacityConstraint(
                     is Ok -> {}
 
                     is Failed -> {
-                    return Failed(result.error)
-                }
+                        return Failed(result.error)
+                    }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -43,14 +47,3 @@ class PassengerFlightCapacityConstraint(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-

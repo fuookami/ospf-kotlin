@@ -1,23 +1,25 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.*
+
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 
 internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
 internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
 
+/** Context for managing recommended weight equalization across aircraft and stowage domains. */
 class RecommendedWeightEqualizationContext {
     lateinit var aggregation: Aggregation
 
@@ -90,7 +92,6 @@ class RecommendedWeightEqualizationContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Weight equalization constraints go into the master problem.
         return register(
             stowageMode = StowageMode.FullLoad,
             model = model
@@ -100,7 +101,6 @@ class RecommendedWeightEqualizationContext {
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // Weight equalization does not contribute to the sub problem.
         return ok
     }
 
@@ -111,15 +111,3 @@ class RecommendedWeightEqualizationContext {
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

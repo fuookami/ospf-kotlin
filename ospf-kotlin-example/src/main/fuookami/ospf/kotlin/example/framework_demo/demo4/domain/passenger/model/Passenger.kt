@@ -2,13 +2,16 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
 import java.util.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*
+
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
+import fuookami.ospf.kotlin.utils.concept.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+/** A passenger with an amount and a list of flight legs, each assigned a passenger class. */
 class Passenger(
     val id: String = UUID.randomUUID().toString(),
     val amount: UInt64,
@@ -28,6 +31,7 @@ class Passenger(
 
     private val flightTaskKeys = flights.associate { it.first.key to it.second }
 
+    /** The route of airports visited by this passenger. */
     val route: List<Airport> by lazy {
         val route = ArrayList<Airport>()
         route.add(flights.first().first.dep)
@@ -41,15 +45,18 @@ class Passenger(
     val arr get() = route.last()
     val transfer get() = route.size > 2
 
+    /** Checks whether this passenger is on the given flight task. */
     operator fun contains(task: FlightTask): Boolean {
         return task.key in flightTaskKeys
     }
 
+    /** Returns the passenger class for the given flight task, or null if not on that flight. */
     operator fun get(task: FlightTask): PassengerClass? {
         return flightTaskKeys[task.key]
     }
 }
 
+/** A passenger-flight association linking a passenger to a specific flight with optional previous leg. */
 data class FlightPassenger(
     val flight: FlightTask,
     val passenger: Passenger,

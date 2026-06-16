@@ -1,19 +1,26 @@
 package fuookami.ospf.kotlin.example.linear_function
 
-import fuookami.ospf.kotlin.example.test.flt64TestConverter
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlinx.coroutines.runBlocking
+
+import fuookami.ospf.kotlin.example.test.flt64TestConverter
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.utils.functional.Ok
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.symbol.function.OneOfFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** Verifies that if and one-of functions expose comparable constraints without invoking a solver. */
 class ConditionalFunctionBuildOnlyStructureTest {
     @Test
     fun ifAndOneOfShouldAppendComparableConstraintsWithoutSolver() {
@@ -28,12 +35,12 @@ class ConditionalFunctionBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val ifFunction = fuookami.ospf.kotlin.core.symbol.function.IfFunction(
+        val ifFunction = IfFunction(
             condition = xPoly,
             converter = flt64TestConverter,
             name = "example_if_build"
         )
-        val oneOfFunction = fuookami.ospf.kotlin.core.symbol.function.OneOfFunction(
+        val oneOfFunction = OneOfFunction(
             polynomials = listOf(xPoly, yPoly, LinearPolynomial<Flt64>(emptyList(), Flt64.two)),
             converter = flt64TestConverter,
             name = "example_oneof_build"

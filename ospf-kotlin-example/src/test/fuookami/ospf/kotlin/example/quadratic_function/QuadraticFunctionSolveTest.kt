@@ -1,13 +1,14 @@
 package fuookami.ospf.kotlin.example.quadratic_function
 
-import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.scip.ScipQuadraticSolver
-import fuookami.ospf.kotlin.core.variable.RealVar
+import kotlinx.coroutines.runBlocking
+
 import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
+import org.junit.jupiter.api.Assertions.assertTrue
+import org.junit.jupiter.api.Assumptions.assumeTrue
+import org.junit.jupiter.api.Test
+
+import fuookami.ospf.kotlin.utils.functional.Ok
+
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
@@ -15,12 +16,16 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
-import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Assertions.assertTrue
-import org.junit.jupiter.api.Assumptions.assumeTrue
-import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.scip.ScipQuadraticSolver
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.function.ProductFunction
+import fuookami.ospf.kotlin.core.variable.RealVar
+
+/** End-to-end solve tests for quadratic product and inequality models using SCIP. */
 class QuadraticFunctionSolveTest {
     private fun isScipAvailable(): Boolean = ScipAvailability.isAvailable()
 

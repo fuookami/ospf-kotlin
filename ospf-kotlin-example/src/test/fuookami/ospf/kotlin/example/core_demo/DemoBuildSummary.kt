@@ -1,11 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+
+/** Captures the structural result of building a linear meta-model for assertion purposes. */
 data class DemoBuildSummary(
     val name: String,
     val success: Boolean,
@@ -14,6 +17,7 @@ data class DemoBuildSummary(
     val objectiveCategory: ObjectCategory
 )
 
+/** Provides helpers to extract build summaries and assert expected model structure. */
 object DemoBuildAssertions {
     fun extractSummary(
         name: String,

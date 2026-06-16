@@ -1,20 +1,22 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+
+/** Aggregates MAC optimization models for longitudinal and lateral balance. */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     formula: Formula,
@@ -79,7 +81,6 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
-        // MAC optimization constraints go into the master problem.
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
@@ -87,7 +88,6 @@ class Aggregation(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
-        // MAC optimization does not contribute to the sub problem.
         return ok
     }
 
@@ -98,15 +98,3 @@ class Aggregation(
         return ok
     }
 }
-
-
-
-
-
-
-
-
-
-
-
-

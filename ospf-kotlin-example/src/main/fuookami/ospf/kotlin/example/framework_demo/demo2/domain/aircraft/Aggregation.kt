@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft
 
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+/** Aggregates aircraft configuration data including model, fuselage, fuel, decks, and neighbour relationships. */
 data class Aggregation(
     val regNo: RegNo,
     val aircraftModel: AircraftModel,

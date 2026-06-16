@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+/** Types of fuel tanks available on an aircraft. */
 enum class FuelTankType {
     Main,
     Center,
@@ -15,6 +16,7 @@ enum class FuelTankType {
     Reserve             // B747 Reserve Tank
 }
 
+/** Interpolated balanced arm lookup table for a fuel tank across different volumes and flight phases. */
 data class FuelTankBalancedArm(
     val points: List<Point>
 ) {
@@ -34,13 +36,10 @@ data class FuelTankBalancedArm(
     operator fun invoke(phase: FlightPhase, volume: Quantity<Flt64>): Quantity<Flt64> {
         assert(points.size >= 2)
         return if (volume.partialOrd(points.first().volume) is Order.Less) {
-            // 超过采样点的下限，取最小值
             points.first()[phase]
         } else if (volume.partialOrd(points.last().volume) is Order.Greater) {
-            // 超过采样点的上限，取最大值
             points.last()[phase]
         } else {
-            // 否则，使用线性插值计算
             val i = (1 until points.size).first {
                 points[it - 1].volume.partialOrd(volume) is Order.Less
                     && volume.partialOrd(points[it].volume) is Order.Less
@@ -52,6 +51,7 @@ data class FuelTankBalancedArm(
     }
 }
 
+/** A fuel tank with its type, capacity, and balanced arm lookup data. */
 data class FuelTank(
     val type: FuelTankType,
     val name: String,
@@ -59,6 +59,7 @@ data class FuelTank(
     val balancedArm: FuelTankBalancedArm
 )
 
+/** A snapshot view of a fuel tank at a specific volume with computed weight and balanced arm. */
 data class FuelTankView(
     val tank: FuelTank,
     val volume: Quantity<Flt64>,
@@ -69,6 +70,7 @@ data class FuelTankView(
     val name by tank::name
 }
 
+/** Precomputed fuel constants (density, weight, index) for a given flight phase. */
 data class FuelConstant(
     val density: Quantity<Flt64>,
     val weight: Quantity<Flt64>,

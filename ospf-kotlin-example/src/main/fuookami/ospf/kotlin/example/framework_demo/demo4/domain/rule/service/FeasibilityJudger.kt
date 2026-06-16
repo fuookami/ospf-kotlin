@@ -2,5 +2,6 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.service
 
+/** Judger for evaluating feasibility of flight task assignments against rules. */
 class FeasibilityJudger {
 }

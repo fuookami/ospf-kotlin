@@ -1,15 +1,16 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+import fuookami.ospf.kotlin.quantities.quantity.*
+
+/** Aerodynamic formula for computing balanced arm, index, and MAC from aircraft weight and position data. */
 class Formula(
     val aircraftModel: AircraftModel,
     val lip: Quantity<Flt64>,
@@ -71,4 +72,3 @@ class Formula(
         )
     }
 }
-

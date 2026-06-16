@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.FeasibilityDiagnostics
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.CargoInput
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.FeasibilityDiagnostics
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 
+/** Tests feasibility diagnostics that detect invalid cargo-loading request constraints. */
 class FeasibilityDiagnosticsTest {
     @Test
     fun `no diagnostics for valid sample request`() {
@@ -45,7 +47,7 @@ class FeasibilityDiagnosticsTest {
     fun `detects cargo exceeding all positions`() {
         val request = RequestDTO.sample().copy(
             cargos = listOf(
-                fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.CargoInput(
+                CargoInput(
                     name = "Big", weight = 100.0, priority = 1, source = "S1", destination = "D1"
                 )
             )

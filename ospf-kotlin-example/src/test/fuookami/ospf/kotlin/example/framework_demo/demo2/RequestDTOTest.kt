@@ -1,9 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
+/** Tests the cargo-loading request/response DTO structure and factory methods. */
 class RequestDTOTest {
     @Test
     fun `sample request has expected fields`() {

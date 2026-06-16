@@ -1,13 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo3
 
-import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.*
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
+
 import fuookami.ospf.kotlin.core.solver.scip.ScipColumnGenerationSolver
+
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.service.Csp1dColumnGeneration
@@ -15,13 +16,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.Reduc
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.GenerationConstraints
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.FullSumGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.NSameGenerator
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.QuantityRange
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.DefaultQuantityArithmetic
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.WidthRange
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
+/** One-dimensional Cutting Stock Problem solved via column generation with SCIP. */
 class CSP {
     private val rawLength = 1000.0
     private val rawProducts: List<RawProduct> = listOf(

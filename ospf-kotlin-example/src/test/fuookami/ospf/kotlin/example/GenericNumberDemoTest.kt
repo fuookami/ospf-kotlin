@@ -1,11 +1,13 @@
 package fuookami.ospf.kotlin.example
 
 import fuookami.ospf.kotlin.example.core_demo.GenericNumberDemo
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+/** Validates that the generic-number demo covers all four numeric types with correct objective coefficients. */
 class GenericNumberDemoTest {
     @Test
     fun genericNumberDemoShouldReturnFourTypeBuildSummary() {
