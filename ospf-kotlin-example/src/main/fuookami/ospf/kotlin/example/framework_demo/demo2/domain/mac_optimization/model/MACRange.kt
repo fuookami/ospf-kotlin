@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimizatio
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*

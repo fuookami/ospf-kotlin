@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 import fuookami.ospf.kotlin.utils.functional.*

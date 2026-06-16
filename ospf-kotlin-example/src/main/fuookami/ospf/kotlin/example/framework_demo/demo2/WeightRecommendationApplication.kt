@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximiza
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.solveLinearMetaModel
@@ -34,7 +35,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.variable.UContinuousVariableItem
+import fuookami.ospf.kotlin.core.variable.URealVar
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -44,6 +45,12 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 class WeightRecommendationApplication {
+    private data class BendersModels(
+        val masterModel: LinearMetaModel<Flt64>,
+        val subModel: LinearMetaModel<Flt64>,
+        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+    )
 }
 
 private class WeightRecommendationAlgorithmImpl {
@@ -621,7 +628,7 @@ private class WeightRecommendationAlgorithmImpl {
         airworthinessSecurityContext.registerForBendersSP(subModel)
 
         // Create deviation variable z for weight recommendation objective
-        val zVar = UContinuousVariableItem.auto("wr_max_deviation")
+        val zVar = URealVar("wr_max_deviation")
         masterModel.add(zVar)
 
         val stowageAgg = stowageContext.aggregation
@@ -639,12 +646,12 @@ private class WeightRecommendationAlgorithmImpl {
             fixedVariables = fixedVariables
         )
     }
+    private data class BendersModels(
+        val masterModel: LinearMetaModel<Flt64>,
+        val subModel: LinearMetaModel<Flt64>,
+        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+    )
 }
 
-private data class BendersModels(
-    val masterModel: LinearMetaModel<Flt64>,
-    val subModel: LinearMetaModel<Flt64>,
-    val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-    val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
-)
 

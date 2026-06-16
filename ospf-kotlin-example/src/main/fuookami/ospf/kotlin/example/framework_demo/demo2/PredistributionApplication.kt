@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.solveLinearMetaModel
@@ -37,7 +38,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.variable.UContinuousVariableItem
+import fuookami.ospf.kotlin.core.variable.URealVar
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -56,6 +57,12 @@ class PredistributionApplication {
         val algo = PredistributionAlgorithmImpl()
         return algo(request, runningHeartBeatCallBack, finnishHeartBeatCallBack, withRender)
     }
+    private data class BendersModels(
+        val masterModel: LinearMetaModel<Flt64>,
+        val subModel: LinearMetaModel<Flt64>,
+        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+    )
 }
 
 private class PredistributionAlgorithmImpl {
@@ -734,7 +741,7 @@ private class PredistributionAlgorithmImpl {
         airworthinessSecurityContext.registerForBendersSP(subModel)
 
         // Create deviation variable z for predistribution objective
-        val zVar = UContinuousVariableItem.auto("max_deviation")
+        val zVar = URealVar("max_deviation")
         masterModel.add(zVar)
 
         val stowageAgg = stowageContext.aggregation
@@ -752,12 +759,12 @@ private class PredistributionAlgorithmImpl {
             fixedVariables = fixedVariables
         )
     }
+    private data class BendersModels(
+        val masterModel: LinearMetaModel<Flt64>,
+        val subModel: LinearMetaModel<Flt64>,
+        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+    )
 }
 
-private data class BendersModels(
-    val masterModel: LinearMetaModel<Flt64>,
-    val subModel: LinearMetaModel<Flt64>,
-    val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-    val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
-)
 

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximiz
 
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /** Aggregates aircraft model and payload data for payload maximization optimization. */
 class Aggregation(

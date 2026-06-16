@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.solveLinearMetaModel
@@ -36,7 +37,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiLinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.core.variable.UContinuousVariableItem
+import fuookami.ospf.kotlin.core.variable.URealVar
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -708,7 +709,7 @@ private class FullLoadAlgorithmImpl {
         airworthinessSecurityContext.registerForBendersSP(subModel)
 
         // Create a dummy theta variable for cut generation (FullLoad has no z variable)
-        val thetaVar = UContinuousVariableItem.auto("benders_theta")
+        val thetaVar = URealVar("benders_theta")
         masterModel.add(thetaVar)
 
         // Build fixedVariables from stowage x variables
@@ -727,12 +728,12 @@ private class FullLoadAlgorithmImpl {
             fixedVariables = fixedVariables
         )
     }
-}
 
-private data class BendersModels(
-    val masterModel: LinearMetaModel<Flt64>,
-    val subModel: LinearMetaModel<Flt64>,
-    val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-    val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
-)
+    private data class BendersModels(
+        val masterModel: LinearMetaModel<Flt64>,
+        val subModel: LinearMetaModel<Flt64>,
+        val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
+        val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
+    )
+}
 

@@ -7,8 +7,11 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 
 import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 import fuookami.ospf.kotlin.quantities.quantity.*
 

@@ -7,9 +7,13 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 
 import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*

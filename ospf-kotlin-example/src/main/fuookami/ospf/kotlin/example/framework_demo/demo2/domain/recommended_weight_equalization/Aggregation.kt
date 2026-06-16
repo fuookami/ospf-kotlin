@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_wei
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /** Aggregates recommended weight equalization data including priority appointments and stowage assignments. */
 class Aggregation(

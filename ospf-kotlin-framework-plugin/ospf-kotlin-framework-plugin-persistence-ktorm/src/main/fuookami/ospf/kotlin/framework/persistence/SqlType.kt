@@ -7,15 +7,16 @@
  */
 package fuookami.ospf.kotlin.framework.persistence
 
-import java.math.RoundingMode
+import java.math.*
+import java.time.*
+import java.time.ZoneOffset
+import kotlin.time.*
+import kotlin.time.Instant
+import kotlin.time.Duration
+import kotlinx.datetime.*
 import kotlinx.datetime.LocalDateTime
-import kotlinx.datetime.toJavaLocalDateTime
-import kotlinx.datetime.toKotlinLocalDateTime
 import org.ktorm.schema.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /**
  * 定义 UInt32 类型列
@@ -117,6 +118,62 @@ fun BaseTable<*>.fltx(name: String, roundingMode: RoundingMode, scale: Int = 2):
  */
 fun BaseTable<*>.kotlinDatetime(name: String): Column<LocalDateTime> {
     return datetime(name).transform({ it.toKotlinLocalDateTime() }, { it.toJavaLocalDateTime() })
+}
+
+/**
+ * 定义 java.time.Instant 类型列（使用 TIMESTAMP 类型存储）
+ * Define java.time.Instant type column (stored as TIMESTAMP)
+ *
+ * @param name 列名 / Column name
+ * @return Instant 类型的列 / Column of Instant type
+ */
+@OptIn(ExperimentalTime::class)
+fun BaseTable<*>.instant(name: String): Column<Instant> {
+    return timestamp(name).transform({ it.toKotlinInstant() }, { it.toJavaInstant() })
+}
+
+/**
+ * 定义 kotlin.time.Duration 类型列（以 ISO-8601 字符串存储）
+ * Define kotlin.time.Duration type column (stored as ISO-8601 string)
+ *
+ * @param name 列名 / Column name
+ * @return Duration 类型的列 / Column of Duration type
+ */
+fun BaseTable<*>.duration(name: String): Column<Duration> {
+    return varchar(name).transform({ Duration.parseIsoString(it) }, { it.toIsoString() })
+}
+
+/**
+ * 定义 java.time.ZoneId 类型列（以字符串存储）
+ * Define java.time.ZoneId type column (stored as string)
+ *
+ * @param name 列名 / Column name
+ * @return ZoneId 类型的列 / Column of ZoneId type
+ */
+fun BaseTable<*>.zoneId(name: String): Column<ZoneId> {
+    return varchar(name).transform({ ZoneId.of(it) }, { it.id })
+}
+
+/**
+ * 定义 java.time.ZoneOffset 类型列（以字符串存储）
+ * Define java.time.ZoneOffset type column (stored as string)
+ *
+ * @param name 列名 / Column name
+ * @return ZoneOffset 类型的列 / Column of ZoneOffset type
+ */
+fun BaseTable<*>.zoneOffset(name: String): Column<ZoneOffset> {
+    return varchar(name).transform({ ZoneOffset.of(it) }, { it.id })
+}
+
+/**
+ * 定义 kotlinx.datetime.TimeZone 类型列（以字符串存储）
+ * Define kotlinx.datetime.TimeZone type column (stored as string)
+ *
+ * @param name 列名 / Column name
+ * @return TimeZone 类型的列 / Column of TimeZone type
+ */
+fun BaseTable<*>.kotlinTimeZone(name: String): Column<TimeZone> {
+    return varchar(name).transform({ TimeZone.of(it) }, { it.id })
 }
 
 /**

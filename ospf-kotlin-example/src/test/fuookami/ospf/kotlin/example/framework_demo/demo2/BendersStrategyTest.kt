@@ -199,10 +199,12 @@ class BendersStrategyTest {
             maxStallIterations = 6, objectiveStallIterations = 2
         )
         val qualityGuard = BendersQualityGuardConfig()
-        // timeGuardMs = 32 * 60 + 6 * 30 = 2100
+        // timeGuardMs = 32 * 80 + 6 * 30 = 2740
+        // Need totalCuts > cutDensityThreshold * executedIterations to avoid cut_efficiency_low
         val reason = BendersStrategy.resolveQualityReason(
             adaptive, qualityGuard,
-            bendersIterations = 8, bendersGap = 5e-5, bendersTimeMs = 2101
+            bendersIterations = 8, bendersGap = 5e-5, bendersTimeMs = 2741,
+            executedIterations = 8, totalCuts = 10
         )
         assertEquals("time_guard_exceeded", reason)
     }
