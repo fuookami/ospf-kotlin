@@ -117,6 +117,16 @@ data class PipelineListGenerator(
             )
         }
 
+        if (aggregation.maxAdjacentLoadGap != null) {
+            pipelines.add(
+                AdjacentGapLimit(
+                    positions = aggregation.positions,
+                    load = aggregation.load,
+                    maxAdjacentLoadGap = aggregation.maxAdjacentLoadGap
+                )
+            )
+        }
+
         return Ok(pipelines)
     }
 }

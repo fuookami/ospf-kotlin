@@ -21,7 +21,8 @@ class Aggregation(
     stowageMode: StowageMode,
     internal val items: List<Item>,
     internal val positions: List<Position>,
-    internal val stowage: Stowage
+    internal val stowage: Stowage,
+    val mustShipIndices: List<Int> = emptyList()
 ) {
     val absoluteOrder = when (stowageMode) {
         StowageMode.Predistribution -> {

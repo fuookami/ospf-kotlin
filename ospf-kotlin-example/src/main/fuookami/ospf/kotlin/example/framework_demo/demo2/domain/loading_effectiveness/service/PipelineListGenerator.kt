@@ -143,6 +143,26 @@ class PipelineListGenerator(
             )
         }
 
+        pipelines.add(
+            PriorityOrderLimit(
+                items = aggregation.items,
+                positions = aggregation.positions,
+                stowage = aggregation.stowage
+            )
+        )
+
+        if (aggregation.cargosBySource.isNotEmpty()) {
+            pipelines.add(
+                SourceEarlyLimit(
+                    items = aggregation.items,
+                    positions = aggregation.positions,
+                    stowage = aggregation.stowage,
+                    cargosBySource = aggregation.cargosBySource,
+                    earlyEnd = aggregation.earlyEnd
+                )
+            )
+        }
+
         return Ok(pipelines)
     }
 }

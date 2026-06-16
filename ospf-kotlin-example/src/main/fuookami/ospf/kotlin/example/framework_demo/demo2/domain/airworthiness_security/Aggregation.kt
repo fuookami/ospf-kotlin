@@ -35,7 +35,9 @@ class Aggregation(
     internal val totalWeight: TotalWeight,
     internal val ballast: Ballast?,
     internal val torque: Torque,
-    internal val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>
+    internal val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
+    internal val stowage: Stowage? = null,
+    val maxAdjacentLoadGap: Double? = null
 ) {
     val linearDensity = LinearDensity(
         aircraftModel = aircraftModel,

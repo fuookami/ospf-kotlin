@@ -25,7 +25,9 @@ class Aggregation(
     internal val positions: List<Position>,
     val trailers: List<Trailer>,
     internal val stowage: Stowage,
-    load: Load
+    load: Load,
+    val cargosBySource: Map<String, List<Int>> = emptyMap(),
+    val earlyEnd: Int = 0
 ){
     companion object {
         private fun combineAdjacentByLoadingOrder(positions: List<Position>): List<PositionPair> {

@@ -53,6 +53,17 @@ data class PipelineListGenerator(
             )
         }
 
+        if (aggregation.mustShipIndices.isNotEmpty()) {
+            pipelines.add(
+                MustShipLimit(
+                    items = aggregation.items,
+                    positions = aggregation.positions,
+                    stowage = aggregation.stowage,
+                    mustShipIndices = aggregation.mustShipIndices
+                )
+            )
+        }
+
         return Ok(pipelines)
     }
 }
