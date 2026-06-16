@@ -24,9 +24,9 @@
 | `rule` | 排班规则：链接、锁定、流控、限制、成本计算 |
 | `cargo` | 货物领域：聚合和上下文 |
 | `passenger` | 旅客管理：取消、变更、容量约束 |
-| `bunch_generation` | 从飞行图生成可行机组束 |
-| `bunch_compilation` | 编译束：机队平衡、航班链接、航班容量 |
-| `bunch_selection` | 分支定阶算法选择束 |
+| `bunch_generation` | 从飞行图生成可行机组束（pricing 子问题） |
+| `bunch_compilation` | 编译束：机队平衡、航班链接、航班容量（master 约束） |
+| `bunch_selection` | 分支定阶算法选择束（branch-and-price 编排） |
 | `infrastructure` | 求解器、DTO（输入/输出）、语义参数 |
 
 ## 架构
@@ -64,9 +64,18 @@ demo4/
       model/                   -- Passenger, PassengerAmount 等
       service/limits/          -- 取消、变更、容量约束
     bunch_generation/
-      Aggregation.kt           -- 束生成聚合
-      model/Graph.kt           -- 飞行图
-      service/                 -- BunchGenerator, GraphGenerator 等
+      BunchGenerationContext.kt -- 束生成上下文
+      Aggregation.kt           -- 束生成聚合（graphs, reverse, initialBunches）
+      model/
+        Graph.kt               -- 飞行图（Node, Edge, Graph）
+        FlightTaskReverse.kt   -- 可逆任务对管理
+      service/
+        Operator.kt            -- 类型别名（RuleChecker, CostCalculator 等）
+        FlightTaskFeasibilityJudger.kt -- 10 步可行性检查
+        RouteGraphGenerator.kt -- BFS 路由图生成
+        FlightTaskBunchGenerator.kt -- Label Setting 算法
+        InitialFlightTaskBunchGenerator.kt -- 初始列生成
+        AggregationInitializer.kt -- 初始化编排
     bunch_compilation/
       BunchCompilationContext.kt -- 束编译上下文
       Aggregation.kt           -- 编译聚合
@@ -76,6 +85,47 @@ demo4/
       BunchSelectionContext.kt -- 束选择上下文
       service/BranchAndPriceAlgorithm.kt -- 分支定阶求解器
 ```
+
+## bunch_generation 详解
+
+`bunch_generation` 是 branch-and-price 中的 **pricing 子问题**，负责生成负 reduced cost 的新列。
+
+### 核心流程
+
+1. **初始化**（`AggregationInitializer`）
+   - 构建 `FlightTaskReverse`（可逆任务对）
+   - 为每架飞机生成 `RouteGraph`（BFS）
+   - 生成初始 bunch（`InitialFlightTaskBunchGenerator`）
+
+2. **定价**（`FlightTaskBunchGenerator`）
+   - Label Setting 算法
+   - 拓扑排序遍历图节点
+   - 沿出边扩展标签
+   - 累加任务覆盖 shadow price
+   - 支配剪枝（reduced cost、delay、aircraft change）
+   - 输出负 reduced cost bunch
+
+3. **输出**
+   - 新 bunch 列
+   - 定价诊断（迭代数、cut 数、轨迹）
+
+### 关键概念
+
+| 概念 | 说明 |
+| --- | --- |
+| `shadow price` | master 约束的对偶值，反映约束的边际成本 |
+| `reduced cost` | 原始成本 - shadow price 扣减，负值表示有价值的列 |
+| `initial bunch` | 每架飞机的初始可行列，包含 locked task |
+| `generated bunch` | 通过 pricing 生成的新列 |
+| `dominance` | 同末端节点下，时间和成本均不劣的标签保留 |
+
+### 与 bunch_compilation 和 bunch_selection 的边界
+
+| 模块 | 职责 | 不承担 |
+| --- | --- | --- |
+| `bunch_generation` | route graph、initial bunch、pricing | master 约束、fleet balance、solution 解析 |
+| `bunch_compilation` | master 约束注册、fleet balance、flight link | Label Setting、route graph、reduced cost |
+| `bunch_selection` | branch-and-price 编排、shadow price 提取、add columns | 具体 pricing 逻辑 |
 
 ## 泛型数量示例
 

@@ -24,7 +24,7 @@
 | `rule` | Scheduling rules: links, locks, flow control, restrictions, cost calculation |
 | `cargo` | Cargo domain: aggregation and context |
 | `passenger` | Passenger management: cancellations, changes, capacity constraints |
-| `bunch_generation` | Generate feasible crew bunches from flight graph |
+| `bunch_generation` | Generate feasible crew bunches from flight graph (pricing sub-problem) |
 | `bunch_compilation` | Compile bunches: fleet balance, flight links, flight capacity |
 | `bunch_selection` | Branch-and-price algorithm for bunch selection |
 | `infrastructure` | Solver, DTOs (Input/Output), semantic parameters |
@@ -64,9 +64,18 @@ demo4/
       model/                   -- Passenger, PassengerAmount, etc.
       service/limits/          -- Cancellation, change, capacity constraints
     bunch_generation/
-      Aggregation.kt           -- Bunch generation aggregation
-      model/Graph.kt           -- Flight graph
-      service/                 -- BunchGenerator, GraphGenerator, etc.
+      BunchGenerationContext.kt -- Bunch generation context
+      Aggregation.kt           -- Bunch generation aggregation (graphs, reverse, initialBunches)
+      model/
+        Graph.kt               -- Flight graph (Node, Edge, Graph)
+        FlightTaskReverse.kt   -- Reversible task pair management
+      service/
+        Operator.kt            -- Type aliases (RuleChecker, CostCalculator, etc.)
+        FlightTaskFeasibilityJudger.kt -- 10-step feasibility checks
+        RouteGraphGenerator.kt -- BFS route graph generation
+        FlightTaskBunchGenerator.kt -- Label Setting algorithm
+        InitialFlightTaskBunchGenerator.kt -- Initial column generation
+        AggregationInitializer.kt -- Initialization orchestration
     bunch_compilation/
       BunchCompilationContext.kt -- Bunch compilation context
       Aggregation.kt           -- Compilation aggregation

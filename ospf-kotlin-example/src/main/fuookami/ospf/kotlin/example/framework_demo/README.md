@@ -20,9 +20,9 @@
 | Demo | Description | Domain Contexts |
 | --- | --- | --- |
 | `demo1` | Network routing with bandwidth constraints | `route_context` (route assignment), `bandwidth_context` (bandwidth allocation) |
-| `demo2` | Aircraft cargo stowage optimization | `aircraft` (aircraft model, deck, fuel), `stowage` (cargo, load, position), `mac` (mean aerodynamic chord), `airworthiness_security` (structural limits), `soft_security` (ballast, empty loading), `mac_optimization` (CG optimization), `express_effectiveness` (express cargo priority), `loading_effectiveness` (loading order, trailer) |
+| `demo2` | Aircraft cargo stowage optimization | `aircraft` (aircraft model, deck, fuel), `stowage` (cargo, load, position), `mac` (mean aerodynamic chord), `airworthiness_security` (structural limits, adjacent gap), `soft_security` (ballast, empty loading), `mac_optimization` (CG optimization), `express_effectiveness` (express cargo priority, must-ship), `loading_effectiveness` (loading order, trailer, priority order, source early), `redundancy` (redundancy constraints) |
 | `demo3` | 1D Cutting Stock Problem (column generation) | `material` (product, material width range), `cutting_plan_generation` (pricing, initial plan generation) |
-| `demo4` | Gantt scheduling generic quantity sample | `task` (task time, switch), `produce` (production, consumption), `resource` (capacity, usage), `bunch_compilation` (iteration, solution summary) |
+| `demo4` | Gantt scheduling generic quantity sample | `task` (task time, switch), `produce` (production, consumption), `resource` (capacity, usage), `bunch_generation` (Label Setting pricing), `bunch_compilation` (iteration, solution summary), `bunch_selection` (branch-and-price) |
 
 ## Architecture Pattern
 

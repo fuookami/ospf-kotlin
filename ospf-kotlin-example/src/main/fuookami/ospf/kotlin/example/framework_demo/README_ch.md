@@ -20,9 +20,9 @@
 | 演示 | 说明 | 领域上下文 |
 | --- | --- | --- |
 | `demo1` | 带带宽约束的网络路由 | `route_context`（路由分配）、`bandwidth_context`（带宽分配） |
-| `demo2` | 飞机货物装载优化 | `aircraft`（飞机型号、甲板、燃油）、`stowage`（货物、装载、位置）、`mac`（平均气动弦）、`airworthiness_security`（结构限制）、`soft_security`（压舱物、空载）、`mac_optimization`（重心优化）、`express_effectiveness`（快递货物优先级）、`loading_effectiveness`（装载顺序、拖车） |
+| `demo2` | 飞机货物装载优化 | `aircraft`（飞机型号、甲板、燃油）、`stowage`（货物、装载、位置）、`mac`（平均气动弦）、`airworthiness_security`（结构限制、邻接间隙）、`soft_security`（压舱物、空载）、`mac_optimization`（重心优化）、`express_effectiveness`（快递货物优先级、必须装载）、`loading_effectiveness`（装载顺序、拖车、优先级顺序、源提前）、`redundancy`（冗余约束） |
 | `demo3` | 一维下料问题（列生成） | `material`（产品、材料宽度范围）、`cutting_plan_generation`（定价、初始方案生成） |
-| `demo4` | 甘特排程泛型数量示例 | `task`（任务时间、切换）、`produce`（生产、消耗）、`resource`（容量、使用）、`bunch_compilation`（迭代、解摘要） |
+| `demo4` | 甘特排程泛型数量示例 | `task`（任务时间、切换）、`produce`（生产、消耗）、`resource`（容量、使用）、`bunch_generation`（Label Setting 定价）、`bunch_compilation`（迭代、解摘要）、`bunch_selection`（branch-and-price） |
 
 ## 架构模式
 
