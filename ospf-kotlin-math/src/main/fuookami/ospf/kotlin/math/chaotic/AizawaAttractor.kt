@@ -44,7 +44,8 @@ data class AizawaAttractor<V : FloatingNumber<V>>(
         val v = alpha
         val dy = delta * x[0] + (x[2] - beta) * x[1]
         val dx = (x[2] - beta) * x[0] - dy
-        val dz = gamma + alpha * x[0] - x[2].cub() / v.constants.three - (x[0].sqr() + x[1].sqr()) * (v.constants.one + epsilon * x[2]) + zeta * x[2] * x[0].cub()
+        val dz =
+            gamma + alpha * x[0] - x[2].cub() / v.constants.three - (x[0].sqr() + x[1].sqr()) * (v.constants.one + epsilon * x[2]) + zeta * x[2] * x[0].cub()
         return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dz, x[2] + h * dy), Dim3)
     }
 

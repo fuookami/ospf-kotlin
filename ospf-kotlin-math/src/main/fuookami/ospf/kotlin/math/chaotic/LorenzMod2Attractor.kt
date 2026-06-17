@@ -1,6 +1,6 @@
 /**
- * Bouali 吸引子
- * Bouali Attractor
+ * Lorenz 修正 2 吸引子
+ * Lorenz Mod 2 Attractor
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,42 +12,40 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
+ * Lorenz 修正 2 吸引子
+ * Lorenz Mod 2 Attractor
+ *
  * @property alpha 系统参数 alpha / System parameter alpha
+ * @property beta 系统参数 beta / System parameter beta
+ * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- * @property c4 常量 4 / Constant 4
- * @property c15 常量 1.5 / Constant 1.5
- * @property c005 常量 0.05 / Constant 0.05
  */
-data class BoualiAttractor<V : FloatingNumber<V>>(
-    val alpha: V,
-    val zeta: V,
-    val h: V,
-    val c4: V,
-    val c15: V,
-    val c005: V
-) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+data class LorenzMod2Attractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val delta: V, val zeta: V, val h: V) :
+    Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
         val x = p[0];
         val y = p[1];
         val z = p[2]
-        val dx = x * (c4 - y) + alpha * z
-        val dy = -y * (x.constants.one - x * x)
-        val dz = -x * (c15 - zeta * z) - c005 * z
+        val dx = -alpha * x + y * y - z * z + alpha * zeta
+        val dy = x * (y - beta * z) + delta
+        val dz = -z + x * (beta * y + z)
         return Point<Dim3, V>(listOf(x + h * dx, y + h * dy, z + h * dz), Dim3)
     }
 
     companion object {
         operator fun invoke(
-            alpha: Flt64 = Flt64(0.3),
-            zeta: Flt64 = Flt64.one,
+            alpha: Flt64 = Flt64(0.9),
+            beta: Flt64 = Flt64(5.0),
+            delta: Flt64 = Flt64(1.0),
+            zeta: Flt64 = Flt64(9.9),
             h: Flt64 = Flt64(0.01)
-        ): BoualiAttractor<Flt64> = BoualiAttractor(alpha, zeta, h, Flt64(4.0), Flt64(1.5), Flt64(0.05))
+        ): LorenzMod2Attractor<Flt64> = LorenzMod2Attractor(alpha, beta, delta, zeta, h)
     }
 }
 
-data class BoualiAttractorGenerator(
-    val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
+data class LorenzMod2AttractorGenerator(
+    val attractor: LorenzMod2Attractor<Flt64> = LorenzMod2Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(
             Flt64.decimalPrecision,

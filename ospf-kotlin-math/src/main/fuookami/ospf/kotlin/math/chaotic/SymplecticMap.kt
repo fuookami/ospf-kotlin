@@ -1,6 +1,6 @@
 /**
- * Arnold 猫映射
- * Arnold's Cat Map
+ * 辛映射
+ * Symplectic Map
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,21 +12,28 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property two 常量 2 / Constant 2
+ * 辛映射
+ * Symplectic Map
+ *
+ * @property h 时间步长 / Time step size
  */
-data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
-    override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
-        val one = x[0].constants.one
-        return Point<Dim2, V>(listOf((two * x[0] + x[1]) mod one, (x[0] + x[1]) mod one), Dim2)
+data class SymplecticMap<V : FloatingNumber<V>>(val h: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
+    override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
+        val x = p[0];
+        val y = p[1]
+        val onePlusX = x.constants.one + x
+        val dx = x / onePlusX
+        val dy = y * onePlusX * onePlusX
+        return Point<Dim2, V>(listOf(x + h * dx, y + h * dy), Dim2)
     }
 
     companion object {
-        operator fun invoke(): ArnoldsCatMap<Flt64> = ArnoldsCatMap(Flt64.two)
+        operator fun invoke(h: Flt64 = Flt64(0.01)): SymplecticMap<Flt64> = SymplecticMap(h)
     }
 }
 
-data class ArnoldsCatMapGenerator(
-    val map: ArnoldsCatMap<Flt64> = ArnoldsCatMap(),
+data class SymplecticMapGenerator(
+    val map: SymplecticMap<Flt64> = SymplecticMap(),
     private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(
             Flt64.decimalPrecision,

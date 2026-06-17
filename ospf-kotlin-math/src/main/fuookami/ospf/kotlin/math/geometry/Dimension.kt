@@ -65,3 +65,14 @@ data object Dim2 : Dimension {
 data object Dim3 : Dimension {
     override val size = 3
 }
+
+/**
+ * Dim4 - 四维空间
+ * Dim4 - 4D space
+ *
+ * 表示四维空间，维度大小为 4。常用于超混沌系统和时空动力学建模。
+ * Represents 4D space, with dimension size 4. Commonly used for hyperchaotic systems and spacetime dynamics modeling.
+ */
+data object Dim4 : Dimension {
+    override val size = 4
+}

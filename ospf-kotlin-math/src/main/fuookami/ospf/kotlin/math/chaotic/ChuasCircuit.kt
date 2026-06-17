@@ -1,6 +1,6 @@
 /**
- * Bouali 吸引子
- * Bouali Attractor
+ * 蔡氏电路
+ * Chua's Circuit
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,42 +12,42 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property alpha 系统参数 alpha / System parameter alpha
- * @property zeta 系统参数 zeta / System parameter zeta
+ * 蔡氏电路
+ * Chua's Circuit
+ *
+ * @property a 系统参数 a / System parameter a
+ * @property b 系统参数 b / System parameter b
+ * @property c 系统参数 c / System parameter c
+ * @property d 系统参数 d / System parameter d
  * @property h 时间步长 / Time step size
- * @property c4 常量 4 / Constant 4
- * @property c15 常量 1.5 / Constant 1.5
- * @property c005 常量 0.05 / Constant 0.05
  */
-data class BoualiAttractor<V : FloatingNumber<V>>(
-    val alpha: V,
-    val zeta: V,
-    val h: V,
-    val c4: V,
-    val c15: V,
-    val c005: V
-) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+data class ChuasCircuit<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val d: V, val h: V) :
+    Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
         val x = p[0];
         val y = p[1];
         val z = p[2]
-        val dx = x * (c4 - y) + alpha * z
-        val dy = -y * (x.constants.one - x * x)
-        val dz = -x * (c15 - zeta * z) - c005 * z
+        val half = x.constants.half
+        val f = c * x + half * (d - c) * ((x + x.constants.one).abs() + (x - x.constants.one).abs())
+        val dx = a * (y - x - f)
+        val dy = x - y + z
+        val dz = -b * y
         return Point<Dim3, V>(listOf(x + h * dx, y + h * dy, z + h * dz), Dim3)
     }
 
     companion object {
         operator fun invoke(
-            alpha: Flt64 = Flt64(0.3),
-            zeta: Flt64 = Flt64.one,
+            a: Flt64 = Flt64(15.6),
+            b: Flt64 = Flt64(28.0),
+            c: Flt64 = Flt64(-1.143),
+            d: Flt64 = Flt64(-0.714),
             h: Flt64 = Flt64(0.01)
-        ): BoualiAttractor<Flt64> = BoualiAttractor(alpha, zeta, h, Flt64(4.0), Flt64(1.5), Flt64(0.05))
+        ): ChuasCircuit<Flt64> = ChuasCircuit(a, b, c, d, h)
     }
 }
 
-data class BoualiAttractorGenerator(
-    val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
+data class ChuasCircuitGenerator(
+    val attractor: ChuasCircuit<Flt64> = ChuasCircuit(),
     private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(
             Flt64.decimalPrecision,

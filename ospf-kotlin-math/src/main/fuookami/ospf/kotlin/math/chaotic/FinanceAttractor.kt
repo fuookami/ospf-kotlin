@@ -1,6 +1,6 @@
 /**
- * Bouali 吸引子
- * Bouali Attractor
+ * 金融吸引子
+ * Finance Attractor
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,42 +12,38 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
+ * 金融吸引子
+ * Finance Attractor
+ *
  * @property alpha 系统参数 alpha / System parameter alpha
+ * @property beta 系统参数 beta / System parameter beta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- * @property c4 常量 4 / Constant 4
- * @property c15 常量 1.5 / Constant 1.5
- * @property c005 常量 0.05 / Constant 0.05
  */
-data class BoualiAttractor<V : FloatingNumber<V>>(
-    val alpha: V,
-    val zeta: V,
-    val h: V,
-    val c4: V,
-    val c15: V,
-    val c005: V
-) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+data class FinanceAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val zeta: V, val h: V) :
+    Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
         val x = p[0];
         val y = p[1];
         val z = p[2]
-        val dx = x * (c4 - y) + alpha * z
-        val dy = -y * (x.constants.one - x * x)
-        val dz = -x * (c15 - zeta * z) - c005 * z
+        val dx = (x.constants.one / beta - alpha) * x + z + x * y
+        val dy = -beta * y - x * x
+        val dz = -x - zeta * z
         return Point<Dim3, V>(listOf(x + h * dx, y + h * dy, z + h * dz), Dim3)
     }
 
     companion object {
         operator fun invoke(
-            alpha: Flt64 = Flt64(0.3),
-            zeta: Flt64 = Flt64.one,
+            alpha: Flt64 = Flt64(0.001),
+            beta: Flt64 = Flt64(0.2),
+            zeta: Flt64 = Flt64(1.1),
             h: Flt64 = Flt64(0.01)
-        ): BoualiAttractor<Flt64> = BoualiAttractor(alpha, zeta, h, Flt64(4.0), Flt64(1.5), Flt64(0.05))
+        ): FinanceAttractor<Flt64> = FinanceAttractor(alpha, beta, zeta, h)
     }
 }
 
-data class BoualiAttractorGenerator(
-    val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
+data class FinanceAttractorGenerator(
+    val attractor: FinanceAttractor<Flt64> = FinanceAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(
             Flt64.decimalPrecision,

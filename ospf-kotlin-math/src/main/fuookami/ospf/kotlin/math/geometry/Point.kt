@@ -301,3 +301,36 @@ val originPoint3 = point3()
 fun point3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Point<Dim3, Flt64> {
     return Point(listOf(x, y, z), Dim3)
 }
+
+/** 四维点 X 坐标 / 4D point X coordinate */
+@get:JvmName("Point4X")
+val Point<Dim4, Flt64>.x get() = this[0]
+
+/** 四维点 Y 坐标 / 4D point Y coordinate */
+@get:JvmName("Point4Y")
+val Point<Dim4, Flt64>.y get() = this[1]
+
+/** 四维点 Z 坐标 / 4D point Z coordinate */
+@get:JvmName("Point4Z")
+val Point<Dim4, Flt64>.z get() = this[2]
+
+/** 四维点 W 坐标 / 4D point W coordinate */
+@get:JvmName("Point4W")
+val Point<Dim4, Flt64>.w get() = this[3]
+
+/** 四维原点 / 4D origin point */
+val originPoint4 = point4()
+
+/**
+ * 创建四维点
+ * Create a 4D point
+ *
+ * @param x X 坐标，默认为 0 / X coordinate, defaults to 0
+ * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0
+ * @param z Z 坐标，默认为 0 / Z coordinate, defaults to 0
+ * @param w W 坐标，默认为 0 / W coordinate, defaults to 0
+ * @return 四维点 / The 4D point
+ */
+fun point4(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero, w: Flt64 = Flt64.zero): Point<Dim4, Flt64> {
+    return Point(listOf(x, y, z, w), Dim4)
+}

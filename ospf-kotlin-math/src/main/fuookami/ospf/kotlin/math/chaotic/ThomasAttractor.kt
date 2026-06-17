@@ -1,6 +1,6 @@
 /**
- * Bouali 吸引子
- * Bouali Attractor
+ * 托马斯吸引子
+ * Thomas Attractor
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,42 +12,32 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property alpha 系统参数 alpha / System parameter alpha
- * @property zeta 系统参数 zeta / System parameter zeta
+ * 托马斯吸引子
+ * Thomas Attractor
+ *
+ * @property beta 系统参数 beta / System parameter beta
  * @property h 时间步长 / Time step size
- * @property c4 常量 4 / Constant 4
- * @property c15 常量 1.5 / Constant 1.5
- * @property c005 常量 0.05 / Constant 0.05
  */
-data class BoualiAttractor<V : FloatingNumber<V>>(
-    val alpha: V,
-    val zeta: V,
-    val h: V,
-    val c4: V,
-    val c15: V,
-    val c005: V
-) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+data class ThomasAttractor<V : FloatingNumber<V>>(val beta: V, val h: V) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    @Suppress("UNCHECKED_CAST")
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
         val x = p[0];
         val y = p[1];
         val z = p[2]
-        val dx = x * (c4 - y) + alpha * z
-        val dy = -y * (x.constants.one - x * x)
-        val dz = -x * (c15 - zeta * z) - c005 * z
+        val dx = y.sin() as V - beta * x
+        val dy = z.sin() as V - beta * y
+        val dz = x.sin() as V - beta * z
         return Point<Dim3, V>(listOf(x + h * dx, y + h * dy, z + h * dz), Dim3)
     }
 
     companion object {
-        operator fun invoke(
-            alpha: Flt64 = Flt64(0.3),
-            zeta: Flt64 = Flt64.one,
-            h: Flt64 = Flt64(0.01)
-        ): BoualiAttractor<Flt64> = BoualiAttractor(alpha, zeta, h, Flt64(4.0), Flt64(1.5), Flt64(0.05))
+        operator fun invoke(beta: Flt64 = Flt64(0.19), h: Flt64 = Flt64(0.01)): ThomasAttractor<Flt64> =
+            ThomasAttractor(beta, h)
     }
 }
 
-data class BoualiAttractorGenerator(
-    val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
+data class ThomasAttractorGenerator(
+    val attractor: ThomasAttractor<Flt64> = ThomasAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(
             Flt64.decimalPrecision,

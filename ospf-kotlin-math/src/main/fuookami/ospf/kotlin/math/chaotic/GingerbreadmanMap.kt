@@ -1,6 +1,6 @@
 /**
- * Arnold 猫映射
- * Arnold's Cat Map
+ * 姜饼人映射
+ * Gingerbreadman Map
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,21 +12,31 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property two 常量 2 / Constant 2
+ * 姜饼人映射
+ * Gingerbreadman Map
+ *
+ * @property one 常量 1 / Constant 1
  */
-data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
-    override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
-        val one = x[0].constants.one
-        return Point<Dim2, V>(listOf((two * x[0] + x[1]) mod one, (x[0] + x[1]) mod one), Dim2)
+/**
+ * 姜饼人映射
+ * Gingerbreadman Map
+ *
+ * @property one 常量 1 / Constant 1
+ */
+data class GingerbreadmanMap<V : FloatingNumber<V>>(val one: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
+    override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
+        val x = p[0];
+        val y = p[1]
+        return Point<Dim2, V>(listOf(one - y + x.abs(), x), Dim2)
     }
 
     companion object {
-        operator fun invoke(): ArnoldsCatMap<Flt64> = ArnoldsCatMap(Flt64.two)
+        operator fun invoke(): GingerbreadmanMap<Flt64> = GingerbreadmanMap(Flt64.one)
     }
 }
 
-data class ArnoldsCatMapGenerator(
-    val map: ArnoldsCatMap<Flt64> = ArnoldsCatMap(),
+data class GingerbreadmanMapGenerator(
+    val map: GingerbreadmanMap<Flt64> = GingerbreadmanMap(),
     private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(
             Flt64.decimalPrecision,

@@ -34,7 +34,8 @@ data class ComplexQuadraticPolynomial(
     val d: Flt64 = Flt64.two
 ) : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
     override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
-        val complexNumber = pow(complex(x[0].value, x[1].value), complex(d.value, 0.0)) + complex(c[0].value, c[1].value)
+        val complexNumber =
+            pow(complex(x[0].value, x[1].value), complex(d.value, 0.0)) + complex(c[0].value, c[1].value)
         return point2(
             Flt64(complexNumber.re),
             Flt64(complexNumber.im)

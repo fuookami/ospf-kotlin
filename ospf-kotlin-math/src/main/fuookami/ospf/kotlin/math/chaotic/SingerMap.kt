@@ -1,0 +1,42 @@
+/**
+ * Singer 映射
+ * Singer Map
+ */
+package fuookami.ospf.kotlin.math.chaotic
+
+import kotlin.random.Random
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.nextFlt64
+
+/**
+ * @property c786 常量 7.86 / Constant 7.86
+ * @property c2323 常量 23.23 / Constant 23.23
+ * @property c2875 常量 28.75 / Constant 28.75
+ * @property c1330 常量 13.30 / Constant 13.30
+ */
+data class SingerMap<V : FloatingNumber<V>>(val mu: V, val c786: V, val c2323: V, val c2875: V, val c1330: V) :
+    Extractor<V, V> {
+    override operator fun invoke(x: V): V {
+        val x2 = x * x;
+        val x3 = x2 * x;
+        val x4 = x3 * x
+        return mu * (c786 * x - c2323 * x2 + c2875 * x3 - c1330 * x4)
+    }
+
+    companion object {
+        operator fun invoke(mu: Flt64 = Flt64(1.0)): SingerMap<Flt64> =
+            SingerMap(mu, Flt64(7.86), Flt64(23.23), Flt64(28.75), Flt64(13.30))
+    }
+}
+
+data class SingerMapGenerator(
+    val map: SingerMap<Flt64> = SingerMap(),
+    private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
+) : Generator<Flt64> {
+    val x by ::_x;
+    override operator fun invoke(): Flt64 {
+        val x = _x.copy(); _x = map(x); return x
+    }
+}

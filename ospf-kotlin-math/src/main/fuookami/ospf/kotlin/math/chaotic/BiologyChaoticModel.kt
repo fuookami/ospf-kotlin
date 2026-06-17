@@ -36,11 +36,13 @@ data class BiologyChaoticModel<V : FloatingNumber<V>>(
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
         val v = r
-        return Point<Dim3, V>(listOf(
-            r * x[0] * (v.constants.one - a * x[0] - b * x[1] - c * x[2]),
-            x[0],
-            x[1]
-        ), Dim3)
+        return Point<Dim3, V>(
+            listOf(
+                r * x[0] * (v.constants.one - a * x[0] - b * x[1] - c * x[2]),
+                x[0],
+                x[1]
+            ), Dim3
+        )
     }
 
     companion object {

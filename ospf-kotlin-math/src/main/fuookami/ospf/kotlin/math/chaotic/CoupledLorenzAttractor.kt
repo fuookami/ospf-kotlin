@@ -47,7 +47,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
         val dy2 = dy(gamma2, x2)
         val dz2 = dz(x2)
         return Point<Dim3, V>(listOf(x1[0] + h * dx1, x1[1] + h * dy1, x1[2] + h * dz1), Dim3) to
-            Point<Dim3, V>(listOf(x2[0] + h * dx2, x2[1] + h * dy2, x2[2] + h * dz2), Dim3)
+                Point<Dim3, V>(listOf(x2[0] + h * dx2, x2[1] + h * dy2, x2[2] + h * dz2), Dim3)
     }
 
     /**

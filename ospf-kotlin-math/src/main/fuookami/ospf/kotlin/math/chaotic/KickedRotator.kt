@@ -1,6 +1,6 @@
 /**
- * Arnold 猫映射
- * Arnold's Cat Map
+ * 受击转子
+ * Kicked Rotator
  */
 package fuookami.ospf.kotlin.math.chaotic
 
@@ -12,21 +12,27 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property two 常量 2 / Constant 2
+ * 受击转子
+ * Kicked Rotator
+ *
+ * @property k 系统参数 k / System parameter k
  */
-data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
-    override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
-        val one = x[0].constants.one
-        return Point<Dim2, V>(listOf((two * x[0] + x[1]) mod one, (x[0] + x[1]) mod one), Dim2)
+data class KickedRotator<V : FloatingNumber<V>>(val k: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
+    @Suppress("UNCHECKED_CAST")
+    override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
+        val x = p[0];
+        val y = p[1]
+        val newX = x + k * (y.sin() as V)
+        return Point<Dim2, V>(listOf(newX, y + newX), Dim2)
     }
 
     companion object {
-        operator fun invoke(): ArnoldsCatMap<Flt64> = ArnoldsCatMap(Flt64.two)
+        operator fun invoke(k: Flt64 = Flt64(0.971635)): KickedRotator<Flt64> = KickedRotator(k)
     }
 }
 
-data class ArnoldsCatMapGenerator(
-    val map: ArnoldsCatMap<Flt64> = ArnoldsCatMap(),
+data class KickedRotatorGenerator(
+    val map: KickedRotator<Flt64> = KickedRotator(),
     private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(
             Flt64.decimalPrecision,
