@@ -44,7 +44,7 @@ class InitialFlightTaskBunchGeneratorTest {
     @Test
     fun `InitialFlightTaskBunchGenerator has default config`() {
         val config = InitialFlightTaskBunchGenerator.config
-        assertFalse(config.checkEnabledTime)
+        assertTrue(config.checkEnabledTime)
     }
 
     @Test
