@@ -21,9 +21,6 @@ sealed class Link(
 /**
  * 两个未恢复航段之间的连接链接。A connecting link between two unrecovered flight legs.
  *
- * @property override val prevTask 参数。
- * @property override val succTask 参数。
- * @property override val splitCost 参数。
  */
 data class ConnectingLink(
     override val prevTask: FlightTask,
@@ -55,9 +52,6 @@ data class ConnectingLink(
 /**
  * 具有计算连接时间的两个未恢复航段之间的经停链接。A stopover link between two unrecovered flight legs with computed connection time.
  *
- * @property override val prevTask 参数。
- * @property override val succTask 参数。
- * @property override val splitCost 参数。
  */
 data class StopoverLink(
     override val prevTask: FlightTask,
@@ -91,9 +85,6 @@ data class StopoverLink(
 /**
  * 忽略连接时间约束的两个未恢复航段之间的链接。A link between two unrecovered flight legs that ignores connection time constraints.
  *
- * @property override val prevTask 参数。
- * @property override val succTask 参数。
- * @property override val splitCost 参数。
  */
 data class ConnectionTimeIgnoringLink(
     override val prevTask: FlightTask,

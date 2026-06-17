@@ -18,7 +18,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  *
  * @property private val edges 参数。
  * @property private val edgeBandwidth 参数。
- * @property override val name 参数。
  */
 class BandwidthCostObjective(
     private val edges: List<Edge>,

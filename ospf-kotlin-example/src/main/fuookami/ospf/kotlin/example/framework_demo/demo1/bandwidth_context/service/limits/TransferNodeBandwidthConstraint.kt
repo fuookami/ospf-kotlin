@@ -32,7 +32,6 @@ fun Node.maxOutDegree(): UInt64 {
  * @property private val nodes 参数。
  * @property private val assignment 参数。
  * @property private val nodeBandwidth 参数。
- * @property override val name 参数。
  */
 class TransferNodeBandwidthConstraint(
     private val nodes: ArrayList<Node>,

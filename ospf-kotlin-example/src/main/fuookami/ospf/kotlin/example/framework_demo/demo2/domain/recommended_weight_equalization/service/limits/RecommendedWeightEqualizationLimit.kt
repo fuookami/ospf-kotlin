@@ -22,7 +22,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * @property private val aircraftModel 参数。
  * @property private val positions 参数。
  * @property private val load 参数。
- * @property override val name 参数。
  */
 class RecommendedWeightEqualizationLimit(
     private val aircraftModel: AircraftModel,

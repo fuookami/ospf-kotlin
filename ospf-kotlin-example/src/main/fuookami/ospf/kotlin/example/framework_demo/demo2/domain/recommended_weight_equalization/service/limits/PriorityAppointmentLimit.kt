@@ -22,7 +22,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * @property private val appointment 参数。
  * @property private val priorityAppointment 参数。
  * @property private val stowage 参数。
- * @property override val name 参数。
  */
 class PriorityAppointmentLimit(
     private val items: List<Item>,

@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * 约束压载重量以满足最低要求的压载重量。Constrains ballast weight to meet the minimum required ballast weight.
  *
  * @property private val ballast 参数。
- * @property override val name 参数。
  */
 class BallastWeightLimit(
     private val ballast: Ballast,

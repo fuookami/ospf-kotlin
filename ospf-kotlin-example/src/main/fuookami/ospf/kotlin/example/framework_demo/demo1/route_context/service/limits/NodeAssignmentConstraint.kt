@@ -15,7 +15,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  *
  * @property private val nodes 参数。
  * @property private val assignment 参数。
- * @property override val name 参数。
  */
 class NodeAssignmentConstraint(
     private val nodes: List<Node>,

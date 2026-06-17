@@ -33,7 +33,6 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * @property private val passengers 参数。
  * @property private val time 参数。
  * @property private val change 参数。
- * @property override val name 参数。
  */
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow<*>,

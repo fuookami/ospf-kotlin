@@ -17,7 +17,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
  *
  * @property private val torque 参数。
  * @property private val envelopes 参数。
- * @property override val name 参数。
  */
 class EnvelopeLimit(
     private val torque: Torque,

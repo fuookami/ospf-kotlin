@@ -41,7 +41,6 @@ data object Demo14 {
     /**
      * 具有存储容量的生产节点。A production node with storage capacity.
      *
-     * @property override val name 参数。
      * @property storage 参数。
      */
     class Product(
@@ -52,7 +51,6 @@ data object Demo14 {
     /**
      * 具有需求量的销售节点。A sales node with demand quantity.
      *
-     * @property override val name 参数。
      * @property demand 参数。
      */
     class Sale(
@@ -63,7 +61,6 @@ data object Demo14 {
     /**
      * 转运（分销）节点。A transshipment (distribution) node.
      *
-     * @property override val name 参数。
      */
     class Distribution(
         override val name: String

@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Ser
  *
  * @property private val services 参数。
  * @property private val assignment 参数。
- * @property override val name 参数。
  */
 class ServiceAssignmentConstraint(
     private val services: List<Service>,

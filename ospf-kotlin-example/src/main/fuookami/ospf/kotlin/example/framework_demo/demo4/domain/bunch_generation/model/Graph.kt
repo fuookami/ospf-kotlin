@@ -33,7 +33,6 @@ object EndNode : Node(end) {
  * 路线图中表示航班任务的任务节点。Task node representing a flight task in the route graph.
  *
  * @property task 参数。
- * @property override val time 参数。
  * @property index 参数。
  */
 class TaskNode(

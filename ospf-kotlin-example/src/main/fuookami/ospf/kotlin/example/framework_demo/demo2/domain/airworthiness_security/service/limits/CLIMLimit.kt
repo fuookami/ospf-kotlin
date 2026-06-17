@@ -19,7 +19,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
  *
  * @property private val torque 参数。
  * @property private val maxCLIM 参数。
- * @property override val name 参数。
  */
 class CLIMLimit(
     private val torque: Torque,

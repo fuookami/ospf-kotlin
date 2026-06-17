@@ -8,10 +8,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
  * 通过代码和工号标识的飞行员（具有池化实例管理）。A pilot identified by code and worker number, with pooled instance management.
  *
  * @property code 参数。
- * @property override val workerNo 参数。
- * @property override val name 参数。
- * @property override val displayName 参数。
- * @property override val nationality 参数。
  */
 data class Pilot(
     val code: PilotCode,

@@ -21,7 +21,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  * @property private val services 参数。
  * @property private val assignment 参数。
  * @property private val serviceBandwidth 参数。
- * @property override val name 参数。
  */
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,

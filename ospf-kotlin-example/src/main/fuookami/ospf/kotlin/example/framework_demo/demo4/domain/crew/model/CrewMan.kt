@@ -15,10 +15,6 @@ sealed interface AbstractCrewMan {
 /**
  * 通过工号标识的非飞行员机组成员（具有池化实例管理）。A non-pilot crew member identified by worker number, with pooled instance management.
  *
- * @property override val workerNo 参数。
- * @property override val name 参数。
- * @property override val displayName 参数。
- * @property override val nationality 参数。
  */
 data class CrewMan(
     override val workerNo: WorkerNo,

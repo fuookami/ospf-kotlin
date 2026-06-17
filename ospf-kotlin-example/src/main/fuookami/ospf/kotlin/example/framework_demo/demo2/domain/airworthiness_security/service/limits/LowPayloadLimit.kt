@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  *
  * @property private val payload 参数。
  * @property private val minLowPayload 参数。
- * @property override val name 参数。
  */
 class LowPayloadLimit(
     private val payload: Payload,

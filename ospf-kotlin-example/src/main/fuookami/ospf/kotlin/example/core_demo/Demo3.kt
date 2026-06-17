@@ -26,24 +26,27 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产规划：在满足产品产量要求的同时最小化成本。Production planning: minimize cost while meeting product yield requirements. * * * @see     https://fuookami.github.io/ospf/examples/example3.html */
+/**
+ * 生产规划：在满足产品产量要求的同时最小化成本。
+ * Production planning: minimize cost while meeting product yield requirements.
+ *
+ * @see     https://fuookami.github.io/ospf/examples/example3.html
+ */
 data object Demo3 {
-    * @property minYield 参数。
-    * @property minYield 参数。
-    * @property minYield 参数。
     /**
-     * 具有最低产量要求的产品。A product with a minimum yield requirement.
+     * 具有最低产量要求的产品。
+     * A product with a minimum yield requirement.
      *
-     * @property minYield 参数。
-     * @property minYield 参数。
+     * @property minYield 最低产量。
      */
     data class Product(val minYield: Flt64) : AutoIndexed(Product::class)
 
     /**
-     * 具有成本和每产品产量的物料。A material with cost and yield per product.
+     * 具有成本和每产品产量的物料。
+     * A material with cost and yield per product.
      *
-     * @property cost 参数。
-     * @property yieldQuantity 参数。
+     * @property cost 成本。
+     * @property yieldQuantity 每产品产量。
      */
     data class Material(
         val cost: Flt64,

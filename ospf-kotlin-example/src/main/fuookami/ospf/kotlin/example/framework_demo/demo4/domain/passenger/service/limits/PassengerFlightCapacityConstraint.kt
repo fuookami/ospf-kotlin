@@ -19,7 +19,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * @property private val flights 参数。
  * @property private val amount 参数。
  * @property private val capacity 参数。
- * @property override val name 参数。
  */
 class PassengerFlightCapacityConstraint(
     private val flights: List<FlightTask>,

@@ -17,7 +17,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  *
  * @property private val passengers 参数。
  * @property private val cancel 参数。
- * @property override val name 参数。
  */
 class PassengerRouteCancelConstraint(
     private val passengers: List<FlightPassenger>,

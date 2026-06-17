@@ -9,11 +9,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 /**
  * 具有固定飞机、时间和机场的 AOG（飞机停场）计划。An AOG (Aircraft On Ground) plan with fixed aircraft, time, and airport.
  *
- * @property override val aircraft 参数。
- * @property override val scheduledTime 参数。
  * @property airport 参数。
  * @property status 参数。
- * @property override val actualId 参数。
  */
 class AOGPlan(
     override val aircraft: Aircraft,

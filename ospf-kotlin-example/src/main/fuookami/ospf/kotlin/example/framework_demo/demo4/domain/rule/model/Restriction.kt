@@ -64,7 +64,6 @@ sealed interface RestrictionCheckingResult {
 /**
  * 表示限制不适用的结果。Result indicating the restriction does not apply.
  *
- * @property override val restriction 参数。
  */
 data class NotMatter(
     override val restriction: Restriction
@@ -73,7 +72,6 @@ data class NotMatter(
 /**
  * 表示强违反的结果。Result indicating a strong violation.
  *
- * @property override val restriction 参数。
  */
 data class Violate(
     override val restriction: Restriction
@@ -82,7 +80,6 @@ data class Violate(
 /**
  * 表示无违反的结果。Result indicating no violation.
  *
- * @property override val restriction 参数。
  */
 data class NotViolate(
     override val restriction: Restriction
@@ -91,7 +88,6 @@ data class NotViolate(
 /**
  * 表示可违反（软）违反的结果。Result indicating a violable (soft) violation.
  *
- * @property override val restriction 参数。
  */
 data class ViolableViolate(
     override val restriction: Restriction
@@ -106,7 +102,6 @@ enum class RelationRestrictionCategory {
 /**
  * 基于机场对和飞机集关系的限制。A restriction based on airport pair and aircraft set relationships.
  *
- * @property override val type 参数。
  * @property category 参数。
  * @property dep 参数。
  * @property arr 参数。
@@ -295,7 +290,6 @@ data class DisabledAircraftGeneralRestrictionCondition(
 /**
  * 具有可配置条件和飞机过滤器的通用限制。A general restriction with configurable conditions and aircraft filters.
  *
- * @property override val type 参数。
  * @property condition 参数。
  * @property enabledAircrafts 参数。
  * @property disabledAircrafts 参数。

@@ -26,25 +26,28 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产优化：在物料和产量差异约束下最大化利润。Production optimization: maximize profit with material and production difference constraints. * * * @see     https://fuookami.github.io/ospf/examples/example4.html */
+/**
+ * 生产优化：在物料和产量差异约束下最大化利润。
+ * Production optimization: maximize profit with material and production difference constraints.
+ *
+ * @see     https://fuookami.github.io/ospf/examples/example4.html
+ */
 data object Demo4 {
-    * @property available 参数。
-    * @property available 参数。
-    * @property available 参数。
     /**
-     * 具有可用数量的物料。A material with an available quantity.
+     * 具有可用数量的物料。
+     * A material with an available quantity.
      *
-     * @property available 参数。
-     * @property available 参数。
+     * @property available 可用数量。
      */
     data class Material(val available: Flt64) : AutoIndexed(Material::class)
 
     /**
-     * 具有利润、最大产量和物料使用的产品。A product with profit, max yield, and material usage.
+     * 具有利润、最大产量和物料使用的产品。
+     * A product with profit, max yield, and material usage.
      *
-     * @property profit 参数。
-     * @property maxYield 参数。
-     * @property use 参数。
+     * @property profit 利润。
+     * @property maxYield 最大产量。
+     * @property use 物料使用。
      */
     data class Product(
         val profit: Flt64,

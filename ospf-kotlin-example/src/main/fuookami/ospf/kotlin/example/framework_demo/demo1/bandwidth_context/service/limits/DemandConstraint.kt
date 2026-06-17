@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
  *
  * @property private val nodes 参数。
  * @property private val nodeBandwidth 参数。
- * @property override val name 参数。
  */
 class DemandConstraint(
     private val nodes: List<Node>,

@@ -60,20 +60,13 @@ enum class FlightType {
 /**
  * 具有计划/估计/实际时间、飞机和航线信息的航段计划。A flight leg plan with scheduled/estimated/actual times, aircraft, and route information.
  *
- * @property override val actualId 参数。
  * @property no 参数。
  * @property type 参数。
  * @property date 参数。
- * @property override val aircraft 参数。
- * @property override val enabledAircrafts 参数。
- * @property override val dep 参数。
- * @property override val arr 参数。
- * @property override val scheduledTime 参数。
  * @property estimatedTime 参数。
  * @property actualTime 参数。
  * @property outTime 参数。
  * @property flightTaskStatus 参数。
- * @property override val weight 参数。
  */
 class FlightLegPlan(
     override val actualId: String,

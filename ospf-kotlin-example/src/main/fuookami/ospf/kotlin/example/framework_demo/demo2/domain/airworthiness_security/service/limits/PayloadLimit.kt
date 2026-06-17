@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * 约束总载荷不超过最大允许载荷。Constrains the total payload to not exceed the maximum allowed payload.
  *
  * @property private val payload 参数。
- * @property override val name 参数。
  */
 class PayloadLimit(
     private val payload: Payload,

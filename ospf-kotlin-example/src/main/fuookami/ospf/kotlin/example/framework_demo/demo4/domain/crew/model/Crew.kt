@@ -24,7 +24,6 @@ sealed interface CrewMember {
 /**
  * 作为飞行员的机组成员（将身份字段委托给底层 [Pilot]）。A crew member who is a pilot, delegating identity fields to the underlying [Pilot].
  *
- * @property override val type 参数。
  * @property rank 参数。
  * @property pilot 参数。
  */
@@ -46,7 +45,6 @@ data class CrewPilotMember(
 /**
  * 非飞行员的机组成员（将身份字段委托给底层 [CrewMan]）。A crew member who is not a pilot, delegating identity fields to the underlying [CrewMan].
  *
- * @property override val type 参数。
  * @property rank 参数。
  * @property crewMan 参数。
  */

@@ -56,8 +56,6 @@ data object Demo17 {
     /**
      * 仓库起点节点。The depot origin node.
      *
-     * @property override val position 参数。
-     * @property override val timeWindow 参数。
      */
     data class OriginNode(
         override val position: GeometryPoint<Dim2, Flt64>,
@@ -67,8 +65,6 @@ data object Demo17 {
     /**
      * 仓库终点（返回）节点。The depot end (return) node.
      *
-     * @property override val position 参数。
-     * @property override val timeWindow 参数。
      */
     data class EndNode(
         override val position: GeometryPoint<Dim2, Flt64>,
@@ -78,9 +74,6 @@ data object Demo17 {
     /**
      * 具有需求和服务时长的客户节点。A customer node with demand and service duration.
      *
-     * @property override val position 参数。
-     * @property override val timeWindow 参数。
-     * @property override val demand 参数。
      * @property serviceTime 参数。
      */
     data class DemandNode(
