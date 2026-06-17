@@ -3,18 +3,20 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure
 
 import java.util.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.gurobi.*
 import fuookami.ospf.kotlin.core.solver.scip.*
-
 import fuookami.ospf.kotlin.framework.solver.*
 
-/** Builder for constructing a column generation solver based on configuration and callback type. */
+/** 基于配置和回调类型构建列生成求解器的构建器。Builder for constructing a column generation solver based on configuration and callback type. */
 data object LinearSolverBuilder {
-    /** Creates a [ColumnGenerationSolver] using the given solver name, config, and optional callback. */
+    /**
+     * Creates a [ColumnGenerationSolver] using the given solver name, config, and optional callback.
+ *
+     * @param solver 参数。
+     * @param config 参数。
+     */
     operator fun invoke(
         solver: String? = null,
         config: SolverConfig = SolverConfig(),

@@ -2,16 +2,16 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation
 
-import kotlin.time.*
 import kotlinx.datetime.*
+import kotlin.time.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Context for bunch generation, managing aggregation and generators. */
+/** 批次生成上下文（管理聚合和生成器）。Context for bunch generation, managing aggregation and generators. */
 class BunchGenerationContext {
     private lateinit var aggregation: Aggregation
     private lateinit var feasibilityJudger: FlightTaskFeasibilityJudger
@@ -19,10 +19,25 @@ class BunchGenerationContext {
     private lateinit var costCalculator: CostCalculator
     private lateinit var totalCostCalculator: TotalCostCalculator
 
-    /** Gets the initial flight bunches. */
+    /** 获取初始航班束。Gets the initial flight bunches. */
     val initialFlightBunches get() = aggregation.initialFlightBunches
 
-    /** Initializes the bunch generation context. */
+    /**
+     * Initializes the bunch generation context.
+ *
+     * @param aircrafts 参数。
+     * @param aircraftUsability 参数。
+     * @param flightTasks 参数。
+     * @param originBunches 参数。
+     * @param lock 参数。
+     * @param connectionTimeCalculator 参数。
+     * @param minimumDepartureTimeCalculator 参数。
+     * @param ruleChecker 参数。
+     * @param costCalculator 参数。
+     * @param totalCostCalculator 参数。
+     * @param withOrderChange 参数。
+     * @return 返回结果。
+     */
     fun init(
         aircrafts: List<Aircraft>,
         aircraftUsability: Map<Aircraft, AircraftUsability>,
@@ -86,7 +101,14 @@ class BunchGenerationContext {
         return ok
     }
 
-    /** Generates flight task bunches for the given aircrafts and shadow price map. */
+    /**
+     * Generates flight task bunches for the given aircrafts and shadow price map.
+ *
+     * @param aircrafts 参数。
+     * @param iteration 参数。
+     * @param shadowPriceMap 参数。
+     * @return 返回结果。
+     */
     fun generateFlightTaskBunch(
         aircrafts: List<Aircraft>,
         iteration: Int64,

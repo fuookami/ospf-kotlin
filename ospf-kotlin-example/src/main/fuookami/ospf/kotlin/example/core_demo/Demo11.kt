@@ -1,18 +1,13 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -21,6 +16,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -29,18 +25,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Maximum flow problem: find the maximum flow from source to sink in a capacitated network. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example11.html
- */
-data object Demo11 {
-    /** A node in the flow network. */
+/** * 最大流问题：在容量网络中找到从源到汇的最大流。Maximum flow problem: find the maximum flow from source to sink in a capacitated network. * * * @see     https://fuookami.github.io/ospf/examples/example11.html */data object Demo11 {
+    /** 流网络中的节点。A node in the flow network. */
     sealed class Node : AutoIndexed(Node::class)
-    /** The source node of the flow network. */
+    /** 流网络的源节点。The source node of the flow network. */
     class RootNode : Node()
-    /** The sink node of the flow network. */
+    /** 流网络的汇节点。The sink node of the flow network. */
     class EndNode : Node()
-    /** An intermediate node in the flow network. */
+    /** 流网络中的中间节点。An intermediate node in the flow network. */
     class NormalNode : Node()
 
     val nodes: List<Node> = listOf(
@@ -49,7 +41,7 @@ data object Demo11 {
         listOf(EndNode())
     ).flatten()
 
-    /** Edge capacity between connected nodes. */
+    /** 连接节点间的边容量。Edge capacity between connected nodes. */
     val capacities = mapOf(
         nodes[0] to mapOf(
             nodes[1] to UInt64(15),
@@ -98,7 +90,11 @@ data object Demo11 {
         Demo11::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -116,7 +112,11 @@ data object Demo11 {
         return ok
     }
 
-    /** Initializes edge flow variables and the total flow variable. */
+    /**
+     * Initializes edge flow variables and the total flow variable.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
         for (node1 in nodes) {
@@ -136,7 +136,11 @@ data object Demo11 {
         return ok
     }
 
-    /** Creates flow-in and flow-out expression symbols for each node. */
+    /**
+     * Creates flow-in and flow-out expression symbols for each node.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         flowIn = LinearIntermediateSymbols1<Flt64>(
             "flow_in",
@@ -161,13 +165,21 @@ data object Demo11 {
         return ok
     }
 
-    /** Sets the objective to maximize total flow. */
+    /**
+     * Sets the objective to maximize total flow.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.maximize(flow, "flow")
         return ok
     }
 
-    /** Adds flow conservation constraints for source, sink, and intermediate nodes. */
+    /**
+     * Adds flow conservation constraints for source, sink, and intermediate nodes.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         val rootNode = nodes.first { it is RootNode }
         metaModel.addConstraint(
@@ -192,7 +204,11 @@ data object Demo11 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -211,7 +227,11 @@ data object Demo11 {
         return ok
     }
 
-    /** Extracts the edge flows from the solution. */
+    /**
+     * Extracts the edge flows from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val flow: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {

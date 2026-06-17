@@ -3,7 +3,14 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
-/** Defines the loading order constraints between cargo positions, including precedence and succession relationships. */
+/**
+ * 定义货物位置之间的装载顺序约束（包括前驱和后继关系）。Defines the loading order constraints between cargo positions, including precedence and succession relationships.
+ *
+ * @property location 参数。
+ * @property order 参数。
+ * @property directPrec 参数。
+ * @property directSucc 参数。
+ */
 data class LoadingOrder(
     val location: DeckLocation,
     val order: UInt8,

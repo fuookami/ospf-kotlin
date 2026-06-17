@@ -3,15 +3,22 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
 import kotlin.time.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Generates initial flight task bunches for each aircraft. */
+/**
+ * 为每架飞机生成初始航班任务束。Generates initial flight task bunches for each aircraft.
+ *
+ * @property feasibilityJudger 参数。
+ * @property connectionTimeCalculator 参数。
+ * @property minimumDepartureTimeCalculator 参数。
+ * @property costCalculator 参数。
+ */
 class InitialFlightTaskBunchGenerator(
     val feasibilityJudger: FlightTaskFeasibilityJudger,
     val connectionTimeCalculator: ConnectionTimeCalculator,
@@ -24,7 +31,15 @@ class InitialFlightTaskBunchGenerator(
         )
     }
 
-    /** Generates an initial bunch for the given aircraft. */
+    /**
+     * Generates an initial bunch for the given aircraft.
+ *
+     * @param aircraft 参数。
+     * @param aircraftUsability 参数。
+     * @param lockedFlightTasks 参数。
+     * @param originBunch 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,
@@ -35,7 +50,14 @@ class InitialFlightTaskBunchGenerator(
             ?: emptyBunch(aircraft, aircraftUsability, lockedFlightTasks)
     }
 
-    /** Generates an empty bunch with only locked tasks. */
+    /**
+     * Generates an empty bunch with only locked tasks.
+ *
+     * @param aircraft 参数。
+     * @param aircraftUsability 参数。
+     * @param lockedFlightTasks 参数。
+     * @return 返回结果。
+     */
     fun emptyBunch(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,

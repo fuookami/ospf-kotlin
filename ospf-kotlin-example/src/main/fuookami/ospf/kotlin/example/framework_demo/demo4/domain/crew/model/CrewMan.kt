@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** Sealed interface for crew man entities with worker number and identity information. */
+/** 具有工号和身份信息的机组人员实体的密封接口。Sealed interface for crew man entities with worker number and identity information. */
 sealed interface AbstractCrewMan {
     val workerNo: WorkerNo?
     val name: String
@@ -12,7 +12,14 @@ sealed interface AbstractCrewMan {
     val nationality: String
 }
 
-/** A non-pilot crew member identified by worker number, with pooled instance management. */
+/**
+ * 通过工号标识的非飞行员机组成员（具有池化实例管理）。A non-pilot crew member identified by worker number, with pooled instance management.
+ *
+ * @property override val workerNo 参数。
+ * @property override val name 参数。
+ * @property override val displayName 参数。
+ * @property override val nationality 参数。
+ */
 data class CrewMan(
     override val workerNo: WorkerNo,
     override val name: String,
@@ -23,7 +30,12 @@ data class CrewMan(
         private val pool = HashMap<WorkerNo, CrewMan>()
         val values by pool::values
 
-        /** Retrieves a [CrewMan] by worker number from the pool. */
+        /**
+         * Retrieves a [CrewMan] by worker number from the pool.
+ *
+         * @param workerNo 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(workerNo: WorkerNo): CrewMan? {
             return pool[workerNo]
         }

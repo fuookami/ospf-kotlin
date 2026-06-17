@@ -2,21 +2,27 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits.*
-
-/** Generator for the column generation pipeline list including compilation constraints and limits. */
+/**
+ * 包含编译约束和限制的列生成管线列表生成器。Generator for the column generation pipeline list including compilation constraints and limits.
+ *
+ * @property private val aggregation 参数。
+ */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
-    /** Creates and returns the pipeline list with all compilation constraints and limits. */
+    /**
+     * Creates and returns the pipeline list with all compilation constraints and limits.
+ *
+     * @return 返回结果。
+     */
     operator fun invoke(): Ret<CGPipelineList> {
         val pipelines = ArrayList<CGPipeline>()
 

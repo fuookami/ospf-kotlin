@@ -2,20 +2,20 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
+import kotlinx.datetime.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.hours
-import kotlinx.datetime.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Initializes the bunch generation aggregation with graphs, reverse pairs, and initial bunches. */
+/** 使用图、可反转对和初始批次初始化批次生成聚合。Initializes the bunch generation aggregation with graphs, reverse pairs, and initial bunches. */
 class AggregationInitializer {
     companion object {
         val config = FlightTaskFeasibilityJudger.Config(
@@ -24,7 +24,19 @@ class AggregationInitializer {
         )
     }
 
-    /** Initializes the aggregation for bunch generation. */
+    /**
+     * Initializes the aggregation for bunch generation.
+ *
+     * @param aircrafts 参数。
+     * @param aircraftUsability 参数。
+     * @param flightTasks 参数。
+     * @param originBunches 参数。
+     * @param lock 参数。
+     * @param flightTaskFeasibilityJudger 参数。
+     * @param initialFlightTaskBunchGenerator 参数。
+     * @param withOrderChange 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(
         aircrafts: List<Aircraft>,
         aircraftUsability: Map<Aircraft, AircraftUsability>,

@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 import kotlin.math.abs
-
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 
 object FeasibilityDiagnostics {

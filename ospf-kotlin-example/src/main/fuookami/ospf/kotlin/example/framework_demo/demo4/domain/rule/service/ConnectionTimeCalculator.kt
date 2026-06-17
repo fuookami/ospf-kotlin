@@ -2,6 +2,6 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.service
 
-/** Calculator for computing connection times between consecutive flight tasks. */
+/** 计算连续航班任务之间连接时间的计算器。Calculator for computing connection times between consecutive flight tasks. */
 class ConnectionTimeCalculator {
 }

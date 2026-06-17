@@ -1,13 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
 
-/** Tags describing the location of a cargo position within the aircraft. */
+/** 描述飞机内货物位置位置的标签。Tags describing the location of a cargo position within the aircraft. */
 enum class PositionLocationTag {
     Main,
     Low,
@@ -18,7 +16,11 @@ enum class PositionLocationTag {
     Tail
 }
 
-/** A set of location tags that classify a cargo position's placement. */
+/**
+ * 分类货物位置放置的一组位置标签。A set of location tags that classify a cargo position's placement.
+ *
+ * @property tags 参数。
+ */
 data class PositionLocation(
     val tags: Set<PositionLocationTag>
 ) {
@@ -56,7 +58,16 @@ operator fun DeckLocation.contains(location: PositionLocation): Boolean {
     return location.location == this
 }
 
-/** Coordinate system for a cargo position with longitudinal and lateral arm measurements. */
+/**
+ * 具有纵向和横向臂测量的货物位置坐标系。Coordinate system for a cargo position with longitudinal and lateral arm measurements.
+ *
+ * @property private val aircraftModel 参数。
+ * @property frontArm 参数。
+ * @property backArm 参数。
+ * @property leftArm 参数。
+ * @property rightArm 参数。
+ * @property offsets 参数。
+ */
 class PositionCoordinate(
     private val aircraftModel: AircraftModel,
     val frontArm: Quantity<Flt64>,
@@ -121,7 +132,14 @@ class PositionCoordinate(
     }
 }
 
-/** Physical dimensions and area of a cargo position. */
+/**
+ * 货物位置的物理尺寸和面积。Physical dimensions and area of a cargo position.
+ *
+ * @property private val aircraftModel 参数。
+ * @property length 参数。
+ * @property width 参数。
+ * @property volume 参数。
+ */
 data class PositionShape(
     private val aircraftModel: AircraftModel,
     val length: Quantity<Flt64>,
@@ -131,7 +149,17 @@ data class PositionShape(
     val area = (length * width).to(aircraftModel.areaUnit)!!
 }
 
-/** A cargo position on the aircraft with its coordinates, shape, location, and loading order. */
+/**
+ * 飞机上的货物位置（具有坐标、形状、位置和装载顺序）。A cargo position on the aircraft with its coordinates, shape, location, and loading order.
+ *
+ * @property id 参数。
+ * @property spaceName 参数。
+ * @property sizeCode 参数。
+ * @property linearLoadingOrder 参数。
+ * @property coordinate 参数。
+ * @property shape 参数。
+ * @property location 参数。
+ */
 data class Position(
     val id: UInt64,
     val spaceName: String,

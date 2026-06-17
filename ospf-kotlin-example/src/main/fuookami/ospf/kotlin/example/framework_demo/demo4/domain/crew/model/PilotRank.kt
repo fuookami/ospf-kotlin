@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** Enumerates the predefined pilot rank classes with their rank numbers. */
+/** 枚举预定义的飞行员职级类别及其职级编号。Enumerates the predefined pilot rank classes with their rank numbers. */
 enum class PilotRankClass(val no: PilotRankNo) {
     Captain(PilotRankNo("A001")),
     SecondInCommand(PilotRankNo("A002")),
@@ -15,7 +15,14 @@ enum class PilotRankClass(val no: PilotRankNo) {
     PilotObserver(PilotRankNo("K001")),
 }
 
-/** A pilot rank with optional class, number, name, and pooled instance management. */
+/**
+ * 具有可选类别、编号、名称和池化实例管理的飞行员职级。A pilot rank with optional class, number, name, and pooled instance management.
+ *
+ * @property cls 参数。
+ * @property no 参数。
+ * @property name 参数。
+ * @property displayName 参数。
+ */
 data class PilotRank(
     val cls: PilotRankClass?,
     val no: PilotRankNo,
@@ -26,12 +33,22 @@ data class PilotRank(
         private val pool = HashMap<PilotRankNo, PilotRank>()
         val values by pool::values
 
-        /** Retrieves a [PilotRank] by class from the pool. */
+        /**
+         * Retrieves a [PilotRank] by class from the pool.
+ *
+         * @param cls 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(cls: PilotRankClass): PilotRank? {
             return pool[cls.no]
         }
 
-        /** Retrieves a [PilotRank] by rank number from the pool. */
+        /**
+         * Retrieves a [PilotRank] by rank number from the pool.
+ *
+         * @param no 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(no: PilotRankNo): PilotRank? {
             return pool[no]
         }

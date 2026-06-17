@@ -1,18 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 class ItemAssignmentLimit(
     private val items: List<Item>,

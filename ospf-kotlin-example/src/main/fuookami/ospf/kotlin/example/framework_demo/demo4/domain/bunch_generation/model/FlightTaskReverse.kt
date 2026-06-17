@@ -7,16 +7,22 @@ import kotlin.time.Duration.Companion.hours
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Manages reversible flight task pairs for order change operations. */
+/** 管理用于顺序变更操作的可反转航班任务对。Manages reversible flight task pairs for order change operations. */
 class FlightTaskReverse private constructor(
     private val symmetricalPairs: List<ReversiblePair> = ArrayList(),
     private val leftMapper: Map<TaskKey, List<ReversiblePair>>,
     private val rightMapper: Map<TaskKey, List<ReversiblePair>>
 ) {
-    /** A pair of tasks that can be reversed. */
+    /**
+     * 可以反转的一对任务。A pair of tasks that can be reversed.
+     *
+     * @property prevTask 参数。
+     * @property succTask 参数。
+     * @property symmetrical 参数。
+     */
     data class ReversiblePair(
         val prevTask: FlightTask,
         val succTask: FlightTask,
@@ -27,7 +33,15 @@ class FlightTaskReverse private constructor(
         val defaultTimeDifferenceLimit = 5.hours
         val criticalSize = UInt64(200UL)
 
-        /** Creates a FlightTaskReverse from a list of task pairs. */
+        /**
+         * Creates a FlightTaskReverse from a list of task pairs.
+ *
+         * @param pairs 参数。
+         * @param originBunches 参数。
+         * @param lock 参数。
+         * @param timeDifferenceLimit 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(
             pairs: List<Pair<FlightTask, FlightTask>>,
             originBunches: List<FlightTaskBunch>,
@@ -66,7 +80,15 @@ class FlightTaskReverse private constructor(
             )
         }
 
-        /** Checks if two tasks can be reversed. */
+        /**
+         * Checks if two tasks can be reversed.
+ *
+         * @param prevFlightTask 参数。
+         * @param succFlightTask 参数。
+         * @param lock 参数。
+         * @param timeDifferenceLimit 参数。
+         * @return 返回结果。
+         */
         fun reverseEnabled(
             prevFlightTask: FlightTask,
             succFlightTask: FlightTask,
@@ -118,7 +140,15 @@ class FlightTaskReverse private constructor(
             return false
         }
 
-        /** Checks if two tasks are symmetrical (can be reversed in both directions). */
+        /**
+         * Checks if two tasks are symmetrical (can be reversed in both directions).
+ *
+         * @param prevFlightTask 参数。
+         * @param succFlightTask 参数。
+         * @param lock 参数。
+         * @param timeDifferenceLimit 参数。
+         * @return 返回结果。
+         */
         fun symmetrical(
             prevFlightTask: FlightTask,
             succFlightTask: FlightTask,
@@ -142,22 +172,44 @@ class FlightTaskReverse private constructor(
         }
     }
 
-    /** Checks if a pair of tasks can be reversed. */
+    /**
+     * Checks if a pair of tasks can be reversed.
+ *
+     * @param prevFlightTask 参数。
+     * @param succFlightTask 参数。
+     * @return 返回结果。
+     */
     fun contains(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         return leftMapper[prevFlightTask.key]?.any { it.succTask == succFlightTask } ?: false
     }
 
-    /** Checks if a pair of tasks are symmetrical. */
+    /**
+     * Checks if a pair of tasks are symmetrical.
+ *
+     * @param prevFlightTask 参数。
+     * @param succFlightTask 参数。
+     * @return 返回结果。
+     */
     fun symmetrical(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         return leftMapper[prevFlightTask.key]?.find { it.succTask == succFlightTask.originTask }?.symmetrical ?: false
     }
 
-    /** Finds all reversible pairs where the given task is the predecessor. */
+    /**
+     * Finds all reversible pairs where the given task is the predecessor.
+ *
+     * @param flightTask 参数。
+     * @return 返回结果。
+     */
     fun leftFind(flightTask: FlightTask): List<ReversiblePair> {
         return leftMapper[flightTask.key] ?: emptyList()
     }
 
-    /** Finds all reversible pairs where the given task is the successor. */
+    /**
+     * Finds all reversible pairs where the given task is the successor.
+ *
+     * @param flightTask 参数。
+     * @return 返回结果。
+     */
     fun rightFind(flightTask: FlightTask): List<ReversiblePair> {
         return rightMapper[flightTask.key] ?: emptyList()
     }

@@ -2,14 +2,19 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure
 
-import java.time.format.*
-import kotlin.time.Instant
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toJavaZoneId
+import kotlin.time.Instant
+import java.time.format.*
 
 private val shortTimeFormatter: DateTimeFormatter = DateTimeFormatter
         .ofPattern("MMddHHmm")
         .withZone(TimeZone.currentSystemDefault().toJavaZoneId())
 
-/** Formats an [Instant] as a short string using the "MMddHHmm" pattern. */
+/**
+ * 使用 "MMddHHmm" 模式将 [Instant] 格式化为短字符串。
+ * Formats an [Instant] as a short string using the "MMddHHmm" pattern.
+ *
+ * @return 格式化后的短字符串。
+ */
 fun Instant.toShortString(): String = shortTimeFormatter.format(java.time.Instant.ofEpochMilli(this.toEpochMilliseconds()))

@@ -1,24 +1,27 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
-/** Minimizes priority reversals between item pairs across position pairs. */
+/**
+ * 最小化位置对之间的项目对的优先级反转。Minimizes priority reversals between item pairs across position pairs.
+ *
+ * @property private val orderedItems 参数。
+ * @property private val orderedPositions 参数。
+ * @property private val unloading 参数。
+ * @property private val coefficient 参数。
+ */
 class ItemPriorityReverseLimit(
     private val orderedItems: List<ItemPair>,
     private val orderedPositions: List<PositionPair>,

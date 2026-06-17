@@ -1,22 +1,14 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
 import java.util.*
-
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -24,9 +16,19 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
-/** Interface for CG envelope constraints that define min/max index bounds per flight phase. */
+/** 定义每个飞行阶段最小/最大指数边界的 CG 包络线约束接口。Interface for CG envelope constraints that define min/max index bounds per flight phase. */
 interface AbstractEnvelope {
+    /**
+     * 包络线上的点。
+     * A point on the envelope.
+     *
+     * @property totalWeight 总重量。
+     * @property index 指数。
+     */
     data class Point(
         val totalWeight: Quantity<Flt64>,
         val index: Quantity<Flt64>
@@ -37,6 +39,14 @@ interface AbstractEnvelope {
         Right
     }
 
+    /**
+     * 包络线的一侧。
+     * A side of the envelope.
+     *
+     * @property name 名称。
+     * @property type 类型。
+     * @property points 点列表。
+     */
     class Side(
         private val aircraftModel: AircraftModel,
         val name: String,
@@ -83,7 +93,16 @@ interface AbstractEnvelope {
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
-/** Standard CG envelope with left and right sides defining min/max index bounds. */
+/**
+ * 具有定义最小/最大指数边界的左右两侧的标准 CG 包络线。Standard CG envelope with left and right sides defining min/max index bounds.
+ *
+ * @property private val aircraftModel 参数。
+ * @property override val phase 参数。
+ * @property override val name 参数。
+ * @property lhsSide 参数。
+ * @property rhsSide 参数。
+ * @property private val totalWeight 参数。
+ */
 class Envelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,
@@ -162,7 +181,18 @@ class Envelope(
     }
 }
 
-/** CG envelope with conditional sides that switch based on a runtime condition. */
+/**
+ * 具有基于运行时条件切换的条件边的 CG 包络线。CG envelope with conditional sides that switch based on a runtime condition.
+ *
+ * @property private val aircraftModel 参数。
+ * @property override val phase 参数。
+ * @property override val name 参数。
+ * @property lhsSide1 参数。
+ * @property rhsSide1 参数。
+ * @property lhsSide2 参数。
+ * @property rhsSide2 参数。
+ * @property valueCondition 参数。
+ */
 class ConditionalEnvelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,

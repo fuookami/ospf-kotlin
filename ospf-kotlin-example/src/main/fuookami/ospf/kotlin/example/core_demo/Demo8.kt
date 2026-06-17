@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,17 +26,22 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Production planning: maximize profit subject to equipment man-hour constraints. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example8.html
- */
-data object Demo8 {
-    /** A product with a profit value. */
+/** * 生产规划：在设备工时约束下最大化利润。Production planning: maximize profit subject to equipment man-hour constraints. * * * @see     https://fuookami.github.io/ospf/examples/example8.html */data object Demo8 {
+    /**
+     * 具有利润值的产品。A product with a profit value.
+     *
+     * @property profit 参数。
+     */
     data class Product(
         val profit: Flt64
     ) : AutoIndexed(Product::class)
 
-    /** An equipment type with amount and man-hours per product. */
+    /**
+     * 具有数量和每产品工时的设备类型。An equipment type with amount and man-hours per product.
+     *
+     * @property amount 参数。
+     * @property manHours 参数。
+     */
     data class Equipment(
         val amount: UInt64,
         val manHours: Map<Product, Flt64>
@@ -104,7 +105,11 @@ data object Demo8 {
         Demo8::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -122,7 +127,11 @@ data object Demo8 {
         return ok
     }
 
-    /** Initializes unsigned integer variables for product quantities. */
+    /**
+     * Initializes unsigned integer variables for product quantities.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
         for (p in products) {
@@ -132,7 +141,11 @@ data object Demo8 {
         return ok
     }
 
-    /** Creates profit and man-hour expression symbols per equipment. */
+    /**
+     * Creates profit and man-hour expression symbols per equipment.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         profit = LinearExpressionSymbol(
             sum(products.map { p ->
@@ -157,13 +170,21 @@ data object Demo8 {
         return ok
     }
 
-    /** Sets the objective to maximize total profit. */
+    /**
+     * Sets the objective to maximize total profit.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit, "profit")
         return ok
     }
 
-    /** Adds equipment man-hour capacity constraints. */
+    /**
+     * Adds equipment man-hour capacity constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         for (e in equipments) {
             metaModel.addConstraint(
@@ -174,7 +195,11 @@ data object Demo8 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -193,7 +218,11 @@ data object Demo8 {
         return ok
     }
 
-    /** Extracts the product quantities from the solution. */
+    /**
+     * Extracts the product quantities from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()
         for (token in metaModel.tokens.tokens) {

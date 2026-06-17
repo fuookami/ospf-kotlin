@@ -1,33 +1,39 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Computes the maximum outgoing bandwidth capacity of a node by summing its edge capacities. */
+/**
+ * 通过求和边容量计算节点的最大出带宽容量。
+ * Computes the maximum outgoing bandwidth capacity of a node by summing its edge capacities.
+ *
+ * @return 最大出带宽容量。
+ */
 fun Node.maxOutDegree(): UInt64 {
     var bandwidth = UInt64.zero
     edges.forEach { bandwidth += it.maxBandwidth }
     return bandwidth
 }
 
-/** Constrains total node out-flow to the node's capacity when the node is assigned. */
+/**
+ * 约束总节点流出到节点容量（当节点被分配时）。Constrains total node out-flow to the node's capacity when the node is assigned.
+ *
+ * @property private val nodes 参数。
+ * @property private val assignment 参数。
+ * @property private val nodeBandwidth 参数。
+ * @property override val name 参数。
+ */
 class TransferNodeBandwidthConstraint(
     private val nodes: ArrayList<Node>,
     private val assignment: Assignment,

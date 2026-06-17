@@ -1,5 +1,8 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
@@ -11,13 +14,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
-import fuookami.ospf.kotlin.core.model.mechanism.*
-
 /**
+ * FullLoad 和 Predistribution 模式的通用域管线上下文。
+ * 封装 8 个域的初始化/注册链以减少重复。
  * Common domain pipeline context for FullLoad and Predistribution modes.
  * Encapsulates the 8-domain init/register chain to reduce duplication.
  */
@@ -101,6 +100,8 @@ class FullLoadPipelineContext {
 }
 
 /**
+ * Predistribution 模式的通用域管线上下文。
+ * 扩展 FullLoadPipelineContext 并添加 RedundancyContext。
  * Common domain pipeline context for Predistribution mode.
  * Extends FullLoadPipelineContext with RedundancyContext.
  */

@@ -1,13 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-
 import fuookami.ospf.kotlin.framework.solver.*
 
 data class BendersIterationSnapshot(

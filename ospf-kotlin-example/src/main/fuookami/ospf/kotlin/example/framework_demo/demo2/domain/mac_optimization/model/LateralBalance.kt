@@ -1,26 +1,27 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 
-/** Lateral balance slack variable for wide-body aircraft torque optimization. */
+/**
+ * 宽体飞机扭矩优化的横向平衡松弛变量。Lateral balance slack variable for wide-body aircraft torque optimization.
+ *
+ * @property private val aircraftModel 参数。
+ * @property private val torque 参数。
+ */
 class LateralBalance(
     private val aircraftModel: AircraftModel,
     private val torque: Torque

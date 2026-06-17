@@ -2,6 +2,6 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.service
 
-/** Calculator for computing costs of flight task assignments. */
+/** 计算航班任务分配成本的计算器。Calculator for computing costs of flight task assignments. */
 class CostCalculator {
 }

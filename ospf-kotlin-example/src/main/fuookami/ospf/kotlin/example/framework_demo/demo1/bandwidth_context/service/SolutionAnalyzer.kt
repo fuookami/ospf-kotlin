@@ -1,22 +1,26 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 private typealias NodeSolution = HashMap<Service, Node>
 private typealias EdgeSolution = HashMap<Service, ArrayList<Pair<Edge, UInt64>>>
 
-/** Extracts service paths from the solved model by tracing assignment and bandwidth variables using DFS. */
+/**
+ * 使用 DFS 通过跟踪分配和带宽变量从求解模型中提取服务路径。Extracts service paths from the solved model by tracing assignment and bandwidth variables using DFS.
+ *
+ * @property private val graph 参数。
+ * @property private val services 参数。
+ * @property private val assignment 参数。
+ * @property private val aggregation 参数。
+ */
 class SolutionAnalyzer(
     private val graph: Graph,
     private val services: List<Service>,

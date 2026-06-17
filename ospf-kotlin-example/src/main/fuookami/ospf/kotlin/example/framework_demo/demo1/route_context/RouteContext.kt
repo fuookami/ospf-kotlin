@@ -1,25 +1,26 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.PipelineListGenerator
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.invoke
+import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.PipelineListGenerator
 
-/** Builds the route network graph from input data and manages route-related model construction. */
+/** 从输入数据构建路由网络图并管理路由相关模型构建。Builds the route network graph from input data and manages route-related model construction. */
 class RouteContext {
     lateinit var aggregation: Aggregation
 
+    /**
+     * 
+     * @param input 输入数据。
+     * @return 执行结果。
+     */
     fun init(input: Input): Try {
         var totalDemand = UInt64(0U)
         for (node in input.clientNodes) {

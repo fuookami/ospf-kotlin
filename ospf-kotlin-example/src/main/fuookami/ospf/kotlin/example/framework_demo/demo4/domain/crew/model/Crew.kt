@@ -5,14 +5,14 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.crew.model
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** Enumerates the types of crew members in the flight recovery system. */
+/** 枚举航班恢复系统中的机组成员类型。Enumerates the types of crew members in the flight recovery system. */
 enum class CrewType {
     Operator,
     Attendant,
     Other
 }
 
-/** Sealed interface representing a crew member with identity and nationality information. */
+/** 表示具有身份和国籍信息的机组成员的密封接口。Sealed interface representing a crew member with identity and nationality information. */
 sealed interface CrewMember {
     val type: CrewType
     val workerNo: WorkerNo?
@@ -21,7 +21,13 @@ sealed interface CrewMember {
     val nationality: String
 }
 
-/** A crew member who is a pilot, delegating identity fields to the underlying [Pilot]. */
+/**
+ * 作为飞行员的机组成员（将身份字段委托给底层 [Pilot]）。A crew member who is a pilot, delegating identity fields to the underlying [Pilot].
+ *
+ * @property override val type 参数。
+ * @property rank 参数。
+ * @property pilot 参数。
+ */
 data class CrewPilotMember(
     override val type: CrewType,
     val rank: PilotRank,
@@ -37,7 +43,13 @@ data class CrewPilotMember(
     }
 }
 
-/** A crew member who is not a pilot, delegating identity fields to the underlying [CrewMan]. */
+/**
+ * 非飞行员的机组成员（将身份字段委托给底层 [CrewMan]）。A crew member who is not a pilot, delegating identity fields to the underlying [CrewMan].
+ *
+ * @property override val type 参数。
+ * @property rank 参数。
+ * @property crewMan 参数。
+ */
 data class CrewNotPilotMember(
     override val type: CrewType,
     val rank: CrewManRank,
@@ -53,19 +65,24 @@ data class CrewNotPilotMember(
     }
 }
 
-/** A crew assigned to a flight task, composed of pilot and non-pilot members. */
+/**
+ * 分配给航班任务的机组（由飞行员和非飞行员成员组成）。A crew assigned to a flight task, composed of pilot and non-pilot members.
+ *
+ * @property flight 参数。
+ * @property members 参数。
+ */
 data class Crew(
     val flight: FlightTask,
     val members: List<CrewMember>
 ) {
-    /** Returns pilot members grouped by their rank. */
+    /** 返回按职级分组的飞行员成员。Returns pilot members grouped by their rank. */
     val pilotMembers: Map<PilotRank, List<Pilot>> by lazy {
         members.filterIsInstance<CrewPilotMember>()
            .groupBy { it.rank }
            .mapValues { (rank, members) -> members.map { it.pilot } }
     }
 
-    /** Returns non-pilot members grouped by their rank. */
+    /** 返回按职级分组的非飞行员成员。Returns non-pilot members grouped by their rank. */
     val notPilotMembers: Map<CrewManRank, List<CrewMan>> by lazy {
         members.filterIsInstance<CrewNotPilotMember>()
            .groupBy { it.rank }

@@ -1,11 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-/** Context for managing aircraft domain data, initializing aggregation from input and exporting loading orders. */
+/** 管理飞机域数据的上下文（从输入初始化聚合并导出装载顺序）。Context for managing aircraft domain data, initializing aggregation from input and exporting loading orders. */
 class AircraftContext {
     lateinit var aggregation: Aggregation
 

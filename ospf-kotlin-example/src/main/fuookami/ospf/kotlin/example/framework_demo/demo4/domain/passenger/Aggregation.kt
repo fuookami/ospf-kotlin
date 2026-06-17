@@ -2,22 +2,26 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Aggregation for passenger domain combining cancel, change, and amount tracking. */
+/**
+ * 乘客域聚合（组合取消、变更和数量跟踪）。Aggregation for passenger domain combining cancel, change, and amount tracking.
+ *
+ * @property timeWindow 参数。
+ * @property flights 参数。
+ * @property passengers 参数。
+ * @property time 参数。
+ * @property capacity 参数。
+ */
 class Aggregation(
     val timeWindow: TimeWindow<*>,
     val flights: List<FlightTask>,
@@ -41,7 +45,12 @@ class Aggregation(
         change = change
     )
 
-    /** Registers cancel, change, and amount components with the model. */
+    /**
+     * Registers cancel, change, and amount components with the model.
+ *
+     * @param model 参数。
+     * @return 返回结果。
+     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = cancel.register(model)) {
             is Ok -> {}

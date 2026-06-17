@@ -1,13 +1,15 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
-/** Limits on unsymmetrical linear density between left and right sides of the aircraft. */
+/**
+ * 飞机左右两侧不对称线性密度的限制。Limits on unsymmetrical linear density between left and right sides of the aircraft.
+ *
+ * @property limitZones 参数。
+ */
 class MaxUnsymmetricalLinearDensity(
     val limitZones: List<LimitZone>
 ) {

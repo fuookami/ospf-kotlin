@@ -1,23 +1,23 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.ClientNode
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.client
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Ensures each client node receives at least its required bandwidth demand. */
+/**
+ * 确保每个客户端节点至少接收其所需的带宽需求。Ensures each client node receives at least its required bandwidth demand.
+ *
+ * @property private val nodes 参数。
+ * @property private val nodeBandwidth 参数。
+ * @property override val name 参数。
+ */
 class DemandConstraint(
     private val nodes: List<Node>,
     private val nodeBandwidth: NodeBandwidth,

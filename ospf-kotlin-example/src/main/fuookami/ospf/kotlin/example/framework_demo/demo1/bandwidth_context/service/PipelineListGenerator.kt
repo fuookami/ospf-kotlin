@@ -1,26 +1,24 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.Aggregation
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits.BandwidthCostObjective
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits.DemandConstraint
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits.EdgeBandwidthConstraint
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits.ServiceCapacityConstraint
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Graph
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.Aggregation
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Generates the pipeline list of bandwidth constraints and cost objective for model construction. */
+/**
+ * 生成用于模型构建的带宽约束和成本目标的管线列表。Generates the pipeline list of bandwidth constraints and cost objective for model construction.
+ *
+ * @property private val aggregation 参数。
+ * @property private val graph 参数。
+ * @property private val services 参数。
+ * @property private val assignment 参数。
+ */
 class PipelineListGenerator(
     private val aggregation: Aggregation,
     private val graph: Graph,

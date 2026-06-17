@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule
 
-/** Context for rule domain operations in the flight recovery scheduling demo. */
+/** 航班恢复调度演示中规则域操作的上下文。Context for rule domain operations in the flight recovery scheduling demo. */
 class RuleContext {
     lateinit var aggregation: Aggregation
 }

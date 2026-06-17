@@ -4,6 +4,8 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
+ * 执行返回 Try 的操作，失败时提前返回。
+ * 减少重复的 when/Ok/Failed/Fatal 样板代码。
  * Execute a Try-returning operation, returning early on failure.
  * Reduces the repetitive when/Ok/Failed/Fatal boilerplate.
  */
@@ -16,6 +18,7 @@ inline fun Try.orReturn(failedHandler: (Error<ErrorCode>) -> Nothing, fatalHandl
 }
 
 /**
+ * 执行返回 Ret<T> 的操作，返回值或在失败时抛出异常。
  * Execute a Ret<T>-returning operation, returning the value or throwing on failure.
  */
 inline fun <T> Ret<T>.orReturn(

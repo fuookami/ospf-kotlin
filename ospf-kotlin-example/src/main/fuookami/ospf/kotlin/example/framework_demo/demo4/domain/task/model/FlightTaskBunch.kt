@@ -3,16 +3,23 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import kotlin.time.Instant
-
-import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** A bunch of flight tasks assigned to a single aircraft with cost and time tracking. */
+/**
+ * 分配给单架飞机的航班任务束（具有成本和时间跟踪）。A bunch of flight tasks assigned to a single aircraft with cost and time tracking.
+ *
+ * @property aircraft 参数。
+ * @property time 参数。
+ * @property dep 参数。
+ * @property arr 参数。
+ * @property tasks 参数。
+ * @property cost 参数。
+ * @property iteration 参数。
+ */
 class FlightTaskBunch(
     val aircraft: Aircraft,
     time: TimeRange,
@@ -61,12 +68,23 @@ class FlightTaskBunch(
         cost = cost
     )
 
-    /** Checks whether this bunch contains the given task. */
+    /**
+     * Checks whether this bunch contains the given task.
+ *
+     * @param task 参数。
+     * @return 返回结果。
+     */
     fun contains(task: FlightTask): Boolean {
         return keys.contains(task.key)
     }
 
-    /** Checks whether this bunch contains two consecutive tasks. */
+    /**
+     * Checks whether this bunch contains two consecutive tasks.
+ *
+     * @param prevFlightTask 参数。
+     * @param succFlightTask 参数。
+     * @return 返回结果。
+     */
     fun contains(prevFlightTask: FlightTask, succFlightTask: FlightTask): Boolean {
         val prevTask = keys[prevFlightTask.key]
         val succTask = keys[succFlightTask.key]
@@ -77,7 +95,12 @@ class FlightTaskBunch(
         }
     }
 
-    /** Returns the recovered version of the given origin task within this bunch. */
+    /**
+     * Returns the recovered version of the given origin task within this bunch.
+ *
+     * @param originTask 参数。
+     * @return 返回结果。
+     */
     fun get(originTask: FlightTask): FlightTask? {
         val task = keys[originTask.key]
         return if (task != null) {
@@ -88,7 +111,13 @@ class FlightTaskBunch(
         }
     }
 
-    /** Checks whether any task in this bunch arrives at the airport within the time window. */
+    /**
+     * Checks whether any task in this bunch arrives at the airport within the time window.
+ *
+     * @param airport 参数。
+     * @param timeWindow 参数。
+     * @return 返回结果。
+     */
     fun arrivedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
             return false
@@ -105,7 +134,13 @@ class FlightTaskBunch(
         return false
     }
 
-    /** Checks whether any task in this bunch departs from the airport within the time window. */
+    /**
+     * Checks whether any task in this bunch departs from the airport within the time window.
+ *
+     * @param airport 参数。
+     * @param timeWindow 参数。
+     * @return 返回结果。
+     */
     fun departedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (!time.withIntersection(timeWindow)) {
             return false
@@ -122,7 +157,13 @@ class FlightTaskBunch(
         return false
     }
 
-    /** Checks whether the aircraft is located at the airport within the time window. */
+    /**
+     * Checks whether the aircraft is located at the airport within the time window.
+ *
+     * @param airport 参数。
+     * @param timeWindow 参数。
+     * @return 返回结果。
+     */
     fun locatedWhen(airport: Airport, timeWindow: TimeRange): Boolean {
         if (tasks.first().departedWhen(airport, timeWindow)) {
             return true

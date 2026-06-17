@@ -3,10 +3,9 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import kotlin.time.*
-
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** Enumerates the airport types by domestic/Regional/international classification. */
+/** 按国内/地区/国际分类枚举机场类型。Enumerates the airport types by domestic/Regional/international classification. */
 enum class AirportType {
     Domestic {
         override val isDomainType: Boolean get() = true
@@ -17,7 +16,15 @@ enum class AirportType {
     open val isDomainType: Boolean get() = false
 }
 
-/** An airport identified by ICAO code, with type, transfer times, and base flag. */
+/**
+ * 通过 ICAO 代码标识的机场（具有类型、中转时间和基地标志）。An airport identified by ICAO code, with type, transfer times, and base flag.
+ *
+ * @property icao 参数。
+ * @property type 参数。
+ * @property passengerTransferTime 参数。
+ * @property cargoTransferTime 参数。
+ * @property base 参数。
+ */
 data class Airport(
     val icao: ICAO,
     val type: AirportType,
@@ -29,7 +36,12 @@ data class Airport(
         private val pool = HashMap<ICAO, Airport>()
         val values by pool::values
 
-        /** Retrieves an [Airport] by ICAO code from the pool. */
+        /**
+         * Retrieves an [Airport] by ICAO code from the pool.
+ *
+         * @param icao 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(icao: ICAO): Airport? {
             return pool[icao]
         }
@@ -62,7 +74,12 @@ data class Airport(
     override fun toString() = "$icao"
 }
 
-/** A route defined by departure and arrival airports. */
+/**
+ * 由出发和到达机场定义的航线。A route defined by departure and arrival airports.
+ *
+ * @property dep 参数。
+ * @property arr 参数。
+ */
 data class Route(
     val dep: Airport,
     val arr: Airport

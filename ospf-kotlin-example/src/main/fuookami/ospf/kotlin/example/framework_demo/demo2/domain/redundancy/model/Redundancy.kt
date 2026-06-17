@@ -1,15 +1,9 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -18,6 +12,9 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -26,7 +23,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization. */
+/**
+ * 计算主甲板上的冗余（备用容量）并注册松弛变量用于优化。Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization.
+ *
+ * @property private val aircraftModel 参数。
+ * @property private val flight 参数。
+ * @property private val items 参数。
+ * @property private val positions 参数。
+ * @property private val stowage 参数。
+ * @property private val load 参数。
+ * @property private val payload 参数。
+ */
 class Redundancy(
     private val aircraftModel: AircraftModel,
     private val flight: Flight,

@@ -2,26 +2,31 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
+import kotlinx.datetime.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.Instant
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Configuration for bunch generation. */
+/**
+ * 批次生成配置。Configuration for bunch generation.
+ *
+ * @property withOrderChange 参数。
+ * @property maximumLabelPerNode 参数。
+ */
 data class BunchGenerationConfiguration(
     val withOrderChange: Boolean = false,
     val maximumLabelPerNode: UInt64 = UInt64(100UL),
     val maximumColumnGeneratedPerAircraft: UInt64 = UInt64(10UL)
 )
 
-/** Internal label for the Label Setting algorithm. */
+/** 标号设置算法的内部标签。Internal label for the Label Setting algorithm. */
 private data class LabelBuilder(
     var cost: Cost<FltX> = Cost(FltX),
     var shadowPrice: Flt64 = Flt64.zero,
@@ -62,7 +67,7 @@ private data class LabelBuilder(
     }
 }
 
-/** Internal label for the Label Setting algorithm. */
+/** 标号设置算法的内部标签。Internal label for the Label Setting algorithm. */
 private data class Label(
     val cost: Cost<FltX>,
     val shadowPrice: Flt64,
@@ -174,7 +179,18 @@ private data class Label(
 
 private typealias LabelMap = MutableMap<Node, MutableList<Label>>
 
-/** Generates flight task bunches using Label Setting algorithm. */
+/**
+ * 使用标号设置算法生成航班任务束。Generates flight task bunches using Label Setting algorithm.
+ *
+ * @property private val aircraft 参数。
+ * @property private val aircraftUsability 参数。
+ * @property private val graph 参数。
+ * @property private val connectionTimeCalculator 参数。
+ * @property private val minimumDepartureTimeCalculator 参数。
+ * @property private val costCalculator 参数。
+ * @property private val totalCostCalculator 参数。
+ * @property private val configuration 参数。
+ */
 class FlightTaskBunchGenerator(
     private val aircraft: Aircraft,
     private val aircraftUsability: AircraftUsability,
@@ -227,7 +243,13 @@ class FlightTaskBunchGenerator(
     private val enabledTime by aircraftUsability::enabledTime
     private val nodes = if (!configuration.withOrderChange) { sortNodes(graph) } else { emptyList() }
 
-    /** Generates bunches for the given iteration and shadow price map. */
+    /**
+     * Generates bunches for the given iteration and shadow price map.
+ *
+     * @param iteration 参数。
+     * @param shadowPriceMap 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(iteration: Int64, shadowPriceMap: ShadowPriceMap): Ret<List<FlightTaskBunch>> {
         val labels: LabelMap = HashMap()
         initRootLabel(labels, shadowPriceMap)

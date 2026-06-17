@@ -2,15 +2,12 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
-import java.util.*
-
 import kotlin.time.Instant
-
+import java.util.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-
-/** Enumerates the maintenance categories with their stable status flags. */
+/** 枚举维护类别及其稳定状态标志。Enumerates the maintenance categories with their stable status flags. */
 enum class MaintenanceCategory {
     Line {
         override val stableStatus = setOf(
@@ -37,7 +34,7 @@ enum class MaintenanceCategory {
     abstract val stableStatus: Set<FlightTaskStatus>
 }
 
-/** A maintenance plan with aircraft, time, airport, category, and expiration information. */
+/** 具有飞机、时间、机场、类别和过期信息的维护计划。A maintenance plan with aircraft, time, airport, category, and expiration information. */
 class MaintenancePlan internal constructor(
     override val aircraft: Aircraft,
     override val scheduledTime: TimeRange,
@@ -55,7 +52,17 @@ class MaintenancePlan internal constructor(
     companion object {
         private const val prefix = "m"
 
-        /** Creates a [MaintenancePlan] with appropriate status based on category and expiration. */
+        /**
+         * Creates a [MaintenancePlan] with appropriate status based on category and expiration.
+ *
+         * @param aircraft 参数。
+         * @param scheduledTime 参数。
+         * @param airports 参数。
+         * @param expirationTime 参数。
+         * @param category 参数。
+         * @param timeWindow 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(
             aircraft: Aircraft,
             scheduledTime: TimeRange,
@@ -117,12 +124,12 @@ class MaintenancePlan internal constructor(
     override fun connectionTime(aircraft: Aircraft, succTask: FlightTask?) = NotFlightStaticConnectionTime
 }
 
-/** Task type object for maintenance events. */
+/** 维护事件的任务类型对象。Task type object for maintenance events. */
 object MaintenanceFlightTask : FlightTaskType(FlightTaskCategory.Maintenance, MaintenanceFlightTask::class) {
     override val type get() = "Maintenance"
 }
 
-/** A maintenance flight task with optional recovery time and airport. */
+/** 具有可选恢复时间和机场的维护航班任务。A maintenance flight task with optional recovery time and airport. */
 class Maintenance internal constructor(
     override val plan: MaintenancePlan,
     val recoveryTime: TimeRange? = null,
@@ -130,12 +137,23 @@ class Maintenance internal constructor(
     origin: Maintenance? = null
 ) : FlightTask(MaintenanceFlightTask, origin) {
     companion object {
-        /** Creates a [Maintenance] from a plan. */
+        /**
+         * Creates a [Maintenance] from a plan.
+ *
+         * @param plan 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(plan: MaintenancePlan): Maintenance {
             return Maintenance(plan = plan)
         }
 
-        /** Creates a recovered [Maintenance] applying the given recovery policy. */
+        /**
+         * Creates a recovered [Maintenance] applying the given recovery policy.
+ *
+         * @param origin 参数。
+         * @param recoveryPolicy 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(origin: Maintenance, recoveryPolicy: FlightTaskAssignment): Maintenance {
             val recoveryTime = if (recoveryPolicy.time == null || recoveryPolicy.time == origin.scheduledTime!!) {
                 null

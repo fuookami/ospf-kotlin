@@ -5,15 +5,19 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
-/** Enumerates the aircraft categories (passenger or cargo). */
+/** 枚举飞机类别（客机或货机）。Enumerates the aircraft categories (passenger or cargo). */
 enum class AircraftCategory {
     Passenger,
     Cargo
 }
 
-/** Sealed class representing aircraft capacity, specialized for passenger or cargo. */
+/** 表示飞机容量的密封类（专门用于客运或货运）。Sealed class representing aircraft capacity, specialized for passenger or cargo. */
 sealed class AircraftCapacity {
-    /** Passenger capacity mapping each class to a seat count. */
+    /**
+     * 将每个舱位映射到座位数的乘客容量。Passenger capacity mapping each class to a seat count.
+     *
+     * @property private val capacity 参数。
+     */
     class Passenger(
         private val capacity: Map<PassengerClass, UInt64>
     ) : AircraftCapacity() {
@@ -21,19 +25,31 @@ sealed class AircraftCapacity {
 
         operator fun get(cls: PassengerClass) = capacity[cls] ?: UInt64.zero
 
-        /** Checks whether the aircraft can carry the given payload per class. */
+        /**
+         * Checks whether the aircraft can carry the given payload per class.
+ *
+         * @param payload 参数。
+         */
         fun enabled(payload: Map<PassengerClass, UInt64>) = payload.asSequence().all { this[it.key] >= it.value }
 
         override val category get() = AircraftCategory.Passenger
     }
 
-    /** Cargo capacity as a weight/volume value. */
+    /**
+     * 作为重量/体积值的货物容量。Cargo capacity as a weight/volume value.
+     *
+     * @property capacity 参数。
+     */
     class Cargo(
         val capacity: FltX
     ) : AircraftCapacity() {
         override val category get() = AircraftCategory.Cargo
 
-        /** Checks whether the aircraft can carry the given payload weight. */
+        /**
+         * Checks whether the aircraft can carry the given payload weight.
+ *
+         * @param payload 参数。
+         */
         fun enabled(payload: FltX) = capacity geq payload
     }
 

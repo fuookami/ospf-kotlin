@@ -1,21 +1,23 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-/** Constrains horizontal stabilizer trim within min/max bounds, using warning limits in recommendation mode. */
+/**
+ * 约束水平安定面配平在最小/最大边界内（在推荐模式下使用警告限制）。Constrains horizontal stabilizer trim within min/max bounds, using warning limits in recommendation mode.
+ *
+ * @property private val horizontalStabilizers 参数。
+ * @property private val stowageMode 参数。
+ * @property override val name 参数。
+ */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
     private val stowageMode: StowageMode,

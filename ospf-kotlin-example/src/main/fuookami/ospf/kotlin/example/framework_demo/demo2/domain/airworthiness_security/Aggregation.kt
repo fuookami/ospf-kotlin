@@ -1,5 +1,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
@@ -7,17 +14,21 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Aggregates airworthiness and safety constraints including density limits, envelopes, and weight constraints. */
+/**
+ * 聚合适航和安全约束（包括密度限制、包络线和重量约束）。Aggregates airworthiness and safety constraints including density limits, envelopes, and weight constraints.
+ *
+ * @property internal val aircraftModel 参数。
+ * @property internal val fuselage 参数。
+ * @property internal val positions 参数。
+ * @property linearDensityLimitZones 参数。
+ * @property surfaceDensityLimitZones 参数。
+ * @property maxZoneLoadWeight 参数。
+ * @property maxCumulativeLoadWeight 参数。
+ * @property maxUnsymmetricalLinearDensity 参数。
+ * @property maxCLIMPoints 参数。
+ * @property minLowPayloadPoints 参数。
+ * @property envelopeBuilders 参数。
+ */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     internal val fuselage: Fuselage,

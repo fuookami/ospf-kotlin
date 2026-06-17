@@ -1,21 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-/** Generates the pipeline of recommended weight equalization constraints for model construction. */
+/**
+ * 生成用于模型构建的推荐重量均衡约束管线。Generates the pipeline of recommended weight equalization constraints for model construction.
+ *
+ * @property private val aggregation 参数。
+ */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

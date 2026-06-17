@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,12 +26,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Capital investment optimization: maximize profit subject to capital and liability constraints. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example1.html
- */
-data object Demo1 {
-    /** A company with capital, liability, and profit attributes. */
+/** * 资本投资优化：在资本和负债约束下最大化利润。Capital investment optimization: maximize profit subject to capital and liability constraints. * * * @see     https://fuookami.github.io/ospf/examples/example1.html */data object Demo1 {
+    /**
+     * 具有资本、负债和利润属性的公司。A company with capital, liability, and profit attributes.
+     *
+     * @property capital 参数。
+     * @property liability 参数。
+     * @property profit 参数。
+     */
     data class Company(
         val capital: Flt64,
         val liability: Flt64,
@@ -68,7 +66,11 @@ data object Demo1 {
         Demo1::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -86,7 +88,11 @@ data object Demo1 {
         return ok
     }
 
-    /** Initializes binary decision variables for each company. */
+    /**
+     * Initializes binary decision variables for each company.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
@@ -96,7 +102,11 @@ data object Demo1 {
         return ok
     }
 
-    /** Creates linear expression symbols for capital, liability, and profit. */
+    /**
+     * Creates linear expression symbols for capital, liability, and profit.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         capital = LinearExpressionSymbol(
             sum(companies) { it.capital * x[it] },
@@ -118,20 +128,32 @@ data object Demo1 {
         return ok
     }
 
-    /** Sets the objective to maximize total profit. */
+    /**
+     * Sets the objective to maximize total profit.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit)
         return ok
     }
 
-    /** Adds capital lower bound and liability upper bound constraints. */
+    /**
+     * Adds capital lower bound and liability upper bound constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(capital geq minCapital)
         metaModel.addConstraint(liability leq maxLiability)
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -150,7 +172,11 @@ data object Demo1 {
         return ok
     }
 
-    /** Extracts the selected companies from the solution. */
+    /**
+     * Extracts the selected companies from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Company>()
         for (token in metaModel.tokens.tokens) {

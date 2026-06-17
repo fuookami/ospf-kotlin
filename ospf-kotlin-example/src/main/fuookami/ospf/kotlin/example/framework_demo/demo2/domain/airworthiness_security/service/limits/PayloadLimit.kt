@@ -1,20 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
-/** Constrains the total payload to not exceed the maximum allowed payload. */
+/**
+ * 约束总载荷不超过最大允许载荷。Constrains the total payload to not exceed the maximum allowed payload.
+ *
+ * @property private val payload 参数。
+ * @property override val name 参数。
+ */
 class PayloadLimit(
     private val payload: Payload,
     override val name: String = "payload_limit"

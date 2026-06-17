@@ -1,21 +1,21 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-/** Generates the pipeline of MAC optimization constraints for longitudinal balance, lateral balance, and stabilizers. */
+/**
+ * 生成纵向平衡、横向平衡和安定面的 MAC 优化约束管线。Generates the pipeline of MAC optimization constraints for longitudinal balance, lateral balance, and stabilizers.
+ *
+ * @property private val aggregation 参数。
+ */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

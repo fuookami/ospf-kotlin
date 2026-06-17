@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,29 +26,45 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Multi-commodity distribution: minimize shipping cost with production, sales, and transshipment nodes. */
 /**
+ * 多商品分销：在生产、销售和转运节点下最小化运输成本。
+ * Multi-commodity distribution: minimize shipping cost with production, sales, and transshipment nodes.
+ *
  * @see     https://fuookami.github.io/ospf/examples/example14.html
  */
 data object Demo14 {
-    /** A node in the distribution network. */
+    /** 分销网络中的节点。A node in the distribution network. */
     sealed interface Node : Indexed {
         val name: String
     }
 
-    /** A production node with storage capacity. */
+    /**
+     * 具有存储容量的生产节点。A production node with storage capacity.
+     *
+     * @property override val name 参数。
+     * @property storage 参数。
+     */
     class Product(
         override val name: String,
         val storage: UInt64
     ) : Node, AutoIndexed(Node::class)
 
-    /** A sales node with demand quantity. */
+    /**
+     * 具有需求量的销售节点。A sales node with demand quantity.
+     *
+     * @property override val name 参数。
+     * @property demand 参数。
+     */
     class Sale(
         override val name: String,
         val demand: UInt64
     ) : Node, AutoIndexed(Node::class)
 
-    /** A transshipment (distribution) node. */
+    /**
+     * 转运（分销）节点。A transshipment (distribution) node.
+     *
+     * @property override val name 参数。
+     */
     class Distribution(
         override val name: String
     ) : Node, AutoIndexed(Node::class)
@@ -68,7 +80,7 @@ data object Demo14 {
         Distribution("天津")
     )
 
-    /** Unit shipping cost between connected nodes. */
+    /** 连接节点间的单位运输成本。Unit shipping cost between connected nodes. */
     val unitCost = mapOf(
         nodes[0] to mapOf(
             nodes[6] to UInt64(2),
@@ -110,7 +122,12 @@ data object Demo14 {
         Demo14::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * 顺序运行所有子流程以构建、求解和分析模型。
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -128,7 +145,12 @@ data object Demo14 {
         return ok
     }
 
-    /** Initializes flow variables between connected nodes. */
+    /**
+     * 初始化连接节点间的流量变量。
+     * Initializes flow variables between connected nodes.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
         for (node1 in nodes) {
@@ -148,7 +170,12 @@ data object Demo14 {
         return ok
     }
 
-    /** Creates cost, outgoing flow, and incoming flow expression symbols. */
+    /**
+     * 创建成本、流出和流入表达式符号。
+     * Creates cost, outgoing flow, and incoming flow expression symbols.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
             sum(
@@ -191,14 +218,24 @@ data object Demo14 {
         return ok
     }
 
-    /** Sets the objective to minimize total shipping cost. */
+    /**
+     * 设置目标为最小化总运输成本。
+     * Sets the objective to minimize total shipping cost.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
 
         return ok
     }
 
-    /** Adds production, demand, and transshipment balance constraints. */
+    /**
+     * 添加生产、需求和转运平衡约束。
+     * Adds production, demand, and transshipment balance constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         for (node in nodes.filterIsInstance<Product>()) {
             metaModel.addConstraint(
@@ -228,7 +265,12 @@ data object Demo14 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * 使用 SCIP 求解器求解线性模型。
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -248,7 +290,12 @@ data object Demo14 {
         return ok
     }
 
-    /** Extracts the flow quantities between nodes from the solution. */
+    /**
+     * 从解中提取节点间的流量。
+     * Extracts the flow quantities between nodes from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {

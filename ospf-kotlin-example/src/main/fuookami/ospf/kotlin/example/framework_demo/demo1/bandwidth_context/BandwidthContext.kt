@@ -1,27 +1,25 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.ServiceBandwidth
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.framework.model.invoke
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.PipelineListGenerator
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.SolutionAnalyzer
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.RouteContext
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-import fuookami.ospf.kotlin.framework.model.invoke
-
-/** Manages bandwidth allocation context, building bandwidth models from the route graph and analyzing solutions. */
+/**
+ * 管理带宽分配上下文，从路由图构建带宽模型并分析解。Manages bandwidth allocation context, building bandwidth models from the route graph and analyzing solutions.
+ *
+ * @property private val routeContext 参数。
+ */
 class BandwidthContext(
     private val routeContext: RouteContext
 ) {

@@ -1,13 +1,11 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
 
-/** Types of fuel tanks available on an aircraft. */
+/** 飞机上可用的油箱类型。Types of fuel tanks available on an aircraft. */
 enum class FuelTankType {
     Main,
     Center,
@@ -16,7 +14,11 @@ enum class FuelTankType {
     Reserve             // B747 Reserve Tank
 }
 
-/** Interpolated balanced arm lookup table for a fuel tank across different volumes and flight phases. */
+/**
+ * 油箱跨不同体积和飞行阶段的插值平衡臂查找表。Interpolated balanced arm lookup table for a fuel tank across different volumes and flight phases.
+ *
+ * @property points 参数。
+ */
 data class FuelTankBalancedArm(
     val points: List<Point>
 ) {
@@ -51,7 +53,14 @@ data class FuelTankBalancedArm(
     }
 }
 
-/** A fuel tank with its type, capacity, and balanced arm lookup data. */
+/**
+ * 具有类型、容量和平衡臂查找数据的油箱。A fuel tank with its type, capacity, and balanced arm lookup data.
+ *
+ * @property type 参数。
+ * @property name 参数。
+ * @property maxVolume 参数。
+ * @property balancedArm 参数。
+ */
 data class FuelTank(
     val type: FuelTankType,
     val name: String,
@@ -59,7 +68,14 @@ data class FuelTank(
     val balancedArm: FuelTankBalancedArm
 )
 
-/** A snapshot view of a fuel tank at a specific volume with computed weight and balanced arm. */
+/**
+ * 特定体积的油箱快照视图（具有计算的重量和平衡臂）。A snapshot view of a fuel tank at a specific volume with computed weight and balanced arm.
+ *
+ * @property tank 参数。
+ * @property volume 参数。
+ * @property weight 参数。
+ * @property balancedArm 参数。
+ */
 data class FuelTankView(
     val tank: FuelTank,
     val volume: Quantity<Flt64>,
@@ -70,7 +86,13 @@ data class FuelTankView(
     val name by tank::name
 }
 
-/** Precomputed fuel constants (density, weight, index) for a given flight phase. */
+/**
+ * 给定飞行阶段的预计算燃油常数（密度、重量、指数）。Precomputed fuel constants (density, weight, index) for a given flight phase.
+ *
+ * @property density 参数。
+ * @property weight 参数。
+ * @property index 参数。
+ */
 data class FuelConstant(
     val density: Quantity<Flt64>,
     val weight: Quantity<Flt64>,

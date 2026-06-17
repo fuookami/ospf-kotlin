@@ -2,36 +2,45 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
-import java.util.*
-
 import kotlin.time.*
-
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
-
+import java.util.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** Condition interface for evaluating whether a flight task matches flow control criteria. */
+/** 评估航班任务是否匹配流量控制标准的条件接口。Condition interface for evaluating whether a flight task matches flow control criteria. */
 interface AbstractFlowControlCondition {
-    /** Evaluates whether the given task matches this condition. */
+    /**
+     * Evaluates whether the given task matches this condition.
+ *
+     * @param task 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(task: FlightTask): Boolean
 }
 
-/** Concrete flow control condition filtering by flight types and aircraft minor types. */
+/**
+ * 按航班类型和飞机子机型过滤的具体流量控制条件。Concrete flow control condition filtering by flight types and aircraft minor types.
+ *
+ * @property flightTypes 参数。
+ */
 data class FlowControlCondition(
     val flightTypes: Set<FlightType> = emptySet(),
     val aircraftMinorTypes: Set<AircraftMinorType> = emptySet()
 ) {
-    /** Evaluates whether the given task matches this condition. */
+    /**
+     * Evaluates whether the given task matches this condition.
+ *
+     * @param task 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(task: FlightTask): Boolean {
         if (task.isFlight) {
             return false
@@ -62,7 +71,7 @@ data class FlowControlCondition(
     }
 }
 
-/** Enumerates the flow control scenes describing when tasks interact with an airport. */
+/** 描述任务何时与机场交互的流量控制场景枚举。Enumerates the flow control scenes describing when tasks interact with an airport. */
 enum class FlowControlScene {
     Departure {
         override operator fun invoke(
@@ -126,7 +135,7 @@ enum class FlowControlScene {
         }
     };
 
-    /** Evaluates whether the given task pair matches this scene at the specified airport and time. */
+    /** 评估给定任务对在指定机场和时间是否匹配此场景。Evaluates whether the given task pair matches this scene at the specified airport and time. */
     abstract operator fun invoke(
         prevTask: FlightTask?,
         task: FlightTask?,
@@ -135,7 +144,7 @@ enum class FlowControlScene {
         condition: AbstractFlowControlCondition? = null
     ): Boolean
 
-    /** Counts how many tasks in the bunch match this scene at the specified airport and time. */
+    /** 计算束中在指定机场和时间匹配此场景的任务数量。Counts how many tasks in the bunch match this scene at the specified airport and time. */
     open operator fun invoke(
         bunch: FlightTaskBunch,
         airport: Airport,
@@ -152,13 +161,22 @@ enum class FlowControlScene {
     }
 }
 
-/** Capacity specification for a flow control, including amount and time interval. */
+/**
+ * 流量控制的容量规格（包括数量和时间间隔）。Capacity specification for a flow control, including amount and time interval.
+ *
+ * @property amount 参数。
+ * @property interval 参数。
+ */
 data class FlowControlCapacity(
     val amount: UInt64,
     val interval: Duration,
 ) {
     companion object {
-        /** Creates a closed (zero capacity) flow control for the given time range. */
+        /**
+         * Creates a closed (zero capacity) flow control for the given time range.
+ *
+         * @param time 参数。
+         */
         fun close(time: TimeRange) = FlowControlCapacity(UInt64.zero, time.duration)
     }
 
@@ -167,7 +185,11 @@ data class FlowControlCapacity(
     override fun toString() = if (closed) "closed" else "${amount}_${interval.toInt(DurationUnit.MINUTES)}m"
 }
 
-/** A flow control rule specifying capacity limits at an airport for a given scene and time range. */
+/**
+ * 指定机场在给定场景和时间范围内容量限制的流量控制规则。A flow control rule specifying capacity limits at an airport for a given scene and time range.
+ *
+ * @property id 参数。
+ */
 data class FlowControl(
     val id: String = UUID.randomUUID().toString(),
     val airport: Airport,
@@ -207,7 +229,11 @@ data class FlowControl(
     }
 }
 
-/** A flow resource representing a set of flow control rules at an airport for a specific scene. */
+/**
+ * 表示机场特定场景的一组流量控制规则的流量资源。A flow resource representing a set of flow control rules at an airport for a specific scene.
+ *
+ * @property id 参数。
+ */
 class Flow(
     id: String = UUID.randomUUID().toString(),
     val airport: Airport,

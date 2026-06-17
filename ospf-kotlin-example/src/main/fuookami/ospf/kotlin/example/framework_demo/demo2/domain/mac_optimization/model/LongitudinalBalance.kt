@@ -1,23 +1,25 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.quantities.quantity.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-/** Longitudinal balance slack variables for MAC range optimization across stowage modes. */
+/**
+ * 跨装载模式的 MAC 范围优化的纵向平衡松弛变量。Longitudinal balance slack variables for MAC range optimization across stowage modes.
+ *
+ * @property private val aircraftModel 参数。
+ * @property private val macRange 参数。
+ * @property private val torque 参数。
+ */
 class LongitudinalBalance(
     private val aircraftModel: AircraftModel,
     private val macRange: MACRange,

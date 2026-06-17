@@ -1,18 +1,14 @@
 package fuookami.ospf.kotlin.example.heuristic_demo
 
-import kotlin.time.Duration.Companion.seconds
-
 import kotlinx.coroutines.*
-
+import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.callback.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -25,17 +21,22 @@ import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
 
-/** Flt64 identity converter for use with [IntoValue] in [LinearMetaModel]. */
+/** 用于 [LinearMetaModel] 中 [IntoValue] 的 Flt64 恒等转换器。Flt64 identity converter for use with [IntoValue] in [LinearMetaModel]. */
 private val flt64Converter = object : IntoValue<Flt64> {
+    /** @param value Flt64 值。 */
     override fun intoValue(value: Flt64) = value
     override val zero get() = Flt64.zero
     override val one get() = Flt64.one
     override fun fromValue(value: Flt64) = value
 }
 
-/** Demonstrates PSO-based heuristic optimization on a linear model built via [LinearMetaModel]. */
+/** 演示基于 PSO 的启发式优化在通过 [LinearMetaModel] 构建的线性模型上的应用。Demonstrates PSO-based heuristic optimization on a linear model built via [LinearMetaModel]. */
 class Demo2 {
-    /** Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO. */
+    /**
+     * Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO.
+ *
+     * @return 返回结果。
+     */
     operator fun invoke(): Try {
         val metaModel = LinearMetaModel<Flt64>(converter = flt64Converter)
         val x = URealVar("x")

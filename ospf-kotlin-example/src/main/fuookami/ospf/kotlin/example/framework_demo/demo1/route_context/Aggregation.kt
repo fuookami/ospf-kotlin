@@ -1,17 +1,20 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Aggregates the route graph, services, and assignment variables, and registers them with the model. */
+/**
+ * 聚合路由图、服务和分配变量，并将其注册到模型。Aggregates the route graph, services, and assignment variables, and registers them with the model.
+ *
+ * @property graph 参数。
+ * @property services 参数。
+ * @property assignment 参数。
+ */
 class Aggregation(
     val graph: Graph,
     val services: List<Service>,

@@ -5,10 +5,16 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generatio
 import kotlinx.datetime.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Checks if a flight task is feasible for an aircraft given the previous task. */
+/**
+ * 检查给定前一任务时航班任务对飞机是否可行。Checks if a flight task is feasible for an aircraft given the previous task.
+ *
+ * @property aircraftUsability 参数。
+ * @property connectionTimeCalculator 参数。
+ * @property ruleChecker 参数。
+ */
 class FlightTaskFeasibilityJudger(
     val aircraftUsability: Map<Aircraft, AircraftUsability>,
     val connectionTimeCalculator: ConnectionTimeCalculator,
@@ -20,7 +26,14 @@ class FlightTaskFeasibilityJudger(
         val departureTime: Instant? = null
     )
 
-    /** Checks if the given flight task is feasible for the aircraft. */
+    /**
+     * Checks if the given flight task is feasible for the aircraft.
+ *
+     * @param aircraft 参数。
+     * @param prevFlightTask 参数。
+     * @param flightTask 参数。
+     * @param config 参数。
+     */
     operator fun invoke(
         aircraft: Aircraft,
         prevFlightTask: FlightTask?,

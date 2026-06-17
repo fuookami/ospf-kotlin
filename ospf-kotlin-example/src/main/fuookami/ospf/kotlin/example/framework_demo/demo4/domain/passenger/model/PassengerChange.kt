@@ -2,25 +2,28 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Tracks passenger class and flight change variables for the column generation formulation. */
+/**
+ * 跟踪列生成公式的乘客舱位和航班变更变量。Tracks passenger class and flight change variables for the column generation formulation.
+ *
+ * @property private val flights 参数。
+ * @property private val passengers 参数。
+ * @property private val withFlightChange 参数。
+ */
 class PassengerChange(
     private val flights: List<FlightTask>,
     private val passengers: List<FlightPassenger>,
     private val withFlightChange: Boolean = false
 ) {
-    /** Maps each flight to alternative flights with the same origin and destination. */
+    /** 将每个航班映射到具有相同始发地和目的地的替代航班。Maps each flight to alternative flights with the same origin and destination. */
     val toFlights: Map<FlightTask, List<FlightTask>> by lazy {
         val toFlights = HashMap<FlightTask, List<FlightTask>>()
         for (flight in passengers.map { it.flight }.distinct()) {
@@ -34,7 +37,12 @@ class PassengerChange(
     lateinit var passengerClassChange: Map<FlightPassenger, Map<PassengerClass, UIntVar>>
     lateinit var passengerFlightChange: Map<FlightPassenger, Map<FlightTask, Map<PassengerClass, UIntVar>>>
 
-    /** Registers class change and optionally flight change variables with the model. */
+    /**
+     * Registers class change and optionally flight change variables with the model.
+ *
+     * @param model 参数。
+     * @return 返回结果。
+     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerClassChange.isInitialized) {
             passengerClassChange = passengers.associateWith { passenger ->

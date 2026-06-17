@@ -1,22 +1,27 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Aggregates express effectiveness models for item priority ordering based on stowage mode. */
+/**
+ * 基于装载模式聚合用于项目优先级排序的快递效能模型。Aggregates express effectiveness models for item priority ordering based on stowage mode.
+ *
+ * @property stowageMode 参数。
+ * @property internal val items 参数。
+ * @property internal val positions 参数。
+ * @property internal val stowage 参数。
+ * @property mustShipIndices 参数。
+ */
 class Aggregation(
     stowageMode: StowageMode,
     internal val items: List<Item>,

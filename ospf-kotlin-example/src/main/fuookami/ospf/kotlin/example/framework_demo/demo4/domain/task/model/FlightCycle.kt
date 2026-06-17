@@ -4,11 +4,14 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import kotlin.time.Duration
 import kotlin.time.Instant
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 
-/** A flight hour value wrapping a duration, supporting arithmetic and comparison. */
+/**
+ * 包装时长的飞行小时值（支持算术和比较）。A flight hour value wrapping a duration, supporting arithmetic and comparison.
+ *
+ * @property hours 参数。
+ */
 data class FlightHour(
     val hours: Duration
 ) {
@@ -33,7 +36,11 @@ data class FlightHour(
     }
 }
 
-/** A flight cycle value wrapping a count, supporting arithmetic and comparison. */
+/**
+ * 包装计数的飞行循环值（支持算术和比较）。A flight cycle value wrapping a count, supporting arithmetic and comparison.
+ *
+ * @property cycles 参数。
+ */
 data class FlightCycle(
     val cycles: UInt64
 ) {
@@ -58,23 +65,44 @@ data class FlightCycle(
     }
 }
 
-/** A flight cycle maintenance period with expiration time and remaining flight hour/cycle limits. */
+/**
+ * 具有过期时间和剩余飞行小时/循环限制的飞行循环维护周期。A flight cycle maintenance period with expiration time and remaining flight hour/cycle limits.
+ *
+ * @property expirationTime 参数。
+ * @property remainingFlightHour 参数。
+ * @property remainingFlightCycle 参数。
+ */
 data class FlightCyclePeriod(
     val expirationTime: Instant,
     val remainingFlightHour: FlightHour?,
     val remainingFlightCycle: FlightCycle?
 ) {
-    /** Checks whether the given flight hour is within the remaining limit. */
+    /**
+     * Checks whether the given flight hour is within the remaining limit.
+ *
+     * @param flightHour 参数。
+     * @return 返回结果。
+     */
     fun enabled(flightHour: FlightHour): Boolean {
         return remainingFlightHour == null || flightHour leq remainingFlightHour
     }
 
-    /** Checks whether the given flight cycle is within the remaining limit. */
+    /**
+     * Checks whether the given flight cycle is within the remaining limit.
+ *
+     * @param flightCycle 参数。
+     * @return 返回结果。
+     */
     fun enabled(flightCycle: FlightCycle): Boolean {
         return remainingFlightCycle == null || flightCycle leq remainingFlightCycle
     }
 
-    /** Returns the excess flight hours beyond the remaining limit. */
+    /**
+     * Returns the excess flight hours beyond the remaining limit.
+ *
+     * @param flightHour 参数。
+     * @return 返回结果。
+     */
     fun overFlightHour(flightHour: FlightHour): FlightHour {
         return if (remainingFlightHour != null && remainingFlightHour ls flightHour) {
             flightHour - remainingFlightHour
@@ -83,7 +111,12 @@ data class FlightCyclePeriod(
         }
     }
 
-    /** Returns the excess flight cycles beyond the remaining limit. */
+    /**
+     * Returns the excess flight cycles beyond the remaining limit.
+ *
+     * @param flightCycle 参数。
+     * @return 返回结果。
+     */
     fun overFlightCycle(flightCycle: FlightCycle): FlightCycle {
         return if (remainingFlightCycle != null && remainingFlightCycle leq flightCycle) {
             flightCycle - remainingFlightCycle

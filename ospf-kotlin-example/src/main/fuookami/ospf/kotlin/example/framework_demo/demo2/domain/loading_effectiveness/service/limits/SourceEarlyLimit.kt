@@ -1,23 +1,28 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-/** Ensures at least one cargo from each source is assigned to an early position. */
+/**
+ * 确保每个来源的至少一个货物被分配到早期位置。Ensures at least one cargo from each source is assigned to an early position.
+ *
+ * @property private val items 参数。
+ * @property private val positions 参数。
+ * @property private val stowage 参数。
+ * @property private val cargosBySource 参数。
+ * @property private val earlyEnd 参数。
+ * @property override val name 参数。
+ */
 class SourceEarlyLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

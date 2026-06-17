@@ -2,25 +2,27 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
  * Models flight capacity expressions tracking passenger and cargo capacity
  * across flight task bunches for the column generation formulation.
+ *
+  * @property private val tasks 参数。
+  * @property private val compilation 参数。
+  * @property withPassenger 参数。
+  * @property withCargo 参数。
  */
 class FlightCapacity(
     private val tasks: List<FlightTask>,
@@ -31,7 +33,12 @@ class FlightCapacity(
     lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbol<Flt64>>>
     lateinit var cargo: Map<FlightTask, LinearExpressionSymbol<Flt64>>
 
-    /** Registers passenger and cargo capacity symbols with the model. */
+    /**
+     * Registers passenger and cargo capacity symbols with the model.
+ *
+     * @param model 参数。
+     * @return 返回结果。
+     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (withPassenger) {
             if (!::passenger.isInitialized) {
@@ -88,7 +95,13 @@ class FlightCapacity(
         return ok
     }
 
-    /** Adds columns for new bunches to the capacity expressions. */
+    /**
+     * Adds columns for new bunches to the capacity expressions.
+ *
+     * @param iteration 参数。
+     * @param bunches 参数。
+     * @return 返回结果。
+     */
     fun addColumns(
         iteration: UInt64,
         bunches: List<FlightTaskBunch>,

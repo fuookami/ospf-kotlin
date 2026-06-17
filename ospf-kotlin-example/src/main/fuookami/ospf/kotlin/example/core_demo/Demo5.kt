@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,12 +26,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** 0-1 knapsack: maximize cargo value subject to a weight limit. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example5.html
- */
-data object Demo5 {
-    /** A cargo item with weight and value. */
+/** * 0-1 背包问题：在重量限制下最大化货物价值。0-1 knapsack: maximize cargo value subject to a weight limit. * * * @see     https://fuookami.github.io/ospf/examples/example5.html */data object Demo5 {
+    /**
+     * 具有重量和价值的货物项。A cargo item with weight and value.
+     *
+     * @property weight 参数。
+     * @property value 参数。
+     */
     data class Cargo(
         val weight: UInt64,
         val value: UInt64
@@ -65,7 +62,11 @@ data object Demo5 {
         Demo5::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -83,7 +84,11 @@ data object Demo5 {
         return ok
     }
 
-    /** Initializes binary decision variables for cargo selection. */
+    /**
+     * Initializes binary decision variables for cargo selection.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(cargos.size))
         for (c in cargos) {
@@ -93,7 +98,11 @@ data object Demo5 {
         return ok
     }
 
-    /** Creates cargo value and weight expression symbols. */
+    /**
+     * Creates cargo value and weight expression symbols.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         cargoValue = LinearExpressionSymbol(
             sum(cargos) { c -> c.value * x[c] },
@@ -109,13 +118,21 @@ data object Demo5 {
         return ok
     }
 
-    /** Sets the objective to maximize total cargo value. */
+    /**
+     * Sets the objective to maximize total cargo value.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.maximize(cargoValue, "value")
         return ok
     }
 
-    /** Adds weight capacity constraint. */
+    /**
+     * Adds weight capacity constraint.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
             cargoWeight leq maxWeight,
@@ -124,7 +141,11 @@ data object Demo5 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -143,7 +164,11 @@ data object Demo5 {
         return ok
     }
 
-    /** Extracts the selected cargo items from the solution. */
+    /**
+     * Extracts the selected cargo items from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val ret = HashSet<Cargo>()
         for (token in metaModel.tokens.tokens) {

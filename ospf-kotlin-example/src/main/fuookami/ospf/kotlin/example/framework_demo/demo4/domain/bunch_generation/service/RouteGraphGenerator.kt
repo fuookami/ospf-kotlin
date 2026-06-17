@@ -3,25 +3,42 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
 import kotlin.time.Duration.Companion.minutes
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Configuration for route graph generation. */
+/**
+ * 路线图生成配置。Configuration for route graph generation.
+ *
+ * @property withOrderChange 参数。
+ */
 data class Configuration(
     val withOrderChange: Boolean = false
 )
 
-/** Generates route graphs for bunch generation. */
+/**
+ * 为批次生成生成路线图。Generates route graphs for bunch generation.
+ *
+ * @property private val reverse 参数。
+ * @property private val configuration 参数。
+ * @property private val feasibilityJudger 参数。
+ */
 class RouteGraphGenerator(
     private val reverse: FlightTaskReverse,
     private val configuration: Configuration,
     private val feasibilityJudger: (Aircraft, FlightTask?, FlightTask) -> Boolean,
 ) {
-    /** Generates a route graph for the given aircraft. */
+    /**
+     * Generates a route graph for the given aircraft.
+ *
+     * @param aircraft 参数。
+     * @param aircraftUsability 参数。
+     * @param flightTasks 参数。
+     * @return 返回结果。
+     */
     operator fun invoke(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,

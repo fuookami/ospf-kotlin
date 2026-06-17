@@ -1,13 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 
 private fun onSameSide(
     position1: Position,
@@ -19,7 +16,7 @@ private fun onSameSide(
             || (position1.coordinate.onRight && position2.coordinate.onRight)
 }
 
-/** Calculates physical adjacency between cargo positions on the same deck. */
+/** 计算同一甲板上货物位置之间的物理邻接。Calculates physical adjacency between cargo positions on the same deck. */
 data object PhysicalNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>
@@ -59,7 +56,7 @@ data object PhysicalNeighbourCalculator {
     }
 }
 
-/** Calculates indirect physical adjacency through shared physical neighbours. */
+/** 通过共享物理邻居计算间接物理邻接。Calculates indirect physical adjacency through shared physical neighbours. */
 data object IndirectPhysicsNeighbourCalculator {
     private val nearEnoughLongitudinalRatio = Flt64(0.5)
 
@@ -132,7 +129,7 @@ data object IndirectPhysicsNeighbourCalculator {
     }
 }
 
-/** Calculates linear loading order adjacency between consecutive positions on each deck. */
+/** 计算每个甲板上连续位置之间的线性装载顺序邻接。Calculates linear loading order adjacency between consecutive positions on each deck. */
 class LinearLoadingOrderNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>
@@ -156,7 +153,7 @@ class LinearLoadingOrderNeighbourCalculator {
     }
 }
 
-/** Calculates topological loading order adjacency from direct successor relationships. */
+/** 从直接后继关系计算拓扑装载顺序邻接。Calculates topological loading order adjacency from direct successor relationships. */
 class TopologicalLoadingOrderNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>

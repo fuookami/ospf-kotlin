@@ -1,5 +1,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.MAC
@@ -7,17 +14,18 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Aggregates MAC (Mean Aerodynamic Chord), torque, and horizontal stabilizer computations. */
+/**
+ * 聚合 MAC（平均气动弦）、扭矩和水平安定面计算。Aggregates MAC (Mean Aerodynamic Chord), torque, and horizontal stabilizer computations.
+ *
+ * @property aircraftModel 参数。
+ * @property fuselage 参数。
+ * @property fuel 参数。
+ * @property formula 参数。
+ * @property positions 参数。
+ * @property load 参数。
+ * @property totalWeight 参数。
+ * @property horizontalStabilizers 参数。
+ */
 class Aggregation(
     aircraftModel: AircraftModel,
     fuselage: Fuselage,

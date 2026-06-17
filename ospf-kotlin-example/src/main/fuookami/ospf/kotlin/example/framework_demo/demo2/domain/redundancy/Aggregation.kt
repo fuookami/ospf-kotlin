@@ -1,22 +1,29 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Aggregates redundancy and experimental longitudinal balance models for weight distribution analysis. */
+/**
+ * 聚合冗余和实验纵向平衡模型用于重量分布分析。Aggregates redundancy and experimental longitudinal balance models for weight distribution analysis.
+ *
+ * @property internal val aircraftModel 参数。
+ * @property flight 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property stowage 参数。
+ * @property load 参数。
+ * @property payload 参数。
+ */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     flight: Flight,

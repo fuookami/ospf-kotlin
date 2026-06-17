@@ -1,28 +1,31 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
-/** Computes linear density (weight per unit length) for each cargo position and registers it with the model. */
+/**
+ * 计算每个货物位置的线性密度（单位长度重量）并将其注册到模型。Computes linear density (weight per unit length) for each cargo position and registers it with the model.
+ *
+ * @property private val aircraftModel 参数。
+ * @property limitsZones 参数。
+ * @property limitLines 参数。
+ * @property private val positions 参数。
+ * @property private val load 参数。
+ */
 class LinearDensity(
     private val aircraftModel: AircraftModel,
     val limitsZones: List<LimitZone>,

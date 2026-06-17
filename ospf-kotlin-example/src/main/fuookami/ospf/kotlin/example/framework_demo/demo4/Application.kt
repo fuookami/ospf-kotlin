@@ -1,26 +1,18 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.example.framework_demo.demo4
 
-import kotlin.time.DurationUnit
-import kotlin.time.Instant
-import kotlin.time.toDuration
-
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
@@ -30,11 +22,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 
-/** Main application entry point for the flight recovery scheduling demo. */
+/** 航班恢复调度演示的主应用入口。Main application entry point for the flight recovery scheduling demo. */
 class Application {
 }
 
-/** Sample demonstrating generic quantity usage across gantt scheduling framework types. */
+/** 演示跨甘特调度框架类型的泛型数量使用的示例。Sample demonstrating generic quantity usage across gantt scheduling framework types. */
 object Demo4GenericQuantitySample {
     private val time = TimeRange(
         start = Instant.parse("2026-06-07T00:00:00Z"),
@@ -220,7 +212,7 @@ object Demo4GenericQuantitySample {
     val quantityFieldSum = quantityFieldCost.costSum
 }
 
-/** Demo task implementation for testing generic quantity conversions. */
+/** 测试泛型数量转换的演示任务实现。Demo task implementation for testing generic quantity conversions. */
 private data class Demo4Task(
     override val index: Int = 0,
     override val id: String,
@@ -232,7 +224,7 @@ private data class Demo4Task(
     }
 }
 
-/** Demo task time configuration with constant symbol values for testing. */
+/** 用于测试的具有常量符号值的演示任务时间配置。Demo task time configuration with constant symbol values for testing. */
 private class Demo4TaskTime : TaskTime {
     override val delayEnabled: Boolean = true
     override val overMaxDelayEnabled: Boolean = false
@@ -256,7 +248,7 @@ private class Demo4TaskTime : TaskTime {
     }
 }
 
-/** Demo switch implementation for task transition modeling. */
+/** 任务转换建模的演示切换实现。Demo switch implementation for task transition modeling. */
 private class Demo4Switch : Switch {
     override val switch = LinearIntermediateSymbols3<Flt64>(
         name = "demo4_switch",
@@ -276,7 +268,7 @@ private class Demo4Switch : Switch {
     }
 }
 
-/** Demo execution resource for capacity scheduling samples. */
+/** 容量调度示例的演示执行资源。Demo execution resource for capacity scheduling samples. */
 private class Demo4Resource(
     override val capacities: List<ResourceCapacity<FltX>>
 ) : ExecutionResource<ResourceCapacity<FltX>, FltX>(
@@ -292,7 +284,7 @@ private class Demo4Resource(
     }
 }
 
-/** Demo resource usage tracking for capacity samples. */
+/** 容量示例的演示资源使用跟踪。Demo resource usage tracking for capacity samples. */
 private class Demo4ResourceUsage(
     slot: ExecutionResourceTimeSlot<Demo4Resource, ResourceCapacity<FltX>, FltX>
 ) : ResourceUsage<ExecutionResourceTimeSlot<Demo4Resource, ResourceCapacity<FltX>, FltX>, Demo4Resource, ResourceCapacity<FltX>, FltX> {
@@ -309,7 +301,7 @@ private class Demo4ResourceUsage(
     }
 }
 
-/** Demo material for production/consumption modeling. */
+/** 生产/消耗建模的演示物料。Demo material for production/consumption modeling. */
 private data class Demo4Material(
     override val index: Int,
     val label: String
@@ -317,7 +309,7 @@ private data class Demo4Material(
     override val material: Material get() = this
 }
 
-/** Demo production quantity for material output modeling. */
+/** 物料输出建模的演示生产量。Demo production quantity for material output modeling. */
 private class Demo4Produce(product: AbstractMaterial) : Produce {
     override val quantity = constantSymbols("demo4_produce_quantity", Flt64(5.0), product.index + 1)
     override val overQuantity = constantSymbols("demo4_produce_over_quantity", Flt64.zero, product.index + 1)
@@ -330,7 +322,7 @@ private class Demo4Produce(product: AbstractMaterial) : Produce {
     }
 }
 
-/** Demo consumption quantity for material input modeling. */
+/** 物料输入建模的演示消耗量。Demo consumption quantity for material input modeling. */
 private class Demo4Consumption(material: AbstractMaterial) : Consumption {
     override val quantity = constantSymbols("demo4_consumption_quantity", Flt64(2.0), material.index + 1)
     override val overQuantity = constantSymbols("demo4_consumption_over_quantity", Flt64.zero, material.index + 1)
@@ -343,7 +335,14 @@ private class Demo4Consumption(material: AbstractMaterial) : Consumption {
     }
 }
 
-/** Creates a 1D array of constant [LinearExpressionSymbol] with the given name and value. */
+/**
+ * Creates a 1D array of constant [LinearExpressionSymbol] with the given name and value.
+ *
+ * @param name 参数。
+ * @param value 参数。
+ * @param size 参数。
+ * @return 返回结果。
+ */
 private fun constantSymbols(
     name: String,
     value: Flt64,
@@ -357,7 +356,7 @@ private fun constantSymbols(
     }
 }
 
-/** Demo production action for capacity allocation samples. */
+/** 容量分配示例的演示生产动作。Demo production action for capacity allocation samples. */
 private object Demo4Action : ProductionAction {
     override val id: String = "demo4-action"
     override val name: String = "demo4-action"

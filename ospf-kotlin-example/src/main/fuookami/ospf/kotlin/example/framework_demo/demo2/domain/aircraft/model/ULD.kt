@@ -1,12 +1,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-/** Category of a unit load device (ULD). */
+/** 单元装载设备（ULD）的类别。Category of a unit load device (ULD). */
 enum class ULDCategory {
     Pallet,
     Container
 }
 
-/** Standard ULD type codes used in air cargo operations. */
+/** 航空货运操作中使用的标准 ULD 类型代码。Standard ULD type codes used in air cargo operations. */
 enum class ULDCode {
     PAG,
     PAJ,
@@ -64,7 +64,12 @@ enum class ULDCode {
     open val category = ULDCategory.Pallet
 }
 
-/** A unit load device (ULD) identified by name and optional code, with caching for reuse. */
+/**
+ * 通过名称和可选代码标识的单元装载设备（ULD）（具有缓存以便重用）。A unit load device (ULD) identified by name and optional code, with caching for reuse.
+ *
+ * @property name 参数。
+ * @property code 参数。
+ */
 data class ULD(
     val name: String,
     val code: ULDCode?

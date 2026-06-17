@@ -1,14 +1,10 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo3
 
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
-
 import fuookami.ospf.kotlin.core.solver.scip.ScipColumnGenerationSolver
-
 import fuookami.ospf.kotlin.framework.csp1d.application.model.Csp1dConfiguration
 import fuookami.ospf.kotlin.framework.csp1d.application.model.csp1dProblem
 import fuookami.ospf.kotlin.framework.csp1d.application.service.Csp1dColumnGeneration
@@ -18,7 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.servi
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service.NSameGenerator
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
-/** One-dimensional Cutting Stock Problem solved via column generation with SCIP. */
+/** 使用 SCIP 通过列生成求解的一维切割库存问题。One-dimensional Cutting Stock Problem solved via column generation with SCIP. */
 class CSP {
     private val rawLength = 1000.0
     private val rawProducts: List<RawProduct> = listOf(

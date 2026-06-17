@@ -1,28 +1,28 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Edge
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Limits edge bandwidth to zero when the associated service is not assigned to that edge. */
+/**
+ * 当关联服务未分配到该边时将边带宽限制为零。Limits edge bandwidth to zero when the associated service is not assigned to that edge.
+ *
+ * @property private val edges 参数。
+ * @property private val services 参数。
+ * @property private val assignment 参数。
+ * @property private val edgeBandwidth 参数。
+ * @property override val name 参数。
+ */
 class EdgeBandwidthConstraint(
     private val edges: List<Edge>,
     private val services: List<Service>,

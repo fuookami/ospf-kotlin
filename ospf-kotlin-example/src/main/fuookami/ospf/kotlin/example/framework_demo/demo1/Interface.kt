@@ -1,11 +1,9 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 
 const val data = """28 45 12
     100
@@ -68,8 +66,9 @@ const val data = """28 45 12
     11 24 23
     """
 
-/** Entry point for the Shortest Path Problem demo that parses inline test data and invokes the SSP solver. */
+/** 最短路径问题演示的入口点，解析内联测试数据并调用 SSP 求解器。Entry point for the Shortest Path Problem demo that parses inline test data and invokes the SSP solver. */
 class SPP {
+    /** @return 执行结果。 */
     suspend operator fun invoke(): Try {
         return when (val input = read(data)) {
             is Failed -> {

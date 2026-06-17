@@ -2,28 +2,24 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Shadow price key for fleet balance constraints indexed by airport and aircraft minor type. */
+/** 按机场和飞机子类型索引的车队平衡约束的影子价格键。Shadow price key for fleet balance constraints indexed by airport and aircraft minor type. */
 private data class FleetBalanceShadowPriceKey(
     val airport: Airport,
     val aircraftMinorType: AircraftMinorType,
@@ -31,13 +27,23 @@ private data class FleetBalanceShadowPriceKey(
     override fun toString() = "Fleet Balance ($airport, $aircraftMinorType)"
 }
 
-/** Pipeline implementing fleet balance constraints and minimization for column generation. */
+/**
+ * 实现列生成车队平衡约束和最小化的管线。Pipeline implementing fleet balance constraints and minimization for column generation.
+ *
+ * @property private val fleetBalance 参数。
+ * @property private val coefficient 参数。
+ */
 class FleetBalanceLimit(
     private val fleetBalance: FleetBalance,
     private val coefficient: (Airport, AircraftMinorType) -> Flt64,
     override val name: String = "fleet_balance_limit"
 ) : CGPipeline {
-    /** Adds fleet balance constraints and minimization objective to the model. */
+    /**
+     * Adds fleet balance constraints and minimization objective to the model.
+ *
+     * @param model 参数。
+     * @return 返回结果。
+     */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((l, checkPoint) in fleetBalance.limits.withIndex()) {
             when (val result = model.addConstraint(
@@ -82,7 +88,11 @@ class FleetBalanceLimit(
         return ok
     }
 
-    /** Returns the shadow price extractor for fleet balance constraints. */
+    /**
+     * Returns the shadow price extractor for fleet balance constraints.
+ *
+     * @return 返回结果。
+     */
     override fun extractor(): ShadowPriceExtractor? {
         return { map, args: ShadowPriceArguments ->
             when (args) {
@@ -104,7 +114,14 @@ class FleetBalanceLimit(
         }
     }
 
-    /** Refreshes the shadow price map with dual values from the solved model. */
+    /**
+     * Refreshes the shadow price map with dual values from the solved model.
+ *
+     * @param shadowPriceMap 参数。
+     * @param model 参数。
+     * @param shadowPrices 参数。
+     * @return 返回结果。
+     */
     override fun refresh(
         shadowPriceMap: ShadowPriceMap,
         model: AbstractLinearMetaModel<Flt64>,

@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,31 +26,49 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example15.html
- */
-data object Demo15 {
-    /** A car model type. */
+/** * 多工厂分销：在替代约束下最小化从制造商到配送中心的物流成本。Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution. * * * @see     https://fuookami.github.io/ospf/examples/example15.html */data object Demo15 {
+    /**
+     * 汽车型号类型。A car model type.
+     *
+     * @property name 参数。
+     */
     data class CarModel(
         val name: String
     ) : AutoIndexed(CarModel::class)
 
-    /** A substitution rule between two car models with maximum substitution rate. */
+    /**
+     * 两个汽车型号之间的替代规则（具有最大替代率）。A substitution rule between two car models with maximum substitution rate.
+     *
+     * @property c1 参数。
+     * @property c2 参数。
+     * @property maximum 参数。
+     */
     data class Replacement(
         val c1: CarModel,
         val c2: CarModel,
         val maximum: Flt64
     )
 
-    /** A distribution center with substitution rules and demand per car model. */
+    /**
+     * 具有替代规则和每型号需求的配送中心。A distribution center with substitution rules and demand per car model.
+     *
+     * @property name 参数。
+     * @property replacements 参数。
+     * @property demands 参数。
+     */
     data class DistributionCenter(
         val name: String,
         val replacements: List<Replacement>,
         val demands: Map<CarModel, UInt64>
     ) : AutoIndexed(DistributionCenter::class)
 
-    /** A manufacturer with production capacity and logistics cost per center. */
+    /**
+     * 具有生产能力和每中心物流成本的制造商。A manufacturer with production capacity and logistics cost per center.
+     *
+     * @property name 参数。
+     * @property productivity 参数。
+     * @property logisticsCost 参数。
+     */
     data class Manufacturer(
         val name: String,
         val productivity: Map<CarModel, UInt64>,
@@ -147,7 +161,11 @@ data object Demo15 {
         Demo15::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -165,7 +183,11 @@ data object Demo15 {
         return ok
     }
 
-    /** Initializes shipment and substitution rate variables. */
+    /**
+     * Initializes shipment and substitution rate variables.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable3("x", Shape3(manufacturers.size, distributionCenters.size, carModels.size))
         for (m in manufacturers) {
@@ -196,7 +218,11 @@ data object Demo15 {
         return ok
     }
 
-    /** Creates receive, adjusted demand, transport, and cost expression symbols. */
+    /**
+     * Creates receive, adjusted demand, transport, and cost expression symbols.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         receive = LinearIntermediateSymbols2<Flt64>(
             "receive",
@@ -277,14 +303,22 @@ data object Demo15 {
         return ok
     }
 
-    /** Sets the objective to minimize total logistics cost. */
+    /**
+     * Sets the objective to minimize total logistics cost.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
 
         return ok
     }
 
-    /** Adds demand satisfaction and production capacity constraints. */
+    /**
+     * Adds demand satisfaction and production capacity constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         for (d in distributionCenters) {
             for (c in carModels) {
@@ -311,7 +345,11 @@ data object Demo15 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -331,7 +369,11 @@ data object Demo15 {
         return ok
     }
 
-    /** Extracts shipment and substitution data from the solution. */
+    /**
+     * Extracts shipment and substitution data from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Manufacturer, MutableMap<Pair<DistributionCenter, CarModel>, UInt64>> = HashMap()
         val replacement: MutableMap<DistributionCenter, MutableMap<Pair<CarModel, CarModel>, UInt64>> = HashMap()

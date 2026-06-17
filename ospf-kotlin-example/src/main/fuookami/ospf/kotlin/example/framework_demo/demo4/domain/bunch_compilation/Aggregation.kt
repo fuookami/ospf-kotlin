@@ -2,28 +2,31 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
  * Aggregation for bunch compilation combining task time, flow, fleet balance,
  * flight link, and flight capacity constraints for the column generation process.
+ *
+  * @property timeWindow 参数。
+  * @property recoveryNeededAircrafts 参数。
+  * @property recoveryNeededFlightTasks 参数。
+  * @property originBunches 参数。
+  * @property flows 参数。
+  * @property links 参数。
  */
 class Aggregation(
     timeWindow: TimeWindow<*>,
@@ -77,7 +80,12 @@ class Aggregation(
         compilation = compilation
     )
 
-    /** Registers all sub-aggregation components with the model. */
+    /**
+     * Registers all sub-aggregation components with the model.
+ *
+     * @param model 参数。
+     * @return 返回结果。
+     */
     override fun register(model: MetaModel<Flt64>): Try {
         model as AbstractLinearMetaModel<Flt64>
 
@@ -156,7 +164,14 @@ class Aggregation(
         return ok
     }
 
-    /** Adds columns for new bunches to all sub-aggregation components. */
+    /**
+     * Adds columns for new bunches to all sub-aggregation components.
+ *
+     * @param iteration 参数。
+     * @param newBunches 参数。
+     * @param model 参数。
+     * @return 返回结果。
+     */
     override suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<FlightTaskBunch>,

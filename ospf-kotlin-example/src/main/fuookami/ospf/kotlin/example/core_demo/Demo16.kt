@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +17,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -30,23 +26,25 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Production scheduling: minimize production, storage, and delay delivery costs across months. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example16.html
- */
-data object Demo16 {
-    /** A production period with month index, productivity, and demand. */
+/** * 生产排程：最小化跨月份的生产、仓储和延迟交付成本。Production scheduling: minimize production, storage, and delay delivery costs across months. * * * @see     https://fuookami.github.io/ospf/examples/example16.html */data object Demo16 {
+    /**
+     * 具有月份索引、生产率和需求的生产周期。A production period with month index, productivity, and demand.
+     *
+     * @property month 参数。
+     * @property productivity 参数。
+     * @property demand 参数。
+     */
     data class Produce(
         val month: UInt64,
         val productivity: UInt64,
         val demand: UInt64
     ) : AutoIndexed(Produce::class)
 
-    /** Unit production cost. */
+    /** 单位生产成本。Unit production cost. */
     val productPrice: Flt64 = Flt64(40.0)
-    /** Unit delay delivery cost per squared time period. */
+    /** 每平方时间段的单位延迟交付成本。Unit delay delivery cost per squared time period. */
     val delayDeliveryPrice: Flt64 = Flt64(2.0)
-    /** Unit storage cost per time period. */
+    /** 每时间段的单位存储成本。Unit storage cost per time period. */
     val stowagePrice: Flt64 = Flt64(0.5)
 
     val produces = listOf(
@@ -75,7 +73,11 @@ data object Demo16 {
         Demo16::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -93,7 +95,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Initializes production allocation variables between periods. */
+    /**
+     * Initializes production allocation variables between periods.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(produces.size, produces.size))
         metaModel.add(x)
@@ -101,7 +107,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Creates production, supply, delay delivery, storage, and production cost symbols. */
+    /**
+     * Creates production, supply, delay delivery, storage, and production cost symbols.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         produce = LinearIntermediateSymbols1<Flt64>(
             "produce",
@@ -164,7 +174,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Sets the objective to minimize total cost (production + storage + delay). */
+    /**
+     * Sets the objective to minimize total cost (production + storage + delay).
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.minimize(
             delayDeliveryCost + storageCost + produceCost,
@@ -174,7 +188,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Adds demand satisfaction and productivity capacity constraints. */
+    /**
+     * Adds demand satisfaction and productivity capacity constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         for (p in produces) {
             metaModel.addConstraint(
@@ -193,7 +211,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -213,7 +235,11 @@ data object Demo16 {
         return ok
     }
 
-    /** Extracts the production allocation matrix from the solution. */
+    /**
+     * Extracts the production allocation matrix from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val solution = HashMap<UInt64, HashMap<UInt64, UInt64>>()
         for (token in metaModel.tokens.tokens) {

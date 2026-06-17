@@ -1,13 +1,20 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-/** Location of a deck within the aircraft fuselage. */
+/** 飞机机身内甲板的位置。Location of a deck within the aircraft fuselage. */
 enum class DeckLocation {
     Main,
     LowForward,
     LowAft,
 }
 
-/** Represents a physical deck on the aircraft with its doors, cargo positions, and door proximity mappings. */
+/**
+ * 表示飞机上的物理甲板（具有门、货物位置和门邻近映射）。Represents a physical deck on the aircraft with its doors, cargo positions, and door proximity mappings.
+ *
+ * @property location 参数。
+ * @property doors 参数。
+ * @property positions 参数。
+ * @property doorUbieties 参数。
+ */
 data class Deck(
     val location: DeckLocation,
     val doors: List<HatchDoor>,

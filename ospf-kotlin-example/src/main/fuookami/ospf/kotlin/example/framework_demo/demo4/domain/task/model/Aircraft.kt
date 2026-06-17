@@ -3,15 +3,18 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import kotlin.time.Instant
-
-import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 
-/** An aircraft identified by register number, with minor type and capacity information. */
+/**
+ * 通过注册号标识的飞机（具有子机型和容量信息）。An aircraft identified by register number, with minor type and capacity information.
+ *
+ * @property regNo 参数。
+ * @property minorType 参数。
+ * @property capacity 参数。
+ */
 data class Aircraft(
     val regNo: AircraftRegisterNumber,
     val minorType: AircraftMinorType,
@@ -32,7 +35,12 @@ data class Aircraft(
         private val pool = HashMap<AircraftRegisterNumber, Aircraft>()
         val values by pool::values
 
-        /** Retrieves an [Aircraft] by register number from the pool. */
+        /**
+         * Retrieves an [Aircraft] by register number from the pool.
+ *
+         * @param regNo 参数。
+         * @return 返回结果。
+         */
         operator fun invoke(regNo: AircraftRegisterNumber): Aircraft? {
             return pool[regNo]
         }
@@ -42,7 +50,12 @@ data class Aircraft(
         pool[regNo] = this
     }
 
-    /** Returns the passenger capacity for the given class, or zero if not a passenger aircraft. */
+    /**
+     * Returns the passenger capacity for the given class, or zero if not a passenger aircraft.
+ *
+     * @param cls 参数。
+     * @return 返回结果。
+     */
     fun capacity(cls: PassengerClass): UInt64 {
         return when (val capacity = this.capacity) {
             is AircraftCapacity.Passenger -> { capacity[cls] }
@@ -77,28 +90,53 @@ data class Aircraft(
     override fun toString() = "$regNo"
 }
 
-/** Tracks aircraft usability including location, enabled time, and flight cycle periods. */
+/**
+ * 跟踪飞机可用性（包括位置、启用时间和飞行循环周期）。Tracks aircraft usability including location, enabled time, and flight cycle periods.
+ *
+ * @property lastTask 参数。
+ * @property location 参数。
+ * @property enabledTime 参数。
+ * @property flightCyclePeriods 参数。
+ */
 class AircraftUsability(
     lastTask: FlightTask?,
     val location: Airport,
     enabledTime: Instant,
     val flightCyclePeriods: List<FlightCyclePeriod> = emptyList()
 ) : ExecutorInitialUsability<FlightTask, Aircraft, FlightTaskAssignment>(lastTask, enabledTime) {
-    /** Returns the number of flight cycle periods exceeded for the given time and flight hour. */
+    /**
+     * Returns the number of flight cycle periods exceeded for the given time and flight hour.
+ *
+     * @param time 参数。
+     * @param flightHour 参数。
+     * @return 返回结果。
+     */
     fun overFlightHourTimes(time: Instant, flightHour: FlightHour): UInt64 {
         return UInt64(flightCyclePeriods.count {
             time < it.expirationTime && !it.enabled(flightHour)
         })
     }
 
-    /** Returns the number of flight cycle periods exceeded for the given time and flight cycle. */
+    /**
+     * Returns the number of flight cycle periods exceeded for the given time and flight cycle.
+ *
+     * @param time 参数。
+     * @param flightCycle 参数。
+     * @return 返回结果。
+     */
     fun overFlightCycleTimes(time: Instant, flightCycle: FlightCycle): UInt64 {
         return UInt64(flightCyclePeriods.count {
             time < it.expirationTime && !it.enabled(flightCycle)
         })
     }
 
-    /** Returns the total excess flight hours across all periods. */
+    /**
+     * Returns the total excess flight hours across all periods.
+ *
+     * @param time 参数。
+     * @param flightHour 参数。
+     * @return 返回结果。
+     */
     fun overFlightHour(time: Instant, flightHour: FlightHour): FlightHour {
         var ret = FlightHour.zero
         for (period in flightCyclePeriods) {
@@ -110,7 +148,13 @@ class AircraftUsability(
         return ret
     }
 
-    /** Returns the total excess flight cycles across all periods. */
+    /**
+     * Returns the total excess flight cycles across all periods.
+ *
+     * @param time 参数。
+     * @param flightCycle 参数。
+     * @return 返回结果。
+     */
     fun overFlightCycle(time: Instant, flightCycle: FlightCycle): FlightCycle {
         var ret = FlightCycle.zero
         for (period in flightCyclePeriods) {

@@ -1,25 +1,23 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Edge
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Graph
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.NormalNode
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
-/** Intermediate symbols for per-service in-degree, out-degree, and out-flow at each node. */
+/**
+ * 每服务每个节点入度、出度和流出的中间符号。Intermediate symbols for per-service in-degree, out-degree, and out-flow at each node.
+ *
+ * @property private val graph 参数。
+ * @property private val services 参数。
+ * @property private val edgeBandwidth 参数。
+ */
 class ServiceBandwidth(
     private val graph: Graph,
     private val services: List<Service>,

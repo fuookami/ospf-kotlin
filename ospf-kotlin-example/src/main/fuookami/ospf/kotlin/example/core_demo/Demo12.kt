@@ -1,20 +1,15 @@
 package fuookami.ospf.kotlin.example.core_demo
 
-import fuookami.ospf.kotlin.example.solveLinearMetaModel
-
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.multiarray.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -24,6 +19,7 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value
@@ -32,12 +28,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** Investment portfolio: maximize yield subject to risk and fund allocation constraints. */
-/**
- * @see     https://fuookami.github.io/ospf/examples/example12.html
- */
-data object Demo12 {
-    /** An investment product with yield, risk, premium, and minimum premium. */
+/** * 投资组合：在风险和资金分配约束下最大化收益。Investment portfolio: maximize yield subject to risk and fund allocation constraints. * * * @see     https://fuookami.github.io/ospf/examples/example12.html */data object Demo12 {
+    /**
+     * 具有收益、风险、保费和最低保费的投资产品。An investment product with yield, risk, premium, and minimum premium.
+     *
+     * @property yield 参数。
+     * @property risk 参数。
+     * @property premium 参数。
+     * @property minPremium 参数。
+     */
     data class Product(
         val yield: Flt64,
         val risk: Flt64,
@@ -73,7 +72,11 @@ data object Demo12 {
         Demo12::analyzeSolution
     )
 
-    /** Runs all sub-processes sequentially to build, solve, and analyze the model. */
+    /**
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+ *
+     * @return 返回结果。
+     */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -91,14 +94,22 @@ data object Demo12 {
         return ok
     }
 
-    /** Initializes unsigned integer variables for product investment amounts. */
+    /**
+     * Initializes unsigned integer variables for product investment amounts.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
         metaModel.add(x)
         return ok
     }
 
-    /** Creates assignment, premium, risk, and yield expression symbols. */
+    /**
+     * Creates assignment, premium, risk, and yield expression symbols.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initSymbol(): Try {
         assignment = LinearIntermediateSymbols1<Flt64>(
             "assignment",
@@ -149,13 +160,21 @@ data object Demo12 {
         return ok
     }
 
-    /** Sets the objective to maximize total yield. */
+    /**
+     * Sets the objective to maximize total yield.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initObject(): Try {
         metaModel.maximize(yield, "yield")
         return ok
     }
 
-    /** Adds fund allocation and risk limit constraints. */
+    /**
+     * Adds fund allocation and risk limit constraints.
+ *
+     * @return 返回结果。
+     */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
             sum(products.map { p -> x[p] + premium[p] }) eq funds,
@@ -170,7 +189,11 @@ data object Demo12 {
         return ok
     }
 
-    /** Solves the linear model using the SCIP solver. */
+    /**
+     * Solves the linear model using the SCIP solver.
+ *
+     * @return 返回结果。
+     */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -189,7 +212,11 @@ data object Demo12 {
         return ok
     }
 
-    /** Extracts the investment amounts per product from the solution. */
+    /**
+     * Extracts the investment amounts per product from the solution.
+ *
+     * @return 返回结果。
+     */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()
         for (token in metaModel.tokens.tokens) {

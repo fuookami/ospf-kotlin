@@ -1,22 +1,19 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization.service.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageContext
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Context for managing payload maximization optimization across aircraft and stowage domains. */
+/** 跨飞机和装载域管理载荷最大化优化的上下文。Context for managing payload maximization optimization across aircraft and stowage domains. */
 class PayloadMaximizationContext {
     lateinit var aggregation: Aggregation
 

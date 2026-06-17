@@ -2,12 +2,9 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto
 
-import kotlin.time.*
-
 import kotlinx.datetime.*
-
+import kotlin.time.*
 import fuookami.ospf.kotlin.utils.error.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 

@@ -1,13 +1,15 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
-/** Cumulative load weight limits along the fuselage in forward or aft direction. */
+/**
+ * 沿机身向前或向后的累积载荷重量限制。Cumulative load weight limits along the fuselage in forward or aft direction.
+ *
+ * @property limitZones 参数。
+ */
 class MaxCumulativeLoadWeight(
     val limitZones: List<LimitZone>,
 ) {

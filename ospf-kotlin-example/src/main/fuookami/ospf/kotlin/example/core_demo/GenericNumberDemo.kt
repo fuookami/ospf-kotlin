@@ -1,38 +1,27 @@
 package fuookami.ospf.kotlin.example.core_demo
 
 import kotlinx.coroutines.runBlocking
-
 import fuookami.ospf.kotlin.utils.functional.Ok
-
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 
-/** A test case pairing a numeric type name with its IntoValue converter. */
+/** 将数值类型名称与其 IntoValue 转换器配对的测试用例。A test case pairing a numeric type name with its IntoValue converter. */
 private data class GenericNumberCase<V>(
     val name: String,
     val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V>
 
-/** Predefined generic number test cases for Flt64, Rtn64, FltX, and RtnX. */
+/** Flt64、Rtn64、FltX 和 RtnX 的预定义泛型数值测试用例。Predefined generic number test cases for Flt64, Rtn64, FltX, and RtnX. */
 private object GenericNumberCases {
     val flt64 = GenericNumberCase(
         name = "Flt64",
@@ -70,9 +59,16 @@ private object GenericNumberCases {
     )
 }
 
-/** Demonstrates that the linear and quadratic model builders work correctly across multiple numeric types. */
+/** 演示线性和二次模型构建器在多种数值类型下正常工作。Demonstrates that the linear and quadratic model builders work correctly across multiple numeric types. */
 data object GenericNumberDemo {
-    /** Summary of a linear model build, including constraint count and objective coefficients. */
+    /**
+     * 线性模型构建摘要（包括约束数量和目标系数）。Summary of a linear model build, including constraint count and objective coefficients.
+     *
+     * @property success 参数。
+     * @property constraintCount 参数。
+     * @property objectiveCategory 参数。
+     * @property objectiveCoefficients 参数。
+     */
     data class LinearBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -80,7 +76,14 @@ data object GenericNumberDemo {
         val objectiveCoefficients: Map<String, Flt64>
     )
 
-    /** Summary of a quadratic model build, including constraint count and objective coefficients. */
+    /**
+     * 二次模型构建摘要（包括约束数量和目标系数）。Summary of a quadratic model build, including constraint count and objective coefficients.
+     *
+     * @property success 参数。
+     * @property constraintCount 参数。
+     * @property objectiveCategory 参数。
+     * @property objectiveCoefficients 参数。
+     */
     data class QuadraticBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -88,14 +91,24 @@ data object GenericNumberDemo {
         val objectiveCoefficients: Map<Pair<String, String?>, Flt64>
     )
 
-    /** Combined linear and quadratic build summary for a given numeric type. */
+    /**
+     * 给定数值类型的线性和二次构建组合摘要。Combined linear and quadratic build summary for a given numeric type.
+     *
+     * @property numberType 参数。
+     * @property linear 参数。
+     * @property quadratic 参数。
+     */
     data class GenericNumberBuildSummary(
         val numberType: String,
         val linear: LinearBuildSummary,
         val quadratic: QuadraticBuildSummary
     )
 
-    /** Runs linear and quadratic build-and-dump for all predefined numeric types. */
+    /**
+     * Runs linear and quadratic build-and-dump for all predefined numeric types.
+ *
+     * @return 返回结果。
+     */
     fun runBuildAndDump(): List<GenericNumberBuildSummary> {
         return runBlocking {
             return@runBlocking listOf(
@@ -107,7 +120,7 @@ data object GenericNumberDemo {
         }
     }
 
-    /** Builds both linear and quadratic summaries for a single numeric type case. */
+    /** 为单个数值类型用例构建线性和二次摘要。Builds both linear and quadratic summaries for a single numeric type case. */
     private suspend fun <V> buildCase(numberCase: GenericNumberCase<V>): GenericNumberBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val linear = buildLinear(numberCase)
@@ -119,7 +132,7 @@ data object GenericNumberDemo {
         )
     }
 
-    /** Constructs a linear MetaModel, extracts mechanism-level summary. */
+    /** 构建线性 MetaModel 并提取机制级摘要。Constructs a linear MetaModel, extracts mechanism-level summary. */
     private suspend fun <V> buildLinear(numberCase: GenericNumberCase<V>): LinearBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_linear_x")
@@ -180,7 +193,7 @@ data object GenericNumberDemo {
         }
     }
 
-    /** Constructs a quadratic MetaModel, extracts mechanism-level summary. */
+    /** 构建二次 MetaModel 并提取机制级摘要。Constructs a quadratic MetaModel, extracts mechanism-level summary. */
     private suspend fun <V> buildQuadratic(numberCase: GenericNumberCase<V>): QuadraticBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_quad_x")

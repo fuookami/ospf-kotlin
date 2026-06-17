@@ -2,72 +2,118 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
-import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
-
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** Enumerates the restriction severity levels. */
+/** 枚举限制严重性级别。Enumerates the restriction severity levels. */
 enum class RestrictionType {
     Weak,
     ViolableStrong,
     Strong,
 }
 
-/** Sealed interface for restrictions that can be checked against flight tasks. */
+/** 可以针对航班任务检查的限制的密封接口。Sealed interface for restrictions that can be checked against flight tasks. */
 sealed interface Restriction {
     val type: RestrictionType
 
-    /** Checks whether this restriction is related to the given aircraft. */
+    /**
+     * Checks whether this restriction is related to the given aircraft.
+ *
+     * @param aircraft 参数。
+     * @return 返回结果。
+     */
     fun related(aircraft: Aircraft): Boolean
 
-    /** Checks this restriction against a flight task. */
+    /**
+     * Checks this restriction against a flight task.
+ *
+     * @param task 参数。
+     * @return 返回结果。
+     */
     fun check(task: FlightTask): RestrictionCheckingResult
 
-    /** Checks this restriction against a flight task with a specific aircraft. */
+    /**
+     * Checks this restriction against a flight task with a specific aircraft.
+ *
+     * @param task 参数。
+     * @param aircraft 参数。
+     * @return 返回结果。
+     */
     fun check(task: FlightTask, aircraft: Aircraft): RestrictionCheckingResult
 
-    /** Checks this restriction against a flight task with a recovery policy. */
+    /**
+     * Checks this restriction against a flight task with a recovery policy.
+ *
+     * @param task 参数。
+     * @param recoveryPolicy 参数。
+     * @return 返回结果。
+     */
     fun check(task: FlightTask, recoveryPolicy: FlightTaskAssignment): RestrictionCheckingResult
 }
 
-/** Sealed interface for restriction checking results. */
+/** 限制检查结果的密封接口。Sealed interface for restriction checking results. */
 sealed interface RestrictionCheckingResult {
     val restriction: Restriction
 
     val type get() = restriction.type
 }
 
-/** Result indicating the restriction does not apply. */
+/**
+ * 表示限制不适用的结果。Result indicating the restriction does not apply.
+ *
+ * @property override val restriction 参数。
+ */
 data class NotMatter(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
-/** Result indicating a strong violation. */
+/**
+ * 表示强违反的结果。Result indicating a strong violation.
+ *
+ * @property override val restriction 参数。
+ */
 data class Violate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
-/** Result indicating no violation. */
+/**
+ * 表示无违反的结果。Result indicating no violation.
+ *
+ * @property override val restriction 参数。
+ */
 data class NotViolate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
-/** Result indicating a violable (soft) violation. */
+/**
+ * 表示可违反（软）违反的结果。Result indicating a violable (soft) violation.
+ *
+ * @property override val restriction 参数。
+ */
 data class ViolableViolate(
     override val restriction: Restriction
 ) : RestrictionCheckingResult
 
-/** Enumerates the relation restriction categories. */
+/** 枚举关系限制类别。Enumerates the relation restriction categories. */
 enum class RelationRestrictionCategory {
     BlackList,
     WhiteList
 }
 
-/** A restriction based on airport pair and aircraft set relationships. */
+/**
+ * 基于机场对和飞机集关系的限制。A restriction based on airport pair and aircraft set relationships.
+ *
+ * @property override val type 参数。
+ * @property category 参数。
+ * @property dep 参数。
+ * @property arr 参数。
+ * @property aircrafts 参数。
+ * @property weight 参数。
+ * @property cost 参数。
+ */
 class RelationRestriction(
     override val type: RestrictionType,
     val category: RelationRestrictionCategory,
@@ -134,19 +180,34 @@ class RelationRestriction(
     }
 }
 
-/** Type alias for a general restriction condition function. */
+/** 通用限制条件函数的类型别名。Type alias for a general restriction condition function. */
 typealias AbstractGeneralRestrictionCondition = (task: FlightTask, recoveryPolicy: FlightTaskAssignment?) -> Boolean
 
-/** Condition filtering by specific flight task keys. */
+/**
+ * 按特定航班任务键的条件过滤。Condition filtering by specific flight task keys.
+ *
+ * @property flights 参数。
+ */
 data class FlightGeneralRestrictionCondition(
     val flights: Set<TaskKey>
 ) : AbstractGeneralRestrictionCondition {
+    /**
+     * 
+     * @param task 航班任务。
+     * @param recoveryPolicy 恢复策略。
+     * @return 是否匹配条件。
+     */
     override operator fun invoke(task: FlightTask, recoveryPolicy: FlightTaskAssignment?): Boolean {
         return flights.contains(task.key)
     }
 }
 
-/** Condition filtering by departure airport and optional time range. */
+/**
+ * 按出发机场和可选时间范围的条件过滤。Condition filtering by departure airport and optional time range.
+ *
+ * @property airports 参数。
+ * @property time 参数。
+ */
 data class DepartureAirportGeneralRestrictionCondition(
     val airports: Set<Airport>,
     val time: TimeRange? = null
@@ -157,7 +218,12 @@ data class DepartureAirportGeneralRestrictionCondition(
     }
 }
 
-/** Condition filtering by arrival airport and optional time range. */
+/**
+ * 按到达机场和可选时间范围的条件过滤。Condition filtering by arrival airport and optional time range.
+ *
+ * @property airports 参数。
+ * @property time 参数。
+ */
 data class ArrivalAirportGeneralRestrictionCondition(
     val airports: Set<Airport>,
     val time: TimeRange? = null
@@ -168,7 +234,13 @@ data class ArrivalAirportGeneralRestrictionCondition(
     }
 }
 
-/** Condition filtering by bidirectional airport pairs and optional time range. */
+/**
+ * 按双向机场对和可选时间范围的条件过滤。Condition filtering by bidirectional airport pairs and optional time range.
+ *
+ * @property airports1 参数。
+ * @property airports2 参数。
+ * @property time 参数。
+ */
 data class BidirectionalAirportGeneralRestrictionCondition(
     val airports1: Set<Airport>,
     val airports2: Set<Airport>,
@@ -182,25 +254,54 @@ data class BidirectionalAirportGeneralRestrictionCondition(
     }
 }
 
-/** Condition filtering by enabled aircraft set. */
+/**
+ * 按启用飞机集的条件过滤。Condition filtering by enabled aircraft set.
+ *
+ * @property aircrafts 参数。
+ */
 data class EnabledAircraftGeneralRestrictionCondition(
     val aircrafts: Set<Aircraft>
 ) : AbstractGeneralRestrictionCondition {
+    /**
+     * 
+     * @param task 航班任务。
+     * @param recoveryPolicy 恢复策略。
+     * @return 是否匹配条件。
+     */
     override operator fun invoke(task: FlightTask, recoveryPolicy: FlightTaskAssignment?): Boolean {
         return aircrafts.contains(task.aircraft)
     }
 }
 
-/** Condition filtering by disabled aircraft set. */
+/**
+ * 按禁用飞机集的条件过滤。Condition filtering by disabled aircraft set.
+ *
+ * @property aircrafts 参数。
+ */
 data class DisabledAircraftGeneralRestrictionCondition(
     val aircrafts: Set<Aircraft>
 ) : AbstractGeneralRestrictionCondition {
+    /**
+     * 
+     * @param task 航班任务。
+     * @param recoveryPolicy 恢复策略。
+     * @return 是否匹配条件。
+     */
     override operator fun invoke(task: FlightTask, recoveryPolicy: FlightTaskAssignment?): Boolean {
         return !aircrafts.contains(task.aircraft)
     }
 }
 
-/** A general restriction with configurable conditions and aircraft filters. */
+/**
+ * 具有可配置条件和飞机过滤器的通用限制。A general restriction with configurable conditions and aircraft filters.
+ *
+ * @property override val type 参数。
+ * @property condition 参数。
+ * @property enabledAircrafts 参数。
+ * @property disabledAircrafts 参数。
+ * @property weight 参数。
+ * @property cost 参数。
+ */
 class GeneralRestriction(
     override val type: RestrictionType,
     condition: AbstractGeneralRestrictionCondition? = null,

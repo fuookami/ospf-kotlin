@@ -1,5 +1,12 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model.*
@@ -7,17 +14,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
-import fuookami.ospf.kotlin.utils.functional.*
-
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-
-/** Aggregates MAC optimization models for longitudinal and lateral balance. */
+/**
+ * 聚合纵向和横向平衡的 MAC 优化模型。Aggregates MAC optimization models for longitudinal and lateral balance.
+ *
+ * @property internal val aircraftModel 参数。
+ * @property formula 参数。
+ * @property totalWeight 参数。
+ * @property torque 参数。
+ * @property internal val horizontalStabilizers 参数。
+ */
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     formula: Formula,

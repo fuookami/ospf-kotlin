@@ -1,24 +1,26 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
-
 import fuookami.ospf.kotlin.utils.functional.*
-
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.token.*
-
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 
-/** Constrains the CG index margin (CLIM) to be within the maximum allowed bounds. */
+/**
+ * 约束 CG 指数裕度（CLIM）在最大允许边界内。Constrains the CG index margin (CLIM) to be within the maximum allowed bounds.
+ *
+ * @property private val torque 参数。
+ * @property private val maxCLIM 参数。
+ * @property override val name 参数。
+ */
 class CLIMLimit(
     private val torque: Torque,
     private val maxCLIM: MaxCLIM,
