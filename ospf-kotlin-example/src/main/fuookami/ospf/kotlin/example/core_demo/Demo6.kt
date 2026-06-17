@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 有界背包问题：在每项数量限制下最大化货物价值。Bounded knapsack: maximize cargo value with quantity limits per item. * * * @see     https://fuookami.github.io/ospf/examples/example6.html */data object Demo6 {
+/** * 有界背包问题：在每项数量限制下最大化货物价值。Bounded knapsack: maximize cargo value with quantity limits per item. * * * @see     https://fuookami.github.io/ospf/examples/example6.html */
+data object Demo6 {
     /**
      * 具有重量、价值和可用数量的货物项。A cargo item with weight, value, and available amount.
      *
@@ -65,7 +66,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -87,7 +88,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes unsigned integer decision variables for cargo quantities.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -101,7 +102,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates cargo value and weight expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -122,7 +123,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total cargo value.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -132,7 +133,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds per-item amount limits and weight capacity constraint.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -149,7 +150,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -172,7 +173,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the cargo quantities from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

@@ -26,15 +26,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产规划：在满足产品产量要求的同时最小化成本。Production planning: minimize cost while meeting product yield requirements. * * * @see     https://fuookami.github.io/ospf/examples/example3.html */data object Demo3 {
-     * @property minYield 参数。
-     * @property minYield 参数。
-     * @property minYield 参数。
+/** * 生产规划：在满足产品产量要求的同时最小化成本。Production planning: minimize cost while meeting product yield requirements. * * * @see     https://fuookami.github.io/ospf/examples/example3.html */
+data object Demo3 {
+    * @property minYield 参数。
+    * @property minYield 参数。
+    * @property minYield 参数。
     /**
      * 具有最低产量要求的产品。A product with a minimum yield requirement.
      *
      * @property minYield 参数。
-      * @property minYield 参数。
+     * @property minYield 参数。
      */
     data class Product(val minYield: Flt64) : AutoIndexed(Product::class)
 
@@ -100,7 +101,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -122,7 +123,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes unsigned integer variables for material quantities.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -136,7 +137,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates cost and per-product yield expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -162,7 +163,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize material cost.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -172,7 +173,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds yield equality constraints for each product.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -185,7 +186,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -208,7 +209,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the material quantities from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

@@ -26,15 +26,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产优化：在物料和产量差异约束下最大化利润。Production optimization: maximize profit with material and production difference constraints. * * * @see     https://fuookami.github.io/ospf/examples/example4.html */data object Demo4 {
-     * @property available 参数。
-     * @property available 参数。
-     * @property available 参数。
+/** * 生产优化：在物料和产量差异约束下最大化利润。Production optimization: maximize profit with material and production difference constraints. * * * @see     https://fuookami.github.io/ospf/examples/example4.html */
+data object Demo4 {
+    * @property available 参数。
+    * @property available 参数。
+    * @property available 参数。
     /**
      * 具有可用数量的物料。A material with an available quantity.
      *
      * @property available 参数。
-      * @property available 参数。
+     * @property available 参数。
      */
     data class Material(val available: Flt64) : AutoIndexed(Material::class)
 
@@ -89,7 +90,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -111,7 +112,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes real-valued decision variables for product quantities.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -125,7 +126,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates profit and material usage expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -149,7 +150,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize profit.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -159,7 +160,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds material availability and production difference constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -185,7 +186,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -208,7 +209,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the product quantities from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

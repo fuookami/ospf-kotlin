@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产排程：最小化跨月份的生产、仓储和延迟交付成本。Production scheduling: minimize production, storage, and delay delivery costs across months. * * * @see     https://fuookami.github.io/ospf/examples/example16.html */data object Demo16 {
+/** * 生产排程：最小化跨月份的生产、仓储和延迟交付成本。Production scheduling: minimize production, storage, and delay delivery costs across months. * * * @see     https://fuookami.github.io/ospf/examples/example16.html */
+data object Demo16 {
     /**
      * 具有月份索引、生产率和需求的生产周期。A production period with month index, productivity, and demand.
      *
@@ -42,8 +43,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /** 单位生产成本。Unit production cost. */
     val productPrice: Flt64 = Flt64(40.0)
+
     /** 每平方时间段的单位延迟交付成本。Unit delay delivery cost per squared time period. */
     val delayDeliveryPrice: Flt64 = Flt64(2.0)
+
     /** 每时间段的单位存储成本。Unit storage cost per time period. */
     val stowagePrice: Flt64 = Flt64(0.5)
 
@@ -75,7 +78,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -97,7 +100,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes production allocation variables between periods.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -109,7 +112,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates production, supply, delay delivery, storage, and production cost symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -176,7 +179,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total cost (production + storage + delay).
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -190,7 +193,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds demand satisfaction and productivity capacity constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -213,7 +216,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -237,7 +240,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the production allocation matrix from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

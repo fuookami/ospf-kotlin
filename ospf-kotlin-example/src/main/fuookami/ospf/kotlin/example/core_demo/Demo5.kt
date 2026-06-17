@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 0-1 背包问题：在重量限制下最大化货物价值。0-1 knapsack: maximize cargo value subject to a weight limit. * * * @see     https://fuookami.github.io/ospf/examples/example5.html */data object Demo5 {
+/** * 0-1 背包问题：在重量限制下最大化货物价值。0-1 knapsack: maximize cargo value subject to a weight limit. * * * @see     https://fuookami.github.io/ospf/examples/example5.html */
+data object Demo5 {
     /**
      * 具有重量和价值的货物项。A cargo item with weight and value.
      *
@@ -64,7 +65,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -86,7 +87,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes binary decision variables for cargo selection.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -100,7 +101,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates cargo value and weight expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -120,7 +121,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total cargo value.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -130,7 +131,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds weight capacity constraint.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -143,7 +144,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -166,7 +167,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the selected cargo items from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

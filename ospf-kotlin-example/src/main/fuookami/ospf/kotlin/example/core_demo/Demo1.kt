@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 资本投资优化：在资本和负债约束下最大化利润。Capital investment optimization: maximize profit subject to capital and liability constraints. * * * @see     https://fuookami.github.io/ospf/examples/example1.html */data object Demo1 {
+/** * 资本投资优化：在资本和负债约束下最大化利润。Capital investment optimization: maximize profit subject to capital and liability constraints. * * * @see     https://fuookami.github.io/ospf/examples/example1.html */
+data object Demo1 {
     /**
      * 具有资本、负债和利润属性的公司。A company with capital, liability, and profit attributes.
      *
@@ -68,7 +69,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -90,7 +91,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes binary decision variables for each company.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -104,7 +105,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates linear expression symbols for capital, liability, and profit.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -130,7 +131,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total profit.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -140,7 +141,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds capital lower bound and liability upper bound constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -151,7 +152,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -174,7 +175,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the selected companies from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

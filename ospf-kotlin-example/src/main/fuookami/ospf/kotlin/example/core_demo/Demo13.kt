@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。Vehicle routing: minimize distribution distance from centers to dealers with truck capacity. * * * @see     https://fuookami.github.io/ospf/examples/example13.html */data object Demo13 {
+/** * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。Vehicle routing: minimize distribution distance from centers to dealers with truck capacity. * * * @see     https://fuookami.github.io/ospf/examples/example13.html */
+data object Demo13 {
     /**
      * 具有需求量的经销商。A dealer with a demand quantity.
      *
@@ -108,7 +109,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -130,7 +131,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes shipment and truck count variables.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -145,7 +146,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates transport, receive, and cost expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -189,7 +190,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total distribution distance.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -200,7 +201,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds supply, demand, and truck capacity constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -232,7 +233,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -256,7 +257,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the shipment quantities per distribution center and dealer.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

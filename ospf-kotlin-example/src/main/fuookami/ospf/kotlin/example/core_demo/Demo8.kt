@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产规划：在设备工时约束下最大化利润。Production planning: maximize profit subject to equipment man-hour constraints. * * * @see     https://fuookami.github.io/ospf/examples/example8.html */data object Demo8 {
+/** * 生产规划：在设备工时约束下最大化利润。Production planning: maximize profit subject to equipment man-hour constraints. * * * @see     https://fuookami.github.io/ospf/examples/example8.html */
+data object Demo8 {
     /**
      * 具有利润值的产品。A product with a profit value.
      *
@@ -107,7 +108,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -129,7 +130,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes unsigned integer variables for product quantities.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -143,7 +144,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates profit and man-hour expression symbols per equipment.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -172,7 +173,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total profit.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -182,7 +183,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds equipment man-hour capacity constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -197,7 +198,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -220,7 +221,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the product quantities from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

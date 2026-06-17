@@ -27,7 +27,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 旅行商问题：找到恰好访问每个城市一次的最短路线。Traveling Salesman Problem: find the shortest route visiting all cities exactly once. * * * @see     https://fuookami.github.io/ospf/examples/example10.html */data object Demo10 {
+/** * 旅行商问题：找到恰好访问每个城市一次的最短路线。Traveling Salesman Problem: find the shortest route visiting all cities exactly once. * * * @see     https://fuookami.github.io/ospf/examples/example10.html */
+data object Demo10 {
     /**
      * TSP 路线中的城市。A city in the TSP route.
      *
@@ -94,7 +95,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -116,7 +117,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes binary route variables and integer subtour elimination variables.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -148,7 +149,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates distance, departure, and arrival expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -186,7 +187,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total travel distance.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -196,7 +197,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds arrival/departure and subtour elimination (MTZ) constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -236,7 +237,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -259,7 +260,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the optimal route as a city-to-city mapping from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

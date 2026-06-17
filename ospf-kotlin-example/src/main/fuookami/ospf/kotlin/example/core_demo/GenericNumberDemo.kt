@@ -106,7 +106,7 @@ data object GenericNumberDemo {
 
     /**
      * Runs linear and quadratic build-and-dump for all predefined numeric types.
- *
+     *
      * @return 返回结果。
      */
     fun runBuildAndDump(): List<GenericNumberBuildSummary> {

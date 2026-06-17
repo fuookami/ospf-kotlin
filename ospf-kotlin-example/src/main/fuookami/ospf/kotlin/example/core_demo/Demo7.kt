@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 运输问题：最小化从仓库到商店的运输成本。Transportation problem: minimize shipping cost from warehouses to stores. * * * @see     https://fuookami.github.io/ospf/examples/example7.html */data object Demo7 {
+/** * 运输问题：最小化从仓库到商店的运输成本。Transportation problem: minimize shipping cost from warehouses to stores. * * * @see     https://fuookami.github.io/ospf/examples/example7.html */
+data object Demo7 {
     /**
      * 具有需求量的商店。A store with a demand quantity.
      *
@@ -99,7 +100,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -121,7 +122,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes unsigned integer variables for warehouse-store shipments.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -137,7 +138,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates cost, shipment, and purchase expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -179,7 +180,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total shipping cost.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -189,7 +190,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds warehouse stowage and store demand constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -211,7 +212,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -234,7 +235,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the shipment quantities per store and warehouse from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

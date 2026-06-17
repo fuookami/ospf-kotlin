@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 分配优化：将产品分配给公司以最小化总成本。Assignment optimization: assign products to companies minimizing total cost. * * * @see     https://fuookami.github.io/ospf/examples/example2.html */data object Demo2 {
+/** * 分配优化：将产品分配给公司以最小化总成本。Assignment optimization: assign products to companies minimizing total cost. * * * @see     https://fuookami.github.io/ospf/examples/example2.html */
+data object Demo2 {
     /** 待分配的产品。A product to be assigned. */
     class Product : AutoIndexed(Product::class)
 
@@ -93,7 +94,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -115,7 +116,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes binary decision variables for company-product assignments.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -131,7 +132,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates cost symbol and assignment intermediate symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -167,7 +168,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total assignment cost.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -177,7 +178,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds constraints: each company assigns at most one product, each product assigned exactly once.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -192,7 +193,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -215,7 +216,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the assigned company-product pairs from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

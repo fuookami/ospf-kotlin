@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 多工厂分销：在替代约束下最小化从制造商到配送中心的物流成本。Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution. * * * @see     https://fuookami.github.io/ospf/examples/example15.html */data object Demo15 {
+/** * 多工厂分销：在替代约束下最小化从制造商到配送中心的物流成本。Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution. * * * @see     https://fuookami.github.io/ospf/examples/example15.html */
+data object Demo15 {
     /**
      * 汽车型号类型。A car model type.
      *
@@ -163,7 +164,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -185,7 +186,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes shipment and substitution rate variables.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -220,7 +221,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates receive, adjusted demand, transport, and cost expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -305,7 +306,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total logistics cost.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -316,7 +317,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds demand satisfaction and production capacity constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -347,7 +348,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -371,7 +372,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts shipment and substitution data from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {
@@ -390,7 +391,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
                 if (token.result!! neq Flt64.zero && token.variable belongsTo yi) {
                     val vector = token.variable.vectorView
                     val r = d.replacements[vector[0]]
-                    replacement.getOrPut(d) { hashMapOf() }[r.c1 to r.c2] = (token.result!! * d.demands[r.c1]!!.toFlt64()).round().toUInt64()
+                    replacement.getOrPut(d) { hashMapOf() }[r.c1 to r.c2] =
+                        (token.result!! * d.demands[r.c1]!!.toFlt64()).round().toUInt64()
                 }
             }
         }

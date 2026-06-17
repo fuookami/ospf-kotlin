@@ -28,7 +28,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 投资组合：在风险和资金分配约束下最大化收益。Investment portfolio: maximize yield subject to risk and fund allocation constraints. * * * @see     https://fuookami.github.io/ospf/examples/example12.html */data object Demo12 {
+/** * 投资组合：在风险和资金分配约束下最大化收益。Investment portfolio: maximize yield subject to risk and fund allocation constraints. * * * @see     https://fuookami.github.io/ospf/examples/example12.html */
+data object Demo12 {
     /**
      * 具有收益、风险、保费和最低保费的投资产品。An investment product with yield, risk, premium, and minimum premium.
      *
@@ -74,7 +75,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -96,7 +97,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes unsigned integer variables for product investment amounts.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -107,7 +108,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates assignment, premium, risk, and yield expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -162,7 +163,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total yield.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -172,7 +173,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds fund allocation and risk limit constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -191,7 +192,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -214,7 +215,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the investment amounts per product from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

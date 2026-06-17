@@ -32,7 +32,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes. * * * @see     https://fuookami.github.io/ospf/examples/example17.html */data object Demo17 {
+/** * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes. * * * @see     https://fuookami.github.io/ospf/examples/example17.html */
+data object Demo17 {
     /** VRPTW 网络中的节点（具有位置、时间窗和可选需求）。A node in the VRPTW network with position, time window, and optional demand. */
     sealed interface Node : Indexed {
         val demand: UInt64 get() = UInt64.zero
@@ -148,9 +149,19 @@ private val flt64Converter = object : IntoValue<Flt64> {
         DemandNode(point2(Flt64(32), Flt64(30)), ValueRange(UInt64(359), UInt64(412)).value!!, UInt64(10), UInt64(90)),
         DemandNode(point2(Flt64(30), Flt64(30)), ValueRange(UInt64(541), UInt64(600)).value!!, UInt64(10), UInt64(90)),
         DemandNode(point2(Flt64(30), Flt64(32)), ValueRange(UInt64(448), UInt64(509)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(point2(Flt64(30), Flt64(35)), ValueRange(UInt64(1054), UInt64(1127)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(
+            point2(Flt64(30), Flt64(35)),
+            ValueRange(UInt64(1054), UInt64(1127)).value!!,
+            UInt64(10),
+            UInt64(90)
+        ),
         DemandNode(point2(Flt64(28), Flt64(30)), ValueRange(UInt64(632), UInt64(693)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(point2(Flt64(28), Flt64(35)), ValueRange(UInt64(1001), UInt64(1066)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(
+            point2(Flt64(28), Flt64(35)),
+            ValueRange(UInt64(1001), UInt64(1066)).value!!,
+            UInt64(10),
+            UInt64(90)
+        ),
         DemandNode(point2(Flt64(26), Flt64(32)), ValueRange(UInt64(815), UInt64(880)).value!!, UInt64(10), UInt64(90)),
         DemandNode(point2(Flt64(25), Flt64(30)), ValueRange(UInt64(725), UInt64(786)).value!!, UInt64(10), UInt64(90)),
         DemandNode(point2(Flt64(25), Flt64(35)), ValueRange(UInt64(912), UInt64(969)).value!!, UInt64(10), UInt64(90)),
@@ -232,7 +243,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -254,7 +265,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes binary route variables and continuous service-time variables.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -293,7 +304,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates origin, destination, flow, service, and capacity expression symbols.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -372,8 +383,9 @@ private val flt64Converter = object : IntoValue<Flt64> {
                     name = "service_(${n1.index})"
                 )
             } else {
-                LinearExpressionSymbol(sum(
-                    nodes.filterIsNotInstance<OriginNode, Node>().flatMap { n2 -> x[n1, n2, _a] }),
+                LinearExpressionSymbol(
+                    sum(
+                        nodes.filterIsNotInstance<OriginNode, Node>().flatMap { n2 -> x[n1, n2, _a] }),
                     name = "service_(${n1.index})"
                 )
             }
@@ -401,7 +413,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize fixed vehicle cost and travel cost.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -424,7 +436,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds flow balance, service, time-window, and capacity constraints.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -469,10 +481,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
                     val serviceTime = ((n1 as? DemandNode)?.serviceTime ?: UInt64.zero).toFlt64()
                     val timeWindowExpr =
                         LinearPolynomial(s[n1, v]) +
-                            serviceTime +
-                            n1.time(n2) -
-                            m.toFlt64() * (LinearPolynomial(Flt64.one) - LinearPolynomial(x[n1, n2, v])) -
-                            LinearPolynomial(s[n2, v])
+                                serviceTime +
+                                n1.time(n2) -
+                                m.toFlt64() * (LinearPolynomial(Flt64.one) - LinearPolynomial(x[n1, n2, v])) -
+                                LinearPolynomial(s[n2, v])
                     metaModel.addConstraint(
                         timeWindowExpr leq Flt64.zero,
                         name = "time_window_${n1.index}_${n2.index}_${v.index}"
@@ -506,7 +518,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver with a 5-minute time limit.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -530,7 +542,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts routes and service times from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

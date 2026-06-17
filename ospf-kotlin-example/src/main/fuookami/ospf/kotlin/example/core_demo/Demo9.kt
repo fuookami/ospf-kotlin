@@ -26,7 +26,8 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 设施选址：找到最小化到定居点总曼哈顿距离的点。Facility location: find the point minimizing total Manhattan distance to settlements. * * * @see     https://fuookami.github.io/ospf/examples/example9.html */data object Demo9 {
+/** * 设施选址：找到最小化到定居点总曼哈顿距离的点。Facility location: find the point minimizing total Manhattan distance to settlements. * * * @see     https://fuookami.github.io/ospf/examples/example9.html */
+data object Demo9 {
     /**
      * 具有 x 和 y 坐标的定居点。A settlement with x and y coordinates.
      *
@@ -66,7 +67,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -88,7 +89,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes integer decision variables for the facility position.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -101,7 +102,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates absolute distance symbols for x and y axes, then sums them.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -137,7 +138,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to minimize total Manhattan distance.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -147,7 +148,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * No additional constraints needed.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -156,7 +157,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -179,7 +180,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the optimal facility position from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {

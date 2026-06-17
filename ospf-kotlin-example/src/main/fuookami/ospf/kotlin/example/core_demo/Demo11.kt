@@ -25,13 +25,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 最大流问题：在容量网络中找到从源到汇的最大流。Maximum flow problem: find the maximum flow from source to sink in a capacitated network. * * * @see     https://fuookami.github.io/ospf/examples/example11.html */data object Demo11 {
+/** * 最大流问题：在容量网络中找到从源到汇的最大流。Maximum flow problem: find the maximum flow from source to sink in a capacitated network. * * * @see     https://fuookami.github.io/ospf/examples/example11.html */
+data object Demo11 {
     /** 流网络中的节点。A node in the flow network. */
     sealed class Node : AutoIndexed(Node::class)
+
     /** 流网络的源节点。The source node of the flow network. */
     class RootNode : Node()
+
     /** 流网络的汇节点。The sink node of the flow network. */
     class EndNode : Node()
+
     /** 流网络中的中间节点。An intermediate node in the flow network. */
     class NormalNode : Node()
 
@@ -92,7 +96,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
- *
+     *
      * @return 返回结果。
      */
     suspend operator fun invoke(): Try {
@@ -114,7 +118,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Initializes edge flow variables and the total flow variable.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initVariable(): Try {
@@ -138,7 +142,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Creates flow-in and flow-out expression symbols for each node.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initSymbol(): Try {
@@ -167,7 +171,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Sets the objective to maximize total flow.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initObject(): Try {
@@ -177,7 +181,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Adds flow conservation constraints for source, sink, and intermediate nodes.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun initConstraint(): Try {
@@ -206,7 +210,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Solves the linear model using the SCIP solver.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun solve(): Try {
@@ -229,7 +233,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
     /**
      * Extracts the edge flows from the solution.
- *
+     *
      * @return 返回结果。
      */
     private suspend fun analyzeSolution(): Try {
