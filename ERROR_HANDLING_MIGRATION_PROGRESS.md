@@ -164,5 +164,5 @@ ColumnGenerationAlgorithmTest.kt 有预存错误（非本次迁移导致）
 | 保留 solve() 兼容层 | Csp1dMilpSolver.kt | 删除 solve() 兼容层，统一为 `solve(): Ret` | ✅ 已确认无兼容层 |
 | Safe 后缀用于编排层/领域层 | DomainValueConversion.kt, QuantityArithmetic.kt, Csp1dProduceContext.kt, ProductionTask.kt, ShadowPriceMap.kt | 改为无后缀 Result 主接口（如 `convertSolverValue()`、`produce()`、`reducedCost()`） | ✅ 已修正 |
 | 属性用 nullable + Safe | TimeWindow.kt, Cost.kt, Resource.kt | 改为 OrNull + 无后缀 Result 主接口（如 `upperOrNull` + `upper(): Ret`） | ✅ 已修正 |
-| OrThrow 变体保留 | utils/Collection.kt, Find.kt, MinMax.kt, multiarray/Shape.kt 等 | 补齐 Safe 接口后删除 OrThrow 变体 | 待处理 |
-| 外部库边界 throw 保留 | RemoteSolverHttpClient.kt, 持久化插件 | 边界处 catch 后转换成 Ret，不穿透到业务层 | 待处理 |
+| OrThrow 变体保留 | utils/Collection.kt, Find.kt, MinMax.kt, multiarray/Shape.kt 等 | 删除 OrThrow 变体，保留 OrNull 版本 | ✅ 已修正 |
+| 外部库边界 throw 保留 | RemoteSolverClient.kt, RemoteLinearSolver.kt, RemoteQuadraticSolver.kt | 边界处 catch 后转换成 Ret，不穿透到业务层 | ✅ 已修正 |
