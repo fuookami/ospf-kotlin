@@ -193,44 +193,87 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val lpDomainValueSample = domainValueSample
             ?: currentPlans.firstOrNull()?.restWidth?.value
             ?: currentPlans.firstOrNull()?.demandContributions?.firstOrNull()?.quantity?.value
-            ?: throw IllegalArgumentException("Cannot derive domain value sample for CSP1D LP master")
-        val lpMaster = if (iterationLimitIndexBound > 0) {
-            try {
-                buildLpMaster(
+            ?: run {
+                val failureMessage = "Cannot derive domain value sample for CSP1D LP master"
+                val emptyProduce = emptyProduce(problem)
+                val baseSolution = analyzer.analyze(
                     problem = problem,
-                    cuttingPlans = currentPlans,
-                    extensions = resolvedConfig.allExtensions,
-                    domainValueSample = lpDomainValueSample
+                    produce = emptyProduce,
+                    generatedPlans = emptyList()
                 )
-            } catch (error: Exception) {
-                pricedPlanCounts.add(UInt64.zero)
-                iterationRecords.add(
-                    Csp1dIterationRecord(
-                        iteration = Int64.zero,
-                        lpObjective = Flt64.zero,
-                        planCountBefore = Int64(currentPlans.size.toLong()),
-                        pricedPlanCount = UInt64.zero,
-                        planCountAfter = Int64(currentPlans.size.toLong())
+                val solution = enrichSolution(
+                    solution = baseSolution,
+                    topPlans = emptyList(),
+                    status = Csp1dSolutionStatus.NoInitialPlans,
+                    failureMessage = failureMessage,
+                    terminationReason = Csp1dTerminationReason.NoInitialPlans,
+                    finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
+                    partialSolutionAvailable = false,
+                    initialGenerationStatistics = initialPlanPool.statistics,
+                    iterationRecords = emptyList(),
+                    extractionPolicies = resolvedConfig.extensionSet.extractionPolicies,
+                    demands = problem.demands,
+                    materials = problem.materials,
+                    machines = problem.machines
+                )
+                return Csp1dColumnGenerationResult(
+                    solution = solution,
+                    trace = Csp1dColumnGenerationTrace(
+                        initialPlanCount = UInt64.zero,
+                        finalPlanCount = UInt64.zero,
+                        pricedPlanCount = emptyList(),
+                        terminationReason = Csp1dTerminationReason.NoInitialPlans,
+                        iterations = emptyList(),
+                        initialGenerationStatistics = initialPlanPool.statistics,
+                        finalMilpStatus = Csp1dFinalMilpStatus.NotAttempted,
+                        partialSolutionAvailable = false,
+                        failureMessage = failureMessage
                     )
                 )
-                terminationReason = Csp1dTerminationReason.LpInfeasible
-                lpFailureMessage = error.message ?: "LP master build failed"
-                if (flowPolicies.isNotEmpty()) {
-                    val flowCtx = buildFlowContext(
-                        iteration = Int64.zero,
-                        currentPlans = currentPlans,
-                        iterationLimit = iterationLimit,
-                        allowPartialSolution = resolvedConfig.allowPartialSolution,
-                        hasValidLpResult = hasValidLpResult,
-                        pricingStatistics = pricingGenerationStatistics
+            }
+        val lpMaster = if (iterationLimitIndexBound > 0) {
+            when (val result = buildLpMaster(
+                problem = problem,
+                cuttingPlans = currentPlans,
+                extensions = resolvedConfig.allExtensions,
+                domainValueSample = lpDomainValueSample
+            )) {
+                is Ok -> result.value
+                is Failed, is Fatal -> {
+                    val errorMessage = when (result) {
+                        is Failed -> result.error.message
+                        is Fatal -> result.errors.joinToString(", ") { it.message }
+                        else -> ""
+                    }
+                    pricedPlanCounts.add(UInt64.zero)
+                    iterationRecords.add(
+                        Csp1dIterationRecord(
+                            iteration = Int64.zero,
+                            lpObjective = Flt64.zero,
+                            planCountBefore = Int64(currentPlans.size.toLong()),
+                            pricedPlanCount = UInt64.zero,
+                            planCountAfter = Int64(currentPlans.size.toLong())
+                        )
                     )
-                    val (customReason, customMessage) = selectTerminationByPolicies(
-                        flowPolicies, flowCtx, terminationReason.name, lpFailureMessage
-                    )
-                    terminationReason = resolveTerminationReason(customReason, terminationReason)
-                    lpFailureMessage = customMessage ?: lpFailureMessage
+                    terminationReason = Csp1dTerminationReason.LpInfeasible
+                    lpFailureMessage = errorMessage ?: "LP master build failed"
+                    if (flowPolicies.isNotEmpty()) {
+                        val flowCtx = buildFlowContext(
+                            iteration = Int64.zero,
+                            currentPlans = currentPlans,
+                            iterationLimit = iterationLimit,
+                            allowPartialSolution = resolvedConfig.allowPartialSolution,
+                            hasValidLpResult = hasValidLpResult,
+                            pricingStatistics = pricingGenerationStatistics
+                        )
+                        val (customReason, customMessage) = selectTerminationByPolicies(
+                            flowPolicies, flowCtx, terminationReason.name, lpFailureMessage
+                        )
+                        terminationReason = resolveTerminationReason(customReason, terminationReason)
+                        lpFailureMessage = customMessage ?: lpFailureMessage
+                    }
+                    null
                 }
-                null
             }
         } else {
             null
@@ -742,7 +785,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         cuttingPlans: List<CuttingPlan<V>>,
         extensions: List<Csp1dModelingExtension<V>>,
         domainValueSample: V
-    ): LpMaster<V> {
+    ): Ret<LpMaster<V>> {
         val model = LinearMetaModel(
             name = "csp1d_produce_lp",
             converter = IntoValue.Identity
@@ -763,14 +806,14 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             .build()
         when (val result = context.register(model)) {
             is Ok -> {}
-            is Failed -> throw IllegalStateException("register LP context failed: ${result.error}")
-            is Fatal -> throw IllegalStateException("register LP context fatal: ${result.errors}")
+            is Failed -> return Failed(Err(ErrorCode.ApplicationError, "register LP context failed: ${result.error}"))
+            is Fatal -> return Failed(Err(ErrorCode.ApplicationError, "register LP context fatal: ${result.errors}"))
         }
-        return LpMaster(
+        return Ok(LpMaster(
             model = model,
             context = context,
             domainValueSample = domainValueSample
-        )
+        ))
     }
 
     private suspend fun solveLpMaster(

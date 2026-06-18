@@ -277,6 +277,49 @@ fun <
 }
 
 /**
+ * 计算任务束的生产量（Result 版本）/ Calculate bunch produce quantity (Result version)
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param P 生产材料类型 / Production material type
+ * @param V 值类型 / Value type
+ * @param product 产品 / Product
+ * @return 生产量 / Produce quantity
+ */
+fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        P : AbstractMaterial,
+        V : RealNumber<V>
+        > AbstractTaskBunch<T, E, A, V>.produceSafe(product: P): Ret<V> {
+    val quantities = tasks.mapNotNull {
+        when (it) {
+            is ProductionTask<*, *, *, *, *> -> {
+                val value = it.produceQuantityByProduct.entries.firstOrNull { entry -> entry.key == product }?.value?.value
+                @Suppress("UNCHECKED_CAST")
+                value as? V
+            }
+            else -> null
+        }
+    }
+    val zeroResult = quantities.firstOrNull()?.constants?.zero?.let { Ok(it) }
+        ?: quantityZero().let { result ->
+            when (result) {
+                is Ok -> Ok(result.value)
+                is Failed -> Failed(result.error)
+                is Fatal -> Fatal(result.errors)
+            }
+        }
+    return when (zeroResult) {
+        is Ok -> Ok(quantities.sumOrZero(zeroResult.value))
+        is Failed -> Failed(zeroResult.error)
+        is Fatal -> Fatal(zeroResult.errors)
+    }
+}
+
+/**
  * 计算任务束的生产量物理量 / Calculate bunch produce quantity as a physical quantity
  *
  * @param T 任务类型 / Task type
@@ -336,6 +379,49 @@ fun <
             is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
         }
     return quantities.sumOrZero(zero)
+}
+
+/**
+ * 计算任务束的消耗量（Result 版本）/ Calculate bunch consumption quantity (Result version)
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param C 消耗材料类型 / Consumption material type
+ * @param V 值类型 / Value type
+ * @param material 材料 / Material
+ * @return 消耗量 / Consumption quantity
+ */
+fun <
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial,
+        V : RealNumber<V>
+        > AbstractTaskBunch<T, E, A, V>.consumptionSafe(material: C): Ret<V> {
+    val quantities = tasks.mapNotNull {
+        when (it) {
+            is ProductionTask<*, *, *, *, *> -> {
+                val value = it.consumptionQuantityByMaterial.entries.firstOrNull { entry -> entry.key == material }?.value?.value
+                @Suppress("UNCHECKED_CAST")
+                value as? V
+            }
+            else -> null
+        }
+    }
+    val zeroResult = quantities.firstOrNull()?.constants?.zero?.let { Ok(it) }
+        ?: quantityZero().let { result ->
+            when (result) {
+                is Ok -> Ok(result.value)
+                is Failed -> Failed(result.error)
+                is Fatal -> Fatal(result.errors)
+            }
+        }
+    return when (zeroResult) {
+        is Ok -> Ok(quantities.sumOrZero(zeroResult.value))
+        is Failed -> Failed(zeroResult.error)
+        is Fatal -> Fatal(zeroResult.errors)
+    }
 }
 
 /**

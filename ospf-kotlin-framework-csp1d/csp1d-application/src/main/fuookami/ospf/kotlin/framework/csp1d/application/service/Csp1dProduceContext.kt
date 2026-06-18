@@ -764,4 +764,25 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             "Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"
         )
     }
+
+    /**
+     * 从输入数据推导领域数值样本（Result 版本）
+     * Derive a domain value sample from input data (Result version)
+     */
+    private fun resolveDomainValueSampleSafe(input: ProduceInput<V>): Ret<V> {
+        // 优先从 demand 的 quantity 获取 / Prefer demand quantity
+        input.demands.firstOrNull()?.quantity?.value?.let { return Ok(it) }
+        // 其次从 material 的 widthRange 获取 / Fallback to material width range
+        input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return Ok(it) }
+        // 再次从 cutting plan 的 restWidth 获取 / Fallback to plan restWidth
+        input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return Ok(it) }
+        // 最后从 yield config 的 penalty 获取 / Fallback to yield config penalty
+        _yieldConfig?.underProductionPenalty?.values?.firstOrNull()?.let { return Ok(it) }
+        _wasteConfig?.trimWidthPenalty?.let { return Ok(it) }
+        _lengthConfig?.batchMinPenalty?.let { return Ok(it) }
+        return Failed(Err(
+            ErrorCode.ApplicationError,
+            "Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"
+        ))
+    }
 }

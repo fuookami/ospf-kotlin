@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -71,6 +72,21 @@ object DefaultQuantityArithmetic {
             is Flt64 -> defaultQuantityArithmetic64 as QuantityArithmetic<V>
             is FltX -> defaultQuantityArithmeticX as QuantityArithmetic<V>
             else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
+        }
+    }
+
+    /**
+     * 解析泛型物理量算术策略（Result 版本）/ Resolve generic quantity arithmetic strategy (Result version)
+     *
+     * @param sample 领域数值样本 / Domain value sample
+     * @return 泛型物理量算术策略 / Quantity arithmetic strategy
+     */
+    @Suppress("UNCHECKED_CAST")
+    fun <V : RealNumber<V>> resolveForSafe(sample: V): Ret<QuantityArithmetic<V>> {
+        return when (sample) {
+            is Flt64 -> Ok(defaultQuantityArithmetic64 as QuantityArithmetic<V>)
+            is FltX -> Ok(defaultQuantityArithmeticX as QuantityArithmetic<V>)
+            else -> Failed(Err(ErrorCode.ApplicationError, "Unsupported RealNumber type: ${sample::class}"))
         }
     }
 }

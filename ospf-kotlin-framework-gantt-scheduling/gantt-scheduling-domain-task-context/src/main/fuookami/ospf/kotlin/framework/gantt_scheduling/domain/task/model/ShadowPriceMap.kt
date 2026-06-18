@@ -129,6 +129,62 @@ inline fun <
     return SchedulingSolverValueAdapter.create<V>().intoValue(ret)
 }
 
+/**
+ * 计算任务束的缩减成本（Result 版本）/ Calculate the reduced cost of a task bunch (Result version)
+ *
+ * @param T 任务类型 / The task type
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ * @param bunch 任务束 / The task bunch
+ * @return 缩减成本 / The reduced cost
+ */
+inline fun <
+        reified V : RealNumber<V>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        > AbstractGanttSchedulingShadowPriceMap<
+        AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
+        >.reducedCostSafe(
+    bunch: AbstractTaskBunch<T, E, A, V>
+): Ret<V> {
+    val solverCost = bunch.cost.solverCostSafe()
+    if (solverCost is Failed) {
+        return Failed(solverCost.error)
+    }
+    if (solverCost is Fatal) {
+        return Fatal(solverCost.errors)
+    }
+    var ret = (solverCost as Ok).value
+    if (bunch.executor.indexed) {
+        ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
+        for ((index, task) in bunch.tasks.withIndex()) {
+            val prevTask = if (index != 0) {
+                bunch.tasks[index - 1]
+            } else {
+                bunch.lastTask
+            }
+            ret -= this(
+                BunchGanttSchedulingShadowPriceArguments(
+                    executor = bunch.executor,
+                    prevTask = prevTask,
+                    task = task
+                )
+            )
+        }
+        if (bunch.tasks.isNotEmpty()) {
+            ret -= this(
+                BunchGanttSchedulingShadowPriceArguments(
+                    executor = bunch.executor,
+                    prevTask = bunch.tasks.last(),
+                    task = null
+                )
+            )
+        }
+    }
+    return Ok(SchedulingSolverValueAdapter.create<V>().intoValue(ret))
+}
+
 /** 抽象甘特调度影子价格提取器类型别名 / Abstract Gantt scheduling shadow price extractor type alias */
 typealias AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> = ShadowPriceExtractor<
         Args, AbstractGanttSchedulingShadowPriceMap<Args, E, A>
