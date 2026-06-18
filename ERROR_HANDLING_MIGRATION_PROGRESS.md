@@ -4,119 +4,56 @@
 
 **不做兼容层，不保留旧的 throwing API 作为正式入口。所有生产代码调用链一步到位迁到 Ret<T> / Try、OrNull 或 Safe 接口。**
 
-### 1. 编排层与领域失败
-直接修改原函数签名：
-```kotlin
-fun solve(...): Ret<SolveResult>
-fun register(...): Try
-fun convert(...): Ret<Quantity<V>>
-```
-
-### 2. Safe 命名规范
-需要保留"显式安全调用"语义的接口统一使用 Safe 后缀：
-```kotlin
-fun upperSafe(): Ret<TimeWindow<V>>
-fun solverCostSafe(default: Flt64? = null): Ret<Flt64>
-fun resourceQuantityZeroSafe(...): Ret<V>
-```
-
-### 3. 属性 / lazy / 构造默认值
-getter、by lazy、构造参数默认值中不能返回 Ret，原属性降级为 nullable，同时添加 Safe 接口：
-```kotlin
-val upper: TimeWindow<V>? get() = upperSafe().value
-fun upperSafe(): Ret<TimeWindow<V>>
-
-val solverCost: Flt64? get() = costSum?.value?.toFlt64()
-fun solverCostSafe(default: Flt64? = null): Ret<Flt64>
-```
-
-### 4. 底层工具 / 数学 / multiarray / quantities
-补齐两类安全入口：
-```kotlin
-fun getOrNull(...): T?
-fun getSafe(...): Ret<T>
-
-fun averageOrNull(...): V?
-fun averageSafe(...): Ret<V>
-```
-
-### 5. 外部库 / 协议边界
-异常只允许在边界处捕获，立即转换成 Ret / Try：
-```kotlin
-return try {
-    ok(client.call(...))
-} catch (e: Throwable) {
-    Failed(ErrorCode.ApplicationFailed, "外部调用失败：${e.message}")
-}
-```
-
 ---
 
-## 已完成的迁移（39 个文件）
+## 已完成迁移
 
-### 第一阶段：应用层
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| Csp1dShadowPriceLifecycle.kt | extractFromDualSolution 返回 Ret | ✅ |
-| Csp1dMilpSolver.kt | 新增 solveRet()，保留 solve() 兼容 | ✅ |
-| Csp1dColumnGeneration.kt | 删除 ensureRet，直接传播 Result | ✅ |
-| TaskTime.kt | register 返回 Failed | ✅ |
+### 第一阶段：应用层（6 个文件）
+- Csp1dShadowPriceLifecycle.kt: extractFromDualSolution 返回 Ret
+- Csp1dMilpSolver.kt: 新增 solveRet()，保留 solve() 兼容
+- Csp1dColumnGeneration.kt: 删除 ensureRet，直接传播 Result
+- ColumnGenerationAlgorithm.kt: 接口返回 Ret
+- ColumnGenerationStandardExecutors.kt: 删除 ensureTry/ensureRet
+- ContinuousRadiusModelComponent.kt: register 返回 Try
 
-### 第二阶段：领域层
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| StorageResource.kt | register 返回 Failed | ✅ |
-| ExecutionResource.kt | register 返回 Failed | ✅ |
-| ConnectionResource.kt | register 返回 Failed | ✅ |
-| Produce.kt | register 返回 Failed | ✅ |
-| Consumption.kt | register 返回 Failed | ✅ |
-| TaskStepConflictConstraint.kt | refresh 返回 Failed | ✅ |
-| ProductionTask.kt | quantityZero 返回 Ret | ✅ |
+### 第二阶段：gantt-scheduling 领域层（12 个文件）
+- StorageResource.kt, ExecutionResource.kt, ConnectionResource.kt: register 返回 Failed
+- Produce.kt, Consumption.kt, ProductionTask.kt: register 返回 Failed / quantityZero 返回 Ret
+- TaskStepConflictConstraint.kt: refresh 返回 Failed
+- TaskTime.kt: register 返回 Failed
+- TimeWindow.kt: upper/upperInterval 改为 nullable + Safe
+- Resource.kt, Cost.kt, ShadowPriceMap.kt, TaskBunch.kt: 添加 imports / nullable + Safe
 
-### 第三阶段：框架层
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| RemoteSolverHttpTransportPlugin.kt | 添加 imports | ✅ |
-| Orientation.kt | require 返回 Ret | ✅ |
-| ColumnGenerationAlgorithm.kt | 接口返回 Ret | ✅ |
-| ColumnGenerationStandardExecutors.kt | 删除 ensureTry/ensureRet | ✅ |
-| ContinuousRadiusModelComponent.kt | register 返回 Try | ✅ |
-| TimeWindow.kt | upper/upperInterval 改为 nullable + Safe | ✅ |
-| Resource.kt | 添加 error imports | ✅ |
-| Cost.kt | solverCost 改为 nullable + Safe | ✅ |
-| ShadowPriceMap.kt | 添加 imports | ✅ |
+### 第三阶段：bpp3d 框架（25+ 个文件）
+- CylinderShapeContract.kt: 验证函数改为返回 Try
+- Package.kt: 验证函数改为返回 Try
+- DemandStatistics.kt: 验证函数改为返回 Try
+- QuantityDemandStatistics.kt: 验证函数改为返回 Try
+- QuantityGeometryCore.kt: 运算函数改为返回 Ret
+- PackingGeometryGuard.kt: 验证函数改为返回 Try
+- Packer.kt: 验证函数改为返回 Try
+- MaterialPacker.kt: 验证函数改为返回 Try
+- Load.kt: 验证函数改为返回 Try
+- ScaledBpp3dSolverValueAdapter.kt: 验证函数改为返回 Try
+- DemandConstraint.kt: 验证函数改为返回 Try
+- LayerGenerationContext.kt: 验证函数改为返回 Try
+- BottomUpLeftJustifiedAlgorithm.kt: 验证函数改为返回 Try
+- ItemMerger.kt: 验证函数改为返回 Try
+- Aggregation.kt: 验证函数改为返回 Try
+- Orientation.kt: require 返回 Ret
+- DepthBoundaryLayerOrientationPolicy.kt: 验证函数改为返回 Try
+- 其他: 添加 imports、minor fixes
 
-### 第四阶段：核心库
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| SatisfiedAmount.kt | registerConstraints 返回 Failed | ✅ |
-| MetaModelExportSupport.kt | throw → return Failed | ✅ |
+### 第四阶段：核心库和工具库（5 个文件）
+- MetaModelExportSupport.kt: throw → return Failed
+- SatisfiedAmount.kt: registerConstraints 返回 Failed
+- SymbolDimensionRegistry.kt: validateAddSubDimension/inferDimension 返回 Try/Ret
+- RemoteSolverHttpTransportPlugin.kt: 添加 imports
+- RectangularPackingDemand.kt: 验证函数改为返回 Try
 
-### 第五阶段：辅助修改
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| Csp1dProduceContext.kt | produce[index] 添加 !! | ✅ |
-| WasteObjectivePipeline.kt | produce[index] 添加 !! | ✅ |
-| BatchMinimizationObjective.kt | produce[index] 添加 !! | ✅ |
-| Compilation.kt (task) | solverCost() 添加 !! | ✅ |
-| Compilation.kt (bunch) | solverCost() 添加 !! | ✅ |
-| TaskBunch.kt | solverCost() 添加 !! | ✅ |
-
-### 第六阶段：验证函数改为返回 Try（20 个 throw，20 个调用点）
-| 文件 | 修改内容 | 状态 |
-|------|---------|------|
-| CylinderShapeContract.kt | 8 个 require 验证函数返回 Try（12 个 throw → return Failed） | ✅ |
-| PackingGeometryGuard.kt | requireHorizontalCylinderSupport + requirePackedBinShapeGeometry 返回 Try（3 个 throw） | ✅ |
-| Packer.kt | requireSingleCylinderAxisPerLayer 返回 Try（1 个 throw），invoke 添加 !! | ✅ |
-| SymbolDimensionRegistry.kt | validateAddSubDimension 返回 Try，inferDimension 返回 Ret（6 个 throw） | ✅ |
-| LayerPlacementAdapter.kt | requireVerifiedGeneratedCylinderCandidate 添加 !! | ✅ |
-| LayerGenerationContext.kt | 4 个验证函数调用添加 !! | ✅ |
-| Package.kt | requireConcreteCylinderRadiusProductionMetadata 添加 !! | ✅ |
-| PackageAttribute.kt | requireUprightVerticalCylinderSupport 添加 !! | ✅ |
-| ItemMerger.kt | 7 个 requireNoCylinderItemsForCuboidOnlyPath 调用添加 !! | ✅ |
-| SimpleBlockGenerator.kt | requireSupportedCylinderItemForSimpleBlock 添加 !! | ✅ |
-| CylinderUnsupportedGuard.kt | requireNoCylinderItemsForCuboidOnlyPath 添加 !! | ✅ |
-| PackingRendererAdapter.kt | requirePackedBinShapeGeometry 添加 !! | ✅ |
+### 辅助修改
+- Csp1dProduceContext.kt, WasteObjectivePipeline.kt, BatchMinimizationObjective.kt: produce[index] 添加 !!
+- Compilation.kt (task/bunch), TaskBunch.kt: solverCost() 添加 !!
 
 ---
 
@@ -127,44 +64,49 @@ return try {
 | ospf-kotlin-utils | ~42 | 0 | ~42 |
 | ospf-kotlin-core | ~12 | 2 | ~10 |
 | ospf-kotlin-multiarray | ~39 | 0 | ~39 |
-| ospf-kotlin-quantities | ~22 | 6 | ~16 |
+| ospf-kotlin-quantities | ~22 | 1 | ~21 |
 | ospf-kotlin-math | ~120+ | 0 | ~120+ |
 | ospf-kotlin-framework | ~8 | 1 | ~7 |
 | ospf-kotlin-framework-gantt-scheduling | ~25 | 8 | ~17 |
 | ospf-kotlin-framework-csp1d | ~15 | 6 | ~9 |
-| ospf-kotlin-framework-bpp2d | 4 | 0 | 4 |
-| ospf-kotlin-framework-bpp3d | ~50+ | 20 | ~30+ |
+| ospf-kotlin-framework-bpp2d | 4 | 1 | 3 |
+| ospf-kotlin-framework-bpp3d | ~50+ | 25+ | ~25 |
 | ospf-kotlin-framework-plugin | ~10 | 0 | ~10 |
 | 测试代码 | ~146 | 0 | ~146（保留） |
-| **总计** | **~395** | **~43** | **~352** |
-
----
-
-## 下一步执行计划
-
-### 阶段 1：验证函数改为返回 Try（~30 个）✅ 已完成
-按原则 1 处理返回 Unit 的验证函数：
-- CylinderShapeContract.kt 中的验证函数 → 8 个函数返回 Try（12 个 throw）
-- PackingGeometryGuard.kt 中的验证函数 → 2 个函数返回 Try（3 个 throw）
-- Packer.kt 中的验证函数 → 1 个函数返回 Try（1 个 throw）
-- SymbolDimensionRegistry.kt → validateAddSubDimension 返回 Try，inferDimension 返回 Ret（6 个 throw）
-
-### 阶段 2：私有辅助函数改为返回 Result（~50 个）
-逐个处理各模块中的私有辅助函数。
-
-### 阶段 3：核心库提供 safe API（~200 个）
-按原则 4 补齐安全入口：
-- Collection.kt: `minOrNull()` / `minSafe()`
-- Find.kt: `firstOrNull()` / `firstSafe()`
-- Shape.kt: `getOrNull()` / `getSafe()`
-- Quantity.kt: `convertOrNull()` / `convertSafe()`
-
-### 阶段 4：外部库边界异常捕获（~10 个）
-按原则 5 处理：
-- RemoteSolverHttpClient.kt
-- 持久化插件
+| **总计** | **~395** | **~44** | **~351** |
 
 ---
 
 ## 构建状态
 ✅ 全部通过编译
+
+---
+
+## 下一步执行计划
+
+### 阶段 1：bpp3d 剩余文件（~25 个）
+继续处理 bpp3d 框架中剩余的 throw。
+
+### 阶段 2：quantities 模块（~21 个）
+- Quantity.kt: convertOrNull() / convertSafe()
+- SymbolQuantityOps.kt: 运算函数改为返回 Ret
+- geometry/QuantityOps.kt: 运算函数改为返回 Ret
+
+### 阶段 3：core 和 utils 模块（~52 个）
+- Collection.kt: minOrNull() / minSafe()
+- Find.kt: firstOrNull() / firstSafe()
+- BigM.kt: 验证函数改为返回 Try
+- CallBackModel.kt: 默认 lambda 改为返回空列表
+
+### 阶段 4：math 模块（~120 个）
+- ValueWrapper.kt: 数学运算边界（保留异常或提供 safe API）
+- Operations.kt, Parse.kt: 解析函数改为返回 Ret
+- Floating.kt, Integer.kt: 类型转换函数改为返回 Ret
+
+### 阶段 5：multiarray 模块（~39 个）
+- Shape.kt: getOrNull() / getSafe()
+- DataFrame.kt: 列名查找改为返回 Ret
+
+### 阶段 6：外部库边界（~10 个）
+- RemoteSolverHttpClient.kt: try-catch 转换为 Ret
+- 持久化插件: try-catch 转换为 Ret
