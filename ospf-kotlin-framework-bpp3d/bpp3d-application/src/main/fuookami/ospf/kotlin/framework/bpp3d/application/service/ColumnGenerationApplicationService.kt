@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -282,7 +284,7 @@ class ColumnGenerationApplicationService(
         request: ColumnGenerationApplicationRequest,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
         solutionAnalyzer: ColumnGenerationSolutionAnalyzer<FltX>? = null
-    ): ColumnGenerationApplicationResponse {
+    ): Ret<ColumnGenerationApplicationResponse> {
         val hasMaterialDemands = request.materialAmountDemands.isNotEmpty() || request.materialWeightDemands.isNotEmpty()
         val shouldRunMaterialPacking = hasMaterialDemands && request.materialPackingCandidates.isNotEmpty()
         val materialPackingPlan = if (shouldRunMaterialPacking) {
@@ -315,7 +317,7 @@ class ColumnGenerationApplicationService(
             if (materialPackingPlan.solveInfo.status != MaterialPackingStatus.Optimal ||
                 materialPackingPlan.restMaterials.values.any { it != UInt64.zero }
             ) {
-                throw IllegalStateException("material packing infeasible: ${materialPackingPlan.solveInfo.rawStatus ?: "unknown"}")
+                return Failed(ErrorCode.ApplicationFailed, "material packing infeasible: ${materialPackingPlan.solveInfo.rawStatus ?: "unknown"}")
             }
         }
 
@@ -336,7 +338,7 @@ class ColumnGenerationApplicationService(
             baseItemDemands.isEmpty() -> packagedItemDemands
             request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.ReplaceItemDemands -> packagedItemDemands
             request.mixedDemandPolicy == MaterialPackingMixedDemandPolicy.Merge -> mergeItemDemands(baseItemDemands, packagedItemDemands)
-            else -> throw IllegalArgumentException("both itemDemands and materialDemands are present, set mixedDemandPolicy explicitly.")
+            else -> return Failed(ErrorCode.IllegalArgument, "both itemDemands and materialDemands are present, set mixedDemandPolicy explicitly.")
         }
         val entries = request.demandEntries ?: if (hasMaterialDemands && !shouldRunMaterialPacking) {
             demandEntriesFromItems(resolvedItemDemands) +
@@ -375,15 +377,19 @@ class ColumnGenerationApplicationService(
             solutionAnalyzer = combinedAnalyzer,
             initialColumns = { request.initialColumns }
         )
-        val result = algorithm.solve(
+        val result = when (val solveResult = algorithm.solve(
             items = resolvedItemDemands.map { it.first },
             config = request.cgConfig
-        )
-        return ColumnGenerationApplicationResponse(
+        )) {
+            is Ok -> solveResult.value
+            is Failed -> return Failed(solveResult.error)
+            is Fatal -> return Fatal(solveResult.errors)
+        }
+        return Ok(ColumnGenerationApplicationResponse(
             result = result,
             packingSnapshot = packingAnalyzer?.latest,
             materialPackingPlan = materialPackingPlan
-        )
+        ))
     }
 
     /**
@@ -399,7 +405,7 @@ class ColumnGenerationApplicationService(
         request: ColumnGenerationQuantityApplicationRequest<T>,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
         solutionAnalyzer: ColumnGenerationSolutionAnalyzer<FltX>? = null
-    ): ColumnGenerationApplicationResponse {
+    ): Ret<ColumnGenerationApplicationResponse> {
         return solve(
             request = request.toModelRequest(),
             packingAnalyzer = packingAnalyzer,

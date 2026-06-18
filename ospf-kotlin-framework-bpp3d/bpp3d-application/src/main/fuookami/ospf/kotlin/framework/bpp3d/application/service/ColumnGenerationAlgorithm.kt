@@ -289,7 +289,7 @@ class ColumnGenerationAlgorithm<V>(
     suspend fun solve(
         items: List<Item>,
         config: ColumnGenerationConfig = ColumnGenerationConfig()
-    ): ColumnGenerationResult<V> {
+    ): Ret<ColumnGenerationResult<V>> {
         val startedAt = TimeSource.Monotonic.markNow()
         var columns = deduplicateColumns(initialColumns.invoke())
         var terminatedByIterationLimit = false
@@ -320,8 +320,8 @@ class ColumnGenerationAlgorithm<V>(
             val lpResult = when {
                 rmpSolver != null -> when (val result = rmpSolver.solve(state)) {
                     is Ok -> result.value
-                    is Failed -> throw IllegalStateException("RMP solve failed: ${result.error}")
-                    is Fatal -> throw IllegalStateException("RMP solve fatal: ${result.errors}")
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
                 solveRmpWithResult != null -> solveRmpWithResult.invoke(state)
                 else -> ColumnGenerationLpResult(
@@ -398,8 +398,8 @@ class ColumnGenerationAlgorithm<V>(
             val finalResult = when {
                 finalMilpSolver != null -> when (val result = finalMilpSolver.solve(finalState)) {
                     is Ok -> result.value
-                    is Failed -> throw IllegalStateException("Final MILP solve failed: ${result.error}")
-                    is Fatal -> throw IllegalStateException("Final MILP solve fatal: ${result.errors}")
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
                 solveFinalMilpWithResult != null -> solveFinalMilpWithResult.invoke(finalState)
                 else -> null
@@ -423,7 +423,7 @@ class ColumnGenerationAlgorithm<V>(
         analyzeSolution(finalState)
         solutionAnalyzer?.analyze(finalState)
 
-        return ColumnGenerationResult<V>(
+        return Ok(ColumnGenerationResult<V>(
             columns = columns,
             iterationCount = iterations,
             terminatedByIterationLimit = terminatedByIterationLimit,
@@ -437,7 +437,7 @@ class ColumnGenerationAlgorithm<V>(
             finalInfo = finalInfo,
             continuousRadiusSolverResults = finalState.continuousRadiusSolverResults,
             pwlContinuousRadiusResults = finalState.pwlContinuousRadiusResults
-        )
+        ))
     }
 }
 
@@ -457,7 +457,7 @@ suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveQuantit
     config: ColumnGenerationConfig = ColumnGenerationConfig(),
     materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
-): ColumnGenerationResult<V> {
+): Ret<ColumnGenerationResult<V>> {
     return solve(
         items = items.map { it.toModel(materialCache, itemCache) },
         config = config
