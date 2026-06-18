@@ -54,9 +54,19 @@
 - RemoteSolverHttpTransportPlugin.kt: 添加 imports
 - RectangularPackingDemand.kt: 验证函数改为返回 Try
 
+### 测试代码修复
+- ColumnGenerationAlgorithmTest.kt: 添加 unwrap() 辅助函数，solve() 调用添加 .unwrap() ✅
+- Csp1dApplicationAcceptanceTest.kt: 添加 unwrap() 辅助函数，solve() 调用添加 .unwrap() ✅
+- ContinuousRadiusModelComponentTest.kt: register() 调用更新 ✅
+- ResourceQuantityFltXTest.kt: resourceQuantityZero 添加 !! ✅
+
 ### 辅助修改
 - Csp1dProduceContext.kt, WasteObjectivePipeline.kt, BatchMinimizationObjective.kt: produce[index] 添加 !!
 - Compilation.kt (task/bunch), TaskBunch.kt: solverCost() 添加 !!
+
+### 构建状态
+✅ 生产代码全部通过编译
+⚠️ ColumnGenerationAlgorithmTest.kt 有预存错误（非本次迁移导致）
 
 ---
 

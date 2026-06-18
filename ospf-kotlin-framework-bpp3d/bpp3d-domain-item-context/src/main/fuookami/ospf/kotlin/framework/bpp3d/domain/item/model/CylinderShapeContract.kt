@@ -362,6 +362,15 @@ private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameter(
     return Quantity(FltX(converted.value.toDouble() / 2.0), targetUnit)
 }
 
+private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
+    radiusUnitSource: Quantity<FltX>?
+): Ret<Quantity<FltX>> {
+    val targetUnit = radiusUnitSource?.unit ?: unit
+    val converted = convertTo(targetUnit)
+        ?: return Failed(ErrorCode.IllegalArgument, "Cylinder diameter bound must use a length-compatible unit.")
+    return Ok(Quantity(FltX(converted.value.toDouble() / 2.0), targetUnit))
+}
+
 private fun Quantity<FltX>.radiusValueText(): String {
     return "${value.toDouble()} ${unit.symbol}"
 }

@@ -233,6 +233,13 @@ data class PackingScene2<V : FloatingNumber<V>>(
         return used.value / sheetArea.value
     }
 
+    /** 计算板材利用率（Safe） / Compute sheet utilization ratio (Safe) */
+    fun utilizationSafe(): Ret<V> {
+        val used = usedArea().convertTo(sheetArea.unit)
+            ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert used area to sheet area unit.")
+        return Ok(used.value / sheetArea.value)
+    }
+
     /** 获取所有重叠的物料对 / Get all overlapping item pairs */
     fun overlappedPairs(): List<Pair<String, String>> {
         val result = ArrayList<Pair<String, String>>()
