@@ -8,6 +8,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import kotlin.time.Instant
 import kotlin.time.toDuration
 import kotlinx.datetime.*
@@ -381,8 +383,8 @@ data class TimeWindow<V : RealNumber<V>>(
     val end: Instant by window::end
     /** 持续时间 / Duration */
     val duration: Duration by window::duration
-    /** 上级时间间隔 / The upper-level time interval */
-    val upperInterval: Duration by lazy {
+    /** 上级时间间隔（nullable） / The upper-level time interval (nullable) */
+    val upperInterval: Duration? by lazy {
         when (durationUnit) {
             DurationUnit.SECONDS -> {
                 1.toDuration(DurationUnit.MINUTES)
@@ -397,8 +399,18 @@ data class TimeWindow<V : RealNumber<V>>(
             }
 
             else -> {
-                unsupportedUpperDurationUnit()
+                null
             }
+        }
+    }
+
+    /** 上级时间间隔（Safe） / The upper-level time interval (Safe) */
+    fun upperIntervalSafe(): Ret<Duration> {
+        return when (durationUnit) {
+            DurationUnit.SECONDS -> Ok(1.toDuration(DurationUnit.MINUTES))
+            DurationUnit.MINUTES -> Ok(1.toDuration(DurationUnit.HOURS))
+            DurationUnit.HOURS -> Ok(1.toDuration(DurationUnit.DAYS))
+            else -> Failed(ErrorCode.Other, "TimeWindow.upperInterval 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
         }
     }
 
@@ -406,32 +418,41 @@ data class TimeWindow<V : RealNumber<V>>(
 
     private fun UInt64.timeWindowValue() = toLong().toDouble()
 
-    /** 上级时间窗口 / The upper-level time window */
-    val upper: TimeWindow<V> by lazy {
-        TimeWindow(
+    /** 上级时间窗口（nullable） / The upper-level time window (nullable) */
+    val upper: TimeWindow<V>? by lazy {
+        when (durationUnit) {
+            DurationUnit.SECONDS -> DurationUnit.MINUTES
+            DurationUnit.MINUTES -> DurationUnit.HOURS
+            DurationUnit.HOURS -> DurationUnit.DAYS
+            else -> null
+        }?.let { upperUnit ->
+            TimeWindow(
+                window = window,
+                continues = continues,
+                durationUnit = upperUnit,
+                interval = upperInterval ?: interval,
+                fromDouble = fromDouble,
+                toDouble = toDouble
+            )
+        }
+    }
+
+    /** 上级时间窗口（Safe） / The upper-level time window (Safe) */
+    fun upperSafe(): Ret<TimeWindow<V>> {
+        val upperUnit = when (durationUnit) {
+            DurationUnit.SECONDS -> DurationUnit.MINUTES
+            DurationUnit.MINUTES -> DurationUnit.HOURS
+            DurationUnit.HOURS -> DurationUnit.DAYS
+            else -> return Failed(ErrorCode.Other, "TimeWindow.upper 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
+        }
+        return Ok(TimeWindow(
             window = window,
             continues = continues,
-            durationUnit = when (durationUnit) {
-                DurationUnit.SECONDS -> {
-                    DurationUnit.MINUTES
-                }
-
-                DurationUnit.MINUTES -> {
-                    DurationUnit.HOURS
-                }
-
-                DurationUnit.HOURS -> {
-                    DurationUnit.DAYS
-                }
-
-                else -> {
-                    unsupportedUpperDurationUnit()
-                }
-            },
-            interval = upperInterval,
+            durationUnit = upperUnit,
+            interval = upperInterval!!,
             fromDouble = fromDouble,
             toDouble = toDouble
-        )
+        ))
     }
 
     /**
@@ -500,7 +521,7 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /** 按上级间隔划分的舍入时间段列表 / List of rounded time slots divided by upper interval */
     val roundTimeSlots: List<TimeRange> by lazy {
-        roundTimeSlotsOf(upper.interval)
+        roundTimeSlotsOf(upper?.interval ?: interval)
     }
 
     /**
@@ -525,7 +546,7 @@ data class TimeWindow<V : RealNumber<V>>(
         excludedTimes: List<TimeRange> = emptyList()
     ): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
-        val defaultInterval = intervals[null] ?: upperInterval
+        val defaultInterval = intervals[null] ?: upperInterval ?: interval
         val specificIntervals = ArrayList<Pair<TimeRange, Duration>>(intervals.size)
         for ((timeRange, thisInterval) in intervals) {
             if (timeRange != null) {
@@ -542,10 +563,12 @@ data class TimeWindow<V : RealNumber<V>>(
             return defaultInterval
         }
         var currentInterval = intervalAt(start)
-        val end1 = (start.truncatedTo(upper.durationUnit) + currentInterval * kotlin.math.ceil(upper.interval / currentInterval).toInt())
+        val upperDurationUnit = upper?.durationUnit ?: durationUnit
+        val upperIntervalVal = upper?.interval ?: interval
+        val end1 = (start.truncatedTo(upperDurationUnit) + currentInterval * kotlin.math.ceil(upperIntervalVal / currentInterval).toInt())
             .let {
                 if ((it - start) < currentInterval) {
-                    it + upper.interval
+                    it + upperIntervalVal
                 } else {
                     it
                 }
@@ -574,7 +597,7 @@ data class TimeWindow<V : RealNumber<V>>(
             current += duration
             currentInterval = intervalAt(current)
         }
-        val end2 = end.truncatedTo(upper.durationUnit)
+        val end2 = end.truncatedTo(upperDurationUnit)
         while (current < end2) {
             val duration = min(end2 - current, currentInterval)
             if (duration <= Duration.ZERO) {

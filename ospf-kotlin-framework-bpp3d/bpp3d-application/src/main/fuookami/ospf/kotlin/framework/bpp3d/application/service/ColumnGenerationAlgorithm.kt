@@ -5,6 +5,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import kotlin.time.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -172,7 +174,7 @@ fun interface ColumnGenerationRmpSolver<V> {
      * @param state 列生成状态 / column generation state
      * @return LP 求解结果 / LP solve result
      */
-    suspend fun solve(state: ColumnGenerationState<V>): ColumnGenerationLpResult<V>
+    suspend fun solve(state: ColumnGenerationState<V>): Ret<ColumnGenerationLpResult<V>>
 }
 
 /**
@@ -189,7 +191,7 @@ fun interface ColumnGenerationFinalSolver<V> {
      * @param state 列生成状态 / column generation state
      * @return 最终求解结果 / final solve result
      */
-    suspend fun solve(state: ColumnGenerationState<V>): ColumnGenerationFinalResult<V>
+    suspend fun solve(state: ColumnGenerationState<V>): Ret<ColumnGenerationFinalResult<V>>
 }
 
 /**
@@ -316,7 +318,11 @@ class ColumnGenerationAlgorithm<V>(
                 continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
             )
             val lpResult = when {
-                rmpSolver != null -> rmpSolver.solve(state)
+                rmpSolver != null -> when (val result = rmpSolver.solve(state)) {
+                    is Ok -> result.value
+                    is Failed -> throw IllegalStateException("RMP solve failed: ${result.error}")
+                    is Fatal -> throw IllegalStateException("RMP solve fatal: ${result.errors}")
+                }
                 solveRmpWithResult != null -> solveRmpWithResult.invoke(state)
                 else -> ColumnGenerationLpResult(
                     shadowPrices = solveRmpAndExtractShadowPrice(state)
@@ -390,7 +396,11 @@ class ColumnGenerationAlgorithm<V>(
         )
         if (config.finalMilpEnabled) {
             val finalResult = when {
-                finalMilpSolver != null -> finalMilpSolver.solve(finalState)
+                finalMilpSolver != null -> when (val result = finalMilpSolver.solve(finalState)) {
+                    is Ok -> result.value
+                    is Failed -> throw IllegalStateException("Final MILP solve failed: ${result.error}")
+                    is Fatal -> throw IllegalStateException("Final MILP solve fatal: ${result.errors}")
+                }
                 solveFinalMilpWithResult != null -> solveFinalMilpWithResult.invoke(finalState)
                 else -> null
             }

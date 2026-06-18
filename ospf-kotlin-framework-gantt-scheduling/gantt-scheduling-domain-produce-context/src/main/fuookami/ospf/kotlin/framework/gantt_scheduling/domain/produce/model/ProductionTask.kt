@@ -7,6 +7,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -175,23 +177,23 @@ interface ProductionTask<
     }
 }
 
-private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): V {
+private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): Ret<V> {
     for (task in tasks) {
         if (task is ProductionTask<*, *, *, *, *>) {
             task.produceQuantityByProduct.values.firstOrNull()?.let {
                 @Suppress("UNCHECKED_CAST")
-                return (it.value as V).constants.zero
+                return Ok((it.value as V).constants.zero)
             }
             task.consumptionQuantityByMaterial.values.firstOrNull()?.let {
                 @Suppress("UNCHECKED_CAST")
-                return (it.value as V).constants.zero
+                return Ok((it.value as V).constants.zero)
             }
         }
     }
     cost.costSum?.value?.let {
-        return it.constants.zero
+        return Ok(it.constants.zero)
     }
-    throw IllegalArgumentException("production task bunch must contain at least one quantity or cost value to resolve zero.")
+    return Failed(ErrorCode.IllegalArgument, "production task bunch must contain at least one quantity or cost value to resolve zero.")
 }
 
 private fun <V : RealNumber<V>> List<V>.sumOrZero(zero: V): V {
@@ -265,7 +267,13 @@ fun <
             else -> null
         }
     }
-    return quantities.sumOrZero(quantities.firstOrNull()?.constants?.zero ?: quantityZero())
+    val zero = quantities.firstOrNull()?.constants?.zero
+        ?: when (val result = quantityZero()) {
+            is Ok -> result.value
+            is Failed -> throw IllegalArgumentException(result.error.message)
+            is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
+        }
+    return quantities.sumOrZero(zero)
 }
 
 /**
@@ -321,7 +329,13 @@ fun <
             else -> null
         }
     }
-    return quantities.sumOrZero(quantities.firstOrNull()?.constants?.zero ?: quantityZero())
+    val zero = quantities.firstOrNull()?.constants?.zero
+        ?: when (val result = quantityZero()) {
+            is Ok -> result.value
+            is Failed -> throw IllegalArgumentException(result.error.message)
+            is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
+        }
+    return quantities.sumOrZero(zero)
 }
 
 /**

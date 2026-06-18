@@ -55,7 +55,7 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
     fun extractFromDualSolution(
         model: AbstractLinearMetaModel<Flt64>,
         dualSolution: Map<Constraint<Flt64, Linear>, Flt64>
-    ): ShadowPriceMap<V> {
+    ): Ret<ShadowPriceMap<V>> {
         // 通过 CGPipeline refresh / extractor 提取 / Extract via CGPipeline refresh / extractor
         if (cgPipelines.isNotEmpty()) {
             when (val result = extractShadowPrice(
@@ -65,14 +65,14 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
                 shadowPrices = dualSolution
             )) {
                 is Ok -> {}
-                is Failed -> throw IllegalStateException("extract shadow price failed: ${result.error}")
-                is Fatal -> throw IllegalStateException("extract shadow price fatal: ${result.errors}")
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
         // 从 framework map 转换为轻量级 ShadowPriceMap<V>
         // Convert from framework map to lightweight ShadowPriceMap<V>
-        return frameworkShadowPriceMap.toShadowPriceMap { value -> convertSolverValue(domainValueSample, value) }
+        return Ok(frameworkShadowPriceMap.toShadowPriceMap { value -> convertSolverValue(domainValueSample, value) })
     }
 
     /**

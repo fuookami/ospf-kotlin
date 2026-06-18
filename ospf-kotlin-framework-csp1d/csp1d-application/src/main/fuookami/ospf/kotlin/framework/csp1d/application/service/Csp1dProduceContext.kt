@@ -151,7 +151,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
             } else {
                 baseBatchCoefficient
             }
-            monomials.add(LinearMonomial(batchCoefficient, produce[index]))
+            monomials.add(LinearMonomial(batchCoefficient, produce[index]!!))
         }
 
         // LP 模式不加 yield/waste/length 目标项
@@ -176,7 +176,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         for ((index, plan) in produce.cuttingPlans.withIndex()) {
             val usage = usageByKey[plan.canonicalKey()] ?: continue
             if (usage > UInt64.zero) {
-                initialSolution[produce[index]] = usage.toFlt64()
+                initialSolution[produce[index]!!] = usage.toFlt64()
             }
         }
         if (initialSolution.isNotEmpty()) {
@@ -199,7 +199,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         val materialUsageMap = LinkedHashMap<String, UInt64>()
 
         for ((index, plan) in produce.cuttingPlans.withIndex()) {
-            val doubleValue = model.tokens.find(produce[index])?.doubleResult ?: continue
+            val doubleValue = model.tokens.find(produce[index]!!)?.doubleResult ?: continue
             if (doubleValue <= 0.0) continue
             val amount = UInt64(doubleValue.roundToLong().coerceAtLeast(0).toULong())
             selectedPlans.add(CuttingPlanUsage(plan, amount))
@@ -497,7 +497,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         model: AbstractLinearMetaModel<Flt64>,
         index: Int
     ): UInt64 {
-        val value = model.tokens.find(produce[index])?.doubleResult ?: return UInt64.zero
+        val value = model.tokens.find(produce[index]!!)?.doubleResult ?: return UInt64.zero
         if (value <= 0.0) return UInt64.zero
         return UInt64(value.roundToLong().coerceAtLeast(0).toULong())
     }

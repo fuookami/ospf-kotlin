@@ -289,22 +289,22 @@ class ColumnGenerationAlgorithmTest {
             },
             rmpSolver = ColumnGenerationRmpSolver { state ->
                 rmpCallStates.add(Pair(state.iteration, state.columns.size))
-                ColumnGenerationLpResult(
+                Ok(ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
                     objective = FltX(100.0) - FltX(state.iteration.toDouble()),
                     info = mapOf(
                         Pair("solver", "stub-lp"),
                         Pair("iteration", state.iteration.toString())
                     )
-                )
+                ))
             },
             finalMilpSolver = ColumnGenerationFinalSolver { state ->
                 finalSolverColumnCount = state.columns.size
-                ColumnGenerationFinalResult(
+                Ok(ColumnGenerationFinalResult(
                     columns = state.columns,
                     objective = FltX(77.0),
                     info = mapOf(Pair("solver", "stub-final"))
-                )
+                ))
             },
             initialColumns = { listOf(seedLayer) }
         )
@@ -345,10 +345,10 @@ class ColumnGenerationAlgorithmTest {
             },
             rmpSolver = ColumnGenerationRmpSolver {
                 rmpSolverCounter.incrementAndGet()
-                ColumnGenerationLpResult(
+                Ok(ColumnGenerationLpResult(
                     shadowPrices = emptyMap<DemandModeKey, FltX>(),
                     objective = FltX(42.0)
-                )
+                ))
             },
             layerRequestBuilder = ColumnGenerationLayerRequestBuilder { state, items, _ ->
                 requestBuilderCounter.incrementAndGet()
@@ -402,14 +402,14 @@ class ColumnGenerationAlgorithmTest {
             },
             rmpSolver = ColumnGenerationRmpSolver { state ->
                 rmpVariables.addAll(state.continuousRadiusSolverPrototypes.map { it.variableName })
-                ColumnGenerationLpResult(
+                Ok(ColumnGenerationLpResult(
                     shadowPrices = emptyMap(),
                     objective = FltX(1.0)
-                )
+                ))
             },
             finalMilpSolver = ColumnGenerationFinalSolver { state ->
                 finalVariables = state.continuousRadiusSolverPrototypes.map { it.variableName }
-                ColumnGenerationFinalResult(columns = state.columns)
+                Ok(ColumnGenerationFinalResult(columns = state.columns))
             },
             solutionAnalyzer = ColumnGenerationSolutionAnalyzer { state ->
                 analyzerVariables = state.continuousRadiusSolverPrototypes.map { it.variableName }
@@ -457,10 +457,10 @@ class ColumnGenerationAlgorithmTest {
                 }
             },
             finalMilpSolver = ColumnGenerationFinalSolver {
-                ColumnGenerationFinalResult(
+                Ok(ColumnGenerationFinalResult<FltX>(
                     columns = listOf(bin.units.first().unit),
                     bins = listOf(bin)
-                )
+                ))
             },
             solutionAnalyzer = analyzer
         )
@@ -790,8 +790,8 @@ class ColumnGenerationAlgorithmTest {
             continuousRadiusSolverPrototypes = listOf(prototype)
         )
 
-        val lpResult = executors.rmpSolver().solve(state)
-        val finalResult = executors.finalSolver().solve(state)
+        val lpResult = (executors.rmpSolver().solve(state) as Ok).value
+        val finalResult = (executors.finalSolver().solve(state) as Ok).value
 
         assertEquals("1", lpResult.info["continuous_radius_solver_registration_plan_count"])
         assertEquals(
@@ -944,8 +944,8 @@ class ColumnGenerationAlgorithmTest {
             continuousRadiusSolverPrototypes = listOf(prototype)
         )
 
-        val lpResult = executors.rmpSolver().solve(state)
-        val finalResult = executors.finalSolver().solve(state)
+        val lpResult = (executors.rmpSolver().solve(state) as Ok).value
+        val finalResult = (executors.finalSolver().solve(state) as Ok).value
 
         // Without key, PWL is not registerable → radius variable not registered
         // 无 key 时 PWL 不可注册 → 半径变量不注册

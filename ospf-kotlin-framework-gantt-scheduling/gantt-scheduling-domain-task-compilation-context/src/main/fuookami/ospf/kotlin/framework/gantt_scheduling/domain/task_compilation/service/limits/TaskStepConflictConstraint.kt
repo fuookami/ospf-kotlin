@@ -1,6 +1,7 @@
 /** 任务步骤冲突约束 / Task step conflict constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -31,11 +32,12 @@ class TaskStepConflictConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_step_conflict"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    private val conflictTaskGroup: List<List<T>> = throw UnsupportedOperationException(
-        "TaskStepConflictConstraint 暂未实现 conflictTaskGroup 推导逻辑。"
-    )
+    private val conflictTaskGroup: List<List<T>> = emptyList()
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        if (conflictTaskGroup.isEmpty()) {
+            return Failed(ErrorCode.Other, "TaskStepConflictConstraint 暂未实现 conflictTaskGroup 推导逻辑。")
+        }
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
             when (val result = model.addConstraint(
                 sum(tasks.map { t -> compilation.taskCompilation[t].toLinearPolynomial() }) leq Flt64.one,
@@ -67,8 +69,6 @@ class TaskStepConflictConstraint<
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
-        throw UnsupportedOperationException(
-            "TaskStepConflictConstraint.refresh 暂未实现 shadow price 回填逻辑。"
-        )
+        return Failed(ErrorCode.Other, "TaskStepConflictConstraint.refresh 暂未实现 shadow price 回填逻辑。")
     }
 }

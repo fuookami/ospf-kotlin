@@ -1,19 +1,18 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.solver.value.*
+import fuookami.ospf.kotlin.framework.solver.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
-import fuookami.ospf.kotlin.framework.model.CGPipeline
-import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 
 /**
  * CSP1D MILP/LP 求解器 / CSP1D MILP/LP solver
@@ -51,11 +50,23 @@ class Csp1dMilpSolver(
         objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
         isFinalMilp: Boolean = false
     ): MilpResult<V>? {
-        return try {
-            solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)
-        } catch (_: Exception) {
-            null
+        return when (val result = solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)) {
+            is Ok -> result.value
+            is Failed -> throw IllegalStateException("MILP solve failed: ${result.error}")
+            is Fatal -> throw IllegalStateException("MILP solve fatal: ${result.errors}")
         }
+    }
+
+    suspend fun <V : RealNumber<V>> solveRet(
+        input: ProduceInput<V>,
+        yieldConfig: YieldModelingConfig<V>? = null,
+        wasteConfig: WasteMinimizationConfig<V>? = null,
+        lengthConfig: LengthAssignmentModelingConfig<V>? = null,
+        extensions: List<Csp1dModelingExtension<V>> = emptyList(),
+        objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
+        isFinalMilp: Boolean = false
+    ): Ret<MilpResult<V>?> {
+        return solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)
     }
 
     private suspend fun <V : RealNumber<V>> solveInternal(
@@ -66,9 +77,9 @@ class Csp1dMilpSolver(
         extensions: List<Csp1dModelingExtension<V>>,
         objectivePolicies: List<Csp1dObjectivePolicy<V>>,
         isFinalMilp: Boolean
-    ): MilpResult<V>? {
+    ): Ret<MilpResult<V>?> {
         if (input.cuttingPlans.isEmpty()) {
-            return null
+            return Ok(null)
         }
 
         val model = LinearMetaModel(
@@ -101,55 +112,52 @@ class Csp1dMilpSolver(
 
         when (val result = context.register(model)) {
             is Ok -> {}
-            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("register context failed: ${result.error}")
-            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("register context fatal: ${result.errors}")
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        val output = ensureRet(
-            result = solver.solveMILP(
-                name = "csp1d-produce",
-                metaModel = model
-            ),
-            stage = "solve CSP1D produce MILP"
-        )
+        val output = when (val result = solver.solveMILP(
+            name = "csp1d-produce",
+            metaModel = model
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         model.setSolution(output.solution)
 
         val produce = when (val result = context.extractSolution(model)) {
             is Ok -> result.value
-            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("extract solution failed: ${result.error}")
-            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("extract solution fatal: ${result.errors}")
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
         val yieldResult = context.extractYieldResult(model)
         val wasteResult = context.extractWasteResult(model)
         val lengthResult = context.extractLengthResult(model)
 
-        return MilpResult(
+        return Ok(MilpResult(
             produce = produce,
             yieldResult = yieldResult,
             wasteResult = wasteResult,
             lengthResult = lengthResult,
             model = model,
             output = output
-        )
+        ))
     }
 
     suspend fun <V : RealNumber<V>> solveLP(
         input: ProduceInput<V>,
         extensions: List<Csp1dModelingExtension<V>> = emptyList()
-    ): LpResult<V>? {
-        return try {
-            solveLPInternal(input, extensions)
-        } catch (_: Exception) {
-            null
-        }
+    ): Ret<LpResult<V>?> {
+        return solveLPInternal(input, extensions)
     }
 
     private suspend fun <V : RealNumber<V>> solveLPInternal(
         input: ProduceInput<V>,
         extensions: List<Csp1dModelingExtension<V>>
-    ): LpResult<V>? {
+    ): Ret<LpResult<V>?> {
         if (input.cuttingPlans.isEmpty()) {
-            return null
+            return Ok(null)
         }
 
         val model = LinearMetaModel(
@@ -171,43 +179,53 @@ class Csp1dMilpSolver(
 
         when (val result = context.register(model)) {
             is Ok -> {}
-            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("register context failed: ${result.error}")
-            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("register context fatal: ${result.errors}")
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        val lpResult = ensureRet(
-            result = solver.solveLP(
-                name = "csp1d-produce-lp",
-                metaModel = model
-            ),
-            stage = "solve CSP1D produce LP"
-        )
+        val lpResult = when (val result = solver.solveLP(
+            name = "csp1d-produce-lp",
+            metaModel = model
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         // 从 Csp1dProduceContext 获取 CG 管线列表，传入 lifecycle
         // Get CG pipeline list from Csp1dProduceContext, pass to lifecycle
-        val domainValueSample = resolveDomainValueSampleForLP(input)
+        val domainValueSample = when (val result = resolveDomainValueSampleForLP(input)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val lifecycle = Csp1dShadowPriceLifecycle<V>(domainValueSample, context.cgPipelines)
 
         // 通过 lifecycle 统一提取影子价格（CGPipeline refresh / extractor）
         // Extract shadow prices through lifecycle (CGPipeline refresh / extractor)
-        val shadowPrices = lifecycle.extractFromDualSolution(model, lpResult.dualSolution)
-        return LpResult(
+        val shadowPrices = when (val result = lifecycle.extractFromDualSolution(model, lpResult.dualSolution)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(LpResult(
             shadowPrices = shadowPrices,
             model = model,
             lpOutput = lpResult,
             frameworkShadowPriceMap = lifecycle.frameworkShadowPriceMap
-        )
+        ))
     }
 
     /**
      * 从 ProduceInput 推导 V 样本值，用于影子价格 Flt64 → V 转换
      * Derive V sample value from ProduceInput for shadow price Flt64 → V conversion
      */
-    private fun <V : RealNumber<V>> resolveDomainValueSampleForLP(input: ProduceInput<V>): V {
-        input.demands.firstOrNull()?.quantity?.value?.let { return it }
-        input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return it }
-        input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return it }
-        throw IllegalArgumentException(
+    private fun <V : RealNumber<V>> resolveDomainValueSampleForLP(input: ProduceInput<V>): Ret<V> {
+        input.demands.firstOrNull()?.quantity?.value?.let { return Ok(it) }
+        input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return Ok(it) }
+        input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return Ok(it) }
+        return Failed(
+            ErrorCode.IllegalArgument,
             "Cannot derive V sample from ProduceInput for shadow price extraction"
         )
     }
@@ -259,13 +277,5 @@ class Csp1dMilpSolver(
             assignedLengthLowerBound = derivedLowerBounds,
             assignedLengthUpperBound = derivedUpperBounds
         )
-    }
-
-    private fun <T> ensureRet(result: Ret<T>, stage: String): T {
-        return when (result) {
-            is Ok -> result.value
-            is fuookami.ospf.kotlin.utils.functional.Failed -> throw IllegalStateException("$stage failed: ${result.error}")
-            is fuookami.ospf.kotlin.utils.functional.Fatal -> throw IllegalStateException("$stage fatal: ${result.errors}")
-        }
     }
 }

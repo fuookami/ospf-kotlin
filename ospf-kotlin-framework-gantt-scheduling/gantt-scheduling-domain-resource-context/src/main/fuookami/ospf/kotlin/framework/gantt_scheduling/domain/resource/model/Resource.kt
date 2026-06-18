@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -37,8 +38,8 @@ private fun setResourceSlackUpperBoundAsFlt64(
     return (range as ExpressionRange<Flt64>).setUb(upperBound)
 }
 
-/** 解析资源容量值类型的零值 / Resolve the zero value for the resource capacity value type */
-internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): V
+/** 解析资源容量值类型的零值（nullable） / Resolve the zero value for the resource capacity value type (nullable) */
+internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): V?
         where V : RealNumber<V>, V : NumberField<V> {
     return capacities.asSequence()
         .mapNotNull {
@@ -48,7 +49,17 @@ internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<
         .firstOrNull()
         ?.constants
         ?.zero
-        ?: throw IllegalArgumentException("resource capacities must contain at least one finite quantity bound.")
+}
+
+/** 解析资源容量值类型的零值（Safe） / Resolve the zero value for the resource capacity value type (Safe) */
+internal fun <V> resourceQuantityZeroSafe(capacities: List<AbstractResourceCapacity<V>>): Ret<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val zero = resourceQuantityZero(capacities)
+    return if (zero != null) {
+        Ok(zero)
+    } else {
+        Failed(ErrorCode.IllegalArgument, "resource capacities must contain at least one finite quantity bound.")
+    }
 }
 
 /**

@@ -8,10 +8,12 @@
 
 - `.rules/chore.md`
 - `.rules/framework-architecture.md`
+- `.rules/error-handling.md`
 
 ## 明确优先级顺序（从高到低）
 1. `.rules/chore.md`
 2. `.rules/framework-architecture.md`
+3. `.rules/error-handling.md`
 
 ## 冲突处理
 当规则冲突时，严格按上述优先级顺序执行。

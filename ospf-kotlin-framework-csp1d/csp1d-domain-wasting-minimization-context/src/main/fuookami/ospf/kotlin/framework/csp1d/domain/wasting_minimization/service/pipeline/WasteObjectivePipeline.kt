@@ -60,7 +60,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val restWidthValue = plan.restWidth?.value ?: continue
                 if (restWidthValue > restWidthValue.constants.zero) {
                     val coeff = restWidthValue.toFlt64() * trimPenalty.toFlt64()
-                    monomials.add(LinearMonomial(coeff, produce[index]))
+                    monomials.add(LinearMonomial(coeff, produce[index]!!))
                 }
             }
         }
@@ -72,7 +72,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val plan = produce.cuttingPlans[index]
                 val restMaterialValue = restMaterialValue(plan, restMaterialMeasure) ?: continue
                 val coeff = restMaterialValue.toFlt64() * restMaterialPenalty.toFlt64()
-                monomials.add(LinearMonomial(coeff, produce[index]))
+                monomials.add(LinearMonomial(coeff, produce[index]!!))
             }
         }
 
@@ -82,7 +82,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
                 val plan = produce.cuttingPlans[index]
                 val costPenalty = waste.materialCostPenalty[plan.material.id]
                 if (costPenalty != null) {
-                    monomials.add(LinearMonomial(costPenalty.toFlt64(), produce[index]))
+                    monomials.add(LinearMonomial(costPenalty.toFlt64(), produce[index]!!))
                 }
             }
         }

@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.produce
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -161,10 +162,21 @@ class ProduceAggregation<V : RealNumber<V>>(
     val planCount: Int get() = cuttingPlans.size
 
     /**
-     * 获取指定索引的变量（初始 x 组）/ Get variable at specified index (from initial x group)
+     * 获取指定索引的变量（初始 x 组，nullable）/ Get variable at specified index (from initial x group, nullable)
      */
     operator fun get(index: Int) = _x.firstOrNull()?.get(index)
-        ?: throw IllegalStateException("ProduceAggregation not registered yet")
+
+    /**
+     * 获取指定索引的变量（初始 x 组，Safe）/ Get variable at specified index (from initial x group, Safe)
+     */
+    fun getSafe(index: Int): Ret<UIntVariable1> {
+        val value = _x.firstOrNull()
+        return if (value != null && index < value.shape.size) {
+            Ok(value)
+        } else {
+            Failed(ErrorCode.ApplicationError, "ProduceAggregation not registered yet")
+        }
+    }
 
     /**
      * 获取所有 x 变量组 / Get all x variable groups

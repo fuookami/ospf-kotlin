@@ -7,6 +7,8 @@ package fuookami.ospf.kotlin.framework.solver.remote.client
 import java.net.http.HttpClient
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * HTTP 传输配置。
@@ -91,9 +93,14 @@ object RemoteSolverHttpTransportPlugins {
      * @param name 插件名称 / Plugin name
      * @return HTTP 传输插件 / HTTP transport plugin
      */
-    fun resolve(name: String): RemoteSolverHttpTransportPlugin {
+    fun resolve(name: String): Ret<RemoteSolverHttpTransportPlugin> {
         val key = name.trim().lowercase()
-        return plugins[key] ?: throw IllegalArgumentException("HTTP transport plugin is not registered: $name")
+        val plugin = plugins[key]
+        return if (plugin != null) {
+            Ok(plugin)
+        } else {
+            Failed(ErrorCode.SolverNotFound, "HTTP transport plugin is not registered: $name")
+        }
     }
 
     /**
@@ -107,8 +114,12 @@ object RemoteSolverHttpTransportPlugins {
     fun create(
         name: String,
         config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
-    ): RemoteSolverHttpTransport {
-        return resolve(name).create(config)
+    ): Ret<RemoteSolverHttpTransport> {
+        return when (val result = resolve(name)) {
+            is Ok -> Ok(result.value.create(config))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
     }
 
     /**

@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import java.io.FileWriter
 import java.nio.file.Path
@@ -96,7 +97,7 @@ private suspend fun <V> exportMetaModelOpm(
     val temp = when (metaModel.tokens) {
         is MutableTokenTable<*> -> metaModel.tokens.copy()
         is ConcurrentMutableTokenTable<*> -> metaModel.tokens.copy()
-        else -> throw IllegalStateException("Unknown token table type: ${metaModel.tokens::class}")
+        else -> return Failed(ErrorCode.Other, "Unknown token table type: ${metaModel.tokens::class}")
     }
 
     for (symbol in metaModel.tokens.symbols) {

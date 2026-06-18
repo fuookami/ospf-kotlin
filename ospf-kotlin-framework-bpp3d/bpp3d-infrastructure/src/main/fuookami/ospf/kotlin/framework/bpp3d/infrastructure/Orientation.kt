@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.encoding.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -114,8 +115,13 @@ sealed class Orientation {
             return entries.find { it.label == str }
         }
 
-        fun require(str: String): Orientation {
-            return invoke(str) ?: throw IllegalArgumentException("Unsupported orientation: $str")
+        fun require(str: String): Ret<Orientation> {
+            val orientation = invoke(str)
+            return if (orientation != null) {
+                Ok(orientation)
+            } else {
+                Failed(ErrorCode.IllegalArgument, "Unsupported orientation: $str")
+            }
         }
 
         fun <V : FloatingNumber<V>> merge(unit: AbstractCuboid<V>, orientations: List<Orientation>): List<Orientation> {
@@ -150,7 +156,11 @@ object OrientationSerializer : KSerializer<Orientation> {
     }
 
     override fun deserialize(decoder: Decoder): Orientation {
-        return Orientation.require(decoder.decodeString())
+        return when (val result = Orientation.require(decoder.decodeString())) {
+            is Ok -> result.value
+            is Failed -> throw IllegalArgumentException(result.error.message)
+            is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
+        }
     }
 }
 

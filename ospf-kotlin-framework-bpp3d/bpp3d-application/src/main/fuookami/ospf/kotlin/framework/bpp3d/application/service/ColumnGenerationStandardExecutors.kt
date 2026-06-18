@@ -180,24 +180,28 @@ class ColumnGenerationStandardExecutors(
      */
     fun rmpSolver(): ColumnGenerationRmpSolver<FltX> {
         return ColumnGenerationRmpSolver { state ->
-            val artifacts = buildRmpArtifacts(state)
-            val solved = ensureRet(
-                solver.solveLPAs(
+            val artifactsResult = buildRmpArtifacts(state)
+            if (artifactsResult is Failed) return@ColumnGenerationRmpSolver Failed(artifactsResult.error)
+            if (artifactsResult is Fatal) return@ColumnGenerationRmpSolver Fatal(artifactsResult.errors)
+            val artifacts = (artifactsResult as Ok).value
+
+            val lpResult = solver.solveLPAs(
                 name = "${config.rmpSolveNamePrefix}-${state.iteration}",
                 metaModel = artifacts.model,
                 toLogModel = config.rmpToLogModel
-                ),
-                stage = "solve LP"
             )
+            if (lpResult is Failed) return@ColumnGenerationRmpSolver Failed(lpResult.error)
+            if (lpResult is Fatal) return@ColumnGenerationRmpSolver Fatal(lpResult.errors)
+            val solved = (lpResult as Ok).value
+
             val shadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
-            ensureTry(
-                artifacts.demandConstraint.refresh(
-                    shadowPriceMap = shadowPriceMap,
-                    model = artifacts.model,
-                    shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved))
-                ),
-                stage = "refresh demand shadow prices"
+            val refreshResult = artifacts.demandConstraint.refresh(
+                shadowPriceMap = shadowPriceMap,
+                model = artifacts.model,
+                shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved))
             )
+            if (refreshResult is Failed) return@ColumnGenerationRmpSolver Failed(refreshResult.error)
+            if (refreshResult is Fatal) return@ColumnGenerationRmpSolver Fatal(refreshResult.errors)
             val shadowPrices = LinkedHashMap<DemandModeKey, FltX>()
             for ((key, value) in shadowPriceMap.map) {
                 val demandKey = key as? DemandShadowPriceKey ?: continue
@@ -210,7 +214,7 @@ class ColumnGenerationStandardExecutors(
                     )
                 }
             }
-            ColumnGenerationLpResult(
+            Ok(ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
                 objective = FltX(solved.obj.toDouble()),
                 info = mapOf(
@@ -226,7 +230,7 @@ class ColumnGenerationStandardExecutors(
                     + artifacts.continuousRadiusComponent.extractNativeResults(artifacts.model)
                         .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
                         .mapValues { (_, value) -> value.toString() }
-            )
+            ))
         }
     }
 
@@ -244,24 +248,32 @@ class ColumnGenerationStandardExecutors(
                 fallbackFinalBins(state.columns)
             }
             if (bins.isEmpty()) {
-                return@ColumnGenerationFinalSolver ColumnGenerationFinalResult(
+                return@ColumnGenerationFinalSolver Ok(ColumnGenerationFinalResult(
                     columns = state.columns,
                     bins = emptyList(),
                     objective = null,
                     info = mapOf("skipped" to "no_final_bins")
-                )
+                ))
             }
 
             val model = newModel("${config.finalSolveNamePrefix}-${state.iteration}")
             val continuousRadiusComponent = ContinuousRadiusModelComponent(
                 prototypes = state.continuousRadiusSolverPrototypes
             )
-            continuousRadiusComponent.register(model, ::ensureTry)
+            when (val result = continuousRadiusComponent.register(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
             val assignment = PreciseAssignment(
                 bins = bins,
                 layers = state.columns
             )
-            ensureTry(assignment.register(model), "register precise assignment")
+            when (val result = assignment.register(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
 
             val load = PreciseLoad(
                 demandEntries = demandEntries,
@@ -270,57 +282,72 @@ class ColumnGenerationStandardExecutors(
                 overEnabled = false,
                 lessEnabled = true
             )
-            ensureTry(load.register(model), "register precise load")
+            when (val result = load.register(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
 
             val demandConstraint = itemDemandConstraint(
                 load = load,
                 demandEntries = demandEntries
             )
             demandConstraint.register(model)
-            ensureTry(demandConstraint.invoke(model), "build precise demand constraint")
+            when (val result = demandConstraint.invoke(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
 
             val capacity = PreciseLoadCapacity(
                 bins = bins,
                 layers = state.columns,
                 assignment = assignment
             )
-            ensureTry(capacity.register(model), "register precise capacity")
+            when (val result = capacity.register(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
             if (config.enableFinalBinDepthConstraint) {
-                ensureTry(
-                    BinDepthConstraint(
-                        bins = bins,
-                        capacity = capacity
-                    ).invoke(model),
-                    "build final bin depth constraint"
-                )
+                when (val result = BinDepthConstraint(
+                    bins = bins,
+                    capacity = capacity
+                ).invoke(model)) {
+                    is Ok -> {}
+                    is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                    is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+                }
             }
             if (config.enableFinalBinCapacityConstraint) {
-                ensureTry(
-                    BinCapacityConstraint(
-                        bins = bins,
-                        capacity = capacity
-                    ).invoke(model),
-                    "build final bin capacity constraint"
-                )
+                when (val result = BinCapacityConstraint(
+                    bins = bins,
+                    capacity = capacity
+                ).invoke(model)) {
+                    is Ok -> {}
+                    is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                    is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+                }
             }
 
-            ensureTry(
-                BinAmountMinimization(
-                    bins = bins,
-                    assignment = assignment,
-                    coefficient = { config.finalBinAmountCoefficient }
-                ).invoke(model),
-                "build final objective"
-            )
+            when (val result = BinAmountMinimization(
+                bins = bins,
+                assignment = assignment,
+                coefficient = { config.finalBinAmountCoefficient }
+            ).invoke(model)) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
 
-            val solved = ensureRet(
-                solver.solveMILPAs(
+            val milpResult = solver.solveMILPAs(
                 name = "${config.finalSolveNamePrefix}-${state.iteration}",
                 metaModel = model,
                 toLogModel = config.finalToLogModel
-                ),
-                stage = "solve MILP"
             )
+            if (milpResult is Failed) return@ColumnGenerationFinalSolver Failed(milpResult.error)
+            if (milpResult is Fatal) return@ColumnGenerationFinalSolver Fatal(milpResult.errors)
+            val solved = (milpResult as Ok).value
             model.setSolution(normalizeScalarSolution(solved.solution))
             val selectedBins = collectSelectedBins(model, bins, state.columns, assignment)
             config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins)
@@ -330,7 +357,7 @@ class ColumnGenerationStandardExecutors(
                 assignment = assignment,
                 binAmount = bins.size
             )
-            ColumnGenerationFinalResult(
+            Ok(ColumnGenerationFinalResult(
                 columns = if (selectedColumns.isNotEmpty()) selectedColumns else state.columns,
                 bins = selectedBins,
                 objective = FltX(solved.obj.toDouble()),
@@ -350,7 +377,7 @@ class ColumnGenerationStandardExecutors(
                         .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
                         .mapValues { (_, value) -> value.toString() },
                 pwlContinuousRadiusResults = continuousRadiusComponent.extractPWLResults(model)
-            )
+            ))
         }
     }
 
@@ -395,14 +422,18 @@ class ColumnGenerationStandardExecutors(
 
     private suspend fun buildRmpArtifacts(
         state: ColumnGenerationState<FltX>
-    ): RmpArtifacts {
+    ): Ret<RmpArtifacts> {
         val model = newModel("${config.rmpSolveNamePrefix}-${state.iteration}")
         val aggregation = LayerAggregation()
         val assignment = ImpreciseAssignment(
             items = itemDemands.toMap(),
             aggregation = aggregation
         )
-        ensureTry(assignment.register(model), "register imprecise assignment")
+        when (val result = assignment.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         val load = ImpreciseLoad(
             demandEntries = demandEntries,
@@ -410,26 +441,32 @@ class ColumnGenerationStandardExecutors(
             overEnabled = false,
             lessEnabled = true
         )
-        ensureTry(load.register(model), "register imprecise load")
+        when (val result = load.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         if (state.columns.isNotEmpty()) {
-            val added = ensureRet(
-                assignment.addColumns(
-                    iteration = UInt64.zero,
-                    newLayers = state.columns,
-                    model = model
-                ),
-                "add rmp columns"
-            )
+            val added = when (val result = assignment.addColumns(
+                iteration = UInt64.zero,
+                newLayers = state.columns,
+                model = model
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             if (added.isNotEmpty()) {
-                ensureRet(
-                    load.addColumns(
-                        iteration = UInt64.zero,
-                        newLayers = added,
-                        model = model
-                    ),
-                    "refresh rmp load columns"
-                )
+                when (val result = load.addColumns(
+                    iteration = UInt64.zero,
+                    newLayers = added,
+                    model = model
+                )) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
         }
 
@@ -438,25 +475,37 @@ class ColumnGenerationStandardExecutors(
             demandEntries = demandEntries
         )
         demandConstraint.register(model)
-        ensureTry(demandConstraint.invoke(model), "build rmp demand constraint")
+        when (val result = demandConstraint.invoke(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         val volumeMinimization = itemVolumeMinimization(
             assignment = assignment,
             coefficient = config.rmpVolumeCoefficient
         )
         volumeMinimization.register(model)
-        ensureTry(volumeMinimization.invoke(model), "build rmp objective")
+        when (val result = volumeMinimization.invoke(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         val continuousRadiusComponent = ContinuousRadiusModelComponent(
             prototypes = state.continuousRadiusSolverPrototypes
         )
-        continuousRadiusComponent.register(model, ::ensureTry)
+        when (val result = continuousRadiusComponent.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
-        return RmpArtifacts(
+        return Ok(RmpArtifacts(
             model = model,
             demandConstraint = demandConstraint,
             continuousRadiusComponent = continuousRadiusComponent
-        )
+        ))
     }
 
     private fun collectSelectedColumns(
@@ -548,21 +597,5 @@ class ColumnGenerationStandardExecutors(
             configuration = MetaModelConfiguration(),
             converter = IntoValue.fromConverter(FltX)
         )
-    }
-
-    private fun ensureTry(result: Try, stage: String) {
-        when (result) {
-            is Ok -> {}
-            is Failed -> throw IllegalStateException("$stage failed: ${result.error}")
-            is Fatal -> throw IllegalStateException("$stage fatal: ${result.errors}")
-        }
-    }
-
-    private fun <T> ensureRet(result: Ret<T>, stage: String): T {
-        return when (result) {
-            is Ok -> result.value
-            is Failed -> throw IllegalStateException("$stage failed: ${result.error}")
-            is Fatal -> throw IllegalStateException("$stage fatal: ${result.errors}")
-        }
     }
 }

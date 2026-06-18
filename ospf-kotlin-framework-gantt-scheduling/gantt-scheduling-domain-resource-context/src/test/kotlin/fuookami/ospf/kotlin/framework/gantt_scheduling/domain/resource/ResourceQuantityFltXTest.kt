@@ -50,7 +50,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))
+        val zero = resourceQuantityZero(listOf(cap))!!
         assertTrue(zero eq FltX.zero)
     }
 
@@ -62,7 +62,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))
+        val zero = resourceQuantityZero(listOf(cap))!!
         assertTrue(zero.constants.zero eq FltX("0"))
     }
 
@@ -78,7 +78,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range2, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap1, cap2))
+        val zero = resourceQuantityZero(listOf(cap1, cap2))!!
         assertTrue(zero eq FltX("0"))
     }
 
@@ -89,7 +89,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))
+        val zero = resourceQuantityZero(listOf(cap))!!
         assertTrue(zero eq Flt64.zero)
     }
 

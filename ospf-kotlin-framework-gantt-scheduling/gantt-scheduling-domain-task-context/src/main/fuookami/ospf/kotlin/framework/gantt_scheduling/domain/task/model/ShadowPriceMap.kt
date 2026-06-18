@@ -3,6 +3,7 @@
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -97,7 +98,8 @@ inline fun <
         >.reducedCost(
     bunch: AbstractTaskBunch<T, E, A, V>
 ): V {
-    var ret = bunch.cost.solverCost()
+    var ret = bunch.cost.solverCostSafe().value
+        ?: throw IllegalStateException("cost sum is required to build solver cost for reducedCost calculation")
     if (bunch.executor.indexed) {
         ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
         for ((index, task) in bunch.tasks.withIndex()) {

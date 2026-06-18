@@ -5,7 +5,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -415,12 +416,11 @@ class ContinuousRadiusModelComponent(
      * - PWL path: register RealVar + bound constraints + PWL function symbol; function constraints are expanded by the core mechanism lifecycle
      *
      * @param model 线性元模型 / linear meta model
-     * @param ensureTry 错误处理函数 / error handling function
+     * @return 操作结果 / operation result
      */
     fun register(
-        model: LinearMetaModel<FltX>,
-        ensureTry: (Try, String) -> Unit
-    ) {
+        model: LinearMetaModel<FltX>
+    ): Try {
         // Register native variables / 注册 native 变量
         for (solverVar in nativeVariables) {
             val proto = solverVar.prototype
@@ -432,13 +432,14 @@ class ContinuousRadiusModelComponent(
                     FltX.zero
                 )
                 val rhs = LinearPolynomial(emptyList(), lb.value)
-                ensureTry(
-                    model.addConstraint(
-                        relation = LinearInequality(lhs, rhs, Comparison.GE),
-                        name = "${proto.variableName}_lb"
-                    ),
-                    "register continuous radius lower bound for ${proto.variableName}"
-                )
+                when (val result = model.addConstraint(
+                    relation = LinearInequality(lhs, rhs, Comparison.GE),
+                    name = "${proto.variableName}_lb"
+                )) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
             // Upper bound / 上界
             proto.radiusUpperBound?.let { ub ->
@@ -447,13 +448,14 @@ class ContinuousRadiusModelComponent(
                     FltX.zero
                 )
                 val rhs = LinearPolynomial(emptyList(), ub.value)
-                ensureTry(
-                    model.addConstraint(
-                        relation = LinearInequality(lhs, rhs, Comparison.LE),
-                        name = "${proto.variableName}_ub"
-                    ),
-                    "register continuous radius upper bound for ${proto.variableName}"
-                )
+                when (val result = model.addConstraint(
+                    relation = LinearInequality(lhs, rhs, Comparison.LE),
+                    name = "${proto.variableName}_ub"
+                )) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
             // Target equality for production-ready / 生产就绪变量的目标等式约束
             if (proto.isProductionReady) {
@@ -463,13 +465,14 @@ class ContinuousRadiusModelComponent(
                         FltX.zero
                     )
                     val rhs = LinearPolynomial(emptyList(), ir.value)
-                    ensureTry(
-                        model.addConstraint(
-                            relation = LinearInequality(lhs, rhs, Comparison.EQ),
-                            name = "${proto.variableName}_target"
-                        ),
-                        "register continuous radius target for ${proto.variableName}"
-                    )
+                    when (val result = model.addConstraint(
+                        relation = LinearInequality(lhs, rhs, Comparison.EQ),
+                        name = "${proto.variableName}_target"
+                    )) {
+                        is Ok -> {}
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
             }
         }
@@ -485,30 +488,32 @@ class ContinuousRadiusModelComponent(
             model.add(r)
 
             // Lower bound: r >= rMin / 半径下界
-            ensureTry(
-                model.addConstraint(
-                    relation = LinearInequality(
-                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
-                        LinearPolynomial(emptyList(), envelope.rMin),
-                        Comparison.GE
-                    ),
-                    name = "${variableName}_pwl_r_lb"
+            when (val result = model.addConstraint(
+                relation = LinearInequality(
+                    LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
+                    LinearPolynomial(emptyList(), envelope.rMin),
+                    Comparison.GE
                 ),
-                "register PWL r lower bound for $variableName"
-            )
+                name = "${variableName}_pwl_r_lb"
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
 
             // Upper bound: r <= rMax / 半径上界
-            ensureTry(
-                model.addConstraint(
-                    relation = LinearInequality(
-                        LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
-                        LinearPolynomial(emptyList(), envelope.rMax),
-                        Comparison.LE
-                    ),
-                    name = "${variableName}_pwl_r_ub"
+            when (val result = model.addConstraint(
+                relation = LinearInequality(
+                    LinearPolynomial(listOf(LinearMonomial(FltX.one, r)), FltX.zero),
+                    LinearPolynomial(emptyList(), envelope.rMax),
+                    Comparison.LE
                 ),
-                "register PWL r upper bound for $variableName"
-            )
+                name = "${variableName}_pwl_r_ub"
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
 
             // Register PWL function symbol via core intermediate symbol lifecycle.
             // The LinearFunctionSymbolAdapter wraps the MathFunctionSymbol as an
@@ -518,11 +523,13 @@ class ContinuousRadiusModelComponent(
             // LinearFunctionSymbolAdapter 将 MathFunctionSymbol 包装为 IntermediateSymbol，
             // 以便 core mechanism model 在模型 dump 阶段注册辅助 token 并展开函数约束。
             val pwlSymbol = LinearFunctionSymbolAdapter(pwlFunction, IntoValue.fromConverter(FltX))
-            ensureTry(
-                model.add(pwlSymbol),
-                "register PWL function symbol for $variableName"
-            )
+            when (val result = model.add(pwlSymbol)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
+        return ok
     }
 
     /**

@@ -777,26 +777,23 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         master: LpMaster<V>,
         iteration: Int64
     ): Csp1dMilpSolver.LpResult<V>? {
-        val lpResult = try {
-            ensureRet(
-                result = solver.solveLP(
-                    name = "csp1d-produce-lp-${iteration}",
-                    metaModel = master.model
-                ),
-                stage = "solve CSP1D produce LP"
-            )
-        } catch (_: Exception) {
-            return null
+        val lpResult = when (val result = solver.solveLP(
+            name = "csp1d-produce-lp-${iteration}",
+            metaModel = master.model
+        )) {
+            is Ok -> result.value
+            is Failed -> return null
+            is Fatal -> return null
         }
         val lifecycle = try {
             Csp1dShadowPriceLifecycle<V>(master.domainValueSample, master.context.cgPipelines)
         } catch (_: Exception) {
             return null
         }
-        val shadowPrices = try {
-            lifecycle.extractFromDualSolution(master.model, lpResult.dualSolution)
-        } catch (_: Exception) {
-            return null
+        val shadowPrices = when (val result = lifecycle.extractFromDualSolution(master.model, lpResult.dualSolution)) {
+            is Ok -> result.value
+            is Failed -> return null
+            is Fatal -> return null
         }
         return Csp1dMilpSolver.LpResult(
             shadowPrices = shadowPrices,
@@ -804,14 +801,6 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             lpOutput = lpResult,
             frameworkShadowPriceMap = lifecycle.frameworkShadowPriceMap
         )
-    }
-
-    private fun <T> ensureRet(result: Ret<T>, stage: String): T {
-        return when (result) {
-            is Ok -> result.value
-            is Failed -> throw IllegalStateException("$stage failed: ${result.error}")
-            is Fatal -> throw IllegalStateException("$stage fatal: ${result.errors}")
-        }
     }
 
     private fun resolveSolveConfig(

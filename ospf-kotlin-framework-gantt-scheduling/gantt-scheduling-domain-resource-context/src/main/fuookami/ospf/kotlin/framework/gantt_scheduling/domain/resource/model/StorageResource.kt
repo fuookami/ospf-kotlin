@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 import kotlinx.coroutines.*
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
@@ -37,6 +38,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val name: String,
     override val capacities: List<C>,
     override val initialQuantityValue: V = resourceQuantityZero(capacities)
+        ?: throw IllegalArgumentException("resource capacities must contain at least one finite quantity bound.")
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 计算指定时长内的固定成本 / Calculate fixed cost in the given duration
@@ -544,7 +546,8 @@ class TaskSchedulingStorageResourceUsage<
     override lateinit var cost: LinearIntermediateSymbols2<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
-        throw UnsupportedOperationException(
+        return Failed(
+            ErrorCode.Other,
             "TaskSchedulingStorageResourceUsage.register 暂未实现，请使用 IterativeTaskSchedulingStorageResourceUsage 或补充任务级库位资源建模。"
         )
     }

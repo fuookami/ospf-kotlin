@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -168,7 +169,8 @@ class SatisfiedAmountFunction<V>(
                     )
                 }
                 Comparison.LT, Comparison.GT, Comparison.NE -> {
-                    throw UnsupportedOperationException(
+                    return Failed(
+                        ErrorCode.OREngineModelingException,
                         "SatisfiedAmountFunction does not support ${ineq.comparison} constraints"
                     )
                 }

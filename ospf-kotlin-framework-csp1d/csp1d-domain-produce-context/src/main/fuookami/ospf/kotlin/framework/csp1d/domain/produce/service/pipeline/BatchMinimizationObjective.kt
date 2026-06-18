@@ -30,7 +30,7 @@ class BatchMinimizationObjective(
     override fun invoke(model: LinearMetaModel<Flt64>): Try {
         val objective = LinearPolynomial(
             monomials = (0 until produce.planCount).map { index ->
-                LinearMonomial(batchCoefficient, produce[index])
+                LinearMonomial(batchCoefficient, produce[index]!!)
             },
             constant = Flt64.zero
         )

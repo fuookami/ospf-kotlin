@@ -498,14 +498,8 @@ class ContinuousRadiusModelComponentTest {
             name = "test_pwl_lifecycle",
             converter = IntoValue.fromConverter(FltX)
         )
-        val errors = mutableListOf<String>()
-        val ensureTry: (fuookami.ospf.kotlin.utils.functional.Try, String) -> Unit = { result, msg ->
-            if (result !is fuookami.ospf.kotlin.utils.functional.Ok) {
-                errors.add(msg)
-            }
-        }
-        component.register(model, ensureTry)
-        assertTrue(errors.isEmpty(), "Registration should succeed without errors: $errors")
+        val result = component.register(model)
+        assertTrue(result is fuookami.ospf.kotlin.utils.functional.Ok, "Registration should succeed without errors: $result")
         return model
     }
 

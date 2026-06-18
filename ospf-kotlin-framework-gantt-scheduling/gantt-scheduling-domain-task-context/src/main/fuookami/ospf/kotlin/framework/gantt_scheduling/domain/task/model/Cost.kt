@@ -4,7 +4,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -103,14 +104,27 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
     }
 
     /**
-     * 读取 solver 成本值 / Read cost as a solver value
+     * 读取 solver 成本值（nullable） / Read cost as a solver value (nullable)
+     *
+     * @param default 成本缺失时使用的默认 solver 值 / Default solver value when cost is absent
+     * @return solver 成本值，缺失时返回 default / Solver cost value, or default when absent
+     */
+    fun solverCost(default: Flt64? = null): Flt64? = costSum?.value?.toFlt64() ?: default
+
+    /**
+     * 读取 solver 成本值（Safe） / Read cost as a solver value (Safe)
      *
      * @param default 成本缺失时使用的默认 solver 值 / Default solver value when cost is absent
      * @return solver 成本值 / Solver cost value
      */
-    fun solverCost(default: Flt64? = null) = costSum?.value?.toFlt64()
-        ?: default
-        ?: throw IllegalStateException("cost sum is required to build solver cost")
+    fun solverCostSafe(default: Flt64? = null): Ret<Flt64> {
+        val value = costSum?.value?.toFlt64() ?: default
+        return if (value != null) {
+            Ok(value)
+        } else {
+            Failed(ErrorCode.ApplicationError, "cost sum is required to build solver cost")
+        }
+    }
 
     fun asMutable(): MutableCost<V>? {
         return when (this) {

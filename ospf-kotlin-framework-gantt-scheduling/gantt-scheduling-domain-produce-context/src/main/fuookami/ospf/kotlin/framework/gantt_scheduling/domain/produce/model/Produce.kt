@@ -7,6 +7,7 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -338,7 +339,8 @@ class TaskSchedulingProduce<
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
-        throw UnsupportedOperationException(
+        return Failed(
+            ErrorCode.Other,
             "TaskSchedulingProduce.register 暂未实现，请使用 BunchSchedulingProduce 或补充任务级产出建模。"
         )
     }
