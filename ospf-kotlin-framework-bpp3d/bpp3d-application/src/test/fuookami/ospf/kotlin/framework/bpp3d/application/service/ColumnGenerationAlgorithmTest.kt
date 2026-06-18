@@ -34,6 +34,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import java.util.concurrent.atomic.AtomicInteger
 
+/**
+ * 解包 Ret 结果，测试中使用
+ */
+private fun <V> Ret<V>.unwrap(): V = when (this) {
+    is Ok -> this.value
+    is Failed -> throw AssertionError("Failed: ${this.error}")
+    is Fatal -> throw AssertionError("Fatal: ${this.errors}")
+}
+
 class ColumnGenerationAlgorithmTest {
     private object CargoAttr : fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 
@@ -170,7 +179,7 @@ class ColumnGenerationAlgorithmTest {
             }
         )
 
-        val result = algorithm.solve(items = emptyList<Item>())
+        val result = algorithm.solve(items = emptyList<Item>()).unwrap()
         assertEquals(0, result.iterationCount)
         assertEquals(0, result.columns.size)
         assertEquals(1, result.lpSolvedTimes)
@@ -243,7 +252,7 @@ class ColumnGenerationAlgorithmTest {
             }
         )
 
-        val result = algorithm.solve(items = emptyList<Item>())
+        val result = algorithm.solve(items = emptyList<Item>()).unwrap()
         assertEquals(1, finalSolveCounter.get())
         assertEquals(1, analyzeCounter.get())
         assertEquals(0, heartbeatCounter.get())
@@ -315,7 +324,7 @@ class ColumnGenerationAlgorithmTest {
                 iterationLimit = 4,
                 maxColumnsPerIteration = 16
             )
-        )
+        ).unwrap()
 
         assertEquals(1, result.iterationCount)
         assertEquals(2, result.lpSolvedTimes)
@@ -369,7 +378,7 @@ class ColumnGenerationAlgorithmTest {
         val result = algorithm.solve(
             items = emptyList(),
             config = ColumnGenerationConfig(maxColumnsPerIteration = 99)
-        )
+        ).unwrap()
         assertEquals(1, rmpSolverCounter.get())
         assertEquals(0, fallbackRmpCounter.get())
         assertEquals(1, requestBuilderCounter.get())
@@ -429,7 +438,7 @@ class ColumnGenerationAlgorithmTest {
         val result = algorithm.solve(
             items = listOf(item),
             config = ColumnGenerationConfig(iterationLimit = 1)
-        )
+        ).unwrap()
         val expectedVariable = continuousRadiusSolverPrototypesFromItems(listOf(item)).single().variableName
 
         assertEquals(listOf(expectedVariable), rmpVariables)
@@ -465,7 +474,7 @@ class ColumnGenerationAlgorithmTest {
             solutionAnalyzer = analyzer
         )
 
-        val result = algorithm.solve(items = emptyList())
+        val result = algorithm.solve(items = emptyList()).unwrap()
         val snapshot = analyzer.latest
         assertNotNull(snapshot)
         assertEquals(1, snapshot.bins.size)
@@ -638,7 +647,7 @@ class ColumnGenerationAlgorithmTest {
             initialColumns = { listOf(seedLayer) }
         )
 
-        val result = algorithm.solve(items = listOf(item))
+        val result = algorithm.solve(items = listOf(item)).unwrap()
         val selectedRadiusValue = assertNotNull(prototype.initialRadius).value.toDouble()
 
         // Production-ready variables are now registered into the solver model
@@ -1073,7 +1082,7 @@ class ColumnGenerationAlgorithmTest {
             initialColumns = { listOf(seedLayer) }
         )
 
-        val result = algorithm.solve(items = listOf(actualItem))
+        val result = algorithm.solve(items = listOf(actualItem)).unwrap()
         val request = capturedRequest
         val finalState = analyzedState
         assertNotNull(request)
