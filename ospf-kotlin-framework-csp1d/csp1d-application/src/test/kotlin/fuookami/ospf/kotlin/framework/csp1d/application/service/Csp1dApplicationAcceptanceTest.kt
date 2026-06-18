@@ -165,6 +165,15 @@ private class CapturingPricingGenerator : Csp1dPricingGenerator<Flt64> {
     }
 }
 
+
+/**
+ * 解包 Ret 结果，测试中使用
+ */
+private fun <V> Ret<V>.unwrap(): V = when (this) {
+    is Ok -> this.value
+    is Failed -> throw AssertionError("Failed: ${this.error}")
+    is Fatal -> throw AssertionError("Fatal: ${this.errors}")
+}
 class Csp1dApplicationAcceptanceTest {
     private val fakeSolver = Csp1dFakeSolver()
 
@@ -363,9 +372,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = listOf(machine)
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         val machineCapacityUsage = milpResult.produce.machineUsages.firstOrNull {
             it.machine.id == machine.id
         }?.used
@@ -418,9 +425,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = listOf(machine)
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         assertTrue(
             milpResult.produce.machineUsages.isEmpty(),
             "Machine capacity usage should be empty when no plan consumption is provided"
@@ -472,9 +477,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = listOf(machine)
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         assertTrue(
             milpResult.produce.machineUsages.isEmpty(),
             "Machine capacity usage should be empty when consumption unit mismatches capacity unit"
@@ -1161,7 +1164,7 @@ class Csp1dApplicationAcceptanceTest {
         )
         val solver = Csp1dInitialResultCapturingSolver()
 
-        val milpResult = Csp1dMilpSolver(solver).solve(input)
+        val milpResult = Csp1dMilpSolver(solver).solve(input).unwrap()
 
         assertNotNull(milpResult)
         assertTrue("x_0_0" !in solver.lastInitialResults)
@@ -2265,12 +2268,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             yieldConfig = yieldConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.yieldResult, "Yield result should not be null when yieldConfig is provided")
         assertTrue(milpResult.produce.cuttingPlans.isNotEmpty(), "Should have cutting plan usage")
     }
@@ -2307,9 +2308,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         assertEquals(null, milpResult.yieldResult, "Yield result should be null when yieldConfig is not provided")
     }
 
@@ -2376,9 +2375,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         assertEquals(null, milpResult.lengthResult, "Length result should be null when lengthConfig is not provided")
     }
 
@@ -2418,12 +2415,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.lengthResult, "Length result should not be null when lengthConfig is provided")
         assertEquals(product.id, milpResult.lengthResult!!.overLengths.first().productId)
         assertEquals(Flt64.one, milpResult.lengthResult!!.overLengths.first().overLength)
@@ -2465,12 +2460,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.lengthResult, "Length result should not be null when lengthConfig is provided")
         assertEquals(Flt64.one, milpResult.lengthResult!!.overLengths.first().overLength)
     }
@@ -2515,12 +2508,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         val lengthResult = milpResult.lengthResult
         assertNotNull(lengthResult, "Length result should not be null when assigned length is modeled")
         assertEquals(product.id, lengthResult.assignedLengths.first().productId)
@@ -2569,9 +2560,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input)
-
-        assertNotNull(milpResult, "MILP result should not be null")
+        val milpResult = Csp1dMilpSolver(fakeSolver).solve(input).unwrap()
         assertEquals(null, milpResult.wasteResult, "Waste result should be null when wasteConfig is not provided")
     }
 
@@ -2611,12 +2600,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(
             Flt64(0.7),
@@ -2662,12 +2649,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(
             Flt64(70.0),
@@ -2716,12 +2701,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(null, milpResult.wasteResult!!.totalRestMaterial)
         assertEquals(
@@ -2766,12 +2749,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertTrue(milpResult.wasteResult!!.materialCosts.isNotEmpty(), "Material costs should not be empty when materialCostPenalty is provided")
         assertEquals("m-cost", milpResult.wasteResult!!.materialCosts.first().materialId)
@@ -2814,13 +2795,11 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(
             Flt64(0.8),
@@ -2869,13 +2848,11 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(
             Flt64(1.2),
@@ -2923,12 +2900,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             yieldConfig = yieldConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.yieldResult, "Yield result should not be null when yieldConfig is provided")
         assertEquals(Flt64.one, milpResult.yieldResult!!.overProductions.first().amount)
     }
@@ -2977,13 +2952,11 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.yieldResult, "Yield result should not be null when yieldConfig is provided")
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertEquals(Flt64(0.7), milpResult.wasteResult!!.totalTrimWidth)
@@ -3026,12 +2999,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         assertTrue(milpResult.produce.cuttingPlans.isNotEmpty(), "Should have cutting plan usage")
     }
 
@@ -3076,12 +3047,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         val lengthResult = milpResult.lengthResult
         assertNotNull(lengthResult, "Length result should not be null when full lengthConfig is provided")
         assertEquals(product.id, lengthResult.assignedLengths.first().productId)
@@ -3125,12 +3094,10 @@ class Csp1dApplicationAcceptanceTest {
             machines = emptyList()
         )
 
-        val milpResult = Csp1dMilpSolver(fakeSolver).solve(
+        val milpResult = Csp1dMilpSolver(fakeSolver).unwrap().solve(
             input = input,
             lengthConfig = lengthConfig
         )
-
-        assertNotNull(milpResult, "MILP result should not be null")
         val lengthResult = milpResult.lengthResult
         assertNotNull(lengthResult, "Length result should not be null when dynamicProductIds is configured")
         // assignedLength 应被注册并回填 / assignedLength should be registered and extracted
