@@ -49,22 +49,6 @@ class Csp1dMilpSolver(
         extensions: List<Csp1dModelingExtension<V>> = emptyList(),
         objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
         isFinalMilp: Boolean = false
-    ): MilpResult<V>? {
-        return when (val result = solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)) {
-            is Ok -> result.value
-            is Failed -> throw IllegalStateException("MILP solve failed: ${result.error}")
-            is Fatal -> throw IllegalStateException("MILP solve fatal: ${result.errors}")
-        }
-    }
-
-    suspend fun <V : RealNumber<V>> solveRet(
-        input: ProduceInput<V>,
-        yieldConfig: YieldModelingConfig<V>? = null,
-        wasteConfig: WasteMinimizationConfig<V>? = null,
-        lengthConfig: LengthAssignmentModelingConfig<V>? = null,
-        extensions: List<Csp1dModelingExtension<V>> = emptyList(),
-        objectivePolicies: List<Csp1dObjectivePolicy<V>> = emptyList(),
-        isFinalMilp: Boolean = false
     ): Ret<MilpResult<V>?> {
         return solveInternal(input, yieldConfig, wasteConfig, lengthConfig, extensions, objectivePolicies, isFinalMilp)
     }

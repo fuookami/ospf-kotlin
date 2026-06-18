@@ -822,27 +822,32 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         cuttingPlans: List<CuttingPlan<V>>,
         solveConfig: Csp1dSolveConfig<V>
     ): FinalMilpSolveResult<V> {
-        val result = try {
-            Csp1dMilpSolver(solver).solve(
-                input = ProduceInput(
-                    cuttingPlans = cuttingPlans,
-                    demands = problem.demands,
-                    materials = problem.materials,
-                    machines = problem.machines,
-                    warmStartPlanUsages = warmStartPlanUsages
-                ),
-                yieldConfig = solveConfig.yieldConfig,
-                wasteConfig = solveConfig.wasteConfig,
-                lengthConfig = solveConfig.lengthConfig,
-                extensions = solveConfig.allExtensions,
-                objectivePolicies = solveConfig.extensionSet.objectivePolicies,
-                isFinalMilp = true
-            )
-        } catch (error: Exception) {
-            return FinalMilpSolveResult(
+        val solveResult = Csp1dMilpSolver(solver).solve(
+            input = ProduceInput(
+                cuttingPlans = cuttingPlans,
+                demands = problem.demands,
+                materials = problem.materials,
+                machines = problem.machines,
+                warmStartPlanUsages = warmStartPlanUsages
+            ),
+            yieldConfig = solveConfig.yieldConfig,
+            wasteConfig = solveConfig.wasteConfig,
+            lengthConfig = solveConfig.lengthConfig,
+            extensions = solveConfig.allExtensions,
+            objectivePolicies = solveConfig.extensionSet.objectivePolicies,
+            isFinalMilp = true
+        )
+        val result = when (solveResult) {
+            is Ok -> solveResult.value
+            is Failed -> return FinalMilpSolveResult(
                 status = Csp1dFinalMilpStatus.Failed,
                 milpResult = null,
-                failureMessage = error.message ?: "Final MILP solve failed"
+                failureMessage = solveResult.error.message
+            )
+            is Fatal -> return FinalMilpSolveResult(
+                status = Csp1dFinalMilpStatus.Failed,
+                milpResult = null,
+                failureMessage = solveResult.errors.joinToString { it.message }
             )
         }
 

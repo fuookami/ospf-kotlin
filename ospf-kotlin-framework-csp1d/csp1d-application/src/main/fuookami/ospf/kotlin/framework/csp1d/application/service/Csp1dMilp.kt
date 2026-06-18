@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -192,27 +193,32 @@ class Csp1dMilp<V : RealNumber<V>>(
         solveConfig: Csp1dSolveConfig<V>,
         isFinalMilp: Boolean = false
     ): MilpSolveResult<V> {
-        val result = try {
-            Csp1dMilpSolver(solver).solve(
-                input = ProduceInput(
-                    cuttingPlans = cuttingPlans,
-                    demands = problem.demands,
-                    materials = problem.materials,
-                    machines = problem.machines,
-                    warmStartPlanUsages = warmStartPlanUsages
-                ),
-                yieldConfig = solveConfig.yieldConfig,
-                wasteConfig = solveConfig.wasteConfig,
-                lengthConfig = solveConfig.lengthConfig,
-                extensions = solveConfig.allExtensions,
-                objectivePolicies = solveConfig.extensionSet.objectivePolicies,
-                isFinalMilp = isFinalMilp
-            )
-        } catch (error: Exception) {
-            return MilpSolveResult(
+        val solveResult = Csp1dMilpSolver(solver).solve(
+            input = ProduceInput(
+                cuttingPlans = cuttingPlans,
+                demands = problem.demands,
+                materials = problem.materials,
+                machines = problem.machines,
+                warmStartPlanUsages = warmStartPlanUsages
+            ),
+            yieldConfig = solveConfig.yieldConfig,
+            wasteConfig = solveConfig.wasteConfig,
+            lengthConfig = solveConfig.lengthConfig,
+            extensions = solveConfig.allExtensions,
+            objectivePolicies = solveConfig.extensionSet.objectivePolicies,
+            isFinalMilp = isFinalMilp
+        )
+        val result = when (solveResult) {
+            is Ok -> solveResult.value
+            is Failed -> return MilpSolveResult(
                 status = Csp1dFinalMilpStatus.Failed,
                 result = null,
-                failureMessage = error.message ?: "MILP solve failed"
+                failureMessage = solveResult.error.message
+            )
+            is Fatal -> return MilpSolveResult(
+                status = Csp1dFinalMilpStatus.Failed,
+                result = null,
+                failureMessage = solveResult.errors.joinToString { it.message }
             )
         }
 
