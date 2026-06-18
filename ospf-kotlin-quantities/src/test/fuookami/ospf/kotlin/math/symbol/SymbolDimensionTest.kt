@@ -1,7 +1,8 @@
 package fuookami.ospf.kotlin.math.symbol
 
-import kotlin.test.assertEquals
 import org.junit.jupiter.api.*
+import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -81,13 +82,17 @@ class SymbolDimensionTest {
 
         // x(m) * y(s) 应该得到 L·T
         val result = registry.inferDimension(x, y, Operation.Multiply)
+        assertTrue(result is Ok, "inferDimension should succeed for multiply")
+        val dimension = (result as Ok).value
         // Verify it has both L and T
-        assert(result.quantities.any { it.dimension.dimensionName == "length" })
-        assert(result.quantities.any { it.dimension.dimensionName == "time" })
+        assert(dimension.quantities.any { it.dimension.dimensionName == "length" })
+        assert(dimension.quantities.any { it.dimension.dimensionName == "time" })
 
         // x(m) / y(s) 应该得到 L/T (dimensionally velocity)
         val result2 = registry.inferDimension(x, y, Operation.Divide)
-        val symbol = result2.dimensionSymbol()
+        assertTrue(result2 is Ok, "inferDimension should succeed for divide")
+        val dimension2 = (result2 as Ok).value
+        val symbol = dimension2.dimensionSymbol()
         assert(symbol.contains("L"))
         assert(symbol.contains("T"))
     }

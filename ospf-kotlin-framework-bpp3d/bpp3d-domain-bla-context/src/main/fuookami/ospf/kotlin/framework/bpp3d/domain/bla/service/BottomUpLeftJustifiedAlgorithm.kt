@@ -8,6 +8,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Meter
@@ -162,7 +163,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                         projection = projections[0],
                         position = feasiblePoint
                     )
-                    if (feasible(placement, placements)) {
+                    if (feasible(placement, placements).value!!) {
                         placement
                     } else {
                         null
@@ -217,7 +218,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                                 projection = projections[i],
                                 position = feasiblePoint
                             )
-                            if (feasible(placement, placements)) {
+                            if (feasible(placement, placements).value!!) {
                                 placement
                             } else {
                                 null
@@ -396,9 +397,9 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private suspend fun feasible(
         placement: QuantityPlacement2<*, FltX, P>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>
-    ): Boolean {
+    ): Ret<Boolean> {
         if ((placement.maxX gr space.length) || (placement.maxY gr space.width)) {
-            return false
+            return ok(false)
         }
 
         if (plane != Bottom) {
@@ -413,7 +414,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                             else -> true
                         }
                     ) {
-                        return false
+                        return ok(false)
                     }
                 }
 
@@ -427,15 +428,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                             else -> true
                         }
                     ) {
-                        return false
+                        return ok(false)
                     }
                 }
 
                 else -> {
-                    throw IllegalArgumentException("Invalid unit type: ${unit.javaClass}")
+                    return Failed(ErrorCode.IllegalArgument, "Invalid unit type: ${unit.javaClass}")
                 }
             }
         }
-        return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
+        return ok(fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) })
     }
 }

@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.math.symbol
 import java.util.concurrent.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -154,7 +155,9 @@ class SymbolQuantityIntegrationTest {
         registry.validateAddSubDimension(listOf(dx, dy))
 
         // 推导乘法结果量纲
-        val velocityDim = registry.inferDimension(dx, t, Operation.Divide)
+        val velocityDimResult = registry.inferDimension(dx, t, Operation.Divide)
+        assertTrue(velocityDimResult is Ok, "inferDimension should succeed")
+        val velocityDim = (velocityDimResult as Ok).value
         assert(velocityDim.dimensionSymbol().contains("L"))
         assert(velocityDim.dimensionSymbol().contains("T"))
 

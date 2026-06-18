@@ -52,7 +52,7 @@ return try {
 
 ---
 
-## 已完成的迁移（27 个文件）
+## 已完成的迁移（39 个文件）
 
 ### 第一阶段：应用层
 | 文件 | 修改内容 | 状态 |
@@ -102,6 +102,22 @@ return try {
 | Compilation.kt (bunch) | solverCost() 添加 !! | ✅ |
 | TaskBunch.kt | solverCost() 添加 !! | ✅ |
 
+### 第六阶段：验证函数改为返回 Try（20 个 throw，20 个调用点）
+| 文件 | 修改内容 | 状态 |
+|------|---------|------|
+| CylinderShapeContract.kt | 8 个 require 验证函数返回 Try（12 个 throw → return Failed） | ✅ |
+| PackingGeometryGuard.kt | requireHorizontalCylinderSupport + requirePackedBinShapeGeometry 返回 Try（3 个 throw） | ✅ |
+| Packer.kt | requireSingleCylinderAxisPerLayer 返回 Try（1 个 throw），invoke 添加 !! | ✅ |
+| SymbolDimensionRegistry.kt | validateAddSubDimension 返回 Try，inferDimension 返回 Ret（6 个 throw） | ✅ |
+| LayerPlacementAdapter.kt | requireVerifiedGeneratedCylinderCandidate 添加 !! | ✅ |
+| LayerGenerationContext.kt | 4 个验证函数调用添加 !! | ✅ |
+| Package.kt | requireConcreteCylinderRadiusProductionMetadata 添加 !! | ✅ |
+| PackageAttribute.kt | requireUprightVerticalCylinderSupport 添加 !! | ✅ |
+| ItemMerger.kt | 7 个 requireNoCylinderItemsForCuboidOnlyPath 调用添加 !! | ✅ |
+| SimpleBlockGenerator.kt | requireSupportedCylinderItemForSimpleBlock 添加 !! | ✅ |
+| CylinderUnsupportedGuard.kt | requireNoCylinderItemsForCuboidOnlyPath 添加 !! | ✅ |
+| PackingRendererAdapter.kt | requirePackedBinShapeGeometry 添加 !! | ✅ |
+
 ---
 
 ## 总体统计
@@ -111,27 +127,27 @@ return try {
 | ospf-kotlin-utils | ~42 | 0 | ~42 |
 | ospf-kotlin-core | ~12 | 2 | ~10 |
 | ospf-kotlin-multiarray | ~39 | 0 | ~39 |
-| ospf-kotlin-quantities | ~22 | 0 | ~22 |
+| ospf-kotlin-quantities | ~22 | 6 | ~16 |
 | ospf-kotlin-math | ~120+ | 0 | ~120+ |
 | ospf-kotlin-framework | ~8 | 1 | ~7 |
 | ospf-kotlin-framework-gantt-scheduling | ~25 | 8 | ~17 |
 | ospf-kotlin-framework-csp1d | ~15 | 6 | ~9 |
 | ospf-kotlin-framework-bpp2d | 4 | 0 | 4 |
-| ospf-kotlin-framework-bpp3d | ~50+ | 4 | ~46+ |
+| ospf-kotlin-framework-bpp3d | ~50+ | 20 | ~30+ |
 | ospf-kotlin-framework-plugin | ~10 | 0 | ~10 |
 | 测试代码 | ~146 | 0 | ~146（保留） |
-| **总计** | **~395** | **~21** | **~374** |
+| **总计** | **~395** | **~43** | **~352** |
 
 ---
 
 ## 下一步执行计划
 
-### 阶段 1：验证函数改为返回 Try（~30 个）
+### 阶段 1：验证函数改为返回 Try（~30 个）✅ 已完成
 按原则 1 处理返回 Unit 的验证函数：
-- CylinderShapeContract.kt 中的验证函数
-- PackingGeometryGuard.kt 中的验证函数
-- Packer.kt 中的验证函数
-- SymbolDimensionRegistry.kt 中的验证函数
+- CylinderShapeContract.kt 中的验证函数 → 8 个函数返回 Try（12 个 throw）
+- PackingGeometryGuard.kt 中的验证函数 → 2 个函数返回 Try（3 个 throw）
+- Packer.kt 中的验证函数 → 1 个函数返回 Try（1 个 throw）
+- SymbolDimensionRegistry.kt → validateAddSubDimension 返回 Try，inferDimension 返回 Ret（6 个 throw）
 
 ### 阶段 2：私有辅助函数改为返回 Result（~50 个）
 逐个处理各模块中的私有辅助函数。

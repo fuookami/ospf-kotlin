@@ -8,6 +8,8 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 sealed interface Bpp3dDemandMode {
     object Item : Bpp3dDemandMode
@@ -65,11 +67,11 @@ sealed interface Bpp3dDemandValue {
     data class Weight(val value: Quantity<FltX>) : Bpp3dDemandValue
 }
 
-private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Bpp3dDemandValue {
+private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Ret<Bpp3dDemandValue> {
     return when {
-        lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(lhs.value + rhs.value)
-        lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(lhs.value + rhs.value)
-        else -> throw IllegalArgumentException("Incompatible demand values: $lhs vs $rhs")
+        lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> ok(Bpp3dDemandValue.Amount(lhs.value + rhs.value))
+        lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> ok(Bpp3dDemandValue.Weight(lhs.value + rhs.value))
+        else -> Failed(ErrorCode.IllegalArgument, "Incompatible demand values: $lhs vs $rhs")
     }
 }
 
@@ -84,7 +86,7 @@ private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
     key: Bpp3dDemandKey,
     value: Bpp3dDemandValue
 ) {
-    this[key] = this[key]?.let { mergeDemandValue(it, value) } ?: value
+    this[key] = this[key]?.let { mergeDemandValue(it, value).value!! } ?: value
 }
 
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(

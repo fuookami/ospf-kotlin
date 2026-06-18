@@ -8,6 +8,8 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 圆柱能力路径状态。
@@ -157,13 +159,14 @@ fun requireVerifiedGeneratedCylinderCandidate(
     shape: PackingShape3<FltX>,
     verifiedAxisAwareCandidate: Boolean,
     path: CylinderCapabilityPath
-) {
+): Try {
     require(path.status == CylinderCapabilityStatus.VerifiedGeneratedPlacement) {
         "Cylinder capability path ${path.name} is not a verified generated placement path."
     }
     if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y && !verifiedAxisAwareCandidate) {
-        throw IllegalArgumentException(unsupportedGeneratedHorizontalCylinderSourceMessage(source = path.source))
+        return Failed(ErrorCode.IllegalArgument, unsupportedGeneratedHorizontalCylinderSourceMessage(source = path.source))
     }
+    return ok
 }
 
 /**
@@ -745,7 +748,7 @@ fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
 fun requireConcreteCylinderRadiusProductionMetadata(
     spec: PackageShapeSpec,
     source: String
-) {
+): Try {
     if (spec is PackageShapeSpec.VerticalCylinder && hasContinuousCylinderRadiusOptimization(spec)) {
         val selection = spec.continuousRadiusSelectionResult()
         val gapReport = continuousCylinderRadiusOptimizationGapReport(
@@ -754,9 +757,10 @@ fun requireConcreteCylinderRadiusProductionMetadata(
             hasConcreteSelectedRadius = selection?.selectedRadius?.value?.toDouble()?.let { it > 0.0 } == true
         )
         if (gapReport != null) {
-            throw IllegalArgumentException(gapReport.message())
+            return Failed(ErrorCode.IllegalArgument, gapReport.message())
         }
     }
+    return ok
 }
 
 /**
@@ -769,10 +773,11 @@ fun requireConcreteCylinderRadiusProductionMetadata(
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
     source: String
-) {
+): Try {
     if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
-        throw IllegalArgumentException(unsupportedCylinderAxisMessage(source = source, axis = shape.axis))
+        return Failed(ErrorCode.IllegalArgument, unsupportedCylinderAxisMessage(source = source, axis = shape.axis))
     }
+    return ok
 }
 
 /**
@@ -785,14 +790,15 @@ fun requireVerticalCylinderAxis(
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
-) {
+): Try {
     require(path.status == CylinderCapabilityStatus.VerticalCandidateOnly) {
         "Cylinder capability path ${path.name} is not a vertical candidate path."
     }
     requireVerticalCylinderAxis(
         shape = shape,
         source = path.source
-    )
+    )!!
+    return ok
 }
 
 /**
@@ -805,14 +811,15 @@ fun requireVerticalCylinderAxis(
 fun requireAxisAwareCylinderCandidate(
     shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
-) {
+): Try {
     require(path.status == CylinderCapabilityStatus.AxisAwareCandidate) {
         "Cylinder capability path ${path.name} is not an axis-aware candidate path."
     }
     if (shape is CylinderPackingShape3) {
         Axis3.entries.firstOrNull { axis -> axis == shape.axis }
-            ?: throw IllegalArgumentException("Unsupported cylinder axis in ${path.source}: got ${shape.axis}.")
+            ?: return Failed(ErrorCode.IllegalArgument, "Unsupported cylinder axis in ${path.source}: got ${shape.axis}.")
     }
+    return ok
 }
 
 /**
@@ -827,10 +834,11 @@ fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
     orientation: Orientation,
     source: String
-) {
+): Try {
     if (shape is CylinderPackingShape3 && (shape.axis != Axis3.Y || orientation != Orientation.Upright)) {
-        throw IllegalArgumentException(unsupportedCylinderStackingSupportMessage(source))
+        return Failed(ErrorCode.IllegalArgument, unsupportedCylinderStackingSupportMessage(source))
     }
+    return ok
 }
 
 /**
@@ -845,7 +853,7 @@ fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
     orientation: Orientation,
     path: CylinderCapabilityPath
-) {
+): Try {
     require(path.status == CylinderCapabilityStatus.UprightVerticalSupportOnly) {
         "Cylinder capability path ${path.name} is not an upright vertical support path."
     }
@@ -853,7 +861,8 @@ fun requireUprightVerticalCylinderSupport(
         shape = shape,
         orientation = orientation,
         source = path.source
-    )
+    )!!
+    return ok
 }
 
 /**
@@ -863,19 +872,20 @@ fun requireUprightVerticalCylinderSupport(
  * @param item 物品 / item
  * @param source 调用来源 / call source
  */
-fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String) {
+fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try {
     val shape = item.packingShape
     if (shape !is CylinderPackingShape3) {
-        return
+        return ok
     }
-    requireVerticalCylinderAxis(shape = shape, source = source)
+    requireVerticalCylinderAxis(shape = shape, source = source)!!
     val unsupportedOrientations = item.enabledOrientations.filter { it.category != OrientationCategory.Upright }
     if (unsupportedOrientations.isNotEmpty()) {
-        throw IllegalArgumentException(unsupportedCylinderOrientationMessage(source))
+        return Failed(ErrorCode.IllegalArgument, unsupportedCylinderOrientationMessage(source))
     }
     if (item.enabledSideOnTop || item.enabledLieOnTop) {
-        throw IllegalArgumentException(unsupportedCylinderTopLayerPolicyMessage(source))
+        return Failed(ErrorCode.IllegalArgument, unsupportedCylinderTopLayerPolicyMessage(source))
     }
+    return ok
 }
 
 /**
@@ -885,14 +895,15 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String) {
  * @param item 物品 / item
  * @param path 能力路径 / capability path
  */
-fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabilityPath) {
+fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabilityPath): Try {
     require(path == CylinderCapabilityPath.SimpleBlockCandidate) {
         "Cylinder capability path ${path.name} is not the simple block candidate path."
     }
     requireSupportedCylinderItemForSimpleBlock(
         item = item,
         source = path.source
-    )
+    )!!
+    return ok
 }
 
 /**
@@ -907,15 +918,17 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,
     source: String,
     pathPredicate: String
-) {
+): Try {
     if (hasCylinderItem(items)) {
-        throw IllegalArgumentException(
+        return Failed(
+            ErrorCode.IllegalArgument,
             unsupportedCylinderCuboidOnlyPathMessage(
                 source = source,
                 pathPredicate = pathPredicate
             )
         )
     }
+    return ok
 }
 
 /**
@@ -928,7 +941,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
 fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,
     path: CylinderCapabilityPath
-) {
+): Try {
     require(path.status == CylinderCapabilityStatus.CuboidOnly && path.pathPredicate != null) {
         "Cylinder capability path ${path.name} is not a cuboid-only path."
     }
@@ -936,7 +949,8 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
         items = items,
         source = path.source,
         pathPredicate = path.pathPredicate
-    )
+    )!!
+    return ok
 }
 
 /**

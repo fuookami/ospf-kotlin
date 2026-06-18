@@ -20,7 +20,7 @@ private fun ItemView.supportPackingShape(): PackingShape3<FltX> {
             shape = itemShape,
             orientation = orientation,
             path = CylinderCapabilityPath.PackageAttributeSupport
-        )
+        )!!
         return itemShape
     }
     return asPackingShape3()

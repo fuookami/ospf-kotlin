@@ -355,7 +355,7 @@ private fun <V> mapItemsToLayers(
         requireVerticalCylinderAxis(
             shape = item.packingShape,
             path = CylinderCapabilityPath.DefaultLayerCandidate
-        )
+        )!!
     }
     return rankByShadowScore(
         request = request,
@@ -475,7 +475,7 @@ private suspend fun <V> mapItemsToPileLayers(
             shape = item.packingShape,
             orientation = orientation,
             path = CylinderCapabilityPath.PileSupportCandidate
-        )
+        )!!
         val itemView = item.view(orientation)
         val maxByBinHeight = (bin.height.value / itemView.height.value).floor().toUInt64()
         if (maxByBinHeight <= UInt64.one) {
@@ -653,7 +653,7 @@ private fun requireConcreteCirclePackingRadiusMetadata(item: Item) {
         requireConcreteCylinderRadiusProductionMetadata(
             spec = spec,
             source = CylinderCapabilityPath.CirclePackingCandidate.source
-        )
+        )!!
     }
 }
 
@@ -1807,7 +1807,7 @@ class CirclePackingLayerGenerator<V>(
                 requireAxisAwareCylinderCandidate(
                     shape = item.packingShape,
                     path = CylinderCapabilityPath.CirclePackingCandidate
-                )
+                )!!
             }
             val packed = if (it.bin != null) {
                 mapItemsToCirclePackingLayers(

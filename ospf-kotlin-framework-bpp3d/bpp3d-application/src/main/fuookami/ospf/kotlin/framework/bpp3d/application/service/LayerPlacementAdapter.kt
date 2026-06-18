@@ -89,6 +89,6 @@ internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer) {
             shape = shape,
             verifiedAxisAwareCandidate = layer.from == CirclePackingLayerGenerator::class,
             path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-        )
+        )!!
     }
 }

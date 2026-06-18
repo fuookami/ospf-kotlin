@@ -24,8 +24,9 @@
 package fuookami.ospf.kotlin.math.symbol
 
 import java.util.concurrent.ConcurrentHashMap
-import fuookami.ospf.kotlin.quantities.quantity.DimensionMismatchException
 import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 运算类型
@@ -106,8 +107,8 @@ class SymbolDimensionRegistry {
      * 校验加减运算的量纲一致性
      * Validate dimension consistency for add/sub operations
      *
-     * 确保所有符号具有相同的量纲，否则抛出异常。
-     * Ensures all symbols have the same dimension, otherwise throws exception.
+     * 确保所有符号具有相同的量纲，否则返回 Failed。
+     * Ensures all symbols have the same dimension, otherwise returns Failed.
      *
      * 示例 / Example:
      * ```kotlin
@@ -119,31 +120,30 @@ class SymbolDimensionRegistry {
      *
      * val z = DimensionedSymbol("z", null, DerivedQuantity.Time, Second)
      * registry.register(z)
-     * registry.validateAddSubDimension(listOf(x, z))  // throws DimensionMismatchException
+     * registry.validateAddSubDimension(listOf(x, z))  // returns Failed
      * ```
      *
      * @param symbols 待校验的符号列表 / Symbols to validate
-     * @throws IllegalArgumentException 如果符号未注册 / If symbol is not registered
-     * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+     * @return Try 成功返回 ok，量纲不匹配或未注册时返回 Failed / ok on success, Failed on dimension mismatch or unregistered symbol
      */
-    fun validateAddSubDimension(symbols: List<Symbol>) {
-        if (symbols.isEmpty()) return
+    fun validateAddSubDimension(symbols: List<Symbol>): Try {
+        if (symbols.isEmpty()) return ok
 
         val firstDimension = symbolDimensions[symbols.first()]?.quantity
-            ?: throw IllegalArgumentException("Symbol ${symbols.first().name} not registered")
+            ?: return Failed(ErrorCode.IllegalArgument, "Symbol ${symbols.first().name} not registered")
 
         for (symbol in symbols.drop(1)) {
             val dimension = symbolDimensions[symbol]?.quantity
-                ?: throw IllegalArgumentException("Symbol ${symbol.name} not registered")
+                ?: return Failed(ErrorCode.IllegalArgument, "Symbol ${symbol.name} not registered")
 
             if (dimension != firstDimension) {
-                throw DimensionMismatchException(
-                    expected = firstDimension.dimensionSymbol(),
-                    actual = dimension.dimensionSymbol(),
-                    operation = "addition/subtraction"
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Dimension mismatch for addition/subtraction: expected ${firstDimension.dimensionSymbol()}, got ${dimension.dimensionSymbol()}"
                 )
             }
         }
+        return ok
     }
 
     /**
@@ -170,32 +170,31 @@ class SymbolDimensionRegistry {
      * @param symbol2 第二个符号 / Second symbol
      * @param operation 运算类型 / Operation type
      * @return 结果量纲 / Result dimension
-     * @throws IllegalArgumentException 如果符号未注册 / If symbol is not registered
-     * @throws DimensionMismatchException 如果加减运算量纲不匹配 / If dimensions don't match for add/subtract
+     * @return Ret<DerivedQuantity> 成功返回 ok(dimension)，量纲不匹配或未注册时返回 Failed / ok(dimension) on success, Failed on mismatch or unregistered
      */
     fun inferDimension(
         symbol1: Symbol,
         symbol2: Symbol,
         operation: Operation
-    ): DerivedQuantity {
+    ): Ret<DerivedQuantity> {
         val dim1 = symbolDimensions[symbol1]?.quantity
-            ?: throw IllegalArgumentException("Symbol ${symbol1.name} not registered")
+            ?: return Failed(ErrorCode.IllegalArgument, "Symbol ${symbol1.name} not registered")
         val dim2 = symbolDimensions[symbol2]?.quantity
-            ?: throw IllegalArgumentException("Symbol ${symbol2.name} not registered")
+            ?: return Failed(ErrorCode.IllegalArgument, "Symbol ${symbol2.name} not registered")
 
         return when (operation) {
             Operation.Add, Operation.Subtract -> {
                 if (dim1 != dim2) {
-                    throw DimensionMismatchException(
-                        expected = dim1.dimensionSymbol(),
-                        actual = dim2.dimensionSymbol(),
-                        operation = operation.name.lowercase()
+                    Failed(
+                        ErrorCode.IllegalArgument,
+                        "Dimension mismatch for ${operation.name.lowercase()}: expected ${dim1.dimensionSymbol()}, got ${dim2.dimensionSymbol()}"
                     )
+                } else {
+                    ok(dim1)
                 }
-                dim1
             }
-            Operation.Multiply -> dim1 * dim2
-            Operation.Divide -> dim1 / dim2
+            Operation.Multiply -> ok(dim1 * dim2)
+            Operation.Divide -> ok(dim1 / dim2)
         }
     }
 

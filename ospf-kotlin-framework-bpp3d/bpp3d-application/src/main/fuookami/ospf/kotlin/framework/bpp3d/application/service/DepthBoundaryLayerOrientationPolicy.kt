@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -49,9 +51,9 @@ data class DepthBoundaryLayerOrientationPolicy(
         )
     }
 
-    internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>) {
+    internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>): Try {
         if (!enabled) {
-            return
+            return ok
         }
         for ((binIndex, bin) in bins.withIndex()) {
             val orderedLayers = bin.units.sortedBy { it.z.value.toDouble() }
@@ -62,20 +64,21 @@ data class DepthBoundaryLayerOrientationPolicy(
                 binIndex = binIndex,
                 side = DepthBoundaryLayerSide.First,
                 placement = orderedLayers.first()
-            )
+            ).value!!
             ensureBoundaryLayerSatisfied(
                 binIndex = binIndex,
                 side = DepthBoundaryLayerSide.Last,
                 placement = orderedLayers.last()
-            )
+            ).value!!
         }
+        return ok
     }
 
     private fun ensureBoundaryLayerSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
         placement: QuantityPlacement3<BinLayer, FltX>
-    ) {
+    ): Try {
         val allowedCylinderAxes = when (side) {
             DepthBoundaryLayerSide.First -> firstLayerAllowedCylinderAxes
             DepthBoundaryLayerSide.Last -> lastLayerAllowedCylinderAxes
@@ -85,7 +88,7 @@ data class DepthBoundaryLayerOrientationPolicy(
             DepthBoundaryLayerSide.Last -> lastLayerAllowedCuboidOrientations
         }
         if (allowedCylinderAxes == null && allowedCuboidOrientations == null) {
-            return
+            return ok
         }
         for (unitPlacement in placement.unit.units) {
             ensureBoundaryUnitSatisfied(
@@ -95,8 +98,9 @@ data class DepthBoundaryLayerOrientationPolicy(
                 unitPlacement = unitPlacement,
                 allowedCylinderAxes = allowedCylinderAxes,
                 allowedCuboidOrientations = allowedCuboidOrientations
-            )
+            ).value!!
         }
+        return ok
     }
 
     private fun ensureBoundaryUnitSatisfied(
@@ -106,12 +110,13 @@ data class DepthBoundaryLayerOrientationPolicy(
         unitPlacement: QuantityPlacement3<*, FltX>,
         allowedCylinderAxes: Set<Axis3>?,
         allowedCuboidOrientations: Set<Orientation>?
-    ) {
+    ): Try {
         val shape = unitPlacement.resolvedPackingShape()
         val axis = shape.axis
         if (axis != null) {
             if (allowedCylinderAxes != null && !allowedCylinderAxes.contains(axis)) {
-                throw IllegalArgumentException(
+                return Failed(
+                    ErrorCode.IllegalArgument,
                     "Depth boundary layer orientation policy violation: " +
                             "bin=$binIndex, boundary=${side.label}, layer_z=${layerPlacement.z}, " +
                             "item=${unitPlacement.unit.describeBoundaryUnit()}, cylinder_axis=$axis, " +
@@ -119,13 +124,15 @@ data class DepthBoundaryLayerOrientationPolicy(
                 )
             }
         } else if (allowedCuboidOrientations != null && !allowedCuboidOrientations.contains(unitPlacement.orientation)) {
-            throw IllegalArgumentException(
+            return Failed(
+                ErrorCode.IllegalArgument,
                 "Depth boundary layer orientation policy violation: " +
                         "bin=$binIndex, boundary=${side.label}, layer_z=${layerPlacement.z}, " +
                         "item=${unitPlacement.unit.describeBoundaryUnit()}, cuboid_orientation=${unitPlacement.orientation}, " +
                         "allowed_cuboid_orientations=${allowedCuboidOrientations.joinToString()}."
             )
         }
+        return ok
     }
 
     private fun Any.describeBoundaryUnit(): String {

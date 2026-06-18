@@ -19,5 +19,5 @@ internal fun requireNoCylinderItemsForCuboidSearch(
             .filter { (_, amount) -> amount != UInt64.zero }
             .keys,
         path = CylinderCapabilityPath.DfsMlhsCuboidSearch
-    )
+    )!!
 }

@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import kotlin.math.ceil
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.Scale
@@ -162,23 +163,23 @@ data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
     override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
 ) : MaterialDemand<V>
 
-private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
+private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Item,
         is Bpp3dDemandMode.ItemAmount,
-        is Bpp3dDemandMode.ItemWeight -> mode
+        is Bpp3dDemandMode.ItemWeight -> ok(mode)
 
-        else -> throw IllegalArgumentException("Item demand mode must be Item/ItemAmount/ItemWeight, but was $mode")
+        else -> Failed(ErrorCode.IllegalArgument, "Item demand mode must be Item/ItemAmount/ItemWeight, but was $mode")
     }
 }
 
-private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Bpp3dDemandMode {
+private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Material,
         is Bpp3dDemandMode.ItemMaterialAmount,
-        is Bpp3dDemandMode.ItemMaterialWeight -> mode
+        is Bpp3dDemandMode.ItemMaterialWeight -> ok(mode)
 
-        else -> throw IllegalArgumentException("Material demand mode must be Material/ItemMaterialAmount/ItemMaterialWeight, but was $mode")
+        else -> Failed(ErrorCode.IllegalArgument, "Material demand mode must be Material/ItemMaterialAmount/ItemMaterialWeight, but was $mode")
     }
 }
 
@@ -223,7 +224,7 @@ fun demandEntriesFromLabeledItemDemands(
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
     return items.map { demand ->
-        val mode = resolveItemDemandMode(demand.mode)
+        val mode = resolveItemDemandMode(demand.mode).value!!
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
         Bpp3dDemandEntry(
             mode = mode,
@@ -271,7 +272,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
     return materials.map { demand ->
-        val mode = resolveMaterialDemandMode(demand.mode)
+        val mode = resolveMaterialDemandMode(demand.mode).value!!
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
         Bpp3dDemandEntry(
             mode = mode,

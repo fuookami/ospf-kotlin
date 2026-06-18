@@ -5,7 +5,8 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.math.*
-import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -234,20 +235,20 @@ private infix fun Quantity<FltX>.sameCylinderRadiusValue(rhs: Quantity<FltX>): B
 private fun Quantity<FltX>.toPositiveQuantity(
     unit: PhysicalUnit,
     fieldName: String
-): Quantity<FltX> {
+): Ret<Quantity<FltX>> {
     val converted = convertTo(unit)
-        ?: throw IllegalArgumentException("Vertical cylinder $fieldName must use a length-compatible unit.")
+        ?: return Failed(ErrorCode.IllegalArgument, "Vertical cylinder $fieldName must use a length-compatible unit.")
     require(converted.value.toDouble() > 0.0) {
         "Vertical cylinder $fieldName must be positive."
     }
-    return converted
+    return ok(converted)
 }
 
 private fun Quantity<FltX>.toRadiusQuantity(
     unit: PhysicalUnit,
     fieldName: String
 ): Quantity<FltX> {
-    val converted = toPositiveQuantity(unit, fieldName)
+    val converted = toPositiveQuantity(unit, fieldName).value!!
     return Quantity(FltX(converted.value.toDouble() / 2.0), unit)
 }
 
@@ -273,9 +274,9 @@ private fun intervalCandidates(
     unit: PhysicalUnit,
     fieldPrefix: String
 ): List<Quantity<FltX>> {
-    val normalizedMin = min.toPositiveQuantity(unit, "${fieldPrefix}Min")
-    val normalizedMax = max.toPositiveQuantity(unit, "${fieldPrefix}Max")
-    val normalizedStep = step.toPositiveQuantity(unit, "${fieldPrefix}Step")
+    val normalizedMin = min.toPositiveQuantity(unit, "${fieldPrefix}Min").value!!
+    val normalizedMax = max.toPositiveQuantity(unit, "${fieldPrefix}Max").value!!
+    val normalizedStep = step.toPositiveQuantity(unit, "${fieldPrefix}Step").value!!
     val minValue = normalizedMin.value.toDouble()
     val maxValue = normalizedMax.value.toDouble()
     val stepValue = normalizedStep.value.toDouble()
@@ -324,13 +325,13 @@ private fun resolveVerticalCylinderRadiusCandidates(
     diameterMax: Quantity<FltX>?,
     diameterStep: Quantity<FltX>?
 ): List<Quantity<FltX>> {
-    radius.toPositiveQuantity(radius.unit, "radius")
-    radiusMin?.toPositiveQuantity(radius.unit, "radiusMin")
-    radiusMax?.toPositiveQuantity(radius.unit, "radiusMax")
-    radiusStep?.toPositiveQuantity(radius.unit, "radiusStep")
-    diameterMin?.toPositiveQuantity(radius.unit, "diameterMin")
-    diameterMax?.toPositiveQuantity(radius.unit, "diameterMax")
-    diameterStep?.toPositiveQuantity(radius.unit, "diameterStep")
+    radius.toPositiveQuantity(radius.unit, "radius").value!!
+    radiusMin?.toPositiveQuantity(radius.unit, "radiusMin")?.value!!
+    radiusMax?.toPositiveQuantity(radius.unit, "radiusMax")?.value!!
+    radiusStep?.toPositiveQuantity(radius.unit, "radiusStep")?.value!!
+    diameterMin?.toPositiveQuantity(radius.unit, "diameterMin")?.value!!
+    diameterMax?.toPositiveQuantity(radius.unit, "diameterMax")?.value!!
+    diameterStep?.toPositiveQuantity(radius.unit, "diameterStep")?.value!!
 
     if (radiusMin != null && radiusMax != null) {
         require(radiusMin.convertTo(radius.unit)!!.value.toDouble() <= radiusMax.convertTo(radius.unit)!!.value.toDouble()) {
@@ -362,7 +363,7 @@ private fun resolveVerticalCylinderRadiusCandidates(
 
     return when {
         hasExplicitCandidates -> distinctSortedRadiusCandidates(
-            radiusCandidates.map { it.toPositiveQuantity(radius.unit, "radiusCandidates") }
+            radiusCandidates.map { it.toPositiveQuantity(radius.unit, "radiusCandidates").value!! }
         )
 
         hasRadiusInterval -> intervalCandidates(
@@ -380,7 +381,7 @@ private fun resolveVerticalCylinderRadiusCandidates(
             unit = radius.unit
         )
 
-        else -> listOf(radius.toPositiveQuantity(radius.unit, "radius"))
+        else -> listOf(radius.toPositiveQuantity(radius.unit, "radius").value!!)
     }
 }
 
@@ -400,7 +401,7 @@ fun PackageShape<FltX>.toPackingShapeOrNull(): PackingShape3<FltX>? {
             requireConcreteCylinderRadiusProductionMetadata(
                 spec = spec,
                 source = "PackageShape.toPackingShapeOrNull"
-            )
+            )!!
             val shapeHeight = cylinderAxisLength(spec.axis)
             CylinderPackingShape3(
                 cylinder = object : AbstractCylinder<FltX> {
@@ -424,10 +425,10 @@ data class PackingProgramMaterialValue(
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Quantity<FltX> {
+private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
     return when (value.value) {
-        is FltX -> value as Quantity<FltX>
-        else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${value.value}")
+        is FltX -> ok(value as Quantity<FltX>)
+        else -> Failed(ErrorCode.IllegalArgument, "Unsupported packing material quantity scalar: ${value.value}")
     }
 }
 
@@ -435,16 +436,16 @@ private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Quantity<Flt
 private fun plusPackingProgramWeight(
     lhs: Quantity<*>?,
     rhs: Quantity<*>?
-): Quantity<*>? {
+): Ret<Quantity<*>?> {
     if (lhs == null) {
-        return rhs
+        return ok(rhs)
     }
     if (rhs == null) {
-        return lhs
+        return ok(lhs)
     }
     return when (lhs.value) {
-        is FltX -> (lhs as Quantity<FltX>) + packingProgramWeightToFltXQuantity(rhs)
-        else -> throw IllegalArgumentException("Unsupported packing material quantity scalar: ${lhs.value}")
+        is FltX -> ok((lhs as Quantity<FltX>) + packingProgramWeightToFltXQuantity(rhs).value!!)
+        else -> Failed(ErrorCode.IllegalArgument, "Unsupported packing material quantity scalar: ${lhs.value}")
     }
 }
 
@@ -457,7 +458,7 @@ private fun mergePackingProgramMaterialValue(
         rhs.amount == null -> lhs.amount
         else -> lhs.amount + rhs.amount
     }
-    val weight = plusPackingProgramWeight(lhs?.weight, rhs.weight)
+    val weight = plusPackingProgramWeight(lhs?.weight, rhs.weight).value!!
     return PackingProgramMaterialValue(
         amount = amount,
         weight = weight
@@ -621,7 +622,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
         materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
     ): Map<MaterialKey, Quantity<FltX>> {
         return materials.mapNotNull { (material, value) ->
-            val quantity = value.weight?.let { packingProgramWeightToFltXQuantity(it) } ?: value.amount?.let { amount ->
+            val quantity = value.weight?.let { packingProgramWeightToFltXQuantity(it).value!! } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight
                 if (unitWeight != null) {
                     unitWeight * FltX(amount.toULong().toDouble())
@@ -639,7 +640,7 @@ data class PackingProgram<V : FloatingNumber<V>>(
 
     fun materialWeights(materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()): Map<MaterialKey, Quantity<FltX>> {
         return materials.mapNotNull { (material, value) ->
-            val resolvedWeight = value.weight?.let { packingProgramWeightToFltXQuantity(it) } ?: value.amount?.let { amount ->
+            val resolvedWeight = value.weight?.let { packingProgramWeightToFltXQuantity(it).value!! } ?: value.amount?.let { amount ->
                 val unitWeight = materialCatalog[material]?.weight ?: return@let null
                 unitWeight * FltX(amount.toULong().toDouble())
             }

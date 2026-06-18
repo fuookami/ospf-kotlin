@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -75,32 +77,32 @@ class ScaledBpp3dSolverValueAdapter(
     }
 
     override fun lengthToSolver(value: Quantity<FltX>): FltX {
-        return quantityToSolver(value, unitSystem.lengthUnit, scale.length)
+        return quantityToSolver(value, unitSystem.lengthUnit, scale.length).value!!
     }
 
     override fun areaToSolver(value: Quantity<FltX>): FltX {
-        return quantityToSolver(value, unitSystem.areaUnit, scale.area)
+        return quantityToSolver(value, unitSystem.areaUnit, scale.area).value!!
     }
 
     override fun volumeToSolver(value: Quantity<FltX>): FltX {
-        return quantityToSolver(value, unitSystem.volumeUnit, scale.volume)
+        return quantityToSolver(value, unitSystem.volumeUnit, scale.volume).value!!
     }
 
     override fun depthToSolver(value: Quantity<FltX>): FltX {
-        return quantityToSolver(value, unitSystem.lengthUnit, scale.depth)
+        return quantityToSolver(value, unitSystem.lengthUnit, scale.depth).value!!
     }
 
     override fun weightToSolver(value: Quantity<FltX>): FltX {
-        return quantityToSolver(value, unitSystem.weightUnit, scale.weight)
+        return quantityToSolver(value, unitSystem.weightUnit, scale.weight).value!!
     }
 
     private fun quantityToSolver(
         value: Quantity<FltX>,
         targetUnit: PhysicalUnit,
         factor: FltX
-    ): FltX {
+    ): Ret<FltX> {
         val normalized = value.convertTo(targetUnit)
-            ?: throw IllegalArgumentException("Incompatible unit: ${value.unit} vs $targetUnit")
-        return (normalized.value.toFltX() * factor).toSolverNumber()
+            ?: return Failed(ErrorCode.IllegalArgument, "Incompatible unit: ${value.unit} vs $targetUnit")
+        return ok((normalized.value.toFltX() * factor).toSolverNumber())
     }
 }

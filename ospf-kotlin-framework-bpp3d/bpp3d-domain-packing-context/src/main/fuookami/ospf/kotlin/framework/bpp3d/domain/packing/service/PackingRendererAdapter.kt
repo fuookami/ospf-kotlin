@@ -94,7 +94,7 @@ class PackingRendererAdapter {
             requirePackedBinShapeGeometry(
                 bin = bin,
                 source = "PackingRendererAdapter.toSchema"
-            )
+            )!!
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
                 val shape = placement.resolvedPackingShape()

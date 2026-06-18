@@ -106,7 +106,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
-        )
+        )!!
         return merge(
             items = items,
             space = binType.asContainer3Shape(),
@@ -130,7 +130,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
-        )
+        )!!
         val withFillerMerging = config.mergeFillerWhenOnlyFiller && items.any { item -> fillerPredicate?.invoke(item) == false }
 
         var restItems = if (!withFillerMerging) {
@@ -198,7 +198,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergePiles
-        )
+        )!!
         val averagePileBottomArea = items.fold(FltX.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
@@ -285,7 +285,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergeBlocks
-        )
+        )!!
         val mergedItems = ArrayList<SimpleBlock>()
         val restItems = items.groupBy { it }.map { Pair(it.key, it.value.toMutableList()) }.toMap()
         for ((item, list) in restItems) {
@@ -395,7 +395,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergePatternBlocks
-        )
+        )!!
         val mergedItems = ArrayList<CommonBlock>()
         var restItems = items.toList()
         while (true) {
@@ -466,7 +466,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergeHollowSquareBlocks
-        )
+        )!!
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
         return mergeHollowSquareBlocks(
             items = restItems,
@@ -485,7 +485,7 @@ data object ItemMerger {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items.keys,
             path = CylinderCapabilityPath.ItemMergeHollowSquareBlocks
-        )
+        )!!
         val restItems = items.toMutableMap()
         val mergedItems = ArrayList<HollowSquareBlock>()
         for ((item, restAmount) in restItems) {

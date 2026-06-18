@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 private const val PackingGeometryOverlapTolerance = 1e-7
 
@@ -107,14 +109,15 @@ private fun requireHorizontalCylinderSupport(
     geometries: List<PackingGeometry>,
     binName: String,
     source: String
-) {
+): Try {
     if (!hasHorizontalCylinderSupportCoverage(
             geometry = geometry,
             index = index,
             geometries = geometries
         )
     ) {
-        throw IllegalArgumentException(
+        return Failed(
+            ErrorCode.IllegalArgument,
             unsupportedHorizontalCylinderSupportMessage(
                 source = source,
                 binName = binName,
@@ -123,6 +126,7 @@ private fun requireHorizontalCylinderSupport(
             )
         )
     }
+    return ok
 }
 
 private fun boxBoxOverlaps(lhs: PackingGeometry, rhs: PackingGeometry): Boolean {
@@ -217,7 +221,7 @@ private fun PackingGeometry.overlaps(rhs: PackingGeometry): Boolean {
 internal fun requirePackedBinShapeGeometry(
     bin: PackedBin,
     source: String
-) {
+): Try {
     val geometries = bin.items.mapIndexed { index, packed ->
         val placement = packed.placement
         val shape = placement.resolvedPackingShape()
@@ -226,7 +230,8 @@ internal fun requirePackedBinShapeGeometry(
                 shape = shape,
                 position = placement.absolutePosition
             )
-            throw IllegalArgumentException(
+            return Failed(
+                ErrorCode.IllegalArgument,
                 unsupportedOutsideBinGeometryMessage(
                     source = source,
                     binName = bin.name,
@@ -248,13 +253,14 @@ internal fun requirePackedBinShapeGeometry(
             geometries = geometries,
             binName = bin.name,
             source = source
-        )
+        )!!
     }
 
     for (lhsIndex in geometries.indices) {
         for (rhsIndex in (lhsIndex + 1) until geometries.size) {
             if (geometries[lhsIndex].overlaps(geometries[rhsIndex])) {
-                throw IllegalArgumentException(
+                return Failed(
+                    ErrorCode.IllegalArgument,
                     unsupportedPlacementOverlapMessage(
                         source = source,
                         binName = bin.name,
@@ -267,4 +273,5 @@ internal fun requirePackedBinShapeGeometry(
             }
         }
     }
+    return ok
 }

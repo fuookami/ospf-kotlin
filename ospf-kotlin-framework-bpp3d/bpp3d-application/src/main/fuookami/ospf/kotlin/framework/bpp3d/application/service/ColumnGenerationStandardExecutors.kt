@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import kotlin.math.roundToInt
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -25,7 +26,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  * 将对偶解映射转换为 MetaDualSolution（未经类型检查）。
  * Convert dual solution map to MetaDualSolution (unchecked).
  */
-private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSolution {
+private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): Ret<MetaDualSolution> {
     val constraints = LinkedHashMap<MathConstraint, Any>()
     val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<*, *>, Any>>>()
 
@@ -40,12 +41,12 @@ private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): MetaDualSoluti
 
     val ctor = MetaDualSolution::class.java.declaredConstructors
         .firstOrNull { it.parameterCount == 2 }
-        ?: throw IllegalStateException("MetaDualSolution constructor is unavailable")
+        ?: return Failed(ErrorCode.IllegalArgument, "MetaDualSolution constructor is unavailable")
     @Suppress("UNCHECKED_CAST")
-    return ctor.newInstance(
+    return ok(ctor.newInstance(
         constraints,
         symbols.mapValues { it.value.toList() }
-    ) as MetaDualSolution
+    ) as MetaDualSolution)
 }
 
 /**
@@ -198,7 +199,7 @@ class ColumnGenerationStandardExecutors(
             val refreshResult = artifacts.demandConstraint.refresh(
                 shadowPriceMap = shadowPriceMap,
                 model = artifacts.model,
-                shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved))
+                shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved)).value!!
             )
             if (refreshResult is Failed) return@ColumnGenerationRmpSolver Failed(refreshResult.error)
             if (refreshResult is Fatal) return@ColumnGenerationRmpSolver Fatal(refreshResult.errors)
@@ -348,9 +349,9 @@ class ColumnGenerationStandardExecutors(
             if (milpResult is Failed) return@ColumnGenerationFinalSolver Failed(milpResult.error)
             if (milpResult is Fatal) return@ColumnGenerationFinalSolver Fatal(milpResult.errors)
             val solved = (milpResult as Ok).value
-            model.setSolution(normalizeScalarSolution(solved.solution))
+            model.setSolution(normalizeScalarSolution(solved.solution).value!!)
             val selectedBins = collectSelectedBins(model, bins, state.columns, assignment)
-            config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins)
+            config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins)?.value!!
             val selectedColumns = collectSelectedColumns(
                 model = model,
                 columns = state.columns,
@@ -580,14 +581,14 @@ class ColumnGenerationStandardExecutors(
         return token.doubleResult?.let { FltX(it) } ?: FltX.zero
     }
 
-    private fun normalizeScalarSolution(values: List<*>): List<FltX> {
-        return values.mapIndexed { index, value ->
+    private fun normalizeScalarSolution(values: List<*>): Ret<List<FltX>> {
+        return ok(values.mapIndexed { index, value ->
             when (value) {
                 is FltX -> value
                 is Number -> FltX(value.toDouble())
-                else -> throw IllegalStateException("unsupported solution value at $index: ${value?.javaClass?.name}")
+                else -> return Failed(ErrorCode.IllegalArgument, "unsupported solution value at $index: ${value?.javaClass?.name}")
             }
-        }
+        })
     }
 
     private fun newModel(name: String): LinearMetaModel<FltX> {

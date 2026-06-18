@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -126,17 +127,17 @@ open class DemandConstraint<
     private val shadowPriceExtractor: ((Args) -> FltX?)? = null,
     override val name: String = "demand"
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
-    private fun symbolAt(index: Int): Symbol {
-        return (runCatching { load.load[index] as Symbol }.getOrNull()
-            ?: throw IllegalStateException("Missing load symbol at index $index"))
+    private fun symbolAt(index: Int): Ret<Symbol> {
+        return runCatching { load.load[index] as Symbol }.getOrNull()?.let { ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "Missing load symbol at index $index")
     }
 
     private fun upperSymbolAt(index: Int): Symbol {
-        return runCatching { load.overLoad[index] as Symbol }.getOrDefault(symbolAt(index))
+        return runCatching { load.overLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
 
     private fun lowerSymbolAt(index: Int): Symbol {
-        return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index))
+        return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
 
     private fun resolveShadowPrice(
@@ -212,7 +213,7 @@ open class DemandConstraint<
             } else {
                 when (val result = model.addConstraint(
                     relation = LinearInequality(
-                        asLinearPolynomial(symbolAt(i)),
+                        asLinearPolynomial(symbolAt(i).value!!),
                         constantPolynomial(demand.demand),
                         Comparison.LE
                     ),
@@ -242,7 +243,7 @@ open class DemandConstraint<
             } else {
                 when (val result = model.addConstraint(
                     relation = LinearInequality(
-                        asLinearPolynomial(symbolAt(i)),
+                        asLinearPolynomial(symbolAt(i).value!!),
                         constantPolynomial(demand.demand),
                         Comparison.GE
                     ),

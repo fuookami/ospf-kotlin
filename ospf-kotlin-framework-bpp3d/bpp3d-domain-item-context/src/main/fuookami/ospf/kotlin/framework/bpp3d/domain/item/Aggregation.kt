@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.quantity.plus
@@ -47,11 +48,11 @@ class Aggregation(
     private fun mergeDemandValue(
         lhs: Bpp3dDemandValue,
         rhs: Bpp3dDemandValue
-    ): Bpp3dDemandValue {
+    ): Ret<Bpp3dDemandValue> {
         return when {
-            lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(lhs.value + rhs.value)
-            lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> Bpp3dDemandValue.Weight(lhs.value + rhs.value)
-            else -> throw IllegalArgumentException("Incompatible demand values: $lhs vs $rhs")
+            lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> ok(Bpp3dDemandValue.Amount(lhs.value + rhs.value))
+            lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> ok(Bpp3dDemandValue.Weight(lhs.value + rhs.value))
+            else -> Failed(ErrorCode.IllegalArgument, "Incompatible demand values: $lhs vs $rhs")
         }
     }
 
@@ -63,7 +64,7 @@ class Aggregation(
         for ((item, amount) in items) {
             val statistics = item.statistics(mode, amount)
             for ((key, value) in statistics) {
-                counter[key] = counter[key]?.let { mergeDemandValue(it, value) } ?: value
+                counter[key] = counter[key]?.let { mergeDemandValue(it, value).value!! } ?: value
             }
         }
         return counter

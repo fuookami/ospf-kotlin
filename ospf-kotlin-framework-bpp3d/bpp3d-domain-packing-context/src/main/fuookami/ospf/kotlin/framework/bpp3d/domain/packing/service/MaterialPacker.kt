@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 class MaterialPacker(
     private val solverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
@@ -36,10 +38,10 @@ class MaterialPacker(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun weightDemandToPackingQuantity(value: Quantity<*>): Quantity<FltX> {
+    private fun weightDemandToPackingQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
         return when (value.value) {
-            is FltX -> value as Quantity<FltX>
-            else -> throw IllegalArgumentException("Unsupported material packing weight scalar: ${value.value}")
+            is FltX -> ok(value as Quantity<FltX>)
+            else -> Failed(ErrorCode.IllegalArgument, "Unsupported material packing weight scalar: ${value.value}")
         }
     }
 
@@ -57,7 +59,7 @@ class MaterialPacker(
             val key = material.key
             materialByKey.putIfAbsent(key, material)
             normalizedDemands[key] = (normalizedDemands[key] ?: UInt64.zero) + demand.amount
-            val weightDemand = demand.weight?.let { weightDemandToPackingQuantity(it) }
+            val weightDemand = demand.weight?.let { weightDemandToPackingQuantity(it).value!! }
             if (weightDemand != null && weightDemand.value.toDouble() > 0.0) {
                 val unitWeight = material.weight
                 if (unitWeight.value.toDouble() <= 0.0) {

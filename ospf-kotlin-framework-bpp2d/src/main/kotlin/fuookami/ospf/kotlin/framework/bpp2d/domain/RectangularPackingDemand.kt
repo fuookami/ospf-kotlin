@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.framework.bpp2d.domain
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.convertTo
@@ -58,9 +60,9 @@ data class Placement2Need<V : FloatingNumber<V>>(
     val projection: Projection2Need<V>
 ) {
     /** 最大X坐标 / Maximum X coordinate */
-    val maxX: Quantity<V> get() = quantityPlus(x, projection.width)
+    val maxX: Quantity<V> get() = quantityPlus(x, projection.width).value!!
     /** 最大Y坐标 / Maximum Y coordinate */
-    val maxY: Quantity<V> get() = quantityPlus(y, projection.height)
+    val maxY: Quantity<V> get() = quantityPlus(y, projection.height).value!!
 
     /** 转换为盒体需求 / Convert to box need */
     fun toBox2Need(): Box2Need<V> {
@@ -87,24 +89,24 @@ data class Box2Need<V : FloatingNumber<V>>(
     val maxY: Quantity<V>
 ) {
     /** 宽度 / Width */
-    val width: Quantity<V> get() = quantityMinus(maxX, minX)
+    val width: Quantity<V> get() = quantityMinus(maxX, minX).value!!
     /** 高度 / Height */
-    val height: Quantity<V> get() = quantityMinus(maxY, minY)
+    val height: Quantity<V> get() = quantityMinus(maxY, minY).value!!
     /** 面积 / Area */
     val area: Quantity<V> get() = width * height
 
     /** 判断是否与另一盒体重叠 / Check whether this box overlaps with another */
     fun overlaps(rhs: Box2Need<V>): Boolean {
-        if (quantityOrd(maxX, rhs.minX, "maxX-rhsMinX") !is Order.Greater) {
+        if (quantityOrd(maxX, rhs.minX, "maxX-rhsMinX").value!! !is Order.Greater) {
             return false
         }
-        if (quantityOrd(minX, rhs.maxX, "minX-rhsMaxX") !is Order.Less) {
+        if (quantityOrd(minX, rhs.maxX, "minX-rhsMaxX").value!! !is Order.Less) {
             return false
         }
-        if (quantityOrd(maxY, rhs.minY, "maxY-rhsMinY") !is Order.Greater) {
+        if (quantityOrd(maxY, rhs.minY, "maxY-rhsMinY").value!! !is Order.Greater) {
             return false
         }
-        if (quantityOrd(minY, rhs.maxY, "minY-rhsMaxY") !is Order.Less) {
+        if (quantityOrd(minY, rhs.maxY, "minY-rhsMaxY").value!! !is Order.Less) {
             return false
         }
         return true
@@ -116,10 +118,10 @@ data class Box2Need<V : FloatingNumber<V>>(
         val right = quantityMin(maxX, rhs.maxX, "right")
         val bottom = quantityMax(minY, rhs.minY, "bottom")
         val top = quantityMin(maxY, rhs.maxY, "top")
-        if (quantityOrd(left, right, "x-range") !is Order.Less) {
+        if (quantityOrd(left, right, "x-range").value!! !is Order.Less) {
             return null
         }
-        if (quantityOrd(bottom, top, "y-range") !is Order.Less) {
+        if (quantityOrd(bottom, top, "y-range").value!! !is Order.Less) {
             return null
         }
         return Box2Need(
@@ -132,10 +134,10 @@ data class Box2Need<V : FloatingNumber<V>>(
 
     /** 判断是否完全位于另一盒体内部 / Check whether this box is entirely inside another */
     fun inside(sheet: Box2Need<V>): Boolean {
-        val minXOrd = quantityOrd(minX, sheet.minX, "sheet-minX")
-        val minYOrd = quantityOrd(minY, sheet.minY, "sheet-minY")
-        val maxXOrd = quantityOrd(maxX, sheet.maxX, "sheet-maxX")
-        val maxYOrd = quantityOrd(maxY, sheet.maxY, "sheet-maxY")
+        val minXOrd = quantityOrd(minX, sheet.minX, "sheet-minX").value!!
+        val minYOrd = quantityOrd(minY, sheet.minY, "sheet-minY").value!!
+        val maxXOrd = quantityOrd(maxX, sheet.maxX, "sheet-maxX").value!!
+        val maxYOrd = quantityOrd(maxY, sheet.maxY, "sheet-maxY").value!!
         return (minXOrd is Order.Greater || minXOrd is Order.Equal)
                 && (minYOrd is Order.Greater || minYOrd is Order.Equal)
                 && (maxXOrd is Order.Less || maxXOrd is Order.Equal)
@@ -214,14 +216,14 @@ data class PackingScene2<V : FloatingNumber<V>>(
     fun usedArea(): Quantity<V> {
         var acc = quantityZeroOf(sheetArea)
         for (placement in placements) {
-            acc = quantityPlus(acc, placement.toPlacement2Need().projection.area)
+            acc = quantityPlus(acc, placement.toPlacement2Need().projection.area).value!!
         }
         return acc
     }
 
     /** 计算剩余面积 / Compute remaining area */
     fun remainingArea(): Quantity<V> {
-        return quantityMinus(sheetArea, usedArea())
+        return quantityMinus(sheetArea, usedArea()).value!!
     }
 
     /** 计算板材利用率 / Compute sheet utilization ratio */
@@ -255,40 +257,40 @@ data class PackingScene2<V : FloatingNumber<V>>(
 }
 
 /** 量值加法 / Quantity addition */
-private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
-        return Quantity(lhs.value + rhs.value, lhs.unit)
+        return ok(Quantity(lhs.value + rhs.value, lhs.unit))
     }
     require(lhs.unit.quantity == rhs.unit.quantity) {
         "Dimension mismatch: ${lhs.unit.quantity.dimensionSymbol()} vs ${rhs.unit.quantity.dimensionSymbol()}"
     }
     val converted = rhs.convertTo(lhs.unit)
-        ?: throw IllegalArgumentException("Cannot convert unit ${rhs.unit} to ${lhs.unit}.")
-    return Quantity(lhs.value + converted.value, lhs.unit)
+        ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert unit ${rhs.unit} to ${lhs.unit}.")
+    return ok(Quantity(lhs.value + converted.value, lhs.unit))
 }
 
 /** 量值减法 / Quantity subtraction */
-private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
-        return Quantity(lhs.value - rhs.value, lhs.unit)
+        return ok(Quantity(lhs.value - rhs.value, lhs.unit))
     }
     require(lhs.unit.quantity == rhs.unit.quantity) {
         "Dimension mismatch: ${lhs.unit.quantity.dimensionSymbol()} vs ${rhs.unit.quantity.dimensionSymbol()}"
     }
     val converted = rhs.convertTo(lhs.unit)
-        ?: throw IllegalArgumentException("Cannot convert unit ${rhs.unit} to ${lhs.unit}.")
-    return Quantity(lhs.value - converted.value, lhs.unit)
+        ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert unit ${rhs.unit} to ${lhs.unit}.")
+    return ok(Quantity(lhs.value - converted.value, lhs.unit))
 }
 
 /** 量值比较 / Quantity comparison */
-private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
-    return lhs.partialOrd(rhs)
-        ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
+    return lhs.partialOrd(rhs)?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }
 
 /** 量值取最大 / Quantity max */
 private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
-    return when (quantityOrd(lhs, rhs, axis)) {
+    return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater, Order.Equal -> lhs
         is Order.Less -> rhs
     }
@@ -296,7 +298,7 @@ private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<
 
 /** 量值取最小 / Quantity min */
 private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
-    return when (quantityOrd(lhs, rhs, axis)) {
+    return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater -> rhs
         is Order.Equal, is Order.Less -> lhs
     }

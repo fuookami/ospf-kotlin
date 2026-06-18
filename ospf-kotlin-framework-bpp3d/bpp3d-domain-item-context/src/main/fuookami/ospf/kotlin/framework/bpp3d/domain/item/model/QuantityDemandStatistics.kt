@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -39,10 +41,10 @@ private fun <V : FloatingNumber<V>> QuantityMaterial<V>.materialKey(): MaterialK
 private fun <V : FloatingNumber<V>> quantityPlus(
     lhs: Quantity<V>,
     rhs: Quantity<V>
-): Quantity<V> {
+): Ret<Quantity<V>> {
     return when (lhs.value) {
-        is FltX -> ((lhs as Quantity<FltX>) + (rhs as Quantity<FltX>)) as Quantity<V>
-        else -> throw IllegalArgumentException("Unsupported numeric type: ${lhs.value::class.simpleName}")
+        is FltX -> ok(((lhs as Quantity<FltX>) + (rhs as Quantity<FltX>)) as Quantity<V>)
+        else -> Failed(ErrorCode.IllegalArgument, "Unsupported numeric type: ${lhs.value::class.simpleName}")
     }
 }
 
@@ -50,11 +52,11 @@ private fun <V : FloatingNumber<V>> quantityPlus(
 private fun <V : FloatingNumber<V>> quantityScale(
     value: Quantity<V>,
     amount: UInt64
-): Quantity<V> {
+): Ret<Quantity<V>> {
     val scalarF64 = FltX(amount.toULong().toDouble())
     return when (value.value) {
-        is FltX -> ((value as Quantity<FltX>) * scalarF64) as Quantity<V>
-        else -> throw IllegalArgumentException("Unsupported numeric type: ${value.value::class.simpleName}")
+        is FltX -> ok(((value as Quantity<FltX>) * scalarF64) as Quantity<V>)
+        else -> Failed(ErrorCode.IllegalArgument, "Unsupported numeric type: ${value.value::class.simpleName}")
     }
 }
 
@@ -64,25 +66,25 @@ private fun <V : FloatingNumber<V>> scaleDemandValue(
 ): QuantityBpp3dDemandValue<V> {
     return when (value) {
         is QuantityBpp3dDemandValue.Amount -> QuantityBpp3dDemandValue.Amount(value.value * multiplier)
-        is QuantityBpp3dDemandValue.Weight -> QuantityBpp3dDemandValue.Weight(quantityScale(value.value, multiplier))
+        is QuantityBpp3dDemandValue.Weight -> QuantityBpp3dDemandValue.Weight(quantityScale(value.value, multiplier).value!!)
     }
 }
 
 private fun <V : FloatingNumber<V>> mergeDemandValue(
     lhs: QuantityBpp3dDemandValue<V>,
     rhs: QuantityBpp3dDemandValue<V>
-): QuantityBpp3dDemandValue<V> {
+): Ret<QuantityBpp3dDemandValue<V>> {
     return when {
         lhs is QuantityBpp3dDemandValue.Amount && rhs is QuantityBpp3dDemandValue.Amount -> {
-            QuantityBpp3dDemandValue.Amount(lhs.value + rhs.value)
+            ok(QuantityBpp3dDemandValue.Amount(lhs.value + rhs.value))
         }
 
         lhs is QuantityBpp3dDemandValue.Weight && rhs is QuantityBpp3dDemandValue.Weight -> {
-            QuantityBpp3dDemandValue.Weight(quantityPlus(lhs.value, rhs.value))
+            ok(QuantityBpp3dDemandValue.Weight(quantityPlus(lhs.value, rhs.value).value!!))
         }
 
         else -> {
-            throw IllegalArgumentException("Incompatible demand values: $lhs vs $rhs")
+            Failed(ErrorCode.IllegalArgument, "Incompatible demand values: $lhs vs $rhs")
         }
     }
 }
@@ -91,7 +93,7 @@ private fun <V : FloatingNumber<V>> MutableMap<QuantityBpp3dDemandKey<V>, Quanti
     key: QuantityBpp3dDemandKey<V>,
     value: QuantityBpp3dDemandValue<V>
 ) {
-    this[key] = this[key]?.let { mergeDemandValue(it, value) } ?: value
+    this[key] = this[key]?.let { mergeDemandValue(it, value).value!! } ?: value
 }
 
 private fun <V : FloatingNumber<V>> Map<QuantityBpp3dDemandKey<V>, QuantityBpp3dDemandValue<V>>.scale(
@@ -138,7 +140,7 @@ fun <V : FloatingNumber<V>> QuantityItem<V>.statistics(mode: Bpp3dDemandMode): M
                     Pair(
                         QuantityBpp3dDemandKey.Material<V>(material.materialKey()),
                         QuantityBpp3dDemandValue.Weight<V>(
-                            quantityScale(material.weight, amount)
+                            quantityScale(material.weight, amount).value!!
                         )
                     )
                 }

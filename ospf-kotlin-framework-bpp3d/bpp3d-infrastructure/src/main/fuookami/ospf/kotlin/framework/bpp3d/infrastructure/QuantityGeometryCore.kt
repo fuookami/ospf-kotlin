@@ -4,7 +4,8 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Dim2
@@ -34,25 +35,26 @@ private fun <V : FloatingNumber<V>> quantityBinary(
     rhs: Quantity<V>,
     op: (Quantity<FltX>, Quantity<FltX>) -> Quantity<FltX>,
     symbol: String
-): Quantity<V> {
+): Ret<Quantity<V>> {
     return when (lhs.value) {
-        is FltX -> op(lhs as Quantity<FltX>, rhs as Quantity<FltX>) as Quantity<V>
-        else -> throw IllegalArgumentException(
+        is FltX -> ok(op(lhs as Quantity<FltX>, rhs as Quantity<FltX>) as Quantity<V>)
+        else -> Failed(
+            ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '$symbol': ${lhs.value::class.simpleName}"
         )
     }
 }
 
 internal fun <V : FloatingNumber<V>> quantityPlusByValue(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
-    return quantityBinary(lhs, rhs, { l, r -> l.quantityPlus(r) }, "+")
+    return quantityBinary(lhs, rhs, { l, r -> l.quantityPlus(r) }, "+").value!!
 }
 
 internal fun <V : FloatingNumber<V>> quantityMinusByValue(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
-    return quantityBinary(lhs, rhs, { l, r -> l.quantityMinus(r) }, "-")
+    return quantityBinary(lhs, rhs, { l, r -> l.quantityMinus(r) }, "-").value!!
 }
 
 internal fun <V : FloatingNumber<V>> quantityTimesByValue(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
-    return quantityBinary(lhs, rhs, { l, r -> l.quantityTimes(r) }, "*")
+    return quantityBinary(lhs, rhs, { l, r -> l.quantityTimes(r) }, "*").value!!
 }
 
 internal fun <V : FloatingNumber<V>> quantityZeroByValue(sample: Quantity<V>): Quantity<V> {
@@ -108,12 +110,12 @@ internal fun <V : FloatingNumber<V>> repeatedQuantitySumByValue(
     return acc
 }
 
-private fun Quantity<FltX>.toScalar(unit: PhysicalUnit): FltX {
+private fun Quantity<FltX>.toScalar(unit: PhysicalUnit): Ret<FltX> {
     return if (this.unit == unit) {
-        this.value
+        ok(this.value)
     } else {
-        this.convertTo(unit)?.value
-            ?: throw IllegalArgumentException("Incompatible unit: ${this.unit} vs $unit")
+        this.convertTo(unit)?.value?.let { ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "Incompatible unit: ${this.unit} vs $unit")
     }
 }
 
@@ -168,7 +170,7 @@ operator fun <V : FloatingNumber<V>> Quantity<V>.times(rhs: Quantity<V>): Quanti
 }
 
 operator fun <V : FloatingNumber<V>> Quantity<V>.div(rhs: Quantity<V>): Quantity<V> {
-    return quantityBinary(this, rhs, { l, r -> l.quantityDiv(r) }, "/")
+    return quantityBinary(this, rhs, { l, r -> l.quantityDiv(r) }, "/").value!!
 }
 
 operator fun Quantity<FltX>.plus(rhs: FltX): Quantity<FltX> = this + (rhs * this.unit)
@@ -186,7 +188,7 @@ operator fun FltX.minus(rhs: Quantity<FltX>): Quantity<FltX> = (this * rhs.unit)
 operator fun FltX.times(rhs: Quantity<FltX>): Quantity<FltX> = this.quantityTimes(rhs)
 
 operator fun Quantity<FltX>.rem(rhs: Quantity<FltX>): Quantity<FltX> {
-    val right = rhs.toScalar(this.unit)
+    val right = rhs.toScalar(this.unit).value!!
     return (this.value % right) * this.unit
 }
 

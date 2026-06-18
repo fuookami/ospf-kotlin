@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 装箱器，将最终箱子转换为装箱结果。
@@ -25,13 +27,14 @@ class Packer(
     private fun requireSingleCylinderAxisPerLayer(
         bin: Bin<BinLayer, FltX>,
         source: String
-    ) {
+    ): Try {
         for ((layerIndex, layerPlacement) in bin.units.withIndex()) {
             val axes = layerPlacement.unit.units.mapNotNull { placement ->
                 (placement.resolvedPackingShape() as? CylinderPackingShape3)?.axis
             }.toSet()
             if (axes.size > 1) {
-                throw IllegalArgumentException(
+                return Failed(
+                    ErrorCode.IllegalArgument,
                     unsupportedMixedCylinderAxesInLayerMessage(
                         source = source,
                         layerIndex = layerIndex,
@@ -40,6 +43,7 @@ class Packer(
                 )
             }
         }
+        return ok
     }
 
     /**
@@ -58,7 +62,7 @@ class Packer(
             requireSingleCylinderAxisPerLayer(
                 bin = bin,
                 source = "Packer.invoke"
-            )
+            )!!
             val itemPlacements = bin.dump().units
             val loadingOrders = loadingOrderCalculator(itemPlacements).toMap()
             val packedBin = PackedBin(
@@ -75,7 +79,7 @@ class Packer(
             requirePackedBinShapeGeometry(
                 bin = packedBin,
                 source = "Packer.invoke"
-            )
+            )!!
             packedBin
         }
 

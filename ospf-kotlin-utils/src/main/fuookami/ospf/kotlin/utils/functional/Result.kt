@@ -591,6 +591,30 @@ val ok = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
 
 /**
+ * 创建成功的 Ret<T> 结果
+ *
+ * Creates a successful Ret<T> result with the given value.
+ * 解决 K2 编译器无法从 Ok(value) 推断类型参数的问题。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param value 成功值 / The success value
+ * @return 成功结果 / The successful result
+ */
+fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
+
+/**
+ * 创建失败的 Ret<T> 结果
+ *
+ * Creates a failed Ret<T> result with the given error.
+ * 解决 K2 编译器无法从 Failed(error) 推断 T 的问题。
+ *
+ * @param T 值的类型 / The type of the value (never used)
+ * @param error 错误 / The error
+ * @return 失败结果 / The failed result
+ */
+fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<ErrorCode>>(error)
+
+/**
  * 顺序执行多个操作块
  *
  * Executes multiple operation blocks sequentially, returning the first failure or Ok.
