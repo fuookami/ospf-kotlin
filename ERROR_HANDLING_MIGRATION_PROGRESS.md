@@ -25,6 +25,8 @@
 - Resource.kt, Cost.kt, ShadowPriceMap.kt, TaskBunch.kt: 添加 imports / nullable + Safe
 
 ### 第三阶段：bpp3d 框架（25+ 个文件）
+- ColumnGenerationAlgorithm.kt: solve() 返回 Ret，删除 throw
+- ColumnGenerationApplicationService.kt: solve() 返回 Ret，删除 throw
 - CylinderShapeContract.kt: 验证函数改为返回 Try
 - Package.kt: 验证函数改为返回 Try
 - DemandStatistics.kt: 验证函数改为返回 Try
@@ -70,10 +72,10 @@
 | ospf-kotlin-framework-gantt-scheduling | ~25 | 8 | ~17 |
 | ospf-kotlin-framework-csp1d | ~15 | 6 | ~9 |
 | ospf-kotlin-framework-bpp2d | 4 | 1 | 3 |
-| ospf-kotlin-framework-bpp3d | ~50+ | 25+ | ~25 |
+| ospf-kotlin-framework-bpp3d | ~50+ | 30+ | ~20 |
 | ospf-kotlin-framework-plugin | ~10 | 0 | ~10 |
 | 测试代码 | ~146 | 0 | ~146（保留） |
-| **总计** | **~395** | **~44** | **~351** |
+| **总计** | **~395** | **~49** | **~346** |
 
 ---
 
