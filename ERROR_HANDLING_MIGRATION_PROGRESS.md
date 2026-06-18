@@ -10,8 +10,9 @@
 
 ### 第一阶段：应用层（6 个文件）
 - Csp1dShadowPriceLifecycle.kt: extractFromDualSolution 返回 Ret
-- Csp1dMilpSolver.kt: 新增 solveRet()，保留 solve() 兼容
+- Csp1dMilpSolver.kt: 删除 solve() 兼容层，只保留返回 Ret 的版本
 - Csp1dColumnGeneration.kt: 删除 ensureRet，直接传播 Result
+- Csp1dMilp.kt: 更新 solveMilp() 处理 Ret 返回值
 - ColumnGenerationAlgorithm.kt: 接口返回 Ret
 - ColumnGenerationStandardExecutors.kt: 删除 ensureTry/ensureRet
 - ContinuousRadiusModelComponent.kt: register 返回 Try
@@ -70,12 +71,12 @@
 | ospf-kotlin-math | ~120+ | 0 | ~120+ |
 | ospf-kotlin-framework | ~8 | 1 | ~7 |
 | ospf-kotlin-framework-gantt-scheduling | ~25 | 8 | ~17 |
-| ospf-kotlin-framework-csp1d | ~15 | 6 | ~9 |
+| ospf-kotlin-framework-csp1d | ~15 | 8 | ~7 |
 | ospf-kotlin-framework-bpp2d | 4 | 1 | 3 |
 | ospf-kotlin-framework-bpp3d | ~50+ | 30+ | ~20 |
 | ospf-kotlin-framework-plugin | ~10 | 0 | ~10 |
 | 测试代码 | ~146 | 0 | ~146（保留） |
-| **总计** | **~395** | **~49** | **~346** |
+| **总计** | **~395** | **~51** | **~344** |
 
 ---
 
