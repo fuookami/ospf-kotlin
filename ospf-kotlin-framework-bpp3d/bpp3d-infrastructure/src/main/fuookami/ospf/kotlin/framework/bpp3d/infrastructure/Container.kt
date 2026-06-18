@@ -20,7 +20,7 @@ private fun <V : FloatingNumber<V>> quantityWeightedSumByValue(
     selector: (AbstractCuboid<V>) -> Quantity<V>
 ): Quantity<V> {
     return amounts.asSequence().fold(zero) { acc, (unit, amount) ->
-        quantityPlusByValue(acc, quantityScaleByValue(selector(unit), amount))
+        quantityPlusByValue(acc, quantityScaleByValue(selector(unit), amount).value!!)
     }
 }
 
@@ -300,9 +300,9 @@ interface Container3<
         actualVolume,
         quantityPlusByValue(
             volume,
-            quantityScaleByFltXValue(volume, FltX.epsilon)
+            quantityScaleByFltXValue(volume, FltX.epsilon).value!!
         )
-    )
+    ).value!!
 
     companion object {
         fun <V : FloatingNumber<V>> count(units: List<QuantityPlacement3<*, V>>): Map<AbstractCuboid<V>, UInt64> {

@@ -65,10 +65,11 @@ internal fun <V : FloatingNumber<V>> quantityZeroByValue(sample: Quantity<V>): Q
 internal fun <V : FloatingNumber<V>> quantityScaleByValue(
     quantity: Quantity<V>,
     scale: UInt64
-): Quantity<V> {
+): Ret<Quantity<V>> {
     return when (quantity.value) {
-        is FltX -> ((quantity as Quantity<FltX>).quantityTimes(FltX(scale.toULong().toDouble()))) as Quantity<V>
-        else -> throw IllegalArgumentException(
+        is FltX -> ok(((quantity as Quantity<FltX>).quantityTimes(FltX(scale.toULong().toDouble()))) as Quantity<V>)
+        else -> Failed(
+            ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '*': ${quantity.value::class.simpleName}"
         )
     }
@@ -78,20 +79,22 @@ internal fun <V : FloatingNumber<V>> quantityScaleByValue(
 internal fun <V : FloatingNumber<V>> quantityScaleByFltXValue(
     quantity: Quantity<V>,
     scale: FltX
-): Quantity<V> {
+): Ret<Quantity<V>> {
     return when (quantity.value) {
-        is FltX -> ((quantity as Quantity<FltX>).quantityTimes(scale)) as Quantity<V>
-        else -> throw IllegalArgumentException(
+        is FltX -> ok(((quantity as Quantity<FltX>).quantityTimes(scale)) as Quantity<V>)
+        else -> Failed(
+            ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '*': ${quantity.value::class.simpleName}"
         )
     }
 }
 
 @Suppress("UNCHECKED_CAST")
-internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs: Quantity<V>): V {
+internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs: Quantity<V>): Ret<V> {
     return when (lhs.value) {
-        is FltX -> ((lhs as Quantity<FltX>).quantityDiv(rhs as Quantity<FltX>).value) as V
-        else -> throw IllegalArgumentException(
+        is FltX -> ok(((lhs as Quantity<FltX>).quantityDiv(rhs as Quantity<FltX>).value) as V)
+        else -> Failed(
+            ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '/': ${lhs.value::class.simpleName}"
         )
     }
