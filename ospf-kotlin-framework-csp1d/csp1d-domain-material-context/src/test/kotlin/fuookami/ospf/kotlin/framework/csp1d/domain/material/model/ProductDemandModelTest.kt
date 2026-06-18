@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -81,7 +83,7 @@ class ProductDemandModelTest {
         val contribution = demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(3.0), RollCountUnit))
@@ -104,7 +106,7 @@ class ProductDemandModelTest {
         val contribution = demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(30.0), Kilogram))
@@ -133,7 +135,7 @@ class ProductDemandModelTest {
                     width = Quantity(Flt64(1.5), Meter)
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
         val incompatibleMachine = Machine(
             id = "machine-narrow",

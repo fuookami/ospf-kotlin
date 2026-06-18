@@ -93,7 +93,7 @@ class YieldAggregation<V : RealNumber<V>>(
                     underProductions.add(ModeledUnderProduction(
                         productId = demand.product.id,
                         unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.toString(),
-                        amount = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
+                        amount = (convertSolverValue(demand.quantity.value, Flt64(doubleValue)) as Ok).value
                     ))
                 }
             }
@@ -105,7 +105,7 @@ class YieldAggregation<V : RealNumber<V>>(
                     overProductions.add(ModeledOverProduction(
                         productId = demand.product.id,
                         unitSymbol = demand.quantity.unit.symbol ?: demand.quantity.unit.toString(),
-                        amount = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
+                        amount = (convertSolverValue(demand.quantity.value, Flt64(doubleValue)) as Ok).value
                     ))
                 }
             }

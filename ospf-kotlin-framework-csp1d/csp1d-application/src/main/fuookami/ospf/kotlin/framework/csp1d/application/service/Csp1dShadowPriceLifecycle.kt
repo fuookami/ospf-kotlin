@@ -72,13 +72,13 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
 
         // 从 framework map 转换为轻量级 ShadowPriceMap<V>
         // Convert from framework map to lightweight ShadowPriceMap<V>
-        return Ok(frameworkShadowPriceMap.toShadowPriceMap { value -> convertSolverValue(domainValueSample, value) })
+        return Ok(frameworkShadowPriceMap.toShadowPriceMap { value -> (convertSolverValue(domainValueSample, value) as Ok).value })
     }
 
     /**
      * 转换对偶值到领域数值 / Convert dual value to domain value
      */
-    fun convertDualValue(dualValue: Flt64): V = convertSolverValue(domainValueSample, dualValue)
+    fun convertDualValue(dualValue: Flt64): V = (convertSolverValue(domainValueSample, dualValue) as Ok).value
 }
 
 /**

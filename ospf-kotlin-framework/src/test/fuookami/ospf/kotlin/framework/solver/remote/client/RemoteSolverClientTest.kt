@@ -68,12 +68,13 @@ class RemoteSolverClientTest {
         assertEquals(0, port.resumeCalls)
         assertEquals(listOf(100.milliseconds, 100.milliseconds), port.quantum)
         assertEquals(1, port.stopCalls)
-        assertEquals(true, result.feasible)
-        assertEquals(true, result.optimal)
-        assertEquals(Flt64(8.0), result.objectiveValue)
-        assertEquals(30.milliseconds, result.elapsed)
-        assertEquals(ObjectRef.of(path = "checkpoints/2"), result.checkpointRef)
-        assertEquals("done", result.message)
+        val value = (result as Ok).value
+        assertEquals(true, value.feasible)
+        assertEquals(true, value.optimal)
+        assertEquals(Flt64(8.0), value.objectiveValue)
+        assertEquals(30.milliseconds, value.elapsed)
+        assertEquals(ObjectRef.of(path = "checkpoints/2"), value.checkpointRef)
+        assertEquals("done", value.message)
     }
 
     @Test
@@ -108,7 +109,7 @@ class RemoteSolverClientTest {
         assertEquals(1, port.resumeCalls)
         assertEquals(snapshotRef, port.resumeCheckpoint)
         assertEquals(1, port.stopCalls)
-        assertEquals(snapshotRef, result.checkpointRef)
+        assertEquals(snapshotRef, (result as Ok).value.checkpointRef)
     }
 
     @Test
@@ -241,8 +242,8 @@ class RemoteSolverClientTest {
             quantum = 100.milliseconds
         )
 
-        assertSame(finalResult, result)
-        assertNotNull(result.resultRef)
+        assertSame(finalResult, (result as Ok).value)
+        assertNotNull((result as Ok).value.resultRef)
     }
 
     @Test
@@ -271,7 +272,7 @@ class RemoteSolverClientTest {
             quantum = 100.milliseconds
         )
 
-        assertEquals(Flt64(5.0), result.objectiveValue)
+        assertEquals(Flt64(5.0), (result as Ok).value.objectiveValue)
         assertEquals(1, port.stopCalls)
     }
 

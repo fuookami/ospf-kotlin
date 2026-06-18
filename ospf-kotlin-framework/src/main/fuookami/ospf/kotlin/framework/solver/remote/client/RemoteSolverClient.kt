@@ -5,6 +5,8 @@
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.SolverExecutionPort
@@ -41,7 +43,7 @@ class RemoteSolverClient(
         quantum: Duration,
         maxRounds: UInt64 = UInt64(64),
         exportCheckpointEachRound: Boolean = true
-    ): SolveResult {
+    ): Ret<SolveResult> {
         require(quantum > Duration.ZERO) { "quantum must be positive." }
         require(maxRounds > UInt64.zero) { "maxRounds must be positive." }
 
@@ -90,19 +92,23 @@ class RemoteSolverClient(
                     break
                 }
             }
+        } catch (e: Exception) {
+            return Failed(
+                Err(
+                    ErrorCode.Other,
+                    "Remote solve failed: ${e.message}"
+                )
+            )
         } finally {
             runCatching {
                 executionPort.stop(handle)
             }
         }
 
-        return finalResult ?: throw RemoteSolverException(
-            code = RemoteSolverErrorCode.REMOTE_SOLVE_NOT_COMPLETED_WITHIN_MAX_ROUNDS,
-            message = "Remote solve does not complete within maxRounds=$maxRounds (taskId=$taskId, sliceId=$sliceId).",
-            metadata = mapOf(
-                "taskId" to taskId.value,
-                "sliceId" to sliceId.value,
-                "maxRounds" to maxRounds.toString()
+        return finalResult?.let { Ok(it) } ?: Failed(
+            Err(
+                ErrorCode.Other,
+                "Remote solve does not complete within maxRounds=$maxRounds (taskId=$taskId, sliceId=$sliceId)."
             )
         )
     }

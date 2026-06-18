@@ -63,37 +63,6 @@ fun <T, M : MutableCollection<T>> Iterator<T>.collectTo(m: M): M {
     return m
 }
 
-/** 对每个元素应用转换，返回最后一个非 null 结果，无则抛异常 / Apply transform to each element, return the last non-null result or throw */
-inline fun <R, T> Iterable<T>.lastNotNullOf(
-    crossinline extractor: Extractor<R?, T>
-): R {
-    var result: R? = null
-
-    val iterator = this.iterator()
-    while (iterator.hasNext()) {
-        result = extractor(iterator.next())
-    }
-
-    return result ?: throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
-}
-
-/** 从列表末尾向前迭代，返回最后一个非 null 转换结果，无则抛异常 / Iterate from the end, return the last non-null transform result or throw */
-inline fun <R, T> List<T>.lastNotNullOf(
-    crossinline extractor: Extractor<R?, T>
-): R {
-    // Start from the end of the list / 从列表末尾开始
-    val iterator = this.listIterator(this.size)
-    while (iterator.hasPrevious()) {
-        val result = extractor(iterator.previous())
-
-        if (result != null) {
-            return result
-        }
-    }
-
-    throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
-}
-
 /** 对每个元素应用转换，返回最后一个非 null 结果，无则返回 null / Apply transform to each element, return the last non-null result or null */
 inline fun <R, T> Iterable<T>.lastNotNullOfOrNull(
     crossinline extractor: Extractor<R?, T>
@@ -633,27 +602,6 @@ inline fun <T, U> Iterable<U>.minOfWithPartialThreeWayComparatorOrNull(
     }, extractor)
 }
 
-/** 同时获取最小值和最大值，集合为空时抛异常 / Find both min and max simultaneously, throw if empty */
-fun <T : Comparable<T>> Iterable<T>.minMax(): Pair<T, T> {
-    val iterator = this.iterator()
-    if (!iterator.hasNext()) {
-        throw NoSuchElementException()
-    }
-
-    var min = iterator.next()
-    var max = min
-    while (iterator.hasNext()) {
-        val v = iterator.next()
-        if (v < min) {
-            min = v
-        }
-        if (v > max) {
-            max = v
-        }
-    }
-    return Pair(min, max)
-}
-
 /** 同时获取最小值和最大值，集合为空时返回 null / Find both min and max simultaneously, return null if empty */
 fun <T : Comparable<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
     val iterator = this.iterator()
@@ -673,32 +621,6 @@ fun <T : Comparable<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
         }
     }
     return Pair(min, max)
-}
-
-/** 按提取值同时获取最小和最大元素，集合为空时抛异常 / Find min and max elements by extractor, throw if empty */
-inline fun <T, R : Comparable<R>> Iterable<T>.minMaxBy(
-    crossinline extractor: Extractor<R, T>
-): Pair<T, T> {
-    val iterator = this.iterator()
-    if (!iterator.hasNext()) {
-        throw NoSuchElementException()
-    }
-
-    val v = iterator.next()
-    val r = extractor(v)
-    var min = Pair(v, r)
-    var max = Pair(v, r)
-    while (iterator.hasNext()) {
-        val v0 = iterator.next()
-        val r0 = extractor(v0)
-        if (r0 < min.second) {
-            min = Pair(v0, r0)
-        }
-        if (r0 > max.second) {
-            max = Pair(v0, r0)
-        }
-    }
-    return Pair(min.first, max.first)
 }
 
 /** 按提取值同时获取最小和最大元素，集合为空时返回 null / Find min and max elements by extractor, return null if empty */
@@ -725,29 +647,6 @@ inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByOrNull(
         }
     }
     return Pair(min.first, max.first)
-}
-
-/** 同时获取提取值的最小值和最大值，集合为空时抛异常 / Find min and max of extracted value, throw if empty */
-inline fun <T, R : Comparable<R>> Iterable<T>.minMaxOf(
-    crossinline extractor: Extractor<R, T>
-): Pair<R, R> {
-    val iterator = this.iterator()
-    if (!iterator.hasNext()) {
-        throw NoSuchElementException()
-    }
-
-    var min = extractor(iterator.next())
-    var max = min
-    while (iterator.hasNext()) {
-        val v = extractor(iterator.next())
-        if (v < min) {
-            min = v
-        }
-        if (v > max) {
-            max = v
-        }
-    }
-    return Pair(min, max)
 }
 
 /** 同时获取提取值的最小值和最大值，集合为空时返回 null / Find min and max of extracted value, return null if empty */

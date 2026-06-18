@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import kotlin.math.roundToLong
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -60,7 +61,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     override val materials: List<Material<V>> get() = produce.materials
     override val machines: List<Machine<V>> get() = produce.machines
 
-    override fun toDomainValue(value: Flt64): V = convertSolverValue(domainValueSample, value)
+    override fun toDomainValue(value: Flt64): V = (convertSolverValue(domainValueSample, value) as Ok).value
 
     override fun register(model: LinearMetaModel<Flt64>): Try {
         // 1. 注册变量
@@ -247,10 +248,10 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                         return@fold acc
                     }
                     val contribution = Quantity(
-                        consumption.value * convertSolverValue(
+                        consumption.value * (convertSolverValue(
                             sample = consumption.value,
                             value = usage.amount.toFlt64()
-                        ),
+                        ) as Ok).value,
                         consumption.unit
                     )
                     if (acc == null) contribution else Quantity(acc.value + contribution.value, acc.unit)
@@ -292,7 +293,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val batchCount = solutionAmount(model, index)
                 if (batchCount > UInt64.zero) {
                     val restWidthValue = plan.restWidth?.value ?: continue
-                    val contribution = restWidthValue * convertSolverValue(restWidthValue, batchCount.toFlt64())
+                    val contribution = restWidthValue * (convertSolverValue(restWidthValue, batchCount.toFlt64()) as Ok).value
                     sum = if (sum != null) sum + contribution else contribution
                 }
             }
@@ -309,7 +310,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                     val restMaterialValue = restMaterialValue(plan, when (wasteRestMaterialMeasure) {
                         RestMaterialMeasure.RestWidthByMaterialLengthProxy -> DomainRestMaterialMeasure.RestWidthByMaterialLengthProxy
                     }) ?: continue
-                    val contribution = restMaterialValue * convertSolverValue(restMaterialValue, batchCount.toFlt64())
+                    val contribution = restMaterialValue * (convertSolverValue(restMaterialValue, batchCount.toFlt64()) as Ok).value
                     sum = if (sum != null) sum + contribution else contribution
                 }
             }
@@ -324,7 +325,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                 val batchCount = solutionAmount(model, index)
                 if (batchCount > UInt64.zero) {
                     val costPenalty = wasteAgg.materialCostPenalty[plan.material.id] ?: continue
-                    val cost = costPenalty * convertSolverValue(costPenalty, batchCount.toFlt64())
+                    val cost = costPenalty * (convertSolverValue(costPenalty, batchCount.toFlt64()) as Ok).value
                     val existing = costByMaterial[plan.material.id]
                     costByMaterial[plan.material.id] = if (existing != null) existing + cost else cost
                 }
@@ -349,7 +350,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
                             OverProductionAreaMeasure.ProductMaxWidthProxy -> DomainOverProductionAreaMeasure.ProductMaxWidthProxy
                         }
                     ) ?: continue
-                    val area = productWidthValue * convertSolverValue(productWidthValue, Flt64(overDouble))
+                    val area = productWidthValue * (convertSolverValue(productWidthValue, Flt64(overDouble)) as Ok).value
                     areaSum = if (areaSum != null) areaSum + area else area
                 }
             }
@@ -483,7 +484,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         val prices = HashMap<Csp1dShadowPriceKey, V>()
         for ((constraint, dualValue) in dualSolution) {
             val args = constraint.origin?.args as? Csp1dShadowPriceKey ?: continue
-            val vDual = convertSolverValue(domainValueSample, dualValue)
+            val vDual = (convertSolverValue(domainValueSample, dualValue) as Ok).value
             frameworkMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(args, dualValue))
             val existingValue = prices[args]
             prices[args] = if (existingValue != null) existingValue + vDual else vDual
@@ -604,7 +605,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
 
         // 为 context-aware 扩展构建只读建模上下文
         // Build read-only modeling context for context-aware extension resolution
-        val domainValueSample = resolveDomainValueSample(input).value
+        val domainValueSample = (resolveDomainValueSample(input) as Ok).value
         val modelingContext = object : Csp1dModelingContext<V> {
             override val mode = _mode
             override val isFinalMilp = _isFinalMilp
@@ -613,7 +614,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             override val materials: List<Material<V>> get() = produce.materials
             override val machines: List<Machine<V>> get() = produce.machines
             override val domainValueSample = domainValueSample
-            override fun toDomainValue(value: Flt64): V = convertSolverValue(domainValueSample, value)
+            override fun toDomainValue(value: Flt64): V = (convertSolverValue(domainValueSample, value) as Ok).value
         }
 
         // 解析 context-aware 扩展管线
@@ -740,7 +741,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             wasteOverProductionAreaMeasure = wasteCfg?.overProductionAreaMeasure ?: OverProductionAreaMeasure.ProductMaxWidthProxy,
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,
             objectivePolicies = _objectivePolicies,
-            domainValueSample = resolveDomainValueSample(input).value,
+            domainValueSample = (resolveDomainValueSample(input) as Ok).value,
             isFinalMilp = _isFinalMilp
         )
     }

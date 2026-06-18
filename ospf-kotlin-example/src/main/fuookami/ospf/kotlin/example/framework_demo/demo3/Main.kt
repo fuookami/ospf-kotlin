@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo3
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -66,13 +67,13 @@ class CSP {
             constraints = GenerationConstraints(
                 maxKnifeCount = UInt64(8UL)
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one),
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value,
             maxPlans = Int64(256)
         )
         val solver = Csp1dColumnGeneration(
             solver = ScipColumnGenerationSolver(),
             initialGenerator = NSameGenerator(
-                arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one),
+                arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value,
                 maxPlans = Int64(16)
             ),
             pricingGenerator = ReducedCostPricingGenerator(pricingEnumerator)

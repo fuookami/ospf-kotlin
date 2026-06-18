@@ -424,7 +424,7 @@ class BunchSchedulingProduce<
 
         for ((product, _) in products) {
             val thisBunches = bunches.mapNotNull { bunch ->
-                val quantity = bunch.produce(product).value
+                val quantity = (bunch.produce(product) as Ok).value
                 if (quantity neq quantity.constants.zero) {
                     bunch to quantity
                 } else {

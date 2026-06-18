@@ -267,19 +267,13 @@ fun <
             else -> null
         }
     }
-    val zeroResult = quantities.firstOrNull()?.constants?.zero?.let { Ok(it) }
-        ?: quantityZero().let { result ->
-            when (result) {
-                is Ok -> Ok(result.value)
-                is Failed -> Failed(result.error)
-                is Fatal -> Fatal(result.errors)
-            }
+    val zero = quantities.firstOrNull()?.constants?.zero
+        ?: return when (val result = quantityZero()) {
+            is Ok -> Ok(quantities.sumOrZero(result.value))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
-    return when (zeroResult) {
-        is Ok -> Ok(quantities.sumOrZero(zeroResult.value))
-        is Failed -> Failed(zeroResult.error)
-        is Fatal -> Fatal(zeroResult.errors)
-    }
+    return Ok(quantities.sumOrZero(zero))
 }
 
 /**
@@ -304,7 +298,7 @@ fun <
     product: P,
     unit: PhysicalUnit = NoneUnit
 ): MaterialQuantity<V> {
-    return Quantity(produce(product).value, unit)
+    return Quantity((produce(product) as Ok).value, unit)
 }
 
 /**
@@ -335,19 +329,13 @@ fun <
             else -> null
         }
     }
-    val zeroResult = quantities.firstOrNull()?.constants?.zero?.let { Ok(it) }
-        ?: quantityZero().let { result ->
-            when (result) {
-                is Ok -> Ok(result.value)
-                is Failed -> Failed(result.error)
-                is Fatal -> Fatal(result.errors)
-            }
+    val zero = quantities.firstOrNull()?.constants?.zero
+        ?: return when (val result = quantityZero()) {
+            is Ok -> Ok(quantities.sumOrZero(result.value))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
-    return when (zeroResult) {
-        is Ok -> Ok(quantities.sumOrZero(zeroResult.value))
-        is Failed -> Failed(zeroResult.error)
-        is Fatal -> Fatal(zeroResult.errors)
-    }
+    return Ok(quantities.sumOrZero(zero))
 }
 
 /**
@@ -372,5 +360,5 @@ fun <
     material: C,
     unit: PhysicalUnit = NoneUnit
 ): MaterialQuantity<V> {
-    return Quantity(consumption(material).value, unit)
+    return Quantity((consumption(material) as Ok).value, unit)
 }

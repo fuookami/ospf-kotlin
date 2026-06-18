@@ -59,7 +59,7 @@ class RemoteLinearSolver(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<FeasibleSolverOutput<Flt64>> {
-        val result = solveRemote(
+        return when (val result = solveRemote(
             payload = SolvePayload(
                 modelData = OspfRemoteModelSerializer.modelData(model),
                 taskMeta = TaskMeta(targetType = TargetTypeName.of("linear"))
@@ -70,8 +70,11 @@ class RemoteLinearSolver(
             tenantId = runtimeConfig.tenantId,
             quantum = runtimeConfig.quantum,
             maxRounds = runtimeConfig.maxRounds
-        )
-        return result.toFeasibleOutput(model.variables.size)
+        )) {
+            is Ok -> result.value.toFeasibleOutput(model.variables.size)
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
     }
 
     override suspend fun invoke(
@@ -107,7 +110,7 @@ class RemoteLinearSolver(
         tenantId: TenantId,
         quantum: Duration = runtimeConfig.quantum,
         maxRounds: UInt64 = UInt64(64)
-    ): SolveResult {
+    ): Ret<SolveResult> {
         val normalizedPayload = payload.copy(
             taskMeta = payload.taskMeta.copy(
                 targetType = payload.taskMeta.targetType ?: TargetTypeName.of("linear")

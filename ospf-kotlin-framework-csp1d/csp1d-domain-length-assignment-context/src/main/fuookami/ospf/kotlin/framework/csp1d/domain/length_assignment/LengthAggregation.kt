@@ -94,7 +94,7 @@ class LengthAggregation<V : RealNumber<V>>(
                 if (doubleValue != null && doubleValue >= 0.0) {
                     assignedLengths.add(ModeledAssignedLength(
                         productId = demand.product.id,
-                        assignedLength = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
+                        assignedLength = (convertSolverValue(demand.quantity.value, Flt64(doubleValue)) as Ok).value
                     ))
                 }
             }
@@ -105,7 +105,7 @@ class LengthAggregation<V : RealNumber<V>>(
                 if (doubleValue != null && doubleValue > 0.0) {
                     overLengths.add(ModeledOverLength(
                         productId = demand.product.id,
-                        overLength = convertSolverValue(demand.quantity.value, Flt64(doubleValue))
+                        overLength = (convertSolverValue(demand.quantity.value, Flt64(doubleValue)) as Ok).value
                     ))
                 }
             }
