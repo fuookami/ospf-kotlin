@@ -604,7 +604,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
 
         // 为 context-aware 扩展构建只读建模上下文
         // Build read-only modeling context for context-aware extension resolution
-        val domainValueSample = resolveDomainValueSample(input)
+        val domainValueSample = resolveDomainValueSample(input).value
         val modelingContext = object : Csp1dModelingContext<V> {
             override val mode = _mode
             override val isFinalMilp = _isFinalMilp
@@ -740,36 +740,15 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
             wasteOverProductionAreaMeasure = wasteCfg?.overProductionAreaMeasure ?: OverProductionAreaMeasure.ProductMaxWidthProxy,
             wasteRestMaterialMeasure = wasteCfg?.restMaterialMeasure ?: RestMaterialMeasure.RestWidthByMaterialLengthProxy,
             objectivePolicies = _objectivePolicies,
-            domainValueSample = resolveDomainValueSample(input),
+            domainValueSample = resolveDomainValueSample(input).value,
             isFinalMilp = _isFinalMilp
         )
     }
 
     /**
-     * 从输入数据推导领域数值样本，用于 solver 值显式转换
-     * Derive a domain value sample from input data for explicit solver value conversion
+     * 从输入数据推导领域数值样本 / Derive a domain value sample from input data
      */
-    private fun resolveDomainValueSample(input: ProduceInput<V>): V {
-        // 优先从 demand 的 quantity 获取 / Prefer demand quantity
-        input.demands.firstOrNull()?.quantity?.value?.let { return it }
-        // 其次从 material 的 widthRange 获取 / Fallback to material width range
-        input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return it }
-        // 再次从 cutting plan 的 restWidth 获取 / Fallback to plan restWidth
-        input.cuttingPlans.firstOrNull()?.restWidth?.value?.let { return it }
-        // 最后从 yield config 的 penalty 获取 / Fallback to yield config penalty
-        _yieldConfig?.underProductionPenalty?.values?.firstOrNull()?.let { return it }
-        _wasteConfig?.trimWidthPenalty?.let { return it }
-        _lengthConfig?.batchMinPenalty?.let { return it }
-        throw IllegalArgumentException(
-            "Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"
-        )
-    }
-
-    /**
-     * 从输入数据推导领域数值样本（Result 版本）
-     * Derive a domain value sample from input data (Result version)
-     */
-    private fun resolveDomainValueSampleSafe(input: ProduceInput<V>): Ret<V> {
+    private fun resolveDomainValueSample(input: ProduceInput<V>): Ret<V> {
         // 优先从 demand 的 quantity 获取 / Prefer demand quantity
         input.demands.firstOrNull()?.quantity?.value?.let { return Ok(it) }
         // 其次从 material 的 widthRange 获取 / Fallback to material width range

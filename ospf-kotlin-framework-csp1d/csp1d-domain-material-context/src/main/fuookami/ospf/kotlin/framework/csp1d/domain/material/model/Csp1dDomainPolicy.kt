@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -59,7 +61,7 @@ data class SimpleDomainCalculationContext<V : RealNumber<V>>(
     override val plan: CuttingPlan<V>,
     override val planIndex: Int = 0,
     override val domainValueSample: V,
-    private val domainValueConverter: (Flt64) -> V = { value -> convertSolverValue(domainValueSample, value) }
+    private val domainValueConverter: (Flt64) -> V = { value -> (convertSolverValue(domainValueSample, value) as Ok).value }
 ) : Csp1dDomainCalculationContext<V> {
     override fun toDomainValue(value: Flt64): V = domainValueConverter(value)
 

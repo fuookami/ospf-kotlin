@@ -8,6 +8,8 @@ import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -964,8 +966,8 @@ class TimeWindowTest {
             toDouble = { it.toDouble() }
         )
 
-        val exception = runCatching { timeWindow.upperInterval }.exceptionOrNull()
-        assert(exception is UnsupportedOperationException)
-        assert(exception!!.message!!.contains("TimeWindow.upper/upperInterval"))
+        val result = timeWindow.upperInterval()
+        assert(result is Failed)
+        assert((result as Failed).error.message.contains("TimeWindow.upperInterval"))
     }
 }

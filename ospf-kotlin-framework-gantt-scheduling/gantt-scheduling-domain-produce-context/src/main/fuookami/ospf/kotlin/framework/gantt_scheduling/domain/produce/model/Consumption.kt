@@ -424,7 +424,7 @@ class BunchSchedulingConsumption<
 
         for ((material) in materials) {
             val thisBunches = bunches.mapNotNull { bunch ->
-                val quantity = bunch.consumption(material)
+                val quantity = bunch.consumption(material).value
                 if (quantity neq quantity.constants.zero) {
                     bunch to quantity
                 } else {

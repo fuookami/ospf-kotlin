@@ -70,7 +70,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand2.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
         val second = CuttingPlan(
             id = "second",
@@ -97,7 +97,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand1.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
 
         assertEquals(
@@ -174,7 +174,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
     }
 }

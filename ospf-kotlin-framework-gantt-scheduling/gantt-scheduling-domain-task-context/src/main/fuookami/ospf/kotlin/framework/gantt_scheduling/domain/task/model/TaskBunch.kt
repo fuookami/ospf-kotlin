@@ -85,7 +85,7 @@ open class AbstractTaskBunch<
 
     /** 成本密度（成本/任务数）/ Cost density (cost/number of tasks) */
     open val costDensity by lazy {
-        cost.solverCost(Flt64.zero)!! / Flt64(size.toDouble())
+        cost.solverCostOrNull(Flt64.zero)!! / Flt64(size.toDouble())
     }
 
     /** 忙碌时间 / Busy time */

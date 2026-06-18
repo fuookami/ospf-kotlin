@@ -97,58 +97,8 @@ inline fun <
         AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
         >.reducedCost(
     bunch: AbstractTaskBunch<T, E, A, V>
-): V {
-    var ret = bunch.cost.solverCostSafe().value
-        ?: throw IllegalStateException("cost sum is required to build solver cost for reducedCost calculation")
-    if (bunch.executor.indexed) {
-        ret -= this(BunchGanttSchedulingShadowPriceArguments(bunch.executor))
-        for ((index, task) in bunch.tasks.withIndex()) {
-            val prevTask = if (index != 0) {
-                bunch.tasks[index - 1]
-            } else {
-                bunch.lastTask
-            }
-            ret -= this(
-                BunchGanttSchedulingShadowPriceArguments(
-                    executor = bunch.executor,
-                    prevTask = prevTask,
-                    task = task
-                )
-            )
-        }
-        if (bunch.tasks.isNotEmpty()) {
-            ret -= this(
-                BunchGanttSchedulingShadowPriceArguments(
-                    executor = bunch.executor,
-                    prevTask = bunch.tasks.last(),
-                    task = null
-                )
-            )
-        }
-    }
-    return SchedulingSolverValueAdapter.create<V>().intoValue(ret)
-}
-
-/**
- * 计算任务束的缩减成本（Result 版本）/ Calculate the reduced cost of a task bunch (Result version)
- *
- * @param T 任务类型 / The task type
- * @param E 执行者类型 / The executor type
- * @param A 分配策略类型 / The assignment policy type
- * @param bunch 任务束 / The task bunch
- * @return 缩减成本 / The reduced cost
- */
-inline fun <
-        reified V : RealNumber<V>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-        > AbstractGanttSchedulingShadowPriceMap<
-        AbstractGanttSchedulingShadowPriceArguments<E, A>, E, A
-        >.reducedCostSafe(
-    bunch: AbstractTaskBunch<T, E, A, V>
 ): Ret<V> {
-    val solverCost = bunch.cost.solverCostSafe()
+    val solverCost = bunch.cost.solverCost()
     if (solverCost is Failed) {
         return Failed(solverCost.error)
     }

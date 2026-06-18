@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -40,7 +42,13 @@ data class CuttingPlan<V : RealNumber<V>>(
     val capacityConsumption: Quantity<V>? = null
 ) {
     private val resolvedArithmetic: QuantityArithmetic<V> by lazy {
-        arithmetic ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value)
+        arithmetic ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value).let { result ->
+            when (result) {
+                is Ok -> result.value
+                is Failed -> throw IllegalArgumentException(result.error.message)
+                is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
+            }
+        }
     }
 
     /**

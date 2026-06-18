@@ -384,7 +384,7 @@ data class TimeWindow<V : RealNumber<V>>(
     /** 持续时间 / Duration */
     val duration: Duration by window::duration
     /** 上级时间间隔（nullable） / The upper-level time interval (nullable) */
-    val upperInterval: Duration? by lazy {
+    val upperIntervalOrNull: Duration? by lazy {
         when (durationUnit) {
             DurationUnit.SECONDS -> {
                 1.toDuration(DurationUnit.MINUTES)
@@ -404,8 +404,8 @@ data class TimeWindow<V : RealNumber<V>>(
         }
     }
 
-    /** 上级时间间隔（Safe） / The upper-level time interval (Safe) */
-    fun upperIntervalSafe(): Ret<Duration> {
+    /** 上级时间间隔 / The upper-level time interval */
+    fun upperInterval(): Ret<Duration> {
         return when (durationUnit) {
             DurationUnit.SECONDS -> Ok(1.toDuration(DurationUnit.MINUTES))
             DurationUnit.MINUTES -> Ok(1.toDuration(DurationUnit.HOURS))
@@ -419,7 +419,7 @@ data class TimeWindow<V : RealNumber<V>>(
     private fun UInt64.timeWindowValue() = toLong().toDouble()
 
     /** 上级时间窗口（nullable） / The upper-level time window (nullable) */
-    val upper: TimeWindow<V>? by lazy {
+    val upperOrNull: TimeWindow<V>? by lazy {
         when (durationUnit) {
             DurationUnit.SECONDS -> DurationUnit.MINUTES
             DurationUnit.MINUTES -> DurationUnit.HOURS
@@ -430,15 +430,15 @@ data class TimeWindow<V : RealNumber<V>>(
                 window = window,
                 continues = continues,
                 durationUnit = upperUnit,
-                interval = upperInterval ?: interval,
+                interval = upperIntervalOrNull ?: interval,
                 fromDouble = fromDouble,
                 toDouble = toDouble
             )
         }
     }
 
-    /** 上级时间窗口（Safe） / The upper-level time window (Safe) */
-    fun upperSafe(): Ret<TimeWindow<V>> {
+    /** 上级时间窗口 / The upper-level time window */
+    fun upper(): Ret<TimeWindow<V>> {
         val upperUnit = when (durationUnit) {
             DurationUnit.SECONDS -> DurationUnit.MINUTES
             DurationUnit.MINUTES -> DurationUnit.HOURS
@@ -449,7 +449,7 @@ data class TimeWindow<V : RealNumber<V>>(
             window = window,
             continues = continues,
             durationUnit = upperUnit,
-            interval = upperInterval!!,
+            interval = upperIntervalOrNull!!,
             fromDouble = fromDouble,
             toDouble = toDouble
         ))
@@ -521,7 +521,7 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /** 按上级间隔划分的舍入时间段列表 / List of rounded time slots divided by upper interval */
     val roundTimeSlots: List<TimeRange> by lazy {
-        roundTimeSlotsOf(upper?.interval ?: interval)
+        roundTimeSlotsOf(upperOrNull?.interval ?: interval)
     }
 
     /**
@@ -546,7 +546,7 @@ data class TimeWindow<V : RealNumber<V>>(
         excludedTimes: List<TimeRange> = emptyList()
     ): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
-        val defaultInterval = intervals[null] ?: upperInterval ?: interval
+        val defaultInterval = intervals[null] ?: upperIntervalOrNull ?: interval
         val specificIntervals = ArrayList<Pair<TimeRange, Duration>>(intervals.size)
         for ((timeRange, thisInterval) in intervals) {
             if (timeRange != null) {
@@ -563,8 +563,8 @@ data class TimeWindow<V : RealNumber<V>>(
             return defaultInterval
         }
         var currentInterval = intervalAt(start)
-        val upperDurationUnit = upper?.durationUnit ?: durationUnit
-        val upperIntervalVal = upper?.interval ?: interval
+        val upperDurationUnit = upperOrNull?.durationUnit ?: durationUnit
+        val upperIntervalVal = upperOrNull?.interval ?: interval
         val end1 = (start.truncatedTo(upperDurationUnit) + currentInterval * kotlin.math.ceil(upperIntervalVal / currentInterval).toInt())
             .let {
                 if ((it - start) < currentInterval) {

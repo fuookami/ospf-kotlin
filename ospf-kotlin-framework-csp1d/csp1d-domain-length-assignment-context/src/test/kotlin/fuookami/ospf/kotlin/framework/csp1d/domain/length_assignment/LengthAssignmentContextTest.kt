@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class LengthAssignmentContextTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
 
     private fun dynamicProduct(
         id: String = "dp",

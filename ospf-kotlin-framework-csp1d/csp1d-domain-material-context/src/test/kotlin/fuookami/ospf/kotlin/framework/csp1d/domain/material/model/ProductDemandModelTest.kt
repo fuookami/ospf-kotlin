@@ -81,7 +81,7 @@ class ProductDemandModelTest {
         val contribution = demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(3.0), RollCountUnit))
@@ -104,7 +104,7 @@ class ProductDemandModelTest {
         val contribution = demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(30.0), Kilogram))
@@ -133,7 +133,7 @@ class ProductDemandModelTest {
                     width = Quantity(Flt64(1.5), Meter)
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         )
         val incompatibleMachine = Machine(
             id = "machine-narrow",

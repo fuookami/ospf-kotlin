@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class FullSumGeneratorTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
         return Product(

@@ -66,23 +66,14 @@ object DefaultQuantityArithmetic {
      * @param sample 领域数值样本 / Domain value sample
      * @return 泛型物理量算术策略 / Quantity arithmetic strategy
      */
-    @Suppress("UNCHECKED_CAST")
-    fun <V : RealNumber<V>> resolveFor(sample: V): QuantityArithmetic<V> {
-        return when (sample) {
-            is Flt64 -> defaultQuantityArithmetic64 as QuantityArithmetic<V>
-            is FltX -> defaultQuantityArithmeticX as QuantityArithmetic<V>
-            else -> throw IllegalArgumentException("Unsupported RealNumber type: ${sample::class}")
-        }
-    }
-
     /**
-     * 解析泛型物理量算术策略（Result 版本）/ Resolve generic quantity arithmetic strategy (Result version)
+     * 解析泛型物理量算术策略 / Resolve generic quantity arithmetic strategy
      *
      * @param sample 领域数值样本 / Domain value sample
      * @return 泛型物理量算术策略 / Quantity arithmetic strategy
      */
     @Suppress("UNCHECKED_CAST")
-    fun <V : RealNumber<V>> resolveForSafe(sample: V): Ret<QuantityArithmetic<V>> {
+    fun <V : RealNumber<V>> resolveFor(sample: V): Ret<QuantityArithmetic<V>> {
         return when (sample) {
             is Flt64 -> Ok(defaultQuantityArithmetic64 as QuantityArithmetic<V>)
             is FltX -> Ok(defaultQuantityArithmeticX as QuantityArithmetic<V>)

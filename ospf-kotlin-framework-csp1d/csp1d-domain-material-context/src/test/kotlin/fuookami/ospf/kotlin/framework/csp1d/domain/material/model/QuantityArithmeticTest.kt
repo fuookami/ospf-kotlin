@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.quantities.unit.*
 class QuantityArithmeticTest {
     @Test
     fun flt64AddAndSubtract() {
-        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         val a = Quantity(Flt64(3.0), Meter)
         val b = Quantity(Flt64(2.0), Meter)
 
@@ -22,7 +22,7 @@ class QuantityArithmeticTest {
 
     @Test
     fun fltXAddAndSubtract() {
-        val arith = DefaultQuantityArithmetic.resolveFor(FltX.one)
+        val arith = DefaultQuantityArithmetic.resolveFor(FltX.one).value
         val a = Quantity(FltX("3.0"), Kilogram)
         val b = Quantity(FltX("1.5"), Kilogram)
 
@@ -35,7 +35,7 @@ class QuantityArithmeticTest {
 
     @Test
     fun zeroCreatesCorrectQuantity() {
-        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+        val arith = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
         val zero = arith.zero(Meter)
         assertTrue(zero eq Quantity(Flt64.zero, Meter))
     }

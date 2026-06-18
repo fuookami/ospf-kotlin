@@ -94,7 +94,7 @@ private data class Label(
         )
     }
 
-    val reducedCost: Flt64 get() = cost.solverCost(Flt64.zero)!! - shadowPrice
+    val reducedCost: Flt64 get() = cost.solverCostOrNull(Flt64.zero)!! - shadowPrice
     val aircraftChange: UInt64 =
         if (flightTask?.aircraftChanged == true) {
             UInt64.one

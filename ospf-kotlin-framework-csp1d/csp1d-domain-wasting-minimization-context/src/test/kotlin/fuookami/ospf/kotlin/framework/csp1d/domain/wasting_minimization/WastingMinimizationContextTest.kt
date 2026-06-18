@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 
 class WastingMinimizationContextTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one)
+    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
 
     private fun material(): Material<Flt64> {
         return Material(
