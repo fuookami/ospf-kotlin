@@ -52,7 +52,8 @@ class ResourceSolvedQuantityFltXTest {
     private val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
         id = "resource",
         name = "resource",
-        capacities = listOf(capacity)
+        capacities = listOf(capacity),
+        initialQuantityValue = FltX.zero
     ) {
         override fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
             task: AbstractTask<E, A>,

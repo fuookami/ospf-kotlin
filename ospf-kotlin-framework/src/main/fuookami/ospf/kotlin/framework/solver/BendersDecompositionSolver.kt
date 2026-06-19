@@ -102,9 +102,9 @@ private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
                 bestBound = bestBound,
                 mipGap = mipGap,
                 solveTime = solveTime,
-                objValue = converter.intoValue(obj),
-                possibleBestObjValue = converter.intoValue(possibleBestObj),
-                bestBoundValue = bestBound?.let { converter.intoValue(it) }
+                objValueOrNull = converter.intoValue(obj),
+                possibleBestObjValueOrNull = converter.intoValue(possibleBestObj),
+                bestBoundValueOrNull = bestBound?.let { converter.intoValue(it) }
             )
         }
 

@@ -7,6 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
@@ -55,7 +60,7 @@ data class Placement2<V : FloatingNumber<V>>(
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
+    ): Ret<Boolean> {
         return box.contains(
             x = x,
             y = y,
@@ -72,7 +77,7 @@ data class Placement2<V : FloatingNumber<V>>(
      * @param rhs 另一个放置 / The other placement
      * @return 是否重叠 / Whether they overlap
      */
-    fun overlapped(rhs: Placement2<V>): Boolean {
+    fun overlapped(rhs: Placement2<V>): Ret<Boolean> {
         return box.overlapped(rhs.box)
     }
 
@@ -83,12 +88,16 @@ data class Placement2<V : FloatingNumber<V>>(
      * @param rhs 另一个放置 / The other placement
      * @return 交集放置，无交集返回 null / The intersection placement, or null if no overlap
      */
-    fun intersect(rhs: Placement2<V>): Placement2<V>? {
-        val intersection = box.intersect(rhs.box) ?: return null
-        return Placement2(
+    fun intersect(rhs: Placement2<V>): Ret<Placement2<V>?> {
+        val intersection = when (val result = box.intersect(rhs.box)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        } ?: return ok<Placement2<V>?>(null)
+        return ok(Placement2(
             x = intersection.x,
             y = intersection.y,
             shape = intersection.shape
-        )
+        ))
     }
 }

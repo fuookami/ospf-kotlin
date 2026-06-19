@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.convertTo
 import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.quantities.quantity.times
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.functional.Order
 
 /** 二维矩形物料项 / 2D rectangle item
@@ -45,7 +46,7 @@ data class Projection2Need<V : FloatingNumber<V>>(
     val height: Quantity<V>
 ) {
     /** 面积 / Area */
-    val area: Quantity<V> get() = width * height
+    val area: Quantity<V> get() = quantityProduct(width, height)
 }
 
 /** 二维放置需求 / 2D placement need
@@ -93,7 +94,7 @@ data class Box2Need<V : FloatingNumber<V>>(
     /** 高度 / Height */
     val height: Quantity<V> get() = quantityMinus(maxY, minY).value!!
     /** 面积 / Area */
-    val area: Quantity<V> get() = width * height
+    val area: Quantity<V> get() = quantityProduct(width, height)
 
     /** 判断是否与另一盒体重叠 / Check whether this box overlaps with another */
     fun overlaps(rhs: Box2Need<V>): Boolean {
@@ -192,7 +193,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
     val placements: List<PlannedRectangle2<V>>
 ) {
     /** 板材面积 / Sheet area */
-    val sheetArea: Quantity<V> get() = sheet.width * sheet.height
+    val sheetArea: Quantity<V> get() = quantityProduct(sheet.width, sheet.height)
 
     /** 获取板材对应的盒体需求 / Get box need for the sheet */
     fun sheetBox2Need(): Box2Need<V> {
@@ -227,14 +228,8 @@ data class PackingScene2<V : FloatingNumber<V>>(
     }
 
     /** 计算板材利用率 / Compute sheet utilization ratio */
-    fun utilization(): V {
-        val used = usedArea().convertTo(sheetArea.unit)
-            ?: throw IllegalArgumentException("Cannot convert used area to sheet area unit.")
-        return used.value / sheetArea.value
-    }
-
-    /** 计算板材利用率（Safe） / Compute sheet utilization ratio (Safe) */
-    fun utilizationSafe(): Ret<V> {
+    /** 计算板材利用率 / Compute sheet utilization ratio */
+    fun utilization(): Ret<V> {
         val used = usedArea().convertTo(sheetArea.unit)
             ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert used area to sheet area unit.")
         return Ok(used.value / sheetArea.value)
@@ -287,6 +282,11 @@ private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantit
     val converted = rhs.convertTo(lhs.unit)
         ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert unit ${rhs.unit} to ${lhs.unit}.")
     return ok(Quantity(lhs.value - converted.value, lhs.unit))
+}
+
+/** 量值乘法 / Quantity multiplication */
+private fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
+    return Quantity(lhs.value * rhs.value, lhs.unit * rhs.unit)
 }
 
 /** 量值比较 / Quantity comparison */

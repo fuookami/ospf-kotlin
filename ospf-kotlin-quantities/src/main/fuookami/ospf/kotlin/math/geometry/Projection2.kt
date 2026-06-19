@@ -38,7 +38,7 @@ data class QuantityCircle2<V : FloatingNumber<V>>(
     val radius: Quantity<V>
 ) : QuantityProjection2<V> {
     /** 直径 / Diameter */
-    val diameter: Quantity<V> get() = quantityPlus(radius, radius)
+    val diameter: Quantity<V> get() = Quantity(radius.value + radius.value, radius.unit)
 
     /**
      * 计算面积
@@ -47,7 +47,7 @@ data class QuantityCircle2<V : FloatingNumber<V>>(
      * @param pi 圆周率值 / Pi value
      * @return 面积 / Area
      */
-    fun area(pi: V): Quantity<V> = (radius * radius) * pi
+    fun area(pi: V): Quantity<V> = quantityProduct(quantityProduct(radius, radius), pi)
 
     /**
      * 在原点创建包围盒
@@ -71,7 +71,7 @@ data class QuantityRectangle2<V : FloatingNumber<V>>(
     val height: Quantity<V>
 ) : QuantityProjection2<V> {
     /** 面积 / Area */
-    val area: Quantity<V> get() = width * height
+    val area: Quantity<V> get() = quantityProduct(width, height)
 
     /**
      * 获取沿指定轴的尺寸

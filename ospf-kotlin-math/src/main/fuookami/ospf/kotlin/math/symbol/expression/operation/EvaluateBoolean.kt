@@ -293,15 +293,19 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
             ScalarFunctionNames.Trim -> evaluateStringUnary(name, arguments) { it.trim() }
             ScalarFunctionNames.Length -> evaluateStringUnary(name, arguments) { it.length }
             ScalarFunctionNames.Coalesce -> evaluateCoalesce(arguments)
-            else -> throw IllegalArgumentException("Unsupported scalar function: $name")
+            else -> null
         }
     }
 
     /** 计算绝对值，支持多种数值类型 / Compute absolute value, supporting multiple numeric types */
     private fun evaluateAbs(arguments: List<Any?>): Any? {
-        require(arguments.size == 1) { "Function abs expects exactly one argument" }
+        if (arguments.size != 1) {
+            return null
+        }
         val value = arguments[0] ?: return null
-        require(value is Number) { "Function abs expects a numeric argument" }
+        if (value !is Number) {
+            return null
+        }
         return when (value) {
             is Byte -> abs(value.toInt())
             is Short -> abs(value.toInt())
@@ -311,7 +315,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
             is Double -> abs(value)
             is BigDecimal -> value.abs()
             is BigInteger -> value.abs()
-            else -> throw IllegalArgumentException("Function abs does not support numeric type: ${value::class.simpleName}")
+            else -> null
         }
     }
 
@@ -329,15 +333,21 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         arguments: List<Any?>,
         operation: (String) -> Any
     ): Any? {
-        require(arguments.size == 1) { "Function $name expects exactly one argument" }
+        if (arguments.size != 1) {
+            return null
+        }
         val value = arguments[0] ?: return null
-        require(value is String) { "Function $name expects a string argument" }
+        if (value !is String) {
+            return null
+        }
         return operation(value)
     }
 
     /** 返回参数列表中第一个非空值 / Return the first non-null value from the argument list */
     private fun evaluateCoalesce(arguments: List<Any?>): Any? {
-        require(arguments.isNotEmpty()) { "Function coalesce expects at least one argument" }
+        if (arguments.isEmpty()) {
+            return null
+        }
         return arguments.firstOrNull { it != null }
     }
 }

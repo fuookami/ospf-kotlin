@@ -635,8 +635,8 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
      */
-    fun plusTyped(rhs: T): TypedValueRange<T, LB, UB> {
-        return toSameKindRange(valueRange + rhs)
+    fun plusTyped(rhs: T): TypedValueRange<T, LB, UB>? {
+        return (valueRange + rhs)?.let { toSameKindRange(it) }
     }
 
     /**
@@ -646,7 +646,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
      */
-    operator fun plus(rhs: T): TypedValueRange<T, LB, UB> {
+    operator fun plus(rhs: T): TypedValueRange<T, LB, UB>? {
         return plusTyped(rhs)
     }
 
@@ -660,8 +660,8 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
      */
-    operator fun plus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T> {
-        return toDynamicRange(valueRange + rhs.valueRange)
+    operator fun plus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
+        return (valueRange + rhs.valueRange)?.let { toDynamicRange(it) }
     }
 
     /**
@@ -672,7 +672,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @return 相同类型标记的类型化值范围，戌null
      */
     fun plusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
-        return toKindRangeOrNull(valueRange + rhs.valueRange, lowerKind, upperKind)
+        return (valueRange + rhs.valueRange)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
     }
 
     /**
@@ -686,7 +686,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @return 最静态类型标记的类型化值范围，戌null
      */
     fun plusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
-        return toMostStaticKindRange(valueRange + rhs.valueRange)
+        return (valueRange + rhs.valueRange)?.let { toMostStaticKindRange(it) }
     }
 
     /**
@@ -696,8 +696,8 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
      */
-    fun minusTyped(rhs: T): TypedValueRange<T, LB, UB> {
-        return toSameKindRange(valueRange - rhs)
+    fun minusTyped(rhs: T): TypedValueRange<T, LB, UB>? {
+        return (valueRange - rhs)?.let { toSameKindRange(it) }
     }
 
     /**
@@ -707,7 +707,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
      */
-    operator fun minus(rhs: T): TypedValueRange<T, LB, UB> {
+    operator fun minus(rhs: T): TypedValueRange<T, LB, UB>? {
         return minusTyped(rhs)
     }
 
@@ -721,8 +721,8 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
      */
-    operator fun minus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T> {
-        return toDynamicRange(valueRange - rhs.valueRange)
+    operator fun minus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
+        return (valueRange - rhs.valueRange)?.let { toDynamicRange(it) }
     }
 
     /**
@@ -733,7 +733,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @return 相同类型标记的类型化值范围，戌null
      */
     fun minusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
-        return toKindRangeOrNull(valueRange - rhs.valueRange, lowerKind, upperKind)
+        return (valueRange - rhs.valueRange)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
     }
 
     /**
@@ -747,7 +747,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @return 最静态类型标记的类型化值范围，戌null
      */
     fun minusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
-        return toMostStaticKindRange(valueRange - rhs.valueRange)
+        return (valueRange - rhs.valueRange)?.let { toMostStaticKindRange(it) }
     }
 
     /**

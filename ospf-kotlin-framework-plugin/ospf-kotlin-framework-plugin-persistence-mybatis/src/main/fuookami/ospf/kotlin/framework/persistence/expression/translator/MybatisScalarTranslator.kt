@@ -7,6 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
@@ -58,14 +60,14 @@ class MybatisScalarTranslator(
      * @param expr 标量表达式 / Scalar expression
      * @return 参数化 SQL 片段，不支持时返回 null / Parameterized SQL fragment, or null if unsupported
      */
-    fun translate(expr: ScalarExpression<*>): MybatisScalarSql? {
+    fun translate(expr: ScalarExpression<*>): Ret<MybatisScalarSql?> {
         return when (expr) {
             is ScalarReference<*> -> {
                 val column = resolveColumnName(expr.path.value)
                     ?: return unsupported("Unresolved path: ${expr.path.value}")
-                MybatisScalarSql(column, isColumnOnly = true)
+                Ok(MybatisScalarSql(column, isColumnOnly = true))
             }
-            is ScalarConstant<*> -> MybatisScalarSql("{0}", listOf(MybatisValueConverter.convert(expr.value)), isColumnOnly = false)
+            is ScalarConstant<*> -> Ok(MybatisScalarSql("{0}", listOf(MybatisValueConverter.convert(expr.value)), isColumnOnly = false))
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
             is ScalarFunction<*> -> translateFunction(expr)
@@ -73,18 +75,18 @@ class MybatisScalarTranslator(
         }
     }
 
-    private fun translateUnary(expr: ScalarUnary<*>): MybatisScalarSql? {
-        val operand = translate(expr.operand) ?: return null
+    private fun translateUnary(expr: ScalarUnary<*>): Ret<MybatisScalarSql?> {
+        val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
-            UnaryOperator.Negate -> operand.copy(sql = "(-${operand.sql})", isColumnOnly = false)
-            UnaryOperator.Positive -> operand.copy(sql = "(+${operand.sql})", isColumnOnly = false)
+            UnaryOperator.Negate -> Ok(operand.copy(sql = "(-${operand.sql})", isColumnOnly = false))
+            UnaryOperator.Positive -> Ok(operand.copy(sql = "(+${operand.sql})", isColumnOnly = false))
             UnaryOperator.Abs -> unsupported("ABS unary scalar expression is not supported")
         }
     }
 
-    private fun translateBinary(expr: ScalarBinary<*>): MybatisScalarSql? {
-        val left = translate(expr.left) ?: return null
-        val right = translate(expr.right)?.shifted(left.params.size) ?: return null
+    private fun translateBinary(expr: ScalarBinary<*>): Ret<MybatisScalarSql?> {
+        val left = translate(expr.left).value ?: return Ok(null)
+        val right = translate(expr.right).value?.shifted(left.params.size) ?: return Ok(null)
         val operator = when (expr.operator) {
             BinaryOperator.Add -> "+"
             BinaryOperator.Subtract -> "-"
@@ -93,18 +95,18 @@ class MybatisScalarTranslator(
             BinaryOperator.Modulo -> "%"
             BinaryOperator.Power -> return unsupported("POWER scalar expression is not supported")
         }
-        return MybatisScalarSql(
+        return Ok(MybatisScalarSql(
             sql = "(${left.sql} $operator ${right.sql})",
             params = left.params + right.params,
             isColumnOnly = false
-        )
+        ))
     }
 
-    private fun translateFunction(expr: ScalarFunction<*>): MybatisScalarSql? {
+    private fun translateFunction(expr: ScalarFunction<*>): Ret<MybatisScalarSql?> {
         val arguments = mutableListOf<MybatisScalarSql>()
         var paramOffset = 0
         for (argument in expr.arguments) {
-            val translated = translate(argument)?.shifted(paramOffset) ?: return null
+            val translated = translate(argument).value?.shifted(paramOffset) ?: return Ok(null)
             paramOffset += translated.params.size
             arguments.add(translated)
         }
@@ -117,11 +119,11 @@ class MybatisScalarTranslator(
             ScalarFunctionNames.Length -> translateSqlFunction(expr.name, "LENGTH", arguments, expected = 1)
             ScalarFunctionNames.Coalesce -> {
                 if (arguments.isEmpty()) return unsupported("Function coalesce expects at least one argument")
-                MybatisScalarSql(
+                Ok(MybatisScalarSql(
                     sql = "COALESCE(${arguments.joinToString(", ") { it.sql }})",
                     params = arguments.flatMap { it.params },
                     isColumnOnly = false
-                )
+                ))
             }
             else -> unsupported("Unsupported scalar function: ${expr.name}")
         }
@@ -132,22 +134,23 @@ class MybatisScalarTranslator(
         sqlName: String,
         arguments: List<MybatisScalarSql>,
         expected: Int
-    ): MybatisScalarSql? {
+    ): Ret<MybatisScalarSql?> {
         if (arguments.size != expected) {
             return unsupported("Function $logicalName expects exactly $expected argument(s)")
         }
-        return MybatisScalarSql(
+        return Ok(MybatisScalarSql(
             sql = "$sqlName(${arguments.joinToString(", ") { it.sql }})",
             params = arguments.flatMap { it.params },
             isColumnOnly = false
-        )
+        ))
     }
 
-    private fun unsupported(reason: String): Nothing? {
-        when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(reason)
-            UnsupportedPredicatePolicy.AlwaysFalse -> return null
-            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+    private fun unsupported(reason: String): Ret<MybatisScalarSql?> {
+        return when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> Failed(ErrorCode.IllegalArgument, reason)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.ClientFilter -> Failed(
+                ErrorCode.IllegalArgument,
                 "ClientFilter is not implemented for unsupported predicate: $reason"
             )
         }

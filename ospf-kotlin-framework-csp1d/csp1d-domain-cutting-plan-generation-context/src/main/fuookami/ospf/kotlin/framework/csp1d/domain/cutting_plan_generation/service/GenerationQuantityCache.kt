@@ -53,7 +53,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
     private fun computeRepeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {
-            result = arithmetic.add(result, width)
+            result = arithmetic.addOrNull(result, width) ?: return result
         }
         return result
     }
@@ -65,7 +65,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
         var remaining = availableWidth
         var count = UInt64.zero
         while ((remaining.value partialOrd width.value) !is Order.Less) {
-            remaining = arithmetic.subtract(remaining, width)
+            remaining = arithmetic.subtractOrNull(remaining, width) ?: return count
             count = count + UInt64.one
         }
         return count

@@ -20,6 +20,8 @@ import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.LongSqlType
 import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
@@ -41,11 +43,12 @@ class KtormScalarTranslator(
      * @param expr 标量表达式 / Scalar expression
      * @return Ktorm 标量表达式，不支持时返回 null / Ktorm scalar expression, or null if unsupported
      */
-    fun translate(expr: ScalarExpression<*>): KtormScalarExpression<*>? {
+    fun translate(expr: ScalarExpression<*>): Ret<KtormScalarExpression<*>?> {
         return when (expr) {
             is ScalarReference<*> -> {
-                resolveColumn(expr.path.value)?.asExpression()
-                    ?: unsupported("Unresolved path: ${expr.path.value}")
+                val column = resolveColumn(expr.path.value)
+                    ?: return unsupported("Unresolved path: ${expr.path.value}")
+                Ok(column.asExpression())
             }
             is ScalarConstant<*> -> translateConstant(expr.value)
             is ScalarUnary<*> -> translateUnary(expr)
@@ -55,17 +58,17 @@ class KtormScalarTranslator(
         }
     }
 
-    private fun translateConstant(value: Any?): KtormScalarExpression<*>? {
+    private fun translateConstant(value: Any?): Ret<KtormScalarExpression<*>?> {
         if (value == null) {
             return unsupported("Null scalar constants are not supported in predicates")
         }
         @Suppress("UNCHECKED_CAST")
         val sqlType = inferSqlType(value) as SqlType<Any>
-        return ArgumentExpression(value, sqlType)
+        return Ok(ArgumentExpression(value, sqlType))
     }
 
-    private fun translateUnary(expr: ScalarUnary<*>): KtormScalarExpression<*>? {
-        val operand = translate(expr.operand) ?: return null
+    private fun translateUnary(expr: ScalarUnary<*>): Ret<KtormScalarExpression<*>?> {
+        val operand = translate(expr.operand).value ?: return Ok(null)
         val type = when (expr.operator) {
             UnaryOperator.Negate -> UnaryExpressionType.UNARY_MINUS
             UnaryOperator.Positive -> UnaryExpressionType.UNARY_PLUS
@@ -73,12 +76,12 @@ class KtormScalarTranslator(
         }
         @Suppress("UNCHECKED_CAST")
         val sqlType = operand.sqlType as SqlType<Any>
-        return UnaryExpression(type, operand, sqlType)
+        return Ok(UnaryExpression(type, operand, sqlType))
     }
 
-    private fun translateBinary(expr: ScalarBinary<*>): KtormScalarExpression<*>? {
-        val left = translate(expr.left) ?: return null
-        val right = translate(expr.right) ?: return null
+    private fun translateBinary(expr: ScalarBinary<*>): Ret<KtormScalarExpression<*>?> {
+        val left = translate(expr.left).value ?: return Ok(null)
+        val right = translate(expr.right).value ?: return Ok(null)
         val type = when (expr.operator) {
             BinaryOperator.Add -> BinaryExpressionType.PLUS
             BinaryOperator.Subtract -> BinaryExpressionType.MINUS
@@ -89,49 +92,49 @@ class KtormScalarTranslator(
         }
         @Suppress("UNCHECKED_CAST")
         val sqlType = left.sqlType as SqlType<Any>
-        return BinaryExpression(type, left, right, sqlType)
+        return Ok(BinaryExpression(type, left, right, sqlType))
     }
 
-    private fun translateFunction(expr: ScalarFunction<*>): KtormScalarExpression<*>? {
-        val arguments = expr.arguments.map { translate(it) ?: return null }
+    private fun translateFunction(expr: ScalarFunction<*>): Ret<KtormScalarExpression<*>?> {
+        val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
             ScalarFunctionNames.Abs -> {
                 if (arguments.size != 1) {
                     return unsupported("Function ${expr.name} expects exactly one argument")
                 }
                 @Suppress("UNCHECKED_CAST")
-                FunctionExpression("ABS", arguments, arguments[0].sqlType as SqlType<Any>)
+                Ok(FunctionExpression("ABS", arguments, arguments[0].sqlType as SqlType<Any>))
             }
             ScalarFunctionNames.Lower -> {
                 if (arguments.size != 1) {
                     return unsupported("Function ${expr.name} expects exactly one argument")
                 }
-                FunctionExpression("LOWER", arguments, VarcharSqlType)
+                Ok(FunctionExpression("LOWER", arguments, VarcharSqlType))
             }
             ScalarFunctionNames.Upper -> {
                 if (arguments.size != 1) {
                     return unsupported("Function ${expr.name} expects exactly one argument")
                 }
-                FunctionExpression("UPPER", arguments, VarcharSqlType)
+                Ok(FunctionExpression("UPPER", arguments, VarcharSqlType))
             }
             ScalarFunctionNames.Trim -> {
                 if (arguments.size != 1) {
                     return unsupported("Function ${expr.name} expects exactly one argument")
                 }
-                FunctionExpression("TRIM", arguments, VarcharSqlType)
+                Ok(FunctionExpression("TRIM", arguments, VarcharSqlType))
             }
             ScalarFunctionNames.Length -> {
                 if (arguments.size != 1) {
                     return unsupported("Function ${expr.name} expects exactly one argument")
                 }
-                FunctionExpression("LENGTH", arguments, IntSqlType)
+                Ok(FunctionExpression("LENGTH", arguments, IntSqlType))
             }
             ScalarFunctionNames.Coalesce -> {
                 if (arguments.isEmpty()) {
                     return unsupported("Function coalesce expects at least one argument")
                 }
                 @Suppress("UNCHECKED_CAST")
-                FunctionExpression("COALESCE", arguments, arguments[0].sqlType as SqlType<Any>)
+                Ok(FunctionExpression("COALESCE", arguments, arguments[0].sqlType as SqlType<Any>))
             }
             else -> unsupported("Unsupported scalar function: ${expr.name}")
         }
@@ -147,11 +150,12 @@ class KtormScalarTranslator(
         }
     }
 
-    private fun unsupported(reason: String): Nothing? {
-        when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(reason)
-            UnsupportedPredicatePolicy.AlwaysFalse -> return null
-            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+    private fun unsupported(reason: String): Ret<KtormScalarExpression<*>?> {
+        return when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> Failed(ErrorCode.IllegalArgument, reason)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.ClientFilter -> Failed(
+                ErrorCode.IllegalArgument,
                 "ClientFilter is not implemented for unsupported predicate: $reason"
             )
         }

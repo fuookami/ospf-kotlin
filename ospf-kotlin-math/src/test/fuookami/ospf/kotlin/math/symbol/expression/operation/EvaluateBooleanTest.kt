@@ -377,8 +377,8 @@ class EvaluateBooleanTest {
         }
 
         @Test
-        @DisplayName("Invalid function arguments fail explicitly / 非法函数参数明确失败")
-        fun testInvalidFunctionArgumentsFailExplicitly() {
+        @DisplayName("Invalid function arguments return Unknown / 非法函数参数返回 Unknown")
+        fun testInvalidFunctionArgumentsReturnUnknown() {
             val invalidAbs = Comparison(
                 ComparisonOperator.Eq,
                 ScalarFunction(ScalarFunctionNames.Abs, listOf(ScalarConstant("x"))),
@@ -395,15 +395,9 @@ class EvaluateBooleanTest {
                 ScalarConstant(1)
             )
 
-            assertThrows(IllegalArgumentException::class.java) {
-                invalidAbs.evaluateWith(emptyMap())
-            }
-            assertThrows(IllegalArgumentException::class.java) {
-                emptyCoalesce.evaluateWith(emptyMap())
-            }
-            assertThrows(IllegalArgumentException::class.java) {
-                unknown.evaluateWith(emptyMap())
-            }
+            assertEquals(Trivalent.Unknown, invalidAbs.evaluateWith(emptyMap()))
+            assertEquals(Trivalent.Unknown, emptyCoalesce.evaluateWith(emptyMap()))
+            assertEquals(Trivalent.Unknown, unknown.evaluateWith(emptyMap()))
         }
     }
 }

@@ -14,26 +14,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 并行查找第一个满足条件的元素
- *
- * Find the first element that satisfies the predicate in parallel.
- * 并发查找第一个满足条件的元素。
- *
- * @param T 元素类型 / Element type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param predicate 判断条件 / Predicate function
- * @return 第一个满足条件的元素 / First element satisfying the predicate
- * @throws NoSuchElementException 如果没有元素满足条件 / If no element satisfies the predicate
- */
-suspend inline fun <T> Iterable<T>.firstParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline predicate: SuspendPredicate<T>
-): T {
-    return firstOrNullParallelly(concurrentAmount, predicate)
-        ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
-}
-
-/**
  * 并行查找第一个满足条件的元素（带错误处理）
  *
  * Find the first element that satisfies the predicate in parallel with error handling.
@@ -177,27 +157,6 @@ suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
 // firstNotNullOf 系列
 // firstNotNullOf series
 // ============================================================================
-
-/**
- * 并行查找第一个非空转换结果
- *
- * Find the first non-null result from transforming elements in parallel.
- * 并发查找第一个非空的元素转换结果。
- *
- * @param R 结果类型 / Result type
- * @param T 元素类型 / Element type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param extractor 转换函数（可能返回空值）/ Extractor function (may return null)
- * @return 第一个非空转换结果 / First non-null result
- * @throws NoSuchElementException 如果没有非空结果 / If no non-null result found
- */
-suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline extractor: SuspendExtractor<R?, T>
-): R {
-    return firstNotNullOfOrNullParallelly(concurrentAmount, extractor)
-        ?: throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
-}
 
 /**
  * 并行查找第一个非空转换结果（带错误处理）
@@ -350,26 +309,6 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
 // ============================================================================
 
 /**
- * 并行查找最后一个满足条件的元素
- *
- * Find the last element that satisfies the predicate in parallel.
- * 并发查找最后一个满足条件的元素。
- *
- * @param T 元素类型 / Element type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param predicate 判断条件 / Predicate function
- * @return 最后一个满足条件的元素 / Last element satisfying the predicate
- * @throws NoSuchElementException 如果没有元素满足条件 / If no element satisfies the predicate
- */
-suspend inline fun <T> Iterable<T>.lastParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline predicate: SuspendPredicate<T>
-): T {
-    return lastOrNullParallelly(concurrentAmount, predicate)
-        ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
-}
-
-/**
  * 并行查找最后一个满足条件的元素（带错误处理）
  *
  * Find the last element that satisfies the predicate in parallel with error handling.
@@ -513,27 +452,6 @@ suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
 // lastNotNullOf 系列
 // lastNotNullOf series
 // ============================================================================
-
-/**
- * 并行查找最后一个非空转换结果
- *
- * Find the last non-null result from transforming elements in parallel.
- * 并发查找最后一个非空的元素转换结果。
- *
- * @param R 结果类型 / Result type
- * @param T 元素类型 / Element type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param extractor 转换函数（可能返回空值）/ Extractor function (may return null)
- * @return 最后一个非空转换结果 / Last non-null result
- * @throws NoSuchElementException 如果没有非空结果 / If no non-null result found
- */
-suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline extractor: SuspendExtractor<R?, T>
-): R {
-    return lastNotNullOfOrNullParallelly(concurrentAmount, extractor)
-        ?: throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
-}
 
 /**
  * 并行查找最后一个非空转换结果（带错误处理）

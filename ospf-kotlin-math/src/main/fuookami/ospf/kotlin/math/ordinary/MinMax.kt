@@ -9,8 +9,7 @@
  * 支持可变参数和集合操作：min(lhs, ...), max(lhs, ...), Iterable.minMax() 等。
  * minOf/maxOf/minMaxOf：支持通过提取器从复杂对象中提取值进行比较。
  * minMaxWith/minMaxWithOrNull：支持使用自定义比较器。
- * 边界情况：空集合调用 min()、max()、minMax() 抛出 NoSuchElementException，
- * 对应的 orNull 版本返回 null。
+ * 边界情况：空集合调用 minMax() 返回 Failed，对应的 OrNull 版本返回 null。
  * 要求类型实现 Ord 接口以支持比较操作（lt/leq/gt/geq）。
  *
  * Provides functionality for computing minimum, maximum, and both simultaneously for comparable types.
@@ -20,12 +19,13 @@
  * Supports variadic parameters and collection operations: min(lhs, ...), max(lhs, ...), Iterable.minMax().
  * minOf/maxOf/minMaxOf: supports extracting values from complex objects via extractor for comparison.
  * minMaxWith/minMaxWithOrNull: supports custom comparator usage.
- * Boundary cases: empty collection calls to min(), max(), minMax() throw NoSuchElementException,
- * corresponding orNull versions return null.
+ * Boundary cases: empty collection calls to minMax() return Failed,
+ * corresponding OrNull versions return null.
  * Requires type to implement Ord interface for comparison operations (lt/leq/gt/geq).
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -192,11 +192,11 @@ inline fun <T : Ord<T>, U> minMaxOf(
     return Pair(min, max)
 }
 
-/** 返回可迭代集合的最小值和最大值，空集合抛出异常 / Return min and max of iterable, throws on empty collection */
-fun <T : Ord<T>> Iterable<T>.minMax(): Pair<T, T> {
+/** 返回可迭代集合的最小值和最大值，空集合返回 Failed / Return min and max of iterable, Failed for empty collection */
+fun <T : Ord<T>> Iterable<T>.minMaxSafe(): Ret<Pair<T, T>> {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {
-        throw NoSuchElementException()
+        return Failed(ErrorCode.DataEmpty, "Cannot compute minMax of an empty collection.")
     }
 
     var min = iterator.next()
@@ -210,7 +210,12 @@ fun <T : Ord<T>> Iterable<T>.minMax(): Pair<T, T> {
             max = v
         }
     }
-    return Pair(min, max)
+    return Ok(Pair(min, max))
+}
+
+/** 返回可迭代集合的最小值和最大值，空集合返回 Failed / Return min and max of iterable, Failed for empty collection */
+fun <T : Ord<T>> Iterable<T>.minMax(): Ret<Pair<T, T>> {
+    return minMaxSafe()
 }
 
 /** 返回可迭代集合的最小值和最大值，空集合返回 null / Return min and max of iterable, null for empty collection */

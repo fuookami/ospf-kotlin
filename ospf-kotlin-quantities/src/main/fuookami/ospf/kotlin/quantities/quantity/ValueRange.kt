@@ -13,6 +13,7 @@ package fuookami.ospf.kotlin.quantities.quantity
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 获取值范围物理量的下界
@@ -62,8 +63,17 @@ val <V> Quantity<ValueRange<V>>.upperBound where V : RealNumber<V>, V : NumberFi
  * val diff = range.diff  // Quantity(Flt64(4.0), Meter)
  * ```
  */
-val <V> Quantity<ValueRange<V>>.diff where V : RealNumber<V>, V : NumberField<V>
-    get() = Quantity(value.diff, unit)
+val <V> Quantity<ValueRange<V>>.diffOrNull where V : RealNumber<V>, V : NumberField<V>
+    get() = value.diffOrNull?.let { Quantity(it, unit) }
+
+/**
+ * 获取值范围物理量的差值结果
+ * Get the difference result of a value range quantity
+ *
+ * @return 差值结果，失败时返回错误 / The difference result, or an error when unavailable
+ */
+val <V> Quantity<ValueRange<V>>.diff: Ret<Quantity<ValueWrapper<V>>> where V : RealNumber<V>, V : NumberField<V>
+    get() = value.diff.map { Quantity(it, unit) }
 
 /**
  * 获取边界物理量的边界值

@@ -15,6 +15,8 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.operator.Plus
 
@@ -38,27 +40,50 @@ fun <T> Iterable<T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
 
 /**
  * 对数组中所有元素求和。
- * 如果数组为空，抛出异常。
+ * 如果数组为空，返回 Failed。
  *
  * Sums all elements in an array.
- * Throws an exception if the array is empty.
+ * Returns Failed if the array is empty.
  *
- * @return 所有元素的和
- * @return The sum of all elements
- * @throws NoSuchElementException 如果数组为空
- * @throws NoSuchElementException If the array is empty
+ * @return 所有元素的和结果
+ * @return The sum result of all elements
  */
-fun <T> Array<out T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
+fun <T> Array<out T>.sumSafe(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
     if (isEmpty()) {
-        // Need to get zero from somewhere - this is a limitation / 需要从某处获取零值，这是一个限制
-        // Caller should use sumWithZero for empty arrays / 调用方应对空数组使用 sumWithZero
-        throw NoSuchElementException("Cannot compute sum of empty array without explicit zero.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute sum of empty array without explicit zero.")
+    }
+    var result = this[0].constants.zero
+    for (element in this) {
+        result += element
+    }
+    return Ok(result)
+}
+
+/**
+ * 对数组中所有元素求和，空数组返回 null。
+ * Sums all elements in an array, returning null for empty arrays.
+ *
+ * @return 所有元素的和或 null / The sum of all elements, or null
+ */
+fun <T> Array<out T>.sumOrNull(): T? where T : Plus<T, T>, T : Arithmetic<T> {
+    if (isEmpty()) {
+        return null
     }
     var result = this[0].constants.zero
     for (element in this) {
         result += element
     }
     return result
+}
+
+/**
+ * 对数组中所有元素求和。
+ * Sums all elements in an array.
+ *
+ * @return 所有元素的和结果 / The sum result of all elements
+ */
+fun <T> Array<out T>.sum(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
+    return sumSafe()
 }
 
 /**

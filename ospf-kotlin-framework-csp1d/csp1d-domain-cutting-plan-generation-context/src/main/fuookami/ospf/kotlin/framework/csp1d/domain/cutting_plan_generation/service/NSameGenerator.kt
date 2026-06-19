@@ -220,7 +220,7 @@ class NSameGenerator<V : RealNumber<V>>(
                             product = demand.product,
                             material = material
                         )
-                    )
+                    ).value ?: continue
 
                     val plan = CuttingPlan(
                         id = "nsame-${material.id}-${demand.product.id}-${planIndex.getAndIncrement()}",

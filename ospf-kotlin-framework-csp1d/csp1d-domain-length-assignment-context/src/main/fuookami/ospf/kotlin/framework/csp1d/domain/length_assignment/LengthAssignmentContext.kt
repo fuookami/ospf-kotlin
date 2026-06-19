@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -92,7 +92,7 @@ class LengthAssignmentContext<V : RealNumber<V>>(
      * @param input 长度分配输入 / Length assignment input
      * @return 长度分配结果 / Length assignment result
      */
-    fun assign(input: LengthAssignmentInput<V>): LengthAssignmentResult<V> {
+    fun assign(input: LengthAssignmentInput<V>): Ret<LengthAssignmentResult<V>> {
         val assignments = ArrayList<LengthAssignment<V>>()
         val overLengthRecords = ArrayList<OverLengthRecord<V>>()
 
@@ -109,7 +109,7 @@ class LengthAssignmentContext<V : RealNumber<V>>(
                 )
             )
 
-            // Check over-length constraint
+            // 检查超长约束 / Check over-length constraint
             val maxOverLength = product.maxOverProduceLength
             if (maxOverLength != null && maxOverLength.unit == assignedLength.unit) {
                 val comparison = assignedLength.value partialOrd maxOverLength.value
@@ -117,16 +117,22 @@ class LengthAssignmentContext<V : RealNumber<V>>(
                     overLengthRecords.add(
                         OverLengthRecord(
                             product = product,
-                            overLength = arithmetic.subtract(assignedLength, maxOverLength)
+                            overLength = when (val result = arithmetic.subtract(assignedLength, maxOverLength)) {
+                                is Ok -> result.value
+                                is Failed -> return Failed(result.error)
+                                is Fatal -> return Fatal(result.errors)
+                            }
                         )
                     )
                 }
             }
         }
 
-        return LengthAssignmentResult(
-            assignments = assignments,
-            overLengthRecords = overLengthRecords
+        return Ok(
+            LengthAssignmentResult(
+                assignments = assignments,
+                overLengthRecords = overLengthRecords
+            )
         )
     }
 }

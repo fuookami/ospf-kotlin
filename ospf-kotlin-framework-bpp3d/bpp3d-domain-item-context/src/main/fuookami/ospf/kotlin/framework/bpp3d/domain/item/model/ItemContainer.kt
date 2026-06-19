@@ -14,13 +14,13 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, F
     val items: List<QuantityPlacement3<Item, FltX>> get() = dump()
 
     val packageType: PackageType
-        get() = units.minOfWithThreeWayComparator({ lhs, rhs -> lhs ord rhs }) {
+        get() = units.minOfWithThreeWayComparatorOrNull({ lhs, rhs -> lhs ord rhs }) {
             when (val unit = it.unit) {
                 is Item -> unit.packageType
                 is ItemContainer<*> -> unit.packageType
                 else -> PackageType.CartonContainer
             }
-        }
+        } ?: PackageType.CartonContainer
     val packageCategory get() = packageType.category
 
     val bottomOnly: Boolean get() = bottomPlacements(units).any { (it.view as ItemView).bottomOnly }

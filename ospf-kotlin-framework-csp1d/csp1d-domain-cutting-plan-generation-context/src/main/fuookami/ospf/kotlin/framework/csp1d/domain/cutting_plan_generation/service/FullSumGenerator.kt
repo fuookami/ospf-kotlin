@@ -250,7 +250,7 @@ class FullSumGenerator<V : RealNumber<V>>(
             val currentSlices = stack.removeLast()
             val currentWidth = widthStack.removeLast()
             val currentIndex = indexStack.removeLast()
-            val remainingWidth = arithmetic.subtract(upperBound, currentWidth)
+            val remainingWidth = arithmetic.subtractOrNull(upperBound, currentWidth) ?: continue
             val currentCuts = currentSlices.fold(UInt64.zero) { acc, slice -> acc + slice.amount }
             val canAddKnife = maxKnifeCount == null || currentCuts < maxKnifeCount
             val noFittableRemainingEntry = !widthIndex.hasFittableFrom(
@@ -318,7 +318,11 @@ class FullSumGenerator<V : RealNumber<V>>(
             var amount = UInt64.one
             while (amount <= maxAmount) {
                 val addedWidth = quantityCache.repeatWidth(entry.width, amount)
-                val newWidth = arithmetic.add(currentWidth, addedWidth)
+                val newWidth = arithmetic.addOrNull(currentWidth, addedWidth)
+                if (newWidth == null) {
+                    amount += UInt64.one
+                    continue
+                }
 
                 // 幅宽剪枝 / Width pruning
                 if ((newWidth.value partialOrd upperBound.value) is Order.Greater) {
@@ -401,25 +405,26 @@ class FullSumGenerator<V : RealNumber<V>>(
         widthIndex: GenerationWidthIndex<V>,
         planId: String
     ): CuttingPlan<V> {
-        val contributions = slices.map { slice ->
+        val contributions = slices.mapNotNull { slice ->
             val product = slice.production as Product<V>
             val demandUnit = widthIndex.demandUnitFor(
                 product = product,
                 width = slice.width
             ) ?: slice.width.unit
+            val quantity = CuttingPlanDemandContribution.quantityOf(
+                product = product,
+                width = slice.width,
+                amount = slice.amount,
+                demandUnit = demandUnit,
+                arithmetic = arithmetic,
+                length = generationContributionLength(
+                    product = product,
+                    material = material
+                )
+            ).value ?: return@mapNotNull null
             CuttingPlanDemandContribution(
                 product = product,
-                quantity = CuttingPlanDemandContribution.quantityOf(
-                    product = product,
-                    width = slice.width,
-                    amount = slice.amount,
-                    demandUnit = demandUnit,
-                    arithmetic = arithmetic,
-                    length = generationContributionLength(
-                        product = product,
-                        material = material
-                    )
-                )
+                quantity = quantity
             )
         }
 

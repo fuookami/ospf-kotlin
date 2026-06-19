@@ -222,9 +222,9 @@ class GenericSolveTest {
             assertEquals(expectedObj, output.obj, "${converterCase.name}: solver-boundary obj mismatch")
             assertEquals(expectedPossibleBestObj, output.possibleBestObj, "${converterCase.name}: solver-boundary possibleBestObj mismatch")
             assertEquals(expectedBestBound, output.bestBound, "${converterCase.name}: solver-boundary bestBound mismatch")
-        assertEquals(expectedObjValue, output.objValue, "${converterCase.name}: objValue mismatch")
-        assertEquals(expectedPossibleBestObjValue, output.possibleBestObjValue, "${converterCase.name}: possibleBestObjValue mismatch")
-        assertEquals(expectedBestBoundValue, output.bestBoundValue, "${converterCase.name}: bestBoundValue mismatch")
+        assertEquals(expectedObjValue, output.objValueOrNull!!, "${converterCase.name}: objValue mismatch")
+        assertEquals(expectedPossibleBestObjValue, output.possibleBestObjValueOrNull!!, "${converterCase.name}: possibleBestObjValue mismatch")
+        assertEquals(expectedBestBoundValue, output.bestBoundValueOrNull!!, "${converterCase.name}: bestBoundValue mismatch")
     }
     private fun <V> assertPoolAndConverted(
         ret: Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>>,
@@ -259,9 +259,9 @@ class GenericSolveTest {
             assertEquals(expectedObj, primary.obj, "${converterCase.name}: pool solver-boundary obj mismatch")
             assertEquals(expectedPossibleBestObj, primary.possibleBestObj, "${converterCase.name}: pool solver-boundary possibleBestObj mismatch")
             assertEquals(expectedBestBound, primary.bestBound, "${converterCase.name}: pool solver-boundary bestBound mismatch")
-        assertEquals(expectedObjValue, primary.objValue, "${converterCase.name}: pool objValue mismatch")
-        assertEquals(expectedPossibleBestObjValue, primary.possibleBestObjValue, "${converterCase.name}: pool possibleBestObjValue mismatch")
-        assertEquals(expectedBestBoundValue, primary.bestBoundValue, "${converterCase.name}: pool bestBoundValue mismatch")
+        assertEquals(expectedObjValue, primary.objValueOrNull!!, "${converterCase.name}: pool objValue mismatch")
+        assertEquals(expectedPossibleBestObjValue, primary.possibleBestObjValueOrNull!!, "${converterCase.name}: pool possibleBestObjValue mismatch")
+        assertEquals(expectedBestBoundValue, primary.bestBoundValueOrNull!!, "${converterCase.name}: pool bestBoundValue mismatch")
 
         assertEquals(expectedPoolFlt64.size, pool.size, "${converterCase.name}: pool size mismatch")
         pool.withIndex().forEach { (rowIndex, row) ->

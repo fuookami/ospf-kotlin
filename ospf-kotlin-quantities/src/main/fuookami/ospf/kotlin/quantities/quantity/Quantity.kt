@@ -17,6 +17,7 @@
 package fuookami.ospf.kotlin.quantities.quantity
 
 import java.math.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -125,24 +126,24 @@ private fun <V, T> Quantity<V>.convertKnownValueType(
     return (this as Quantity<T>).convert(unit) as Quantity<V>?
 }
 
-/**
- * 抛出量纲不匹配异常
- * Throw dimension mismatch exception
- *
- * 内部方法，用于在运算时量纲不匹配时抛出异常。
- * Internal method for throwing exception when dimensions don't match during operations.
- *
- * @param lhs 左侧单位 / Left-hand unit
- * @param rhs 右侧单位 / Right-hand unit
- * @param operation 操作名称 / Operation name
- * @throws DimensionMismatchException 永远抛出 / Always throws
- */
-private fun throwDimensionMismatch(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): Nothing {
-    throw DimensionMismatchException(
-        expected = lhs.quantity.dimensionSymbol(),
-        actual = rhs.quantity.dimensionSymbol(),
-        operation = operation
-    )
+private fun quantityOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
+    return if (lhs.quantity != rhs.quantity) {
+        "物理量量纲不匹配，无法执行$operation：期望 ${lhs.quantity.dimensionSymbol()}，实际 ${rhs.quantity.dimensionSymbol()}。 / " +
+                "Quantity dimension mismatch for $operation: expected ${lhs.quantity.dimensionSymbol()}, got ${rhs.quantity.dimensionSymbol()}."
+    } else if (lhs.isAffine || rhs.isAffine) {
+        "仿射单位不支持此物理量$operation。 / Affine units are not supported for quantity $operation."
+    } else {
+        "物理量单位转换失败，无法执行$operation。 / Quantity unit conversion failed for $operation."
+    }
+}
+
+private fun <V> Quantity<V>.quantityBinarySafe(
+    other: Quantity<V>,
+    operation: String,
+    value: Quantity<V>?
+): Ret<Quantity<V>> {
+    return value?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, quantityOperationFailureMessage(this.unit, other.unit, operation))
 }
 
 private val affineFlt64Tolerance = Flt64(1e-10)
@@ -214,24 +215,39 @@ private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
     }
 }
 
-private fun requireNonAffineAddition(lhs: PhysicalUnit, rhs: PhysicalUnit) {
-    require(!lhs.isAffine && !rhs.isAffine) {
-        "Cannot add quantities with affine units as ordinary sums. Add a linear difference instead."
-    }
+private fun quantityAffineOperationFailureMessage(unit: PhysicalUnit, operation: String): String {
+    return "仿射单位不支持此物理量$operation：$unit。请使用线性差值单位。 / " +
+            "Affine unit is not supported for quantity $operation: $unit. Use a linear difference unit instead."
 }
 
-private fun requireNonAffineScalarOperation(unit: PhysicalUnit, operation: String) {
-    require(!unit.isAffine) {
-        "Cannot $operation quantity with affine unit '$unit'. Use a linear difference unit instead."
-    }
+private fun quantityAffineOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
+    return "仿射单位不支持此物理量$operation：$lhs 与 $rhs。请使用线性差值单位。 / " +
+            "Affine units are not supported for quantity $operation: $lhs and $rhs. Use linear difference units instead."
+}
+
+private fun <V> quantityUnarySafe(
+    unit: PhysicalUnit,
+    operation: String,
+    value: Quantity<V>?
+): Ret<Quantity<V>> {
+    return value?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, quantityAffineOperationFailureMessage(unit, operation))
+}
+
+private fun <V> quantityDimensionBinarySafe(
+    lhs: PhysicalUnit,
+    rhs: PhysicalUnit,
+    operation: String,
+    value: Quantity<V>?
+): Ret<Quantity<V>> {
+    return value?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, quantityAffineOperationFailureMessage(lhs, rhs, operation))
 }
 
 private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
-    require(!(this.unit.isAffine && other.unit.isAffine)) {
-        "Cannot add two affine temperature points. Add a linear temperature difference instead."
-    }
+    if (this.unit.isAffine && other.unit.isAffine) return null
 
     return if (this.unit.isAffine) {
         val delta = other.unit.convertLinearDifferenceValue(other.value.toFltX(), this.unit) ?: return null
@@ -245,9 +261,7 @@ private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quanti
 private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
-    require(!(this.unit.isAffine && other.unit.isAffine)) {
-        "Cannot add two affine temperature points. Add a linear temperature difference instead."
-    }
+    if (this.unit.isAffine && other.unit.isAffine) return null
 
     return if (this.unit.isAffine) {
         val delta = other.unit.convertLinearDifferenceValue(other.value, this.unit) ?: return null
@@ -271,9 +285,7 @@ private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quant
         val delta = other.unit.convertLinearDifferenceValue(other.value.toFltX(), this.unit) ?: return null
         Quantity(this.value - delta.toFlt64(), this.unit)
     } else {
-        throw IllegalArgumentException(
-            "Cannot subtract an affine temperature point from a linear difference."
-        )
+        null
     }
 }
 
@@ -290,9 +302,28 @@ private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity
         val delta = other.unit.convertLinearDifferenceValue(other.value, this.unit) ?: return null
         Quantity(this.value - delta, this.unit)
     } else {
-        throw IllegalArgumentException(
-            "Cannot subtract an affine temperature point from a linear difference."
-        )
+        null
+    }
+}
+
+private fun <V> Quantity<V>.linearQuantityBinaryOrNull(
+    other: Quantity<V>,
+    convert: Quantity<V>.(PhysicalUnit) -> Quantity<V>?,
+    combine: (V, V) -> V
+): Quantity<V>? {
+    if (this.unit.isAffine || other.unit.isAffine) return null
+    return if (this.unit == other.unit) {
+        Quantity(combine(this.value, other.value), this.unit)
+    } else if (this.unit.quantity == other.unit.quantity) {
+        if (this.unit.scale.value leq other.unit.scale.value) {
+            val converted = other.convert(this.unit) ?: return null
+            Quantity(combine(this.value, converted.value), this.unit)
+        } else {
+            val converted = this.convert(other.unit) ?: return null
+            Quantity(combine(converted.value, other.value), other.unit)
+        }
+    } else {
+        null
     }
 }
 
@@ -909,9 +940,9 @@ operator fun BigDecimal.times(unit: PhysicalUnit): Quantity<FltX> {
 
 // ============================================================================
 // 加法运算 / Addition operations
-// 同单位直接相加；同量纲异单位转换后相加；异量纲抛出异常
+// 同单位直接相加；同量纲异单位转换后相加；失败返回 null 或 Ret 失败
 // Same unit adds directly; same dimension different units converts then adds;
-// different dimensions throws exception
+// failures return null or Ret failure
 // ============================================================================
 
 /**
@@ -919,23 +950,35 @@ operator fun BigDecimal.times(unit: PhysicalUnit): Quantity<FltX> {
  * Addition for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
  */
 @JvmName("plusQuantityInt64")
-operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64> {
-    requireNonAffineAddition(this.unit, other.unit)
-    return if (this.unit == other.unit) {
-        Quantity(this.value + other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value + other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value + other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
-    }
+operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64>? {
+    return plusOrNull(other)
+}
+
+/**
+ * Int64 物理量的安全加法
+ * Safe addition for Int64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityInt64Safe")
+fun Quantity<Int64>.plusSafe(other: Quantity<Int64>): Ret<Quantity<Int64>> {
+    return quantityBinarySafe(other, "addition", plusOrNull(other))
+}
+
+/**
+ * Int64 物理量的可空加法
+ * Nullable addition for Int64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityInt64OrNull")
+fun Quantity<Int64>.plusOrNull(other: Quantity<Int64>): Quantity<Int64>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs + rhs }
 }
 
 /**
@@ -943,23 +986,35 @@ operator fun Quantity<Int64>.plus(other: Quantity<Int64>): Quantity<Int64> {
  * Addition for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
  */
 @JvmName("plusQuantityUInt64")
-operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64> {
-    requireNonAffineAddition(this.unit, other.unit)
-    return if (this.unit == other.unit) {
-        Quantity(this.value + other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value + other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value + other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
-    }
+operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64>? {
+    return plusOrNull(other)
+}
+
+/**
+ * UInt64 物理量的安全加法
+ * Safe addition for UInt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityUInt64Safe")
+fun Quantity<UInt64>.plusSafe(other: Quantity<UInt64>): Ret<Quantity<UInt64>> {
+    return quantityBinarySafe(other, "addition", plusOrNull(other))
+}
+
+/**
+ * UInt64 物理量的可空加法
+ * Nullable addition for UInt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityUInt64OrNull")
+fun Quantity<UInt64>.plusOrNull(other: Quantity<UInt64>): Quantity<UInt64>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs + rhs }
 }
 
 /**
@@ -967,23 +1022,35 @@ operator fun Quantity<UInt64>.plus(other: Quantity<UInt64>): Quantity<UInt64> {
  * Addition for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
  */
 @JvmName("plusQuantityIntX")
-operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX> {
-    requireNonAffineAddition(this.unit, other.unit)
-    return if (this.unit == other.unit) {
-        Quantity(this.value + other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value + other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value + other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
-    }
+operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX>? {
+    return plusOrNull(other)
+}
+
+/**
+ * IntX 物理量的安全加法
+ * Safe addition for IntX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityIntXSafe")
+fun Quantity<IntX>.plusSafe(other: Quantity<IntX>): Ret<Quantity<IntX>> {
+    return quantityBinarySafe(other, "addition", plusOrNull(other))
+}
+
+/**
+ * IntX 物理量的可空加法
+ * Nullable addition for IntX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityIntXOrNull")
+fun Quantity<IntX>.plusOrNull(other: Quantity<IntX>): Quantity<IntX>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs + rhs }
 }
 
 /**
@@ -991,24 +1058,39 @@ operator fun Quantity<IntX>.plus(other: Quantity<IntX>): Quantity<IntX> {
  * Addition for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
  */
 @JvmName("plusQuantityFlt64")
-operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
+operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64>? {
+    return plusOrNull(other)
+}
+
+/**
+ * Flt64 物理量的安全加法
+ * Safe addition for Flt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityFlt64Safe")
+fun Quantity<Flt64>.plusSafe(other: Quantity<Flt64>): Ret<Quantity<Flt64>> {
+    return quantityBinarySafe(other, "addition", plusOrNull(other))
+}
+
+/**
+ * Flt64 物理量的可空加法
+ * Nullable addition for Flt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityFlt64OrNull")
+fun Quantity<Flt64>.plusOrNull(other: Quantity<Flt64>): Quantity<Flt64>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (this.unit.isAffine || other.unit.isAffine) {
+        return plusAffineAwareFlt64(other)
     }
-    this.plusAffineAwareFlt64(other)?.let { return it }
-    return if (this.unit == other.unit) {
-        Quantity(this.value + other.value, this.unit)
-    } else {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value + other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value + other.value, other.unit)
-        }
-    }
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs + rhs }
 }
 
 /**
@@ -1016,24 +1098,39 @@ operator fun Quantity<Flt64>.plus(other: Quantity<Flt64>): Quantity<Flt64> {
  * Addition for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
  */
 @JvmName("plusQuantityFltX")
-operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throwDimensionMismatch(this.unit, other.unit, "addition")
+operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX>? {
+    return plusOrNull(other)
+}
+
+/**
+ * FltX 物理量的安全加法
+ * Safe addition for FltX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityFltXSafe")
+fun Quantity<FltX>.plusSafe(other: Quantity<FltX>): Ret<Quantity<FltX>> {
+    return quantityBinarySafe(other, "addition", plusOrNull(other))
+}
+
+/**
+ * FltX 物理量的可空加法
+ * Nullable addition for FltX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityFltXOrNull")
+fun Quantity<FltX>.plusOrNull(other: Quantity<FltX>): Quantity<FltX>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (this.unit.isAffine || other.unit.isAffine) {
+        return plusAffineAwareFltX(other)
     }
-    this.plusAffineAwareFltX(other)?.let { return it }
-    return if (this.unit == other.unit) {
-        Quantity(this.value + other.value, this.unit)
-    } else {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value + other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value + other.value, other.unit)
-        }
-    }
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs + rhs }
 }
 
 // ============================================================================
@@ -1045,25 +1142,35 @@ operator fun Quantity<FltX>.plus(other: Quantity<FltX>): Quantity<FltX> {
  * Subtraction for Int64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
  */
 @JvmName("minusQuantityInt64")
-operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64> {
-    require(!this.unit.isAffine && !other.unit.isAffine) {
-        "Cannot subtract integer quantities with affine units."
-    }
-    return if (this.unit == other.unit) {
-        Quantity(this.value - other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value - other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value - other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
-    }
+operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64>? {
+    return minusOrNull(other)
+}
+
+/**
+ * Int64 物理量的安全减法
+ * Safe subtraction for Int64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityInt64Safe")
+fun Quantity<Int64>.minusSafe(other: Quantity<Int64>): Ret<Quantity<Int64>> {
+    return quantityBinarySafe(other, "subtraction", minusOrNull(other))
+}
+
+/**
+ * Int64 物理量的可空减法
+ * Nullable subtraction for Int64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityInt64OrNull")
+fun Quantity<Int64>.minusOrNull(other: Quantity<Int64>): Quantity<Int64>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs - rhs }
 }
 
 /**
@@ -1071,25 +1178,35 @@ operator fun Quantity<Int64>.minus(other: Quantity<Int64>): Quantity<Int64> {
  * Subtraction for UInt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
  */
 @JvmName("minusQuantityUInt64")
-operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64> {
-    require(!this.unit.isAffine && !other.unit.isAffine) {
-        "Cannot subtract integer quantities with affine units."
-    }
-    return if (this.unit == other.unit) {
-        Quantity(this.value - other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value - other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value - other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
-    }
+operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64>? {
+    return minusOrNull(other)
+}
+
+/**
+ * UInt64 物理量的安全减法
+ * Safe subtraction for UInt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityUInt64Safe")
+fun Quantity<UInt64>.minusSafe(other: Quantity<UInt64>): Ret<Quantity<UInt64>> {
+    return quantityBinarySafe(other, "subtraction", minusOrNull(other))
+}
+
+/**
+ * UInt64 物理量的可空减法
+ * Nullable subtraction for UInt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityUInt64OrNull")
+fun Quantity<UInt64>.minusOrNull(other: Quantity<UInt64>): Quantity<UInt64>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs - rhs }
 }
 
 /**
@@ -1097,25 +1214,35 @@ operator fun Quantity<UInt64>.minus(other: Quantity<UInt64>): Quantity<UInt64> {
  * Subtraction for IntX quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
  */
 @JvmName("minusQuantityIntX")
-operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX> {
-    require(!this.unit.isAffine && !other.unit.isAffine) {
-        "Cannot subtract integer quantities with affine units."
-    }
-    return if (this.unit == other.unit) {
-        Quantity(this.value - other.value, this.unit)
-    } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value - other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value - other.value, other.unit)
-        }
-    } else {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
-    }
+operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX>? {
+    return minusOrNull(other)
+}
+
+/**
+ * IntX 物理量的安全减法
+ * Safe subtraction for IntX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityIntXSafe")
+fun Quantity<IntX>.minusSafe(other: Quantity<IntX>): Ret<Quantity<IntX>> {
+    return quantityBinarySafe(other, "subtraction", minusOrNull(other))
+}
+
+/**
+ * IntX 物理量的可空减法
+ * Nullable subtraction for IntX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityIntXOrNull")
+fun Quantity<IntX>.minusOrNull(other: Quantity<IntX>): Quantity<IntX>? {
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs - rhs }
 }
 
 /**
@@ -1123,24 +1250,39 @@ operator fun Quantity<IntX>.minus(other: Quantity<IntX>): Quantity<IntX> {
  * Subtraction for Flt64 quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
  */
 @JvmName("minusQuantityFlt64")
-operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
+operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64>? {
+    return minusOrNull(other)
+}
+
+/**
+ * Flt64 物理量的安全减法
+ * Safe subtraction for Flt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityFlt64Safe")
+fun Quantity<Flt64>.minusSafe(other: Quantity<Flt64>): Ret<Quantity<Flt64>> {
+    return quantityBinarySafe(other, "subtraction", minusOrNull(other))
+}
+
+/**
+ * Flt64 物理量的可空减法
+ * Nullable subtraction for Flt64 quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityFlt64OrNull")
+fun Quantity<Flt64>.minusOrNull(other: Quantity<Flt64>): Quantity<Flt64>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (this.unit.isAffine || other.unit.isAffine) {
+        return minusAffineAwareFlt64(other)
     }
-    this.minusAffineAwareFlt64(other)?.let { return it }
-    return if (this.unit == other.unit) {
-        Quantity(this.value - other.value, this.unit)
-    } else {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value - other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value - other.value, other.unit)
-        }
-    }
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs - rhs }
 }
 
 /**
@@ -1148,24 +1290,39 @@ operator fun Quantity<Flt64>.minus(other: Quantity<Flt64>): Quantity<Flt64> {
  * Subtraction for FltX quantities
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
  */
 @JvmName("minusQuantityFltX")
-operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throwDimensionMismatch(this.unit, other.unit, "subtraction")
+operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX>? {
+    return minusOrNull(other)
+}
+
+/**
+ * FltX 物理量的安全减法
+ * Safe subtraction for FltX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityFltXSafe")
+fun Quantity<FltX>.minusSafe(other: Quantity<FltX>): Ret<Quantity<FltX>> {
+    return quantityBinarySafe(other, "subtraction", minusOrNull(other))
+}
+
+/**
+ * FltX 物理量的可空减法
+ * Nullable subtraction for FltX quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityFltXOrNull")
+fun Quantity<FltX>.minusOrNull(other: Quantity<FltX>): Quantity<FltX>? {
+    if (this.unit.quantity != other.unit.quantity) return null
+    if (this.unit.isAffine || other.unit.isAffine) {
+        return minusAffineAwareFltX(other)
     }
-    this.minusAffineAwareFltX(other)?.let { return it }
-    return if (this.unit == other.unit) {
-        Quantity(this.value - other.value, this.unit)
-    } else {
-        if (this.unit.scale.value leq other.unit.scale.value) {
-            Quantity(this.value - other.to(this.unit)!!.value, this.unit)
-        } else {
-            Quantity(this.to(other.unit)!!.value - other.value, other.unit)
-        }
-    }
+    return linearQuantityBinaryOrNull(other, { unit -> to(unit) }) { lhs, rhs -> lhs - rhs }
 }
 
 // ============================================================================
@@ -1189,15 +1346,37 @@ operator fun Quantity<FltX>.minus(other: Quantity<FltX>): Quantity<FltX> {
  * ```
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相乘后的物理量 / Product quantity
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
  */
-operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
-    // 仿射单位不允许参与乘法运算
-    // Affine units cannot participate in multiplication
-    require(!this.unit.isAffine && !other.unit.isAffine) {
-        "Cannot multiply quantities with affine units (e.g., absolute temperature). " +
-        "Use temperature differences for multiplication."
-    }
+operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    return timesOrNull(other)
+}
+
+/**
+ * 物理量之间的安全乘法
+ * Safe multiplication between quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相乘后的物理量结果 / Product quantity result
+ */
+fun <V> Quantity<V>.timesSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V>, V : Times<V, V> {
+    return quantityDimensionBinarySafe(
+        lhs = this.unit,
+        rhs = other.unit,
+        operation = "multiplication",
+        value = timesOrNull(other)
+    )
+}
+
+/**
+ * 物理量之间的可空乘法
+ * Nullable multiplication between quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
+ */
+fun <V> Quantity<V>.timesOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    if (this.unit.isAffine || other.unit.isAffine) return null
     // 不同量纲相乘，产生新的量纲 / Different dimensions multiply to produce new dimension
     val newUnit = this.unit * other.unit
     return Quantity(this.value * other.value, newUnit)
@@ -1208,10 +1387,36 @@ operator fun <V> Quantity<V>.times(other: Quantity<V>): Quantity<V> where V : Ar
  * Multiplication between quantity and scalar
  *
  * @param other 标量值 / Scalar value
- * @return 相乘后的物理量 / Product quantity
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
  */
-operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
-    requireNonAffineScalarOperation(this.unit, "multiply")
+operator fun <V> Quantity<V>.times(other: V): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    return timesOrNull(other)
+}
+
+/**
+ * 物理量与标量的安全乘法
+ * Safe multiplication between quantity and scalar
+ *
+ * @param other 标量值 / Scalar value
+ * @return 相乘后的物理量结果 / Product quantity result
+ */
+fun <V> Quantity<V>.timesSafe(other: V): Ret<Quantity<V>> where V : Arithmetic<V>, V : Times<V, V> {
+    return quantityUnarySafe(
+        unit = this.unit,
+        operation = "multiplication",
+        value = timesOrNull(other)
+    )
+}
+
+/**
+ * 物理量与标量的可空乘法
+ * Nullable multiplication between quantity and scalar
+ *
+ * @param other 标量值 / Scalar value
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
+ */
+fun <V> Quantity<V>.timesOrNull(other: V): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    if (this.unit.isAffine) return null
     return Quantity(this.value * other, this.unit)
 }
 
@@ -1220,10 +1425,36 @@ operator fun <V> Quantity<V>.times(other: V): Quantity<V> where V : Arithmetic<V
  * Multiplication between scalar and quantity
  *
  * @param other 物理量 / Quantity
- * @return 相乘后的物理量 / Product quantity
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
  */
-operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Times<V, V> {
-    requireNonAffineScalarOperation(other.unit, "multiply")
+operator fun <V> V.times(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    return timesOrNull(other)
+}
+
+/**
+ * 标量与物理量的安全乘法
+ * Safe multiplication between scalar and quantity
+ *
+ * @param other 物理量 / Quantity
+ * @return 相乘后的物理量结果 / Product quantity result
+ */
+fun <V> V.timesSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V>, V : Times<V, V> {
+    return quantityUnarySafe(
+        unit = other.unit,
+        operation = "multiplication",
+        value = timesOrNull(other)
+    )
+}
+
+/**
+ * 标量与物理量的可空乘法
+ * Nullable multiplication between scalar and quantity
+ *
+ * @param other 物理量 / Quantity
+ * @return 相乘后的物理量，失败时返回 null / Product quantity, or null on failure
+ */
+fun <V> V.timesOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Times<V, V> {
+    if (other.unit.isAffine) return null
     return Quantity(this * other.value, other.unit)
 }
 
@@ -1248,15 +1479,37 @@ operator fun <V> V.times(other: Quantity<V>): Quantity<V> where V : Arithmetic<V
  * ```
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相除后的物理量 / Quotient quantity
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
  */
-operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
-    // 仿射单位不允许参与除法运算
-    // Affine units cannot participate in division
-    require(!this.unit.isAffine && !other.unit.isAffine) {
-        "Cannot divide quantities with affine units (e.g., absolute temperature). " +
-        "Use temperature differences for division."
-    }
+operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    return divOrNull(other)
+}
+
+/**
+ * 物理量之间的安全除法
+ * Safe division between quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相除后的物理量结果 / Quotient quantity result
+ */
+fun <V> Quantity<V>.divSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V>, V : Div<V, V> {
+    return quantityDimensionBinarySafe(
+        lhs = this.unit,
+        rhs = other.unit,
+        operation = "division",
+        value = divOrNull(other)
+    )
+}
+
+/**
+ * 物理量之间的可空除法
+ * Nullable division between quantities
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
+ */
+fun <V> Quantity<V>.divOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    if (this.unit.isAffine || other.unit.isAffine) return null
     // 不同量纲相除，产生新的量纲 / Different dimensions divide to produce new dimension
     val newUnit = this.unit / other.unit
     return Quantity(this.value / other.value, newUnit)
@@ -1267,10 +1520,36 @@ operator fun <V> Quantity<V>.div(other: Quantity<V>): Quantity<V> where V : Arit
  * Division between quantity and scalar
  *
  * @param other 标量值 / Scalar value
- * @return 相除后的物理量 / Quotient quantity
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
  */
-operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
-    requireNonAffineScalarOperation(this.unit, "divide")
+operator fun <V> Quantity<V>.div(other: V): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    return divOrNull(other)
+}
+
+/**
+ * 物理量与标量的安全除法
+ * Safe division between quantity and scalar
+ *
+ * @param other 标量值 / Scalar value
+ * @return 相除后的物理量结果 / Quotient quantity result
+ */
+fun <V> Quantity<V>.divSafe(other: V): Ret<Quantity<V>> where V : Arithmetic<V>, V : Div<V, V> {
+    return quantityUnarySafe(
+        unit = this.unit,
+        operation = "division",
+        value = divOrNull(other)
+    )
+}
+
+/**
+ * 物理量与标量的可空除法
+ * Nullable division between quantity and scalar
+ *
+ * @param other 标量值 / Scalar value
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
+ */
+fun <V> Quantity<V>.divOrNull(other: V): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    if (this.unit.isAffine) return null
     return Quantity(this.value / other, this.unit)
 }
 
@@ -1282,10 +1561,39 @@ operator fun <V> Quantity<V>.div(other: V): Quantity<V> where V : Arithmetic<V>,
  * Result quantity's unit is the reciprocal of the original unit.
  *
  * @param other 物理量 / Quantity
- * @return 相除后的物理量 / Quotient quantity
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
  */
-operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>, V : Div<V, V> {
-    requireNonAffineScalarOperation(other.unit, "divide")
+operator fun <V> V.div(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    return divOrNull(other)
+}
+
+/**
+ * 标量与物理量的安全除法
+ * Safe division between scalar and quantity
+ *
+ * @param other 物理量 / Quantity
+ * @return 相除后的物理量结果 / Quotient quantity result
+ */
+fun <V> V.divSafe(other: Quantity<V>): Ret<Quantity<V>> where V : Arithmetic<V>, V : Div<V, V> {
+    return quantityUnarySafe(
+        unit = other.unit,
+        operation = "division",
+        value = divOrNull(other)
+    )
+}
+
+/**
+ * 标量与物理量的可空除法
+ * Nullable division between scalar and quantity
+ *
+ * 结果物理量的单位为原单位的倒数。
+ * Result quantity's unit is the reciprocal of the original unit.
+ *
+ * @param other 物理量 / Quantity
+ * @return 相除后的物理量，失败时返回 null / Quotient quantity, or null on failure
+ */
+fun <V> V.divOrNull(other: Quantity<V>): Quantity<V>? where V : Arithmetic<V>, V : Div<V, V> {
+    if (other.unit.isAffine) return null
     return Quantity(this / other.value, other.unit.reciprocal())
 }
 
@@ -1297,10 +1605,34 @@ operator fun <V> V.div(other: Quantity<V>): Quantity<V> where V : Arithmetic<V>,
  * 物理量的负号运算
  * Negation of quantity
  *
- * @return 负值物理量 / Negated quantity
+ * @return 负值物理量，失败时返回 null / Negated quantity, or null on failure
  */
-operator fun <V> Quantity<V>.unaryMinus(): Quantity<V> where V : Arithmetic<V>, V : Neg<V> {
-    requireNonAffineScalarOperation(this.unit, "negate")
+operator fun <V> Quantity<V>.unaryMinus(): Quantity<V>? where V : Arithmetic<V>, V : Neg<V> {
+    return unaryMinusOrNull()
+}
+
+/**
+ * 物理量的安全负号运算
+ * Safe negation of quantity
+ *
+ * @return 负值物理量结果 / Negated quantity result
+ */
+fun <V> Quantity<V>.unaryMinusSafe(): Ret<Quantity<V>> where V : Arithmetic<V>, V : Neg<V> {
+    return quantityUnarySafe(
+        unit = this.unit,
+        operation = "negation",
+        value = unaryMinusOrNull()
+    )
+}
+
+/**
+ * 物理量的可空负号运算
+ * Nullable negation of quantity
+ *
+ * @return 负值物理量，失败时返回 null / Negated quantity, or null on failure
+ */
+fun <V> Quantity<V>.unaryMinusOrNull(): Quantity<V>? where V : Arithmetic<V>, V : Neg<V> {
+    if (this.unit.isAffine) return null
     return Quantity(-this.value, this.unit)
 }
 

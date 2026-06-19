@@ -269,8 +269,8 @@ class BendersSolverValueConversionTest {
         val feasible = output as FeasibleSolverOutput<*>
         assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
         assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), feasible.objValue as Flt64)
-        assertEquals(Flt64(12.0), feasible.possibleBestObjValue as Flt64)
+        assertEquals(Flt64(13.0), feasible.objValueOrNull!! as Flt64)
+        assertEquals(Flt64(12.0), feasible.possibleBestObjValueOrNull!! as Flt64)
     }
 
     @Test
@@ -305,8 +305,8 @@ class BendersSolverValueConversionTest {
         val output = (result as Ok).value as FeasibleSolverOutput<*>
         assertEquals(Flt64(6.0), output.solution[0] as Flt64)
         assertEquals(Flt64(8.0), output.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), output.objValue as Flt64)
-        assertEquals(Flt64(12.0), output.possibleBestObjValue as Flt64)
+        assertEquals(Flt64(13.0), output.objValueOrNull!! as Flt64)
+        assertEquals(Flt64(12.0), output.possibleBestObjValueOrNull!! as Flt64)
     }
 
     @Test
@@ -373,8 +373,8 @@ class BendersSolverValueConversionTest {
         val feasible = output as FeasibleSolverOutput<*>
         assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
         assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), feasible.objValue as Flt64)
-        assertEquals(Flt64(12.0), feasible.possibleBestObjValue as Flt64)
+        assertEquals(Flt64(13.0), feasible.objValueOrNull!! as Flt64)
+        assertEquals(Flt64(12.0), feasible.possibleBestObjValueOrNull!! as Flt64)
     }
 
     @Test
@@ -409,8 +409,8 @@ class BendersSolverValueConversionTest {
         val output = (result as Ok).value as FeasibleSolverOutput<*>
         assertEquals(Flt64(6.0), output.solution[0] as Flt64)
         assertEquals(Flt64(8.0), output.solution[1] as Flt64)
-        assertEquals(Flt64(13.0), output.objValue as Flt64)
-        assertEquals(Flt64(12.0), output.possibleBestObjValue as Flt64)
+        assertEquals(Flt64(13.0), output.objValueOrNull!! as Flt64)
+        assertEquals(Flt64(12.0), output.possibleBestObjValueOrNull!! as Flt64)
     }
 
     @Test

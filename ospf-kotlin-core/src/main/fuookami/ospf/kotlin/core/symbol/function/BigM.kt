@@ -2,6 +2,8 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.symbol.function
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
@@ -519,7 +521,7 @@ fun <V> simpleIndicatorConstraints(
     strictBoundary: V,
     namePrefix: String,
     sideVar: AbstractVariableItem<*, *>? = null
-): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<List<LinearInequality<V>>> where V : RealNumber<V>, V : NumberField<V> {
     val zero = ineq.lhs.constant - ineq.lhs.constant
     val constraints = mutableListOf<LinearInequality<V>>()
     val diffMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
@@ -560,11 +562,11 @@ fun <V> simpleIndicatorConstraints(
             )
         }
         Comparison.LT, Comparison.GT, Comparison.NE -> {
-            throw UnsupportedOperationException("Indicator constraints not supported for ${ineq.comparison}")
+            return Failed(ErrorCode.ApplicationError, "Indicator constraints not supported for ${ineq.comparison}")
         }
     }
 
-    return constraints
+    return Ok(constraints)
 }
 
 internal fun <V> repeatAdd(

@@ -68,7 +68,7 @@ class CostarFiller<V : RealNumber<V>>(
             val amountLimit = maxAmount.coerceAtMost(UInt64(2UL))
             for (amount in UInt64.one..amountLimit) {
                 val totalCostarWidth = repeatWidth(costarWidth, amount)
-                val newRemaining = arithmetic.subtract(remainingWidth, totalCostarWidth)
+                val newRemaining = arithmetic.subtractOrNull(remainingWidth, totalCostarWidth) ?: continue
 
                 currentSlices.add(
                     CuttingPlanSlice(
@@ -120,7 +120,7 @@ class CostarFiller<V : RealNumber<V>>(
         var count = UInt64.zero
         var w = remainingWidth
         while (w.value partialOrd costarWidth.value !is Order.Less) {
-            w = arithmetic.subtract(w, costarWidth)
+            w = arithmetic.subtractOrNull(w, costarWidth) ?: return count
             count = count + UInt64.one
         }
         return count
@@ -129,7 +129,7 @@ class CostarFiller<V : RealNumber<V>>(
     private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {
-            result = arithmetic.add(result, width)
+            result = arithmetic.addOrNull(result, width) ?: return result
         }
         return result
     }

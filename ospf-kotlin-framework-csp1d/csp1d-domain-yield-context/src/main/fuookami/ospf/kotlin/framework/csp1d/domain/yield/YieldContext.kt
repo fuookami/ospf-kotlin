@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -26,8 +26,12 @@ class YieldContext<V : RealNumber<V>>(
     fun analyze(
         produce: Produce<V>,
         demands: List<ProductDemand<V>>
-    ): YieldAnalysis<V> {
-        val contributionByKey = aggregateContributions(produce)
+    ): Ret<YieldAnalysis<V>> {
+        val contributionByKey = when (val result = aggregateContributions(produce)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val underProductions = ArrayList<UnderProduction<V>>()
         val overProductions = ArrayList<OverProduction<V>>()
         val outputs = ArrayList<ProductOutput<V>>()
@@ -35,7 +39,11 @@ class YieldContext<V : RealNumber<V>>(
         for (demand in demands) {
             val key = DemandAggregationKey<V>(demand.product.id, demand.quantity.unit)
             val contributions = contributionByKey[key] ?: emptyList()
-            val totalOutput = sumContributions(contributions)
+            val totalOutput = when (val result = sumContributions(contributions)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             if (totalOutput == null) {
                 underProductions.add(
                     UnderProduction(
@@ -60,7 +68,11 @@ class YieldContext<V : RealNumber<V>>(
                     underProductions.add(
                         UnderProduction(
                             demand = demand,
-                            shortfall = arithmetic.subtract(demand.quantity, totalOutput)
+                            shortfall = when (val result = arithmetic.subtract(demand.quantity, totalOutput)) {
+                                is Ok -> result.value
+                                is Failed -> return Failed(result.error)
+                                is Fatal -> return Fatal(result.errors)
+                            }
                         )
                     )
                 }
@@ -69,60 +81,82 @@ class YieldContext<V : RealNumber<V>>(
                     overProductions.add(
                         OverProduction(
                             demand = demand,
-                            surplus = arithmetic.subtract(totalOutput, demand.quantity)
+                            surplus = when (val result = arithmetic.subtract(totalOutput, demand.quantity)) {
+                                is Ok -> result.value
+                                is Failed -> return Failed(result.error)
+                                is Fatal -> return Fatal(result.errors)
+                            }
                         )
                     )
                 }
 
                 else -> {
-                    // Equal: no deviation
+                    // 相等：无偏差 / Equal: no deviation
                 }
             }
         }
 
-        return YieldAnalysis(
-            underProductions = underProductions,
-            overProductions = overProductions,
-            outputs = outputs
+        return Ok(
+            YieldAnalysis(
+                underProductions = underProductions,
+                overProductions = overProductions,
+                outputs = outputs
+            )
         )
     }
 
     private fun aggregateContributions(
         produce: Produce<V>
-    ): Map<DemandAggregationKey<V>, List<CuttingPlanDemandContribution<V>>> {
+    ): Ret<Map<DemandAggregationKey<V>, List<CuttingPlanDemandContribution<V>>>> {
         val map = LinkedHashMap<DemandAggregationKey<V>, MutableList<CuttingPlanDemandContribution<V>>>()
         for (usage in produce.cuttingPlans) {
             for (contribution in usage.plan.demandContributions) {
-                val multiplied = multiplyContribution(contribution, usage.amount)
+                val multiplied = when (val result = multiplyContribution(contribution, usage.amount)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
                 val key = DemandAggregationKey<V>(contribution.product.id, multiplied.quantity.unit)
                 map.getOrPut(key) { ArrayList() }.add(multiplied)
             }
         }
-        return map
+        return Ok(map)
     }
 
     private fun multiplyContribution(
         contribution: CuttingPlanDemandContribution<V>,
         times: UInt64
-    ): CuttingPlanDemandContribution<V> {
+    ): Ret<CuttingPlanDemandContribution<V>> {
         var total = Quantity(contribution.quantity.value.constants.zero, contribution.quantity.unit)
         var count = UInt64.zero
         while (count < times) {
-            total = arithmetic.add(total, contribution.quantity)
+            total = when (val result = arithmetic.add(total, contribution.quantity)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             count += UInt64.one
         }
-        return CuttingPlanDemandContribution(
-            product = contribution.product,
-            quantity = total
+        return Ok(
+            CuttingPlanDemandContribution(
+                product = contribution.product,
+                quantity = total
+            )
         )
     }
 
     private fun sumContributions(
         contributions: List<CuttingPlanDemandContribution<V>>
-    ): Quantity<V>? {
-        if (contributions.isEmpty()) return null
-        return contributions.fold(Quantity(contributions.first().quantity.value.constants.zero, contributions.first().quantity.unit)) { acc, c ->
-            arithmetic.add(acc, c.quantity)
+    ): Ret<Quantity<V>?> {
+        if (contributions.isEmpty()) return Ok(null)
+        var total = Quantity(contributions.first().quantity.value.constants.zero, contributions.first().quantity.unit)
+        for (contribution in contributions) {
+            total = when (val result = arithmetic.add(total, contribution.quantity)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
+        return Ok(total)
     }
 }

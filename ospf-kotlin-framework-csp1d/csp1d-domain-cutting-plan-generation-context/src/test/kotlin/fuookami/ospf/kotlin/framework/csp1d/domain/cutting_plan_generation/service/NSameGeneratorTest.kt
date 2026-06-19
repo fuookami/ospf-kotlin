@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -10,7 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class NSameGeneratorTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+    private val arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
         return Product(

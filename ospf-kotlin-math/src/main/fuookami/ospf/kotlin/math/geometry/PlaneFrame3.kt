@@ -7,6 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
@@ -82,16 +87,28 @@ data class PlaneFrame3(
         require(firstAxis != secondAxis) { "firstAxis and secondAxis must be different." }
     }
 
-    /** 法向轴 / The normal axis */
-    val normalAxis: Axis3
+    /** 法向轴，非法坐标框架返回 null / The normal axis, or null for an invalid frame */
+    val normalAxisOrNull: Axis3?
         get() {
             return when {
                 (firstAxis == Axis3.X && secondAxis == Axis3.Y) || (firstAxis == Axis3.Y && secondAxis == Axis3.X) -> Axis3.Z
                 (firstAxis == Axis3.X && secondAxis == Axis3.Z) || (firstAxis == Axis3.Z && secondAxis == Axis3.X) -> Axis3.Y
                 (firstAxis == Axis3.Y && secondAxis == Axis3.Z) || (firstAxis == Axis3.Z && secondAxis == Axis3.Y) -> Axis3.X
-                else -> throw IllegalArgumentException("Unsupported axis frame: $firstAxis, $secondAxis")
+                else -> null
             }
         }
+
+    /**
+     * 获取法向轴
+     * Get the normal axis.
+     *
+     * @return 法向轴或失败原因 / The normal axis or failure reason
+     */
+    fun normalAxis(): Ret<Axis3> {
+        return normalAxisOrNull
+            ?.let { Ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "Unsupported axis frame: $firstAxis, $secondAxis")
+    }
 
     /**
      * 计算点到平面的距离
@@ -99,9 +116,15 @@ data class PlaneFrame3(
      *
      * @param V 数值类型 / The numeric type
      * @param point 三维空间点 / The 3D space point
-     * @return 点到平面的距离 / The distance from the point to the plane
+     * @return 点到平面的距离或失败原因 / The distance from the point to the plane or failure reason
      */
-    fun <V : FloatingNumber<V>> distance(point: PlanePoint3<V>): V = point.along(normalAxis)
+    fun <V : FloatingNumber<V>> distance(point: PlanePoint3<V>): Ret<V> {
+        return when (val axis = normalAxis()) {
+            is Ok -> Ok(point.along(axis.value))
+            is Failed -> Failed(axis.error)
+            is Fatal -> Fatal(axis.errors)
+        }
+    }
 
     /**
      * 将三维点投影到平面二维坐标
@@ -162,14 +185,18 @@ data class PlaneFrame3(
      *
      * @param V 数值类型 / The numeric type
      * @param distance 法向距离值 / The normal distance value
-     * @return 法向量 / The normal vector
+     * @return 法向量或失败原因 / The normal vector or failure reason
      */
-    fun <V : FloatingNumber<V>> vector(distance: V): PlaneVector3<V> {
+    fun <V : FloatingNumber<V>> vector(distance: V): Ret<PlaneVector3<V>> {
         val zero = quantityZeroOf(distance)
-        return when (normalAxis) {
-            Axis3.X -> PlaneVector3(x = distance, y = zero, z = zero)
-            Axis3.Y -> PlaneVector3(x = zero, y = distance, z = zero)
-            Axis3.Z -> PlaneVector3(x = zero, y = zero, z = distance)
+        return when (val axis = normalAxis()) {
+            is Ok -> when (axis.value) {
+                Axis3.X -> Ok(PlaneVector3(x = distance, y = zero, z = zero))
+                Axis3.Y -> Ok(PlaneVector3(x = zero, y = distance, z = zero))
+                Axis3.Z -> Ok(PlaneVector3(x = zero, y = zero, z = distance))
+            }
+            is Failed -> Failed(axis.error)
+            is Fatal -> Fatal(axis.errors)
         }
     }
 

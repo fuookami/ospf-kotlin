@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
-import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
@@ -22,6 +22,27 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 // ============================================================================
 // Generic parsing
 // ============================================================================
+
+/**
+ * 捕获解析边界外异常并转换为解析失败
+ * Catch boundary exceptions and convert them into parse failures
+ *
+ * @param input 原始输入字符串 / Original input string
+ * @param block 解析代码块 / Parsing block
+ * @return 解析结果 / Parse result
+ */
+private inline fun <T> parseSafely(
+    input: String,
+    crossinline block: () -> ParseResult<T>
+): ParseResult<T> {
+    return try {
+        block()
+    } catch (error: IllegalArgumentException) {
+        parseConversionFailed(input, error.message ?: "Conversion failed.")
+    } catch (error: Exception) {
+        parseUnknownFailed(input, error)
+    }
+}
 
 /**
  * 解析字符串为规范多项式（泛型类型版本）
@@ -44,10 +65,41 @@ fun <T> parseCanonical(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<T> where T : Ring<T> {
-    val tokens = PolynomialLexer(input).lex()
-    val parser = DirectPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
-    return parser.parsePolynomial().toCanonicalPolynomial(zero, isZero, symbolComparator)
+): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
+    return parseSafely(input) {
+        PolynomialLexer(input).lex().andThen { tokens ->
+            DirectPolynomialParser(input, tokens, numberParser, zero, one, symbolOf, isZero)
+                .parsePolynomial()
+                .map { it.toCanonicalPolynomial(zero, isZero, symbolComparator) }
+        }
+    }
+}
+
+/**
+ * 解析字符串为线性多项式
+ * Parses a string into a linear polynomial
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 线性多项式解析结果 / Linear polynomial parse result
+ */
+fun <T> parseLinear(
+    input: String,
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero }
+): ParseResult<LinearPolynomial<T>> where T : Ring<T> {
+    return parseLinearOrNull(input, numberParser, zero, one, symbolOf, isZero).andThen { polynomial ->
+        polynomial
+            ?.let { Ok(it) }
+            ?: parseConversionFailed(input, "Expression is not linear polynomial.")
+    }
 }
 
 /**
@@ -69,8 +121,39 @@ fun <T> parseLinearOrNull(
     one: T,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
-): LinearPolynomial<T>? where T : Ring<T> {
-    return parseCanonical(input, numberParser, zero, one, symbolOf, isZero).toLinearPolynomialOrNull(zero, isZero)
+): ParseResult<LinearPolynomial<T>?> where T : Ring<T> {
+    return parseCanonical(input, numberParser, zero, one, symbolOf, isZero)
+        .map { it.toLinearPolynomialOrNull(zero, isZero) }
+}
+
+/**
+ * 解析字符串为二次多项式
+ * Parses a string into a quadratic polynomial
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
+ * @return 二次多项式解析结果 / Quadratic polynomial parse result
+ */
+fun <T> parseQuadratic(
+    input: String,
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): ParseResult<QuadraticPolynomial<T>> where T : Ring<T> {
+    return parseQuadraticOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
+        .andThen { polynomial ->
+            polynomial
+                ?.let { Ok(it) }
+                ?: parseConversionFailed(input, "Expression is not quadratic polynomial.")
+        }
 }
 
 /**
@@ -94,9 +177,36 @@ fun <T> parseQuadraticOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<T>? where T : Ring<T> {
+): ParseResult<QuadraticPolynomial<T>?> where T : Ring<T> {
     return parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
-        .toQuadraticPolynomialOrNull(zero, isZero, symbolComparator)
+        .map { it.toQuadraticPolynomialOrNull(zero, isZero, symbolComparator) }
+}
+
+/**
+ * 解析字符串为线性不等式
+ * Parses a string into a linear inequality
+ *
+ * @param input 输入字符串 / Input string
+ * @param numberParser 数值解析器 / Number parser
+ * @param zero 类型零值 / Zero value of the type
+ * @param one 类型单位值 / One value of the type
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @param isZero 零值判断函数 / Zero-check function
+ * @return 线性不等式解析结果 / Linear inequality parse result
+ */
+fun <T> parseLinearInequality(
+    input: String,
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero }
+): ParseResult<LinearInequality<T>> where T : Ring<T> {
+    return parseLinearInequalityOrNull(input, numberParser, zero, one, symbolOf, isZero).andThen { inequality ->
+        inequality
+            ?.let { Ok(it) }
+            ?: parseConversionFailed(input, "Inequality is not linear.")
+    }
 }
 
 /**
@@ -118,13 +228,20 @@ fun <T> parseLinearInequalityOrNull(
     one: T,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
-): LinearInequality<T>? where T : Ring<T> {
-    val tokens = PolynomialLexer(input).lex()
-    val parser = DirectPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
-    val parsed = parser.parseInequality()
-    val lhs = parsed.lhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
-    val rhs = parsed.rhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
-    return LinearInequality(lhs = lhs, rhs = rhs, comparison = parsed.comparison)
+): ParseResult<LinearInequality<T>?> where T : Ring<T> {
+    return parseSafely(input) {
+        PolynomialLexer(input).lex().andThen { tokens ->
+            DirectPolynomialParser(input, tokens, numberParser, zero, one, symbolOf, isZero)
+                .parseInequality()
+                .map { parsed ->
+                    val lhs = parsed.lhs.toCanonicalPolynomial(zero, isZero)
+                        .toLinearPolynomialOrNull(zero, isZero) ?: return@map null
+                    val rhs = parsed.rhs.toCanonicalPolynomial(zero, isZero)
+                        .toLinearPolynomialOrNull(zero, isZero) ?: return@map null
+                    LinearInequality(lhs = lhs, rhs = rhs, comparison = parsed.comparison)
+                }
+        }
+    }
 }
 
 // ============================================================================
@@ -148,6 +265,7 @@ private data class ParsedInequality<T>(
 )
 
 private class DirectPolynomialParser<T>(
+    private val input: String,
     private val tokens: List<PolynomialToken>,
     private val numberParser: NumberParser<T>,
     private val zero: T,
@@ -157,87 +275,130 @@ private class DirectPolynomialParser<T>(
 ) where T : Ring<T> {
     private var position: Int = 0
 
-    fun parsePolynomial(): ParsedPolynomial<T> {
-        val result = parseExpression()
-        expect(PolynomialTokenType.End)
-        return result
+    fun parsePolynomial(): ParseResult<ParsedPolynomial<T>> {
+        return parseExpression().andThen { result ->
+            expect(PolynomialTokenType.End).map { result }
+        }
     }
 
-    fun parseInequality(): ParsedInequality<T> {
-        val lhs = parseExpression()
-        val comparisonToken = current()
-        val comparison = when (comparisonToken.type) {
-            PolynomialTokenType.Less -> Comparison.LT
-            PolynomialTokenType.LessEqual -> Comparison.LE
-            PolynomialTokenType.Equal -> Comparison.EQ
-            PolynomialTokenType.NotEqual -> Comparison.NE
-            PolynomialTokenType.GreaterEqual -> Comparison.GE
-            PolynomialTokenType.Greater -> Comparison.GT
-            else -> throw DirectParseError("Expected comparison operator", comparisonToken.position)
+    fun parseInequality(): ParseResult<ParsedInequality<T>> {
+        return parseExpression().andThen { lhs ->
+            val comparisonToken = current()
+            val comparison = when (comparisonToken.type) {
+                PolynomialTokenType.Less -> Comparison.LT
+                PolynomialTokenType.LessEqual -> Comparison.LE
+                PolynomialTokenType.Equal -> Comparison.EQ
+                PolynomialTokenType.NotEqual -> Comparison.NE
+                PolynomialTokenType.GreaterEqual -> Comparison.GE
+                PolynomialTokenType.Greater -> Comparison.GT
+                else -> return@andThen parseSyntaxFailed(
+                    input = input,
+                    message = "Expected comparison operator",
+                    position = comparisonToken.position
+                )
+            }
+            advance()
+            parseExpression().andThen { rhs ->
+                expect(PolynomialTokenType.End).map {
+                    ParsedInequality(lhs = lhs, rhs = rhs, comparison = comparison)
+                }
+            }
         }
-        advance()
-        val rhs = parseExpression()
-        expect(PolynomialTokenType.End)
-        return ParsedInequality(lhs = lhs, rhs = rhs, comparison = comparison)
     }
 
     /** 解析加减法表达式 / Parse an addition/subtraction expression */
-    private fun parseExpression(): ParsedPolynomial<T> {
-        var result = parseTerm()
+    private fun parseExpression(): ParseResult<ParsedPolynomial<T>> {
+        var result = when (val parsed = parseTerm()) {
+            is Ok -> parsed.value
+            is Failed -> return Failed(parsed.error)
+            is Fatal -> return Fatal(parsed.errors)
+        }
         while (true) {
             val token = current()
             when (token.type) {
                 PolynomialTokenType.Plus -> {
                     advance()
-                    val right = parseTerm()
+                    val right = when (val parsed = parseTerm()) {
+                        is Ok -> parsed.value
+                        is Failed -> return Failed(parsed.error)
+                        is Fatal -> return Fatal(parsed.errors)
+                    }
                     result = addParsed(result, right)
                 }
 
                 PolynomialTokenType.Minus -> {
                     advance()
-                    val right = parseTerm()
+                    val right = when (val parsed = parseTerm()) {
+                        is Ok -> parsed.value
+                        is Failed -> return Failed(parsed.error)
+                        is Fatal -> return Fatal(parsed.errors)
+                    }
                     result = subtractParsed(result, right)
                 }
 
                 else -> break
             }
         }
-        return result
+        return Ok(result)
     }
 
     /** 解析乘法项 / Parse a multiplication term */
-    private fun parseTerm(): ParsedPolynomial<T> {
-        var result = parsePower()
+    private fun parseTerm(): ParseResult<ParsedPolynomial<T>> {
+        var result = when (val parsed = parsePower()) {
+            is Ok -> parsed.value
+            is Failed -> return Failed(parsed.error)
+            is Fatal -> return Fatal(parsed.errors)
+        }
         while (true) {
             val token = current()
             when (token.type) {
                 PolynomialTokenType.Star -> {
                     advance()
-                    val right = parsePower()
+                    val right = when (val parsed = parsePower()) {
+                        is Ok -> parsed.value
+                        is Failed -> return Failed(parsed.error)
+                        is Fatal -> return Fatal(parsed.errors)
+                    }
                     result = multiplyParsed(result, right, isZero)
                 }
 
                 else -> break
             }
         }
-        return result
+        return Ok(result)
     }
 
     /** 解析幂运算 / Parse a power expression */
-    private fun parsePower(): ParsedPolynomial<T> {
-        var result = parseFactor()
+    private fun parsePower(): ParseResult<ParsedPolynomial<T>> {
+        var result = when (val parsed = parseFactor()) {
+            is Ok -> parsed.value
+            is Failed -> return Failed(parsed.error)
+            is Fatal -> return Fatal(parsed.errors)
+        }
         val token = current()
         if (token.type == PolynomialTokenType.Caret) {
             advance()
             val exponentToken = current()
             if (exponentToken.type != PolynomialTokenType.Number) {
-                throw DirectParseError("Expected integer exponent after '^'", exponentToken.position)
+                return parseSyntaxFailed(
+                    input = input,
+                    message = "Expected integer exponent after '^'",
+                    position = exponentToken.position
+                )
             }
             advance()
             val exponent = exponentToken.text.toIntOrNull()
-                ?: throw DirectParseError("Exponent must be an integer", exponentToken.position)
+                ?: return parseSyntaxFailed(
+                    input = input,
+                    message = "Exponent must be an integer",
+                    position = exponentToken.position
+                )
             if (exponent < 0) {
-                throw DirectParseError("Negative exponent is not supported", exponentToken.position)
+                return parseSemanticFailed(
+                    input = input,
+                    message = "Negative exponent is not supported",
+                    position = exponentToken.position
+                )
             }
             var powered = ParsedPolynomial<T>(emptyList(), one)
             repeat(exponent) {
@@ -245,43 +406,56 @@ private class DirectPolynomialParser<T>(
             }
             result = powered
         }
-        return result
+        return Ok(result)
     }
 
     /** 解析因子（数字、标识符、括号表达式或取反） / Parse a factor (number, identifier, parenthesized expression, or negation) */
-    private fun parseFactor(): ParsedPolynomial<T> {
+    private fun parseFactor(): ParseResult<ParsedPolynomial<T>> {
         val token = current()
         return when (token.type) {
             PolynomialTokenType.Minus -> {
                 advance()
-                val operand = parseFactor()
-                negateParsed(operand)
+                parseFactor().map { negateParsed(it) }
             }
 
             PolynomialTokenType.Number -> {
                 advance()
                 val value = numberParser.parse(token.text)
-                    ?: throw DirectParseError("Invalid number '${token.text}' for target type", token.position)
-                ParsedPolynomial(emptyList(), value)
+                    ?: return parseLexicalFailed(
+                        input = input,
+                        message = "Invalid number '${token.text}' for target type",
+                        position = token.position
+                    )
+                Ok(ParsedPolynomial(emptyList(), value))
             }
 
             PolynomialTokenType.Identifier -> {
                 advance()
-                val symbol = symbolOf(token.text)
-                ParsedPolynomial(
-                    terms = listOf(ParsedTerm(one, mapOf(symbol to Int32.one))),
-                    constant = zero
+                val symbol = try {
+                    symbolOf(token.text)
+                } catch (error: Exception) {
+                    return parseUnknownFailed(input, error)
+                }
+                Ok(
+                    ParsedPolynomial(
+                        terms = listOf(ParsedTerm(one, mapOf(symbol to Int32.one))),
+                        constant = zero
+                    )
                 )
             }
 
             PolynomialTokenType.LeftParen -> {
                 advance()
-                val inner = parseExpression()
-                expect(PolynomialTokenType.RightParen)
-                inner
+                parseExpression().andThen { inner ->
+                    expect(PolynomialTokenType.RightParen).map { inner }
+                }
             }
 
-            else -> throw DirectParseError("Unexpected token '${token.text}'", token.position)
+            else -> parseSyntaxFailed(
+                input = input,
+                message = "Unexpected token '${token.text}'",
+                position = token.position
+            )
         }
     }
 
@@ -294,17 +468,23 @@ private class DirectPolynomialParser<T>(
     }
 
     /**
-     * 期望当前词法单元为指定类型，匹配则前进，否则抛出异常
-     * Expect the current token to be of the given type; advance on match, throw on mismatch
+     * 期望当前词法单元为指定类型，匹配则前进
+     * Expect the current token to be of the given type; advance on match
      *
      * @param type 期望的词法单元类型 / Expected token type
+     * @return 匹配结果 / Match result
      */
-    private fun expect(type: PolynomialTokenType) {
+    private fun expect(type: PolynomialTokenType): ParseResult<Unit> {
         val token = current()
         if (token.type != type) {
-            throw DirectParseError("Expected ${type.name}, got '${token.text}'", token.position)
+            return parseSyntaxFailed(
+                input = input,
+                message = "Expected ${type.name}, got '${token.text}'",
+                position = token.position
+            )
         }
         advance()
+        return Ok(Unit)
     }
 }
 
@@ -398,201 +578,3 @@ private fun <T> ParsedPolynomial<T>.toCanonicalPolynomial(
         .combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
 }
 
-// ============================================================================
-// Ret-wrapped parsing API (generic)
-// ============================================================================
-
-/**
- * 根据解析错误信息判断问题类型（词法或语法）
- * Determine the issue type (lexical or syntax) from a parse error
- *
- * @param error 解析错误 / Parse error
- * @return 问题类型 / Issue type
- */
-private fun parseIssueTypeOf(error: DirectParseError): ParseIssueType {
-    val message = error.message.orEmpty()
-    return if (message.startsWith("Unexpected") || message.startsWith("Invalid number")) {
-        ParseIssueType.Lexical
-    } else {
-        ParseIssueType.Syntax
-    }
-}
-
-/**
- * 将解析错误转换为解析问题对象
- * Convert a parse error into a parse issue object
- *
- * @param error 解析错误 / Parse error
- * @param input 原始输入字符串 / Original input string
- * @return 解析问题 / Parse issue
- */
-private fun parseIssueOf(error: DirectParseError, input: String): ParseIssue {
-    val normalizedMessage = error.message?.removeSuffix(" at position ${error.position}") ?: "Parse error."
-    return ParseIssue(
-        type = parseIssueTypeOf(error),
-        message = normalizedMessage,
-        input = input,
-        position = error.position
-    )
-}
-
-/**
- * 构造解析失败结果 / Construct a failed parse result
- *
- * @param issue 解析问题 / Parse issue
- * @return 失败的解析结果 / Failed parse result
- */
-private fun <T> parseFailed(issue: ParseIssue): ParseResult<T> {
-    return Failed(ErrorCode.IllegalArgument, issue)
-}
-
-/**
- * 构造转换失败的解析结果 / Construct a conversion-failed parse result
- *
- * @param input 原始输入字符串 / Original input string
- * @param message 错误信息 / Error message
- * @return 失败的解析结果 / Failed parse result
- */
-private fun <T> parseConversionFailed(input: String, message: String): ParseResult<T> {
-    return parseFailed(
-        ParseIssue(
-            type = ParseIssueType.Conversion,
-            message = message,
-            input = input
-        )
-    )
-}
-
-/**
- * 将解析操作包装为 Ret 安全结果，捕获各类异常
- * Wrap a parsing block into a Ret-safe result, catching various exceptions
- *
- * @param input 原始输入字符串 / Original input string
- * @param block 解析操作块 / Parsing block
- * @return 包装后的解析结果 / Wrapped parse result
- */
-private inline fun <T> wrapRet(
-    input: String,
-    crossinline block: () -> T
-): ParseResult<T> {
-    return try {
-        Ok(block())
-    } catch (error: DirectParseError) {
-        parseFailed(parseIssueOf(error, input))
-    } catch (error: IllegalArgumentException) {
-        parseConversionFailed(input, error.message ?: "Conversion failed.")
-    } catch (error: Exception) {
-        parseFailed(
-            ParseIssue(
-                type = ParseIssueType.Unknown,
-                message = error.message ?: "Unexpected error.",
-                input = input
-            )
-        )
-    }
-}
-
-/**
- * 解析字符串为规范多项式，返回 Ret 包装结果
- * Parses a string into a canonical polynomial, returning a Ret-wrapped result
- *
- * @param input 输入字符串 / Input string
- * @param numberParser 数值解析器 / Number parser
- * @param zero 类型零值 / Zero value of the type
- * @param one 类型单位值 / One value of the type
- * @param symbolOf 符号解析函数 / Symbol resolution function
- * @param isZero 零值判断函数 / Zero-check function
- * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
- * @return 包装了规范多项式的解析结果 / Parse result wrapping a canonical polynomial
- */
-fun <T> parseCanonicalRet(
-    input: String,
-    numberParser: NumberParser<T>,
-    zero: T,
-    one: T,
-    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
-    isZero: (T) -> Boolean = { it == zero },
-    symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
-    return wrapRet(input) { parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator) }
-}
-
-/**
- * 解析字符串为线性多项式，返回 Ret 包装结果
- * Parses a string into a linear polynomial, returning a Ret-wrapped result
- *
- * @param input 输入字符串 / Input string
- * @param numberParser 数值解析器 / Number parser
- * @param zero 类型零值 / Zero value of the type
- * @param one 类型单位值 / One value of the type
- * @param symbolOf 符号解析函数 / Symbol resolution function
- * @param isZero 零值判断函数 / Zero-check function
- * @return 包装了线性多项式的解析结果 / Parse result wrapping a linear polynomial
- */
-fun <T> parseLinearRetOrNull(
-    input: String,
-    numberParser: NumberParser<T>,
-    zero: T,
-    one: T,
-    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
-    isZero: (T) -> Boolean = { it == zero }
-): ParseResult<LinearPolynomial<T>> where T : Ring<T> {
-    return wrapRet(input) {
-        parseLinearOrNull(input, numberParser, zero, one, symbolOf, isZero)
-            ?: throw IllegalArgumentException("Expression is not linear polynomial.")
-    }
-}
-
-/**
- * 解析字符串为线性不等式，返回 Ret 包装结果
- * Parses a string into a linear inequality, returning a Ret-wrapped result
- *
- * @param input 输入字符串 / Input string
- * @param numberParser 数值解析器 / Number parser
- * @param zero 类型零值 / Zero value of the type
- * @param one 类型单位值 / One value of the type
- * @param symbolOf 符号解析函数 / Symbol resolution function
- * @param isZero 零值判断函数 / Zero-check function
- * @return 包装了线性不等式的解析结果 / Parse result wrapping a linear inequality
- */
-fun <T> parseLinearInequalityRetOrNull(
-    input: String,
-    numberParser: NumberParser<T>,
-    zero: T,
-    one: T,
-    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
-    isZero: (T) -> Boolean = { it == zero }
-): ParseResult<LinearInequality<T>> where T : Ring<T> {
-    return wrapRet(input) {
-        parseLinearInequalityOrNull(input, numberParser, zero, one, symbolOf, isZero)
-            ?: throw IllegalArgumentException("Inequality is not linear.")
-    }
-}
-
-/**
- * 解析字符串为二次多项式，返回 Ret 包装结果
- * Parses a string into a quadratic polynomial, returning a Ret-wrapped result
- *
- * @param input 输入字符串 / Input string
- * @param numberParser 数值解析器 / Number parser
- * @param zero 类型零值 / Zero value of the type
- * @param one 类型单位值 / One value of the type
- * @param symbolOf 符号解析函数 / Symbol resolution function
- * @param isZero 零值判断函数 / Zero-check function
- * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
- * @return 包装了二次多项式的解析结果 / Parse result wrapping a quadratic polynomial
- */
-fun <T> parseQuadraticRetOrNull(
-    input: String,
-    numberParser: NumberParser<T>,
-    zero: T,
-    one: T,
-    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
-    isZero: (T) -> Boolean = { it == zero },
-    symbolComparator: Comparator<Symbol>? = null
-): ParseResult<QuadraticPolynomial<T>> where T : Ring<T> {
-    return wrapRet(input) {
-        parseQuadraticOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
-            ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
-    }
-}

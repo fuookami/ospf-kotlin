@@ -38,15 +38,15 @@ class KtormScalarTranslatorTest {
     @DisplayName("should translate reference constant and arithmetic / 应翻译引用常量与算术表达式")
     fun shouldTranslateReferenceConstantAndArithmetic() {
         val translator = KtormScalarTranslator(resolver)
-        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price")))
-        val constant = translator.translate(ScalarConstant(100))
+        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price"))).value
+        val constant = translator.translate(ScalarConstant(100)).value
         val arithmetic = translator.translate(
             ScalarBinary(
                 BinaryOperator.Multiply,
                 ScalarReference<Int>(PropertyPath.parse("price")),
                 ScalarReference(PropertyPath.parse("quantity"))
             )
-        ) as BinaryExpression<*>
+        ).value as BinaryExpression<*>
 
         assertNotNull(reference)
         assertTrueArgument(constant)
@@ -59,7 +59,7 @@ class KtormScalarTranslatorTest {
         val alwaysFalseTranslator = KtormScalarTranslator(resolver)
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
 
-        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))))
+        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))).value)
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(ScalarCustom<Int>("x"))
         }
@@ -74,13 +74,13 @@ class KtormScalarTranslatorTest {
                 ScalarFunctionNames.Abs,
                 listOf(ScalarReference<Int>(PropertyPath.parse("price")))
             )
-        ) as FunctionExpression<*>
+        ).value as FunctionExpression<*>
         val lowerExpr = translator.translate(
             ScalarFunction(
                 ScalarFunctionNames.Lower,
                 listOf(ScalarConstant("ABC"))
             )
-        ) as FunctionExpression<*>
+        ).value as FunctionExpression<*>
 
         assertEquals("ABS", absExpr.functionName)
         assertEquals("LOWER", lowerExpr.functionName)
@@ -93,7 +93,7 @@ class KtormScalarTranslatorTest {
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
 
-        assertNull(alwaysFalseTranslator.translate(unknown))
+        assertNull(alwaysFalseTranslator.translate(unknown).value)
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(unknown)
         }

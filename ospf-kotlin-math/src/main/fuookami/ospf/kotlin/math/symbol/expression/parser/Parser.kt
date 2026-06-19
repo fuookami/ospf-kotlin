@@ -21,91 +21,117 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
-import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.Trivalent
-
-/**
- * 解析异常
- * Parse Exception
- *
- * @param message 异常消息 / Exception message
- * @param position 错误位置（输入中的索引），默认 -1 表示未知 / Error position (index in input), -1 if unknown
- */
-class ParseException(message: String, val position: Int = -1) : Exception(message)
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 布尔表达式解析器
  * Boolean Expression Parser
  *
- * @param tokens 词法单元列表 / List of tokens
+ * @property tokens 词法单元列表 / List of tokens
  */
 class Parser(private val tokens: List<Token>) {
     private var position = 0
 
     /**
      * 解析布尔表达式
-     * Parse boolean expression
+     * Parse boolean expression.
      *
-     * @return 解析后的布尔表达式 AST / Parsed boolean expression AST
-     * @throws ParseException 解析失败时 / When parsing fails
+     * @return 解析后的布尔表达式 AST 或失败原因 / Parsed boolean expression AST or failure reason
      */
-    fun parse(): BooleanExpression {
+    fun parse(): Ret<BooleanExpression> {
         if (tokens.isEmpty() || (tokens.size == 1 && tokens[0].type == TokenType.EOF)) {
-            throw ParseException("Empty expression")
+            return parseFailed("Empty expression")
         }
 
-        val expr = parseOrExpression()
+        val expr = when (val result = parseOrExpression()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         if (currentToken().type != TokenType.EOF) {
-            throw ParseException("Unexpected token: ${currentToken().value}", currentToken().position)
+            return parseFailed(
+                message = "Unexpected token: ${currentToken().value}",
+                position = currentToken().position
+            )
         }
 
-        return expr
+        return Ok(expr)
     }
 
     // ========== 解析方法 / Parse Methods ==========
+
+    /** 构建解析失败结果 / Build a parse failure result */
+    private fun <T> parseFailed(message: String, position: Int = -1): Ret<T> {
+        return Failed(ErrorCode.IllegalArgument, "$message at position $position")
+    }
 
     /**
      * 解析 or 表达式（最低优先级）
      * Parse or expression (lowest precedence)
      */
-    private fun parseOrExpression(): BooleanExpression {
-        var left = parseAndExpression()
+    private fun parseOrExpression(): Ret<BooleanExpression> {
+        var left = when (val result = parseAndExpression()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         while (currentToken().type == TokenType.OR) {
             advance()
-            val right = parseAndExpression()
+            val right = when (val result = parseAndExpression()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             left = mergeOr(left, right)
         }
 
-        return left
+        return Ok(left)
     }
 
     /**
      * 解析 and 表达式
      * Parse and expression
      */
-    private fun parseAndExpression(): BooleanExpression {
-        var left = parseNotExpression()
+    private fun parseAndExpression(): Ret<BooleanExpression> {
+        var left = when (val result = parseNotExpression()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         while (currentToken().type == TokenType.AND) {
             advance()
-            val right = parseNotExpression()
+            val right = when (val result = parseNotExpression()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             left = mergeAnd(left, right)
         }
 
-        return left
+        return Ok(left)
     }
 
     /**
      * 解析 not 表达式
      * Parse not expression
      */
-    private fun parseNotExpression(): BooleanExpression {
+    private fun parseNotExpression(): Ret<BooleanExpression> {
         if (currentToken().type == TokenType.NOT) {
             advance()
-            val operand = parseNotExpression()
-            return NotExpression(operand)
+            return when (val operand = parseNotExpression()) {
+                is Ok -> Ok(NotExpression(operand.value))
+                is Failed -> Failed(operand.error)
+                is Fatal -> Fatal(operand.errors)
+            }
         }
 
         return parsePrimaryExpression()
@@ -115,33 +141,37 @@ class Parser(private val tokens: List<Token>) {
      * 解析基本表达式
      * Parse primary expression
      */
-    private fun parsePrimaryExpression(): BooleanExpression {
+    private fun parsePrimaryExpression(): Ret<BooleanExpression> {
         return when (currentToken().type) {
-            // 括号分组 / Parentheses grouping
             TokenType.LPAREN -> {
                 advance()
-                val expr = parseOrExpression()
-                expect(TokenType.RPAREN, "Expected ')'")
-                expr
+                val expr = when (val result = parseOrExpression()) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                when (val result = expect(TokenType.RPAREN, "Expected ')'")) {
+                    is Ok -> Ok(expr)
+                    is Failed -> Failed(result.error)
+                    is Fatal -> Fatal(result.errors)
+                }
             }
 
-            // 布尔常量 / Boolean constants
             TokenType.TRUE -> {
                 advance()
-                BooleanConstant(Trivalent.True)
+                Ok(BooleanConstant(Trivalent.True))
             }
+
             TokenType.FALSE -> {
                 advance()
-                BooleanConstant(Trivalent.False)
+                Ok(BooleanConstant(Trivalent.False))
             }
 
-            // 标识符或路径（可能是比较、in、is null 等）
-            // Identifier or path (may be comparison, in, is null, etc.)
             TokenType.IDENTIFIER -> parsePathExpression()
 
-            else -> throw ParseException(
-                "Unexpected token: ${currentToken().value}",
-                currentToken().position
+            else -> parseFailed(
+                message = "Unexpected token: ${currentToken().value}",
+                position = currentToken().position
             )
         }
     }
@@ -150,17 +180,17 @@ class Parser(private val tokens: List<Token>) {
      * 解析路径表达式（标识符开头的表达式）
      * Parse path expression (expression starting with identifier)
      */
-    private fun parsePathExpression(): BooleanExpression {
-        val path = parsePath()
+    private fun parsePathExpression(): Ret<BooleanExpression> {
+        val path = when (val result = parsePath()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
-        // 检查是否是 is null / is not null
-        // Check if it's is null / is not null
         if (currentToken().type == TokenType.IS) {
             return parseNullCheck(path)
         }
 
-        // 检查是否是 not in
-        // Check if it's not in
         if (currentToken().type == TokenType.NOT) {
             advance()
             if (currentToken().type == TokenType.IN) {
@@ -169,43 +199,41 @@ class Parser(private val tokens: List<Token>) {
             }
             if (currentToken().isPatternOperator()) {
                 val mode = currentToken().type.toPatternMatchMode()
-                    ?: throw ParseException("Expected pattern operator after 'not'", currentToken().position)
+                    ?: return parseFailed(
+                        message = "Expected pattern operator after 'not'",
+                        position = currentToken().position
+                    )
                 advance()
                 return parsePatternMatch(path, mode, negated = true)
             }
-            throw ParseException(
-                "Expected 'in' or pattern operator after 'not'",
-                currentToken().position
+            return parseFailed(
+                message = "Expected 'in' or pattern operator after 'not'",
+                position = currentToken().position
             )
         }
 
-        // 检查是否是 in
-        // Check if it's in
         if (currentToken().type == TokenType.IN) {
             advance()
             return parseInExpression(path, negated = false)
         }
 
-        // 检查是否是 pattern match
-        // Check if it's pattern match
         if (currentToken().isPatternOperator()) {
             val mode = currentToken().type.toPatternMatchMode()
-                ?: throw ParseException("Expected pattern operator", currentToken().position)
+                ?: return parseFailed(
+                    message = "Expected pattern operator",
+                    position = currentToken().position
+                )
             advance()
             return parsePatternMatch(path, mode, negated = false)
         }
 
-        // 检查是否是比较操作
-        // Check if it's a comparison operation
         if (currentToken().isComparisonOperator()) {
             return parseComparison(path)
         }
 
-        // 如果没有操作符，将路径作为布尔值引用
-        // If no operator, treat path as boolean reference
-        throw ParseException(
-            "Expected comparison operator, 'in', 'is' after '$path'",
-            currentToken().position
+        return parseFailed(
+            message = "Expected comparison operator, 'in', 'is' after '$path'",
+            position = currentToken().position
         )
     }
 
@@ -213,8 +241,8 @@ class Parser(private val tokens: List<Token>) {
      * 解析空值检查
      * Parse null check
      */
-    private fun parseNullCheck(path: PropertyPath): NullCheck {
-        advance() // 跳过 'is' / Skip 'is'
+    private fun parseNullCheck(path: PropertyPath): Ret<BooleanExpression> {
+        advance()
 
         val notNull = if (currentToken().type == TokenType.NOT) {
             advance()
@@ -223,26 +251,37 @@ class Parser(private val tokens: List<Token>) {
             false
         }
 
-        expect(TokenType.NULL, "Expected 'null' after 'is'")
+        when (val result = expect(TokenType.NULL, "Expected 'null' after 'is'")) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
-        return NullCheck(
-            path,
-            if (notNull) NullCheckType.IsNotNull else NullCheckType.IsNull
-        )
+        return Ok(NullCheck(
+            path = path,
+            type = if (notNull) NullCheckType.IsNotNull else NullCheckType.IsNull
+        ))
     }
 
     /**
      * 解析集合成员判断
      * Parse set membership (in) expression
      */
-    private fun parseInExpression(path: PropertyPath, negated: Boolean): InExpression<Any?> {
-        expect(TokenType.LPAREN, "Expected '(' after 'in'")
+    private fun parseInExpression(path: PropertyPath, negated: Boolean): Ret<BooleanExpression> {
+        when (val result = expect(TokenType.LPAREN, "Expected '(' after 'in'")) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         val candidates = mutableListOf<ScalarExpression<Any?>>()
 
-        // 解析候选值列表 / Parse candidate value list
         while (true) {
-            val candidate = parseScalarValue()
+            val candidate = when (val result = parseScalarValue()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             candidates.add(candidate)
             if (currentToken().type != TokenType.COMMA) {
                 break
@@ -250,9 +289,13 @@ class Parser(private val tokens: List<Token>) {
             advance()
         }
 
-        expect(TokenType.RPAREN, "Expected ')' after 'in' list")
+        when (val result = expect(TokenType.RPAREN, "Expected ')' after 'in' list")) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
-        return InExpression(ScalarReference(path), candidates, negated)
+        return Ok(InExpression(ScalarReference<Any?>(path), candidates, negated))
     }
 
     /**
@@ -263,61 +306,77 @@ class Parser(private val tokens: List<Token>) {
         path: PropertyPath,
         mode: PatternMatchMode,
         negated: Boolean
-    ): PatternMatch<Any?> {
-        val pattern = parseScalarValue()
-        return PatternMatch(ScalarReference(path), pattern, mode, negated)
+    ): Ret<BooleanExpression> {
+        val pattern = when (val result = parseScalarValue()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(PatternMatch(ScalarReference<Any?>(path), pattern, mode, negated))
     }
 
     /**
      * 解析比较表达式
      * Parse comparison expression
      */
-    private fun parseComparison(leftPath: PropertyPath): Comparison<Any?> {
+    private fun parseComparison(leftPath: PropertyPath): Ret<BooleanExpression> {
         val operator = currentToken().type.toComparisonOperator()
-            ?: throw ParseException("Expected comparison operator", currentToken().position)
+            ?: return parseFailed(
+                message = "Expected comparison operator",
+                position = currentToken().position
+            )
 
         advance()
 
-        val right = parseScalarValue()
+        val right = when (val result = parseScalarValue()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
-        return Comparison(operator, ScalarReference(leftPath), right)
+        return Ok(Comparison(operator, ScalarReference<Any?>(leftPath), right))
     }
 
     /**
      * 解析标量值（常量或路径引用）
      * Parse scalar value (constant or path reference)
      */
-    private fun parseScalarValue(): ScalarExpression<Any?> {
+    private fun parseScalarValue(): Ret<ScalarExpression<Any?>> {
         return when (currentToken().type) {
             TokenType.STRING -> {
                 val value = currentToken().value
                 advance()
-                ScalarConstant(value)
+                Ok(ScalarConstant(value))
             }
+
             TokenType.NUMBER -> {
                 val value = currentToken().value
                 advance()
-                // 尝试解析为数字
-                // Try to parse as number
-                value.toDoubleOrNull()?.let { ScalarConstant(it) }
-                    ?: ScalarConstant(value)
+                Ok(value.toDoubleOrNull()?.let { ScalarConstant(it) } ?: ScalarConstant(value))
             }
+
             TokenType.TRUE, TokenType.FALSE -> {
                 val isTrue = currentToken().type == TokenType.TRUE
                 advance()
-                ScalarConstant(isTrue)
+                Ok(ScalarConstant(isTrue))
             }
+
             TokenType.NULL -> {
                 advance()
-                ScalarConstant<Nothing?>(null)
+                Ok(ScalarConstant<Nothing?>(null))
             }
+
             TokenType.IDENTIFIER -> {
-                val path = parsePath()
-                ScalarReference(path)
+                when (val path = parsePath()) {
+                    is Ok -> Ok(ScalarReference(path.value))
+                    is Failed -> Failed(path.error)
+                    is Fatal -> Fatal(path.errors)
+                }
             }
-            else -> throw ParseException(
-                "Expected scalar value, got: ${currentToken().value}",
-                currentToken().position
+
+            else -> parseFailed(
+                message = "Expected scalar value, got: ${currentToken().value}",
+                position = currentToken().position
             )
         }
     }
@@ -326,46 +385,39 @@ class Parser(private val tokens: List<Token>) {
      * 解析属性路径
      * Parse property path
      */
-    private fun parsePath(): PropertyPath {
+    private fun parsePath(): Ret<PropertyPath> {
         if (currentToken().type != TokenType.IDENTIFIER) {
-            throw ParseException("Expected identifier", currentToken().position)
+            return parseFailed(
+                message = "Expected identifier",
+                position = currentToken().position
+            )
         }
 
         val path = PropertyPath.parse(currentToken().value)
         advance()
-
-        return path
+        return Ok(path)
     }
 
     // ========== 辅助方法 / Helper Methods ==========
 
-    /**
-     * 获取当前词法单元
-     * Get current token
-     */
+    /** 获取当前词法单元 / Get current token */
     private fun currentToken(): Token {
         return tokens.getOrNull(position) ?: Token.eof(position)
     }
 
-    /**
-     * 向前移动并返回之前的词法单元
-     * Advance and return previous token
-     */
+    /** 向前移动并返回之前的词法单元 / Advance and return previous token */
     private fun advance(): Token {
         val token = currentToken()
         position++
         return token
     }
 
-    /**
-     * 期望指定类型的词法单元
-     * Expect a token of specified type
-     */
-    private fun expect(type: TokenType, message: String): Token {
+    /** 期望指定类型的词法单元 / Expect a token of specified type */
+    private fun expect(type: TokenType, message: String): Ret<Token> {
         if (currentToken().type != type) {
-            throw ParseException(message, currentToken().position)
+            return parseFailed(message, currentToken().position)
         }
-        return advance()
+        return Ok(advance())
     }
 
     /**
@@ -418,10 +470,9 @@ class Parser(private val tokens: List<Token>) {
  * Parse boolean expression string
  *
  * @param input 布尔表达式字符串 / Boolean expression string
- * @return 解析后的布尔表达式 / Parsed boolean expression
- * @throws ParseException 解析失败时 / When parsing fails
+ * @return 解析后的布尔表达式或失败原因 / Parsed boolean expression or failure reason
  */
-fun parseBooleanExpression(input: String): BooleanExpression {
+fun parseBooleanExpression(input: String): Ret<BooleanExpression> {
     val lexer = Lexer(input)
     val tokens = lexer.tokenize()
     val parser = Parser(tokens)
@@ -436,9 +487,9 @@ fun parseBooleanExpression(input: String): BooleanExpression {
  * @return 解析后的布尔表达式，失败时返回 null / Parsed boolean expression, null on failure
  */
 fun parseBooleanExpressionOrNull(input: String): BooleanExpression? {
-    return try {
-        parseBooleanExpression(input)
-    } catch (e: Exception) {
-        null
+    return when (val result = parseBooleanExpression(input)) {
+        is Ok -> result.value
+        is Failed -> null
+        is Fatal -> null
     }
 }

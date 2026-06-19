@@ -51,7 +51,7 @@ class PackingRendererAdapter {
         val key = spec.radiusWeightFunctionKey ?: return null
         val prototype = spec.continuousRadiusSolverPrototype(
             source = continuousCylinderRadiusSolverSource(item)
-        )
+        ).value
         prototype?.variableName?.let { variableName ->
             solverRadiusByVariableName[variableName]?.let {
                 return it

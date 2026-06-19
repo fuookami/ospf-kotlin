@@ -52,7 +52,7 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
      * @return 初始解列表 / The list of initial solutions
      */
     fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<V>> {
-        return listOf((UInt64.zero until variableAmount).map { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") })
+        return emptyList()
     }
 }
 
@@ -211,7 +211,7 @@ class CallBackModel<V> internal constructor(
          */
         operator fun <V> invoke(
             model: AbstractMetaModel<V>,
-            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             converter: IntoValue<V>
         ): CallBackModel<V> where V : RealNumber<V>, V : NumberField<V> {
             val tokens = model.tokens.copy()
@@ -259,7 +259,7 @@ class CallBackModel<V> internal constructor(
          */
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
-            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             concurrent: Boolean = true,
             converter: IntoValue<V>
         ): CallBackModel<V> where V : RealNumber<V>, V : NumberField<V> {

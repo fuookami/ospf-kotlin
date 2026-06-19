@@ -7,6 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
@@ -114,9 +115,9 @@ data class Cylinder3<V : FloatingNumber<V>>(
      * Permute by axes
      *
      * @param permutation 轴置换方案 / The axis permutation
-     * @return 置换后的圆柱 / The permuted cylinder
+     * @return 置换后的圆柱结果 / The permuted cylinder result
      */
-    fun permute(permutation: AxisPermutation3): Cylinder3<V> = permutation.apply(this)
+    fun permute(permutation: AxisPermutation3): Ret<Cylinder3<V>> = permutation.apply(this)
 
     /** 在原点处创建包围盒 / Create a bounding box at the origin */
     fun boundingBoxAtOrigin(): Box3<V> = Box3.atOrigin(boundingCuboid)

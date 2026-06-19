@@ -33,9 +33,9 @@ class GenericSolverOutputConversionTest {
         val expectedBestBoundValue = numberCase.converter.intoValue(Flt64(9.75))
         val expectedSolution = source.solution.map { numberCase.converter.intoValue(it) }
 
-        assertEquals(expectedObjValue, converted.objValue, "${numberCase.name}: objValue mismatch")
-        assertEquals(expectedPossibleBestObjValue, converted.possibleBestObjValue, "${numberCase.name}: possibleBestObjValue mismatch")
-        assertEquals(expectedBestBoundValue, converted.bestBoundValue, "${numberCase.name}: bestBoundValue mismatch")
+        assertEquals(expectedObjValue, converted.objValueOrNull!!, "${numberCase.name}: objValue mismatch")
+        assertEquals(expectedPossibleBestObjValue, converted.possibleBestObjValueOrNull!!, "${numberCase.name}: possibleBestObjValue mismatch")
+        assertEquals(expectedBestBoundValue, converted.bestBoundValueOrNull!!, "${numberCase.name}: bestBoundValue mismatch")
         assertEquals(expectedSolution, converted.solution, "${numberCase.name}: solution conversion mismatch")
         assertEquals(source.obj, converted.obj, "${numberCase.name}: solver-boundary obj should stay Flt64")
         assertEquals(source.possibleBestObj, converted.possibleBestObj, "${numberCase.name}: solver-boundary possibleBestObj should stay Flt64")

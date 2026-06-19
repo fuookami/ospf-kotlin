@@ -35,8 +35,7 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    override val initialQuantityValue: V = resourceQuantityZero(capacities)
-        ?: throw IllegalArgumentException("resource capacities must contain at least one finite quantity bound.")
+    override val initialQuantityValue: V
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 计算任务间连接在指定时间范围内的资源消耗量 / Calculate resource consumption of a task connection in the given time range

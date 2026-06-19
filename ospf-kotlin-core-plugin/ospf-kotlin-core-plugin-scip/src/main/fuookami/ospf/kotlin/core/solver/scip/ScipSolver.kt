@@ -22,8 +22,8 @@ abstract class ScipSolver : AutoCloseable {
             try {
                 System.loadLibrary("jscip")
                 loadedLibrary = true
-            } catch (e: Exception) {
-                e.printStackTrace()
+            } catch (_: Throwable) {
+                loadedLibrary = false
             }
         }
 
@@ -31,7 +31,7 @@ abstract class ScipSolver : AutoCloseable {
         private val unixLibraries = listOf("libgcg", "libgmp", "libpthread", "libgfortran", "libquadmath", "libopenblas", "libtbb", "libsplexshared", "libscip", "libjscip")
 
         /** 从 JAR 包中加载 SCIP 原生库 / Load SCIP native library from JAR package */
-        fun loadLibraryInJar() {
+        fun loadLibraryInJar(): Try {
             val systemType = System.getProperty("os.name")
             val libExtension = if (systemType.lowercase(Locale.getDefault()).indexOf("win") != -1) {
                 "dll"
@@ -50,8 +50,13 @@ abstract class ScipSolver : AutoCloseable {
 
             for (lib in libs) {
                 val libFullName = "${lib}.${libExtension}"
-                Library.loadInJar(libFullName, File(System.getProperty("user.dir"), libFullName).absolutePath)
+                when (val result = Library.loadInJar(libFullName, File(System.getProperty("user.dir"), libFullName).absolutePath)) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
+            return ok
         }
     }
 
@@ -75,7 +80,7 @@ abstract class ScipSolver : AutoCloseable {
             try {
                 System.loadLibrary("jscip")
                 loadedLibrary = true
-            } catch (e: Exception) {
+            } catch (e: Throwable) {
                 return Failed(ErrorCode.SolverNotFound, "failed to load jscip library")
             }
         }

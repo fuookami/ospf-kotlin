@@ -32,8 +32,8 @@ class Bound<T>(
     val value: ValueWrapper<T>,
     interval: Interval
 ) : Cloneable, Copyable<Bound<T>>, Ord<Bound<T>>, Eq<Bound<T>>,
-    Plus<Bound<T>, Bound<T>>, Minus<Bound<T>, Bound<T>>,
-    Times<Bound<T>, Bound<T>>, Div<Bound<T>, Bound<T>>
+    Plus<Bound<T>, Bound<T>?>, Minus<Bound<T>, Bound<T>?>,
+    Times<Bound<T>, Bound<T>?>, Div<Bound<T>, Bound<T>?>
         where T : RealNumber<T>, T : NumberField<T> {
     /**
      * 边界的区间类垌
@@ -112,7 +112,7 @@ class Bound<T>(
      * @param rhs 要添加的数倌
      * @return 新的边界（区间类型保持不变）
      */
-    operator fun plus(rhs: T): Bound<T> = Bound(value + rhs, interval)
+    operator fun plus(rhs: T): Bound<T>? = (value + rhs)?.let { Bound(it, interval) }
 
     /**
      * 两个边界相加
@@ -124,7 +124,9 @@ class Bound<T>(
      * @param rhs 另一个边界
      * @return 新的边界
      */
-    override fun plus(rhs: Bound<T>): Bound<T> = Bound(value + rhs.value, interval intersect rhs.interval)
+    override fun plus(rhs: Bound<T>): Bound<T>? {
+        return (value + rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
+    }
 
     /**
      * 边界与数值相凌
@@ -133,7 +135,7 @@ class Bound<T>(
      * @param rhs 要减去的数倌
      * @return 新的边界（区间类型保持不变）
      */
-    operator fun minus(rhs: T): Bound<T> = Bound(value - rhs, interval)
+    operator fun minus(rhs: T): Bound<T>? = (value - rhs)?.let { Bound(it, interval) }
 
     /**
      * 两个边界相减
@@ -145,7 +147,9 @@ class Bound<T>(
      * @param rhs 另一个边界
      * @return 新的边界
      */
-    override fun minus(rhs: Bound<T>): Bound<T> = Bound(value - rhs.value, interval intersect rhs.interval)
+    override fun minus(rhs: Bound<T>): Bound<T>? {
+        return (value - rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
+    }
 
     /**
      * 边界与数值相乌
@@ -154,7 +158,7 @@ class Bound<T>(
      * @param rhs 要乘的数倌
      * @return 新的边界（区间类型保持不变）
      */
-    operator fun times(rhs: T): Bound<T> = Bound(value * rhs, interval)
+    operator fun times(rhs: T): Bound<T>? = (value * rhs)?.let { Bound(it, interval) }
 
     /**
      * 两个边界相乘
@@ -166,7 +170,9 @@ class Bound<T>(
      * @param rhs 另一个边界
      * @return 新的边界
      */
-    override fun times(rhs: Bound<T>): Bound<T> = Bound(value * rhs.value, interval intersect rhs.interval)
+    override fun times(rhs: Bound<T>): Bound<T>? {
+        return (value * rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
+    }
 
     /**
      * 边界与数值相陌
@@ -175,7 +181,7 @@ class Bound<T>(
      * @param rhs 要除的数倌
      * @return 新的边界（区间类型保持不变）
      */
-    operator fun div(rhs: T): Bound<T> = Bound(value / rhs, interval)
+    operator fun div(rhs: T): Bound<T>? = (value / rhs)?.let { Bound(it, interval) }
 
     /**
      * 两个边界相除
@@ -187,7 +193,9 @@ class Bound<T>(
      * @param rhs 另一个边界
      * @return 新的边界
      */
-    override fun div(rhs: Bound<T>): Bound<T> = Bound(value / rhs.value, interval intersect rhs.interval)
+    override fun div(rhs: Bound<T>): Bound<T>? {
+        return (value / rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
+    }
 
     /**
      * 转换丌Flt64 类型的边界

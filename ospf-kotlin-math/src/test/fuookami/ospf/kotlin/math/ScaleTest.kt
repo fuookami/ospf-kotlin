@@ -9,7 +9,7 @@ class ScaleTest {
     @Test
     fun multiplyAndDivideSingleBaseShouldUpdateExponent() {
         val base = FltX(10L)
-        val scale = Scale(base, 2) * base / base
+        val scale = assertNotNull(Scale(base, 2) * base / base)
 
         assertEquals(1, scale.scales.size)
         assertTrue(scale.scales.first().second eq FltX(2L))
@@ -18,10 +18,18 @@ class ScaleTest {
     @Test
     fun divideBySameBaseShouldTidyZeroExponent() {
         val base = FltX(10L)
-        val unit = Scale(base, 1) / base
+        val unit = assertNotNull(Scale(base, 1) / base)
 
         assertTrue(unit.scales.isEmpty())
         assertTrue(unit.value eq FltX.one)
+    }
+
+    @Test
+    fun divideByZeroShouldReturnNullableOrFailedResult() {
+        val scale = Scale(10, 2)
+
+        assertNull(scale.divOrNull(FltX.zero))
+        assertTrue(scale.divSafe(FltX.zero).failed)
     }
 
     @Test

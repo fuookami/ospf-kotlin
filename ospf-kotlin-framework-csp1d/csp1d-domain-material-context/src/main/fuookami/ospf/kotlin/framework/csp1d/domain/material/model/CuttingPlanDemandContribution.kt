@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -33,7 +34,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
             amount: UInt64,
             arithmetic: QuantityArithmetic<V>,
             length: Quantity<V>? = null
-        ): CuttingPlanDemandContribution<V> {
+        ): Ret<CuttingPlanDemandContribution<V>> {
             return of(
                 product = demand.product,
                 width = width,
@@ -65,18 +66,20 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
             demandUnit: PhysicalUnit,
             arithmetic: QuantityArithmetic<V>,
             length: Quantity<V>? = null
-        ): CuttingPlanDemandContribution<V> {
-            return CuttingPlanDemandContribution(
-                product = product,
-                quantity = quantityOf(
+        ): Ret<CuttingPlanDemandContribution<V>> {
+            return quantityOf(
                     product = product,
                     width = width,
                     amount = amount,
                     demandUnit = demandUnit,
                     arithmetic = arithmetic,
                     length = length
+            ).map { quantity ->
+                CuttingPlanDemandContribution(
+                    product = product,
+                    quantity = quantity
                 )
-            )
+            }
         }
 
         /**
@@ -97,7 +100,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
             demandUnit: PhysicalUnit,
             arithmetic: QuantityArithmetic<V>,
             length: Quantity<V>? = null
-        ): Quantity<V> {
+        ): Ret<Quantity<V>> {
             val contributionLength = length ?: product.length
             val unitContribution = product.unitWeight?.let { unitWeight ->
                 contributionLength?.let { currentLength ->
@@ -139,7 +142,7 @@ fun <V : RealNumber<V>> ProductDemand<V>.contribution(
     amount: UInt64,
     arithmetic: QuantityArithmetic<V>,
     length: Quantity<V>? = null
-): CuttingPlanDemandContribution<V> {
+): Ret<CuttingPlanDemandContribution<V>> {
     return CuttingPlanDemandContribution.fromDemand(
         demand = this,
         width = width,

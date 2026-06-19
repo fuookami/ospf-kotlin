@@ -21,6 +21,7 @@ import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.*
 
@@ -74,24 +75,30 @@ abstract class RationalSerializer<Self, I>(
     abstract val valueSerializer: KSerializer<I>
 
     override fun serialize(encoder: Encoder, value: Self) {
-        require(encoder is JsonEncoder)
-        encoder.encodeJsonElement(
+        val jsonEncoder = requireJsonEncoder(encoder, "RationalSerializer")
+        jsonEncoder.encodeJsonElement(
             buildJsonObject {
-                put("num", encoder.json.encodeToJsonElement(valueSerializer, value.num))
-                put("den", encoder.json.encodeToJsonElement(valueSerializer, value.den))
+                put("num", jsonEncoder.json.encodeToJsonElement(valueSerializer, value.num))
+                put("den", jsonEncoder.json.encodeToJsonElement(valueSerializer, value.den))
             }
         )
     }
 
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): Self {
-        require(decoder is JsonDecoder)
-        val element = decoder.decodeJsonElement()
-        require(element is JsonObject)
-        require(descriptor.elementNames.all { it in element })
+        val jsonDecoder = requireJsonDecoder(decoder, "RationalSerializer")
+        val element = requireJsonObject(
+            element = jsonDecoder.decodeJsonElement(),
+            serializerName = "RationalSerializer"
+        )
+        requireJsonFields(
+            element = element,
+            fields = descriptor.elementNames,
+            serializerName = "RationalSerializer"
+        )
         return ctor(
-            decoder.json.decodeFromJsonElement(valueSerializer, element["num"]!!),
-            decoder.json.decodeFromJsonElement(valueSerializer, element["den"]!!),
+            jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["num"]!!),
+            jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["den"]!!),
         )
     }
 }

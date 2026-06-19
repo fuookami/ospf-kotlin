@@ -15,6 +15,7 @@ import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
@@ -55,11 +56,11 @@ open class ValueRangeSerializer<T>(
      * @param value 要序列化的值范囌
      */
     override fun serialize(encoder: Encoder, value: ValueRange<T>) {
-        require(encoder is JsonEncoder)
-        encoder.encodeJsonElement(
+        val jsonEncoder = requireJsonEncoder(encoder, "ValueRangeSerializer")
+        jsonEncoder.encodeJsonElement(
             buildJsonObject {
-                put("lowerBound", encoder.json.encodeToJsonElement(valueSerializer, value.lowerBound.value))
-                put("upperBound", encoder.json.encodeToJsonElement(valueSerializer, value.upperBound.value))
+                put("lowerBound", jsonEncoder.json.encodeToJsonElement(valueSerializer, value.lowerBound.value))
+                put("upperBound", jsonEncoder.json.encodeToJsonElement(valueSerializer, value.upperBound.value))
                 put("lowerInterval", value.lowerBound.interval.toString().lowercase(Locale.getDefault()))
                 put("upperInterval", value.upperBound.interval.toString().lowercase(Locale.getDefault()))
             }
@@ -75,13 +76,19 @@ open class ValueRangeSerializer<T>(
      */
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): ValueRange<T> {
-        require(decoder is JsonDecoder)
-        val element = decoder.decodeJsonElement()
-        require(element is JsonObject)
-        require(descriptor.elementNames.all { it in element })
+        val jsonDecoder = requireJsonDecoder(decoder, "ValueRangeSerializer")
+        val element = requireJsonObject(
+            element = jsonDecoder.decodeJsonElement(),
+            serializerName = "ValueRangeSerializer"
+        )
+        requireJsonFields(
+            element = element,
+            fields = descriptor.elementNames,
+            serializerName = "ValueRangeSerializer"
+        )
         return ValueRange(
             lowerBound = Bound(
-                decoder.json.decodeFromJsonElement(valueSerializer, element["lowerBound"]!!),
+                jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["lowerBound"]!!),
                 Interval.valueOf(element["lowerInterval"]!!.jsonPrimitive.content.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(
                         Locale.getDefault()
@@ -89,7 +96,7 @@ open class ValueRangeSerializer<T>(
                 })
             ),
             upperBound = Bound(
-                decoder.json.decodeFromJsonElement(valueSerializer, element["upperBound"]!!),
+                jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["upperBound"]!!),
                 Interval.valueOf(element["upperInterval"]!!.jsonPrimitive.content.replaceFirstChar {
                     if (it.isLowerCase()) it.titlecase(
                         Locale.getDefault()
@@ -146,7 +153,7 @@ data class ValueRange<T>(
     val upperBound: Bound<T>,
     private val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueRange<T>>, Eq<ValueRange<T>>,
-    Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
+    Plus<ValueRange<T>, ValueRange<T>?>, Minus<ValueRange<T>, ValueRange<T>?>,
     Times<ValueRange<T>, ValueRange<T>?>, Div<T, ValueRange<T>?>, Contains<T>
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
@@ -697,9 +704,23 @@ data class ValueRange<T>(
      * 计算上下边界的平均值。
      * Calculates the average of upper and lower bounds.
      */
-    val mean by lazy {
-        (lowerBound.value + upperBound.value) / constants.two
+    val meanOrNull: ValueWrapper<T>? by lazy {
+        val sum = lowerBound.value + upperBound.value ?: return@lazy null
+        sum / constants.two
     }
+
+    /**
+     * 区间平均值计算结果
+     * Interval mean value result
+     *
+     * @return 平均值结果，失败时返回错误 / The mean value result, or an error when unavailable
+     */
+    val mean: Ret<ValueWrapper<T>>
+        get() = meanOrNull?.let { Ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "区间平均值未定义：边界组合不可相加或不可除以二 / Interval mean is undefined: bounds cannot be added or divided by two."
+            )
 
     /**
      * 区间宽度
@@ -708,9 +729,22 @@ data class ValueRange<T>(
      * 计算上下边界的差值。
      * Calculates the difference between upper and lower bounds.
      */
-    val diff by lazy {
+    val diffOrNull: ValueWrapper<T>? by lazy {
         upperBound.value - lowerBound.value
     }
+
+    /**
+     * 区间宽度计算结果
+     * Interval width result
+     *
+     * @return 宽度结果，失败时返回错误 / The width result, or an error when unavailable
+     */
+    val diff: Ret<ValueWrapper<T>>
+        get() = diffOrNull?.let { Ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "区间宽度未定义：上边界与下边界不可相减 / Interval width is undefined: upper and lower bounds cannot be subtracted."
+            )
 
     /**
      * 区间相对精度
@@ -719,13 +753,24 @@ data class ValueRange<T>(
      * 计算区间宽度与平均值的相对比例，用于精度控制。
      * Calculates the relative ratio of interval width to mean value, used for precision control.
      */
-    val gap by lazy {
-        try {
-            diff / max(constants.decimalPrecision, abs(mean.unwrap()))
-        } catch (_: Exception) {
-            constants.nan!!
-        }
+    val gapOrNull: ValueWrapper<T>? by lazy {
+        val diff = diffOrNull ?: return@lazy null
+        val mean = meanOrNull?.unwrapOrNull() ?: return@lazy null
+        diff / max(constants.decimalPrecision, abs(mean))
     }
+
+    /**
+     * 区间相对精度计算结果
+     * Interval relative precision result
+     *
+     * @return 相对精度结果，失败时返回错误 / The relative precision result, or an error when unavailable
+     */
+    val gap: Ret<ValueWrapper<T>>
+        get() = gapOrNull?.let { Ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "区间相对精度未定义：宽度或平均值不可用 / Interval relative precision is undefined: width or mean is unavailable."
+            )
 
     /**
      * 是否为固定值（单点区间，
@@ -960,10 +1005,12 @@ data class ValueRange<T>(
      * @param rhs 要添加的数倌
      * @return 新的值范囌
      */
-    operator fun plus(rhs: T): ValueRange<T> {
+    operator fun plus(rhs: T): ValueRange<T>? {
+        val newLowerBound = lowerBound + rhs ?: return null
+        val newUpperBound = upperBound + rhs ?: return null
         return ValueRange(
-            lowerBound = lowerBound + rhs,
-            upperBound = upperBound + rhs,
+            lowerBound = newLowerBound,
+            upperBound = newUpperBound,
             constants = constants
         )
     }
@@ -978,10 +1025,12 @@ data class ValueRange<T>(
      * @param rhs 另一个值范囌
      * @return 新的值范囌
      */
-    override fun plus(rhs: ValueRange<T>): ValueRange<T> {
+    override fun plus(rhs: ValueRange<T>): ValueRange<T>? {
+        val newLowerBound = lowerBound + rhs.lowerBound ?: return null
+        val newUpperBound = upperBound + rhs.upperBound ?: return null
         return ValueRange(
-            lowerBound = lowerBound + rhs.lowerBound,
-            upperBound = upperBound + rhs.upperBound,
+            lowerBound = newLowerBound,
+            upperBound = newUpperBound,
             constants = constants
         )
     }
@@ -996,10 +1045,12 @@ data class ValueRange<T>(
      * @param rhs 要减去的数倌
      * @return 新的值范囌
      */
-    operator fun minus(rhs: T): ValueRange<T> {
+    operator fun minus(rhs: T): ValueRange<T>? {
+        val newLowerBound = lowerBound - rhs ?: return null
+        val newUpperBound = upperBound - rhs ?: return null
         return ValueRange(
-            lowerBound = lowerBound - rhs,
-            upperBound = upperBound - rhs,
+            lowerBound = newLowerBound,
+            upperBound = newUpperBound,
             constants = constants
         )
     }
@@ -1014,10 +1065,12 @@ data class ValueRange<T>(
      * @param rhs 另一个值范囌
      * @return 新的值范囌
      */
-    override fun minus(rhs: ValueRange<T>): ValueRange<T> {
+    override fun minus(rhs: ValueRange<T>): ValueRange<T>? {
+        val newLowerBound = lowerBound - rhs.upperBound ?: return null
+        val newUpperBound = upperBound - rhs.lowerBound ?: return null
         return ValueRange(
-            lowerBound = lowerBound - rhs.upperBound,
-            upperBound = upperBound - rhs.lowerBound,
+            lowerBound = newLowerBound,
+            upperBound = newUpperBound,
             constants = constants
         )
     }
@@ -1034,25 +1087,21 @@ data class ValueRange<T>(
      */
     operator fun times(rhs: T): ValueRange<T>? {
         return if (rhs gr constants.zero) {
-            try {
-                ValueRange(
-                    lowerBound = lowerBound * rhs,
-                    upperBound = upperBound * rhs,
-                    constants = constants
-                )
-            } catch (_: Exception) {
-                null
-            }
+            val newLowerBound = lowerBound * rhs ?: return null
+            val newUpperBound = upperBound * rhs ?: return null
+            ValueRange(
+                lowerBound = newLowerBound,
+                upperBound = newUpperBound,
+                constants = constants
+            )
         } else if (rhs ls constants.zero) {
-            try {
-                ValueRange(
-                    lowerBound = upperBound * rhs,
-                    upperBound = lowerBound * rhs,
-                    constants = constants
-                )
-            } catch (_: Exception) {
-                null
-            }
+            val newLowerBound = upperBound * rhs ?: return null
+            val newUpperBound = lowerBound * rhs ?: return null
+            ValueRange(
+                lowerBound = newLowerBound,
+                upperBound = newUpperBound,
+                constants = constants
+            )
         } else {
             when (val result = ValueRange(
                 lb = constants.zero,
@@ -1087,16 +1136,24 @@ data class ValueRange<T>(
      * @return 新的值范围，戌null（运算无效时，
      */
     override fun times(rhs: ValueRange<T>): ValueRange<T>? {
-        val bounds = try {
-            listOf(
-                Bound(lowerBound.value * rhs.lowerBound.value, lowerBound.interval intersect rhs.lowerBound.interval),
-                Bound(lowerBound.value * rhs.upperBound.value, lowerBound.interval intersect rhs.upperBound.interval),
-                Bound(upperBound.value * rhs.lowerBound.value, upperBound.interval intersect rhs.lowerBound.interval),
-                Bound(upperBound.value * rhs.upperBound.value, upperBound.interval intersect rhs.upperBound.interval)
-            ).sortedWithThreeWayComparator { l, r -> l ord r }
-        } catch (_: Exception) {
-            return null
-        }
+        val bounds = listOf(
+            Bound(
+                lowerBound.value * rhs.lowerBound.value ?: return null,
+                lowerBound.interval intersect rhs.lowerBound.interval
+            ),
+            Bound(
+                lowerBound.value * rhs.upperBound.value ?: return null,
+                lowerBound.interval intersect rhs.upperBound.interval
+            ),
+            Bound(
+                upperBound.value * rhs.lowerBound.value ?: return null,
+                upperBound.interval intersect rhs.lowerBound.interval
+            ),
+            Bound(
+                upperBound.value * rhs.upperBound.value ?: return null,
+                upperBound.interval intersect rhs.upperBound.interval
+            )
+        ).sortedWithThreeWayComparator { l, r -> l ord r }
         return ValueRange(
             bounds.first(),
             bounds.last(),
@@ -1204,7 +1261,7 @@ data class ValueRange<T>(
  * @param valueRange 值范囌
  * @return 新的值范囌
  */
-operator fun <T> T.plus(valueRange: ValueRange<T>): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+operator fun <T> T.plus(valueRange: ValueRange<T>): ValueRange<T>? where T : RealNumber<T>, T : NumberField<T> {
     return valueRange + this
 }
 

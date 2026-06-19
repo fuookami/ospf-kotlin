@@ -21,9 +21,17 @@ private fun <V : FloatingNumber<V>> containsInRange(
     ub: Quantity<V>,
     withLowerBound: Boolean,
     withUpperBound: Boolean
-): Boolean {
-    val lower = quantityOrd(value, lb, "range")
-    val upper = quantityOrd(value, ub, "range")
+): Ret<Boolean> {
+    val lower = when (val result = quantityOrdSafe(value, lb, "range-lb")) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    val upper = when (val result = quantityOrdSafe(value, ub, "range-ub")) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val lowerOk = if (withLowerBound) {
         lower is Order.Equal || lower is Order.Greater
     } else {
@@ -34,7 +42,7 @@ private fun <V : FloatingNumber<V>> containsInRange(
     } else {
         upper is Order.Less
     }
-    return lowerOk && upperOk
+    return ok(lowerOk && upperOk)
 }
 
 data class QuantityPlacement2<
@@ -88,7 +96,7 @@ data class QuantityPlacement2<
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
+    ): Ret<Boolean> {
         return toGeometryPlacement().contains(
             x = point.x,
             y = point.y,
@@ -98,16 +106,20 @@ data class QuantityPlacement2<
         )
     }
 
-    fun overlapped(rhs: QuantityPlacement2<*, V, P>): Boolean {
+    fun overlapped(rhs: QuantityPlacement2<*, V, P>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
 
-    fun intersect(rhs: QuantityPlacement2<*, V, P>): GeometryRectangle2<V>? {
-        val intersection = toGeometryPlacement().intersect(rhs.toGeometryPlacement()) ?: return null
-        return GeometryRectangle2(
+    fun intersect(rhs: QuantityPlacement2<*, V, P>): Ret<GeometryRectangle2<V>?> {
+        val intersection = when (val result = toGeometryPlacement().intersect(rhs.toGeometryPlacement())) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        } ?: return ok(null)
+        return ok(GeometryRectangle2(
             width = intersection.width,
             height = intersection.height
-        )
+        ))
     }
 
     fun toPlacement3(): List<QuantityPlacement3<T, V>> {
@@ -199,7 +211,7 @@ data class QuantityPlacement3<
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
+    ): Ret<Boolean> {
         return toGeometryPlacement().contains(
             x = point.x,
             y = point.y,
@@ -210,7 +222,7 @@ data class QuantityPlacement3<
         )
     }
 
-    infix fun overlapped(rhs: QuantityPlacement3<*, V>): Boolean {
+    infix fun overlapped(rhs: QuantityPlacement3<*, V>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
 
@@ -454,16 +466,20 @@ data class ShapePlacement3(
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
-        val heightContains = containsInRange(
+    ): Ret<Boolean> {
+        val heightContains = when (val result = containsInRange(
             value = point.y,
             lb = y,
             ub = maxY,
             withLowerBound = withLowerBound,
             withUpperBound = withUpperBound
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         if (!heightContains) {
-            return false
+            return ok(false)
         }
         return footprintPlacement.contains(
             x = point.x,
@@ -474,12 +490,16 @@ data class ShapePlacement3(
         )
     }
 
-    infix fun overlapped(rhs: ShapePlacement3): Boolean {
+    infix fun overlapped(rhs: ShapePlacement3): Ret<Boolean> {
         if (!verticalOverlapped(rhs)) {
-            return false
+            return ok(false)
         }
         val overlapArea = footprintOverlapArea(rhs)
-        return (overlapArea gr (FltX.zero * overlapArea.unit)) == true || footprintPlacement.overlapped(rhs.footprintPlacement)
+        return if ((overlapArea gr (FltX.zero * overlapArea.unit)) == true) {
+            ok(true)
+        } else {
+            footprintPlacement.overlapped(rhs.footprintPlacement)
+        }
     }
 
     override fun copy(): ShapePlacement3 {
@@ -530,7 +550,7 @@ fun topPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<QuantityP
         var flag = true
         for (placement2 in placements) {
             val bottomFootprint2 = bottomFootprintPlacements[placement2]!!
-            if (bottomFootprint1.overlapped(bottomFootprint2)
+            if (bottomFootprint1.overlapped(bottomFootprint2).value == true
                 && (placement1.maxY ls placement2.maxY) == true
             ) {
                 flag = false
@@ -563,7 +583,7 @@ fun bottomPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<Quanti
         var flag = true
         for (placement2 in placements) {
             val bottomFootprint2 = bottomFootprintPlacements[placement2]!!
-            if (bottomFootprint1.overlapped(bottomFootprint2)
+            if (bottomFootprint1.overlapped(bottomFootprint2).value == true
                 && (placement1.y gr placement2.y) == true
             ) {
                 flag = false

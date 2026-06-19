@@ -863,7 +863,7 @@ open class WorkingCalendar<V : RealNumber<V>>(
                         unit = breakTime.first,
                         maxDuration = maxDuration,
                         breakTime = breakTime.second
-                    )
+                    ).value!!
                     ValidTimes(
                         times = validTimes,
                         breakTimes = breakTimes,
@@ -1069,7 +1069,7 @@ open class WorkingCalendar<V : RealNumber<V>>(
                             unit = breakTime.first,
                             maxDuration = maxDuration?.let { it - totalDuration },
                             breakTime = breakTime.second
-                        )
+                        ).value!!
                         for (validTime in thisValidTimes) {
                             totalDuration += validTime.duration
                         }

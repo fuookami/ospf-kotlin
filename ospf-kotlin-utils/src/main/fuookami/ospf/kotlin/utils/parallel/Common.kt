@@ -233,13 +233,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
                 // 每个 worker 从 Channel 接收任务并执行
                 // Each worker receives tasks from Channel and executes
                 for (task in taskChannel) {
-                    val result = try {
-                        extractor(task.index, task.element)
-                    } catch (e: Exception) {
-                        // 异常处理：将异常作为结果传递
-                        // Exception handling: pass exception as result
-                        throw e
-                    }
+                    val result = extractor(task.index, task.element)
                     resultChannel.send(WorkerPoolResult(task.index, result))
                 }
             }

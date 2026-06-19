@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.utils.functional.*
 
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
@@ -118,20 +119,25 @@ class LinearConstraintImpl<V>(
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+        ): Ret<LinearConstraintImpl<V>> where V : RealNumber<V>, V : NumberField<V> {
+            val constraintRelation = when (val result = relation.constraintRelation()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val flattenData = relation.flattenData
             val flt64Monomials = flattenData.monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) }
             val lhs = createLinearCells(flt64Monomials, tokens, converter)
             val rhs: V = -flattenData.constant
-            return LinearConstraintImpl(
+            return Ok(LinearConstraintImpl(
                 lhs = lhs,
-                sign = relation.constraintRelation,
+                sign = constraintRelation,
                 rhs = rhs,
                 lazy = lazy,
                 name = name ?: relation.name,
                 origin = origin,
                 from = from
-            )
+            ))
         }
     }
 }
@@ -162,20 +168,25 @@ class QuadraticConstraintImpl<V>(
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+        ): Ret<QuadraticConstraintImpl<V>> where V : RealNumber<V>, V : NumberField<V> {
+            val constraintRelation = when (val result = relation.constraintRelation()) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val flattenData = relation.flattenData
             val flt64Monomials = flattenData.monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) }
             val lhs = createQuadraticCells(flt64Monomials, tokens, converter)
             val rhs: V = -flattenData.constant
-            return QuadraticConstraintImpl(
+            return Ok(QuadraticConstraintImpl(
                 lhs = lhs,
-                sign = relation.constraintRelation,
+                sign = constraintRelation,
                 rhs = rhs,
                 lazy = lazy,
                 name = name ?: relation.name,
                 origin = origin,
                 from = from
-            )
+            ))
         }
     }
 }

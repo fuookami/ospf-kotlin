@@ -7,6 +7,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+
 internal enum class PolynomialTokenType {
     Number,
     Identifier,
@@ -36,19 +40,23 @@ internal class PolynomialLexer(
 ) {
     private var index: Int = 0
 
-    fun lex(): List<PolynomialToken> {
+    fun lex(): ParseResult<List<PolynomialToken>> {
         val tokens = ArrayList<PolynomialToken>()
         while (true) {
             skipWhitespace()
             if (isEnd()) {
                 tokens.add(PolynomialToken(PolynomialTokenType.End, "", index))
-                return tokens
+                return Ok(tokens)
             }
             val start = index
             val current = input[index]
             when {
                 current.isDigit() || current == '.' -> {
-                    tokens.add(readNumber())
+                    when (val token = readNumber()) {
+                        is Ok -> tokens.add(token.value)
+                        is Failed -> return Failed(token.error)
+                        is Fatal -> return Fatal(token.errors)
+                    }
                 }
 
                 current.isLetter() || current == '_' -> {
@@ -115,26 +123,26 @@ internal class PolynomialLexer(
                         index += 2
                         tokens.add(PolynomialToken(PolynomialTokenType.NotEqual, "!=", start))
                     } else {
-                        throw DirectParseError("Unexpected character '!'", start)
+                        return parseLexicalFailed(input, "Unexpected character '!'", start)
                     }
                 }
 
                 else -> {
-                    throw DirectParseError("Unexpected character '$current'", start)
+                    return parseLexicalFailed(input, "Unexpected character '$current'", start)
                 }
             }
         }
     }
 
     /** 读取数字字面量（整数或小数） / Read a numeric literal (integer or decimal) */
-    private fun readNumber(): PolynomialToken {
+    private fun readNumber(): ParseResult<PolynomialToken> {
         val start = index
         var hasDot = false
         if (input[index] == '.') {
             hasDot = true
             index += 1
             if (isEnd() || !input[index].isDigit()) {
-                throw DirectParseError("Invalid number", start)
+                return parseLexicalFailed(input, "Invalid number", start)
             }
         }
         while (!isEnd()) {
@@ -148,10 +156,12 @@ internal class PolynomialLexer(
                 break
             }
         }
-        return PolynomialToken(
-            type = PolynomialTokenType.Number,
-            text = input.substring(start, index),
-            position = start
+        return Ok(
+            PolynomialToken(
+                type = PolynomialTokenType.Number,
+                text = input.substring(start, index),
+                position = start
+            )
         )
     }
 
@@ -194,8 +204,3 @@ internal class PolynomialLexer(
         }
     }
 }
-
-internal class DirectParseError(
-    message: String,
-    val position: Int
-) : IllegalArgumentException("$message at position $position")

@@ -14,27 +14,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 // ============================================================================
 
 /**
- * 并行查找最大值元素（按选择器）
- *
- * Find the element with maximum value by selector in parallel.
- * 并发查找按选择器值最大的元素。
- *
- * @param T 元素类型 / Element type
- * @param R 可比较的选择器值类型 / Comparable selector value type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param selector 选择器函数 / Selector function
- * @return 最大值元素 / Element with maximum value
- * @throws NoSuchElementException 如果集合为空 / If collection is empty
- */
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline selector: SuspendExtractor<R, T>
-): T {
-    return maxByOrNullParallelly(concurrentAmount, selector)
-        ?: throw NoSuchElementException("Collection is empty.")
-}
-
-/**
  * 并行查找最大值元素（按选择器，带错误处理）
  *
  * Find the element with maximum value by selector in parallel with error handling.
@@ -210,27 +189,6 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByOrNullParallelly
 // minBy 系列
 // minBy series
 // ============================================================================
-
-/**
- * 并行查找最小值元素（按选择器）
- *
- * Find the element with minimum value by selector in parallel.
- * 并发查找按选择器值最小的元素。
- *
- * @param T 元素类型 / Element type
- * @param R 可比较的选择器值类型 / Comparable selector value type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param selector 选择器函数 / Selector function
- * @return 最小值元素 / Element with minimum value
- * @throws NoSuchElementException 如果集合为空 / If collection is empty
- */
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline selector: SuspendExtractor<R, T>
-): T {
-    return minByOrNullParallelly(concurrentAmount, selector)
-        ?: throw NoSuchElementException("Collection is empty.")
-}
 
 /**
  * 并行查找最小值元素（按选择器，带错误处理）

@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
@@ -260,13 +262,13 @@ class Csp1dRecovery<V : RealNumber<V>>(
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
-    ): Csp1dSolution<V> {
+    ): Ret<Csp1dSolution<V>> {
         return solveWithTrace(
             input = Csp1dRecoveryInput(
                 problem = problem,
                 solveConfig = solveConfig
             )
-        ).solution
+        ).map { it.solution }
     }
 
     /**
@@ -275,7 +277,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
      * @param input 恢复输入 / Recovery input
      * @return 恢复结果 / Recovery result
      */
-    suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
+    suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Ret<Csp1dRecoveryResult<V>> {
         val warmStart = csp1dResolveWarmStart(
             input = input,
             warmStartAdapter = warmStartAdapter
@@ -297,9 +299,9 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 status = warmStart.status,
                 planCount = Int64(warmStart.plans.size.toLong())
             )
-            throw Csp1dRecoveryFallbackDisabledException(
-                message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
-                trace = trace
+            return Failed(
+                ErrorCode.ApplicationError,
+                "Warm start cannot be applied and fallback is disabled: ${warmStart.status}"
             )
         }
 
@@ -325,10 +327,9 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = error.message ?: "Recovery solve failed"
             )
-            throw Csp1dRecoverySolveException(
-                message = trace.message ?: "Recovery solve failed",
-                trace = trace,
-                cause = error
+            return Failed(
+                ErrorCode.ApplicationError,
+                trace.message ?: "Recovery solve failed"
             )
         }
         val status = if (csp1dRequiresFallback(warmStart.status)) {
@@ -336,7 +337,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
         } else {
             Csp1dRecoveryStatus.Solved
         }
-        return Csp1dRecoveryResult(
+        return Ok(Csp1dRecoveryResult(
             solution = solution,
             trace = Csp1dRecoveryTrace(
                 status = status,
@@ -347,7 +348,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
             )
-        )
+        ))
     }
 }
 
@@ -394,13 +395,13 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
-    ): Csp1dSolution<V> {
+    ): Ret<Csp1dSolution<V>> {
         return solveWithTrace(
             input = Csp1dRecoveryInput(
                 problem = problem,
                 solveConfig = solveConfig
             )
-        ).solution
+        ).map { it.solution }
     }
 
     /**
@@ -409,7 +410,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
      * @param input 恢复输入 / Recovery input
      * @return 恢复结果 / Recovery result
      */
-    suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Csp1dRecoveryResult<V> {
+    suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Ret<Csp1dRecoveryResult<V>> {
         val warmStart = csp1dResolveWarmStart(
             input = input,
             warmStartAdapter = warmStartAdapter
@@ -431,9 +432,9 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
                 status = warmStart.status,
                 planCount = Int64(warmStart.plans.size.toLong())
             )
-            throw Csp1dRecoveryFallbackDisabledException(
-                message = "Warm start cannot be applied and fallback is disabled: ${warmStart.status}",
-                trace = trace
+            return Failed(
+                ErrorCode.ApplicationError,
+                "Warm start cannot be applied and fallback is disabled: ${warmStart.status}"
             )
         }
 
@@ -464,10 +465,9 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
                 appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = error.message ?: "Column generation recovery solve failed"
             )
-            throw Csp1dRecoverySolveException(
-                message = trace.message ?: "Column generation recovery solve failed",
-                trace = trace,
-                cause = error
+            return Failed(
+                ErrorCode.ApplicationError,
+                trace.message ?: "Column generation recovery solve failed"
             )
         }
         val status = if (csp1dRequiresFallback(warmStart.status)) {
@@ -475,7 +475,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
         } else {
             Csp1dRecoveryStatus.Solved
         }
-        return Csp1dRecoveryResult(
+        return Ok(Csp1dRecoveryResult(
             solution = solution,
             trace = Csp1dRecoveryTrace(
                 status = status,
@@ -486,7 +486,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
                 appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = warmStart.adapterResult?.message ?: csp1dWarmStartMessage(warmStart.status)
             )
-        )
+        ))
     }
 }
 

@@ -7,6 +7,9 @@
  */
 package fuookami.ospf.kotlin.multiarray.einsum
 
+import kotlin.ConsistentCopyVisibility
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 
 /**
@@ -34,7 +37,8 @@ import fuookami.ospf.kotlin.multiarray.*
  * @param T 元素类型
  * @param S 形状类型
  */
-data class TensorExpr<T : Any, S : Shape>(
+@ConsistentCopyVisibility
+data class TensorExpr<T : Any, S : Shape> private constructor(
     /**
      * 数据引用
      * Data reference
@@ -77,32 +81,56 @@ data class TensorExpr<T : Any, S : Shape>(
      */
     val dimension: Int = data.shape.dimension
 
-    init {
-        // 验证维度数与索引列表长度匹配
-        // Validate dimension matches index list length
-        if (indices.length != data.shape.dimension) {
-            throw EinsumError.IndexListLengthMismatch(
-                expected = data.shape.dimension,
-                actual = indices.length,
-                description = "Array dimension must match index list length"
-            )
-        }
-    }
-
     companion object {
+        /**
+         * 创建带索引的张量表达式，失败时返回 null
+         * Create tensor expression with indices, returning null on failure
+         *
+         * @param data 多维数组
+         * @param indices 索引标签数组
+         * @return 张量表达式或 null
+         */
+        fun <T : Any, S : Shape> newOrNull(
+            data: AbstractMultiArray<T, S>,
+            indices: IndexList
+        ): TensorExpr<T, S>? {
+            return newSafe(data, indices).value
+        }
+
+        /**
+         * 创建带索引的张量表达式，失败时返回 Failed
+         * Create tensor expression with indices, returning Failed on failure
+         *
+         * @param data 多维数组
+         * @param indices 索引列表
+         * @return 张量表达式结果
+         */
+        fun <T : Any, S : Shape> newSafe(
+            data: AbstractMultiArray<T, S>,
+            indices: IndexList
+        ): Ret<TensorExpr<T, S>> {
+            if (indices.length != data.shape.dimension) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Array dimension must match index list length: expected=${data.shape.dimension}, actual=${indices.length}."
+                )
+            }
+            return Ok(TensorExpr(data, indices))
+        }
+
         /**
          * 创建带索引的张量表达式
          * Create tensor expression with indices
          *
          * @param data 多维数组
-         * @param indices 索引标签数组
-         * @return 张量表达式
+         * @param indices 索引列表
+         * @return 张量表达式结果
          */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
             indices: IndexList
-        ): TensorExpr<T, S> {
-            return TensorExpr(data, indices)
+        ): Ret<TensorExpr<T, S>> {
+            return newSafe(data, indices)
         }
 
         /**
@@ -111,29 +139,29 @@ data class TensorExpr<T : Any, S : Shape>(
          *
          * @param data 多维数组
          * @param labels 索引标签数组
-         * @return 张量表达式
+         * @return 张量表达式结果
          */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
             labels: Array<IndexLabel>
-        ): TensorExpr<T, S> {
-            return TensorExpr(data, IndexList(labels.toList()))
+        ): Ret<TensorExpr<T, S>> {
+            return newSafe(data, IndexList(labels.toList()))
         }
 
         /**
-         * 使用默认索引创建张量表达式（自动分配 I, J, K, ...，
+         * 使用默认索引创建张量表达式（自动分配 I, J, K, ...）
          * Create tensor expression with default indices (auto-assign I, J, K, ...)
          *
          * @param data 多维数组
-         * @return 张量表达式
+         * @return 张量表达式结果
          */
         fun <T : Any, S : Shape> withDefaultIndices(
             data: AbstractMultiArray<T, S>
-        ): TensorExpr<T, S> {
+        ): Ret<TensorExpr<T, S>> {
             val defaultIndices = IndexLabel.values()
                 .take(data.shape.dimension)
                 .toList()
-            return TensorExpr(data, IndexList(defaultIndices))
+            return newSafe(data, IndexList(defaultIndices))
         }
     }
 }
@@ -154,7 +182,7 @@ data class TensorExpr<T : Any, S : Shape>(
  * @param data 多维数组
  * @return 带默认索引的张量表达式
  */
-fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): TensorExpr<T, S> {
+fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): Ret<TensorExpr<T, S>> {
     return TensorExpr.withDefaultIndices(data)
 }
 
@@ -176,6 +204,6 @@ fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): TensorExpr<
 fun <T : Any, S : Shape> tensorExpr(
     data: AbstractMultiArray<T, S>,
     vararg indices: IndexLabel
-): TensorExpr<T, S> {
-    return TensorExpr(data, IndexList(indices.toList()))
+): Ret<TensorExpr<T, S>> {
+    return TensorExpr.new(data, IndexList(indices.toList()))
 }

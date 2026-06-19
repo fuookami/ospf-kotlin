@@ -121,7 +121,7 @@ class SameAsFunction<V>(
         // 使用简单指示约束为每个不等式注册其满足标志
         for (i in inequalities.indices) {
             val currentBigM = m ?: inequalities[i].differencePolynomial().defaultBigM(converter)
-            allConstraints += simpleIndicatorConstraints(
+            val indicatorResult = simpleIndicatorConstraints(
                 ineq = inequalities[i],
                 indicator = satisfactionFlags[i],
                 bigM = currentBigM,
@@ -130,6 +130,11 @@ class SameAsFunction<V>(
                 namePrefix = "${name}_ineq_${i}",
                 sideVar = eqSideVars[i]
             )
+            when (indicatorResult) {
+                is Ok -> allConstraints += indicatorResult.value
+                is Failed -> return Failed(indicatorResult.error)
+                is Fatal -> return Fatal(indicatorResult.errors)
+            }
         }
 
         // Link constraints: enforce all satisfaction flags are equal / 链接约束：强制所有满足标志相等

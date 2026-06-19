@@ -17,6 +17,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
@@ -158,6 +162,31 @@ fun Quantity<CanonicalPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<Canoni
 // Addition and subtraction for symbol polynomial quantities
 // ============================================================================
 
+private fun <P> Quantity<P>.convertSymbolQuantityOperandSafe(
+    other: Quantity<P>,
+    operation: String,
+    convert: Quantity<P>.(PhysicalUnit) -> Quantity<P>?
+): Ret<Quantity<P>> {
+    if (this.unit.quantity != other.unit.quantity) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "物理量量纲不匹配，无法执行$operation：期望 ${this.unit.quantity.dimensionSymbol()}，实际 ${other.unit.quantity.dimensionSymbol()}。 / " +
+                    "Quantity dimension mismatch for $operation: expected ${this.unit.quantity.dimensionSymbol()}, got ${other.unit.quantity.dimensionSymbol()}."
+        )
+    }
+
+    if (this.unit == other.unit) {
+        return ok(other)
+    }
+
+    val converted = other.convert(this.unit)
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
+            "物理量单位转换失败，无法执行$operation。 / Quantity unit conversion failed for $operation."
+        )
+    return ok(converted)
+}
+
 /**
  * 线性多项式物理量的加法 (Flt64)
  * Addition for linear polynomial quantities (Flt64)
@@ -170,33 +199,46 @@ fun Quantity<CanonicalPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<Canoni
  * ```
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
- * @throws UnitConversionException 如果单位转换失败 / If unit conversion fails
+ * @return 相加后的物理量结果 / Sum quantity result
  */
 @JvmName("plusQuantityLinearFlt64")
 operator fun Quantity<LinearPolynomial<Flt64>>.plus(
     other: Quantity<LinearPolynomial<Flt64>>
-): Quantity<LinearPolynomial<Flt64>> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throw DimensionMismatchException(
-            expected = this.unit.quantity.dimensionSymbol(),
-            actual = other.unit.quantity.dimensionSymbol(),
-            operation = "addition"
+): Ret<Quantity<LinearPolynomial<Flt64>>> {
+    return plusSafe(other)
+}
+
+/**
+ * 安全执行线性多项式物理量的加法 (Flt64)
+ * Safely add linear polynomial quantities (Flt64)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityLinearFlt64Safe")
+fun Quantity<LinearPolynomial<Flt64>>.plusSafe(
+    other: Quantity<LinearPolynomial<Flt64>>
+): Ret<Quantity<LinearPolynomial<Flt64>>> {
+    return convertSymbolQuantityOperandSafe(other, "addition") { unit -> to(unit) }.map { otherConverted ->
+        Quantity(
+            value = this.value + otherConverted.value,
+            unit = this.unit
         )
     }
+}
 
-    // 转换到相同单位 / Convert to same unit
-    val otherConverted = if (this.unit != other.unit) {
-        other.to(this.unit) ?: throw UnitConversionException("Cannot convert units")
-    } else {
-        other
-    }
-
-    return Quantity(
-        value = this.value + otherConverted.value,
-        unit = this.unit
-    )
+/**
+ * 尝试执行线性多项式物理量的加法 (Flt64)
+ * Try to add linear polynomial quantities (Flt64)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityLinearFlt64OrNull")
+fun Quantity<LinearPolynomial<Flt64>>.plusOrNull(
+    other: Quantity<LinearPolynomial<Flt64>>
+): Quantity<LinearPolynomial<Flt64>>? {
+    return plusSafe(other).value
 }
 
 /**
@@ -204,32 +246,46 @@ operator fun Quantity<LinearPolynomial<Flt64>>.plus(
  * Subtraction for linear polynomial quantities (Flt64)
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
- * @throws UnitConversionException 如果单位转换失败 / If unit conversion fails
+ * @return 相减后的物理量结果 / Difference quantity result
  */
 @JvmName("minusQuantityLinearFlt64")
 operator fun Quantity<LinearPolynomial<Flt64>>.minus(
     other: Quantity<LinearPolynomial<Flt64>>
-): Quantity<LinearPolynomial<Flt64>> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throw DimensionMismatchException(
-            expected = this.unit.quantity.dimensionSymbol(),
-            actual = other.unit.quantity.dimensionSymbol(),
-            operation = "subtraction"
+): Ret<Quantity<LinearPolynomial<Flt64>>> {
+    return minusSafe(other)
+}
+
+/**
+ * 安全执行线性多项式物理量的减法 (Flt64)
+ * Safely subtract linear polynomial quantities (Flt64)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityLinearFlt64Safe")
+fun Quantity<LinearPolynomial<Flt64>>.minusSafe(
+    other: Quantity<LinearPolynomial<Flt64>>
+): Ret<Quantity<LinearPolynomial<Flt64>>> {
+    return convertSymbolQuantityOperandSafe(other, "subtraction") { unit -> to(unit) }.map { otherConverted ->
+        Quantity(
+            value = this.value - otherConverted.value,
+            unit = this.unit
         )
     }
+}
 
-    val otherConverted = if (this.unit != other.unit) {
-        other.to(this.unit) ?: throw UnitConversionException("Cannot convert units")
-    } else {
-        other
-    }
-
-    return Quantity(
-        value = this.value - otherConverted.value,
-        unit = this.unit
-    )
+/**
+ * 尝试执行线性多项式物理量的减法 (Flt64)
+ * Try to subtract linear polynomial quantities (Flt64)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityLinearFlt64OrNull")
+fun Quantity<LinearPolynomial<Flt64>>.minusOrNull(
+    other: Quantity<LinearPolynomial<Flt64>>
+): Quantity<LinearPolynomial<Flt64>>? {
+    return minusSafe(other).value
 }
 
 /**
@@ -237,32 +293,46 @@ operator fun Quantity<LinearPolynomial<Flt64>>.minus(
  * Addition for linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相加后的物理量 / Sum quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
- * @throws UnitConversionException 如果单位转换失败 / If unit conversion fails
+ * @return 相加后的物理量结果 / Sum quantity result
  */
 @JvmName("plusQuantityLinearFltX")
 operator fun Quantity<LinearPolynomial<FltX>>.plus(
     other: Quantity<LinearPolynomial<FltX>>
-): Quantity<LinearPolynomial<FltX>> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throw DimensionMismatchException(
-            expected = this.unit.quantity.dimensionSymbol(),
-            actual = other.unit.quantity.dimensionSymbol(),
-            operation = "addition"
+): Ret<Quantity<LinearPolynomial<FltX>>> {
+    return plusSafe(other)
+}
+
+/**
+ * 安全执行线性多项式物理量的加法 (FltX)
+ * Safely add linear polynomial quantities (FltX)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量结果 / Sum quantity result
+ */
+@JvmName("plusQuantityLinearFltXSafe")
+fun Quantity<LinearPolynomial<FltX>>.plusSafe(
+    other: Quantity<LinearPolynomial<FltX>>
+): Ret<Quantity<LinearPolynomial<FltX>>> {
+    return convertSymbolQuantityOperandSafe(other, "addition") { unit -> to(unit) }.map { otherConverted ->
+        Quantity(
+            value = this.value + otherConverted.value,
+            unit = this.unit
         )
     }
+}
 
-    val otherConverted = if (this.unit != other.unit) {
-        other.to(this.unit) ?: throw UnitConversionException("Cannot convert units")
-    } else {
-        other
-    }
-
-    return Quantity(
-        value = this.value + otherConverted.value,
-        unit = this.unit
-    )
+/**
+ * 尝试执行线性多项式物理量的加法 (FltX)
+ * Try to add linear polynomial quantities (FltX)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
+ */
+@JvmName("plusQuantityLinearFltXOrNull")
+fun Quantity<LinearPolynomial<FltX>>.plusOrNull(
+    other: Quantity<LinearPolynomial<FltX>>
+): Quantity<LinearPolynomial<FltX>>? {
+    return plusSafe(other).value
 }
 
 /**
@@ -270,32 +340,46 @@ operator fun Quantity<LinearPolynomial<FltX>>.plus(
  * Subtraction for linear polynomial quantities (FltX)
  *
  * @param other 另一个物理量 / Another quantity
- * @return 相减后的物理量 / Difference quantity
- * @throws DimensionMismatchException 如果量纲不匹配 / If dimensions don't match
- * @throws UnitConversionException 如果单位转换失败 / If unit conversion fails
+ * @return 相减后的物理量结果 / Difference quantity result
  */
 @JvmName("minusQuantityLinearFltX")
 operator fun Quantity<LinearPolynomial<FltX>>.minus(
     other: Quantity<LinearPolynomial<FltX>>
-): Quantity<LinearPolynomial<FltX>> {
-    if (this.unit.quantity != other.unit.quantity) {
-        throw DimensionMismatchException(
-            expected = this.unit.quantity.dimensionSymbol(),
-            actual = other.unit.quantity.dimensionSymbol(),
-            operation = "subtraction"
+): Ret<Quantity<LinearPolynomial<FltX>>> {
+    return minusSafe(other)
+}
+
+/**
+ * 安全执行线性多项式物理量的减法 (FltX)
+ * Safely subtract linear polynomial quantities (FltX)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量结果 / Difference quantity result
+ */
+@JvmName("minusQuantityLinearFltXSafe")
+fun Quantity<LinearPolynomial<FltX>>.minusSafe(
+    other: Quantity<LinearPolynomial<FltX>>
+): Ret<Quantity<LinearPolynomial<FltX>>> {
+    return convertSymbolQuantityOperandSafe(other, "subtraction") { unit -> to(unit) }.map { otherConverted ->
+        Quantity(
+            value = this.value - otherConverted.value,
+            unit = this.unit
         )
     }
+}
 
-    val otherConverted = if (this.unit != other.unit) {
-        other.to(this.unit) ?: throw UnitConversionException("Cannot convert units")
-    } else {
-        other
-    }
-
-    return Quantity(
-        value = this.value - otherConverted.value,
-        unit = this.unit
-    )
+/**
+ * 尝试执行线性多项式物理量的减法 (FltX)
+ * Try to subtract linear polynomial quantities (FltX)
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
+ */
+@JvmName("minusQuantityLinearFltXOrNull")
+fun Quantity<LinearPolynomial<FltX>>.minusOrNull(
+    other: Quantity<LinearPolynomial<FltX>>
+): Quantity<LinearPolynomial<FltX>>? {
+    return minusSafe(other).value
 }
 
 // ============================================================================

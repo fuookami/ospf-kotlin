@@ -9,6 +9,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -60,19 +64,24 @@ data class Flt64QuadraticMatrixForm(
 fun LinearPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): Flt64LinearMatrixForm {
-    val form = toMatrixForm(
+): Ret<Flt64LinearMatrixForm> {
+    val result: Ret<LinearMatrixForm<Flt64>> = this.toMatrixForm(
         order = order,
         zero = Flt64.zero,
         combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
+        isZero = { value: Flt64 -> value == Flt64.zero }
     )
+    val form = when (result) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
 
-    return Flt64LinearMatrixForm(
+    return Ok(Flt64LinearMatrixForm(
         c = form.c.map { it.toDouble() }.toDoubleArray(),
         d = form.d,
         order = form.order
-    )
+    ))
 }
 
 /**
@@ -124,24 +133,29 @@ fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPoly
 fun QuadraticPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): Flt64QuadraticMatrixForm {
-    val form = toMatrixForm(
+): Ret<Flt64QuadraticMatrixForm> {
+    val result: Ret<QuadraticMatrixForm<Flt64>> = this.toMatrixForm(
         order = order,
         zero = Flt64.zero,
-        splitOffDiagonal = { coefficient ->
+        splitOffDiagonal = { coefficient: Flt64 ->
             val half = coefficient / Flt64.two
             half to half
         },
         combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
+        isZero = { value: Flt64 -> value == Flt64.zero }
     )
+    val form = when (result) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
 
-    return Flt64QuadraticMatrixForm(
+    return Ok(Flt64QuadraticMatrixForm(
         q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
         c = form.c.map { it.toDouble() }.toDoubleArray(),
         d = form.d,
         order = form.order
-    )
+    ))
 }
 
 /**
@@ -157,25 +171,30 @@ fun CanonicalPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): Flt64QuadraticMatrixForm {
-    val form = toMatrixForm(
+): Ret<Flt64QuadraticMatrixForm> {
+    val result: Ret<QuadraticMatrixForm<Flt64>> = this.toMatrixForm(
         order = order,
         zero = Flt64.zero,
-        splitOffDiagonal = { coefficient ->
+        splitOffDiagonal = { coefficient: Flt64 ->
             val half = coefficient / Flt64.two
             half to half
         },
         combineTerms = combineTerms,
-        isZero = { it == Flt64.zero },
+        isZero = { value: Flt64 -> value == Flt64.zero },
         symbolComparator = symbolComparator
     )
+    val form = when (result) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
 
-    return Flt64QuadraticMatrixForm(
+    return Ok(Flt64QuadraticMatrixForm(
         q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
         c = form.c.map { it.toDouble() }.toDoubleArray(),
         d = form.d,
         order = form.order
-    )
+    ))
 }
 
 /**
@@ -200,8 +219,8 @@ fun flt64QuadraticPolynomialFromMatrixForm(
         d = d,
         order = order,
         zero = Flt64.zero,
-        isZero = { it == Flt64.zero },
-        mergeOffDiagonal = { lhs, rhs -> lhs + rhs }
+        isZero = { value: Flt64 -> value == Flt64.zero },
+        mergeOffDiagonal = { lhs: Flt64, rhs: Flt64 -> lhs + rhs }
     )
 }
 

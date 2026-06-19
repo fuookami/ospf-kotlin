@@ -10,6 +10,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -112,17 +117,20 @@ internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
  * @return 符号到索引的映射 / Map from symbol to index
  * @throws IllegalArgumentException 若大小不匹配或存在重复符号 / If sizes mismatch or duplicate symbols exist
  */
-private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Map<Symbol, Int> {
-    require(order.size == valuesSize) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=$valuesSize."
+private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Ret<Map<Symbol, Int>> {
+    if (order.size != valuesSize) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Order and values size mismatch: order.size=${order.size}, values.size=$valuesSize."
+        )
     }
     val indexOfSymbol = LinkedHashMap<Symbol, Int>(order.size)
     for ((index, symbol) in order.withIndex()) {
-        require(indexOfSymbol.put(symbol, index) == null) {
-            "Symbol order contains duplicated symbols."
+        if (indexOfSymbol.put(symbol, index) != null) {
+            return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
         }
     }
-    return indexOfSymbol
+    return Ok(indexOfSymbol)
 }
 
 // ============================================================================
@@ -178,15 +186,19 @@ fun <T> LinearPolynomial<T>.evaluateLinear(
 fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
     order: List<Symbol>,
     values: List<T>
-): T where T : Ring<T> {
-    val indexOfSymbol = buildOrderedSymbolIndex(order, values.size)
+): Ret<T> where T : Ring<T> {
+    val indexOfSymbol = when (val result = buildOrderedSymbolIndex(order, values.size)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     var value = constant
     for (monomial in monomials) {
         val index = indexOfSymbol[monomial.symbol]
-            ?: throw IllegalArgumentException("Symbol ${monomial.symbol.name} not found in order.")
+            ?: return Failed(ErrorCode.DataNotFound, "Symbol ${monomial.symbol.name} not found in order.")
         value += monomial.coefficient * values[index]
     }
-    return value
+    return Ok(value)
 }
 
 /**
@@ -284,21 +296,25 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
 fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
     order: List<Symbol>,
     values: List<T>
-): T where T : Ring<T> {
-    val indexOfSymbol = buildOrderedSymbolIndex(order, values.size)
+): Ret<T> where T : Ring<T> {
+    val indexOfSymbol = when (val result = buildOrderedSymbolIndex(order, values.size)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     var value = constant
     for (monomial in monomials) {
         val i1 = indexOfSymbol[monomial.symbol1]
-            ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
+            ?: return Failed(ErrorCode.DataNotFound, "Symbol ${monomial.symbol1.name} not found in order.")
         var term = monomial.coefficient * values[i1]
         if (monomial.symbol2 != null) {
             val i2 = indexOfSymbol[monomial.symbol2]
-                ?: throw IllegalArgumentException("Symbol ${monomial.symbol2.name} not found in order.")
+                ?: return Failed(ErrorCode.DataNotFound, "Symbol ${monomial.symbol2.name} not found in order.")
             term *= values[i2]
         }
         value += term
     }
-    return value
+    return Ok(value)
 }
 
 /**

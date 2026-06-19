@@ -5,6 +5,8 @@
 package fuookami.ospf.kotlin.utils
 
 import java.io.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 库加载工具
@@ -21,27 +23,35 @@ data object Library {
      *
      * @param path      JAR 内资源路径 / Resource path inside JAR
      * @param toPath    目标提取路径 / Target extraction path
+     * @return 加载结果 / Loading result
      */
-    fun loadInJar(path: String, toPath: String) {
+    fun loadInJar(path: String, toPath: String): Try {
         val extractedLibFile = File(toPath)
         val lib = extractedLibFile.nameWithoutExtension
-        if (!extractedLibFile.exists()) {
-            val buffer = ByteArray(1024)
-            var readBytes: Int
+        return try {
+            if (!extractedLibFile.exists()) {
+                val inputStream = this.javaClass.classLoader.getResourceAsStream(path)
+                    ?: return Failed(ErrorCode.FileNotFound, "Resource not found: $path")
+                val buffer = ByteArray(1024)
+                var readBytes: Int
 
-            // 使用 use {} 确保资源正确关闭 / Use {} ensures proper resource closing
-            this.javaClass.classLoader.getResourceAsStream(path)?.use { inputStream ->
-                FileOutputStream(extractedLibFile).use { outputStream ->
-                    while (true) {
-                        readBytes = inputStream.read(buffer)
-                        if (readBytes <= 0) {
-                            break
+                // 使用 use {} 确保资源正确关闭 / Use {} ensures proper resource closing
+                inputStream.use { input ->
+                    FileOutputStream(extractedLibFile).use { outputStream ->
+                        while (true) {
+                            readBytes = input.read(buffer)
+                            if (readBytes <= 0) {
+                                break
+                            }
+                            outputStream.write(buffer, 0, readBytes)
                         }
-                        outputStream.write(buffer, 0, readBytes)
                     }
                 }
-            } ?: throw IllegalArgumentException("Resource not found: $path")
+            }
+            System.loadLibrary(lib)
+            ok
+        } catch (e: Throwable) {
+            Failed(ErrorCode.SolverNotFound, "Failed to load native library $lib from $path: ${e.message}")
         }
-        System.loadLibrary(lib)
     }
 }

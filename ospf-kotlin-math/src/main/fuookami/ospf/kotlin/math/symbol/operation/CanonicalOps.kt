@@ -11,6 +11,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -32,14 +37,11 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * @param value 底数 / The base value
  * @param power 指数（非负） / The exponent (non-negative)
  * @param one 乘法单位元 / The multiplicative identity
- * @return value 的 power 次幂 / value raised to the power
+ * @return value 的非负 power 次幂 / value raised to the non-negative power
  */
-internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): T {
+internal fun <T : Ring<T>> computeNonNegativeRingPower(value: T, power: Int, one: T): T {
     if (power == 0) return one
     if (power == 1) return value
-    if (power < 0) {
-        throw IllegalArgumentException("Negative exponent requires TimesGroup implementation.")
-    }
     var result = one
     var base = value
     var exp = power
@@ -49,6 +51,45 @@ internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): T {
         exp /= 2
     }
     return result
+}
+
+/**
+ * 计算 Ring 类型的幂值，负指数仅在值实现 TimesGroup 时可用
+ * Compute a Ring power; negative exponents are available only for TimesGroup values.
+ *
+ * @param value 底数 / The base value
+ * @param power 指数 / The exponent
+ * @param one 乘法单位元 / The multiplicative identity
+ * @return 幂值，无法处理负指数时返回 null / Power value, or null when a negative exponent is unsupported
+ */
+internal fun <T : Ring<T>> computeRingPowerOrNull(value: T, power: Int, one: T): T? {
+    if (power >= 0) {
+        return computeNonNegativeRingPower(value, power, one)
+    }
+    if (power == Int.MIN_VALUE) {
+        return null
+    }
+    val reciprocal = try {
+        (value as? TimesGroup<T>)?.reciprocal()
+    } catch (_: Exception) {
+        null
+    } ?: return null
+    return computeNonNegativeRingPower(reciprocal, -power, one)
+}
+
+/**
+ * 计算 Ring 类型的幂值，失败时返回 Ret 错误
+ * Compute a Ring power, returning a Ret error on failure.
+ *
+ * @param value 底数 / The base value
+ * @param power 指数 / The exponent
+ * @param one 乘法单位元 / The multiplicative identity
+ * @return 幂值结果 / Power result
+ */
+internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): Ret<T> {
+    return computeRingPowerOrNull(value = value, power = power, one = one)
+        ?.let { Ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, "Negative exponent requires TimesGroup implementation.")
 }
 
 /**
@@ -156,7 +197,8 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonical(
             val factor = values[symbol]
                 ?: onMissing?.invoke(symbol)
                 ?: return null
-            monomialValue *= computeRingPower(factor, power.toInt(), one)
+            val powerValue = computeRingPowerOrNull(factor, power.toInt(), one) ?: return null
+            monomialValue *= powerValue
         }
         value += monomialValue
     }
@@ -176,12 +218,15 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonicalOrdered(
     order: List<Symbol>,
     values: List<T>,
     one: T
-): T where T : Ring<T> {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
+): Ret<T> where T : Ring<T> {
+    if (order.toSet().size != order.size) {
+        return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
     }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+    if (order.size != values.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+        )
     }
     val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     var value = constant
@@ -189,12 +234,17 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonicalOrdered(
         var monomialValue = monomial.coefficient
         for ((symbol, power) in monomial.powers) {
             val index = indexOfSymbol[symbol]
-                ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
-            monomialValue *= computeRingPower(values[index], power.toInt(), one)
+                ?: return Failed(ErrorCode.DataNotFound, "Symbol ${symbol.name} not found in order.")
+            val powerValue = when (val result = computeRingPower(values[index], power.toInt(), one)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            monomialValue *= powerValue
         }
         value += monomialValue
     }
-    return value
+    return Ok(value)
 }
 
 /**
@@ -217,7 +267,7 @@ fun <T> CanonicalPolynomial<T>.partialEvaluateCanonical(
     isZero: (T) -> Boolean = { it == zero },
     one: T,
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<T> where T : Ring<T> {
+): Ret<CanonicalPolynomial<T>> where T : Ring<T> {
     val remainedMonomials = ArrayList<CanonicalMonomial<T>>(monomials.size)
     var newConstant = constant
     for (monomial in monomials) {
@@ -228,7 +278,12 @@ fun <T> CanonicalPolynomial<T>.partialEvaluateCanonical(
             if (factor == null) {
                 remainedPowers[symbol] = power
             } else {
-                newCoefficient *= computeRingPower(factor, power.toInt(), one)
+                val powerValue = when (val result = computeRingPower(factor, power.toInt(), one)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                newCoefficient *= powerValue
             }
         }
         if (remainedPowers.isEmpty()) {
@@ -237,8 +292,8 @@ fun <T> CanonicalPolynomial<T>.partialEvaluateCanonical(
             remainedMonomials.add(CanonicalMonomial(coefficient = newCoefficient, powers = remainedPowers))
         }
     }
-    return CanonicalPolynomial(
+    return Ok(CanonicalPolynomial(
         monomials = remainedMonomials,
         constant = newConstant
-    ).combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
+    ).combineCanonicalPolynomialTerms(zero, isZero, symbolComparator))
 }

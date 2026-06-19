@@ -10,6 +10,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import com.mongodb.client.model.Filters
 import org.bson.Document
 import org.bson.conversions.Bson
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
@@ -43,7 +45,7 @@ class MongoBooleanTranslator(
      * @param expr 布尔表达式 / Boolean expression
      * @return Bson 查询条件，不支持时返回 null / Bson query condition, or null if unsupported
      */
-    fun translate(expr: BooleanExpression): Bson? {
+    fun translate(expr: BooleanExpression): Ret<Bson?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
             is Comparison<*> -> translateComparison(expr)
@@ -57,13 +59,14 @@ class MongoBooleanTranslator(
         }
     }
 
-    private fun translateConstant(expr: BooleanConstant): Bson? {
-        return when (expr.value) {
+    private fun translateConstant(expr: BooleanConstant): Ret<Bson?> {
+        val result: Bson? = when (expr.value) {
             Trivalent.True -> Filters.empty()
             Trivalent.False, Trivalent.Unknown -> alwaysFalse()
         }
+        return Ok(result)
     }
-    private fun translateComparison(expr: Comparison<*>): Bson? {
+    private fun translateComparison(expr: Comparison<*>): Ret<Bson?> {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
         val rightRef = expr.right as? ScalarReference<*>
@@ -77,14 +80,14 @@ class MongoBooleanTranslator(
             val value = rightConst.value
                 ?: return unsupported("Null comparison constant is not supported", expr)
 
-            return when (expr.operator) {
+            return Ok(when (expr.operator) {
                 ComparisonOperator.Eq -> Filters.eq(field, value)
                 ComparisonOperator.Ne -> Filters.ne(field, value)
                 ComparisonOperator.Lt -> Filters.lt(field, value)
                 ComparisonOperator.Le -> Filters.lte(field, value)
                 ComparisonOperator.Gt -> Filters.gt(field, value)
                 ComparisonOperator.Ge -> Filters.gte(field, value)
-            }
+            })
         }
 
         // 左边是常量，右边是列引用（反转比较）
@@ -95,23 +98,23 @@ class MongoBooleanTranslator(
             val value = leftConst.value
                 ?: return unsupported("Null comparison constant is not supported", expr)
 
-            return when (expr.operator) {
+            return Ok(when (expr.operator) {
                 ComparisonOperator.Eq -> Filters.eq(field, value)
                 ComparisonOperator.Ne -> Filters.ne(field, value)
                 ComparisonOperator.Lt -> Filters.gt(field, value)  // 反转
                 ComparisonOperator.Le -> Filters.gte(field, value)  // 反转
                 ComparisonOperator.Gt -> Filters.lt(field, value)  // 反转
                 ComparisonOperator.Ge -> Filters.lte(field, value)  // 反转
-            }
+            })
         }
 
-        val left = scalarTranslator.translate(expr.left)
+        val left = scalarTranslator.translate(expr.left).value
             ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
-        val right = scalarTranslator.translate(expr.right)
+        val right = scalarTranslator.translate(expr.right).value
             ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
-        return Document("\$expr", Document(exprOperator(expr.operator), listOf(left, right)))
+        return Ok(Document("\$expr", Document(exprOperator(expr.operator), listOf(left, right))))
     }
-    private fun translateIn(expr: InExpression<*>): Bson? {
+    private fun translateIn(expr: InExpression<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a field reference", expr)
         val field = resolveFieldName(ref.path.value)
@@ -122,13 +125,13 @@ class MongoBooleanTranslator(
             return unsupported("IN candidates must be non-empty scalar constants", expr)
         }
 
-        return if (expr.negated) {
+        return Ok(if (expr.negated) {
             Filters.nin(field, values)
         } else {
             Filters.`in`(field, values)
-        }
+        })
     }
-    private fun translatePatternMatch(expr: PatternMatch<*>): Bson? {
+    private fun translatePatternMatch(expr: PatternMatch<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a field reference", expr)
         val field = resolveFieldName(ref.path.value)
@@ -146,18 +149,18 @@ class MongoBooleanTranslator(
             PatternMatchMode.Regex -> patternValue
         }
 
-        return if (expr.negated) {
+        return Ok(if (expr.negated) {
             Filters.not(Filters.regex(field, regexPattern))
         } else {
             Filters.regex(field, regexPattern)
-        }
+        })
     }
 
-    private fun translateNullCheck(expr: NullCheck): Bson? {
+    private fun translateNullCheck(expr: NullCheck): Ret<Bson?> {
         val field = resolveFieldName(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
 
-        return if (expr.isNull) {
+        return Ok(if (expr.isNull) {
             Filters.or(
                 Filters.eq(field, null),
                 Filters.exists(field, false)
@@ -167,22 +170,22 @@ class MongoBooleanTranslator(
                 Filters.exists(field, true),
                 Filters.ne(field, null)
             )
-        }
+        })
     }
 
-    private fun translateAnd(expr: AndExpression): Bson? {
-        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
-        return Filters.and(conditions)
+    private fun translateAnd(expr: AndExpression): Ret<Bson?> {
+        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        return Ok(Filters.and(conditions))
     }
 
-    private fun translateOr(expr: OrExpression): Bson? {
-        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
-        return Filters.or(conditions)
+    private fun translateOr(expr: OrExpression): Ret<Bson?> {
+        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        return Ok(Filters.or(conditions))
     }
 
-    private fun translateNot(expr: NotExpression): Bson? {
-        val condition = translate(expr.operand) ?: return unsupported("Unsupported NOT operand", expr)
-        return Filters.not(condition)
+    private fun translateNot(expr: NotExpression): Ret<Bson?> {
+        val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
+        return Ok(Filters.not(condition))
     }
 
     private fun exprOperator(operator: ComparisonOperator): String {
@@ -196,13 +199,15 @@ class MongoBooleanTranslator(
         }
     }
 
-    private fun unsupported(reason: String, expression: BooleanExpression): Bson {
-        when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(
+    private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson> {
+        return when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> Failed(
+                ErrorCode.IllegalArgument,
                 "Unsupported predicate ${expression.typeName}: $reason"
             )
-            UnsupportedPredicatePolicy.AlwaysFalse -> return alwaysFalse()
-            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse())
+            UnsupportedPredicatePolicy.ClientFilter -> Failed(
+                ErrorCode.IllegalArgument,
                 "ClientFilter is not implemented for unsupported predicate ${expression.typeName}: $reason"
             )
         }

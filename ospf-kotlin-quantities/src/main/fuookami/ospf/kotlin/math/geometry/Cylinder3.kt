@@ -7,6 +7,7 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -46,7 +47,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
     val axis: Axis3
 ) : QuantityShape3<V> {
     /** 直径 / Diameter */
-    val diameter: Quantity<V> get() = quantityPlus(radius, radius)
+    val diameter: Quantity<V> get() = Quantity(radius.value + radius.value, radius.unit)
 
     /** 最小包围长方体 / Minimum bounding cuboid */
     override val boundingCuboid: QuantityCuboid3<V>
@@ -106,7 +107,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      * @param pi 圆周率值 / Pi value
      * @return 底面积 / Base area
      */
-    fun baseArea(pi: V): Quantity<V> = (radius * radius) * pi
+    fun baseArea(pi: V): Quantity<V> = quantityProduct(quantityProduct(radius, radius), pi)
 
     /**
      * 计算体积
@@ -115,16 +116,16 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      * @param pi 圆周率值 / Pi value
      * @return 体积 / Volume
      */
-    fun volume(pi: V): Quantity<V> = baseArea(pi) * height
+    fun volume(pi: V): Quantity<V> = quantityProduct(baseArea(pi), height)
 
     /**
      * 对圆柱体应用轴置换
      * Apply axis permutation to the cylinder
      *
      * @param permutation 轴置换 / Axis permutation
-     * @return 置换后的圆柱体 / Permuted cylinder
+     * @return 置换后的圆柱体结果 / Permuted cylinder result
      */
-    fun permute(permutation: QuantityAxisPermutation3): QuantityCylinder3<V> = permutation.apply(this)
+    fun permute(permutation: QuantityAxisPermutation3): Ret<QuantityCylinder3<V>> = permutation.apply(this)
 
     /**
      * 在原点创建包围盒

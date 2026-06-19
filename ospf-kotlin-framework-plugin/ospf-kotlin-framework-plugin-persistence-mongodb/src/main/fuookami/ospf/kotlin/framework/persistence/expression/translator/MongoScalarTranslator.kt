@@ -8,6 +8,8 @@
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.bson.Document
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
@@ -29,14 +31,14 @@ class MongoScalarTranslator(
      * @param expr 标量表达式 / Scalar expression
      * @return MongoDB 可用的值，不支持时返回 null / MongoDB-compatible value, or null if unsupported
      */
-    fun translate(expr: ScalarExpression<*>): Any? {
+    fun translate(expr: ScalarExpression<*>): Ret<Any?> {
         return when (expr) {
             is ScalarReference<*> -> {
                 val field = resolveFieldName(expr.path.value)
                     ?: return unsupported("Unresolved path: ${expr.path.value}")
-                "\$$field"
+                Ok("\$$field")
             }
-            is ScalarConstant<*> -> expr.value
+            is ScalarConstant<*> -> Ok(expr.value)
             is ScalarUnary<*> -> translateUnary(expr)
             is ScalarBinary<*> -> translateBinary(expr)
             is ScalarFunction<*> -> translateFunction(expr)
@@ -44,18 +46,18 @@ class MongoScalarTranslator(
         }
     }
 
-    private fun translateUnary(expr: ScalarUnary<*>): Any? {
-        val operand = translate(expr.operand) ?: return null
+    private fun translateUnary(expr: ScalarUnary<*>): Ret<Any?> {
+        val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
-            UnaryOperator.Negate -> Document("\$multiply", listOf(-1, operand))
-            UnaryOperator.Positive -> operand
+            UnaryOperator.Negate -> Ok(Document("\$multiply", listOf(-1, operand)))
+            UnaryOperator.Positive -> Ok(operand)
             UnaryOperator.Abs -> unsupported("ABS unary scalar expression is not supported")
         }
     }
 
-    private fun translateBinary(expr: ScalarBinary<*>): Any? {
-        val left = translate(expr.left) ?: return null
-        val right = translate(expr.right) ?: return null
+    private fun translateBinary(expr: ScalarBinary<*>): Ret<Any?> {
+        val left = translate(expr.left).value ?: return Ok(null)
+        val right = translate(expr.right).value ?: return Ok(null)
         val operator = when (expr.operator) {
             BinaryOperator.Add -> "\$add"
             BinaryOperator.Subtract -> "\$subtract"
@@ -64,11 +66,11 @@ class MongoScalarTranslator(
             BinaryOperator.Modulo -> "\$mod"
             BinaryOperator.Power -> return unsupported("POWER scalar expression is not supported")
         }
-        return Document(operator, listOf(left, right))
+        return Ok(Document(operator, listOf(left, right)))
     }
 
-    private fun translateFunction(expr: ScalarFunction<*>): Any? {
-        val arguments = expr.arguments.map { translate(it) ?: return null }
+    private fun translateFunction(expr: ScalarFunction<*>): Ret<Any?> {
+        val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
             ScalarFunctionNames.Abs -> translateUnaryFunction(expr.name, "\$abs", arguments)
             ScalarFunctionNames.Lower -> translateUnaryFunction(expr.name, "\$toLower", arguments)
@@ -79,9 +81,9 @@ class MongoScalarTranslator(
             ScalarFunctionNames.Length -> translateUnaryFunction(expr.name, "\$strLenCP", arguments)
             ScalarFunctionNames.Coalesce -> {
                 if (arguments.isEmpty()) return unsupported("Function coalesce expects at least one argument")
-                arguments.drop(1).fold(arguments.first()) { acc, value ->
+                Ok(arguments.drop(1).fold(arguments.first()) { acc, value ->
                     Document("\$ifNull", listOf(acc, value))
-                }
+                })
             }
             else -> unsupported("Unsupported scalar function: ${expr.name}")
         }
@@ -92,18 +94,19 @@ class MongoScalarTranslator(
         mongoName: String,
         arguments: List<Any?>,
         argumentMapper: (Any?) -> Any? = { it }
-    ): Any? {
+    ): Ret<Any?> {
         if (arguments.size != 1) {
             return unsupported("Function $logicalName expects exactly one argument")
         }
-        return Document(mongoName, argumentMapper(arguments[0]))
+        return Ok(Document(mongoName, argumentMapper(arguments[0])))
     }
 
-    private fun unsupported(reason: String): Nothing? {
-        when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(reason)
-            UnsupportedPredicatePolicy.AlwaysFalse -> return null
-            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+    private fun unsupported(reason: String): Ret<Any?> {
+        return when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> Failed(ErrorCode.IllegalArgument, reason)
+            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
+            UnsupportedPredicatePolicy.ClientFilter -> Failed(
+                ErrorCode.IllegalArgument,
                 "ClientFilter is not implemented for unsupported predicate: $reason"
             )
         }

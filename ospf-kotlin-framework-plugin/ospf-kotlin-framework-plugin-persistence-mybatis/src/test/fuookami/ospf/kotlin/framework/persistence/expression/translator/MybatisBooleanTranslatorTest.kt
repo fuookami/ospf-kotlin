@@ -196,8 +196,8 @@ class MybatisBooleanTranslatorTest {
         @Test
         @DisplayName("false and unknown should become impossible condition / false 与 unknown 应转不可能条件")
         fun falseAndUnknownShouldBecomeImpossibleCondition() {
-            val falseWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.False))
-            val unknownWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.Unknown))
+            val falseWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.False)).value!!
+            val unknownWrapper = translator.translate(QueryWrapper(), BooleanConstant(Trivalent.Unknown)).value!!
 
             assertTrue(falseWrapper.customSqlSegment.contains("1 = 0"))
             assertTrue(unknownWrapper.customSqlSegment.contains("1 = 0"))
@@ -212,7 +212,7 @@ class MybatisBooleanTranslatorTest {
                 ScalarConstant(1)
             )
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
             assertTrue(wrapper.customSqlSegment.contains("1 = 0"))
         }
 
@@ -230,8 +230,8 @@ class MybatisBooleanTranslatorTest {
                 ScalarConstant(10)
             )
 
-            val poWrapper = translator.translate(QueryWrapper(), poExpr)
-            val domainWrapper = translator.translate(QueryWrapper(), domainExpr)
+            val poWrapper = translator.translate(QueryWrapper(), poExpr).value!!
+            val domainWrapper = translator.translate(QueryWrapper(), domainExpr).value!!
 
             assertTrue(poWrapper.customSqlSegment.contains("width_value >"))
             assertTrue(domainWrapper.customSqlSegment.contains("1 = 0"))
@@ -246,7 +246,7 @@ class MybatisBooleanTranslatorTest {
                 PatternMatchMode.Regex
             )
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
             assertTrue(wrapper.customSqlSegment.contains("1 = 0"))
         }
 
@@ -259,7 +259,7 @@ class MybatisBooleanTranslatorTest {
                 ScalarReference<Int>(PropertyPath.parse("id"))
             )
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
             assertTrue(wrapper.customSqlSegment.contains("age > id"))
         }
 
@@ -276,7 +276,7 @@ class MybatisBooleanTranslatorTest {
                 ScalarConstant<Int>(100)
             )
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
             assertTrue(wrapper.customSqlSegment.contains("(price * quantity) >"))
             assertFalse(wrapper.customSqlSegment.contains("100"))
         }
@@ -293,7 +293,7 @@ class MybatisBooleanTranslatorTest {
                 ScalarConstant(10)
             )
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
 
             assertTrue(wrapper.customSqlSegment.contains("ABS(age) >"))
             assertFalse(wrapper.customSqlSegment.contains("10"))
@@ -304,7 +304,7 @@ class MybatisBooleanTranslatorTest {
         fun shouldTranslatePropertyPredicate() {
             val expr = prop(TestEntity::age) gt 18
 
-            val wrapper = translator.translate(QueryWrapper(), expr)
+            val wrapper = translator.translate(QueryWrapper(), expr).value!!
 
             assertTrue(wrapper.customSqlSegment.contains("age >"))
             assertFalse(wrapper.customSqlSegment.contains("18"))
@@ -341,10 +341,10 @@ class MybatisBooleanTranslatorTest {
             )
 
             assertThrows(IllegalArgumentException::class.java) {
-                failFastTranslator.translate(QueryWrapper(), expr)
+                failFastTranslator.translate(QueryWrapper(), expr).value!!
             }
             assertThrows(IllegalArgumentException::class.java) {
-                clientFilterTranslator.translate(QueryWrapper(), expr)
+                clientFilterTranslator.translate(QueryWrapper(), expr).value!!
             }
         }
     }

@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 数学不等式 DSL
@@ -296,7 +297,7 @@ internal fun <T> LinearInequality<Flt64>.toQuadraticConstraint(
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): QuadraticConstraintImpl<Flt64> where T : RealNumber<T>, T : NumberField<T> {
+): Ret<QuadraticConstraintImpl<Flt64>> where T : RealNumber<T>, T : NumberField<T> {
     return QuadraticConstraintImpl(
         relation = toQuadraticInequality().let { QuadraticRelationImpl(it.flattenData, it.comparison) },
         tokens = tokenTableAs<Flt64, T>(tokens),
@@ -318,7 +319,7 @@ internal fun <V> LinearRelation<V>.toConstraint(
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<LinearConstraintImpl<V>> where V : RealNumber<V>, V : NumberField<V> {
     return LinearConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
@@ -330,7 +331,7 @@ internal fun <V> QuadraticRelation<V>.toConstraint(
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<QuadraticConstraintImpl<V>> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
@@ -342,7 +343,7 @@ internal fun <V> LinearRelation<V>.toQuadraticConstraint(
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<QuadraticConstraintImpl<V>> where V : RealNumber<V>, V : NumberField<V> {
     val normalized = normalize()
     val qMonomials = normalized.flattenData.monomials.map {
         QuadraticMonomial(it.coefficient, it.symbol, null)

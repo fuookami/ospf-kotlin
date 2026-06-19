@@ -174,16 +174,6 @@ sealed interface PackageShapeSpec {
                     "Resolved radius must be included in radius candidates when candidates are provided."
                 }
             }
-            val continuousRadiusGapReport = continuousCylinderRadiusOptimizationGapReport(
-                source = "PackageShapeSpec.VerticalCylinder",
-                radiusWeightFunctionKey = radiusWeightFunctionKey,
-                hasConcreteSelectedRadius = true,
-                hasDiscreteRadiusCandidates = radiusCandidates.isNotEmpty(),
-                hasDiscreteRadiusStep = radiusStep != null || diameterStep != null
-            )
-            if (continuousRadiusGapReport != null) {
-                throw IllegalArgumentException(continuousRadiusGapReport.message())
-            }
             radiusMin?.let {
                 require(it.value.toDouble() > 0.0) {
                     "Vertical cylinder radiusMin must be positive."

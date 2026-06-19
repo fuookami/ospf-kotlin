@@ -58,10 +58,8 @@ class TaskStepConflictConstraint<
         return ok
     }
 
-    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        throw UnsupportedOperationException(
-            "TaskStepConflictConstraint.extractor 暂未实现 shadow price 提取逻辑。"
-        )
+    override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A>? {
+        return null
     }
 
     override fun refresh(

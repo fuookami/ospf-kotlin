@@ -3,6 +3,8 @@
 package fuookami.ospf.kotlin.core.solver.output
 
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -42,14 +44,11 @@ sealed interface LinearSolverOutput : SolverOutput {}
  */
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
-/** 将 Flt64 值强制转换为 V 类型，仅支持 Flt64 解 / Cast Flt64 value to V type, only supports Flt64 solution */
+/** 将 Flt64 默认值转换为 V 类型；非 Flt64 解返回 null / Convert a Flt64 default value to V type; returns null for non-Flt64 solutions */
 @Suppress("UNCHECKED_CAST")
-private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: Flt64, solution: Solution<V>): V {
+private fun <V> castSolverFlt64FallbackToValueOrNull(value: Flt64, solution: Solution<V>): V? {
     if (solution.any { it !is Flt64 }) {
-        throw IllegalArgumentException(
-            "FeasibleSolverOutput.$fieldName default fallback only supports Flt64 solution. " +
-                    "Please provide explicit V-generic $fieldName."
-        )
+        return null
     }
     return value as V
 }
@@ -69,9 +68,9 @@ private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: 
  * @property bestBound 最优界（可选）/ Best bound (optional)
  * @property mipGap MIP 间隙 / MIP gap
  * @property solveTime 求解时间 / Solve time
- * @property objValue 目标值（V 类型）/ Objective value (V type)
- * @property possibleBestObjValue 可能的最优目标值（V 类型）/ Possible best objective value (V type)
- * @property bestBoundValue 最优界（V 类型，可选）/ Best bound (V type, optional)
+ * @property objValueOrNull 目标值（V 类型，可为 null）/ Objective value (V type, nullable)
+ * @property possibleBestObjValueOrNull 可能的最优目标值（V 类型，可为 null）/ Possible best objective value (V type, nullable)
+ * @property bestBoundValueOrNull 最优界（V 类型，可为 null）/ Best bound (V type, nullable)
  */
 data class FeasibleSolverOutput<V>(
     val obj: Flt64,
@@ -84,10 +83,40 @@ data class FeasibleSolverOutput<V>(
     override val bestBound: Flt64? = null,
     override val mipGap: Flt64 = gap,
     override val solveTime: Duration = time,
-    val objValue: V = castSolverFlt64FallbackToValueOrThrow("objValue", obj, solution),
-    val possibleBestObjValue: V = castSolverFlt64FallbackToValueOrThrow("possibleBestObjValue", possibleBestObj, solution),
-    val bestBoundValue: V? = bestBound?.let { castSolverFlt64FallbackToValueOrThrow("bestBoundValue", it, solution) }
-) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
+    val objValueOrNull: V? = castSolverFlt64FallbackToValueOrNull(obj, solution),
+    val possibleBestObjValueOrNull: V? = castSolverFlt64FallbackToValueOrNull(possibleBestObj, solution),
+    val bestBoundValueOrNull: V? = bestBound?.let { castSolverFlt64FallbackToValueOrNull(it, solution) }
+) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput {
+    /** 获取目标值，缺失时返回失败 / Get objective value, returning failure when missing */
+    fun objValue(): Ret<V> {
+        return objValueOrNull
+            ?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "FeasibleSolverOutput.objValue is unavailable. Provide explicit objValueOrNull for non-Flt64 solution."
+            )
+    }
+
+    /** 获取可能的最优目标值，缺失时返回失败 / Get possible best objective value, returning failure when missing */
+    fun possibleBestObjValue(): Ret<V> {
+        return possibleBestObjValueOrNull
+            ?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "FeasibleSolverOutput.possibleBestObjValue is unavailable. Provide explicit possibleBestObjValueOrNull for non-Flt64 solution."
+            )
+    }
+
+    /** 获取最优界，缺失时返回失败 / Get best bound value, returning failure when missing */
+    fun bestBoundValue(): Ret<V> {
+        return bestBoundValueOrNull
+            ?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "FeasibleSolverOutput.bestBoundValue is unavailable. Provide explicit bestBoundValueOrNull when bestBound is present."
+            )
+    }
+}
 
 /**
  * 将 Flt64 可行求解器输出转换为目标值类型的输出。
@@ -110,9 +139,9 @@ fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): Feasible
         bestBound = bestBound,
         mipGap = mipGap,
         solveTime = solveTime,
-        objValue = converter.intoValue(obj),
-        possibleBestObjValue = converter.intoValue(possibleBestObj),
-        bestBoundValue = bestBound?.let { converter.intoValue(it) }
+        objValueOrNull = converter.intoValue(obj),
+        possibleBestObjValueOrNull = converter.intoValue(possibleBestObj),
+        bestBoundValueOrNull = bestBound?.let { converter.intoValue(it) }
     )
 }
 

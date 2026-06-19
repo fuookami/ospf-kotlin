@@ -26,8 +26,19 @@ internal object PredicateSchemaRenderer {
                 appendLine()
             }
             appendLine("import $PredicateDslPackage.PredicateSchema")
+            if (model.generateColumnMapping) {
+                appendLine("import $ColumnBinderPackage.HasColumnMapping")
+                appendLine("import $ColumnBinderPackage.ColumnBinder")
+            }
             appendLine()
-            appendLine("object ${model.schemaName} : PredicateSchema<${model.kotlinEntityName}>() {")
+
+            val interfaces = buildList {
+                add("PredicateSchema<${model.kotlinEntityName}>()")
+                if (model.generateColumnMapping) {
+                    add("HasColumnMapping")
+                }
+            }
+            appendLine("object ${model.schemaName} : ${interfaces.joinToString(", ")} {")
             for (property in model.properties) {
                 appendLine("    val ${property.kotlinName} = field(${model.kotlinEntityName}::${property.kotlinName})")
             }
@@ -39,6 +50,24 @@ internal object PredicateSchemaRenderer {
                     appendLine("            \"${escape(property.propertyName)}\" -> \"${escape(property.backendName)}\"")
                 }
                 appendLine("            else -> null")
+                appendLine("        }")
+                appendLine("    }")
+            }
+            if (model.generateColumnMapping) {
+                appendLine()
+                appendLine("    override val columnMapping: Map<String, String> = mapOf(")
+                model.properties.forEachIndexed { index, property ->
+                    val comma = if (index < model.properties.size - 1) "," else ""
+                    appendLine("        \"${escape(property.propertyName)}\" to \"${escape(property.backendName)}\"$comma")
+                }
+                appendLine("    )")
+                appendLine()
+                appendLine("    fun <C> createBinder(resolver: (String) -> C?): ColumnBinder<C> {")
+                appendLine("        return object : ColumnBinder<C> {")
+                appendLine("            override fun resolve(path: String): C? {")
+                appendLine("                val backendName = columnMapping[path] ?: path")
+                appendLine("                return resolver(backendName)")
+                appendLine("            }")
                 appendLine("        }")
                 appendLine("    }")
             }

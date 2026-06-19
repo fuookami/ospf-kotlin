@@ -167,9 +167,9 @@ class ProduceAggregation<V : RealNumber<V>>(
     operator fun get(index: Int) = _x.firstOrNull()?.get(index)
 
     /**
-     * 获取指定索引的变量（初始 x 组，Safe）/ Get variable at specified index (from initial x group, Safe)
+     * 获取指定索引的变量（初始 x 组）/ Get variable at specified index (from initial x group)
      */
-    fun getSafe(index: Int): Ret<UIntVariable1> {
+    fun getAt(index: Int): Ret<UIntVariable1> {
         val value = _x.firstOrNull()
         return if (value != null && index < value.shape.size) {
             Ok(value)

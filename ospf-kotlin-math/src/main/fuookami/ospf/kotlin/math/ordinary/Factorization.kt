@@ -24,6 +24,8 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
@@ -178,18 +180,18 @@ inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I
 fun <I> defactorizeImpl(
     factors: Iterable<Pair<I, Int>>,
     constants: RealNumberConstants<I>
-): I where I : Integer<I>, I : Pow<I> {
+): Ret<I> where I : Integer<I>, I : Pow<I> {
     var value = constants.one
     for ((factor, index) in factors) {
         if (index < 0) {
-            throw IllegalArgumentException("Negative factor index is not supported: $index.")
+            return Failed(ErrorCode.IllegalArgument, "Negative factor index is not supported: $index.")
         }
         if (index == 0) {
             continue
         }
         value *= factor.pow(index)
     }
-    return value
+    return Ok(value)
 }
 
 /**
@@ -203,7 +205,7 @@ fun <I> defactorizeImpl(
 fun <I> defactorize(
     factors: Iterable<Pair<I, Int>>,
     constants: RealNumberConstants<I>
-): I where I : Integer<I>, I : Pow<I> {
+): Ret<I> where I : Integer<I>, I : Pow<I> {
     return defactorizeImpl(factors, constants)
 }
 
@@ -216,7 +218,7 @@ fun <I> defactorize(
  */
 inline fun <reified I> defactorize(
     factors: Iterable<Pair<I, Int>>
-): I where I : Integer<I>, I : Pow<I> {
+): Ret<I> where I : Integer<I>, I : Pow<I> {
     return defactorize(
         factors = factors,
         constants = resolveRealNumberConstants<I>("Factorization")

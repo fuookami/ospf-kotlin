@@ -153,7 +153,7 @@ private fun <T : Cuboid<T, FltX>> QuantityPlacement3<T, FltX>.bottomPlacement():
 }
 
 fun QuantityPlacement3<*, FltX>.overlappedOnBottom(other: QuantityPlacement3<*, FltX>): Boolean {
-    return bottomPlacement().overlapped(other.bottomPlacement())
+    return bottomPlacement().overlapped(other.bottomPlacement()).value == true
 }
 
 fun Iterable<QuantityPlacement3<*, FltX>>.filterBottomOverlapped(
@@ -161,6 +161,6 @@ fun Iterable<QuantityPlacement3<*, FltX>>.filterBottomOverlapped(
 ): List<QuantityPlacement3<*, FltX>> {
     val targetBottomPlacement = target.bottomPlacement()
     return filter { placement ->
-        placement.bottomPlacement().overlapped(targetBottomPlacement)
+        placement.bottomPlacement().overlapped(targetBottomPlacement).value == true
     }
 }

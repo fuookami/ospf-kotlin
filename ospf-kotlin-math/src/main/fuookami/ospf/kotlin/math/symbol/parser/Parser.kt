@@ -10,7 +10,6 @@ package fuookami.ospf.kotlin.math.symbol.parser
 import fuookami.ospf.kotlin.math.symbol.parse.*
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
@@ -35,7 +34,7 @@ fun <T> parse(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<T> where T : Ring<T> {
+): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
     return parseCanonical(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }
 
@@ -58,7 +57,7 @@ fun <T> parseLinearPolynomialOrNull(
     one: T,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
-): LinearPolynomial<T>? where T : Ring<T> {
+): ParseResult<LinearPolynomial<T>?> where T : Ring<T> {
     return parseLinearOrNull(input, numberParser, zero, one, symbolOf, isZero)
 }
 
@@ -83,6 +82,6 @@ fun <T> parseQuadraticPolynomialOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<T>? where T : Ring<T> {
+): ParseResult<QuadraticPolynomial<T>?> where T : Ring<T> {
     return parseQuadraticOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }

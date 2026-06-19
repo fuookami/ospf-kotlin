@@ -39,7 +39,7 @@ private fun setResourceSlackUpperBoundAsFlt64(
 }
 
 /** 解析资源容量值类型的零值（nullable） / Resolve the zero value for the resource capacity value type (nullable) */
-internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): V?
+internal fun <V> resourceQuantityZeroOrNull(capacities: List<AbstractResourceCapacity<V>>): V?
         where V : RealNumber<V>, V : NumberField<V> {
     return capacities.asSequence()
         .mapNotNull {
@@ -51,10 +51,10 @@ internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<
         ?.zero
 }
 
-/** 解析资源容量值类型的零值（Safe） / Resolve the zero value for the resource capacity value type (Safe) */
-internal fun <V> resourceQuantityZeroSafe(capacities: List<AbstractResourceCapacity<V>>): Ret<V>
+/** 解析资源容量值类型的零值 / Resolve the zero value for the resource capacity value type */
+internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<V>>): Ret<V>
         where V : RealNumber<V>, V : NumberField<V> {
-    val zero = resourceQuantityZero(capacities)
+    val zero = resourceQuantityZeroOrNull(capacities)
     return if (zero != null) {
         Ok(zero)
     } else {

@@ -47,7 +47,7 @@ class KtormOrderByTranslatorTest {
         val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Never)
         val sortBy = SortBy(listOf(SortItem("name", SortDirection.Asc, NullsOrder.NullsLast)))
 
-        val query = translator.apply(newQuery(), sortBy)
+        val query = translator.apply(newQuery(), sortBy).value!!
         val selectExpr = query.expression as SelectExpression
 
         assertEquals(2, selectExpr.orderBy.size)
@@ -66,7 +66,7 @@ class KtormOrderByTranslatorTest {
         val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Always)
         val sortBy = SortBy.desc("name", NullsOrder.NullsFirst)
 
-        val query = translator.apply(newQuery(), sortBy)
+        val query = translator.apply(newQuery(), sortBy).value!!
         val selectExpr = query.expression as SelectExpression
 
         assertEquals(1, selectExpr.orderBy.size)
@@ -79,7 +79,7 @@ class KtormOrderByTranslatorTest {
         val translator = KtormOrderByTranslator(resolver, NullsOrderSupport.Never)
         val sortBy = SortBy.asc("id").thenDesc("name", NullsOrder.NullsFirst)
 
-        val query = translator.apply(newQuery(), sortBy)
+        val query = translator.apply(newQuery(), sortBy).value!!
         val selectExpr = query.expression as SelectExpression
 
         // id asc + (name null-order fallback + name desc)
@@ -90,4 +90,3 @@ class KtormOrderByTranslatorTest {
         assertEquals(OrderType.DESCENDING, selectExpr.orderBy[2].orderType)
     }
 }
-

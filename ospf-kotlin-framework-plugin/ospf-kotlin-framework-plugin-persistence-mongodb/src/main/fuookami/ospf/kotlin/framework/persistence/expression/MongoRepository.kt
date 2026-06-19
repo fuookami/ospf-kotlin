@@ -69,7 +69,7 @@ abstract class MongoRepository<E : Any>(
         limit: Int?,
         offset: Int?
     ): List<E> {
-        val filter = booleanTranslator.translate(where) ?: Filters.empty()
+        val filter = booleanTranslator.translate(where).value ?: Filters.empty()
 
         var findIterable = collection.find(filter)
 
@@ -100,7 +100,7 @@ abstract class MongoRepository<E : Any>(
      * @return 实体数量 / Entity count
      */
     override fun count(where: BooleanExpression): Long {
-        val filter = booleanTranslator.translate(where) ?: Filters.empty()
+        val filter = booleanTranslator.translate(where).value ?: Filters.empty()
         return collection.countDocuments(filter)
     }
 
@@ -115,7 +115,7 @@ abstract class MongoRepository<E : Any>(
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
-        val filter = booleanTranslator.translate(where) ?: return 0
+        val filter = booleanTranslator.translate(where).value ?: return 0
         val update = updateTranslator.translate(assignments) ?: return 0
 
         val result = collection.updateMany(filter, update)
@@ -130,7 +130,7 @@ abstract class MongoRepository<E : Any>(
      * @return 受影响的行数 / Number of affected rows
      */
     override fun delete(where: BooleanExpression): Int {
-        val filter = booleanTranslator.translate(where) ?: return 0
+        val filter = booleanTranslator.translate(where).value ?: return 0
 
         val result = collection.deleteMany(filter)
         return result.deletedCount.toInt()

@@ -75,7 +75,7 @@ abstract class KtormRepository<E : Any>(
         limit: Int?,
         offset: Int?
     ): List<E> {
-        val condition = booleanTranslator.translate(where)
+        val condition = booleanTranslator.translate(where).value
         if (condition == null) return emptyList()
 
         var query = database.from(table).select().where(condition)
@@ -83,7 +83,7 @@ abstract class KtormRepository<E : Any>(
         // 应用排序
         // Apply order by
         if (sortBy != null && sortBy.isNotEmpty()) {
-            query = orderByTranslator.apply(query, sortBy)
+            query = orderByTranslator.apply(query, sortBy).value!!
         }
 
         // 应用分页
@@ -106,7 +106,7 @@ abstract class KtormRepository<E : Any>(
      * @return 实体数量 / Entity count
      */
     override fun count(where: BooleanExpression): Long {
-        val condition = booleanTranslator.translate(where)
+        val condition = booleanTranslator.translate(where).value
         if (condition == null) return 0L
 
         val totalRecords = database.from(table).select().where(condition).totalRecordsInAllPages
@@ -124,7 +124,7 @@ abstract class KtormRepository<E : Any>(
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
-        val condition = booleanTranslator.translate(where)
+        val condition = booleanTranslator.translate(where).value
         if (condition == null) return 0
 
         return updateTranslator.executeUpdate(database, condition, assignments)
@@ -138,7 +138,7 @@ abstract class KtormRepository<E : Any>(
      * @return 受影响的行数 / Number of affected rows
      */
     override fun delete(where: BooleanExpression): Int {
-        val condition = booleanTranslator.translate(where)
+        val condition = booleanTranslator.translate(where).value
         if (condition == null) return 0
 
         return database.delete(table) { condition }

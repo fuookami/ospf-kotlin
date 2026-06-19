@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.mode
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -70,7 +72,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand2.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
         val second = CuttingPlan(
             id = "second",
@@ -97,7 +99,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand1.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
 
         assertEquals(
@@ -174,7 +176,7 @@ class CuttingPlanCanonicalKeyTest {
                     quantity = demand.quantity
                 )
             ),
-            arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+            arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
     }
 }

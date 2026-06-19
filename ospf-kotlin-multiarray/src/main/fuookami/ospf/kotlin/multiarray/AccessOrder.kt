@@ -50,6 +50,9 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+
 /**
  * 访问顺序枚举
  * Access order enum
@@ -357,7 +360,11 @@ fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<T> = sequence {
     for (vec in shape.iterate(accessOrder)) {
-        yield(this@iterWithOrder[vec])
+        when (val result = this@iterWithOrder[vec]) {
+            is Ok -> yield(result.value)
+            is Failed -> {}
+            is Fatal -> {}
+        }
     }
 }
 
@@ -418,20 +425,65 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
     shape: S,
     list: List<T>,
     accessOrder: AccessOrder = AccessOrder.Default
-): MultiArray<T, S> {
-    require(list.size == shape.size) {
-        "List size (${list.size}) must match shape size (${shape.size})"
+): Ret<MultiArray<T, S>> {
+    return fromListSafe(
+        shape = shape,
+        list = list,
+        accessOrder = accessOrder
+    )
+}
+
+/**
+ * 从列表创建多维数组，失败时返回 null
+ * Create multi-dimensional array from list, returning null on failure
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 不可变多维数组或 null / Immutable multi-array or null
+ */
+fun <T : Any, S : Shape> MultiArray.Companion.fromListOrNull(
+    shape: S,
+    list: List<T>,
+    accessOrder: AccessOrder = AccessOrder.Default
+): MultiArray<T, S>? {
+    return fromListSafe(
+        shape = shape,
+        list = list,
+        accessOrder = accessOrder
+    ).value
+}
+
+/**
+ * 从列表创建多维数组，失败时返回 Failed
+ * Create multi-dimensional array from list, returning Failed on failure
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 不可变多维数组结果 / Immutable multi-array result
+ */
+fun <T : Any, S : Shape> MultiArray.Companion.fromListSafe(
+    shape: S,
+    list: List<T>,
+    accessOrder: AccessOrder = AccessOrder.Default
+): Ret<MultiArray<T, S>> {
+    if (list.size != shape.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "List size (${list.size}) must match shape size (${shape.size})."
+        )
     }
 
     if (accessOrder == shape.storageOrder.toAccessOrder()) {
-        return MultiArray(shape) { i, _ -> list[i] }
+        return Ok(MultiArray(shape) { i, _ -> list[i] })
     }
 
     val reordered = reorderToStorageOrder(shape, list, accessOrder)
-    return MultiArray(shape) { i, _ ->
+    return Ok(MultiArray(shape) { i, _ ->
         @Suppress("UNCHECKED_CAST")
         reordered[i] as T
-    }
+    })
 }
 
 /**
@@ -447,18 +499,63 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
     shape: S,
     list: List<T>,
     accessOrder: AccessOrder = AccessOrder.Default
-): MutableMultiArray<T, S> {
-    require(list.size == shape.size) {
-        "List size (${list.size}) must match shape size (${shape.size})"
+): Ret<MutableMultiArray<T, S>> {
+    return fromListSafe(
+        shape = shape,
+        list = list,
+        accessOrder = accessOrder
+    )
+}
+
+/**
+ * 从列表创建可变多维数组，失败时返回 null
+ * Create mutable multi-dimensional array from list, returning null on failure
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 可变多维数组或 null / Mutable multi-array or null
+ */
+fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListOrNull(
+    shape: S,
+    list: List<T>,
+    accessOrder: AccessOrder = AccessOrder.Default
+): MutableMultiArray<T, S>? {
+    return fromListSafe(
+        shape = shape,
+        list = list,
+        accessOrder = accessOrder
+    ).value
+}
+
+/**
+ * 从列表创建可变多维数组，失败时返回 Failed
+ * Create mutable multi-dimensional array from list, returning Failed on failure
+ *
+ * @param shape 数组形状 / Array shape
+ * @param list 元素列表 / Element list
+ * @param accessOrder 列表的访问顺序 / Access order of the list
+ * @return 可变多维数组结果 / Mutable multi-array result
+ */
+fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListSafe(
+    shape: S,
+    list: List<T>,
+    accessOrder: AccessOrder = AccessOrder.Default
+): Ret<MutableMultiArray<T, S>> {
+    if (list.size != shape.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "List size (${list.size}) must match shape size (${shape.size})."
+        )
     }
 
     if (accessOrder == shape.storageOrder.toAccessOrder()) {
-        return MutableMultiArray(shape) { i, _ -> list[i] }
+        return Ok(MutableMultiArray(shape) { i, _ -> list[i] })
     }
 
     val reordered = reorderToStorageOrder(shape, list, accessOrder)
-    return MutableMultiArray(shape) { i, _ ->
+    return Ok(MutableMultiArray(shape) { i, _ ->
         @Suppress("UNCHECKED_CAST")
         reordered[i] as T
-    }
+    })
 }

@@ -240,7 +240,7 @@ class PackerAndRendererAdapterTest {
             assertNotNull(
                 (item.packageShape.shapeSpec as PackageShapeSpec.VerticalCylinder).continuousRadiusSolverPrototype(
                     source = continuousCylinderRadiusSolverSource(item)
-                )
+                ).value
             ).withSolverSelectedRadius(
                 solverRadius = FltX(radiusValue) * Meter
             )

@@ -9,27 +9,6 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行查找最小最大值元素（按选择器）
- *
- * Find both minimum and maximum elements by selector in a single pass in parallel.
- * 并发单次遍历查找最小和最大元素。
- *
- * @param T 元素类型 / Element type
- * @param R 可比较的选择器值类型 / Comparable selector value type
- * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
- * @param selector 选择器函数 / Selector function
- * @return 最小和最大元素对 / Pair of minimum and maximum elements
- * @throws NoSuchElementException 如果集合为空 / If collection is empty
- */
-suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
-    concurrentAmount: ULong? = null,
-    crossinline selector: SuspendExtractor<R, T>
-): Pair<T, T> {
-    return minMaxByOrNullParallelly(concurrentAmount, selector)
-        ?: throw NoSuchElementException("Collection is empty.")
-}
-
-/**
  * 并行查找最小最大值元素（按选择器，带错误处理）
  *
  * Find both minimum and maximum elements by selector in a single pass in parallel with error handling.

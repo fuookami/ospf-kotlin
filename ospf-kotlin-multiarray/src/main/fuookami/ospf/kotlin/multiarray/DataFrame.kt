@@ -35,6 +35,9 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+
 /**
  * 可空值包装类
  * Nullable value wrapper class
@@ -105,6 +108,10 @@ class DataFrame<T>(
      */
     fun getColumnIndex(name: String): Int? = columnIndex[name]
 
+    private fun columnNotFound(columnName: String): Failed<Nothing, ErrorCode, Error<ErrorCode>> {
+        return Failed(ErrorCode.DataNotFound, "列名不存在：$columnName / Column name not found")
+    }
+
     /**
      * 获取指定位置的值
      * Get value at specified position
@@ -128,9 +135,37 @@ class DataFrame<T>(
      * @param columnName 列名 / Column name
      * @return 值 / Value
      */
-    fun getByName(row: Int, columnName: String): T? {
-        val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
+    fun getByNameOrNull(row: Int, columnName: String): T? {
+        val col = columnIndex[columnName] ?: return null
         return get(row, col)
+    }
+
+    /**
+     * 通过行和列名安全获取值
+     * Safely get value by row and column name
+     *
+     * @param row 行索引 / Row index
+     * @param columnName 列名 / Column name
+     * @return 获取结果 / Get result
+     */
+    fun getByNameSafe(row: Int, columnName: String): Ret<T?> {
+        val col = columnIndex[columnName] ?: return columnNotFound(columnName)
+        return Ok(get(row, col))
+    }
+
+    /**
+     * 通过行和列名获取值
+     * Get value by row and column name
+     *
+     * @param row 行索引 / Row index
+     * @param columnName 列名 / Column name
+     * @return 获取结果 / Get result
+     */
+    fun getByName(row: Int, columnName: String): Ret<T?> {
+        return getByNameSafe(
+            row = row,
+            columnName = columnName
+        )
     }
 
     /**
@@ -156,9 +191,27 @@ class DataFrame<T>(
      * @param columnName 列名 / Column name
      * @param value 要设置的值 / Value to set
      */
-    fun setByName(row: Int, columnName: String, value: T?) {
-        val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
+    fun setByNameSafe(row: Int, columnName: String, value: T?): Try {
+        val col = columnIndex[columnName] ?: return columnNotFound(columnName)
         set(row, col, value)
+        return ok
+    }
+
+    /**
+     * 通过行和列名设置值
+     * Set value by row and column name
+     *
+     * @param row 行索引 / Row index
+     * @param columnName 列名 / Column name
+     * @param value 要设置的值 / Value to set
+     * @return 设置结果 / Set result
+     */
+    fun setByName(row: Int, columnName: String, value: T?): Try {
+        return setByNameSafe(
+            row = row,
+            columnName = columnName,
+            value = value
+        )
     }
 
     /**
@@ -192,9 +245,32 @@ class DataFrame<T>(
      * @param columnName 列名 / Column name
      * @return 列数据 / Column data
      */
-    fun getColumnByName(columnName: String): List<T?> {
-        val col = columnIndex[columnName] ?: throw IllegalArgumentException("列名不存在：$columnName / Column name not found")
+    fun getColumnByNameOrNull(columnName: String): List<T?>? {
+        val col = columnIndex[columnName] ?: return null
         return getColumn(col)
+    }
+
+    /**
+     * 通过列名安全获取列
+     * Safely get column by column name
+     *
+     * @param columnName 列名 / Column name
+     * @return 列数据结果 / Column data result
+     */
+    fun getColumnByNameSafe(columnName: String): Ret<List<T?>> {
+        val col = columnIndex[columnName] ?: return columnNotFound(columnName)
+        return Ok(getColumn(col))
+    }
+
+    /**
+     * 通过列名获取列
+     * Get column by column name
+     *
+     * @param columnName 列名 / Column name
+     * @return 列数据结果 / Column data result
+     */
+    fun getColumnByName(columnName: String): Ret<List<T?>> {
+        return getColumnByNameSafe(columnName)
     }
 
     /**
@@ -248,9 +324,10 @@ class DataFrame<T>(
      * @param columnNames 要选择的列名 / Column names to select
      * @return 包含指定列的 DataFrame / DataFrame with selected columns
      */
-    fun select(vararg columnNames: String): DataFrame<T> {
-        val colIndices = columnNames.map { name ->
-            columnIndex[name] ?: throw IllegalArgumentException("列名不存在：$name / Column name not found")
+    fun selectSafe(vararg columnNames: String): Ret<DataFrame<T>> {
+        val colIndices = ArrayList<Int>()
+        for (name in columnNames) {
+            colIndices.add(columnIndex[name] ?: return columnNotFound(name))
         }
         val newDf = DataFrame<T>(
             nrows = nrows,
@@ -262,7 +339,18 @@ class DataFrame<T>(
                 newDf.set(row, newCol, get(row, col))
             }
         }
-        return newDf
+        return Ok(newDf)
+    }
+
+    /**
+     * 选择指定列
+     * Select specified columns
+     *
+     * @param columnNames 要选择的列名 / Column names to select
+     * @return 包含指定列的 DataFrame 结果 / DataFrame result with selected columns
+     */
+    fun select(vararg columnNames: String): Ret<DataFrame<T>> {
+        return selectSafe(*columnNames)
     }
 
     /**
@@ -324,8 +412,40 @@ class DataFrame<T>(
      *
      * @return 列名到列数据的映射 / Mapping from column name to column data
      */
-    fun toMap(): Map<String, List<T?>> {
-        return columnNames.associateWith { name -> getColumnByName(name) }
+    fun toMapOrNull(): Map<String, List<T?>>? {
+        val ret = LinkedHashMap<String, List<T?>>()
+        for (name in columnNames) {
+            ret[name] = getColumnByNameOrNull(name) ?: return null
+        }
+        return ret
+    }
+
+    /**
+     * 安全转换为 Map 表示
+     * Safely convert to Map representation
+     *
+     * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
+     */
+    fun toMapSafe(): Ret<Map<String, List<T?>>> {
+        val ret = LinkedHashMap<String, List<T?>>()
+        for (name in columnNames) {
+            ret[name] = when (val result = getColumnByName(name)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return Ok(ret)
+    }
+
+    /**
+     * 转换为 Map 表示
+     * Convert to Map representation
+     *
+     * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
+     */
+    fun toMap(): Ret<Map<String, List<T?>>> {
+        return toMapSafe()
     }
 
     /**

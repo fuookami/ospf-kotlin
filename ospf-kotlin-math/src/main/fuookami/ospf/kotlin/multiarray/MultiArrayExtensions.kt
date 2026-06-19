@@ -15,6 +15,7 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 // ============================================================================
@@ -94,7 +95,7 @@ operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(i: UInt64): T {
  * @return 该索引处的元素 / The element at the given indices
  */
 @JvmName("viewGetByUInt64Iterable")
-operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(v: Iterable<UInt64>): T {
+operator fun <T : Any, S : Shape> MultiArrayView<T, S>.get(v: Iterable<UInt64>): Ret<T> {
     return this[v.map { it.toInt() }.toIntArray()]
 }
 

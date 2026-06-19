@@ -33,11 +33,18 @@ import fuookami.ospf.kotlin.quantities.quantity.times as quantityTimes
 private fun <V : FloatingNumber<V>> quantityBinary(
     lhs: Quantity<V>,
     rhs: Quantity<V>,
-    op: (Quantity<FltX>, Quantity<FltX>) -> Quantity<FltX>,
+    op: (Quantity<FltX>, Quantity<FltX>) -> Quantity<FltX>?,
     symbol: String
 ): Ret<Quantity<V>> {
     return when (lhs.value) {
-        is FltX -> ok(op(lhs as Quantity<FltX>, rhs as Quantity<FltX>) as Quantity<V>)
+        is FltX -> {
+            val value = op(lhs as Quantity<FltX>, rhs as Quantity<FltX>)
+                ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Quantity operation '$symbol' failed: ${lhs.unit} vs ${rhs.unit}"
+                )
+            ok(value as Quantity<V>)
+        }
         else -> Failed(
             ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '$symbol': ${lhs.value::class.simpleName}"
@@ -66,8 +73,11 @@ internal fun <V : FloatingNumber<V>> quantityScaleByValue(
     quantity: Quantity<V>,
     scale: UInt64
 ): Ret<Quantity<V>> {
-    return when (quantity.value) {
-        is FltX -> ok(((quantity as Quantity<FltX>).quantityTimes(FltX(scale.toULong().toDouble()))) as Quantity<V>)
+    return when (val value = quantity.value) {
+        is FltX -> ok(Quantity(
+            value = value * FltX(scale.toULong().toDouble()),
+            unit = quantity.unit
+        ) as Quantity<V>)
         else -> Failed(
             ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '*': ${quantity.value::class.simpleName}"
@@ -80,8 +90,11 @@ internal fun <V : FloatingNumber<V>> quantityScaleByFltXValue(
     quantity: Quantity<V>,
     scale: FltX
 ): Ret<Quantity<V>> {
-    return when (quantity.value) {
-        is FltX -> ok(((quantity as Quantity<FltX>).quantityTimes(scale)) as Quantity<V>)
+    return when (val value = quantity.value) {
+        is FltX -> ok(Quantity(
+            value = value * scale,
+            unit = quantity.unit
+        ) as Quantity<V>)
         else -> Failed(
             ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '*': ${quantity.value::class.simpleName}"
@@ -92,7 +105,14 @@ internal fun <V : FloatingNumber<V>> quantityScaleByFltXValue(
 @Suppress("UNCHECKED_CAST")
 internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs: Quantity<V>): Ret<V> {
     return when (lhs.value) {
-        is FltX -> ok(((lhs as Quantity<FltX>).quantityDiv(rhs as Quantity<FltX>).value) as V)
+        is FltX -> {
+            val ratio = (lhs as Quantity<FltX>).quantityDiv(rhs as Quantity<FltX>)
+                ?: return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Quantity ratio failed: ${lhs.unit} vs ${rhs.unit}"
+                )
+            ok(ratio.value as V)
+        }
         else -> Failed(
             ErrorCode.IllegalArgument,
             "Unsupported quantity numeric type for '/': ${lhs.value::class.simpleName}"
@@ -180,15 +200,15 @@ operator fun Quantity<FltX>.plus(rhs: FltX): Quantity<FltX> = this + (rhs * this
 
 operator fun Quantity<FltX>.minus(rhs: FltX): Quantity<FltX> = this - (rhs * this.unit)
 
-operator fun Quantity<FltX>.times(rhs: FltX): Quantity<FltX> = this.quantityTimes(rhs)
+operator fun Quantity<FltX>.times(rhs: FltX): Quantity<FltX> = Quantity(this.value * rhs, this.unit)
 
-operator fun Quantity<FltX>.div(rhs: FltX): Quantity<FltX> = this.quantityDiv(rhs)
+operator fun Quantity<FltX>.div(rhs: FltX): Quantity<FltX> = Quantity(this.value / rhs, this.unit)
 
 operator fun FltX.plus(rhs: Quantity<FltX>): Quantity<FltX> = (this * rhs.unit) + rhs
 
 operator fun FltX.minus(rhs: Quantity<FltX>): Quantity<FltX> = (this * rhs.unit) - rhs
 
-operator fun FltX.times(rhs: Quantity<FltX>): Quantity<FltX> = this.quantityTimes(rhs)
+operator fun FltX.times(rhs: Quantity<FltX>): Quantity<FltX> = Quantity(this * rhs.value, rhs.unit)
 
 operator fun Quantity<FltX>.rem(rhs: Quantity<FltX>): Quantity<FltX> {
     val right = rhs.toScalar(this.unit).value!!
@@ -627,9 +647,25 @@ operator fun QuantityPoint3<FltX>.plus(offset: Vector<Dim3, FltX>): QuantityPoin
     )
 }
 
-internal fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
+internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order? {
     return lhs.quantityPartialOrd(rhs)
-        ?: throw IllegalArgumentException("Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+}
+
+internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
+    return quantityOrdOrNull(lhs, rhs, axis)?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+}
+
+internal fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
+    return quantityOrdOrNull(lhs, rhs, axis) ?: Order.Equal
+}
+
+infix fun <V : FloatingNumber<V>> Quantity<V>.ordOrNull(rhs: Quantity<V>): Order? {
+    return quantityOrdOrNull(this, rhs, "quantity")
+}
+
+infix fun <V : FloatingNumber<V>> Quantity<V>.ordSafe(rhs: Quantity<V>): Ret<Order> {
+    return quantityOrdSafe(this, rhs, "quantity")
 }
 
 infix fun <V : FloatingNumber<V>> Quantity<V>.ord(rhs: Quantity<V>): Order {
@@ -638,6 +674,14 @@ infix fun <V : FloatingNumber<V>> Quantity<V>.ord(rhs: Quantity<V>): Order {
 
 fun <V : FloatingNumber<V>> max(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return quantityMax(lhs, rhs, "max")
+}
+
+fun <V : FloatingNumber<V>> maxOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
+    return quantityMaxOrNull(lhs, rhs, "max")
+}
+
+fun <V : FloatingNumber<V>> maxSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
+    return quantityMaxSafe(lhs, rhs, "max")
 }
 
 fun <V : FloatingNumber<V>> max(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest: Quantity<V>): Quantity<V> {
@@ -652,6 +696,14 @@ fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>
     return quantityMin(lhs, rhs, "min")
 }
 
+fun <V : FloatingNumber<V>> minOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
+    return quantityMinOrNull(lhs, rhs, "min")
+}
+
+fun <V : FloatingNumber<V>> minSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
+    return quantityMinSafe(lhs, rhs, "min")
+}
+
 fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest: Quantity<V>): Quantity<V> {
     var current = min(lhs, rhs)
     for (value in rest) {
@@ -661,15 +713,33 @@ fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest:
 }
 
 internal fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
-    return when (quantityOrd(lhs, rhs, axis)) {
+    return quantityMaxOrNull(lhs, rhs, axis) ?: lhs
+}
+
+internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
+    return when (quantityOrdOrNull(lhs, rhs, axis) ?: return null) {
         is Order.Greater, Order.Equal -> lhs
         is Order.Less -> rhs
     }
 }
 
+internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
+    return quantityMaxOrNull(lhs, rhs, axis)?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
+}
+
 internal fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
-    return when (quantityOrd(lhs, rhs, axis)) {
+    return quantityMinOrNull(lhs, rhs, axis) ?: lhs
+}
+
+internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
+    return when (quantityOrdOrNull(lhs, rhs, axis) ?: return null) {
         is Order.Greater -> rhs
         is Order.Equal, is Order.Less -> lhs
     }
+}
+
+internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
+    return quantityMinOrNull(lhs, rhs, axis)?.let { ok(it) }
+        ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }

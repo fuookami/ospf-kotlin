@@ -7,6 +7,8 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
@@ -65,10 +67,12 @@ data class AxisPermutation3(
      *
      * @param V 数值类型 / The numeric type
      * @param cylinder 待置换的圆柱 / The cylinder to permute
-     * @return 置换后的圆柱 / The permuted cylinder
+     * @return 置换后的圆柱结果 / The permuted cylinder result
      */
-    fun <V : FloatingNumber<V>> apply(cylinder: Cylinder3<V>): Cylinder3<V> {
-        return cylinder.copy(axis = mapAxis(cylinder.axis))
+    fun <V : FloatingNumber<V>> apply(cylinder: Cylinder3<V>): Ret<Cylinder3<V>> {
+        return mapAxis(cylinder.axis).map { axis ->
+            cylinder.copy(axis = axis)
+        }
     }
 
     /**
@@ -76,17 +80,17 @@ data class AxisPermutation3(
      * Map an original axis to its permuted standard axis
      *
      * @param axis 原始轴 / The original axis
-     * @return 置换后的标准轴 / The permuted standard axis
+     * @return 置换后的标准轴结果 / The permuted standard axis result
      */
-    fun mapAxis(axis: Axis3): Axis3 {
+    fun mapAxis(axis: Axis3): Ret<Axis3> {
         return if (axis == widthAxis) {
-            Axis3.X
+            Ok(Axis3.X)
         } else if (axis == heightAxis) {
-            Axis3.Y
+            Ok(Axis3.Y)
         } else if (axis == depthAxis) {
-            Axis3.Z
+            Ok(Axis3.Z)
         } else {
-            throw IllegalArgumentException("Unsupported axis: $axis")
+            Failed(ErrorCode.IllegalArgument, "Unsupported axis: $axis")
         }
     }
 }

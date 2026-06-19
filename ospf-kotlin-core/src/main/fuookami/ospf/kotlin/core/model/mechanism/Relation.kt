@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 线性约束关系密封接口，封装线性展平数据和比较符号。
@@ -24,8 +25,11 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
     /** 显示名称 / Display name */
     val displayName: String?
 
-    /** 转换为 ConstraintRelation 枚举 / Convert to ConstraintRelation enum */
-    val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
+    /** 转换为可空 ConstraintRelation 枚举 / Convert to nullable ConstraintRelation enum */
+    val constraintRelationOrNull: ConstraintRelation? get() = ConstraintRelation.ofOrNull(sign)
+
+    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid */
+    fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
     /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
     fun normalize(): LinearRelation<V>
@@ -45,8 +49,11 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
     /** 显示名称 / Display name */
     val displayName: String?
 
-    /** 转换为 ConstraintRelation 枚举 / Convert to ConstraintRelation enum */
-    val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
+    /** 转换为可空 ConstraintRelation 枚举 / Convert to nullable ConstraintRelation enum */
+    val constraintRelationOrNull: ConstraintRelation? get() = ConstraintRelation.ofOrNull(sign)
+
+    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid */
+    fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
     /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
     fun normalize(): QuadraticRelation<V>

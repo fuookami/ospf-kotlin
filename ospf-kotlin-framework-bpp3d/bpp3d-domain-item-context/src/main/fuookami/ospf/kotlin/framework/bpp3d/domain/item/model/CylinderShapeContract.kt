@@ -353,15 +353,6 @@ private fun continuousRadiusVariableName(
     return "cylinder_radius_${sourceToken}_${keyToken}_${axis.name}"
 }
 
-private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameter(
-    radiusUnitSource: Quantity<FltX>?
-): Quantity<FltX> {
-    val targetUnit = radiusUnitSource?.unit ?: unit
-    val converted = convertTo(targetUnit)
-        ?: throw IllegalArgumentException("Cylinder diameter bound must use a length-compatible unit.")
-    return Quantity(FltX(converted.value.toDouble() / 2.0), targetUnit)
-}
-
 private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
     radiusUnitSource: Quantity<FltX>?
 ): Ret<Quantity<FltX>> {
@@ -426,24 +417,24 @@ data class ContinuousCylinderRadiusSolverPrototype(
             }
         }
         if (initialRadius != null && radiusLowerBound != null) {
-            val lower = radiusLowerBound.convertTo(initialRadius.unit)
-                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
-            require(initialRadius.value.toDouble() >= lower.value.toDouble()) {
-                "Continuous cylinder radius solver prototype selected or initial radius must be greater than or equal to lower bound."
+            radiusLowerBound.convertTo(initialRadius.unit)?.let { lower ->
+                require(initialRadius.value.toDouble() >= lower.value.toDouble()) {
+                    "Continuous cylinder radius solver prototype selected or initial radius must be greater than or equal to lower bound."
+                }
             }
         }
         if (initialRadius != null && radiusUpperBound != null) {
-            val upper = radiusUpperBound.convertTo(initialRadius.unit)
-                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
-            require(initialRadius.value.toDouble() <= upper.value.toDouble()) {
-                "Continuous cylinder radius solver prototype selected or initial radius must be less than or equal to upper bound."
+            radiusUpperBound.convertTo(initialRadius.unit)?.let { upper ->
+                require(initialRadius.value.toDouble() <= upper.value.toDouble()) {
+                    "Continuous cylinder radius solver prototype selected or initial radius must be less than or equal to upper bound."
+                }
             }
         }
         if (radiusLowerBound != null && radiusUpperBound != null) {
-            val upper = radiusUpperBound.convertTo(radiusLowerBound.unit)
-                ?: throw IllegalArgumentException("Continuous cylinder radius solver prototype bounds must be length-compatible.")
-            require(radiusLowerBound.value.toDouble() <= upper.value.toDouble()) {
-                "Continuous cylinder radius solver prototype lower bound must be less than or equal to upper bound."
+            radiusUpperBound.convertTo(radiusLowerBound.unit)?.let { upper ->
+                require(radiusLowerBound.value.toDouble() <= upper.value.toDouble()) {
+                    "Continuous cylinder radius solver prototype lower bound must be less than or equal to upper bound."
+                }
             }
         }
     }
@@ -524,12 +515,12 @@ fun continuousCylinderRadiusSolverPrototype(
     diameterMax: Quantity<FltX>? = null,
     hasDiscreteRadiusCandidates: Boolean = false,
     hasDiscreteRadiusStep: Boolean = false
-): ContinuousCylinderRadiusSolverPrototype? {
+): Ret<ContinuousCylinderRadiusSolverPrototype?> {
     val key = radiusWeightFunctionKey?.takeIf { it.isNotBlank() }
     val hasRadiusInterval = selectedRadius == null && radiusMin != null && radiusMax != null && !hasDiscreteRadiusStep
     val hasDiameterInterval = selectedRadius == null && diameterMin != null && diameterMax != null && !hasDiscreteRadiusStep
     if (key == null && !hasRadiusInterval && !hasDiameterInterval) {
-        return null
+        return Ok(null)
     }
     val gapReport = continuousCylinderRadiusOptimizationGapReport(
         source = source,
@@ -541,9 +532,30 @@ fun continuousCylinderRadiusSolverPrototype(
         hasContinuousDiameterInterval = hasDiameterInterval
     )
     val referenceRadius = selectedRadius ?: radiusMin ?: radiusMax
-    val lowerBound = radiusMin ?: diameterMin?.toContinuousRadiusBoundFromDiameter(referenceRadius)
-    val upperBound = radiusMax ?: diameterMax?.toContinuousRadiusBoundFromDiameter(referenceRadius ?: lowerBound)
-    return ContinuousCylinderRadiusSolverPrototype(
+    val lowerBoundResult = radiusMin?.let { Ok(it) } ?: diameterMin?.toContinuousRadiusBoundFromDiameterSafe(referenceRadius)
+    val upperBoundResult = radiusMax?.let { Ok(it) } ?: diameterMax?.toContinuousRadiusBoundFromDiameterSafe(referenceRadius ?: (lowerBoundResult?.value ?: return Failed(ErrorCode.IllegalArgument, "Cannot resolve reference radius for diameter conversion.")))
+    val lowerBound = when (lowerBoundResult) {
+        is Ok -> lowerBoundResult.value
+        is Failed -> return Failed(lowerBoundResult.error)
+        is Fatal -> return Fatal(lowerBoundResult.errors)
+        null -> null
+    }
+    val upperBound = when (upperBoundResult) {
+        is Ok -> upperBoundResult.value
+        is Failed -> return Failed(upperBoundResult.error)
+        is Fatal -> return Fatal(upperBoundResult.errors)
+        null -> null
+    }
+    if (selectedRadius != null && lowerBound != null && lowerBound.convertTo(selectedRadius.unit) == null) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+    }
+    if (selectedRadius != null && upperBound != null && upperBound.convertTo(selectedRadius.unit) == null) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+    }
+    if (lowerBound != null && upperBound != null && upperBound.convertTo(lowerBound.unit) == null) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+    }
+    return Ok(ContinuousCylinderRadiusSolverPrototype(
         source = source,
         radiusWeightFunctionKey = key,
         axis = axis,
@@ -556,7 +568,7 @@ fun continuousCylinderRadiusSolverPrototype(
         radiusUpperBound = upperBound,
         initialRadius = selectedRadius,
         gaps = gapReport?.gaps ?: emptyList()
-    )
+    ))
 }
 
 /**
@@ -695,7 +707,7 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): Cylinde
  */
 fun PackageShapeSpec.VerticalCylinder.continuousRadiusSolverPrototype(
     source: String = "PackageShapeSpec.VerticalCylinder"
-): ContinuousCylinderRadiusSolverPrototype? {
+): Ret<ContinuousCylinderRadiusSolverPrototype?> {
     val selection = continuousRadiusSelectionResult()
     return continuousCylinderRadiusSolverPrototype(
         source = source,

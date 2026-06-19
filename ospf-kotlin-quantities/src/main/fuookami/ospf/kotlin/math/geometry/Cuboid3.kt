@@ -31,7 +31,7 @@ data class QuantityCuboid3<V : FloatingNumber<V>>(
     override val boundingCuboid: QuantityCuboid3<V> get() = this
 
     /** 体积 / Volume */
-    val volume: Quantity<V> get() = width * height * depth
+    val volume: Quantity<V> get() = quantityProduct(quantityProduct(width, height), depth)
 
     /**
      * 在原点创建包围盒

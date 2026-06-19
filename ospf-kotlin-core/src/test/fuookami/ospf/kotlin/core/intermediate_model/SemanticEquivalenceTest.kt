@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 class SemanticEquivalenceTest {
     @Test
     fun constraintRelationRoundTripIsBijective() {
-        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation(Comparison.LE))
-        assertEquals(ConstraintRelation.Equal, ConstraintRelation(Comparison.EQ))
-        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation(Comparison.GE))
+        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation.ofOrNull(Comparison.LE)!!)
+        assertEquals(ConstraintRelation.Equal, ConstraintRelation.ofOrNull(Comparison.EQ)!!)
+        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation.ofOrNull(Comparison.GE)!!)
         assertEquals(Comparison.LE, ConstraintRelation.LessEqual.toComparison())
         assertEquals(Comparison.EQ, ConstraintRelation.Equal.toComparison())
         assertEquals(Comparison.GE, ConstraintRelation.GreaterEqual.toComparison())

@@ -10,6 +10,29 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
+private fun finiteMutationRateOrDefault(range: ValueRange<Flt64>): Flt64 {
+    return range.upperBound.value.unwrapOrNull() ?: Flt64.zero
+}
+
+private fun randomMutationRateOrNull(
+    range: ValueRange<Flt64>,
+    randomGenerator: Generator<Flt64>
+): Flt64? {
+    val lowerBound = range.lowerBound.value.unwrapOrNull() ?: return null
+    val diff = range.diffOrNull?.unwrapOrNull() ?: return null
+    val random = randomGenerator() ?: return null
+    return lowerBound + random * diff
+}
+
+private fun weightedMutationRateOrNull(
+    range: ValueRange<Flt64>,
+    weight: Flt64
+): Flt64? {
+    val lowerBound = range.lowerBound.value.unwrapOrNull() ?: return null
+    val diff = range.diffOrNull?.unwrapOrNull() ?: return null
+    return lowerBound + weight * diff
+}
+
 /**
  * 变异模式接口，定义如何为种群中的个体计算变异率。
  * Mutation mode interface, defining how to calculate mutation rates for individuals in the population.
@@ -82,7 +105,10 @@ data class RandomMutationMode<ObjValue, V>(
         mutationRateRange: ValueRange<Flt64>
     ): List<Flt64> {
         return List(population.size) {
-            mutationRateRange.lowerBound.value.unwrap() + randomGenerator()!! * mutationRateRange.diff.unwrap()
+            randomMutationRateOrNull(
+                range = mutationRateRange,
+                randomGenerator = randomGenerator
+            ) ?: finiteMutationRateOrDefault(mutationRateRange)
         }
     }
 }
@@ -104,7 +130,10 @@ class AdaptiveDynamicMutationMode<ObjValue, V> : MutationMode<ObjValue, V> where
     ): List<Flt64> {
         val weight = (weights.max() - weights.min()) / weights.max()
         return List(population.size) {
-            mutationRateRange.lowerBound.value.unwrap() + weight * mutationRateRange.diff.unwrap()
+            weightedMutationRateOrNull(
+                range = mutationRateRange,
+                weight = weight
+            ) ?: finiteMutationRateOrDefault(mutationRateRange)
         }
     }
 }

@@ -65,7 +65,7 @@ interface NumericUInteger<Self, I>
         is Flt32 -> toFlt32().log(base)
         is Flt64 -> toFlt64().log(base)
         is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.log: ${base.javaClass}")
+        else -> toFltX().log(base.toFltX())
     }
 
     /** 计算浮点数次幂 / Calculate floating-point power */
@@ -74,7 +74,7 @@ interface NumericUInteger<Self, I>
         is Flt32 -> toFlt32().pow(index)
         is Flt64 -> toFlt64().pow(index)
         is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NumericUInteger.pow: ${index.javaClass}")
+        else -> toFltX().pow(index.toFltX())
     }
 
     /** 指数函数 e^x / Exponential function e^x */
@@ -1203,7 +1203,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
         is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to NUIntX.log: ${base.javaClass}")
+        else -> toFltX().log(base.toFltX())
     }
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
@@ -1236,7 +1236,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)
         is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to NUIntX.pow: ${index.javaClass}")
+        else -> toFltX().pow(index.toFltX())
     }
 
     /** 平方根 / Square root */

@@ -821,16 +821,11 @@ class Csp1dCgLifecycleTest {
             options = Csp1dRecoveryOptions(retryWithoutWarmStart = true)
         )
         // The warm start plan is incompatible, so fallback is required.
-        // The flow policy returns false, so Csp1dRecoveryFallbackDisabledException should be thrown.
-        var fallbackDisabledThrown = false
-        try {
-            Csp1dRecovery<Flt64>(LifecycleFakeSolver()).solveWithTrace(input)
-        } catch (e: Csp1dRecoveryFallbackDisabledException) {
-            fallbackDisabledThrown = true
-        }
+        // The flow policy returns false, so solveWithTrace should return Failed.
+        val result = Csp1dRecovery<Flt64>(LifecycleFakeSolver()).solveWithTrace(input)
         assertTrue(
-            fallbackDisabledThrown,
-            "allowRecoveryFallback=false policy should cause FallbackDisabled exception even when retryWithoutWarmStart=true"
+            result is Failed,
+            "allowRecoveryFallback=false policy should cause Failed even when retryWithoutWarmStart=true"
         )
     }
 

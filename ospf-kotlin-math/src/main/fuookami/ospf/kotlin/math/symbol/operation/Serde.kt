@@ -8,6 +8,10 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import java.io.ByteArrayInputStream
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.serialization.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.serde.*
@@ -127,7 +131,7 @@ fun quadraticPolynomialFromJson(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 线性不等式 / Linear inequality
  */
-fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<Flt64> {
+fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): Ret<LinearInequality<Flt64>> {
     val dto = readFromJson<LinearInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -143,7 +147,7 @@ fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 fun quadraticInequalityFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): QuadraticInequalityOf<Flt64> {
+): Ret<QuadraticInequalityOf<Flt64>> {
     val dto = readFromJson<QuadraticInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -156,7 +160,7 @@ fun quadraticInequalityFromJson(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 规范不等式 / Canonical inequality
  */
-fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality<Flt64> {
+fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): Ret<CanonicalInequality<Flt64>> {
     val dto = readFromJson<CanonicalInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -187,18 +191,17 @@ private fun Comparison.toDtoString(): String {
  * Parse a comparison operator from a DTO string
  *
  * @param str 比较运算符字符串 / Comparison operator string
- * @return 比较运算符 / Comparison operator
- * @throws IllegalArgumentException 若字符串未知 / If string is unknown
+ * @return 比较运算符结果 / Comparison operator result
  */
-private fun comparisonFromDtoString(str: String): Comparison {
+private fun comparisonFromDtoString(str: String): Ret<Comparison> {
     return when (str) {
-        "LT" -> Comparison.LT
-        "LE" -> Comparison.LE
-        "EQ" -> Comparison.EQ
-        "NE" -> Comparison.NE
-        "GE" -> Comparison.GE
-        "GT" -> Comparison.GT
-        else -> throw IllegalArgumentException("Unknown comparison operator: $str")
+        "LT" -> Ok(Comparison.LT)
+        "LE" -> Ok(Comparison.LE)
+        "EQ" -> Ok(Comparison.EQ)
+        "NE" -> Ok(Comparison.NE)
+        "GE" -> Ok(Comparison.GE)
+        "GT" -> Ok(Comparison.GT)
+        else -> Failed(ErrorCode.IllegalArgument, "Unknown comparison operator: $str")
     }
 }
 
@@ -274,30 +277,36 @@ internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
-internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearInequality<Flt64> {
-    return LinearInequality(
-        lhs = LinearPolynomial(lhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(lhs.constant)),
-        rhs = LinearPolynomial(rhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(rhs.constant)),
-        comparison = comparisonFromDtoString(comparison),
-        name = name,
-        displayName = displayName
-    )
+internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<LinearInequality<Flt64>> {
+    return comparisonFromDtoString(comparison).map { comparison ->
+        LinearInequality(
+            lhs = LinearPolynomial(lhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(lhs.constant)),
+            rhs = LinearPolynomial(rhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) }, Flt64(rhs.constant)),
+            comparison = comparison,
+            name = name,
+            displayName = displayName
+        )
+    }
 }
 
-internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticInequalityOf<Flt64> {
-    return QuadraticInequalityOf(
-        lhs = QuadraticPolynomial(lhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(lhs.constant)),
-        rhs = QuadraticPolynomial(rhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(rhs.constant)),
-        comparison = comparisonFromDtoString(comparison),
-        name = name,
-        displayName = displayName
-    )
+internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<QuadraticInequalityOf<Flt64>> {
+    return comparisonFromDtoString(comparison).map { comparison ->
+        QuadraticInequalityOf(
+            lhs = QuadraticPolynomial(lhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(lhs.constant)),
+            rhs = QuadraticPolynomial(rhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) }, Flt64(rhs.constant)),
+            comparison = comparison,
+            name = name,
+            displayName = displayName
+        )
+    }
 }
 
-internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalInequality<Flt64> {
-    return CanonicalInequality<Flt64>(
-        lhs = CanonicalPolynomial(lhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(lhs.constant)),
-        rhs = CanonicalPolynomial(rhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(rhs.constant)),
-        comparison = comparisonFromDtoString(comparison)
-    )
+internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<CanonicalInequality<Flt64>> {
+    return comparisonFromDtoString(comparison).map { comparison ->
+        CanonicalInequality<Flt64>(
+            lhs = CanonicalPolynomial(lhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(lhs.constant)),
+            rhs = CanonicalPolynomial(rhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(rhs.constant)),
+            comparison = comparison
+        )
+    }
 }

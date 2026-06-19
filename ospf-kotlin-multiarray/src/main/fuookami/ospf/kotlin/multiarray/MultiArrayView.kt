@@ -53,6 +53,8 @@
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 多维数组视图
@@ -132,7 +134,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by linear index
      */
     operator fun get(i: Int): T {
-        return origin[actualVector(shape.vector(i))]
+        return origin[actualVectorUnchecked(shape.vector(i))]
     }
 
     /**
@@ -148,7 +150,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by Indexed interface
      */
     operator fun get(e: Indexed): T {
-        return origin[actualVector(shape.vector(e.index))]
+        return origin[actualVectorUnchecked(shape.vector(e.index))]
     }
 
     /**
@@ -156,8 +158,8 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by vector index
      */
     @JvmName("getByIntArray")
-    operator fun get(v: IntArray): T {
-        return origin[actualVector(v)]
+    operator fun get(v: IntArray): Ret<T> {
+        return actualVector(v).map { origin[it] }
     }
 
     /**
@@ -165,24 +167,24 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by vararg
      */
     @JvmName("getByInts")
-    operator fun get(vararg v: Int): T {
-        return origin[actualVector(v)]
+    operator fun get(vararg v: Int): Ret<T> {
+        return actualVector(v).map { origin[it] }
     }
 
     /**
      * 通过 ULong 迭代获取元素
      * Get element by ULong iterable
      */
-    operator fun get(v: Iterable<ULong>): T {
-        return origin[actualVector(v.map { it.toInt() }.toIntArray())]
+    operator fun get(v: Iterable<ULong>): Ret<T> {
+        return actualVector(v.map { it.toInt() }.toIntArray()).map { origin[it] }
     }
 
     /**
      * 通过 Indexed 可变参数获取元素
      * Get element by Indexed vararg
      */
-    operator fun get(vararg v: Indexed): T {
-        return origin[actualVector(v.map { it.index }.toIntArray())]
+    operator fun get(vararg v: Indexed): Ret<T> {
+        return actualVector(v.map { it.index }.toIntArray()).map { origin[it] }
     }
 
     /**
@@ -217,14 +219,17 @@ class MultiArrayView<out T : Any, S : Shape>(
      * 将视图索引转换为原数组的实际索引。
      * Converts view indices to actual indices in the original array.
      */
-    private fun actualVector(v: IntArray): IntArray {
+    private fun actualVector(v: IntArray): Ret<IntArray> {
         if (v.size != shape.dimension) {
-            throw DimensionMismatchingException(
-                dimension = shape.dimension,
-                vectorDimension = v.size
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "View index dimension mismatch: expected ${shape.dimension}, got ${v.size}."
             )
         }
+        return Ok(actualVectorUnchecked(v))
+    }
 
+    private fun actualVectorUnchecked(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0
 
@@ -359,7 +364,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     override fun iterator(): Iterator<T> {
         return iterator {
             for (i in 0 until shape.size) {
-                yield(origin[mapVector(shape.vector(i))])
+                yield(origin[mapVectorUnchecked(shape.vector(i))])
             }
         }
     }
@@ -372,7 +377,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      * @return 元素值 / Element value
      */
     operator fun get(i: Int): T {
-        return origin[mapVector(shape.vector(i))]
+        return origin[mapVectorUnchecked(shape.vector(i))]
     }
 
     /**
@@ -394,19 +399,19 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      * @return 元素值 / Element value
      */
     operator fun get(e: Indexed): T {
-        return origin[mapVector(shape.vector(e.index))]
+        return origin[mapVectorUnchecked(shape.vector(e.index))]
     }
 
     /** 通过 IntArray 向量索引获取元素 / Get element by IntArray vector index */
     @JvmName("getByIntArray")
-    operator fun get(v: IntArray): T {
-        return origin[mapVector(v)]
+    operator fun get(v: IntArray): Ret<T> {
+        return mapVector(v).map { origin[it] }
     }
 
     /** 通过 vararg Int 向量索引获取元素 / Get element by vararg Int vector index */
     @JvmName("getByInts")
-    operator fun get(vararg v: Int): T {
-        return origin[mapVector(v)]
+    operator fun get(vararg v: Int): Ret<T> {
+        return mapVector(v).map { origin[it] }
     }
 
     /**
@@ -444,14 +449,17 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      * @param v 视图索引向量 / View index vector
      * @return 原始数组索引向量 / Original array index vector
      */
-    private fun mapVector(v: IntArray): IntArray {
+    private fun mapVector(v: IntArray): Ret<IntArray> {
         if (v.size != shape.dimension) {
-            throw DimensionMismatchingException(
-                dimension = shape.dimension,
-                vectorDimension = v.size
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "Mapped view index dimension mismatch: expected ${shape.dimension}, got ${v.size}."
             )
         }
+        return Ok(mapVectorUnchecked(v))
+    }
 
+    private fun mapVectorUnchecked(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0
 

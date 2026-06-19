@@ -10,6 +10,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -82,9 +87,10 @@ private fun requireValuesSize(
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>
-): Int {
+): Ret<Int> {
     return indexOfSymbol[symbol]
-        ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
+        ?.let { Ok(it) }
+        ?: Failed(ErrorCode.DataNotFound, "Symbol ${symbol.name} not found in order.")
 }
 
 /**
@@ -102,7 +108,7 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
     combineTerms: Boolean = true,
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
-): (List<T>) -> T where T : Ring<T> {
+): Ret<(List<T>) -> T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineLinearTerms(zero, isZero)
@@ -110,14 +116,22 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
         this
     }
     val expectedSize = order.size
-    val monomials = source.monomials.map {
-        CompiledLinearMonomial(
-            coefficient = it.coefficient,
-            symbolIndex = requireSymbolIndex(it.symbol, indexOfSymbol)
+    val monomials = ArrayList<CompiledLinearMonomial<T>>(source.monomials.size)
+    for (monomial in source.monomials) {
+        val symbolIndex = when (val result = requireSymbolIndex(monomial.symbol, indexOfSymbol)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        monomials.add(
+            CompiledLinearMonomial(
+                coefficient = monomial.coefficient,
+                symbolIndex = symbolIndex
+            )
         )
     }
     val constant = source.constant
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         var result = constant
         for (monomial in monomials) {
@@ -144,7 +158,7 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): (List<T>) -> T where T : Ring<T> {
+): Ret<(List<T>) -> T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineQuadraticTerms(zero, isZero, symbolComparator)
@@ -152,15 +166,32 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
         this
     }
     val expectedSize = order.size
-    val monomials = source.monomials.map {
-        CompiledQuadraticMonomial(
-            coefficient = it.coefficient,
-            symbol1Index = requireSymbolIndex(it.symbol1, indexOfSymbol),
-            symbol2Index = it.symbol2?.let { symbol -> requireSymbolIndex(symbol, indexOfSymbol) }
+    val monomials = ArrayList<CompiledQuadraticMonomial<T>>(source.monomials.size)
+    for (monomial in source.monomials) {
+        val symbol1Index = when (val result = requireSymbolIndex(monomial.symbol1, indexOfSymbol)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val symbol2Index = if (monomial.symbol2 != null) {
+            when (val result = requireSymbolIndex(monomial.symbol2, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        } else {
+            null
+        }
+        monomials.add(
+            CompiledQuadraticMonomial(
+                coefficient = monomial.coefficient,
+                symbol1Index = symbol1Index,
+                symbol2Index = symbol2Index
+            )
         )
     }
     val constant = source.constant
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         var result = constant
         for (monomial in monomials) {
@@ -196,7 +227,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null,
     one: T
-): (List<T>) -> T where T : Ring<T> {
+): Ret<(List<T>) -> T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
@@ -204,22 +235,35 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
         this
     }
     val expectedSize = order.size
-    val monomials = source.monomials.map { monomial ->
-        CompiledCanonicalMonomial(
-            coefficient = monomial.coefficient,
-            powers = monomial.powers.map { (symbol, exp) ->
-                Pair(requireSymbolIndex(symbol, indexOfSymbol), exp)
+    val monomials = ArrayList<CompiledCanonicalMonomial<T>>(source.monomials.size)
+    for (monomial in source.monomials) {
+        val powers = ArrayList<Pair<Int, Int32>>(monomial.powers.size)
+        for ((symbol, exp) in monomial.powers) {
+            if (exp.toInt() < 0) {
+                return Failed(ErrorCode.IllegalArgument, "Negative exponent is not supported by compiled canonical evaluation.")
             }
+            val symbolIndex = when (val result = requireSymbolIndex(symbol, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            powers.add(Pair(symbolIndex, exp))
+        }
+        monomials.add(
+            CompiledCanonicalMonomial(
+                coefficient = monomial.coefficient,
+                powers = powers
+            )
         )
     }
     val constant = source.constant
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         var result = constant
         for (monomial in monomials) {
             var monomialValue = monomial.coefficient
             for ((symbolIndex, power) in monomial.powers) {
-                monomialValue *= computeRingPower(values[symbolIndex], power.toInt(), one)
+                monomialValue *= computeNonNegativeRingPower(values[symbolIndex], power.toInt(), one)
             }
             result += monomialValue
         }
@@ -247,7 +291,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): (List<T>) -> T where T : Ring<T>, T : Arithmetic<T> {
+): Ret<(List<T>) -> T> where T : Ring<T>, T : Arithmetic<T> {
     return compileEvalCanonical(
         order = order,
         combineTerms = combineTerms,
@@ -299,7 +343,7 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
     combineTerms: Boolean = true,
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
-): (List<T>) -> List<T> where T : Ring<T> {
+): Ret<(List<T>) -> List<T>> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineLinearTerms(zero, isZero)
@@ -309,11 +353,15 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
     val expectedSize = order.size
     val gradient = MutableList(expectedSize) { zero }
     for (monomial in source.monomials) {
-        val symbolIndex = requireSymbolIndex(monomial.symbol, indexOfSymbol)
+        val symbolIndex = when (val result = requireSymbolIndex(monomial.symbol, indexOfSymbol)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         gradient[symbolIndex] += monomial.coefficient
     }
     val compiledGradient = gradient.toList()
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         compiledGradient
     }
@@ -336,7 +384,7 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): (List<T>) -> List<T> where T : Ring<T> {
+): Ret<(List<T>) -> List<T>> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineQuadraticTerms(zero, isZero, symbolComparator)
@@ -347,10 +395,24 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     val baseGradient = MutableList(expectedSize) { zero }
     val quadraticMonomials = ArrayList<CompiledQuadraticMonomial<T>>(source.monomials.size)
     for (monomial in source.monomials) {
+        val symbol1Index = when (val result = requireSymbolIndex(monomial.symbol1, indexOfSymbol)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val symbol2Index = if (monomial.symbol2 != null) {
+            when (val result = requireSymbolIndex(monomial.symbol2, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        } else {
+            null
+        }
         val compiled = CompiledQuadraticMonomial(
             coefficient = monomial.coefficient,
-            symbol1Index = requireSymbolIndex(monomial.symbol1, indexOfSymbol),
-            symbol2Index = monomial.symbol2?.let { symbol -> requireSymbolIndex(symbol, indexOfSymbol) }
+            symbol1Index = symbol1Index,
+            symbol2Index = symbol2Index
         )
         if (compiled.symbol2Index == null) {
             baseGradient[compiled.symbol1Index] += compiled.coefficient
@@ -358,7 +420,7 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
             quadraticMonomials.add(compiled)
         }
     }
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         val gradient = baseGradient.toMutableList()
         for (monomial in quadraticMonomials) {
@@ -392,7 +454,7 @@ fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): (List<T>) -> List<T> where T : Ring<T> {
+): Ret<(List<T>) -> List<T>> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
         combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
@@ -400,15 +462,28 @@ fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
         this
     }
     val expectedSize = order.size
-    val monomials = source.monomials.map { monomial ->
-        CompiledCanonicalGradientMonomial(
-            coefficient = monomial.coefficient,
-            factorCounts = monomial.powers.entries.map {
-                Pair(requireSymbolIndex(it.key, indexOfSymbol), it.value)
+    val monomials = ArrayList<CompiledCanonicalGradientMonomial<T>>(source.monomials.size)
+    for (monomial in source.monomials) {
+        val factorCounts = ArrayList<Pair<Int, Int32>>(monomial.powers.size)
+        for ((symbol, power) in monomial.powers) {
+            if (power.toInt() < 0) {
+                return Failed(ErrorCode.IllegalArgument, "Negative exponent is not supported by compiled canonical gradient.")
             }
+            val symbolIndex = when (val result = requireSymbolIndex(symbol, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            factorCounts.add(Pair(symbolIndex, power))
+        }
+        monomials.add(
+            CompiledCanonicalGradientMonomial(
+                coefficient = monomial.coefficient,
+                factorCounts = factorCounts
+            )
         )
     }
-    return { values ->
+    return Ok { values ->
         requireValuesSize(values, expectedSize)
         val gradient = MutableList(expectedSize) { zero }
         for (monomial in monomials) {

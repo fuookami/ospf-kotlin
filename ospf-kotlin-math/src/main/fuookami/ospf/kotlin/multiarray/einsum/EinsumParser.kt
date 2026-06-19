@@ -7,12 +7,19 @@
  */
 package fuookami.ospf.kotlin.multiarray.einsum
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 // ============================================================================
 // einsum 字符串解析和执行
 // ============================================================================
+
+private fun <T> unsupportedEinsum(message: String): Ret<T> {
+    return Failed(ErrorCode.IllegalArgument, message)
+}
 
 /**
  * 通用爱因斯坦求和（字符串表示法）
@@ -45,27 +52,27 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * @param b 第二个张量
  * @param notation 爱因斯坦表示法字符串
  * @param zero 零值
- * @return 结果张量
- * @throws EinsumError 如果表示法不支持或参数不匹配
+ * @return 结果张量解析与执行结果
+ * @return Parse and execution result
  */
 fun <T : Ring<T>> einsum(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
     notation: String,
     zero: T
-): Any {
+): Ret<Any> {
     // 解析表示法
     // Parse notation
     val parts = notation.split("->")
     if (parts.size != 2) {
-        throw EinsumError.UnsupportedOperation(
+        return unsupportedEinsum(
             "Invalid einsum notation: $notation. Expected format: 'inputs->output'"
         )
     }
 
     val inputs = parts[0].split(",")
     if (inputs.size != 2) {
-        throw EinsumError.UnsupportedOperation(
+        return unsupportedEinsum(
             "Expected 2 inputs in notation, got ${inputs.size}"
         )
     }
@@ -94,7 +101,7 @@ fun <T : Ring<T>> einsum(
         }
 
         else -> {
-            throw EinsumError.UnsupportedOperation(
+            unsupportedEinsum(
                 "Unsupported einsum pattern: $notation. " +
                 "Supported: ij,jk->ik, i,i->, i,j->ij, ii->, ij->ji"
             )
@@ -114,16 +121,16 @@ fun <T : Ring<T>> einsum(
  * @param a 输入张量
  * @param notation 爱因斯坦表示法字符串
  * @param zero 零值（迹操作需要）
- * @return 结果
+ * @return 解析与执行结果 / Parse and execution result
  */
 fun <T : Ring<T>> einsum(
     a: AbstractMultiArray<T, *>,
     notation: String,
     zero: T
-): Any {
+): Ret<Any> {
     val parts = notation.split("->")
     if (parts.size != 2) {
-        throw EinsumError.UnsupportedOperation(
+        return unsupportedEinsum(
             "Invalid einsum notation: $notation"
         )
     }
@@ -144,7 +151,7 @@ fun <T : Ring<T>> einsum(
         }
 
         else -> {
-            throw EinsumError.UnsupportedOperation(
+            unsupportedEinsum(
                 "Unsupported einsum pattern: $notation. " +
                 "Supported: ii->, ij->ji"
             )
@@ -185,45 +192,45 @@ class Einstein<T : Ring<T>>(
      * 矩阵乘法
      * Matrix multiplication
      */
-    fun matmul(): MultiArray<T, DynShape> {
+    fun matmul(): Ret<MultiArray<T, DynShape>> {
         return b?.let { matmul(a, it, zero) }
-            ?: throw EinsumError.UnsupportedOperation("matmul requires two operands")
+            ?: unsupportedEinsum("matmul requires two operands")
     }
 
     /**
      * 点积
      * Dot product
      */
-    fun dot(): T {
+    fun dot(): Ret<T> {
         return b?.let { dot(a, it, zero) }
-            ?: throw EinsumError.UnsupportedOperation("dot requires two operands")
+            ?: unsupportedEinsum("dot requires two operands")
     }
 
     /**
      * 外积
      * Outer product
      */
-    fun outer(): MultiArray<T, DynShape> {
+    fun outer(): Ret<MultiArray<T, DynShape>> {
         return b?.let { outer(a, it, zero) }
-            ?: throw EinsumError.UnsupportedOperation("outer requires two operands")
+            ?: unsupportedEinsum("outer requires two operands")
     }
 
     /**
      * 缩并
      * Contraction
      */
-    fun contract(axisA: Int, axisB: Int): MultiArray<T, DynShape> {
+    fun contract(axisA: Int, axisB: Int): Ret<MultiArray<T, DynShape>> {
         return b?.let { contract(a, axisA, it, axisB, zero) }
-            ?: throw EinsumError.UnsupportedOperation("contract requires two operands")
+            ?: unsupportedEinsum("contract requires two operands")
     }
 
     /**
      * 迹（单操作数，
      * Trace (single operand)
      */
-    fun trace(): T {
+    fun trace(): Ret<T> {
         if (b != null) {
-            throw EinsumError.UnsupportedOperation("trace is a single operand operation")
+            return unsupportedEinsum("trace is a single operand operation")
         }
         return trace(a, zero)
     }
@@ -232,9 +239,9 @@ class Einstein<T : Ring<T>>(
      * 转置（单操作数）
      * Transpose (single operand)
      */
-    fun transpose(): MultiArray<T, DynShape> {
+    fun transpose(): Ret<MultiArray<T, DynShape>> {
         if (b != null) {
-            throw EinsumError.UnsupportedOperation("transpose is a single operand operation")
+            return unsupportedEinsum("transpose is a single operand operation")
         }
         return transpose(a)
     }

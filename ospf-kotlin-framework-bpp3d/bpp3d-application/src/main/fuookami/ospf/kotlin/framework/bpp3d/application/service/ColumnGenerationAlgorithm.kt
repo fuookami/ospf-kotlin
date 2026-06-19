@@ -65,7 +65,7 @@ fun continuousRadiusSolverPrototypesFromItems(
         val spec = item.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder ?: continue
         val prototype = spec.continuousRadiusSolverPrototype(
             source = continuousCylinderRadiusSolverSource(item)
-        ) ?: continue
+        ).value ?: continue
         prototypes.putIfAbsent(prototype.variableName, prototype)
     }
     return prototypes.values.toList()

@@ -389,6 +389,36 @@ abstract class TaskTimeImpl<
     private lateinit var notOnEarliestEndTime: LinearIntermediateSymbols1<Flt64>
     override lateinit var notOnTime: LinearIntermediateSymbols1<Flt64>
 
+    private fun maskedSlackResult(
+        model: MetaModel<Flt64>,
+        task: @UnsafeVariance T,
+        slack: LinearFunctionSymbolAdapter<Flt64>,
+        slackName: String,
+        symbolName: String
+    ): Ret<LinearIntermediateSymbol<Flt64>> {
+        if (!compilation.taskCancelEnabled) {
+            return ok(slack)
+        }
+        slack.name = slackName
+        when (val result = model.add(slack)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+        }
+        return ok(MaskingFunction.fromLinearPolynomials(
+            x = slack,
+            mask = compilation.taskCompilation[task],
+            converter = schedulingSolverValueAdapter,
+            name = symbolName
+        ))
+    }
+
     override fun register(model: MetaModel<Flt64>): Try {
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
@@ -522,66 +552,55 @@ abstract class TaskTimeImpl<
 
         if (overMaxDelayEnabled) {
             if (!::overMaxDelayTime.isInitialized) {
-                try {
-                    overMaxDelayTime = LinearIntermediateSymbols1<Flt64>(
-                        name = "over_max_delay_time",
-                        shape = Shape1(tasks.size)
-                    ) { i, _ ->
-                        val task = tasks[i]
-                        if (!task.delayEnabled) {
-                            LinearIntermediateSymbol.empty(
-                                Flt64,
-                                name = "over_max_delay_time_${task}"
-                            )
-                        } else {
-                            when (val maxDelayTime = task.maxDelay) {
-                                null -> {
-                                    LinearExpressionSymbol(
-                                        Flt64,
-                                        name = "over_max_delay_time_${task}"
-                                    )
-                                }
+                val symbols = ArrayList<LinearIntermediateSymbol<Flt64>>()
+                for (task in tasks) {
+                    val symbol = if (!task.delayEnabled) {
+                        LinearIntermediateSymbol.empty(
+                            Flt64,
+                            name = "over_max_delay_time_${task}"
+                        )
+                    } else {
+                        when (val maxDelayTime = task.maxDelay) {
+                            null -> {
+                                LinearExpressionSymbol(
+                                    Flt64,
+                                    name = "over_max_delay_time_${task}"
+                                )
+                            }
 
-                                else -> {
-                                    val slack = slackSymbol(
-                                        x = delayTime[task],
-                                        y = timeBoundary.valueOf(maxDelayTime),
-                                        type = if (timeBoundary.continues) {
-                                            UContinuous
-                                        } else {
-                                            UInteger
-                                        },
-                                        withNegative = false,
-                                        name = "over_max_delay_time_${task}"
-                                    )
-                                    if (compilation.taskCancelEnabled) {
-                                        slack.name = "over_max_delay_time_slack_${task}"
-                                        when (val result = model.add(slack)) {
-                                            is Ok -> {}
-
-                                            is Failed -> {
-                                                throw IllegalStateException(result.error.message)
-                                            }
-
-                                            is Fatal -> {
-                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                                            }
-                                        }
-                                        MaskingFunction.fromLinearPolynomials(
-                                            x = slack,
-                                            mask = compilation.taskCompilation[task],
-                                            converter = schedulingSolverValueAdapter,
-                                            name = "over_max_delay_time_${task}"
-                                        )
+                            else -> {
+                                val slack = slackSymbol(
+                                    x = delayTime[task],
+                                    y = timeBoundary.valueOf(maxDelayTime),
+                                    type = if (timeBoundary.continues) {
+                                        UContinuous
                                     } else {
-                                        slack
-                                    }
+                                        UInteger
+                                    },
+                                    withNegative = false,
+                                    name = "over_max_delay_time_${task}"
+                                )
+                                when (val result = maskedSlackResult(
+                                    model = model,
+                                    task = task,
+                                    slack = slack,
+                                    slackName = "over_max_delay_time_slack_${task}",
+                                    symbolName = "over_max_delay_time_${task}"
+                                )) {
+                                    is Ok -> result.value
+                                    is Failed -> return Failed(result.error)
+                                    is Fatal -> return Fatal(result.errors)
                                 }
                             }
                         }
                     }
-                } catch (e: IllegalStateException) {
-                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
+                    symbols.add(symbol)
+                }
+                overMaxDelayTime = LinearIntermediateSymbols1<Flt64>(
+                    name = "over_max_delay_time",
+                    shape = Shape1(tasks.size)
+                ) { i, _ ->
+                    symbols[i]
                 }
                 for (task in tasks) {
                     overMaxDelayTime[task].range.leq(
@@ -617,66 +636,55 @@ abstract class TaskTimeImpl<
 
         if (overMaxAdvanceEnabled) {
             if (!::overMaxAdvanceTime.isInitialized) {
-                try {
-                    overMaxAdvanceTime = LinearIntermediateSymbols1<Flt64>(
-                        name = "over_max_advance_time",
-                        shape = Shape1(tasks.size)
-                    ) { i, _ ->
-                        val task = tasks[i]
-                        if (!task.advanceEnabled) {
-                            LinearIntermediateSymbol.empty(
-                                Flt64,
-                                name = "over_max_advance_time_${task}"
-                            )
-                        } else {
-                            when (val maxAdvanceTime = task.maxAdvance) {
-                                null -> {
-                                    LinearIntermediateSymbol.empty(
-                                        Flt64,
-                                        name = "over_max_advance_time_${task}"
-                                    )
-                                }
+                val symbols = ArrayList<LinearIntermediateSymbol<Flt64>>()
+                for (task in tasks) {
+                    val symbol = if (!task.advanceEnabled) {
+                        LinearIntermediateSymbol.empty(
+                            Flt64,
+                            name = "over_max_advance_time_${task}"
+                        )
+                    } else {
+                        when (val maxAdvanceTime = task.maxAdvance) {
+                            null -> {
+                                LinearIntermediateSymbol.empty(
+                                    Flt64,
+                                    name = "over_max_advance_time_${task}"
+                                )
+                            }
 
-                                else -> {
-                                    val slack = slackSymbol(
-                                        x = advanceTime[task],
-                                        y = timeBoundary.valueOf(maxAdvanceTime),
-                                        type = if (timeBoundary.continues) {
-                                            UContinuous
-                                        } else {
-                                            UInteger
-                                        },
-                                        withNegative = false,
-                                        name = "over_max_advance_time_${task}"
-                                    )
-                                    if (compilation.taskCancelEnabled) {
-                                        slack.name = "over_max_delay_time_slack_${task}"
-                                        when (val result = model.add(slack)) {
-                                            is Ok -> {}
-
-                                            is Failed -> {
-                                                throw IllegalStateException(result.error.message)
-                                            }
-
-                                            is Fatal -> {
-                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                                            }
-                                        }
-                                        MaskingFunction.fromLinearPolynomials(
-                                            x = slack,
-                                            mask = compilation.taskCompilation[task],
-                                            converter = schedulingSolverValueAdapter,
-                                            name = "over_max_advance_time_${task}"
-                                        )
+                            else -> {
+                                val slack = slackSymbol(
+                                    x = advanceTime[task],
+                                    y = timeBoundary.valueOf(maxAdvanceTime),
+                                    type = if (timeBoundary.continues) {
+                                        UContinuous
                                     } else {
-                                        slack
-                                    }
+                                        UInteger
+                                    },
+                                    withNegative = false,
+                                    name = "over_max_advance_time_${task}"
+                                )
+                                when (val result = maskedSlackResult(
+                                    model = model,
+                                    task = task,
+                                    slack = slack,
+                                    slackName = "over_max_advance_time_slack_${task}",
+                                    symbolName = "over_max_advance_time_${task}"
+                                )) {
+                                    is Ok -> result.value
+                                    is Failed -> return Failed(result.error)
+                                    is Fatal -> return Fatal(result.errors)
                                 }
                             }
                         }
                     }
-                } catch (e: IllegalStateException) {
-                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
+                    symbols.add(symbol)
+                }
+                overMaxAdvanceTime = LinearIntermediateSymbols1<Flt64>(
+                    name = "over_max_advance_time",
+                    shape = Shape1(tasks.size)
+                ) { i, _ ->
+                    symbols[i]
                 }
                 for (task in tasks) {
                     overMaxAdvanceTime[task].range.leq(
@@ -712,66 +720,55 @@ abstract class TaskTimeImpl<
 
         if (delayLastEndTimeEnabled) {
             if (!::delayLastEndTime.isInitialized) {
-                try {
-                    delayLastEndTime = LinearIntermediateSymbols1<Flt64>(
-                        name = "delay_last_end_time",
-                        shape = Shape1(tasks.size)
-                    ) { i, _ ->
-                        val task = tasks[i]
-                        if (!task.delayEnabled) {
-                            LinearIntermediateSymbol.empty(
-                                Flt64,
-                                name = "delay_last_end_time_${task}"
-                            )
-                        } else {
-                            when (val lastEndTime = task.lastEndTime) {
-                                null -> {
-                                    LinearIntermediateSymbol.empty(
-                                        Flt64,
-                                        name = "delay_last_end_time_${task}"
-                                    )
-                                }
+                val symbols = ArrayList<LinearIntermediateSymbol<Flt64>>()
+                for (task in tasks) {
+                    val symbol = if (!task.delayEnabled) {
+                        LinearIntermediateSymbol.empty(
+                            Flt64,
+                            name = "delay_last_end_time_${task}"
+                        )
+                    } else {
+                        when (val lastEndTime = task.lastEndTime) {
+                            null -> {
+                                LinearIntermediateSymbol.empty(
+                                    Flt64,
+                                    name = "delay_last_end_time_${task}"
+                                )
+                            }
 
-                                else -> {
-                                    val slack = slackSymbol(
-                                        x = estimateEndTime[task],
-                                        y = timeBoundary.valueOf(lastEndTime),
-                                        type = if (timeBoundary.continues) {
-                                            UContinuous
-                                        } else {
-                                            UInteger
-                                        },
-                                        withNegative = false,
-                                        name = "delay_last_end_time_${task}"
-                                    )
-                                    if (compilation.taskCancelEnabled) {
-                                        slack.name = "delay_last_end_time_slack_${task}"
-                                        when (val result = model.add(slack)) {
-                                            is Ok -> {}
-
-                                            is Failed -> {
-                                                throw IllegalStateException(result.error.message)
-                                            }
-
-                                            is Fatal -> {
-                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                                            }
-                                        }
-                                        MaskingFunction.fromLinearPolynomials(
-                                            x = slack,
-                                            mask = compilation.taskCompilation[task],
-                                            converter = schedulingSolverValueAdapter,
-                                            name = "delay_last_end_time_${task}"
-                                        )
+                            else -> {
+                                val slack = slackSymbol(
+                                    x = estimateEndTime[task],
+                                    y = timeBoundary.valueOf(lastEndTime),
+                                    type = if (timeBoundary.continues) {
+                                        UContinuous
                                     } else {
-                                        slack
-                                    }
+                                        UInteger
+                                    },
+                                    withNegative = false,
+                                    name = "delay_last_end_time_${task}"
+                                )
+                                when (val result = maskedSlackResult(
+                                    model = model,
+                                    task = task,
+                                    slack = slack,
+                                    slackName = "delay_last_end_time_slack_${task}",
+                                    symbolName = "delay_last_end_time_${task}"
+                                )) {
+                                    is Ok -> result.value
+                                    is Failed -> return Failed(result.error)
+                                    is Fatal -> return Fatal(result.errors)
                                 }
                             }
                         }
                     }
-                } catch (e: IllegalStateException) {
-                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
+                    symbols.add(symbol)
+                }
+                delayLastEndTime = LinearIntermediateSymbols1<Flt64>(
+                    name = "delay_last_end_time",
+                    shape = Shape1(tasks.size)
+                ) { i, _ ->
+                    symbols[i]
                 }
                 for (task in tasks) {
                     delayLastEndTime[task].range.leq(timeBoundary.durationValue)
@@ -803,66 +800,55 @@ abstract class TaskTimeImpl<
 
         if (advanceEarliestEndTimeEnabled) {
             if (!::advanceEarliestEndTime.isInitialized) {
-                try {
-                    advanceEarliestEndTime = LinearIntermediateSymbols1<Flt64>(
-                        name = "advance_earliest_end_time",
-                        shape = Shape1(tasks.size)
-                    ) { i, _ ->
-                        val task = tasks[i]
-                        if (!task.advanceEnabled) {
-                            LinearIntermediateSymbol.empty(
-                                Flt64,
-                                name = "advance_earliest_end_time_${task}"
-                            )
-                        } else {
-                            when (val earliestEndTime = task.earliestEndTime) {
-                                null -> {
-                                    LinearIntermediateSymbol.empty(
-                                        Flt64,
-                                        name = "advance_earliest_end_time_${task}"
-                                    )
-                                }
+                val symbols = ArrayList<LinearIntermediateSymbol<Flt64>>()
+                for (task in tasks) {
+                    val symbol = if (!task.advanceEnabled) {
+                        LinearIntermediateSymbol.empty(
+                            Flt64,
+                            name = "advance_earliest_end_time_${task}"
+                        )
+                    } else {
+                        when (val earliestEndTime = task.earliestEndTime) {
+                            null -> {
+                                LinearIntermediateSymbol.empty(
+                                    Flt64,
+                                    name = "advance_earliest_end_time_${task}"
+                                )
+                            }
 
-                                else -> {
-                                    val slack = slackSymbol(
-                                        x = estimateEndTime[task],
-                                        y = timeBoundary.valueOf(earliestEndTime),
-                                        type = if (timeBoundary.continues) {
-                                            UContinuous
-                                        } else {
-                                            UInteger
-                                        },
-                                        withPositive = false,
-                                        name = "advance_earliest_end_time_${task}"
-                                    )
-                                    if (compilation.taskCancelEnabled) {
-                                        slack.name = "advance_earliest_end_time_slack_${task}"
-                                        when (val result = model.add(slack)) {
-                                            is Ok -> {}
-
-                                            is Failed -> {
-                                                throw IllegalStateException(result.error.message)
-                                            }
-
-                                            is Fatal -> {
-                                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                                            }
-                                        }
-                                        MaskingFunction.fromLinearPolynomials(
-                                            x = slack,
-                                            mask = compilation.taskCompilation[task],
-                                            converter = schedulingSolverValueAdapter,
-                                            name = "advance_earliest_end_time_${task}"
-                                        )
+                            else -> {
+                                val slack = slackSymbol(
+                                    x = estimateEndTime[task],
+                                    y = timeBoundary.valueOf(earliestEndTime),
+                                    type = if (timeBoundary.continues) {
+                                        UContinuous
                                     } else {
-                                        slack
-                                    }
+                                        UInteger
+                                    },
+                                    withPositive = false,
+                                    name = "advance_earliest_end_time_${task}"
+                                )
+                                when (val result = maskedSlackResult(
+                                    model = model,
+                                    task = task,
+                                    slack = slack,
+                                    slackName = "advance_earliest_end_time_slack_${task}",
+                                    symbolName = "advance_earliest_end_time_${task}"
+                                )) {
+                                    is Ok -> result.value
+                                    is Failed -> return Failed(result.error)
+                                    is Fatal -> return Fatal(result.errors)
                                 }
                             }
                         }
                     }
-                } catch (e: IllegalStateException) {
-                    return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
+                    symbols.add(symbol)
+                }
+                advanceEarliestEndTime = LinearIntermediateSymbols1<Flt64>(
+                    name = "advance_earliest_end_time",
+                    shape = Shape1(tasks.size)
+                ) { i, _ ->
+                    symbols[i]
                 }
                 for (task in tasks) {
                     advanceEarliestEndTime[task].range.leq(

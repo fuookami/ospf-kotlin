@@ -27,6 +27,8 @@
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -109,17 +111,73 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
  * @param constants 数值常量提供器 / Real number constants provider
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
- * @return 幂函数值 / Power value
- * @throws IllegalArgumentException 如果指数为负 / If exponent is negative
+ * @return 幂函数值结果 / Power value result
  */
-@Throws(IllegalArgumentException::class)
 fun <T> pow(
     base: T,
     index: Int,
     constants: RealNumberConstants<T>,
     digits: Int = constants.decimalDigits ?: 0,
     precision: T = constants.epsilon
-): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
+): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    return powSafe(
+        base = base,
+        index = index,
+        constants = constants,
+        digits = digits,
+        precision = precision
+    )
+}
+
+/**
+ * 安全计算正整数指数幂，使用快速幂算法（不支持负指数）
+ * Safely computes positive integer exponent power using fast power algorithm
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值结果 / Power value result
+ */
+fun <T> powSafe(
+    base: T,
+    index: Int,
+    constants: RealNumberConstants<T>,
+    digits: Int = constants.decimalDigits ?: 0,
+    precision: T = constants.epsilon
+): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    return powOrNull(
+        base = base,
+        index = index,
+        constants = constants,
+        digits = digits,
+        precision = precision
+    )?.let { ok(it) }
+        ?: Failed(
+            ErrorCode.IllegalArgument,
+            "负指数幂需要乘法群支持：${base.javaClass}。 / Negative exponent requires TimesGroup support: ${base.javaClass}."
+        )
+}
+
+/**
+ * 尝试计算正整数指数幂，负指数返回 null
+ * Tries to compute positive integer exponent power; returns null for negative exponent
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param constants 数值常量提供器 / Real number constants provider
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值，负指数时返回 null / Power value, or null for negative exponent
+ */
+fun <T> powOrNull(
+    base: T,
+    index: Int,
+    constants: RealNumberConstants<T>,
+    digits: Int = constants.decimalDigits ?: 0,
+    precision: T = constants.epsilon
+): T? where T : TimesSemiGroup<T>, T : RealNumber<T> {
     return if (index >= 1) {
         powPosImpl(
             value = constants.one,
@@ -129,7 +187,7 @@ fun <T> pow(
             precision = precision
         )
     } else if (index <= -1) {
-        throw IllegalArgumentException("Invalid argument for negative index exponential function: ${base.javaClass}")
+        null
     } else {
         constants.one
     }
@@ -188,8 +246,58 @@ inline fun <reified T> pow(
     index: Int,
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
-): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
+): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
     return pow(
+        base = base,
+        index = index,
+        constants = resolveRealNumberConstants<T>("Pow"),
+        digits = digits,
+        precision = precision
+    )
+}
+
+/**
+ * 安全计算正整数指数幂（自动解析常量）
+ * Safely computes positive integer exponent power (auto-resolve constants)
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值结果 / Power value result
+ */
+inline fun <reified T> powSafe(
+    base: T,
+    index: Int,
+    digits: Int = base.constants.decimalDigits ?: 0,
+    precision: T = base.constants.epsilon
+): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    return powSafe(
+        base = base,
+        index = index,
+        constants = resolveRealNumberConstants<T>("Pow"),
+        digits = digits,
+        precision = precision
+    )
+}
+
+/**
+ * 尝试计算正整数指数幂（自动解析常量）
+ * Tries to compute positive integer exponent power (auto-resolve constants)
+ *
+ * @param base 底数 / Base
+ * @param index 指数（正整数） / Exponent (positive integer)
+ * @param digits 精度位数 / Number of precision digits
+ * @param precision 收敛精度阈值 / Convergence precision threshold
+ * @return 幂函数值，负指数时返回 null / Power value, or null for negative exponent
+ */
+inline fun <reified T> powOrNull(
+    base: T,
+    index: Int,
+    digits: Int = base.constants.decimalDigits ?: 0,
+    precision: T = base.constants.epsilon
+): T? where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    return powOrNull(
         base = base,
         index = index,
         constants = resolveRealNumberConstants<T>("Pow"),

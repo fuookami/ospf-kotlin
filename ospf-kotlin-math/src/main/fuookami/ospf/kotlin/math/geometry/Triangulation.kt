@@ -353,14 +353,17 @@ fun triangulateRet(points: List<Point<Dim2, Flt64>>): Ret<List<Triangle<Point<Di
  * Triangulate a 3D point set (projected onto XY plane)
  *
  * @param points 三维点集（投影坐标不得重复） / 3D point set (projected coordinates must be unique)
- * @return 三维三角形列表 / List of 3D triangles
+ * @return 三维三角形列表或失败原因 / List of 3D triangles or failure reason
  */
 @JvmName("triangulate3Points")
-fun triangulate(points: List<Point<Dim3, Flt64>>): List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>> {
+fun triangulate(points: List<Point<Dim3, Flt64>>): Ret<List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>>> {
     for (i in points.indices) {
         for (j in (i + 1) until points.size) {
             if ((points[i].x eq points[j].x) && (points[i].y eq points[j].y)) {
-                throw IllegalArgumentException("Point<Dim3, Flt64> list contains duplicated projected coordinates at indices $i and $j.")
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "Point<Dim3, Flt64> list contains duplicated projected coordinates at indices $i and $j."
+                )
             }
         }
     }
@@ -370,9 +373,9 @@ fun triangulate(points: List<Point<Dim3, Flt64>>): List<Triangle<Point<Dim3, Flt
     }
 
     val triangles = triangulate(points.map { point2(it.x, it.y) })
-    return triangles.map {
+    return Ok(triangles.map {
         Triangle<Point<Dim3, Flt64>, Dim3, Flt64>(get(it.p1), get(it.p2), get(it.p3))
-    }
+    })
 }
 
 /**
@@ -380,10 +383,10 @@ fun triangulate(points: List<Point<Dim3, Flt64>>): List<Triangle<Point<Dim3, Flt
  * Triangulate a set of isolines to generate a 3D triangle mesh
  *
  * @param isolines 等值线列表，每条由 (Z 值, XY 点集) 组成 / List of isolines, each composed of (Z value, XY point set)
- * @return 三维三角形列表 / List of 3D triangles
+ * @return 三维三角形列表或失败原因 / List of 3D triangles or failure reason
  */
 @JvmName("triangulate3Isolines")
-fun triangulate(isolines: List<Pair<Flt64, List<Point<Dim2, Flt64>>>>): List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>> {
+fun triangulate(isolines: List<Pair<Flt64, List<Point<Dim2, Flt64>>>>): Ret<List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>>> {
     val triangles = ArrayList<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>>()
     for (i in 0 until isolines.lastIndex) {
         val thisLine = isolines[i]
@@ -395,7 +398,11 @@ fun triangulate(isolines: List<Pair<Flt64, List<Point<Dim2, Flt64>>>>): List<Tri
                 nextLine.first
             )
         })
-        triangles.addAll(triangulate(points))
+        when (val result = triangulate(points)) {
+            is Ok -> triangles.addAll(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
     }
-    return triangles
+    return Ok(triangles)
 }

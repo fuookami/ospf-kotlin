@@ -37,8 +37,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val id: String,
     override val name: String,
     override val capacities: List<C>,
-    override val initialQuantityValue: V = resourceQuantityZero(capacities)
-        ?: throw IllegalArgumentException("resource capacities must contain at least one finite quantity bound.")
+    override val initialQuantityValue: V
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
     /**
      * 计算指定时长内的固定成本 / Calculate fixed cost in the given duration

@@ -59,7 +59,9 @@ package fuookami.ospf.kotlin.multiarray
 
 import kotlin.reflect.KClass
 import kotlin.ConsistentCopyVisibility
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 维度不匹配异常
@@ -213,10 +215,30 @@ interface Shape {
      * Get the stride for the specified dimension
      */
     fun offset(dimension: Int): Int {
+        return offsetOrNull(dimension)
+            ?: throw DimensionMismatchingException(this.dimension, dimension)
+    }
+
+    /**
+     * 安全获取指定维度的步长
+     * Safely gets the stride for the specified dimension
+     */
+    fun offsetSafe(dimension: Int): Ret<Int> {
         if (dimension >= this.dimension || dimension < 0) {
-            throw DimensionMismatchingException(this.dimension, dimension)
+            return Failed(
+                code = ErrorCode.IllegalArgument,
+                message = "维度不匹配：期望 0..${this.dimension - 1}，实际 $dimension / Dimension mismatch: expected 0..${this.dimension - 1}, got $dimension"
+            )
         }
-        return offsets[dimension]
+        return Ok(offsets[dimension])
+    }
+
+    /**
+     * 尝试获取指定维度的步长
+     * Tries to get the stride for the specified dimension
+     */
+    fun offsetOrNull(dimension: Int): Int? {
+        return offsetSafe(dimension).value
     }
 
     /**
@@ -289,10 +311,34 @@ interface Shape {
      * Create dummy vector from any type array
      */
     fun dummyVector(vararg v: Any): DummyVector {
-        if (v.size != dimension) {
+        return dummyVectorOrNull(*v) ?: if (v.size != dimension) {
             throw DimensionMismatchingException(
                 dimension = dimension,
                 vectorDimension = v.size
+            )
+        } else {
+            val unknown = v.first { index ->
+                index !== _a &&
+                        index !is IntRange &&
+                        index !is Int &&
+                        index !is Indexed &&
+                        index !is DummyIndex
+            }
+            throw UnknownDummyIndexTypeException(
+                cls = unknown.javaClass.kotlin
+            )
+        }
+    }
+
+    /**
+     * 安全创建虚拟向量
+     * Safely creates dummy vector
+     */
+    fun dummyVectorSafe(vararg v: Any): Ret<DummyVector> {
+        if (v.size != dimension) {
+            return Failed(
+                code = ErrorCode.IllegalArgument,
+                message = "虚拟向量维度不匹配：期望 $dimension，实际 ${v.size} / Dummy vector dimension mismatch: expected $dimension, got ${v.size}"
             )
         }
         val vector = ArrayList<DummyIndex>()
@@ -319,13 +365,22 @@ interface Shape {
                 }
 
                 else -> {
-                    throw UnknownDummyIndexTypeException(
-                        cls = index.javaClass.kotlin
+                    return Failed(
+                        code = ErrorCode.IllegalArgument,
+                        message = "未知虚拟索引类型：${index.javaClass.kotlin} / Unknown dummy index type: ${index.javaClass.kotlin}"
                     )
                 }
             }
         }
-        return vector
+        return Ok(vector)
+    }
+
+    /**
+     * 尝试创建虚拟向量
+     * Tries to create dummy vector
+     */
+    fun dummyVectorOrNull(vararg v: Any): DummyVector? {
+        return dummyVectorSafe(*v).value
     }
 }
 

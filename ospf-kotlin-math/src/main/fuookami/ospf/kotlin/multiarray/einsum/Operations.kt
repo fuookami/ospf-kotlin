@@ -7,8 +7,35 @@
  */
 package fuookami.ospf.kotlin.multiarray.einsum
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
+
+@PublishedApi
+internal fun <T> einsumFailed(error: EinsumError): Ret<T> {
+    return Failed(ErrorCode.IllegalArgument, error.message)
+}
+
+@PublishedApi
+internal fun <T> einsumFailed(message: String): Ret<T> {
+    return Failed(ErrorCode.IllegalArgument, message)
+}
+
+@PublishedApi
+internal inline fun <reified T : Ring<T>> defaultZero(): Ret<T> {
+    val zero = when (T::class) {
+        Double::class -> 0.0 as T
+        Float::class -> 0.0f as T
+        Int::class -> 0 as T
+        Long::class -> 0L as T
+        else -> return einsumFailed("Cannot infer zero value for type ${T::class}. Please provide zero explicitly.")
+    }
+    return Ok(zero)
+}
 
 // ============================================================================
 // 矩阵乘法 / Matrix Multiplication
@@ -40,24 +67,25 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * @param a 左矩阵，形状 [m, k]
  * @param b 右矩阵，形状 [k, n]
  * @param zero 零值（用于初始化）
- * @return 结果矩阵，形状[m, n]
- * @throws EinsumError 如果维度不匹配或形状不兼完
+ * @return 结果矩阵，形状[m, n] / Result matrix with shape [m, n]
  */
 fun <T : Ring<T>> matmul(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
     zero: T
-): MultiArray<T, DynShape> {
+): Ret<MultiArray<T, DynShape>> {
     // 验证维度
     // Validate dimensions
     val aDim = a.shape.dimension
     val bDim = b.shape.dimension
 
     if (aDim != 2 || bDim != 2) {
-        throw EinsumError.DimensionMismatch(
-            expected = 2,
-            actual = maxOf(aDim, bDim),
-            description = "Matrix multiplication requires 2D arrays"
+        return einsumFailed(
+            EinsumError.DimensionMismatch(
+                expected = 2,
+                actual = maxOf(aDim, bDim),
+                description = "Matrix multiplication requires 2D arrays"
+            )
         )
     }
 
@@ -69,10 +97,12 @@ fun <T : Ring<T>> matmul(
     val bCols = b.shape[1]
 
     if (aCols != bRows) {
-        throw EinsumError.IncompatibleShapes(
-            shape1 = listOf(aRows, aCols),
-            shape2 = listOf(bRows, bCols),
-            description = "Matrix dimensions don't align: ${aRows}x${aCols} and ${bRows}x${bCols}"
+        return einsumFailed(
+            EinsumError.IncompatibleShapes(
+                shape1 = listOf(aRows, aCols),
+                shape2 = listOf(bRows, bCols),
+                description = "Matrix dimensions don't align: ${aRows}x${aCols} and ${bRows}x${bCols}"
+            )
         )
     }
 
@@ -95,7 +125,7 @@ fun <T : Ring<T>> matmul(
         }
     }
 
-    return result.toImmutable()
+    return Ok(result.toImmutable())
 }
 
 /**
@@ -112,17 +142,12 @@ fun <T : Ring<T>> matmul(
 inline fun <reified T : Ring<T>> matmul(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
-): MultiArray<T, DynShape> {
-    val zero = when (T::class) {
-        Double::class -> 0.0 as T
-        Float::class -> 0.0f as T
-        Int::class -> 0 as T
-        Long::class -> 0L as T
-        else -> throw EinsumError.UnsupportedOperation(
-            "Cannot infer zero value for type ${T::class}. Please provide zero explicitly."
-        )
+): Ret<MultiArray<T, DynShape>> {
+    return when (val zero = defaultZero<T>()) {
+        is Ok -> matmul(a, b, zero.value)
+        is Failed -> Failed(zero.error)
+        is Fatal -> Fatal(zero.errors)
     }
-    return matmul(a, b, zero)
 }
 
 // ============================================================================
@@ -155,32 +180,35 @@ inline fun <reified T : Ring<T>> matmul(
  * @param a 第一个向量
  * @param b 第二个向量
  * @param zero 零值
- * @return 点积结果（标量）
- * @throws EinsumError 如果不是向量或长度不匹配
+ * @return 点积结果（标量）/ Dot product result
  */
 fun <T : Ring<T>> dot(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
     zero: T
-): T {
+): Ret<T> {
     // 验证维度
     // Validate dimensions
     val aDim = a.shape.dimension
     val bDim = b.shape.dimension
 
     if (aDim != 1 || bDim != 1) {
-        throw EinsumError.DimensionMismatch(
-            expected = 1,
-            actual = maxOf(aDim, bDim),
-            description = "Dot product requires 1D vectors"
+        return einsumFailed(
+            EinsumError.DimensionMismatch(
+                expected = 1,
+                actual = maxOf(aDim, bDim),
+                description = "Dot product requires 1D vectors"
+            )
         )
     }
 
     if (a.size != b.size) {
-        throw EinsumError.IncompatibleShapes(
-            shape1 = listOf(a.size),
-            shape2 = listOf(b.size),
-            description = "Vector lengths don't match"
+        return einsumFailed(
+            EinsumError.IncompatibleShapes(
+                shape1 = listOf(a.size),
+                shape2 = listOf(b.size),
+                description = "Vector lengths don't match"
+            )
         )
     }
 
@@ -189,7 +217,7 @@ fun <T : Ring<T>> dot(
         result = result + a[i] * b[i]
     }
 
-    return result
+    return Ok(result)
 }
 
 /**
@@ -199,17 +227,12 @@ fun <T : Ring<T>> dot(
 inline fun <reified T : Ring<T>> dot(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
-): T {
-    val zero = when (T::class) {
-        Double::class -> 0.0 as T
-        Float::class -> 0.0f as T
-        Int::class -> 0 as T
-        Long::class -> 0L as T
-        else -> throw EinsumError.UnsupportedOperation(
-            "Cannot infer zero value for type ${T::class}. Please provide zero explicitly."
-        )
+): Ret<T> {
+    return when (val zero = defaultZero<T>()) {
+        is Ok -> dot(a, b, zero.value)
+        is Failed -> Failed(zero.error)
+        is Fatal -> Fatal(zero.errors)
     }
-    return dot(a, b, zero)
 }
 
 // ============================================================================
@@ -242,25 +265,20 @@ inline fun <reified T : Ring<T>> dot(
  *
  * @param a 方阵
  * @param zero 零值
- * @return 迹（标量，
- * @throws EinsumError 如果不是方阵
+ * @return 迹（标量）/ Trace scalar
  */
 fun <T : Ring<T>> trace(
     a: AbstractMultiArray<T, *>,
     zero: T
-): T {
+): Ret<T> {
     val shape = IntArray(a.shape.dimension) { a.shape[it] }
 
     if (shape.size != 2) {
-        throw EinsumError.UnsupportedOperation(
-            "Trace only defined for 2D matrices"
-        )
+        return einsumFailed("Trace only defined for 2D matrices")
     }
 
     if (shape[0] != shape[1]) {
-        throw EinsumError.UnsupportedOperation(
-            "Trace only defined for square matrices"
-        )
+        return einsumFailed("Trace only defined for square matrices")
     }
 
     val n = shape[0]
@@ -270,24 +288,19 @@ fun <T : Ring<T>> trace(
         result = result + a[intArrayOf(i, i)]
     }
 
-    return result
+    return Ok(result)
 }
 
 /**
  * 迹（使用默认零值）
  * Trace (using default zero)
  */
-inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): T {
-    val zero = when (T::class) {
-        Double::class -> 0.0 as T
-        Float::class -> 0.0f as T
-        Int::class -> 0 as T
-        Long::class -> 0L as T
-        else -> throw EinsumError.UnsupportedOperation(
-            "Cannot infer zero value for type ${T::class}. Please provide zero explicitly."
-        )
+inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): Ret<T> {
+    return when (val zero = defaultZero<T>()) {
+        is Ok -> trace(a, zero.value)
+        is Failed -> Failed(zero.error)
+        is Fatal -> Fatal(zero.errors)
     }
-    return trace(a, zero)
 }
 
 // ============================================================================
@@ -321,24 +334,25 @@ inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): T {
  * @param a 第一个向量
  * @param b 第二个向量
  * @param zero 零值
- * @return 外积矩阵
- * @throws EinsumError 如果不是向量
+ * @return 外积矩阵 / Outer product matrix
  */
 fun <T : Ring<T>> outer(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
     zero: T
-): MultiArray<T, DynShape> {
+): Ret<MultiArray<T, DynShape>> {
     // 验证维度
     // Validate dimensions
     val aDim = a.shape.dimension
     val bDim = b.shape.dimension
 
     if (aDim != 1 || bDim != 1) {
-        throw EinsumError.DimensionMismatch(
-            expected = 1,
-            actual = maxOf(aDim, bDim),
-            description = "Outer product requires 1D vectors"
+        return einsumFailed(
+            EinsumError.DimensionMismatch(
+                expected = 1,
+                actual = maxOf(aDim, bDim),
+                description = "Outer product requires 1D vectors"
+            )
         )
     }
 
@@ -358,7 +372,7 @@ fun <T : Ring<T>> outer(
         }
     }
 
-    return result.toImmutable()
+    return Ok(result.toImmutable())
 }
 
 /**
@@ -368,17 +382,12 @@ fun <T : Ring<T>> outer(
 inline fun <reified T : Ring<T>> outer(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
-): MultiArray<T, DynShape> {
-    val zero = when (T::class) {
-        Double::class -> 0.0 as T
-        Float::class -> 0.0f as T
-        Int::class -> 0 as T
-        Long::class -> 0L as T
-        else -> throw EinsumError.UnsupportedOperation(
-            "Cannot infer zero value for type ${T::class}. Please provide zero explicitly."
-        )
+): Ret<MultiArray<T, DynShape>> {
+    return when (val zero = defaultZero<T>()) {
+        is Ok -> outer(a, b, zero.value)
+        is Failed -> Failed(zero.error)
+        is Fatal -> Fatal(zero.errors)
     }
-    return outer(a, b, zero)
 }
 
 // ============================================================================
@@ -410,16 +419,13 @@ inline fun <reified T : Ring<T>> outer(
  * ```
  *
  * @param a 输入矩阵
- * @return 转置矩阵
- * @throws EinsumError 如果不是二维矩阵
+ * @return 转置矩阵 / Transposed matrix
  */
-fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
+fun <T : Any> transpose(a: AbstractMultiArray<T, *>): Ret<MultiArray<T, DynShape>> {
     val shape = IntArray(a.shape.dimension) { a.shape[it] }
 
     if (shape.size != 2) {
-        throw EinsumError.UnsupportedOperation(
-            "Transpose only defined for 2D matrices"
-        )
+        return einsumFailed("Transpose only defined for 2D matrices")
     }
 
     val transposedShape = DynShape(intArrayOf(shape[1], shape[0]))
@@ -429,9 +435,8 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
     if (shape[0] == 0 || shape[1] == 0) {
         // 空矩阵不需要初始化值，lambda不会被调用
         // Empty matrices don't need initialization value, lambda won't be called
-        return MutableMultiArray.newBy<T, DynShape>(transposedShape) { _, _ ->
-            throw IllegalStateException("Empty matrix should not call initialization lambda")
-        }.toImmutable()
+        @Suppress("UNCHECKED_CAST")
+        return Ok(MutableMultiArray.newBy<T, DynShape>(transposedShape) { _, _ -> null as T }.toImmutable())
     }
 
     val result = MutableMultiArray.newBy<T, DynShape>(transposedShape) { _, _ ->
@@ -444,7 +449,7 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
         }
     }
 
-    return result.toImmutable()
+    return Ok(result.toImmutable())
 }
 
 // ============================================================================
@@ -475,8 +480,7 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): MultiArray<T, DynShape> {
  * @param b 第二个张量
  * @param axisB 第二个张量的缩并轴
  * @param zero 零值
- * @return 缩并结果
- * @throws EinsumError 如果轴越界或维度不匹酌
+ * @return 缩并结果 / Contraction result
  */
 fun <T : Ring<T>> contract(
     a: AbstractMultiArray<T, *>,
@@ -484,23 +488,27 @@ fun <T : Ring<T>> contract(
     b: AbstractMultiArray<T, *>,
     axisB: Int,
     zero: T
-): MultiArray<T, DynShape> {
+): Ret<MultiArray<T, DynShape>> {
     val aShape = IntArray(a.shape.dimension) { a.shape[it] }
     val bShape = IntArray(b.shape.dimension) { b.shape[it] }
 
     if (axisA < 0 || axisB < 0 || axisA >= aShape.size || axisB >= bShape.size) {
-        throw EinsumError.IndexOutOfBounds(
-            index = if (axisA < 0 || axisA >= aShape.size) axisA else axisB,
-            maxIndex = if (axisA < 0 || axisA >= aShape.size) aShape.size - 1 else bShape.size - 1
+        return einsumFailed(
+            EinsumError.IndexOutOfBounds(
+                index = if (axisA < 0 || axisA >= aShape.size) axisA else axisB,
+                maxIndex = if (axisA < 0 || axisA >= aShape.size) aShape.size - 1 else bShape.size - 1
+            )
         )
     }
 
     if (aShape[axisA] != bShape[axisB]) {
-        throw EinsumError.IncompatibleShapes(
-            shape1 = aShape.toList(),
-            shape2 = bShape.toList(),
-            description = "Contraction axis dimensions don't match: " +
+        return einsumFailed(
+            EinsumError.IncompatibleShapes(
+                shape1 = aShape.toList(),
+                shape2 = bShape.toList(),
+                description = "Contraction axis dimensions don't match: " +
                          "a[${axisA}]=${aShape[axisA]} vs b[${axisB}]=${bShape[axisB]}"
+            )
         )
     }
 
@@ -580,7 +588,7 @@ fun <T : Ring<T>> contract(
         result[outLinear] = sum
     }
 
-    return result.toImmutable()
+    return Ok(result.toImmutable())
 }
 
 /**
@@ -592,17 +600,12 @@ inline fun <reified T : Ring<T>> contract(
     axisA: Int,
     b: AbstractMultiArray<T, *>,
     axisB: Int
-): MultiArray<T, DynShape> {
-    val zero = when (T::class) {
-        Double::class -> 0.0 as T
-        Float::class -> 0.0f as T
-        Int::class -> 0 as T
-        Long::class -> 0L as T
-        else -> throw EinsumError.UnsupportedOperation(
-            "Cannot infer zero value for type ${T::class}. Please provide zero explicitly."
-        )
+): Ret<MultiArray<T, DynShape>> {
+    return when (val zero = defaultZero<T>()) {
+        is Ok -> contract(a, axisA, b, axisB, zero.value)
+        is Failed -> Failed(zero.error)
+        is Fatal -> Fatal(zero.errors)
     }
-    return contract(a, axisA, b, axisB, zero)
 }
 
 // ============================================================================

@@ -38,6 +38,24 @@ class PredicateSchemaProcessorValidationTest {
     }
 
     @Test
+    @DisplayName("Reject columnMapping property conflict / 拒绝 columnMapping 属性冲突")
+    fun rejectColumnMappingPropertyConflict() {
+        val result = compile(
+            """
+            package fixture
+
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+
+            @PredicateEntity(generateColumnMapping = true)
+            data class User(val columnMapping: String)
+            """.trimIndent()
+        )
+
+        assertEquals(KotlinCompilation.ExitCode.COMPILATION_ERROR, result.exitCode)
+        assertTrue(result.messages.contains("already has a property named 'columnMapping'"))
+    }
+
+    @Test
     @DisplayName("Reject generic predicate entity / 拒绝泛型谓词实体")
     fun rejectGenericPredicateEntity() {
         val result = compile(
@@ -112,6 +130,30 @@ class PredicateSchemaProcessorValidationTest {
         assertEquals("class", usageResult.classLoader.loadClass("fixture.UsageKt")
             .getDeclaredMethod("resolveClass")
             .invoke(null))
+    }
+
+    @Test
+    @DisplayName("Generate columnMapping and createBinder / 生成 columnMapping 与 createBinder")
+    fun generateColumnMappingAndCreateBinder() {
+        val entitySource = """
+            package fixture
+
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+
+            @PredicateEntity(schemaName = "Users", generateColumnMapping = true)
+            data class User(val id: Long, val status: String)
+            """.trimIndent()
+        val result = compile(entitySource)
+
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, result.messages)
+        val generated = result.sourcesGeneratedBySymbolProcessor
+            .first { it.name == "Users.kt" }
+            .readText()
+        assertTrue(generated.contains("HasColumnMapping"), "Should implement HasColumnMapping")
+        assertTrue(generated.contains("override val columnMapping: Map<String, String>"), "Should declare columnMapping")
+        assertTrue(generated.contains("\"id\" to \"id\""), "Should map id property")
+        assertTrue(generated.contains("\"status\" to \"status\""), "Should map status property")
+        assertTrue(generated.contains("fun <C> createBinder(resolver: (String) -> C?): ColumnBinder<C>"), "Should declare createBinder")
     }
 
     private fun compile(source: String): JvmCompilationResult {

@@ -3,9 +3,12 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
+import kotlin.test.*
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration.Companion.hours
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 class TimeRangeDifferenceTest {
     @Test
@@ -331,13 +334,11 @@ class TimeRangeDifferenceTest {
             start = Instant.parse("2020-08-30T08:00:00Z"),
             end = Instant.parse("2020-08-30T10:00:00Z")
         )
-        val exception = runCatching {
-            calendar.rsplit(
-                unit = DurationRange(1.hours, 2.hours),
-                maxDuration = 3.hours
-            )
-        }.exceptionOrNull()
-        assert(exception is UnsupportedOperationException)
-        assert(exception!!.message!!.contains("TimeRange.rsplit"))
+        val result = calendar.rsplit(
+            unit = DurationRange(1.hours, 2.hours),
+            maxDuration = 3.hours
+        )
+        assertTrue(result is Failed)
+        assertTrue((result as Failed<*, *, *>).error.message.contains("TimeRange.rsplit"))
     }
 }

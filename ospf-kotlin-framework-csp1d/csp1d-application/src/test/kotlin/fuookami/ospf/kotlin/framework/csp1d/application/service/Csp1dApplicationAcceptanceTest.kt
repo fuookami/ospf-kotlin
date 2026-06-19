@@ -1925,31 +1925,28 @@ class Csp1dApplicationAcceptanceTest {
             )
         )
 
-        val error = assertFailsWith<Csp1dRecoveryFallbackDisabledException> {
-            runBlocking {
-                Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
-                    Csp1dRecoveryInput(
-                        problem = problem,
-                        warmStart = Csp1dWarmStart(
-                            cuttingPlans = listOf(
-                                simpleCuttingPlan(
-                                    product = product,
-                                    material = invalidMaterial,
-                                    rollContribution = Flt64.one
-                                )
+        val result = runBlocking {
+            Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+                Csp1dRecoveryInput(
+                    problem = problem,
+                    warmStart = Csp1dWarmStart(
+                        cuttingPlans = listOf(
+                            simpleCuttingPlan(
+                                product = product,
+                                material = invalidMaterial,
+                                rollContribution = Flt64.one
                             )
-                        ),
-                        options = Csp1dRecoveryOptions(
-                            retryWithoutWarmStart = false
                         )
+                    ),
+                    options = Csp1dRecoveryOptions(
+                        retryWithoutWarmStart = false
                     )
                 )
-            }
+            )
         }
 
-        assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
-        assertEquals(Csp1dWarmStartStatus.Invalid, error.trace.warmStartStatus)
-        assertEquals(Int64.zero, error.trace.attemptCount)
+        assertTrue(result is Failed)
+        assertEquals("Warm start cannot be applied and fallback is disabled: Invalid", (result as Failed).error.message)
     }
 
     /**
@@ -1989,27 +1986,22 @@ class Csp1dApplicationAcceptanceTest {
             )
         )
 
-        val error = assertFailsWith<Csp1dRecoveryFallbackDisabledException> {
-            runBlocking {
-                Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
-                    Csp1dRecoveryInput(
-                        problem = problem,
-                        warmStart = Csp1dWarmStart(
-                            cuttingPlans = listOf(warmStartPlan)
-                        ),
-                        options = Csp1dRecoveryOptions(
-                            retryWithoutWarmStart = false
-                        )
+        val result = runBlocking {
+            Csp1dRecovery<Flt64>(fakeSolver).solveWithTrace(
+                Csp1dRecoveryInput(
+                    problem = problem,
+                    warmStart = Csp1dWarmStart(
+                        cuttingPlans = listOf(warmStartPlan)
+                    ),
+                    options = Csp1dRecoveryOptions(
+                        retryWithoutWarmStart = false
                     )
                 )
-            }
+            )
         }
 
-        assertEquals(Csp1dRecoveryStatus.FallbackDisabled, error.trace.status)
-        assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, error.trace.warmStartStatus)
-        assertEquals(Int64.zero, error.trace.attemptCount)
-        assertEquals(Int64.one, error.trace.warmStartPlanCount)
-        assertEquals(Int64.zero, error.trace.appliedWarmStartPlanCount)
+        assertTrue(result is Failed)
+        assertEquals("Warm start cannot be applied and fallback is disabled: AdapterUnsupported", (result as Failed).error.message)
     }
 
     /**

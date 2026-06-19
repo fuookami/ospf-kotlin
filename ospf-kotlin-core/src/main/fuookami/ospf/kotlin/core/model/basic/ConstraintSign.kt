@@ -5,19 +5,8 @@
 package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-
-/**
- * 从比较运算创建约束符号时的无效输入异常。
- * Exception thrown when creating a constraint sign from an invalid comparison.
- *
- * @param sign 无效的比较运算 / The invalid comparison
- */
-class InvalidConstraintSignFromComparison(
-    sign: Comparison
-) : Throwable() {
-    override val message: String = "No matched constraint sign for comparison: $sign."
-}
 
 /**
  * 约束关系枚举，表示小于等于、等于、大于等于三种约束方向。
@@ -43,15 +32,24 @@ enum class ConstraintRelation {
     };
 
     companion object {
-        /** 从比较运算创建约束关系，NE 比较将抛出异常 / Create a constraint relation from a comparison; NE comparison will throw an exception */
-        @Throws(InvalidConstraintSignFromComparison::class)
-        operator fun invoke(comparison: Comparison) = when (comparison) {
+        /** 从比较运算创建约束关系，NE 返回 null / Create a constraint relation from a comparison; NE returns null */
+        fun ofOrNull(comparison: Comparison): ConstraintRelation? = when (comparison) {
             Comparison.LT -> LessEqual
             Comparison.LE -> LessEqual
             Comparison.EQ -> Equal
-            Comparison.NE -> throw InvalidConstraintSignFromComparison(comparison)
+            Comparison.NE -> null
             Comparison.GT -> GreaterEqual
             Comparison.GE -> GreaterEqual
+        }
+
+        /** 从比较运算创建约束关系，NE 返回失败 / Create a constraint relation from a comparison; NE returns failure */
+        fun ofSafe(comparison: Comparison): Ret<ConstraintRelation> {
+            return ofOrNull(comparison)
+                ?.let { ok(it) }
+                ?: Failed(
+                    ErrorCode.IllegalArgument,
+                    "No matched constraint sign for comparison: $comparison."
+                )
         }
     }
 

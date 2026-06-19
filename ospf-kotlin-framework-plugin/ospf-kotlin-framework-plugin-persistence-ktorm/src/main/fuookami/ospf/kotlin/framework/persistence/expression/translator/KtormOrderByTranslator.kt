@@ -9,6 +9,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.ktorm.dsl.*
 import org.ktorm.expression.OrderByExpression
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
@@ -33,15 +35,20 @@ class KtormOrderByTranslator(
      * @param sortBy 排序条件 / Sort conditions
      * @return 应用排序后的查询对象 / Query object with sort applied
      */
-    fun apply(query: Query, sortBy: SortBy): Query {
-        if (sortBy.isEmpty()) return query
+    fun apply(query: Query, sortBy: SortBy): Ret<Query> {
+        if (sortBy.isEmpty()) return Ok(query)
 
         val orders = mutableListOf<OrderByExpression>()
         for (item in sortBy.items) {
-            orders.addAll(buildOrders(item))
+            val result = buildOrders(item)
+            when (result) {
+                is Ok -> orders.addAll(result.value)
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
-        if (orders.isEmpty()) return query
-        return query.orderBy(*orders.toTypedArray())
+        if (orders.isEmpty()) return Ok(query)
+        return Ok(query.orderBy(*orders.toTypedArray()))
     }
 
     /**
@@ -51,8 +58,9 @@ class KtormOrderByTranslator(
      * @param item 排序项 / Sort item
      * @return 排序表达式列表 / List of order by expressions
      */
-    private fun buildOrders(item: SortItem): List<OrderByExpression> {
-        val column = resolveColumn(item.path) ?: throw IllegalArgumentException(
+    private fun buildOrders(item: SortItem): Ret<List<OrderByExpression>> {
+        val column = resolveColumn(item.path) ?: return Failed(
+            ErrorCode.IllegalArgument,
             "Cannot resolve path: ${item.path}"
         )
 
@@ -76,6 +84,6 @@ class KtormOrderByTranslator(
             SortDirection.Desc -> column.desc()
         }
         orders.add(orderExpr)
-        return orders
+        return Ok(orders)
     }
 }

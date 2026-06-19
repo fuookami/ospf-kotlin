@@ -10,6 +10,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+
 /**
  * 符号标识值类
  * Symbol Identifier Value Class
@@ -139,15 +144,15 @@ fun Symbol.hasStableId(): Boolean {
 }
 
 /**
- * 获取符号的稳定标识符，如果没有则抛出异常。
- * Gets the stable identifier of the symbol, throws if absent.
+ * 获取符号的稳定标识符。
+ * Gets the stable identifier of the symbol.
  *
- * @return 符号的稳定标识符 / Stable identifier of the symbol
- * @throws IllegalStateException 如果符号没有显式的稳定标识 / If the symbol has no explicit stable identity
+ * @return 符号的稳定标识符结果 / Stable identifier result of the symbol
  */
-fun Symbol.requireStableId(): SymbolId {
+fun Symbol.requireStableId(): Ret<SymbolId> {
     return stableIdOrNull()
-        ?: throw IllegalStateException("Symbol $name has no explicit stable identity.")
+        ?.let { Ok(it) }
+        ?: Failed(ErrorCode.ApplicationError, "Symbol $name has no explicit stable identity.")
 }
 
 /**
@@ -215,6 +220,8 @@ val defaultStableSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     if (byName != 0) {
         byName
     } else {
-        lhs.requireStableId().value.compareTo(rhs.requireStableId().value)
+        val lhsId = lhs.stableIdOrNull() ?: lhs.stableId()
+        val rhsId = rhs.stableIdOrNull() ?: rhs.stableId()
+        lhsId.value.compareTo(rhsId.value)
     }
 }

@@ -1,7 +1,11 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -203,7 +207,7 @@ fun CanonicalPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): Array<DoubleArray> {
+): Ret<Array<DoubleArray>> {
     val source = if (combineTerms) {
         this.combineTerms(symbolComparator)
     } else {
@@ -211,17 +215,19 @@ fun CanonicalPolynomial<Flt64>.hessian(
     }
     return when (val quadratic = source.toQuadraticPolynomialRet(symbolComparator)) {
         is Ok -> {
-            quadratic.value.hessian(order = order, combineTerms = false)
+            Ok(quadratic.value.hessian(order = order, combineTerms = false))
         }
 
         is Failed -> {
-            throw IllegalArgumentException(
+            Failed(
+                ErrorCode.IllegalArgument,
                 "Cannot compute canonical hessian for non-quadratic polynomial: ${quadratic.error.message}"
             )
         }
 
         is Fatal -> {
-            throw IllegalArgumentException(
+            Fatal(
+                ErrorCode.IllegalArgument,
                 "Cannot compute canonical hessian for non-quadratic polynomial: ${quadratic.errors.joinToString { it.message }}"
             )
         }

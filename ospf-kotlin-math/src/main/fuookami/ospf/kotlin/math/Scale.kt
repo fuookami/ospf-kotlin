@@ -7,7 +7,11 @@
  */
 package fuookami.ospf.kotlin.math
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.*
 
 private typealias ScaleBase = Either<FltX, RtnX>
@@ -303,35 +307,79 @@ data class Scale(
     }
 
     /**
-     * 除以 FltX
-     * Divide by FltX
+     * 除以 FltX，除数为零时返回 null
+     * Divide by FltX, returning null when the divisor is zero
      *
      * @param other 除数 / The divisor
-     * @return 新缩放因子 / New scale factor
-     * @throws ArithmeticException 除以零时抛出 / If dividing by zero
+     * @return 新缩放因子或 null / New scale factor, or null
      */
-    operator fun div(other: FltX): Scale {
+    operator fun div(other: FltX): Scale? {
+        return divOrNull(other)
+    }
+
+    /**
+     * 除以 FltX，除数为零时返回 null
+     * Divide by FltX, returning null when the divisor is zero
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子或 null / New scale factor, or null
+     */
+    fun divOrNull(other: FltX): Scale? {
         if (other eq FltX.zero) {
-            throw ArithmeticException("Cannot divide by zero")
+            return null
         }
         val base: ScaleBase = Either.Left(other)
         return updateSingleBase(base, -FltX.one)
     }
 
     /**
-     * 除以 RtnX
-     * Divide by RtnX
+     * 安全除以 FltX，除数为零时返回失败
+     * Safely divide by FltX, returning failure when the divisor is zero
      *
      * @param other 除数 / The divisor
-     * @return 新缩放因子 / New scale factor
-     * @throws ArithmeticException 除以零时抛出 / If dividing by zero
+     * @return 新缩放因子结果 / Result of new scale factor
      */
-    operator fun div(other: RtnX): Scale {
+    fun divSafe(other: FltX): Ret<Scale> {
+        return divOrNull(other)?.let { Ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "缩放因子不能除以零。 / Scale cannot be divided by zero.")
+    }
+
+    /**
+     * 除以 RtnX，除数为零时返回 null
+     * Divide by RtnX, returning null when the divisor is zero
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子或 null / New scale factor, or null
+     */
+    operator fun div(other: RtnX): Scale? {
+        return divOrNull(other)
+    }
+
+    /**
+     * 除以 RtnX，除数为零时返回 null
+     * Divide by RtnX, returning null when the divisor is zero
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子或 null / New scale factor, or null
+     */
+    fun divOrNull(other: RtnX): Scale? {
         if (other eq RtnX.zero) {
-            throw ArithmeticException("Cannot divide by zero")
+            return null
         }
         val base: ScaleBase = Either.Right(other)
         return updateSingleBase(base, -FltX.one)
+    }
+
+    /**
+     * 安全除以 RtnX，除数为零时返回失败
+     * Safely divide by RtnX, returning failure when the divisor is zero
+     *
+     * @param other 除数 / The divisor
+     * @return 新缩放因子结果 / Result of new scale factor
+     */
+    fun divSafe(other: RtnX): Ret<Scale> {
+        return divOrNull(other)?.let { Ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "缩放因子不能除以零。 / Scale cannot be divided by zero.")
     }
 
     /**

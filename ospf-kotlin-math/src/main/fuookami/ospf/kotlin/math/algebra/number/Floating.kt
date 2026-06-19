@@ -479,7 +479,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
         is Flt32 -> Flt32(log(value, base.value))
         is Flt64 -> Flt64(log(value.toDouble(), base.value))
         is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Flt32.log: ${base.javaClass}")
+        else -> toFltX().log(base.toFltX())
     }
 
     /**
@@ -507,7 +507,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
         is Flt32 -> Flt32(value.pow(index.value))
         is Flt64 -> Flt64(value.toDouble().pow(index.value))
         is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Flt32.pow: ${index.javaClass}")
+        else -> toFltX().pow(index.toFltX())
     }
 
     /** 指数函数 e^x / Exponential function e^x */
@@ -974,7 +974,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
         is Flt32 -> Flt64(log(value, base.value.toDouble()))
         is Flt64 -> Flt64(log(value, base.value))
         is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to Flt64.log: ${base.javaClass}")
+        else -> toFltX().log(base.toFltX())
     }
 
     /**
@@ -1002,7 +1002,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
         is Flt32 -> Flt64(value.pow(index.value.toDouble()))
         is Flt64 -> Flt64(value.pow(index.value))
         is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to Flt64.pow: ${index.javaClass}")
+        else -> toFltX().pow(index.toFltX())
     }
 
     /** 指数函数 e^x / Exponential function e^x */
@@ -1261,8 +1261,8 @@ data object FltXJsonSerializer : KSerializer<FltX> {
 
     @OptIn(InternalSerializationApi::class)
     override fun deserialize(decoder: Decoder): FltX {
-        decoder as? JsonDecoder ?: throw IllegalStateException(
-            "This serializer can be used only with Json format." + "Expected Decoder to be JsonDecoder, got ${this::class}"
+        decoder as? JsonDecoder ?: throw SerializationException(
+            "This serializer can be used only with Json format. Expected Decoder to be JsonDecoder, got ${decoder::class}"
         )
 
         val element = decoder.decodeSerializableValue(JsonPrimitive::class.serializer())
@@ -1597,7 +1597,14 @@ value class FltX(internal val value: BigDecimal) :
             )
         )
 
-        else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
+        else -> log(
+            base = base.toFltX(),
+            digits = maxOf(
+                value.scale(),
+                base.toFltX().value.scale(),
+                decimalDigits
+            )
+        )
     }
 
     /**
@@ -1644,7 +1651,7 @@ value class FltX(internal val value: BigDecimal) :
             is Flt32 -> base.toFltX()
             is Flt64 -> base.toFltX()
             is FltX -> base
-            else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${base.javaClass}")
+            else -> base.toFltX()
         }.withScale(digits)
         val precisionFltX = precision.toFltX()
         return FltXPowerStrategy.ln(scaled, digits, precisionFltX)?.let { numerator ->
@@ -1687,7 +1694,14 @@ value class FltX(internal val value: BigDecimal) :
             )
         )
 
-        else -> throw IllegalArgumentException("Unknown argument type to FltX.pow: ${index.javaClass}")
+        else -> pow(
+            index = index.toFltX(),
+            digits = maxOf(
+                value.scale(),
+                index.toFltX().value.scale(),
+                decimalDigits
+            )
+        )
     }
 
     /**
@@ -1733,7 +1747,7 @@ value class FltX(internal val value: BigDecimal) :
             is Flt32 -> index.toFltX()
             is Flt64 -> index.toFltX()
             is FltX -> index
-            else -> throw IllegalArgumentException("Unknown argument type to FltX.log: ${index.javaClass}")
+            else -> index.toFltX()
         }
         return FltXPowerStrategy.pow(
             base = this.withScale(digits),

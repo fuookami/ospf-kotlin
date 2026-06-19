@@ -104,6 +104,7 @@ class PredicateSchemaProcessor(
                 return null
             }
             val generateResolver = annotation.booleanArgument("generateResolver") ?: true
+            val generateColumnMapping = annotation.booleanArgument("generateColumnMapping") ?: false
             var hasPropertyError = false
             val properties = getAllProperties()
                 .filter { it.isVisibleSchemaProperty() }
@@ -145,6 +146,13 @@ class PredicateSchemaProcessor(
                 )
                 return null
             }
+            if (generateColumnMapping && properties.any { it.propertyName == "columnMapping" }) {
+                logger.error(
+                    "Predicate entity $entityName cannot generate columnMapping because it already has a property named 'columnMapping'",
+                    this
+                )
+                return null
+            }
             if (properties.isEmpty()) {
                 logger.warn("Predicate entity $entityName has no readable properties", this)
             }
@@ -154,6 +162,7 @@ class PredicateSchemaProcessor(
                 kotlinEntityName = entityName.kotlinIdentifierOrNull() ?: entityName,
                 schemaName = schemaName,
                 generateResolver = generateResolver,
+                generateColumnMapping = generateColumnMapping,
                 properties = properties
             )
         }

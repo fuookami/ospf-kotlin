@@ -325,7 +325,9 @@ open class PatternedItem(
             actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
             val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
-            val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
+            val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple ->
+                (acc + triple.second)!!
+            }
             val volume = actualItems.sumOfQuantity {
                 it.first.volume * FltX(it.second.toULong().toDouble())
             } / FltX(amount.toULong().toDouble())

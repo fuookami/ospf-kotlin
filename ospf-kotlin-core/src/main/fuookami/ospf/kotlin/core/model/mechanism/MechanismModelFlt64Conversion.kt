@@ -124,7 +124,7 @@ private fun <V> convertQuadraticSubObjectToFlt64(
 private fun <V> convertLinearConstraintToFlt64(
     constraint: LinearConstraintImpl<V>,
     tokens: AbstractTokenTable<Flt64>
-): LinearConstraintImpl<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<LinearConstraintImpl<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     val relation = LinearRelationImpl(
         flattenData = LinearFlattenData(
             monomials = constraint.lhs.map { cell ->
@@ -153,7 +153,7 @@ private fun <V> convertLinearConstraintToFlt64(
 private fun <V> convertQuadraticConstraintToFlt64(
     constraint: QuadraticConstraintImpl<V>,
     tokens: AbstractTokenTable<Flt64>
-): QuadraticConstraintImpl<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+): Ret<QuadraticConstraintImpl<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     val relation = QuadraticRelationImpl(
         flattenData = QuadraticFlattenData(
             monomials = constraint.lhs.map { cell ->
@@ -187,7 +187,7 @@ private fun <V> convertQuadraticConstraintToFlt64(
 }
 
 /** 将线性机制模型整体转换为 Flt64 类型 / Convert an entire linear mechanism model to Flt64 type */
-private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): LinearMechanismModel<Flt64>
+private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): Ret<LinearMechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
     val flt64Parent = LinearMetaModel<Flt64>(
@@ -196,19 +196,26 @@ private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V
         configuration = model.parent.configuration,
         converter = IntoValue.Identity
     )
-    val flt64Constraints = model.linearConstraints.map { convertLinearConstraintToFlt64(it, flt64Tokens) }
+    val flt64Constraints = ArrayList<LinearConstraintImpl<Flt64>>()
+    for (constraint in model.linearConstraints) {
+        when (val result = convertLinearConstraintToFlt64(constraint, flt64Tokens)) {
+            is Ok -> flt64Constraints.add(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+    }
     val flt64SubObjects = model.objectFunction.subObjects.map { convertLinearSubObjectToFlt64(it, flt64Tokens) }
-    return LinearMechanismModel(
+    return Ok(LinearMechanismModel(
         parent = flt64Parent,
         name = model.name,
         constraints = flt64Constraints,
         objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
         tokens = flt64Tokens
-    )
+    ))
 }
 
 /** 将二次机制模型整体转换为 Flt64 类型 / Convert an entire quadratic mechanism model to Flt64 type */
-private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): QuadraticMechanismModel<Flt64>
+private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): Ret<QuadraticMechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     val flt64Tokens = createFlt64TokenTable(model.tokens)
     val flt64Parent = QuadraticMetaModel<Flt64>(
@@ -217,15 +224,22 @@ private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismM
         configuration = model.parent.configuration,
         converter = IntoValue.Identity
     )
-    val flt64Constraints = model.quadraticConstraints.map { convertQuadraticConstraintToFlt64(it, flt64Tokens) }
+    val flt64Constraints = ArrayList<QuadraticConstraintImpl<Flt64>>()
+    for (constraint in model.quadraticConstraints) {
+        when (val result = convertQuadraticConstraintToFlt64(constraint, flt64Tokens)) {
+            is Ok -> flt64Constraints.add(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+    }
     val flt64SubObjects = model.objectFunction.subObjects.map { convertQuadraticSubObjectToFlt64(it, flt64Tokens) }
-    return QuadraticMechanismModel(
+    return Ok(QuadraticMechanismModel(
         parent = flt64Parent,
         name = model.name,
         constraints = flt64Constraints,
         objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
         tokens = flt64Tokens
-    )
+    ))
 }
 
 /** 将令牌表不安全转换为目标数值类型 / Unchecked-cast a token table to the target numeric type */
@@ -265,12 +279,12 @@ internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<Mec
     return when (model) {
         is LinearMechanismModel<*> -> {
             @Suppress("UNCHECKED_CAST")
-            Ok(convertLinearMechanismModelToFlt64(model as LinearMechanismModel<V>))
+            convertLinearMechanismModelToFlt64(model as LinearMechanismModel<V>)
         }
 
         is QuadraticMechanismModel<*> -> {
             @Suppress("UNCHECKED_CAST")
-            Ok(convertQuadraticMechanismModelToFlt64(model as QuadraticMechanismModel<V>))
+            convertQuadraticMechanismModelToFlt64(model as QuadraticMechanismModel<V>)
         }
 
         else -> {

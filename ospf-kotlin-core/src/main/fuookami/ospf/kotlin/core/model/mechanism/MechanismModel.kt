@@ -155,6 +155,50 @@ private fun validateDualById(
     }
 }
 
+private fun <V> buildConstraints(
+    metaModel: LinearMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): Ret<MutableList<LinearConstraintImpl<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = ArrayList<LinearConstraintImpl<V>>()
+    for (constraint in metaModel._relationConstraints) {
+        when (val result = LinearConstraintImpl(
+            relation = LinearRelationImpl(constraint.flattenData, constraint.sign),
+            tokens = tokens,
+            converter = metaModel.converter,
+            lazy = constraint.lazy,
+            name = constraint.name,
+            origin = constraint
+        )) {
+            is Ok -> constraints.add(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+    }
+    return Ok(constraints)
+}
+
+private fun <V> buildConstraints(
+    metaModel: QuadraticMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): Ret<MutableList<QuadraticConstraintImpl<V>>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = ArrayList<QuadraticConstraintImpl<V>>()
+    for (constraint in metaModel._relationConstraints) {
+        when (val result = QuadraticConstraintImpl(
+            relation = QuadraticRelationImpl(constraint.flattenData, constraint.sign),
+            tokens = tokens,
+            converter = metaModel.converter,
+            lazy = constraint.lazy,
+            name = constraint.name,
+            origin = constraint
+        )) {
+            is Ok -> constraints.add(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+    }
+    return Ok(constraints)
+}
+
 /**
  * 线性机制模型
  * Linear mechanism model
@@ -222,38 +266,45 @@ class LinearMechanismModel<V>(
 
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
-                    runBlocking {
+                    when (val result = runBlocking {
                         dumpAsync(
                             metaModel = metaModel,
                             tokens = tokens,
                             scope = this,
                             callBack = dumpingStatusCallBack
                         )
+                    }) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
                 } else {
-                    coroutineScope {
+                    when (val result = coroutineScope {
                         dumpAsync(
                             metaModel = metaModel,
                             tokens = tokens,
                             scope = this,
                             callBack = dumpingStatusCallBack
                         )
+                    }) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
                 }
             } else {
+                val constraints = when (val result = buildConstraints(
+                    metaModel = metaModel,
+                    tokens = tokens
+                )) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
                 LinearMechanismModel<V>(
                     parent = metaModel,
                     name = metaModel.name,
-                    constraints = metaModel._relationConstraints.map {
-                        LinearConstraintImpl(
-                            relation = LinearRelationImpl(it.flattenData, it.sign),
-                            tokens = tokens,
-                            converter = metaModel.converter,
-                            lazy = it.lazy,
-                            name = it.name,
-                            origin = it
-                        )
-                    }.toMutableList(),
+                    constraints = constraints,
                     objectFunction = SingleObject(metaModel.objectCategory, buildLinearObjectiveSubObjects(metaModel, tokens)),
                     tokens = tokens
                 )
@@ -301,32 +352,17 @@ class LinearMechanismModel<V>(
             tokens: AbstractTokenTable<V>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): LinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
-            val constraints = dumpItemsAsync(
-                items = metaModel._relationConstraints,
-                scope = scope,
-                memoryCheckInSingleTask = true,
-                onProgress = callBack?.let { callback ->
-                    { ready ->
-                        callback(
-                            MechanismModelDumpingStatus.dumpingConstrains(
-                                ready = ready,
-                                model = metaModel
-                            )
-                        )
-                    }
-                },
-                transform = {
-                    LinearConstraintImpl(
-                        relation = LinearRelationImpl(it.flattenData, it.sign),
-                        tokens = tokens,
-                        converter = metaModel.converter,
-                        lazy = it.lazy,
-                        name = it.name,
-                        origin = it
-                    )
-                }
-            )
+        ): Ret<LinearMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
+            @Suppress("UNUSED_PARAMETER")
+            val unusedScope = scope
+            val constraints = when (val result = buildConstraints(
+                metaModel = metaModel,
+                tokens = tokens
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val subObjects = buildLinearObjectiveSubObjects(metaModel, tokens)
 
             if (callBack != null) {
@@ -338,13 +374,13 @@ class LinearMechanismModel<V>(
                 )
             }
 
-            return LinearMechanismModel<V>(
+            return Ok(LinearMechanismModel<V>(
                 parent = metaModel,
                 name = metaModel.name,
-                constraints = constraints.toMutableList(),
+                constraints = constraints,
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
-            )
+            ))
         }
 
         private suspend fun <V> unfold(
@@ -409,16 +445,19 @@ class LinearMechanismModel<V>(
         from: Pair<IntermediateSymbol<out V>, Boolean>?
     ): Try {
         val flattenData = relation.toLinearFlattenData().getOrElse { return Failed(Err(ErrorCode.IllegalArgument, it.message ?: "Failed to flatten linear inequality")) }
-        _constraints.add(
-            LinearConstraintImpl(
+        val constraint = when (val result = LinearConstraintImpl(
                 relation = LinearRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
                 converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
-        )
+            )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        _constraints.add(constraint)
         return ok
     }
 
@@ -731,38 +770,45 @@ class QuadraticMechanismModel<V>(
 
             val model = if (Runtime.getRuntime().availableProcessors() > 2 && concurrent ?: metaModel.configuration.concurrent) {
                 if (blocking ?: metaModel.configuration.dumpBlocking) {
-                    runBlocking {
+                    when (val result = runBlocking {
                         dumpAsync(
                             metaModel = metaModel,
                             tokens = tokens,
                             scope = this,
                             callBack = dumpingStatusCallBack
                         )
+                    }) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
                 } else {
-                    coroutineScope {
+                    when (val result = coroutineScope {
                         dumpAsync(
                             metaModel = metaModel,
                             tokens = tokens,
                             scope = this,
                             callBack = dumpingStatusCallBack
                         )
+                    }) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
                     }
                 }
             } else {
+                val constraints = when (val result = buildConstraints(
+                    metaModel = metaModel,
+                    tokens = tokens
+                )) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
                 QuadraticMechanismModel<V>(
                     parent = metaModel,
                     name = metaModel.name,
-                    constraints = metaModel._relationConstraints.map {
-                        QuadraticConstraintImpl(
-                            relation = QuadraticRelationImpl(it.flattenData, it.sign),
-                            tokens = tokens,
-                            converter = metaModel.converter,
-                            lazy = it.lazy,
-                            name = it.name,
-                            origin = it
-                        )
-                    }.toMutableList(),
+                    constraints = constraints,
                     objectFunction = SingleObject(metaModel.objectCategory, buildQuadraticObjectiveSubObjects(metaModel, tokens)),
                     tokens = tokens
                 )
@@ -811,32 +857,17 @@ class QuadraticMechanismModel<V>(
             tokens: AbstractTokenTable<V>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): QuadraticMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
-            val constraints = dumpItemsAsync(
-                items = metaModel._relationConstraints,
-                scope = scope,
-                memoryCheckInSingleTask = false,
-                onProgress = callBack?.let { callback ->
-                    { ready ->
-                        callback(
-                            MechanismModelDumpingStatus.dumpingConstrains(
-                                ready = ready,
-                                model = metaModel
-                            )
-                        )
-                    }
-                },
-                transform = {
-                    QuadraticConstraintImpl(
-                        relation = QuadraticRelationImpl(it.flattenData, it.sign),
-                        tokens = tokens,
-                        converter = metaModel.converter,
-                        lazy = it.lazy,
-                        name = it.name,
-                        origin = it
-                    )
-                }
-            )
+        ): Ret<QuadraticMechanismModel<V>> where V : RealNumber<V>, V : NumberField<V> {
+            @Suppress("UNUSED_PARAMETER")
+            val unusedScope = scope
+            val constraints = when (val result = buildConstraints(
+                metaModel = metaModel,
+                tokens = tokens
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val subObjects = buildQuadraticObjectiveSubObjects(metaModel, tokens)
 
             if (callBack != null) {
@@ -848,13 +879,13 @@ class QuadraticMechanismModel<V>(
                 )
             }
 
-            return QuadraticMechanismModel<V>(
+            return Ok(QuadraticMechanismModel<V>(
                 parent = metaModel,
                 name = metaModel.name,
-                constraints = constraints.toMutableList(),
+                constraints = constraints,
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
-            )
+            ))
         }
 
         private suspend fun <V> unfold(
@@ -923,16 +954,19 @@ class QuadraticMechanismModel<V>(
         // 将线性扁平化数据提升为二次（每个线性单项式 c*x 变为二次 c*x*null）
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
         val qFlattenData = QuadraticFlattenData<V>(qMonomials, flattenData.constant)
-        _constraints.add(
-            QuadraticConstraintImpl(
+        val constraint = when (val result = QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(qFlattenData, relation.comparison),
                 tokens = tokens,
                 converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
-        )
+            )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        _constraints.add(constraint)
         return ok
     }
 
@@ -942,16 +976,19 @@ class QuadraticMechanismModel<V>(
         from: Pair<IntermediateSymbol<out V>, Boolean>?
     ): Try {
         val flattenData = relation.toQuadraticFlattenData()
-        _constraints.add(
-            QuadraticConstraintImpl(
+        val constraint = when (val result = QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
                 converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
-        )
+            )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        _constraints.add(constraint)
         return ok
     }
 

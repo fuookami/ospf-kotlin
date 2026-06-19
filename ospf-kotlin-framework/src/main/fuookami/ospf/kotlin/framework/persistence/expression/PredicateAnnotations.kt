@@ -12,7 +12,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 @Retention(AnnotationRetention.SOURCE)
 annotation class PredicateEntity(
     val schemaName: String = "",
-    val generateResolver: Boolean = true
+    val generateResolver: Boolean = true,
+    val generateColumnMapping: Boolean = false
 )
 
 /**

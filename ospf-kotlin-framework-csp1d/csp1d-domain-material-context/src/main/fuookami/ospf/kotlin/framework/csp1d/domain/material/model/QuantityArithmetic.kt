@@ -15,9 +15,17 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
  * @param V 数值类型 / Numeric value type
  */
 interface QuantityArithmetic<V : RealNumber<V>> {
-    fun add(a: Quantity<V>, b: Quantity<V>): Quantity<V>
-    fun subtract(a: Quantity<V>, b: Quantity<V>): Quantity<V>
+    fun add(a: Quantity<V>, b: Quantity<V>): Ret<Quantity<V>>
+    fun subtract(a: Quantity<V>, b: Quantity<V>): Ret<Quantity<V>>
     fun zero(unit: PhysicalUnit): Quantity<V>
+
+    fun addOrNull(a: Quantity<V>, b: Quantity<V>): Quantity<V>? {
+        return add(a, b).value
+    }
+
+    fun subtractOrNull(a: Quantity<V>, b: Quantity<V>): Quantity<V>? {
+        return subtract(a, b).value
+    }
 
     fun isPositive(q: Quantity<V>): Boolean {
         return when (q.value partialOrd q.value.constants.zero) {
@@ -39,15 +47,15 @@ interface QuantityArithmetic<V : RealNumber<V>> {
 }
 
 private val defaultQuantityArithmetic64 = object : QuantityArithmetic<Flt64> {
-    override fun add(a: Quantity<Flt64>, b: Quantity<Flt64>): Quantity<Flt64> = a + b
-    override fun subtract(a: Quantity<Flt64>, b: Quantity<Flt64>): Quantity<Flt64> = a - b
+    override fun add(a: Quantity<Flt64>, b: Quantity<Flt64>): Ret<Quantity<Flt64>> = a.plusSafe(b)
+    override fun subtract(a: Quantity<Flt64>, b: Quantity<Flt64>): Ret<Quantity<Flt64>> = a.minusSafe(b)
     override fun zero(unit: PhysicalUnit): Quantity<Flt64> =
         Quantity(Flt64.zero, unit)
 }
 
 private val defaultQuantityArithmeticX = object : QuantityArithmetic<FltX> {
-    override fun add(a: Quantity<FltX>, b: Quantity<FltX>): Quantity<FltX> = a + b
-    override fun subtract(a: Quantity<FltX>, b: Quantity<FltX>): Quantity<FltX> = a - b
+    override fun add(a: Quantity<FltX>, b: Quantity<FltX>): Ret<Quantity<FltX>> = a.plusSafe(b)
+    override fun subtract(a: Quantity<FltX>, b: Quantity<FltX>): Ret<Quantity<FltX>> = a.minusSafe(b)
     override fun zero(unit: PhysicalUnit): Quantity<FltX> =
         Quantity(FltX.zero, unit)
 }

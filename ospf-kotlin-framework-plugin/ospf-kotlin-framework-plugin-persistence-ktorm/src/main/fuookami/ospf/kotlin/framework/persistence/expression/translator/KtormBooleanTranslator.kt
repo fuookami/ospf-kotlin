@@ -17,6 +17,8 @@ import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.SqlType
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
@@ -55,7 +57,7 @@ class KtormBooleanTranslator(
      * @param expr 布尔表达式 / Boolean expression
      * @return Ktorm 条件表达式，不支持时返回 null / Ktorm condition expression, or null if unsupported
      */
-    fun translate(expr: BooleanExpression): ColumnDeclaring<Boolean>? {
+    fun translate(expr: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
             is Comparison<*> -> translateComparison(expr)
@@ -69,22 +71,22 @@ class KtormBooleanTranslator(
         }
     }
 
-    private fun translateConstant(expr: BooleanConstant): ColumnDeclaring<Boolean>? {
-        return when (expr.value) {
+    private fun translateConstant(expr: BooleanConstant): Ret<ColumnDeclaring<Boolean>?> {
+        return Ok(when (expr.value) {
             Trivalent.True -> alwaysTrue()
             Trivalent.False, Trivalent.Unknown -> alwaysFalse()
-        }
+        })
     }
 
-    private fun translateComparison(expr: Comparison<*>): ColumnDeclaring<Boolean>? {
-        val left = scalarTranslator.translate(expr.left)
+    private fun translateComparison(expr: Comparison<*>): Ret<ColumnDeclaring<Boolean>?> {
+        val left = scalarTranslator.translate(expr.left).value
             ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
-        val right = scalarTranslator.translate(expr.right)
+        val right = scalarTranslator.translate(expr.right).value
             ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
-        return buildComparison(left, right, expr.operator)
+        return Ok(buildComparison(left, right, expr.operator))
     }
 
-    private fun translateIn(expr: InExpression<*>): ColumnDeclaring<Boolean>? {
+    private fun translateIn(expr: InExpression<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a column reference", expr)
         val column = resolveColumn(ref.path.value)
@@ -99,14 +101,14 @@ class KtormBooleanTranslator(
         val inValues = values.map { value ->
             ArgumentExpression(value as Any, sqlType) as ScalarExpression<*>
         }
-        return InListExpression(
+        return Ok(InListExpression(
             left = column.asExpression(),
             values = inValues,
             notInList = expr.negated
-        )
+        ))
     }
 
-    private fun translatePatternMatch(expr: PatternMatch<*>): ColumnDeclaring<Boolean>? {
+    private fun translatePatternMatch(expr: PatternMatch<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a column reference", expr)
         val column = resolveColumn(ref.path.value)
@@ -121,33 +123,36 @@ class KtormBooleanTranslator(
             PatternMatchMode.Suffix -> "%$patternValue"
             PatternMatchMode.Contains -> "%$patternValue%"
             PatternMatchMode.Like -> patternValue
-            PatternMatchMode.Regex -> return patternMatchPolicy.translateRegex(column, patternValue)
-                ?: unsupported("Regex pattern is not supported by current Ktorm policy", expr)
+            PatternMatchMode.Regex -> {
+                val result = patternMatchPolicy.translateRegex(column, patternValue)
+                    ?: return unsupported("Regex pattern is not supported by current Ktorm policy", expr)
+                return Ok(result)
+            }
         }
 
         val condition = patternMatchPolicy.translateLike(column, sqlPattern, caseSensitive = true)
-        return if (expr.negated) condition.not() else condition
+        return Ok(if (expr.negated) condition.not() else condition)
     }
 
-    private fun translateNullCheck(expr: NullCheck): ColumnDeclaring<Boolean> {
+    private fun translateNullCheck(expr: NullCheck): Ret<ColumnDeclaring<Boolean>?> {
         val column = resolveColumn(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
-        return if (expr.isNull) column.isNull() else column.isNotNull()
+        return Ok(if (expr.isNull) column.isNull() else column.isNotNull())
     }
 
-    private fun translateAnd(expr: AndExpression): ColumnDeclaring<Boolean>? {
-        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
-        return conditions.reduce { acc, cond -> acc.and(cond) }
+    private fun translateAnd(expr: AndExpression): Ret<ColumnDeclaring<Boolean>?> {
+        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        return Ok(conditions.reduce { acc, cond -> acc.and(cond) })
     }
 
-    private fun translateOr(expr: OrExpression): ColumnDeclaring<Boolean>? {
-        val conditions = expr.operands.map { translate(it) ?: alwaysFalse() }
-        return conditions.reduce { acc, cond -> acc.or(cond) }
+    private fun translateOr(expr: OrExpression): Ret<ColumnDeclaring<Boolean>?> {
+        val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
+        return Ok(conditions.reduce { acc, cond -> acc.or(cond) })
     }
 
-    private fun translateNot(expr: NotExpression): ColumnDeclaring<Boolean>? {
-        val condition = translate(expr.operand) ?: return unsupported("Unsupported NOT operand", expr)
-        return condition.not()
+    private fun translateNot(expr: NotExpression): Ret<ColumnDeclaring<Boolean>?> {
+        val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
+        return Ok(condition.not())
     }
 
     private fun buildComparison(
@@ -170,13 +175,15 @@ class KtormBooleanTranslator(
         )
     }
 
-    private fun unsupported(reason: String, expression: BooleanExpression): ColumnDeclaring<Boolean> {
-        when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> throw IllegalArgumentException(
+    private fun unsupported(reason: String, expression: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
+        return when (unsupportedPredicatePolicy) {
+            UnsupportedPredicatePolicy.FailFast -> Failed(
+                ErrorCode.IllegalArgument,
                 "Unsupported predicate ${expression.typeName}: $reason"
             )
-            UnsupportedPredicatePolicy.AlwaysFalse -> return alwaysFalse()
-            UnsupportedPredicatePolicy.ClientFilter -> throw IllegalArgumentException(
+            UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse())
+            UnsupportedPredicatePolicy.ClientFilter -> Failed(
+                ErrorCode.IllegalArgument,
                 "ClientFilter is not implemented for unsupported predicate ${expression.typeName}: $reason"
             )
         }

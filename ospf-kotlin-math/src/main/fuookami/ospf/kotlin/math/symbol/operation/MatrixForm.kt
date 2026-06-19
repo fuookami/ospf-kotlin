@@ -9,6 +9,13 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -63,6 +70,23 @@ private fun validateOrder(order: List<Symbol>) {
     }
 }
 
+private fun validateOrderRet(order: List<Symbol>): Try {
+    return if (order.toSet().size == order.size) {
+        ok
+    } else {
+        Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
+    }
+}
+
+private fun requireSymbolIndex(
+    symbol: Symbol,
+    indexOfSymbol: Map<Symbol, Int>
+): Ret<Int> {
+    return indexOfSymbol[symbol]
+        ?.let { Ok(it) }
+        ?: Failed(ErrorCode.DataNotFound, "Symbol ${symbol.name} not found in order.")
+}
+
 /**
  * 验证线性矩阵形式的维度一致性
  * Validate dimension consistency of linear matrix form
@@ -114,8 +138,12 @@ fun <T> LinearPolynomial<T>.toMatrixForm(
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero }
-): LinearMatrixForm<T> where T : Ring<T> {
-    validateOrder(order)
+): Ret<LinearMatrixForm<T>> where T : Ring<T> {
+    when (val result = validateOrderRet(order)) {
+        is Ok -> {}
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         this.combineLinearTerms(zero = zero, isZero = isZero)
     } else {
@@ -124,11 +152,14 @@ fun <T> LinearPolynomial<T>.toMatrixForm(
     val c = MutableList(order.size) { zero }
     val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     for (monomial in source.monomials) {
-        val i = indexOfSymbol[monomial.symbol]
-            ?: throw IllegalArgumentException("Symbol ${monomial.symbol.name} not found in order.")
+        val i = when (val result = requireSymbolIndex(monomial.symbol, indexOfSymbol)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         c[i] = c[i] + monomial.coefficient
     }
-    return LinearMatrixForm(c = c, d = source.constant, order = order)
+    return Ok(LinearMatrixForm(c = c, d = source.constant, order = order))
 }
 
 /**
@@ -204,9 +235,13 @@ fun <T> QuadraticPolynomial<T>.toMatrixForm(
     splitOffDiagonal: (T) -> Pair<T, T>,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero },
-    symbolComparator: Comparator<Symbol>? = null
-): QuadraticMatrixForm<T> where T : Ring<T> {
-    validateOrder(order)
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): Ret<QuadraticMatrixForm<T>> where T : Ring<T> {
+    when (val result = validateOrderRet(order)) {
+        is Ok -> {}
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         this.combineQuadraticTerms(zero = zero, isZero = isZero, symbolComparator = symbolComparator)
     } else {
@@ -219,10 +254,16 @@ fun <T> QuadraticPolynomial<T>.toMatrixForm(
     for (monomial in source.monomials) {
         if (monomial.isQuadratic) {
             val symbol2 = monomial.symbol2!!
-            val i = indexOfSymbol[monomial.symbol1]
-                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
-            val j = indexOfSymbol[symbol2]
-                ?: throw IllegalArgumentException("Symbol ${symbol2.name} not found in order.")
+            val i = when (val result = requireSymbolIndex(monomial.symbol1, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            val j = when (val result = requireSymbolIndex(symbol2, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             if (i == j) {
                 q[i][j] = q[i][j] + monomial.coefficient
             } else {
@@ -231,12 +272,15 @@ fun <T> QuadraticPolynomial<T>.toMatrixForm(
                 q[j][i] = q[j][i] + right
             }
         } else {
-            val i = indexOfSymbol[monomial.symbol1]
-                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
+            val i = when (val result = requireSymbolIndex(monomial.symbol1, indexOfSymbol)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             c[i] = c[i] + monomial.coefficient
         }
     }
-    return QuadraticMatrixForm(q = q, c = c, d = source.constant, order = order)
+    return Ok(QuadraticMatrixForm(q = q, c = c, d = source.constant, order = order))
 }
 
 /**
@@ -258,9 +302,13 @@ fun <T> CanonicalPolynomial<T>.toMatrixForm(
     splitOffDiagonal: (T) -> Pair<T, T>,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero },
-    symbolComparator: Comparator<Symbol>? = null
-): QuadraticMatrixForm<T> where T : Ring<T> {
-    validateOrder(order)
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): Ret<QuadraticMatrixForm<T>> where T : Ring<T> {
+    when (val result = validateOrderRet(order)) {
+        is Ok -> {}
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         this.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
@@ -270,7 +318,7 @@ fun <T> CanonicalPolynomial<T>.toMatrixForm(
         zero = zero,
         isZero = isZero,
         symbolComparator = symbolComparator
-    ) ?: throw IllegalArgumentException("Canonical polynomial is not quadratic.")
+    ) ?: return Failed(ErrorCode.IllegalArgument, "Canonical polynomial is not quadratic.")
     return quadratic.toMatrixForm(
         order = order,
         zero = zero,
@@ -303,7 +351,7 @@ fun <T> quadraticPolynomialFromMatrixForm(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     mergeOffDiagonal: (T, T) -> T = { lhs, rhs -> lhs + rhs },
-    symbolComparator: Comparator<Symbol>? = null
+    symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticPolynomial<T> where T : Ring<T> {
     validateOrder(order)
     validateQuadraticMatrixDimensions(q, c, order)
@@ -366,7 +414,7 @@ fun <T> quadraticPolynomialFromMatrixForm(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     mergeOffDiagonal: (T, T) -> T = { lhs, rhs -> lhs + rhs },
-    symbolComparator: Comparator<Symbol>? = null
+    symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticPolynomial<T> where T : Ring<T> {
     return quadraticPolynomialFromMatrixForm(
         q = form.q,

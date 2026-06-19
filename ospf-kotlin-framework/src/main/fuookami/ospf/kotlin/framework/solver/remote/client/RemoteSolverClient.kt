@@ -44,10 +44,14 @@ class RemoteSolverClient(
         maxRounds: UInt64 = UInt64(64),
         exportCheckpointEachRound: Boolean = true
     ): Ret<SolveResult> {
-        require(quantum > Duration.ZERO) { "quantum must be positive." }
-        require(maxRounds > UInt64.zero) { "maxRounds must be positive." }
+        if (quantum <= Duration.ZERO) {
+            return Failed(ErrorCode.IllegalArgument, "quantum must be positive.")
+        }
+        if (maxRounds <= UInt64.zero) {
+            return Failed(ErrorCode.IllegalArgument, "maxRounds must be positive.")
+        }
 
-        val handle = payload.snapshotRef?.let {
+        val handle = when (val result = payload.snapshotRef?.let {
             executionPort.resume(
                 payload = payload,
                 checkpoint = it,
@@ -62,48 +66,53 @@ class RemoteSolverClient(
             sliceId = sliceId,
             nodeId = nodeId,
             tenantId = tenantId
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         var totalElapsed = Duration.ZERO
         var latestCheckpoint: ObjectRef? = payload.snapshotRef
         var rounds = UInt64.zero
         var finalResult: SolveResult? = null
-        try {
-            while (rounds < maxRounds) {
-                rounds += UInt64.one
-                val sliceResult = executionPort.awaitSliceEnd(
-                    handle = handle,
-                    quantum = quantum
-                )
-                totalElapsed += sliceResult.elapsed
-                if (exportCheckpointEachRound) {
-                    latestCheckpoint = executionPort.exportCheckpoint(handle) ?: latestCheckpoint
-                }
-                if (sliceResult.completed) {
-                    finalResult = executionPort.fetchFinalResult(handle) ?: SolveResult(
-                        feasible = sliceResult.feasible,
-                        optimal = (sliceResult.gap ?: Flt64.one).toDouble() <= 0.0,
-                        objectiveValue = sliceResult.objectiveValue,
-                        gap = sliceResult.gap,
-                        elapsed = totalElapsed,
-                        checkpointRef = latestCheckpoint,
-                        message = sliceResult.message
-                    )
-                    break
+        while (rounds < maxRounds) {
+            rounds += UInt64.one
+            val sliceResult = when (val result = executionPort.awaitSliceEnd(
+                handle = handle,
+                quantum = quantum
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+            totalElapsed += sliceResult.elapsed
+            if (exportCheckpointEachRound) {
+                latestCheckpoint = when (val result = executionPort.exportCheckpoint(handle)) {
+                    is Ok -> result.value ?: latestCheckpoint
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
-        } catch (e: Exception) {
-            return Failed(
-                Err(
-                    ErrorCode.Other,
-                    "Remote solve failed: ${e.message}"
+            if (sliceResult.completed) {
+                val fetchedResult = when (val result = executionPort.fetchFinalResult(handle)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+                finalResult = fetchedResult ?: SolveResult(
+                    feasible = sliceResult.feasible,
+                    optimal = (sliceResult.gap ?: Flt64.one).toDouble() <= 0.0,
+                    objectiveValue = sliceResult.objectiveValue,
+                    gap = sliceResult.gap,
+                    elapsed = totalElapsed,
+                    checkpointRef = latestCheckpoint,
+                    message = sliceResult.message
                 )
-            )
-        } finally {
-            runCatching {
-                executionPort.stop(handle)
+                break
             }
         }
+        executionPort.stop(handle)
 
         return finalResult?.let { Ok(it) } ?: Failed(
             Err(

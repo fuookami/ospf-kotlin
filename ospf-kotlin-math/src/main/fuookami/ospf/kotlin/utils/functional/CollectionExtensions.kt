@@ -16,13 +16,14 @@
  * 边界情况处理 / Boundary case handling:
  * - 空集合调用 sum() 返回 zero / Empty collection returns zero for sum()
  * - 空集合调用 sumOrNull() 返回 null / Empty collection returns null for sumOrNull()
- * - 空集合调用 average() 抛出 NoSuchElementException / Empty collection throws NoSuchElementException for average()
+ * - 空集合调用 average() 返回 Failed / Empty collection returns Failed for average()
  * - 空集合调用 averageOrNull() 返回 null / Empty collection returns null for averageOrNull()
  * - 包含 null 元素时 sumOrNull() 和 averageOrNull() 返回 null / Returns null if contains null elements
  */
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlin.collections.iterator
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
@@ -430,15 +431,15 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
 }
 
-// Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
+// Return Failed on empty collection to avoid division by zero / 空集合返回 Failed 避免除零
 
 /**
  * 计算 Iterable 元素平均值，返回 Flt64 / Calculate average of Iterable elements, returns Flt64
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 元素平均值（Flt64） / Average of elements as Flt64
+ * @return 元素平均值结果（Flt64） / Average result of elements as Flt64
  */
-fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
+fun <T> Iterable<T>.averageSafe(constants: ArithmeticConstants<T>): Ret<Flt64> where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -446,25 +447,36 @@ fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : 
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty collection.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty collection.")
     }
-    return sum.toFlt64() / count.toFlt64()
+    return Ok(sum.toFlt64() / count.toFlt64())
+}
+
+/** 计算 Iterable 元素平均值，返回 Flt64 / Calculate average of Iterable elements, returns Flt64 */
+fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe(constants)
 }
 
 /** 计算 Iterable 元素平均值，返回 Flt64（自动解析常量） / Calculate average as Flt64 (auto-resolve) */
-inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
-    return average(resolveArithmeticConstants<T>("Collection"))
+inline fun <reified T> Iterable<T>.averageSafe(): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe(resolveArithmeticConstants<T>("Collection"))
 }
 
-// Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
+/** 计算 Iterable 元素平均值，返回 Flt64（自动解析常量） / Calculate average as Flt64 (auto-resolve) */
+inline fun <reified T> Iterable<T>.average(): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe()
+}
+
+// Return Failed on empty collection to avoid division by zero / 空集合返回 Failed 避免除零
 
 /**
  * 计算 Iterable 元素平均值，返回同类型 / Calculate average of Iterable elements, returns same type
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 元素平均值（同类型） / Average of elements as same type
+ * @return 元素平均值结果（同类型） / Average result of elements as same type
  */
-fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
+@JvmName("iterableAverageSafeAsSameType")
+fun <T> Iterable<T>.averageSafe(constants: ArithmeticConstants<T>): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -472,14 +484,27 @@ fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): T where T : Real
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty collection.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty collection.")
     }
-    return sum / count
+    return Ok(sum / count)
+}
+
+/** 计算 Iterable 元素平均值，返回同类型 / Calculate average of Iterable elements, returns same type */
+@JvmName("iterableAverageAsSameType")
+fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe(constants)
 }
 
 /** 计算 Iterable 元素平均值，返回同类型（自动解析常量） / Calculate average as same type (auto-resolve) */
-inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    return average(resolveArithmeticConstants<T>("Collection"))
+@JvmName("iterableAverageSafeAsSameType")
+inline fun <reified T> Iterable<T>.averageSafe(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+}
+
+/** 计算 Iterable 元素平均值，返回同类型（自动解析常量） / Calculate average as same type (auto-resolve) */
+@JvmName("iterableAverageAsSameType")
+inline fun <reified T> Iterable<T>.average(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe()
 }
 
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
@@ -540,15 +565,15 @@ inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>,
     return averageOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
-// Throw on empty map to avoid division by zero / 空Map抛异常避免除零
+// Return Failed on empty map to avoid division by zero / 空 Map 返回 Failed 避免除零
 
 /**
  * 计算 Map 值平均值，返回 Flt64 / Calculate average of Map values, returns Flt64
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 值平均值（Flt64） / Average of values as Flt64
+ * @return 值平均值结果（Flt64） / Average result of values as Flt64
  */
-fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Flt64 where V : RealNumber<V> {
+fun <K, V> Map<K, V>.averageSafe(constants: ArithmeticConstants<V>): Ret<Flt64> where V : RealNumber<V> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -556,25 +581,36 @@ fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Flt64 where V :
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty map.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty map.")
     }
-    return sum.toFlt64() / count.toFlt64()
+    return Ok(sum.toFlt64() / count.toFlt64())
+}
+
+/** 计算 Map 值平均值，返回 Flt64 / Calculate average of Map values, returns Flt64 */
+fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Ret<Flt64> where V : RealNumber<V> {
+    return averageSafe(constants)
 }
 
 /** 计算 Map 值平均值，返回 Flt64（自动解析常量） / Average of Map values as Flt64 (auto-resolve) */
-inline fun <K, reified V> Map<K, V>.average(): Flt64 where V : RealNumber<V> {
-    return average(resolveArithmeticConstants<V>("Collection"))
+inline fun <K, reified V> Map<K, V>.averageSafe(): Ret<Flt64> where V : RealNumber<V> {
+    return averageSafe(resolveArithmeticConstants<V>("Collection"))
 }
 
-// Throw on empty map to avoid division by zero / 空Map抛异常避免除零
+/** 计算 Map 值平均值，返回 Flt64（自动解析常量） / Average of Map values as Flt64 (auto-resolve) */
+inline fun <K, reified V> Map<K, V>.average(): Ret<Flt64> where V : RealNumber<V> {
+    return averageSafe()
+}
+
+// Return Failed on empty map to avoid division by zero / 空 Map 返回 Failed 避免除零
 
 /**
  * 计算 Map 值平均值，返回同类型 / Calculate average of Map values, returns same type
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 值平均值（同类型） / Average of values as same type
+ * @return 值平均值结果（同类型） / Average result of values as same type
  */
-fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): V where V : RealNumber<V>, V : Div<V, V> {
+@JvmName("mapAverageSafeAsSameType")
+fun <K, V> Map<K, V>.averageSafe(constants: ArithmeticConstants<V>): Ret<V> where V : RealNumber<V>, V : Div<V, V> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -582,14 +618,27 @@ fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): V where V : Rea
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty map.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty map.")
     }
-    return sum / count
+    return Ok(sum / count)
+}
+
+/** 计算 Map 值平均值，返回同类型 / Calculate average of Map values, returns same type */
+@JvmName("mapAverageAsSameType")
+fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Ret<V> where V : RealNumber<V>, V : Div<V, V> {
+    return averageSafe(constants)
 }
 
 /** 计算 Map 值平均值，返回同类型（自动解析常量） / Average of Map values as same type (auto-resolve) */
-inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Div<V, V> {
-    return average(resolveArithmeticConstants<V>("Collection"))
+@JvmName("mapAverageSafeAsSameType")
+inline fun <K, reified V> Map<K, V>.averageSafe(): Ret<V> where V : RealNumber<V>, V : Div<V, V> {
+    return averageSafe(resolveArithmeticConstants<V>("Collection"))
+}
+
+/** 计算 Map 值平均值，返回同类型（自动解析常量） / Average of Map values as same type (auto-resolve) */
+@JvmName("mapAverageAsSameType")
+inline fun <K, reified V> Map<K, V>.average(): Ret<V> where V : RealNumber<V>, V : Div<V, V> {
+    return averageSafe()
 }
 
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
@@ -646,15 +695,15 @@ inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>
     return averageOrNull(resolveArithmeticConstants<V>("Collection"))
 }
 
-// Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
+// Return Failed on empty sequence to avoid division by zero / 空序列返回 Failed 避免除零
 
 /**
  * 计算 Sequence 元素平均值，返回 Flt64 / Calculate average of Sequence elements, returns Flt64
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 元素平均值（Flt64） / Average of elements as Flt64
+ * @return 元素平均值结果（Flt64） / Average result of elements as Flt64
  */
-fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
+fun <T> Sequence<T>.averageSafe(constants: ArithmeticConstants<T>): Ret<Flt64> where T : RealNumber<T> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -662,25 +711,36 @@ fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : 
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty sequence.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty sequence.")
     }
-    return sum.toFlt64() / count.toFlt64()
+    return Ok(sum.toFlt64() / count.toFlt64())
+}
+
+/** 计算 Sequence 元素平均值，返回 Flt64 / Calculate average of Sequence elements, returns Flt64 */
+fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe(constants)
 }
 
 /** 计算 Sequence 元素平均值，返回 Flt64（自动解析常量） / Average of Sequence elements as Flt64 (auto-resolve) */
-inline fun <reified T> Sequence<T>.average(): Flt64 where T : RealNumber<T> {
-    return average(resolveArithmeticConstants<T>("Collection"))
+inline fun <reified T> Sequence<T>.averageSafe(): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe(resolveArithmeticConstants<T>("Collection"))
 }
 
-// Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
+/** 计算 Sequence 元素平均值，返回 Flt64（自动解析常量） / Average of Sequence elements as Flt64 (auto-resolve) */
+inline fun <reified T> Sequence<T>.average(): Ret<Flt64> where T : RealNumber<T> {
+    return averageSafe()
+}
+
+// Return Failed on empty sequence to avoid division by zero / 空序列返回 Failed 避免除零
 
 /**
  * 计算 Sequence 元素平均值，返回同类型 / Calculate average of Sequence elements, returns same type
  *
  * @param constants 算术常量（提供零值和单位值） / Arithmetic constants (provides zero and one values)
- * @return 元素平均值（同类型） / Average of elements as same type
+ * @return 元素平均值结果（同类型） / Average result of elements as same type
  */
-fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
+@JvmName("sequenceAverageSafeAsSameType")
+fun <T> Sequence<T>.averageSafe(constants: ArithmeticConstants<T>): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
     var sum = constants.zero
     var count = constants.zero
     for (element in this) {
@@ -688,14 +748,27 @@ fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): T where T : Real
         count += constants.one
     }
     if (count == constants.zero) {
-        throw NoSuchElementException("Cannot compute average of an empty sequence.")
+        return Failed(ErrorCode.DataEmpty, "Cannot compute average of an empty sequence.")
     }
-    return sum / count
+    return Ok(sum / count)
+}
+
+/** 计算 Sequence 元素平均值，返回同类型 / Calculate average of Sequence elements, returns same type */
+@JvmName("sequenceAverageAsSameType")
+fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe(constants)
 }
 
 /** 计算 Sequence 元素平均值，返回同类型（自动解析常量） / Average of Sequence elements as same type (auto-resolve) */
-inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    return average(resolveArithmeticConstants<T>("Collection"))
+@JvmName("sequenceAverageSafeAsSameType")
+inline fun <reified T> Sequence<T>.averageSafe(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+}
+
+/** 计算 Sequence 元素平均值，返回同类型（自动解析常量） / Average of Sequence elements as same type (auto-resolve) */
+@JvmName("sequenceAverageAsSameType")
+inline fun <reified T> Sequence<T>.average(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
+    return averageSafe()
 }
 
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零

@@ -156,17 +156,20 @@ fun LinearMonomial<Flt64>.evaluateRet(
 fun LinearMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
+): Ret<Flt64> {
+    if (order.toSet().size != order.size) {
+        return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
     }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+    if (order.size != values.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+        )
     }
     val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     val index = indexOfSymbol[symbol]
-        ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
-    return coefficient * values[index]
+        ?: return Failed(ErrorCode.DataNotFound, "Symbol ${symbol.name} not found in order.")
+    return Ok(coefficient * values[index])
 }
 
 /**
@@ -303,23 +306,26 @@ fun QuadraticMonomial<Flt64>.evaluateRet(
 fun QuadraticMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
+): Ret<Flt64> {
+    if (order.toSet().size != order.size) {
+        return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
     }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+    if (order.size != values.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+        )
     }
     val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     val i1 = indexOfSymbol[symbol1]
-        ?: throw IllegalArgumentException("Symbol ${symbol1.name} not found in order.")
+        ?: return Failed(ErrorCode.DataNotFound, "Symbol ${symbol1.name} not found in order.")
     var result = coefficient * values[i1]
     if (symbol2 != null) {
         val i2 = indexOfSymbol[symbol2]
-            ?: throw IllegalArgumentException("Symbol ${symbol2.name} not found in order.")
+            ?: return Failed(ErrorCode.DataNotFound, "Symbol ${symbol2.name} not found in order.")
         result *= values[i2]
     }
-    return result
+    return Ok(result)
 }
 
 /**
@@ -402,7 +408,7 @@ fun CanonicalMonomial<Flt64>.evaluate(
     for ((symbol, power) in powers) {
         val symbolValue = resolveValue(symbol, provider, policy)
         if (symbolValue == null) return null
-        result *= computeRingPower(symbolValue, power.toInt(), Flt64.one)
+        result *= computeRingPowerOrNull(symbolValue, power.toInt(), Flt64.one) ?: return null
     }
     return result
 }
@@ -440,7 +446,14 @@ fun CanonicalMonomial<Flt64>.evaluateRet(
         when (symbolValueResult) {
             is Failed -> return Failed(symbolValueResult.error)
             is Fatal -> return Fatal(symbolValueResult.errors)
-            is Ok -> result *= computeRingPower(symbolValueResult.value, power.toInt(), Flt64.one)
+            is Ok -> {
+                val powerValue = when (val powerResult = computeRingPower(symbolValueResult.value, power.toInt(), Flt64.one)) {
+                    is Ok -> powerResult.value
+                    is Failed -> return Failed(powerResult.error)
+                    is Fatal -> return Fatal(powerResult.errors)
+                }
+                result *= powerValue
+            }
         }
     }
     return Ok(result)
@@ -472,21 +485,29 @@ fun CanonicalMonomial<Flt64>.evaluateRet(
 fun CanonicalMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
+): Ret<Flt64> {
+    if (order.toSet().size != order.size) {
+        return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
     }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+    if (order.size != values.size) {
+        return Failed(
+            ErrorCode.IllegalArgument,
+            "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
+        )
     }
     val indexOfSymbol = order.withIndex().associate { it.value to it.index }
     var result = coefficient
     for ((symbol, power) in powers) {
         val index = indexOfSymbol[symbol]
-            ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
-        result *= computeRingPower(values[index], power.toInt(), Flt64.one)
+            ?: return Failed(ErrorCode.DataNotFound, "Symbol ${symbol.name} not found in order.")
+        val powerValue = when (val powerResult = computeRingPower(values[index], power.toInt(), Flt64.one)) {
+            is Ok -> powerResult.value
+            is Failed -> return Failed(powerResult.error)
+            is Fatal -> return Fatal(powerResult.errors)
+        }
+        result *= powerValue
     }
-    return result
+    return Ok(result)
 }
 
 /**
@@ -496,21 +517,26 @@ fun CanonicalMonomial<Flt64>.evaluateOrdered(
  * @param provider 值提供者 / Value provider
  * @return 部分求值后的规范单项式 / Partially evaluated canonical monomial
  */
-fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<Flt64> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Ret<CanonicalMonomial<Flt64>> {
     var newCoefficient = coefficient
     val remainedPowers = LinkedHashMap<Symbol, Int32>()
     for ((symbol, power) in powers) {
         val symbolValue = provider[symbol]
         if (symbolValue != null) {
-            newCoefficient *= computeRingPower(symbolValue, power.toInt(), Flt64.one)
+            val powerValue = when (val powerResult = computeRingPower(symbolValue, power.toInt(), Flt64.one)) {
+                is Ok -> powerResult.value
+                is Failed -> return Failed(powerResult.error)
+                is Fatal -> return Fatal(powerResult.errors)
+            }
+            newCoefficient *= powerValue
         } else {
             remainedPowers[symbol] = power
         }
     }
-    return CanonicalMonomial(
+    return Ok(CanonicalMonomial(
         coefficient = newCoefficient,
         powers = remainedPowers
-    )
+    ))
 }
 
 /**
@@ -520,7 +546,7 @@ fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Canonical
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 部分求值后的规范单项式 / Partially evaluated canonical monomial
  */
-fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<Flt64> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Ret<CanonicalMonomial<Flt64>> {
     return partialEvaluate(MapValueProvider(values))
 }
 
@@ -608,7 +634,7 @@ fun LinearPolynomial<Flt64>.evaluateRet(
 fun LinearPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
+): Ret<Flt64> {
     return evaluateLinearOrdered(order, values)
 }
 
@@ -775,7 +801,7 @@ fun QuadraticPolynomial<Flt64>.evaluateRet(
 fun QuadraticPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
+): Ret<Flt64> {
     return evaluateQuadraticOrdered(order, values)
 }
 
@@ -902,7 +928,7 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
 fun CanonicalPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
-): Flt64 {
+): Ret<Flt64> {
     return evaluateCanonicalOrdered(order, values, Flt64.one)
 }
 
@@ -917,7 +943,7 @@ fun CanonicalPolynomial<Flt64>.evaluateOrdered(
 fun CanonicalPolynomial<Flt64>.partialEvaluate(
     provider: ValueProvider,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): Ret<CanonicalPolynomial<Flt64>> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         for (symbol in monomial.powers.keys) {
@@ -944,7 +970,7 @@ fun CanonicalPolynomial<Flt64>.partialEvaluate(
 fun CanonicalPolynomial<Flt64>.partialEvaluate(
     values: Map<Symbol, Flt64>,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): Ret<CanonicalPolynomial<Flt64>> {
     return partialEvaluateCanonical(
         values = values,
         zero = Flt64.zero,

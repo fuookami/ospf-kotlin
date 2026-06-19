@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Exe
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZero
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZeroOrNull
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -50,7 +50,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))!!
+        val zero = resourceQuantityZeroOrNull(listOf(cap))!!
         assertTrue(zero eq FltX.zero)
     }
 
@@ -62,7 +62,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))!!
+        val zero = resourceQuantityZeroOrNull(listOf(cap))!!
         assertTrue(zero.constants.zero eq FltX("0"))
     }
 
@@ -78,7 +78,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range2, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap1, cap2))!!
+        val zero = resourceQuantityZeroOrNull(listOf(cap1, cap2))!!
         assertTrue(zero eq FltX("0"))
     }
 
@@ -89,7 +89,7 @@ class ResourceQuantityFltXTest {
             time = timeRange,
             quantityRangeValue = Quantity(range, NoneUnit)
         )
-        val zero = resourceQuantityZero(listOf(cap))!!
+        val zero = resourceQuantityZeroOrNull(listOf(cap))!!
         assertTrue(zero eq Flt64.zero)
     }
 
@@ -191,7 +191,8 @@ class ResourceQuantityFltXTest {
         val resource = object : StorageResource<ResourceCapacity<FltX>, FltX>(
             id = "test-storage",
             name = "Test Storage",
-            capacities = listOf(cap)
+            capacities = listOf(cap),
+            initialQuantityValue = FltX.zero
         ) {
             override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
                 task: T, time: Duration
@@ -237,7 +238,8 @@ class ResourceQuantityFltXTest {
         val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
             id = "test-exec",
             name = "Test Exec",
-            capacities = listOf(cap)
+            capacities = listOf(cap),
+            initialQuantityValue = FltX.zero
         ) {
             override fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
                 task: AbstractTask<E, A>, time: TimeRange
@@ -269,7 +271,8 @@ class ResourceQuantityFltXTest {
         val resource = object : ConnectionResource<ResourceCapacity<FltX>, FltX>(
             id = "test-conn",
             name = "Test Conn",
-            capacities = listOf(cap)
+            capacities = listOf(cap),
+            initialQuantityValue = FltX.zero
         ) {
             override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
                 prevTask: T?, task: T?, time: TimeRange

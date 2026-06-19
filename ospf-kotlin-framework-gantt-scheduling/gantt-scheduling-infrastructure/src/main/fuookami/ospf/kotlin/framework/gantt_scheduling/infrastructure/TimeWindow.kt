@@ -45,12 +45,6 @@ data class TimeWindow<V : RealNumber<V>>(
     val fromDouble: (Double) -> V,
     val toDouble: (V) -> Double
 ) {
-    private fun unsupportedUpperDurationUnit(): Nothing {
-        throw UnsupportedOperationException(
-            "TimeWindow.upper/upperInterval 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。"
-        )
-    }
-
     companion object {
         /**
          * 创建秒级泛型时间窗口 / Create a seconds-level generic time window
@@ -710,7 +704,7 @@ data class TimeWindow<V : RealNumber<V>>(
         unit: DurationRange,
         maxDuration: Duration? = null,
         breakTime: Duration? = null
-    ): TimeRange.SplitTimeRanges {
+    ): Ret<TimeRange.SplitTimeRanges> {
         return window.rsplit(
             unit = unit,
             maxDuration = maxDuration,

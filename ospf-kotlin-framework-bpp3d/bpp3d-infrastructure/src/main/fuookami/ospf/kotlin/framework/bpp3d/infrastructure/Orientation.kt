@@ -158,8 +158,8 @@ object OrientationSerializer : KSerializer<Orientation> {
     override fun deserialize(decoder: Decoder): Orientation {
         return when (val result = Orientation.require(decoder.decodeString())) {
             is Ok -> result.value
-            is Failed -> throw IllegalArgumentException(result.error.message)
-            is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
+            is Failed -> throw SerializationException(result.error.message)
+            is Fatal -> throw SerializationException(result.errors.joinToString { it.message })
         }
     }
 }

@@ -7,6 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -37,10 +42,16 @@ data class QuantityPlacement2<V : FloatingNumber<V>>(
     val height: Quantity<V>
         get() = box.height
 
+    /** x 方向最大值，失败时返回 null / Maximum x value, or null on failure */
+    val maxXOrNull: Quantity<V>? get() = maxX().value
+    /** y 方向最大值，失败时返回 null / Maximum y value, or null on failure */
+    val maxYOrNull: Quantity<V>? get() = maxY().value
+
     /** x 方向最大值 / Maximum x value */
-    val maxX: Quantity<V> get() = box.maxX
+    fun maxX(): Ret<Quantity<V>> = box.maxX()
+
     /** y 方向最大值 / Maximum y value */
-    val maxY: Quantity<V> get() = box.maxY
+    fun maxY(): Ret<Quantity<V>> = box.maxY()
 
     /**
      * 判断点是否在放置区域内
@@ -59,7 +70,7 @@ data class QuantityPlacement2<V : FloatingNumber<V>>(
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
+    ): Ret<Boolean> {
         return box.contains(
             x = x,
             y = y,
@@ -76,7 +87,7 @@ data class QuantityPlacement2<V : FloatingNumber<V>>(
      * @param rhs 另一个放置区域 / Another placement
      * @return 是否重叠 / Whether they overlap
      */
-    fun overlapped(rhs: QuantityPlacement2<V>): Boolean {
+    fun overlapped(rhs: QuantityPlacement2<V>): Ret<Boolean> {
         return box.overlapped(rhs.box)
     }
 
@@ -87,12 +98,16 @@ data class QuantityPlacement2<V : FloatingNumber<V>>(
      * @param rhs 另一个放置区域 / Another placement
      * @return 交集放置区域，如果不相交则返回 null / Intersection placement, or null if they don't intersect
      */
-    fun intersect(rhs: QuantityPlacement2<V>): QuantityPlacement2<V>? {
-        val intersection = box.intersect(rhs.box) ?: return null
-        return QuantityPlacement2(
+    fun intersect(rhs: QuantityPlacement2<V>): Ret<QuantityPlacement2<V>?> {
+        val intersection = when (val result = box.intersect(rhs.box)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        } ?: return ok<QuantityPlacement2<V>?>(null)
+        return ok(QuantityPlacement2(
             x = intersection.x,
             y = intersection.y,
             shape = intersection.shape
-        )
+        ))
     }
 }

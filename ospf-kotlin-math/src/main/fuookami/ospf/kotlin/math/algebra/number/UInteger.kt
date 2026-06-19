@@ -50,7 +50,7 @@ private fun uIntegerLogByFloatingBase(
     is Flt32 -> Flt32(log(floatValue, base.value))
     is Flt64 -> Flt64(log(doubleValue, base.value))
     is FltX -> toFltX().log(base)
-    else -> throw IllegalArgumentException("Unknown argument type to $source.log: ${base.javaClass}")
+    else -> toFltX().log(base.toFltX())
 }
 
 /**
@@ -80,7 +80,7 @@ private fun uIntegerPowByFloatingIndex(
     is Flt32 -> Flt32(floatValue.pow(index.value))
     is Flt64 -> Flt64(doubleValue.pow(index.value))
     is FltX -> toFltX().pow(index)
-    else -> throw IllegalArgumentException("Unknown argument type to $source.pow: ${index.javaClass}")
+    else -> toFltX().pow(index.toFltX())
 }
 
 /**
@@ -1314,7 +1314,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
         is Flt32 -> toFltX().log(base)
         is Flt64 -> toFltX().log(base)
         is FltX -> toFltX().log(base)
-        else -> throw IllegalArgumentException("Unknown argument type to UIntX.log: ${base.javaClass}")
+        else -> toFltX().log(base.toFltX())
     }
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
@@ -1336,7 +1336,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)
         is FltX -> toFltX().pow(index)
-        else -> throw IllegalArgumentException("Unknown argument type to UIntX.pow: ${index.javaClass}")
+        else -> toFltX().pow(index.toFltX())
     }
 
     /** 平方根 / Square root */

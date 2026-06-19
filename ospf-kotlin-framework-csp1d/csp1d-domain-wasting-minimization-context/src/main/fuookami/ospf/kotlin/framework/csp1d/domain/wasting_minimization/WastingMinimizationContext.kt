@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -37,7 +38,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
      * @param selectedPlans 选中的切割方案及其使用车次 / Selected cutting plans with usage amounts
      * @return 浪费分析结果 / Waste analysis result
      */
-    fun analyze(selectedPlans: List<CuttingPlanUsage<V>>): WasteAnalysis<V> {
+    fun analyze(selectedPlans: List<CuttingPlanUsage<V>>): Ret<WasteAnalysis<V>> {
         val restWidthWastes = ArrayList<RestWidthWaste<V>>()
         val restMaterialWastes = ArrayList<RestMaterialWaste<V>>()
         var totalRestWidth: Quantity<V>? = null
@@ -48,48 +49,70 @@ class WastingMinimizationContext<V : RealNumber<V>>(
             val restWidth = plan.restWidth ?: continue
 
             // 计入批次数倍数 / Account for batch multiplier
-            val batchRestWidth = repeatQuantity(restWidth, usage.amount)
+            val batchRestWidth = when (val result = repeatQuantity(restWidth, usage.amount)) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             restWidthWastes.add(RestWidthWaste(plan = plan, restWidth = batchRestWidth))
             totalRestWidth = if (totalRestWidth == null) {
                 batchRestWidth
             } else {
-                arithmetic.add(totalRestWidth, batchRestWidth)
+                when (val result = arithmetic.add(totalRestWidth, batchRestWidth)) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
             }
 
             // 余料面积代理 = 余宽 * 物料长度 / Rest material area proxy = rest width * material length
             val materialLength = plan.material.length
             if (materialLength != null) {
-                val batchRestMaterial = repeatQuantity(
+                val batchRestMaterial = when (val result = repeatQuantity(
                     multiplyQuantities(restWidth, materialLength),
                     usage.amount
-                )
+                )) {
+                    is Ok -> result.value
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
                 restMaterialWastes.add(
                     RestMaterialWaste(plan = plan, restMaterial = batchRestMaterial)
                 )
                 totalRestMaterial = if (totalRestMaterial == null) {
                     batchRestMaterial
                 } else {
-                    arithmetic.add(totalRestMaterial, batchRestMaterial)
+                    when (val result = arithmetic.add(totalRestMaterial, batchRestMaterial)) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
             }
         }
 
-        return WasteAnalysis(
-            restWidthWastes = restWidthWastes,
-            restMaterialWastes = restMaterialWastes,
-            totalRestWidth = totalRestWidth,
-            totalRestMaterial = totalRestMaterial
+        return Ok(
+            WasteAnalysis(
+                restWidthWastes = restWidthWastes,
+                restMaterialWastes = restMaterialWastes,
+                totalRestWidth = totalRestWidth,
+                totalRestMaterial = totalRestMaterial
+            )
         )
     }
 
-    private fun repeatQuantity(q: Quantity<V>, times: UInt64): Quantity<V> {
+    private fun repeatQuantity(q: Quantity<V>, times: UInt64): Ret<Quantity<V>> {
         var result = Quantity(q.value.constants.zero, q.unit)
         var count = UInt64.zero
         while (count < times) {
-            result = arithmetic.add(result, q)
+            result = when (val addResult = arithmetic.add(result, q)) {
+                is Ok -> addResult.value
+                is Failed -> return Failed(addResult.error)
+                is Fatal -> return Fatal(addResult.errors)
+            }
             count += UInt64.one
         }
-        return result
+        return Ok(result)
     }
 
     private fun multiplyQuantities(a: Quantity<V>, b: Quantity<V>): Quantity<V> {

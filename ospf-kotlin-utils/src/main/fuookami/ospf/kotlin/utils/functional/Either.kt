@@ -34,9 +34,8 @@ data class EitherSerializer<L, R>(
 
     @OptIn(InternalSerializationApi::class)
     override fun deserialize(decoder: Decoder): Either<L, R> {
-        decoder as? JsonDecoder ?: throw IllegalStateException(
-            "This serializer can be used only with Json format." +
-                    "Expected Decoder to be JsonDecoder, got ${this::class}"
+        decoder as? JsonDecoder ?: throw SerializationException(
+            "This serializer can be used only with Json format. Expected Decoder to be JsonDecoder, got ${decoder::class}."
         )
         val json = Json {
             ignoreUnknownKeys = true
@@ -45,10 +44,16 @@ data class EitherSerializer<L, R>(
         return try {
             val leftValue = json.decodeFromJsonElement(leftSerializer, element)
             Either.Left(leftValue)
-        } catch (e: Exception) {
-            e.printStackTrace()
-            val rightValue = json.decodeFromJsonElement(rightSerializer, element)
-            Either.Right(rightValue)
+        } catch (leftError: Exception) {
+            try {
+                val rightValue = json.decodeFromJsonElement(rightSerializer, element)
+                Either.Right(rightValue)
+            } catch (rightError: Exception) {
+                throw SerializationException(
+                    "Failed to deserialize Either as both Left and Right. Left error: ${leftError.message}; Right error: ${rightError.message}.",
+                    rightError
+                )
+            }
         }
     }
 

@@ -45,6 +45,10 @@ internal const val PredicateFieldAnnotation =
 internal const val PredicateDslPackage =
     "fuookami.ospf.kotlin.math.symbol.expression.dsl"
 
+/** 列绑定器包名 / Column binder package name */
+internal const val ColumnBinderPackage =
+    "fuookami.ospf.kotlin.framework.persistence.expression"
+
 /**
  * 谓词属性信息
  * Predicate property information
@@ -68,6 +72,7 @@ internal data class PredicateProperty(
  * @property kotlinEntityName Kotlin 标识符实体名 / Kotlin identifier entity name
  * @property schemaName 生成的 schema 类名 / Generated schema class name
  * @property generateResolver 是否生成 resolver 字段 / Whether to generate resolver field
+ * @property generateColumnMapping 是否生成 columnMapping 和 createBinder / Whether to generate columnMapping and createBinder
  * @property properties 属性列表 / Property list
  */
 internal data class PredicateSchemaModel(
@@ -76,5 +81,6 @@ internal data class PredicateSchemaModel(
     val kotlinEntityName: String,
     val schemaName: String,
     val generateResolver: Boolean,
+    val generateColumnMapping: Boolean,
     val properties: List<PredicateProperty>
 )

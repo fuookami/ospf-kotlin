@@ -6,6 +6,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -137,7 +139,7 @@ class PackageShapeSpecTest {
             radiusWeightFunctionKey = "continuous-radius-prototype"
         )
 
-        val prototype = assertNotNull(spec.continuousRadiusSolverPrototype(source = "unit test"))
+        val prototype = assertNotNull(spec.continuousRadiusSolverPrototype(source = "unit test").value)
 
         assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)
         assertEquals(Axis3.Z, prototype.axis)
@@ -151,34 +153,30 @@ class PackageShapeSpecTest {
 
     @Test
     fun selectedContinuousRadiusSolverPrototypeShouldRejectRadiusBelowBounds() {
-        val exception = assertFailsWith<IllegalArgumentException> {
-            continuousCylinderRadiusSolverPrototype(
-                source = "unit test",
-                radiusWeightFunctionKey = "continuous-radius-prototype",
-                axis = Axis3.Y,
-                selectedRadius = FltX(0.3) * Meter,
-                radiusMin = FltX(0.4) * Meter,
-                radiusMax = FltX(0.6) * Meter
-            )
-        }
-
-        assertTrue(exception.message?.contains("greater than or equal to lower bound") == true)
+        val result = continuousCylinderRadiusSolverPrototype(
+            source = "unit test",
+            radiusWeightFunctionKey = "continuous-radius-prototype",
+            axis = Axis3.Y,
+            selectedRadius = FltX(0.3) * Meter,
+            radiusMin = FltX(0.4) * Meter,
+            radiusMax = FltX(0.6) * Meter
+        )
+        assertTrue(result is Failed)
+        assertTrue((result as Failed).error.message.contains("greater than or equal to lower bound"))
     }
 
     @Test
     fun selectedContinuousRadiusSolverPrototypeShouldRejectRadiusAboveBounds() {
-        val exception = assertFailsWith<IllegalArgumentException> {
-            continuousCylinderRadiusSolverPrototype(
-                source = "unit test",
-                radiusWeightFunctionKey = "continuous-radius-prototype",
-                axis = Axis3.Y,
-                selectedRadius = FltX(0.7) * Meter,
-                radiusMin = FltX(0.4) * Meter,
-                radiusMax = FltX(0.6) * Meter
-            )
-        }
-
-        assertTrue(exception.message?.contains("less than or equal to upper bound") == true)
+        val result = continuousCylinderRadiusSolverPrototype(
+            source = "unit test",
+            radiusWeightFunctionKey = "continuous-radius-prototype",
+            axis = Axis3.Y,
+            selectedRadius = FltX(0.7) * Meter,
+            radiusMin = FltX(0.4) * Meter,
+            radiusMax = FltX(0.6) * Meter
+        )
+        assertTrue(result is Failed)
+        assertTrue((result as Failed).error.message.contains("less than or equal to upper bound"))
     }
 
     @Test
@@ -231,7 +229,7 @@ class PackageShapeSpecTest {
                 axis = Axis3.Y,
                 radiusMin = FltX(0.15) * Meter,
                 radiusMax = FltX(0.18) * Meter
-            )
+            ).value
         )
 
         assertEquals("continuous-radius-prototype", prototype.radiusWeightFunctionKey)

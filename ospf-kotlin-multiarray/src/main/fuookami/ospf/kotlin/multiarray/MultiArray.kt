@@ -41,6 +41,8 @@
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 抽象多维数组基类
@@ -218,18 +220,43 @@ open class MultiArray<out T : Any, S : Shape>(
          * @param shape 数组形状 / Array shape
          * @return 使用默认值填充的多维数组 / Multi-array filled with default values
          */
-        inline fun <reified T : Any, S : Shape> new(shape: S): MultiArray<T, S> {
-            return MultiArray(shape) { _, _ ->
-                when (T::class) {
-                    Int::class -> 0 as T
-                    Long::class -> 0L as T
-                    Double::class -> 0.0 as T
-                    Float::class -> 0.0f as T
-                    Boolean::class -> false as T
-                    String::class -> "" as T
-                    else -> throw IllegalArgumentException("Type ${T::class} does not have a default value")
-                }
+        inline fun <reified T : Any, S : Shape> newOrNull(shape: S): MultiArray<T, S>? {
+            val defaultValue = when (T::class) {
+                Int::class -> 0 as T
+                Long::class -> 0L as T
+                Double::class -> 0.0 as T
+                Float::class -> 0.0f as T
+                Boolean::class -> false as T
+                String::class -> "" as T
+                else -> return null
             }
+            return MultiArray(shape) { _, _ ->
+                defaultValue
+            }
+        }
+
+        /**
+         * 使用默认值安全创建多维数组
+         * Safely create multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的多维数组结果 / Multi-array result filled with default values
+         */
+        inline fun <reified T : Any, S : Shape> newSafe(shape: S): Ret<MultiArray<T, S>> {
+            return newOrNull<T, S>(shape)
+                ?.let { Ok(it) }
+                ?: Failed(ErrorCode.IllegalArgument, "Type ${T::class} does not have a default value")
+        }
+
+        /**
+         * 使用默认值创建多维数组
+         * Create multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的多维数组结果 / Multi-array result filled with default values
+         */
+        inline fun <reified T : Any, S : Shape> new(shape: S): Ret<MultiArray<T, S>> {
+            return newSafe(shape)
         }
 
         /**
@@ -353,18 +380,43 @@ open class MutableMultiArray<T : Any, S : Shape>(
          * @param shape 数组形状 / Array shape
          * @return 使用默认值填充的可变多维数组 / Mutable multi-array filled with default values
          */
-        inline fun <reified T : Any, S : Shape> new(shape: S): MutableMultiArray<T, S> {
-            return MutableMultiArray(shape) { _, _ ->
-                when (T::class) {
-                    Int::class -> 0 as T
-                    Long::class -> 0L as T
-                    Double::class -> 0.0 as T
-                    Float::class -> 0.0f as T
-                    Boolean::class -> false as T
-                    String::class -> "" as T
-                    else -> throw IllegalArgumentException("Type ${T::class} does not have a default value")
-                }
+        inline fun <reified T : Any, S : Shape> newOrNull(shape: S): MutableMultiArray<T, S>? {
+            val defaultValue = when (T::class) {
+                Int::class -> 0 as T
+                Long::class -> 0L as T
+                Double::class -> 0.0 as T
+                Float::class -> 0.0f as T
+                Boolean::class -> false as T
+                String::class -> "" as T
+                else -> return null
             }
+            return MutableMultiArray(shape) { _, _ ->
+                defaultValue
+            }
+        }
+
+        /**
+         * 使用默认值安全创建可变多维数组
+         * Safely create mutable multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的可变多维数组结果 / Mutable multi-array result filled with default values
+         */
+        inline fun <reified T : Any, S : Shape> newSafe(shape: S): Ret<MutableMultiArray<T, S>> {
+            return newOrNull<T, S>(shape)
+                ?.let { Ok(it) }
+                ?: Failed(ErrorCode.IllegalArgument, "Type ${T::class} does not have a default value")
+        }
+
+        /**
+         * 使用默认值创建可变多维数组
+         * Create mutable multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的可变多维数组结果 / Mutable multi-array result filled with default values
+         */
+        inline fun <reified T : Any, S : Shape> new(shape: S): Ret<MutableMultiArray<T, S>> {
+            return newSafe(shape)
         }
 
         /**

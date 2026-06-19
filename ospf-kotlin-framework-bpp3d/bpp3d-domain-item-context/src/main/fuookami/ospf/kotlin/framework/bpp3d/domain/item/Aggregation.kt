@@ -51,7 +51,9 @@ class Aggregation(
     ): Ret<Bpp3dDemandValue> {
         return when {
             lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> ok(Bpp3dDemandValue.Amount(lhs.value + rhs.value))
-            lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> ok(Bpp3dDemandValue.Weight(lhs.value + rhs.value))
+            lhs is Bpp3dDemandValue.Weight && rhs is Bpp3dDemandValue.Weight -> {
+                lhs.value.plusSafe(rhs.value).map { Bpp3dDemandValue.Weight(it) }
+            }
             else -> Failed(ErrorCode.IllegalArgument, "Incompatible demand values: $lhs vs $rhs")
         }
     }

@@ -338,7 +338,7 @@ class SCAPolicy<ObjValue, V>(
     ): Flt64 {
         val safePopulation = targetPopulation(population)
         val flt64Solutions = safePopulation.map { ind -> ind.solution.map { converter.fromValue(it) } }
-        val center = flt64Solutions.flatMap { it }.average()
+        val center = flt64Solutions.flatMap { it }.averageOrNull() ?: Flt64.zero
         return flt64Solutions.sumOf { solution ->
             solution.sumOf { position ->
                 (position - center).abs()

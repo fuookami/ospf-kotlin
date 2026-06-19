@@ -7,6 +7,10 @@
  */
 package fuookami.ospf.kotlin.math
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
@@ -19,16 +23,14 @@ import fuookami.ospf.kotlin.math.operator.*
  * @param end 结束值
  * @param step 步长
  * @param constants 数值常量
- * @return 最后一个元素
- * @throws IllegalArgumentException 如果步长为零
+ * @return 最后一个元素，步长非法时返回 null
  */
-@Throws(IllegalArgumentException::class)
-private fun <I> getProgressionLastElement(
+private fun <I> getProgressionLastElementOrNull(
     start: I,
     end: I,
     step: I,
     constants: RealNumberConstants<I>
-): I where I : PlusGroup<I>, I : Integer<I>, I : Rem<I, I> = when {
+): I? where I : PlusGroup<I>, I : Integer<I>, I : Rem<I, I> = when {
     step > constants.zero -> {
         if (start >= end) end
         else end - (end - start) % step
@@ -39,7 +41,7 @@ private fun <I> getProgressionLastElement(
         else end + (start - end) % -step
     }
 
-    else -> throw IllegalArgumentException("Step is zero.")
+    else -> null
 }
 
 /**
@@ -98,26 +100,20 @@ internal class IntegerIterator<I>(
 class IntegerRange<I>(
     override val start: I,
     override val endInclusive: I,
-    val step: I,
+    step: I,
     private val constants: RealNumberConstants<I>
 ) : Iterable<I>, ClosedRange<I>, Contains<I> where I : Integer<I>, I : PlusGroup<I>, I : Rem<I, I> {
-    init {
-        if (step == step.constants.zero) {
-            throw IllegalArgumentException("Step must be non-zero.")
-        }
-        if (step == step.constants.minimum) {
-            throw IllegalArgumentException("Step must be greater than ${step.javaClass}.minimum to avoid overflow on negation.")
-        }
-    }
+    val step: I = step
+    private val validStep: Boolean get() = isValidIntegerStep(step)
 
     val first: I by ::start
     val last: I by lazy {
-        getProgressionLastElement(
+        getProgressionLastElementOrNull(
             start = start,
             end = endInclusive,
             step = step,
             constants = constants
-        )
+        ) ?: endInclusive
     }
 
     /**
@@ -127,36 +123,94 @@ class IntegerRange<I>(
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
      */
-    infix fun step(step: I) = IntegerRange(
-        start = start,
-        endInclusive = endInclusive,
-        step = step,
-        constants = constants
-    )
-
-    override fun iterator(): Iterator<I> = IntegerIterator(
-        first = first,
-        last = last,
-        step = step,
-        constants = constants
-    )
-
-    override fun contains(value: I) = if (step > constants.zero) {
-        first <= value && value <= last
-    } else {
-        last <= value && value <= first
+    infix fun step(step: I): IntegerRange<I> {
+        return IntegerRange(
+            start = start,
+            endInclusive = endInclusive,
+            step = step,
+            constants = constants
+        )
     }
 
-    override fun isEmpty() = if (step > constants.zero) {
-        first > last
-    } else {
-        first < last
+    /**
+     * 指定步长，非法步长返回失败
+     * Specify step size, returning failure for invalid steps
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间结果 / Result of new range with specified step size
+     */
+    fun stepSafe(step: I): Ret<IntegerRange<I>> {
+        return if (!isValidIntegerStep(step)) {
+            Failed(ErrorCode.IllegalArgument, invalidIntegerStepMessage(step))
+        } else {
+            Ok(
+                IntegerRange(
+                    start = start,
+                    endInclusive = endInclusive,
+                    step = step,
+                    constants = constants
+                )
+            )
+        }
     }
 
-    override fun toString(): String = if (step > constants.zero) {
-        "$first..$last step $step"
-    } else {
-        "$first downTo $last step ${-step}"
+    /**
+     * 指定步长，非法步长返回 null
+     * Specify step size, returning null for invalid steps
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间或 null / New range with specified step size, or null
+     */
+    fun stepOrNull(step: I): IntegerRange<I>? {
+        return if (!isValidIntegerStep(step)) {
+            null
+        } else {
+            IntegerRange(
+                start = start,
+                endInclusive = endInclusive,
+                step = step,
+                constants = constants
+            )
+        }
+    }
+
+    override fun iterator(): Iterator<I> {
+        return if (validStep) {
+            IntegerIterator(
+                first = first,
+                last = last,
+                step = step,
+                constants = constants
+            )
+        } else {
+            emptyList<I>().iterator()
+        }
+    }
+
+    override fun contains(value: I): Boolean {
+        return validStep && if (step > constants.zero) {
+            first <= value && value <= last
+        } else {
+            last <= value && value <= first
+        }
+    }
+
+    override fun isEmpty(): Boolean {
+        return !validStep || if (step > constants.zero) {
+            first > last
+        } else {
+            first < last
+        }
+    }
+
+    override fun toString(): String {
+        return if (!validStep) {
+            "empty step $step"
+        } else if (step > constants.zero) {
+            "$first..$last step $step"
+        } else {
+            "$first downTo $last step ${-step}"
+        }
     }
 }
 
@@ -209,24 +263,16 @@ class NumericUIntegerRange<NI, I>(
 ) : Iterable<NI>, ClosedRange<NI>, Contains<NI>
         where NI : NumericUIntegerNumber<NI, I>, I : UIntegerNumber<I>, I : PlusGroup<I>, I : Rem<I, I> {
     val step: I by lazy { converter(_step) }
-
-    init {
-        if (step == step.constants.zero) {
-            throw IllegalArgumentException("Step must be non-zero.")
-        }
-        if (step == step.constants.minimum) {
-            throw IllegalArgumentException("Step must be greater than ${step.javaClass}.minimum to avoid overflow on negation.")
-        }
-    }
+    private val validStep: Boolean by lazy { isValidIntegerStep(step) }
 
     val first: I by lazy { converter(start) }
     val last: I by lazy {
-        getProgressionLastElement(
+        getProgressionLastElementOrNull(
             start = converter(start),
             end = converter(endInclusive),
             step = step,
             constants = constants
-        )
+        ) ?: converter(endInclusive)
     }
 
     /**
@@ -236,41 +282,116 @@ class NumericUIntegerRange<NI, I>(
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
      */
-    infix fun step(step: NI) = NumericUIntegerRange(
-        start = start,
-        endInclusive = endInclusive,
-        _step = step,
-        constants = constants,
-        ctor = ctor,
-        converter = converter
-    )
+    infix fun step(step: NI): NumericUIntegerRange<NI, I> {
+        return NumericUIntegerRange(
+            start = start,
+            endInclusive = endInclusive,
+            _step = step,
+            constants = constants,
+            ctor = ctor,
+            converter = converter
+        )
+    }
 
-    override fun iterator(): Iterator<NI> = NumericIntegerIterator(
-        first = first,
-        last = last,
-        step = step,
-        constants = constants,
-        ctor = ctor
-    )
+    /**
+     * 指定步长，非法步长返回失败
+     * Specify step size, returning failure for invalid steps
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间结果 / Result of new range with specified step size
+     */
+    fun stepSafe(step: NI): Ret<NumericUIntegerRange<NI, I>> {
+        val integerStep = converter(step)
+        return if (!isValidIntegerStep(integerStep)) {
+            Failed(ErrorCode.IllegalArgument, invalidIntegerStepMessage(integerStep))
+        } else {
+            Ok(
+                NumericUIntegerRange(
+                    start = start,
+                    endInclusive = endInclusive,
+                    _step = step,
+                    constants = constants,
+                    ctor = ctor,
+                    converter = converter
+                )
+            )
+        }
+    }
+
+    /**
+     * 指定步长，非法步长返回 null
+     * Specify step size, returning null for invalid steps
+     *
+     * @param step 步长值 / Step size value
+     * @return 指定步长后的新区间或 null / New range with specified step size, or null
+     */
+    fun stepOrNull(step: NI): NumericUIntegerRange<NI, I>? {
+        val integerStep = converter(step)
+        return if (!isValidIntegerStep(integerStep)) {
+            null
+        } else {
+            NumericUIntegerRange(
+                start = start,
+                endInclusive = endInclusive,
+                _step = step,
+                constants = constants,
+                ctor = ctor,
+                converter = converter
+            )
+        }
+    }
+
+    override fun iterator(): Iterator<NI> {
+        return if (validStep) {
+            NumericIntegerIterator(
+                first = first,
+                last = last,
+                step = step,
+                constants = constants,
+                ctor = ctor
+            )
+        } else {
+            emptyList<NI>().iterator()
+        }
+    }
 
     override fun contains(value: NI): Boolean {
         val actualValue = converter(value)
-        return if (step > constants.zero) {
+        return validStep && if (step > constants.zero) {
             actualValue in first..last
         } else {
             actualValue in last..first
         }
     }
 
-    override fun isEmpty() = if (step > constants.zero) {
-        first > last
-    } else {
-        first < last
+    override fun isEmpty(): Boolean {
+        return !validStep || if (step > constants.zero) {
+            first > last
+        } else {
+            first < last
+        }
     }
 
-    override fun toString(): String = if (step > constants.zero) {
-        "$first..$last step $step"
+    override fun toString(): String {
+        return if (!validStep) {
+            "empty step $step"
+        } else if (step > constants.zero) {
+            "$first..$last step $step"
+        } else {
+            "$first downTo $last step ${-step}"
+        }
+    }
+}
+
+private fun <I> isValidIntegerStep(step: I): Boolean where I : Integer<I> {
+    return step != step.constants.zero && step != step.constants.minimum
+}
+
+private fun <I> invalidIntegerStepMessage(step: I): String where I : Integer<I> {
+    return if (step == step.constants.zero) {
+        "步长不能为零。 / Step must be non-zero."
     } else {
-        "$first downTo $last step ${-step}"
+        "步长必须大于 ${step.javaClass}.minimum 以避免取负溢出。 / " +
+                "Step must be greater than ${step.javaClass}.minimum to avoid overflow on negation."
     }
 }

@@ -21,8 +21,10 @@
 package fuookami.ospf.kotlin.math.symbol.expression.dsl
 
 import kotlin.reflect.KProperty1
-import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 布尔表达式构建器
@@ -32,11 +34,22 @@ class BooleanExpressionBuilder {
     internal var expression: BooleanExpression? = null
 
     /**
-     * 构建最终的布尔表达弌
-     * Build the final boolean expression
+     * 构建最终的布尔表达式，未设置时返回 null
+     * Build the final boolean expression, or null when unset
      */
-    fun build(): BooleanExpression {
-        return expression ?: throw IllegalStateException("No expression built")
+    fun buildOrNull(): BooleanExpression? {
+        return expression
+    }
+
+    /**
+     * 构建最终的布尔表达式
+     * Build the final boolean expression
+     *
+     * @return 布尔表达式结果 / Boolean expression result
+     */
+    fun build(): Ret<BooleanExpression> {
+        return expression?.let { Ok(it) }
+            ?: Failed(ErrorCode.ApplicationError, "No expression built.")
     }
 
     /**
@@ -59,11 +72,21 @@ class ScalarExpressionBuilder<T> {
      * 构建最终的标量表达式
      * Build the final scalar expression
      *
-     * @return 标量表达式 / Scalar expression
-     * @throws IllegalStateException 未设置表达式时 / When no expression is set
+     * @return 标量表达式或 null / Scalar expression or null
      */
-    fun build(): ScalarExpression<T> {
-        return expression ?: throw IllegalStateException("No expression built")
+    fun buildOrNull(): ScalarExpression<T>? {
+        return expression
+    }
+
+    /**
+     * 构建最终的标量表达式
+     * Build the final scalar expression
+     *
+     * @return 标量表达式结果 / Scalar expression result
+     */
+    fun build(): Ret<ScalarExpression<T>> {
+        return expression?.let { Ok(it) }
+            ?: Failed(ErrorCode.ApplicationError, "No expression built.")
     }
 }
 
@@ -605,7 +628,7 @@ operator fun BooleanExpression.not(): NotExpression = NotExpression(this)
  * @param block 构建器 lambda / Builder lambda
  * @return 布尔表达式 / Boolean expression
  */
-fun booleanExpression(block: BooleanExpressionBuilder.() -> BooleanExpression): BooleanExpression {
+fun booleanExpression(block: BooleanExpressionBuilder.() -> BooleanExpression): Ret<BooleanExpression> {
     val builder = BooleanExpressionBuilder()
     return builder.apply { add(block()) }.build()
 }

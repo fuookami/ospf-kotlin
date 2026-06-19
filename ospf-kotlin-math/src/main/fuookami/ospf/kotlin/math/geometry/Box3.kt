@@ -7,7 +7,12 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
@@ -78,12 +83,26 @@ data class Box3<V : FloatingNumber<V>>(
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
-    ): Boolean {
+    ): Ret<Boolean> {
         val includeLower = withBorder && withLowerBound
         val includeUpper = withBorder && withUpperBound
-        return quantityContainsInRange(x, this.x, maxX, includeLower, includeUpper, "x")
-                && quantityContainsInRange(y, this.y, maxY, includeLower, includeUpper, "y")
-                && quantityContainsInRange(z, this.z, maxZ, includeLower, includeUpper, "z")
+        val xIn = when (val result = quantityContainsInRange(x, this.x, maxX, includeLower, includeUpper, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (!xIn) {
+            return ok(false)
+        }
+        val yIn = when (val result = quantityContainsInRange(y, this.y, maxY, includeLower, includeUpper, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (!yIn) {
+            return ok(false)
+        }
+        return quantityContainsInRange(z, this.z, maxZ, includeLower, includeUpper, "z")
     }
 
     /**
@@ -93,26 +112,56 @@ data class Box3<V : FloatingNumber<V>>(
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 是否重叠 / Whether they overlap
      */
-    fun overlapped(rhs: Box3<V>): Boolean {
-        if (quantityOrd(maxX, rhs.x, "x") !is Order.Greater) {
-            return false
+    fun overlapped(rhs: Box3<V>): Ret<Boolean> {
+        val maxXOrd = when (val result = quantityOrdSafe(maxX, rhs.x, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        if (quantityOrd(x, rhs.maxX, "x") !is Order.Less) {
-            return false
+        if (maxXOrd !is Order.Greater) {
+            return ok(false)
         }
-        if (quantityOrd(maxY, rhs.y, "y") !is Order.Greater) {
-            return false
+        val xOrd = when (val result = quantityOrdSafe(x, rhs.maxX, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        if (quantityOrd(y, rhs.maxY, "y") !is Order.Less) {
-            return false
+        if (xOrd !is Order.Less) {
+            return ok(false)
         }
-        if (quantityOrd(maxZ, rhs.z, "z") !is Order.Greater) {
-            return false
+        val maxYOrd = when (val result = quantityOrdSafe(maxY, rhs.y, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        if (quantityOrd(z, rhs.maxZ, "z") !is Order.Less) {
-            return false
+        if (maxYOrd !is Order.Greater) {
+            return ok(false)
         }
-        return true
+        val yOrd = when (val result = quantityOrdSafe(y, rhs.maxY, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (yOrd !is Order.Less) {
+            return ok(false)
+        }
+        val maxZOrd = when (val result = quantityOrdSafe(maxZ, rhs.z, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (maxZOrd !is Order.Greater) {
+            return ok(false)
+        }
+        val zOrd = when (val result = quantityOrdSafe(z, rhs.maxZ, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (zOrd !is Order.Less) {
+            return ok(false)
+        }
+        return ok(true)
     }
 
     /**
@@ -122,23 +171,62 @@ data class Box3<V : FloatingNumber<V>>(
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 交集包围盒，无交集返回 null / The intersection box, or null if no overlap
      */
-    fun intersect(rhs: Box3<V>): Box3<V>? {
-        val minX = quantityMax(x, rhs.x, "x")
-        val maxX = quantityMin(this.maxX, rhs.maxX, "x")
-        val minY = quantityMax(y, rhs.y, "y")
-        val maxY = quantityMin(this.maxY, rhs.maxY, "y")
-        val minZ = quantityMax(z, rhs.z, "z")
-        val maxZ = quantityMin(this.maxZ, rhs.maxZ, "z")
-        if (quantityOrd(minX, maxX, "x") !is Order.Less) {
-            return null
+    fun intersect(rhs: Box3<V>): Ret<Box3<V>?> {
+        val minX = when (val result = quantityMax(x, rhs.x, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        if (quantityOrd(minY, maxY, "y") !is Order.Less) {
-            return null
+        val maxX = when (val result = quantityMin(this.maxX, rhs.maxX, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        if (quantityOrd(minZ, maxZ, "z") !is Order.Less) {
-            return null
+        val minY = when (val result = quantityMax(y, rhs.y, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        return Box3(
+        val maxY = when (val result = quantityMin(this.maxY, rhs.maxY, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val minZ = when (val result = quantityMax(z, rhs.z, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val maxZ = when (val result = quantityMin(this.maxZ, rhs.maxZ, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val xOrd = when (val result = quantityOrdSafe(minX, maxX, "x")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (xOrd !is Order.Less) {
+            return ok<Box3<V>?>(null)
+        }
+        val yOrd = when (val result = quantityOrdSafe(minY, maxY, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (yOrd !is Order.Less) {
+            return ok<Box3<V>?>(null)
+        }
+        val zOrd = when (val result = quantityOrdSafe(minZ, maxZ, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (zOrd !is Order.Less) {
+            return ok<Box3<V>?>(null)
+        }
+        return ok(Box3(
             x = minX,
             y = minY,
             z = minZ,
@@ -147,7 +235,7 @@ data class Box3<V : FloatingNumber<V>>(
                 height = quantityMinus(maxY, minY),
                 depth = quantityMinus(maxZ, minZ)
             )
-        )
+        ))
     }
 }
 

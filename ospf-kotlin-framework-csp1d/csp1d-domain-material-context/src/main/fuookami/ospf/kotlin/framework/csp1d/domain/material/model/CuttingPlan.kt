@@ -41,29 +41,33 @@ data class CuttingPlan<V : RealNumber<V>>(
     val arithmetic: QuantityArithmetic<V>? = null,
     val capacityConsumption: Quantity<V>? = null
 ) {
-    private val resolvedArithmetic: QuantityArithmetic<V> by lazy {
-        arithmetic ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value).let { result ->
-            when (result) {
-                is Ok -> result.value
-                is Failed -> throw IllegalArgumentException(result.error.message)
-                is Fatal -> throw IllegalArgumentException(result.errors.joinToString { it.message })
-            }
-        }
+    private val resolvedArithmeticResult: Ret<QuantityArithmetic<V>> by lazy {
+        arithmetic?.let { Ok(it) }
+            ?: DefaultQuantityArithmetic.resolveFor(material.widthRange.upperBound.value)
+    }
+
+    /** 解析物理量算术策略 / Resolved quantity arithmetic strategy */
+    val resolvedArithmetic: Ret<QuantityArithmetic<V>> get() = resolvedArithmeticResult
+
+    private val resolvedArithmeticOrNull: QuantityArithmetic<V>? by lazy {
+        resolvedArithmeticResult.value
     }
 
     /**
      * 已使用幅宽 / Used width
      */
     val usedWidth: Quantity<V>? by lazy {
-        val arith = resolvedArithmetic
-        slices.fold<CuttingPlanSlice<V>, Quantity<V>?>(null) { acc, slice ->
-            val sliceWidth = slice.width.repeat(slice.amount, arith)
-            if (acc == null) {
+        val arith = resolvedArithmeticOrNull ?: return@lazy null
+        var result: Quantity<V>? = null
+        for (slice in slices) {
+            val sliceWidth = slice.width.repeat(slice.amount, arith).value ?: return@lazy null
+            result = if (result == null) {
                 sliceWidth
             } else {
-                arith.add(acc, sliceWidth)
+                arith.add(result!!, sliceWidth).value ?: return@lazy null
             }
         }
+        result
     }
 
     /**
@@ -75,7 +79,8 @@ data class CuttingPlan<V : RealNumber<V>>(
         if (upperBound.unit != currentUsedWidth.unit) {
             return@lazy null
         }
-        resolvedArithmetic.subtract(upperBound, currentUsedWidth)
+        val arith = resolvedArithmeticOrNull ?: return@lazy null
+        arith.subtract(upperBound, currentUsedWidth).value
     }
 }
 
@@ -89,10 +94,14 @@ data class CuttingPlan<V : RealNumber<V>>(
 fun <V : RealNumber<V>> Quantity<V>.repeat(
     amount: UInt64,
     arithmetic: QuantityArithmetic<V>
-): Quantity<V> {
+): Ret<Quantity<V>> {
     var result = Quantity(value.constants.zero, unit)
     for (i in amount.indices) {
-        result = arithmetic.add(result, this)
+        result = when (val addResult = arithmetic.add(result, this)) {
+            is Ok -> addResult.value
+            is Failed -> return Failed(addResult.error)
+            is Fatal -> return Fatal(addResult.errors)
+        }
     }
-    return result
+    return ok(result)
 }

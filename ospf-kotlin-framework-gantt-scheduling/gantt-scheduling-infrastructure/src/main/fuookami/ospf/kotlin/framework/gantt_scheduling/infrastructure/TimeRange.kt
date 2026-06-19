@@ -13,6 +13,7 @@ import kotlin.time.Instant
 import kotlinx.coroutines.*
 import kotlinx.datetime.*
 import kotlinx.serialization.Serializable
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
@@ -29,12 +30,6 @@ data class TimeRange(
     override val start: Instant = Instant.DISTANT_PAST,
     override val end: Instant = Instant.DISTANT_FUTURE
 ) : TimeSlot {
-    private fun unsupportedReverseSplit(maxDuration: Duration): Nothing {
-        throw UnsupportedOperationException(
-            "TimeRange.rsplit 暂不支持 maxDuration($maxDuration) 大于区间时长($duration)。"
-        )
-    }
-
     companion object {
         /**
          * 从单个日期创建全天时间范围 / Create a full-day time range from a single date
@@ -488,17 +483,17 @@ data class TimeRange(
         unit: DurationRange,
         maxDuration: Duration? = null,
         breakTime: Duration? = null
-    ): SplitTimeRanges {
+    ): Ret<SplitTimeRanges> {
         if (maxDuration == null || maxDuration <= duration) {
-            return split(
+            return Ok(split(
                 unit = unit,
                 currentDuration = Duration.ZERO,
                 maxDuration = maxDuration,
                 breakTime = breakTime
-            )
+            ))
         }
 
-        return unsupportedReverseSplit(maxDuration)
+        return Failed(ErrorCode.IllegalArgument, "TimeRange.rsplit 暂不支持 maxDuration($maxDuration) 大于区间时长($duration)。")
     }
 
     /**

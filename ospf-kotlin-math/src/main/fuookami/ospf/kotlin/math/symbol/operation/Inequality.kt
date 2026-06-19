@@ -1,6 +1,10 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -95,11 +99,18 @@ fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
  */
-fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
-    return comparison.satisfiedBy(
-        lhs = lhs.evaluateOrdered(order, values),
-        rhs = rhs.evaluateOrdered(order, values)
-    )
+fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
+    val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    val rhsValue = when (val result = rhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return Ok(comparison.satisfiedBy(lhsValue, rhsValue))
 }
 
 /**
@@ -124,11 +135,18 @@ fun QuadraticInequalityOf<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolea
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
  */
-fun QuadraticInequalityOf<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
-    return comparison.satisfiedBy(
-        lhs = lhs.evaluateOrdered(order, values),
-        rhs = rhs.evaluateOrdered(order, values)
-    )
+fun QuadraticInequalityOf<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
+    val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    val rhsValue = when (val result = rhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return Ok(comparison.satisfiedBy(lhsValue, rhsValue))
 }
 
 /**
@@ -153,9 +171,16 @@ fun CanonicalInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean?
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
  */
-fun CanonicalInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
-    return comparison.satisfiedBy(
-        lhs = lhs.evaluateOrdered(order, values),
-        rhs = rhs.evaluateOrdered(order, values)
-    )
+fun CanonicalInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
+    val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    val rhsValue = when (val result = rhs.evaluateOrdered(order, values)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return Ok(comparison.satisfiedBy(lhsValue, rhsValue))
 }

@@ -10,6 +10,31 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 
+private fun finiteParentAmountOrDefault(range: ValueRange<UInt64>): UInt64 {
+    return range.fixedValue
+        ?: range.lowerBound.value.unwrapOrNull()
+        ?: UInt64.one
+}
+
+private fun randomParentAmountOrNull(
+    range: ValueRange<UInt64>,
+    randomGenerator: Generator<Flt64>
+): UInt64? {
+    val lowerBound = range.lowerBound.value.unwrapOrNull() ?: return null
+    val diff = range.diffOrNull?.unwrapOrNull() ?: return null
+    val random = randomGenerator() ?: return null
+    return (lowerBound + (random * diff.toFlt64()).round().toUInt64())
+}
+
+private fun weightedParentAmountOrNull(
+    range: ValueRange<UInt64>,
+    weight: Flt64
+): UInt64? {
+    val lowerBound = range.lowerBound.value.unwrapOrNull() ?: return null
+    val diff = range.diffOrNull?.unwrapOrNull() ?: return null
+    return (lowerBound + (weight * diff.toFlt64()).round().toUInt64())
+}
+
 /**
  * 交叉模式接口，定义如何从种群中选择父代组合。
  * Crossover mode interface, defining how to select parent combinations from the population.
@@ -161,8 +186,10 @@ class MultiParentCrossMode<ObjValue, V>(
             randomGenerator: Generator<Flt64>
         ): MultiParentCrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
             return MultiParentCrossMode(method) { _, _, range ->
-                range.fixedValue
-                    ?: (range.lowerBound.value.unwrap() + (randomGenerator()!! * range.diff.unwrap().toFlt64()).round().toUInt64())
+                randomParentAmountOrNull(
+                    range = range,
+                    randomGenerator = randomGenerator
+                ) ?: finiteParentAmountOrDefault(range)
             }
         }
     }
@@ -272,7 +299,10 @@ data object AdaptiveMultiParentCrossMode {
             }
 
             val weight = (weights.max() - weights.min()) / weights.max()
-            (range.lowerBound.value.unwrap() + (weight * range.diff.unwrap().toFlt64()).round().toUInt64())
+            weightedParentAmountOrNull(
+                range = range,
+                weight = weight
+            ) ?: finiteParentAmountOrDefault(range)
         }
     }
 }

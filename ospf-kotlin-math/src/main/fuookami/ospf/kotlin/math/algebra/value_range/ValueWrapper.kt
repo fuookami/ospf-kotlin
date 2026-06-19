@@ -14,6 +14,7 @@ import kotlinx.serialization.descriptors.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
@@ -128,13 +129,13 @@ class ValueWrapperSerializer<T>(
      * @param value 要序列化的值包装器
      */
     override fun serialize(encoder: Encoder, value: ValueWrapper<T>) {
-        require(encoder is JsonEncoder)
+        val jsonEncoder = requireJsonEncoder(encoder, "ValueWrapperSerializer")
         val element = when (value) {
-            is ValueWrapper.Value -> encoder.json.encodeToJsonElement(valueSerializer, value.value)
-            is ValueWrapper.Infinity -> encoder.json.encodeToJsonElement(Double.POSITIVE_INFINITY)
-            is ValueWrapper.NegativeInfinity -> encoder.json.encodeToJsonElement(Double.NEGATIVE_INFINITY)
+            is ValueWrapper.Value -> jsonEncoder.json.encodeToJsonElement(valueSerializer, value.value)
+            is ValueWrapper.Infinity -> jsonEncoder.json.encodeToJsonElement(Double.POSITIVE_INFINITY)
+            is ValueWrapper.NegativeInfinity -> jsonEncoder.json.encodeToJsonElement(Double.NEGATIVE_INFINITY)
         }
-        encoder.encodeJsonElement(element)
+        jsonEncoder.encodeJsonElement(element)
     }
 
     /**
@@ -155,8 +156,8 @@ class ValueWrapperSerializer<T>(
      * @return 解析后的值包装器
      */
     override fun deserialize(decoder: Decoder): ValueWrapper<T> {
-        require(decoder is JsonDecoder)
-        val element = decoder.decodeJsonElement()
+        val jsonDecoder = requireJsonDecoder(decoder, "ValueWrapperSerializer")
+        val element = jsonDecoder.decodeJsonElement()
         return when (element.jsonPrimitive.doubleOrNull) {
             Double.POSITIVE_INFINITY -> {
                 ValueWrapper.Infinity(constants)
@@ -167,7 +168,7 @@ class ValueWrapperSerializer<T>(
             }
 
             else -> {
-                ValueWrapper.Value(decoder.json.decodeFromJsonElement(valueSerializer, element), constants)
+                ValueWrapper.Value(jsonDecoder.json.decodeFromJsonElement(valueSerializer, element), constants)
             }
         }
     }
@@ -193,8 +194,8 @@ class ValueWrapperSerializer<T>(
 sealed class ValueWrapper<T>(
     val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
-    Plus<ValueWrapper<T>, ValueWrapper<T>>, Minus<ValueWrapper<T>, ValueWrapper<T>>,
-    Times<ValueWrapper<T>, ValueWrapper<T>>, Div<ValueWrapper<T>, ValueWrapper<T>>
+    Plus<ValueWrapper<T>, ValueWrapper<T>?>, Minus<ValueWrapper<T>, ValueWrapper<T>?>,
+    Times<ValueWrapper<T>, ValueWrapper<T>?>, Div<ValueWrapper<T>, ValueWrapper<T>?>
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         /**
@@ -323,7 +324,7 @@ sealed class ValueWrapper<T>(
      * @param rhs 要添加的数倌
      * @return 新的值包装器
      */
-    abstract operator fun plus(rhs: T): ValueWrapper<T>
+    abstract operator fun plus(rhs: T): ValueWrapper<T>?
 
     /**
      * 与数值相凌
@@ -332,7 +333,7 @@ sealed class ValueWrapper<T>(
      * @param rhs 要减去的数倌
      * @return 新的值包装器
      */
-    abstract operator fun minus(rhs: T): ValueWrapper<T>
+    abstract operator fun minus(rhs: T): ValueWrapper<T>?
 
     /**
      * 与数值相乌
@@ -341,7 +342,7 @@ sealed class ValueWrapper<T>(
      * @param rhs 要乘的数倌
      * @return 新的值包装器
      */
-    abstract operator fun times(rhs: T): ValueWrapper<T>
+    abstract operator fun times(rhs: T): ValueWrapper<T>?
 
     /**
      * 与数值相陌
@@ -350,7 +351,7 @@ sealed class ValueWrapper<T>(
      * @param rhs 要除的数倌
      * @return 新的值包装器
      */
-    abstract operator fun div(rhs: T): ValueWrapper<T>
+    abstract operator fun div(rhs: T): ValueWrapper<T>?
 
     /**
      * 转换丌Flt64 类型
@@ -417,13 +418,24 @@ sealed class ValueWrapper<T>(
      * @param rhs 要比较的数倌
      * @return 是否相等
      */
-    infix fun eq(rhs: T): Boolean {
+    fun eqOrNull(rhs: T): Boolean? {
         return when (rhs) {
             constants.infinity -> this is Infinity
             constants.negativeInfinity -> this is NegativeInfinity
-            constants.nan -> throw IllegalArgumentException("Illegal argument NaN for value range!!!")
+            constants.nan -> null
             else -> (this as? Value<T>)?.value?.eq(rhs) == true
         }
+    }
+
+    /**
+     * 判断是否等于指定数值
+     * Determines if equals specified number
+     *
+     * @param rhs 要比较的数值
+     * @return 是否相等，NaN 返回 false
+     */
+    infix fun eq(rhs: T): Boolean {
+        return eqOrNull(rhs) == true
     }
 
     /**
@@ -495,7 +507,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要添加的数倌
          * @return 新的值包装器
          */
-        override fun plus(rhs: T): ValueWrapper<T> = ValueWrapper(value + rhs, constants).value!!
+        override fun plus(rhs: T): ValueWrapper<T>? = ValueWrapper(value + rhs, constants).value
 
         /**
          * 与值包装器相加
@@ -504,8 +516,8 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          */
-        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> Value(value + rhs.value, constants)
+        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
+            is Value -> ValueWrapper(value + rhs.value, constants).value
             is Infinity -> Infinity(constants)
             is NegativeInfinity -> NegativeInfinity(constants)
         }
@@ -517,7 +529,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要减去的数倌
          * @return 新的值包装器
          */
-        override fun minus(rhs: T): ValueWrapper<T> = ValueWrapper(value - rhs, constants).value!!
+        override fun minus(rhs: T): ValueWrapper<T>? = ValueWrapper(value - rhs, constants).value
 
         /**
          * 与值包装器相减
@@ -526,8 +538,8 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          */
-        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> Value(value - rhs.value, constants)
+        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
+            is Value -> ValueWrapper(value - rhs.value, constants).value
             is Infinity -> NegativeInfinity(constants)
             is NegativeInfinity -> Infinity(constants)
         }
@@ -539,7 +551,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要乘的数倌
          * @return 新的值包装器
          */
-        override fun times(rhs: T): ValueWrapper<T> = ValueWrapper(value * rhs, constants).value!!
+        override fun times(rhs: T): ValueWrapper<T>? = ValueWrapper(value * rhs, constants).value
 
         /**
          * 与值包装器相乘
@@ -548,8 +560,8 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          */
-        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> Value(value * rhs.value, constants)
+        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
+            is Value -> ValueWrapper(value * rhs.value, constants).value
             is Infinity -> if (value < constants.zero) {
                 NegativeInfinity(constants)
             } else if (value > constants.zero) {
@@ -574,7 +586,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要除的数倌
          * @return 新的值包装器
          */
-        override fun div(rhs: T): ValueWrapper<T> = ValueWrapper(value / rhs, constants).value!!
+        override fun div(rhs: T): ValueWrapper<T>? = ValueWrapper(value / rhs, constants).value
 
         /**
          * 与值包装器相除
@@ -586,8 +598,8 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          */
-        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
-            is Value -> Value(value / rhs.value, constants)
+        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
+            is Value -> ValueWrapper(value / rhs.value, constants).value
             is Infinity -> if (value < constants.zero) {
                 Value(-constants.epsilon, constants)
             } else if (value > constants.zero) {
@@ -687,10 +699,9 @@ sealed class ValueWrapper<T>(
          * @return 正无穷值包装器
          * @throws IllegalArgumentException 当加丌NaN 或负无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun plus(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid plus between inf and nan!!!")
-            rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid plus between inf and -inf!!!")
+        override fun plus(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.negativeInfinity -> null
             else -> Infinity(constants)
         }
 
@@ -705,11 +716,10 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当加上负无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> Infinity(constants)
             is Infinity -> Infinity(constants)
-            is NegativeInfinity -> throw IllegalArgumentException("Invalid plus between inf and -inf!!!")
+            is NegativeInfinity -> null
         }
 
         /**
@@ -723,10 +733,9 @@ sealed class ValueWrapper<T>(
          * @return 正无穷值包装器
          * @throws IllegalArgumentException 当减厌NaN 或正无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun minus(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid minus between inf and nan!!!")
-            rhs.constants.infinity -> throw IllegalArgumentException("Invalid minus between inf and inf!!!")
+        override fun minus(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.infinity -> null
             else -> Infinity(constants)
         }
 
@@ -741,10 +750,9 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当减去正无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> Infinity(constants)
-            is Infinity -> throw IllegalArgumentException("Invalid minus between inf and inf!!!")
+            is Infinity -> null
             is NegativeInfinity -> Infinity(constants)
         }
 
@@ -759,9 +767,8 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun times(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid times between inf and nan!!!")
+        override fun times(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> NegativeInfinity(constants)
             rhs.constants.infinity -> Infinity(constants)
             rhs.constants.zero -> Value(constants.zero, constants)
@@ -783,8 +790,7 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 NegativeInfinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
@@ -808,12 +814,11 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除仌NaN、无穷或零时
          */
-        @Throws(IllegalArgumentException::class)
-        override fun div(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid div between inf and nan!!!")
-            rhs.constants.infinity -> throw IllegalArgumentException("Invalid div between inf and inf!!!")
-            rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid div between inf and -inf!!!")
-            rhs.constants.zero -> throw IllegalArgumentException("Invalid div between inf and 0!!!")
+        override fun div(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.infinity -> null
+            rhs.constants.negativeInfinity -> null
+            rhs.constants.zero -> null
             else -> if (rhs < rhs.constants.zero) {
                 NegativeInfinity(constants)
             } else {
@@ -832,18 +837,17 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除以无穷或零时
          */
-        @Throws(IllegalArgumentException::class)
-        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 NegativeInfinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
                 Infinity(constants)
             } else {
-                throw IllegalArgumentException("Invalid div between inf and 0!!!")
+                null
             }
 
-            is Infinity -> throw IllegalArgumentException("Invalid div between inf and inf!!!")
-            is NegativeInfinity -> throw IllegalArgumentException("Invalid div between inf and -inf!!!")
+            is Infinity -> null
+            is NegativeInfinity -> null
         }
 
         /**
@@ -928,10 +932,9 @@ sealed class ValueWrapper<T>(
          * @return 负无穷值包装器
          * @throws IllegalArgumentException 当加丌NaN 或正无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun plus(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid plus between inf and nan!!!")
-            rhs.constants.infinity -> throw IllegalArgumentException("Invalid plus between -inf and inf!!!")
+        override fun plus(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.infinity -> null
             else -> NegativeInfinity(constants)
         }
 
@@ -946,10 +949,9 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当加上正无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> NegativeInfinity(constants)
-            is Infinity -> throw IllegalArgumentException("Invalid plus between -inf and inf!!!")
+            is Infinity -> null
             is NegativeInfinity -> NegativeInfinity(constants)
         }
 
@@ -964,10 +966,9 @@ sealed class ValueWrapper<T>(
          * @return 负无穷值包装器
          * @throws IllegalArgumentException 当减厌NaN 或负无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun minus(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid minus between -inf and nan!!!")
-            rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid minus between -inf and -inf!!!")
+        override fun minus(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.negativeInfinity -> null
             else -> NegativeInfinity(constants)
         }
 
@@ -982,11 +983,10 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当减去负无穷旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> NegativeInfinity(constants)
             is Infinity -> NegativeInfinity(constants)
-            is NegativeInfinity -> throw IllegalArgumentException("Invalid minus between -inf and -inf!!!")
+            is NegativeInfinity -> null
         }
 
         /**
@@ -1000,9 +1000,8 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun times(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid times between -inf and nan!!!")
+        override fun times(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> Infinity(constants)
             rhs.constants.infinity -> NegativeInfinity(constants)
             rhs.constants.zero -> Value(constants.zero, constants)
@@ -1024,8 +1023,7 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
          */
-        @Throws(IllegalArgumentException::class)
-        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 Infinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
@@ -1049,12 +1047,11 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除仌NaN、无穷或零时
          */
-        @Throws(IllegalArgumentException::class)
-        override fun div(rhs: T): ValueWrapper<T> = when (rhs) {
-            rhs.constants.nan -> throw IllegalArgumentException("Invalid div between -inf and nan!!!")
-            rhs.constants.negativeInfinity -> throw IllegalArgumentException("Invalid div between -inf and -inf!!!")
-            rhs.constants.infinity -> throw IllegalArgumentException("Invalid div between -inf and inf!!!")
-            rhs.constants.zero -> throw IllegalArgumentException("Invalid div between -inf and 0!!!")
+        override fun div(rhs: T): ValueWrapper<T>? = when (rhs) {
+            rhs.constants.nan -> null
+            rhs.constants.negativeInfinity -> null
+            rhs.constants.infinity -> null
+            rhs.constants.zero -> null
             else -> if (rhs < rhs.constants.zero) {
                 Infinity(constants)
             } else {
@@ -1073,18 +1070,17 @@ sealed class ValueWrapper<T>(
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除以无穷或零时
          */
-        @Throws(IllegalArgumentException::class)
-        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T> = when (rhs) {
+        override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 Infinity(constants)
             } else if (rhs.value > rhs.constants.zero) {
                 NegativeInfinity(constants)
             } else {
-                throw IllegalArgumentException("Invalid div between -inf and 0!!!")
+                null
             }
 
-            is Infinity -> throw IllegalArgumentException("Invalid div between -inf and inf!!!")
-            is NegativeInfinity -> throw IllegalArgumentException("Invalid div between -inf and -inf!!!")
+            is Infinity -> null
+            is NegativeInfinity -> null
         }
 
         /**

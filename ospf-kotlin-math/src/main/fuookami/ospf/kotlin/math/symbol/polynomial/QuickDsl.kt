@@ -2,8 +2,12 @@
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import kotlin.jvm.JvmName
-import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 
 /**
  * 多项式快捷 DSL
@@ -121,19 +125,56 @@ fun <T : Ring<T>, E> flatSum(
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
- * @return 求和后的线性多项式 / Resulting linear polynomial
- * @throws IllegalArgumentException 结果列表为空时抛出 / Thrown when resulting list is empty
+ * @return 求和后的线性多项式结果 / Resulting linear polynomial result
  */
 @JvmName("quickSumByNullableMonomial")
 fun <T : Ring<T>, E> sum(
     items: Iterable<E>,
     transform: (E) -> LinearMonomial<T>?
-): LinearPolynomial<T> {
+): Ret<LinearPolynomial<T>> {
+    return sumSafe(items, transform)
+}
+
+/**
+ * 对元素集合应用可空转换后安全求和，过滤 null 结果
+ * Safely sums elements after applying a nullable transform, filtering out nulls
+ *
+ * @param items 元素可迭代集合 / Iterable of elements
+ * @param transform 可空转换函数 / Nullable transform function
+ * @return 求和后的线性多项式结果 / Resulting linear polynomial result
+ */
+fun <T : Ring<T>, E> sumSafe(
+    items: Iterable<E>,
+    transform: (E) -> LinearMonomial<T>?
+): Ret<LinearPolynomial<T>> {
     val list = items.mapNotNull(transform)
     if (list.isEmpty()) {
-        throw IllegalArgumentException("sum(items, transform): empty monomial list")
+        return Failed(
+            ErrorCode.DataEmpty,
+            "空线性单项式列表，无法推断零值。 / Empty linear monomial list; cannot infer zero value."
+        )
     }
-    return sum(list)
+    return Ok(sum(list))
+}
+
+/**
+ * 对元素集合应用可空转换后求和，空结果返回 null
+ * Sums elements after applying a nullable transform, returning null for empty results
+ *
+ * @param items 元素可迭代集合 / Iterable of elements
+ * @param transform 可空转换函数 / Nullable transform function
+ * @return 求和后的线性多项式或 null / Resulting linear polynomial, or null
+ */
+fun <T : Ring<T>, E> sumOrNull(
+    items: Iterable<E>,
+    transform: (E) -> LinearMonomial<T>?
+): LinearPolynomial<T>? {
+    val list = items.mapNotNull(transform)
+    return if (list.isEmpty()) {
+        null
+    } else {
+        sum(list)
+    }
 }
 
 /**
@@ -142,22 +183,62 @@ fun <T : Ring<T>, E> sum(
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
- * @return 求和后的线性多项式 / Resulting linear polynomial
- * @throws IllegalArgumentException 结果列表为空时抛出 / Thrown when resulting list is empty
+ * @return 求和后的线性多项式结果 / Resulting linear polynomial result
  */
 @JvmName("quickFlatSumNullable")
 fun <T : Ring<T>, E> flatSum(
     list: Iterable<E>,
     transform: (E) -> Iterable<LinearMonomial<T>?>
-): LinearPolynomial<T> {
+): Ret<LinearPolynomial<T>> {
+    return flatSumSafe(list, transform)
+}
+
+/**
+ * 对元素集合应用可空展平转换后安全求和，过滤 null 结果
+ * Safely flat-maps elements via a nullable transform and sums the non-null monomials
+ *
+ * @param list 元素可迭代集合 / Iterable of elements
+ * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
+ * @return 求和后的线性多项式结果 / Resulting linear polynomial result
+ */
+fun <T : Ring<T>, E> flatSumSafe(
+    list: Iterable<E>,
+    transform: (E) -> Iterable<LinearMonomial<T>?>
+): Ret<LinearPolynomial<T>> {
     val monomials = mutableListOf<LinearMonomial<T>>()
     for (e in list) {
         monomials += transform(e).filterNotNull()
     }
     if (monomials.isEmpty()) {
-        throw IllegalArgumentException("flatSum(list, transform): empty monomial list")
+        return Failed(
+            ErrorCode.DataEmpty,
+            "空线性单项式列表，无法推断零值。 / Empty linear monomial list; cannot infer zero value."
+        )
     }
-    return sum(monomials)
+    return Ok(sum(monomials))
+}
+
+/**
+ * 对元素集合应用可空展平转换后求和，空结果返回 null
+ * Flat-maps elements via a nullable transform and returns null for empty results
+ *
+ * @param list 元素可迭代集合 / Iterable of elements
+ * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
+ * @return 求和后的线性多项式或 null / Resulting linear polynomial, or null
+ */
+fun <T : Ring<T>, E> flatSumOrNull(
+    list: Iterable<E>,
+    transform: (E) -> Iterable<LinearMonomial<T>?>
+): LinearPolynomial<T>? {
+    val monomials = mutableListOf<LinearMonomial<T>>()
+    for (e in list) {
+        monomials += transform(e).filterNotNull()
+    }
+    return if (monomials.isEmpty()) {
+        null
+    } else {
+        sum(monomials)
+    }
 }
 
 // ========== Quadratic aggregation: qsum ==========
@@ -239,21 +320,61 @@ fun <T : Ring<T>, E> qsumPolynomials(
  *
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
- * @return 求和后的二次多项式 / Resulting quadratic polynomial
- * @throws IllegalArgumentException 结果列表为空时抛出 / Thrown when resulting list is empty
+ * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
  */
 fun <T : Ring<T>, E> flatQSum(
     list: Iterable<E>,
     transform: (E) -> Iterable<QuadraticMonomial<T>?>
-): QuadraticPolynomial<T> {
+): Ret<QuadraticPolynomial<T>> {
+    return flatQSumSafe(list, transform)
+}
+
+/**
+ * 对元素集合应用可空展平转换后安全求和为二次多项式，过滤 null 结果
+ * Safely flat-maps elements via a nullable transform and sums the non-null quadratic monomials
+ *
+ * @param list 元素可迭代集合 / Iterable of elements
+ * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
+ * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
+ */
+fun <T : Ring<T>, E> flatQSumSafe(
+    list: Iterable<E>,
+    transform: (E) -> Iterable<QuadraticMonomial<T>?>
+): Ret<QuadraticPolynomial<T>> {
     val monomials = mutableListOf<QuadraticMonomial<T>>()
     for (e in list) {
         monomials += transform(e).filterNotNull()
     }
     if (monomials.isEmpty()) {
-        throw IllegalArgumentException("flatQSum(list, transform): empty monomial list")
+        return Failed(
+            ErrorCode.DataEmpty,
+            "空二次单项式列表，无法推断零值。 / Empty quadratic monomial list; cannot infer zero value."
+        )
     }
-    return qsum(monomials)
+    return Ok(qsum(monomials))
+}
+
+/**
+ * 对元素集合应用可空展平转换后求和为二次多项式，空结果返回 null
+ * Flat-maps elements via a nullable transform and returns null for empty quadratic results
+ *
+ * @param list 元素可迭代集合 / Iterable of elements
+ * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
+ * @return 求和后的二次多项式或 null / Resulting quadratic polynomial, or null
+ */
+fun <T : Ring<T>, E> flatQSumOrNull(
+    list: Iterable<E>,
+    transform: (E) -> Iterable<QuadraticMonomial<T>?>
+): QuadraticPolynomial<T>? {
+    val monomials = mutableListOf<QuadraticMonomial<T>>()
+    for (e in list) {
+        monomials += transform(e).filterNotNull()
+    }
+    return if (monomials.isEmpty()) {
+        null
+    } else {
+        qsum(monomials)
+    }
 }
 
 /**
@@ -262,19 +383,56 @@ fun <T : Ring<T>, E> flatQSum(
  *
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
- * @return 求和后的二次多项式 / Resulting quadratic polynomial
- * @throws IllegalArgumentException 结果列表为空时抛出 / Thrown when resulting list is empty
+ * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
  */
 @JvmName("quickQSumByNullableMonomial")
 fun <T : Ring<T>, E> qsum(
     items: Iterable<E>,
     transform: (E) -> QuadraticMonomial<T>?
-): QuadraticPolynomial<T> {
+): Ret<QuadraticPolynomial<T>> {
+    return qsumSafe(items, transform)
+}
+
+/**
+ * 对元素集合应用可空转换后安全求和为二次多项式，过滤 null 结果
+ * Safely sums elements after applying a nullable transform for quadratic monomials, filtering out nulls
+ *
+ * @param items 元素可迭代集合 / Iterable of elements
+ * @param transform 可空转换函数 / Nullable transform function
+ * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
+ */
+fun <T : Ring<T>, E> qsumSafe(
+    items: Iterable<E>,
+    transform: (E) -> QuadraticMonomial<T>?
+): Ret<QuadraticPolynomial<T>> {
     val list = items.mapNotNull(transform)
     if (list.isEmpty()) {
-        throw IllegalArgumentException("qsum(items, transform): empty monomial list")
+        return Failed(
+            ErrorCode.DataEmpty,
+            "空二次单项式列表，无法推断零值。 / Empty quadratic monomial list; cannot infer zero value."
+        )
     }
-    return qsum(list)
+    return Ok(qsum(list))
+}
+
+/**
+ * 对元素集合应用可空转换后求和为二次多项式，空结果返回 null
+ * Sums elements after applying a nullable transform for quadratic monomials, returning null for empty results
+ *
+ * @param items 元素可迭代集合 / Iterable of elements
+ * @param transform 可空转换函数 / Nullable transform function
+ * @return 求和后的二次多项式或 null / Resulting quadratic polynomial, or null
+ */
+fun <T : Ring<T>, E> qsumOrNull(
+    items: Iterable<E>,
+    transform: (E) -> QuadraticMonomial<T>?
+): QuadraticPolynomial<T>? {
+    val list = items.mapNotNull(transform)
+    return if (list.isEmpty()) {
+        null
+    } else {
+        qsum(list)
+    }
 }
 
 // ========== Internal helper ==========

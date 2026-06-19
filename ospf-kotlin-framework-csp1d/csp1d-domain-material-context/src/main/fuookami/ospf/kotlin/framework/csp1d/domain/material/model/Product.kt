@@ -139,7 +139,7 @@ open class Product<V : RealNumber<V>>(
             val currentLength = length ?: return@run null
             val currentUnitWeight = unitWeight ?: return@run null
             val currentWidth = maxWidth() ?: return@run null
-            currentLength * currentUnitWeight * currentWidth
+            currentLength.timesOrNull(currentUnitWeight)?.timesOrNull(currentWidth)
         }
     }
 
@@ -156,7 +156,7 @@ open class Product<V : RealNumber<V>>(
     ): Quantity<V>? {
         val currentLength = length ?: return null
         val currentUnitWeight = unitWeight ?: return null
-        return currentLength * currentUnitWeight * width
+        return currentLength.timesOrNull(currentUnitWeight)?.timesOrNull(width)
     }
 
     override fun toString(): String {

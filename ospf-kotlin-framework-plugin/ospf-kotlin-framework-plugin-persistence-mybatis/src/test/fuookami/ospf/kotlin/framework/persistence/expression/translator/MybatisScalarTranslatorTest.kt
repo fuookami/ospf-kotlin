@@ -28,15 +28,15 @@ class MybatisScalarTranslatorTest {
     @DisplayName("should translate reference constant and arithmetic / 应翻译引用常量与算术表达式")
     fun shouldTranslateReferenceConstantAndArithmetic() {
         val translator = MybatisScalarTranslator(resolver)
-        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price")))!!
-        val constant = translator.translate(ScalarConstant(100))!!
+        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price"))).value!!
+        val constant = translator.translate(ScalarConstant(100)).value!!
         val arithmetic = translator.translate(
             ScalarBinary(
                 BinaryOperator.Multiply,
                 ScalarReference<Int>(PropertyPath.parse("price")),
                 ScalarReference(PropertyPath.parse("quantity"))
             )
-        )!!
+        ).value!!
 
         assertEquals("price", reference.sql)
         assertTrue(reference.isColumnOnly)
@@ -52,7 +52,7 @@ class MybatisScalarTranslatorTest {
         val alwaysFalseTranslator = MybatisScalarTranslator(resolver)
         val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
 
-        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))))
+        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))).value)
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(ScalarCustom<Int>("x"))
         }
@@ -67,13 +67,13 @@ class MybatisScalarTranslatorTest {
                 ScalarFunctionNames.Abs,
                 listOf(ScalarReference<Int>(PropertyPath.parse("price")))
             )
-        )!!
+        ).value!!
         val lowerExpr = translator.translate(
             ScalarFunction(
                 ScalarFunctionNames.Lower,
                 listOf(ScalarConstant("ABC"))
             )
-        )!!
+        ).value!!
 
         assertEquals("ABS(price)", absExpr.sql)
         assertEquals("LOWER({0})", lowerExpr.sql)
@@ -88,7 +88,7 @@ class MybatisScalarTranslatorTest {
         val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
 
-        assertNull(alwaysFalseTranslator.translate(unknown))
+        assertNull(alwaysFalseTranslator.translate(unknown).value)
         assertThrows(IllegalArgumentException::class.java) {
             failFastTranslator.translate(unknown)
         }

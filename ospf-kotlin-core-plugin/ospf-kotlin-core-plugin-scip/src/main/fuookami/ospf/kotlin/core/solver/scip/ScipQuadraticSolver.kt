@@ -26,8 +26,8 @@ class ScipQuadraticSolver(
 ) : QuadraticSolver {
     companion object {
         @JvmStatic
-        fun loadLibraryInJar() {
-            ScipSolver.loadLibraryInJar()
+        fun loadLibraryInJar(): Try {
+            return ScipSolver.loadLibraryInJar()
         }
     }
 

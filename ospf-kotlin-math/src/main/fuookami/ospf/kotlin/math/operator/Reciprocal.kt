@@ -11,8 +11,8 @@
  * 数学定义 / Mathematical definition:
  * reciprocal(x) = 1/x
  *
- * 注意：零的倒数未定义，实现在处理此情况时应返回 null 或抛出异常。
- * Note: The reciprocal of zero is undefined; implementations should return null or throw an exception for this case.
+ * 注意：零的倒数未定义，实现在处理此情况时应返回 null 或 Result 失败。
+ * Note: The reciprocal of zero is undefined; implementations should return null or a Result failure for this case.
  */
 package fuookami.ospf.kotlin.math.operator
 

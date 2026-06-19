@@ -14,6 +14,8 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
@@ -53,6 +55,41 @@ class RemoteSolverHttpClient(
     private val pollInterval: Duration = 200.milliseconds
 ) : SolverExecutionPort {
     private val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
+
+    private fun RemoteSolverErrorCode.toErrorCode(): ErrorCode {
+        return when (this) {
+            RemoteSolverErrorCode.INVALID_ARGUMENT -> ErrorCode.IllegalArgument
+            RemoteSolverErrorCode.INTERNAL_ERROR -> ErrorCode.ApplicationError
+            else -> ErrorCode.ApplicationFailed
+        }
+    }
+
+    private fun remoteErrorMessage(
+        code: RemoteSolverErrorCode,
+        message: String,
+        metadata: Map<String, String> = emptyMap()
+    ): String {
+        return if (metadata.isEmpty()) {
+            "Remote solver error ${code.name}: $message"
+        } else {
+            "Remote solver error ${code.name}: $message metadata=$metadata"
+        }
+    }
+
+    private fun <T> failedRemote(
+        code: RemoteSolverErrorCode,
+        message: String,
+        metadata: Map<String, String> = emptyMap()
+    ): Ret<T> {
+        return Failed(
+            code.toErrorCode(),
+            remoteErrorMessage(
+                code = code,
+                message = message,
+                metadata = metadata
+            )
+        )
+    }
 
     /**
      * 使用 HTTP 传输插件构造客户端。
@@ -112,27 +149,35 @@ class RemoteSolverHttpClient(
         sliceId: SliceId,
         nodeId: NodeId,
         tenantId: TenantId
-    ): ExecutionHandle {
-        val payloadRef = putPayload(
+    ): Ret<ExecutionHandle> {
+        val payloadRef = when (val result = putPayload(
             payload = payload,
             taskId = taskId,
             sliceId = sliceId,
             tenantId = tenantId
-        )
-        val response = submit(
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val response = when (val result = submit(
             RemoteTaskSubmitRequest(
                 payloadRef = payloadRef.path,
                 requestId = requestIdProvider(taskId, sliceId, tenantId),
                 tenantId = tenantId
             )
-        )
-        return ExecutionHandle(
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(ExecutionHandle(
             handleId = HandleId.of(response.taskId.value),
             taskId = response.taskId,
             sliceId = sliceId,
             nodeId = nodeId,
             startedAt = Clock.System.now()
-        )
+        ))
     }
 
     override suspend fun resume(
@@ -142,9 +187,9 @@ class RemoteSolverHttpClient(
         sliceId: SliceId,
         nodeId: NodeId,
         tenantId: TenantId
-    ): ExecutionHandle {
+    ): Ret<ExecutionHandle> {
         if (resumeMode == RemoteSolverHttpResumeMode.STRICT_CHECKPOINT) {
-            throw RemoteSolverException(
+            return failedRemote(
                 code = RemoteSolverErrorCode.INVALID_ARGUMENT,
                 message = "HTTP task resume API does not support checkpoint-specific resume.",
                 metadata = mapOf(
@@ -153,29 +198,43 @@ class RemoteSolverHttpClient(
                 )
             )
         }
-        resume(taskId = taskId)
-        return ExecutionHandle(
+        when (val result = resume(taskId = taskId)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return Ok(ExecutionHandle(
             handleId = HandleId.of(taskId.value),
             taskId = taskId,
             sliceId = sliceId,
             nodeId = nodeId,
             startedAt = Clock.System.now()
-        )
+        ))
     }
 
-    override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): SliceResult {
-        require(quantum > Duration.ZERO) { "quantum must be positive." }
+    override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): Ret<SliceResult> {
+        if (quantum <= Duration.ZERO) {
+            return Failed(ErrorCode.IllegalArgument, "quantum must be positive.")
+        }
         var elapsed = Duration.ZERO
         while (elapsed < quantum) {
-            val view = get(handle.taskId) ?: throw RemoteSolverException(
-                code = RemoteSolverErrorCode.TASK_FAILED,
-                message = "Remote task is not found: ${handle.taskId}.",
-                metadata = mapOf("taskId" to handle.taskId.value)
-            )
+            val view = when (val result = get(handle.taskId)) {
+                is Ok -> result.value ?: return failedRemote(
+                    code = RemoteSolverErrorCode.TASK_FAILED,
+                    message = "Remote task is not found: ${handle.taskId}.",
+                    metadata = mapOf("taskId" to handle.taskId.value)
+                )
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             when (view.status) {
                 TaskStatus.COMPLETED -> {
-                    val result = fetchFinalResult(handle)
-                    return SliceResult(
+                    val result = when (val ret = fetchFinalResult(handle)) {
+                        is Ok -> ret.value
+                        is Failed -> return Failed(ret.error)
+                        is Fatal -> return Fatal(ret.errors)
+                    }
+                    return Ok(SliceResult(
                         sliceId = handle.sliceId,
                         completed = true,
                         feasible = result?.feasible ?: true,
@@ -183,11 +242,11 @@ class RemoteSolverHttpClient(
                         gap = result?.gap,
                         elapsed = result?.elapsed ?: elapsed,
                         message = result?.message
-                    )
+                    ))
                 }
 
                 TaskStatus.FAILED, TaskStatus.STOPPED -> {
-                    return SliceResult(
+                    return Ok(SliceResult(
                         sliceId = handle.sliceId,
                         completed = true,
                         feasible = false,
@@ -195,7 +254,7 @@ class RemoteSolverHttpClient(
                         gap = null,
                         elapsed = elapsed,
                         message = "Remote task ended with status ${view.status}."
-                    )
+                    ))
                 }
 
                 else -> {}
@@ -204,30 +263,38 @@ class RemoteSolverHttpClient(
             delay(wait)
             elapsed += wait
         }
-        return SliceResult(
+        return Ok(SliceResult(
             sliceId = handle.sliceId,
             completed = false,
             feasible = false,
             objectiveValue = null,
             gap = null,
             elapsed = quantum
-        )
+        ))
     }
 
-    override suspend fun exportCheckpoint(handle: ExecutionHandle): ObjectRef? {
-        return get(handle.taskId)?.latestCheckpointRef
+    override suspend fun exportCheckpoint(handle: ExecutionHandle): Ret<ObjectRef?> {
+        return get(handle.taskId).map { it?.latestCheckpointRef }
     }
 
-    override suspend fun fetchFinalResult(handle: ExecutionHandle): SolveResult? {
-        val view = get(handle.taskId) ?: return null
-        val resultRef = view.latestResultRef ?: return null
-        val storage = objectStoragePort ?: return null
-        val bytes = storage.get(resultRef) ?: return null
-        val solution = json.decodeFromString(
-            SerializedSolution.serializer(),
-            bytes.decodeToString()
-        )
-        return SolveResult(
+    override suspend fun fetchFinalResult(handle: ExecutionHandle): Ret<SolveResult?> {
+        val view = when (val result = get(handle.taskId)) {
+            is Ok -> result.value ?: return Ok(null)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        val resultRef = view.latestResultRef ?: return Ok(null)
+        val storage = objectStoragePort ?: return Ok(null)
+        val bytes = storage.get(resultRef) ?: return Ok(null)
+        val solution = try {
+            json.decodeFromString(
+                SerializedSolution.serializer(),
+                bytes.decodeToString()
+            )
+        } catch (e: Exception) {
+            return Failed(ErrorCode.DeserializationFailed, "Failed to decode remote solve result: ${e.message}")
+        }
+        return Ok(SolveResult(
             feasible = solution.feasible,
             optimal = solution.optimal,
             objectiveValue = solution.objectiveValue,
@@ -236,12 +303,11 @@ class RemoteSolverHttpClient(
             checkpointRef = view.latestCheckpointRef,
             resultRef = resultRef,
             message = solution.message
-        )
+        ))
     }
 
-    override suspend fun stop(handle: ExecutionHandle): Boolean {
-        val action = stop(taskId = handle.taskId)
-        return action.status != TaskStatus.FAILED
+    override suspend fun stop(handle: ExecutionHandle): Ret<Boolean> {
+        return stop(taskId = handle.taskId).map { it.status != TaskStatus.FAILED }
     }
 
     /**
@@ -251,18 +317,33 @@ class RemoteSolverHttpClient(
      * @param request 提交请求 / Submit request
      * @return 提交响应 / Submit response
      */
-    fun submit(request: RemoteTaskSubmitRequest): RemoteTaskSubmitResponse {
-        val response = transport.send(
+    fun submit(request: RemoteTaskSubmitRequest): Ret<RemoteTaskSubmitResponse> {
+        val response = send(
             request(
                 method = "POST",
                 path = "/api/v1/tasks",
                 body = json.encodeToString(RemoteTaskSubmitRequest.serializer(), request)
             )
         )
-        return decodeEnvelope(
-            response = response,
-            dataDeserializer = SubmitTaskHttpResponse.serializer()
-        ).toDomain()
+        return when (response) {
+            is Ok -> decodeEnvelope(
+                response = response.value,
+                dataDeserializer = SubmitTaskHttpResponse.serializer()
+            ).map { it.toDomain() }
+            is Failed -> Failed(response.error)
+            is Fatal -> Fatal(response.errors)
+        }
+    }
+
+    private fun send(request: RemoteSolverHttpRequest): Ret<RemoteSolverHttpResponse> {
+        return try {
+            Ok(transport.send(request))
+        } catch (e: InterruptedException) {
+            Thread.currentThread().interrupt()
+            Failed(ErrorCode.ApplicationStopped, "Remote solver HTTP request interrupted: ${e.message}")
+        } catch (e: Exception) {
+            Failed(ErrorCode.ApplicationFailed, "Remote solver HTTP request failed: ${e.message}")
+        }
     }
 
     /**
@@ -272,20 +353,24 @@ class RemoteSolverHttpClient(
      * @param taskId 任务 ID / Task ID
      * @return 任务视图，不存在时返回 null / Task view, null if not found
      */
-    fun get(taskId: TaskId): RemoteTaskView? {
-        val response = transport.send(
+    fun get(taskId: TaskId): Ret<RemoteTaskView?> {
+        val response = when (val result = send(
             request(
                 method = "GET",
                 path = "/api/v1/tasks/${taskId.value}"
             )
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         if (response.statusCode == 404) {
-            return null
+            return Ok(null)
         }
         return decodeEnvelope(
             response = response,
             dataDeserializer = TaskViewHttpResponse.serializer()
-        ).toDomain()
+        ).map { it.toDomain() }
     }
 
     /**
@@ -299,18 +384,22 @@ class RemoteSolverHttpClient(
     fun stop(
         taskId: TaskId,
         request: RemoteTaskStopRequest = RemoteTaskStopRequest()
-    ): RemoteTaskAction {
-        val response = transport.send(
+    ): Ret<RemoteTaskAction> {
+        val response = when (val result = send(
             request(
                 method = "POST",
                 path = "/api/v1/tasks/${taskId.value}/stop",
                 body = json.encodeToString(RemoteTaskStopRequest.serializer(), request)
             )
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         return decodeEnvelope(
             response = response,
             dataDeserializer = TaskActionHttpResponse.serializer()
-        ).toDomain()
+        ).map { it.toDomain() }
     }
 
     /**
@@ -324,18 +413,22 @@ class RemoteSolverHttpClient(
     fun resume(
         taskId: TaskId,
         request: RemoteTaskResumeRequest = RemoteTaskResumeRequest()
-    ): RemoteTaskAction {
-        val response = transport.send(
+    ): Ret<RemoteTaskAction> {
+        val response = when (val result = send(
             request(
                 method = "POST",
                 path = "/api/v1/tasks/${taskId.value}/resume",
                 body = json.encodeToString(RemoteTaskResumeRequest.serializer(), request)
             )
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         return decodeEnvelope(
             response = response,
             dataDeserializer = TaskActionHttpResponse.serializer()
-        ).toDomain()
+        ).map { it.toDomain() }
     }
 
     private fun request(
@@ -364,29 +457,35 @@ class RemoteSolverHttpClient(
     private fun <T> decodeEnvelope(
         response: RemoteSolverHttpResponse,
         dataDeserializer: KSerializer<T>
-    ): T {
+    ): Ret<T> {
         if (response.statusCode !in 200..299) {
-            throw decodeError(response)
+            return decodeError(response)
         }
-        val envelope = json.decodeFromString(
-            ApiEnvelope.serializer(dataDeserializer),
-            response.body
-        )
+        val envelope = try {
+            json.decodeFromString(
+                ApiEnvelope.serializer(dataDeserializer),
+                response.body
+            )
+        } catch (e: Exception) {
+            return Failed(ErrorCode.DeserializationFailed, "Failed to decode remote solver response: ${e.message}")
+        }
         if (envelope.code != "OK") {
-            throw RemoteSolverException(
+            return failedRemote(
                 code = envelope.code.toRemoteErrorCode(),
                 message = envelope.message,
                 metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap()
             )
         }
-        return envelope.data ?: throw RemoteSolverException(
+        return envelope.data
+            ?.let { Ok(it) }
+            ?: failedRemote(
             code = RemoteSolverErrorCode.INTERNAL_ERROR,
             message = "Remote solver response data is null.",
             metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap()
         )
     }
 
-    private fun decodeError(response: RemoteSolverHttpResponse): RemoteSolverException {
+    private fun <T> decodeError(response: RemoteSolverHttpResponse): Ret<T> {
         val body = response.body
         val envelope = runCatching {
             json.decodeFromString(
@@ -394,7 +493,7 @@ class RemoteSolverHttpClient(
                 body
             )
         }.getOrNull()
-        return RemoteSolverException(
+        return failedRemote(
             code = envelope?.code?.toRemoteErrorCode() ?: RemoteSolverErrorCode.INTERNAL_ERROR,
             message = envelope?.message ?: "Remote solver HTTP request failed with status ${response.statusCode}.",
             metadata = buildMap {
@@ -417,21 +516,29 @@ class RemoteSolverHttpClient(
         taskId: TaskId,
         sliceId: SliceId,
         tenantId: TenantId
-    ): ObjectRef {
-        val storage = objectStoragePort ?: throw RemoteSolverException(
+    ): Ret<ObjectRef> {
+        val storage = objectStoragePort ?: return failedRemote(
             code = RemoteSolverErrorCode.INVALID_ARGUMENT,
             message = "objectStoragePort is required when RemoteSolverHttpClient is used as SolverExecutionPort.",
             metadata = mapOf("taskId" to taskId.value)
         )
-        return storage.put(
-            path = payloadPathProvider(taskId, sliceId, tenantId),
-            bytes = json.encodeToString(SolvePayload.serializer(), payload).encodeToByteArray(),
-            metadata = mapOf(
-                "taskId" to taskId.value,
-                "sliceId" to sliceId.value,
-                "tenantId" to tenantId.value
+        return try {
+            Ok(storage.put(
+                path = payloadPathProvider(taskId, sliceId, tenantId),
+                bytes = json.encodeToString(SolvePayload.serializer(), payload).encodeToByteArray(),
+                metadata = mapOf(
+                    "taskId" to taskId.value,
+                    "sliceId" to sliceId.value,
+                    "tenantId" to tenantId.value
+                )
+            ))
+        } catch (e: Exception) {
+            failedRemote(
+                code = RemoteSolverErrorCode.STORAGE_IO_FAILED,
+                message = "Failed to put remote solver payload: ${e.message}",
+                metadata = mapOf("taskId" to taskId.value)
             )
-        )
+        }
     }
 }
 

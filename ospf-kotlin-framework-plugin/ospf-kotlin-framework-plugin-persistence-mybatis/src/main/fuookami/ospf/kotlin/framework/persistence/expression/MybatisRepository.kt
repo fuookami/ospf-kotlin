@@ -66,7 +66,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
         offset: Int?
     ): List<E> {
         var wrapper = QueryWrapper<E>()
-        wrapper = booleanTranslator.translate(wrapper, where)
+        wrapper = booleanTranslator.translate(wrapper, where).value!!
 
         // 应用排序
         // Apply order by
@@ -98,7 +98,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      */
     override fun count(where: BooleanExpression): Long {
         val wrapper = QueryWrapper<E>()
-        booleanTranslator.translate(wrapper, where)
+        booleanTranslator.translate(wrapper, where).value!!
         return mapper.selectCount(wrapper)
     }
 
@@ -114,7 +114,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
         if (assignments.isEmpty()) return 0
 
         var updateWrapper = UpdateWrapper<E>()
-        updateWrapper = booleanTranslator.translate(updateWrapper, where)
+        updateWrapper = booleanTranslator.translate(updateWrapper, where).value!!
         updateWrapper = updateTranslator.apply(updateWrapper, assignments)
 
         return mapper.update(null, updateWrapper)
@@ -129,7 +129,7 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      */
     override fun delete(where: BooleanExpression): Int {
         val wrapper = QueryWrapper<E>()
-        booleanTranslator.translate(wrapper, where)
+        booleanTranslator.translate(wrapper, where).value!!
         return mapper.delete(wrapper)
     }
 
