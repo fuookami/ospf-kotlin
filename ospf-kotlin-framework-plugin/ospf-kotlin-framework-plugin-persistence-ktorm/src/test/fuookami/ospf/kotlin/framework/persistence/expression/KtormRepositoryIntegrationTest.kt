@@ -7,7 +7,6 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 import java.nio.file.Files
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -21,6 +20,9 @@ import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.and
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormColumnResolver
 
 @DisplayName("KtormRepository Integration Tests / Ktorm 仓储集成测试")
@@ -176,8 +178,8 @@ class KtormRepositoryIntegrationTest {
     }
 
     @Test
-    @DisplayName("unsupported policy should fail explicitly / 不支持策略应明确失败")
-    fun unsupportedPolicyShouldFailExplicitly() {
+    @DisplayName("unsupported predicate does not degrade to full scan / 不支持谓词不退化为全表扫描")
+    fun unsupportedPredicateDoesNotDegradeToFullScan() {
         val database = createDatabase()
         val failFastRepository = UserRepository(
             database,
@@ -190,11 +192,142 @@ class KtormRepositoryIntegrationTest {
             UnsupportedPredicatePolicy.ClientFilter
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastRepository.find(BooleanCustom("x"))
+        // FailFast / ClientFilter 遇到不支持的谓词时返回空结果，而非退化为全表扫描。
+        // FailFast / ClientFilter return empty results for unsupported predicates instead of degrading to a full scan.
+        assertEquals(emptyList<User>(), failFastRepository.find(BooleanCustom("x")))
+        assertEquals(emptyList<User>(), clientFilterRepository.find(BooleanCustom("x")))
+    }
+
+    // 强类型 schema（模拟 KSP 生成的 schema）
+    private object UserSchema : PredicateSchema<User>(), HasColumnMapping {
+        val id = field(User::id)
+        val name = field(User::name)
+        val age = field(User::age)
+        val status = field(User::status)
+
+        override val columnMapping: Map<String, String> = mapOf(
+            "id" to "id",
+            "name" to "name",
+            "age" to "age",
+            "status" to "status"
+        )
+    }
+
+    @Test
+    @DisplayName("end-to-end: predicate DSL + ktormResolver + repository / 端到端：强类型谓词 + resolver + 仓储")
+    fun endToEndPredicateWithKtormResolver() {
+        val database = createDatabase()
+
+        // 使用 HasColumnMapping.ktormResolver() 创建 resolver
+        val schemaResolver = UserSchema.ktormResolver(Users)
+        val repository = UserRepository(database, schemaResolver)
+
+        // 使用强类型 predicate DSL 构造谓词
+        val activeWhere = UserSchema.predicate { status eq "active" }
+        val activeUsers = repository.find(activeWhere)
+        assertEquals(2, activeUsers.size)
+        assertTrue(activeUsers.all { it.status == "active" })
+
+        // 使用复合谓词
+        val compoundWhere = UserSchema.predicate { (status eq "active") and (name eq "a") }
+        val compoundUsers = repository.find(compoundWhere)
+        assertEquals(1, compoundUsers.size)
+        assertEquals("a", compoundUsers[0].name)
+
+        // 使用显式映射的 ktormResolver
+        val explicitResolver = ktormResolver(Users, UserSchema.columnMapping)
+        val explicitRepository = UserRepository(database, explicitResolver)
+        val explicitUsers = explicitRepository.find(UserSchema.predicate { status eq "active" })
+        assertEquals(2, explicitUsers.size)
+    }
+
+    // ========== 非恒等映射端到端测试 / Non-identity mapping end-to-end test ==========
+
+    // 表列名用 snake_case（模拟真实数据库）
+    private object SnakeUsers : Table<Nothing>("snake_users") {
+        val userId = int("user_id")
+        val userName = varchar("user_name")
+        val userAge = int("user_age")
+        val userStatus = varchar("user_status")
+    }
+
+    // schema 属性名用 camelCase
+    private object SnakeUserSchema : PredicateSchema<User>(), HasColumnMapping {
+        val id = field(User::id)
+        val name = field(User::name)
+        val age = field(User::age)
+        val status = field(User::status)
+
+        override val columnMapping: Map<String, String> = mapOf(
+            "id" to "user_id",
+            "name" to "user_name",
+            "age" to "user_age",
+            "status" to "user_status"
+        )
+    }
+
+    private fun createSnakeDatabase(): Database {
+        val dbFile = Files.createTempFile("ktorm-snake-test", ".db").toFile().apply { deleteOnExit() }
+        val database = Database.connect("jdbc:sqlite:${dbFile.absolutePath}")
+        database.useConnection { conn ->
+            conn.createStatement().use { stmt ->
+                stmt.execute("create table snake_users(user_id integer primary key, user_name text, user_age integer, user_status text)")
+                stmt.execute("insert into snake_users(user_id, user_name, user_age, user_status) values (1, 'a', 10, 'active')")
+                stmt.execute("insert into snake_users(user_id, user_name, user_age, user_status) values (2, 'b', 20, 'active')")
+                stmt.execute("insert into snake_users(user_id, user_name, user_age, user_status) values (3, 'c', 30, 'pending')")
+            }
         }
-        assertThrows(IllegalArgumentException::class.java) {
-            clientFilterRepository.find(BooleanCustom("x"))
+        return database
+    }
+
+    private class SnakeUserRepository(
+        database: Database,
+        resolveColumn: KtormColumnResolver
+    ) : KtormRepository<User>(
+        database = database,
+        table = SnakeUsers,
+        resolveColumn = resolveColumn,
+        nullsOrderSupport = NullsOrderSupport.Never
+    ) {
+        override fun mapToEntity(row: QueryRowSet): User {
+            return User(
+                id = row[SnakeUsers.userId] ?: 0,
+                name = row[SnakeUsers.userName],
+                age = row[SnakeUsers.userAge],
+                status = row[SnakeUsers.userStatus]
+            )
         }
+    }
+
+    @Test
+    @DisplayName("end-to-end: non-identity mapping (snake_case columns) / 端到端：非恒等映射（snake_case 列名）")
+    fun endToEndNonIdentityMapping() {
+        val database = createSnakeDatabase()
+
+        // 属性名(id/name/age/status) != 列名(user_id/user_name/user_age/user_status)
+        val schemaResolver = SnakeUserSchema.ktormResolver(SnakeUsers)
+        val repository = SnakeUserRepository(database, schemaResolver)
+
+        // 强类型谓词使用属性名（schema 字段），resolver 映射到 snake_case 列名
+        val activeWhere = SnakeUserSchema.predicate { status eq "active" }
+        val activeUsers = repository.find(activeWhere)
+        assertEquals(2, activeUsers.size)
+        assertTrue(activeUsers.all { it.status == "active" })
+
+        // 复合谓词
+        val compoundWhere = SnakeUserSchema.predicate { (status eq "active") and (name eq "a") }
+        val compoundUsers = repository.find(compoundWhere)
+        assertEquals(1, compoundUsers.size)
+        assertEquals("a", compoundUsers[0].name)
+
+        // 排序 + 分页
+        val page = repository.find(
+            where = SnakeUserSchema.predicate { status eq "active" },
+            sortBy = SortBy.desc("age"),
+            limit = 1,
+            offset = 0
+        )
+        assertEquals(1, page.size)
+        assertEquals(2, page[0].id)
     }
 }

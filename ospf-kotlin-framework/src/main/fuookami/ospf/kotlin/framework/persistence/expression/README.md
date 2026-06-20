@@ -237,7 +237,88 @@ val updated = repository.update(where, assignments)
 val deleted = repository.delete(where)
 ```
 
-The default policy is `UnsupportedPredicatePolicy.AlwaysFalse`: predicates that cannot be pushed down return empty results or false conditions instead of degrading to unfiltered queries. Select `FailFast` in repository constructors when explicit failures are preferred. `ClientFilter` is reserved and fails explicitly until client-side filtering is implemented.
+The default policy is `UnsupportedPredicatePolicy.AlwaysFalse`: predicates that cannot be pushed down return empty results or false conditions instead of degrading to unfiltered queries. `FailFast` and `ClientFilter` report failures at the translator layer; current repository methods return empty results or `0` at the non-Result API boundary so unsupported predicates never become full scans.
+
+## Strong-Typed Column Binding
+
+Besides the string `resolver`, the framework provides a strong-typed column binding layer that maps schema property paths to backend columns without hand-written string maps. It is opt-in and fully backward compatible with the string resolver.
+
+### Core API
+
+| Symbol | Kind | Description |
+| --- | --- | --- |
+| `ColumnBinder<C>` | interface | Resolves a property path to a backend column of type `C` |
+| `HasColumnMapping` | interface | Marks a schema that exposes `columnMapping: Map<String, String>` |
+| `ColumnNamingStrategy` | enum | `Identity` or `SnakeCase`; controls how KSP derives column names |
+| `ColumnBinder.toResolver()` | extension | Converts a `ColumnBinder<C>` into a `PersistenceFieldResolver<C>` |
+
+A `PredicateSchema` that implements `HasColumnMapping` can be handed to backend resolver factories so that property paths are translated to concrete columns. The schema fields (`field(User::status)`) stay the AST entry point; the binder only affects how paths resolve to backend columns.
+
+### Enabling Column Mapping Generation
+
+Set `generateColumnMapping = true` on `@PredicateEntity`. Optionally choose a `namingStrategy` so KSP derives column names without `@PredicateField`:
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+import fuookami.ospf.kotlin.framework.persistence.expression.ColumnNamingStrategy
+
+@PredicateEntity(
+    schemaName = "Users",
+    generateColumnMapping = true,
+    namingStrategy = ColumnNamingStrategy.SnakeCase
+)
+data class User(val id: Long, val userName: String, val status: String)
+```
+
+KSP generates:
+
+```kotlin
+object Users : PredicateSchema<User>(), HasColumnMapping {
+    val id = field(User::id)
+    val userName = field(User::userName)
+    val status = field(User::status)
+
+    override val columnMapping: Map<String, String> = mapOf(
+        "id" to "id",
+        "userName" to "user_name",
+        "status" to "status"
+    )
+
+    fun <C> createBinder(resolver: (String) -> C?): ColumnBinder<C> { ... }
+}
+```
+
+`@PredicateField` still takes precedence when present; `namingStrategy` only applies to unannotated properties. When `generateColumnMapping` is enabled, the entity cannot declare a property named `columnMapping`.
+
+### Wiring Into Backends
+
+Backend plugins provide resolver factories built on top of `HasColumnMapping`:
+
+```kotlin
+// Ktorm
+val resolver: KtormColumnResolver = Users.ktormResolver(UsersTable)
+class UserRepository(db: Database) : KtormRepository<User>(
+    database = db,
+    table = UsersTable,
+    resolveColumn = resolver
+)
+
+// MyBatis-Plus
+val resolver: MybatisColumnNameResolver = Users.mybatisResolver()
+class UserRepository(mapper: UserMapper) : MybatisRepository<User, UserMapper>(
+    mapper = mapper,
+    resolveColumnName = resolver
+)
+```
+
+The predicate is still built from schema fields, so the AST path is type-checked at compile time:
+
+```kotlin
+val where = Users.predicate { (status eq "active") and (userName like "%test%") }
+val users = repository.find(where)
+```
+
+See the Ktorm and MyBatis-Plus plugin READMEs for the full resolver factory API.
 
 ## Resolver
 

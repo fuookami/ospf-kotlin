@@ -10,7 +10,6 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -155,12 +154,11 @@ class MybatisRepositoryTest {
             unsupportedPredicatePolicy = UnsupportedPredicatePolicy.ClientFilter
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastRepository.find(BooleanCustom("x"))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            clientFilterRepository.find(BooleanCustom("x"))
-        }
+        // FailFast / ClientFilter 不支持的谓词不退化为全表扫描，返回空结果
+        // FailFast / ClientFilter return empty results for unsupported predicates instead of degrading to a full scan
+        assertEquals(emptyList<TestEntity>(), failFastRepository.find(BooleanCustom("x")))
+        assertEquals(0L, failFastRepository.count(BooleanCustom("x")))
+        assertEquals(emptyList<TestEntity>(), clientFilterRepository.find(BooleanCustom("x")))
     }
 
     @Suppress("UNCHECKED_CAST")

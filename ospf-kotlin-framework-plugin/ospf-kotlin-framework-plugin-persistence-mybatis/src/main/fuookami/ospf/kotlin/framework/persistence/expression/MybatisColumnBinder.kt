@@ -4,64 +4,79 @@
  *
  * 提供基于 MyBatis 的强类型列绑定能力。
  * Provides strong-typed column binding based on MyBatis.
+ *
+ * 使用方式 / Usage:
+ * ```kotlin
+ * // 1. 通过 schema 生成 resolver
+ * val resolver = UserSchema.mybatisResolver()
+ *
+ * // 2. 将 resolver 交给仓储
+ * class UserRepository(mapper: UserMapper) : MybatisRepository<User, UserMapper>(mapper, UserSchema.mybatisResolver())
+ *
+ * // 3. 用 schema 的 predicate 构造强类型谓词
+ * val where = UserSchema.predicate { (status eq "active") and (name like "%test%") }
+ * val users = repository.find(where)
+ * ```
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
+import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
+import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
+
+/**
+ * MyBatis 列名解析器函数类型
+ * MyBatis column name resolver function type
+ */
+typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
 /**
  * MyBatis 列绑定器
  * MyBatis column binder
  *
  * @property columnMapping 属性名到后端列名的映射 / Property name to backend column name mapping
+ * @property namingTransfer 命名转换器，无映射时用于回退 / Naming transfer for fallback when no mapping found
  */
 class MybatisColumnBinder(
-    private val columnMapping: Map<String, String> = emptyMap()
+    private val columnMapping: Map<String, String> = emptyMap(),
+    private val namingTransfer: NameTransfer = NameTransfer(NamingSystem.CamelCase, NamingSystem.SnakeCase)
 ) : ColumnBinder<String> {
     override fun resolve(path: String): String? {
-        return columnMapping[path] ?: path.toSnakeCase()
-    }
-
-    companion object {
-        /**
-         * 驼峰转蛇形命名
-         * Camel case to snake case
-         */
-        private fun String.toSnakeCase(): String {
-            return replace(Regex("([a-z])([A-Z])"), "$1_$2").lowercase()
-        }
+        return columnMapping[path] ?: namingTransfer(path)
     }
 }
 
 /**
- * 使用 MyBatis 映射的 predicate DSL 扩展（带列映射）
- * Predicate DSL extension with MyBatis mapping (with column mapping)
+ * 将 MybatisColumnBinder 转为 MybatisColumnNameResolver
+ * Convert MybatisColumnBinder to MybatisColumnNameResolver
  *
- * @param E 实体类型 / Entity type
- * @param columnMapping 属性名到后端列名的映射 / Property name to backend column name mapping
- * @param block DSL 块 / DSL block
- * @return 布尔表达式 / Boolean expression
+ * @return MyBatis 列名解析器 / MyBatis column name resolver
  */
-fun <E : Any> PredicateSchema<E>.withMybatisMapping(
-    columnMapping: Map<String, String>,
-    block: ColumnBindingContext<E, String>.() -> BooleanExpression
-): BooleanExpression {
+fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = { path -> resolve(path) }
+
+/**
+ * 从 HasColumnMapping 创建 MybatisColumnNameResolver
+ * Create MybatisColumnNameResolver from HasColumnMapping
+ *
+ * 使用 KSP 生成的 HasColumnMapping.columnMapping 作为属性名到列名的映射。
+ * 无映射时回退到 camelCase -> snake_case 转换。
+ * Uses KSP generated HasColumnMapping.columnMapping as property-to-column name mapping.
+ * Falls back to camelCase -> snake_case conversion when no mapping found.
+ *
+ * @return MyBatis 列名解析器 / MyBatis column name resolver
+ */
+fun HasColumnMapping.mybatisResolver(): MybatisColumnNameResolver {
     val binder = MybatisColumnBinder(columnMapping)
-    return predicateWith(binder, block)
+    return { path -> binder.resolve(path) }
 }
 
 /**
- * 使用 MyBatis 映射的 predicate DSL 扩展（使用 KSP 生成的列映射）
- * Predicate DSL extension with MyBatis mapping (using KSP generated column mapping)
+ * 从显式映射创建 MybatisColumnNameResolver
+ * Create MybatisColumnNameResolver from explicit mapping
  *
- * @param E 实体类型 / Entity type
- * @param block DSL 块 / DSL block
- * @return 布尔表达式 / Boolean expression
+ * @param columnMapping 属性名到后端列名的显式映射 / Explicit property name to backend column name mapping
+ * @return MyBatis 列名解析器 / MyBatis column name resolver
  */
-fun <E : Any> PredicateSchema<E>.withMybatisMapping(
-    block: ColumnBindingContext<E, String>.() -> BooleanExpression
-): BooleanExpression {
-    val columnMapping = (this as? HasColumnMapping)?.columnMapping ?: emptyMap()
-    return withMybatisMapping(columnMapping, block)
+fun mybatisResolver(columnMapping: Map<String, String>): MybatisColumnNameResolver {
+    val binder = MybatisColumnBinder(columnMapping)
+    return { path -> binder.resolve(path) }
 }

@@ -16,6 +16,10 @@ MyBatis-Plus-based relational persistence plugin for the OSPF Kotlin framework.
 | `MybatisOrderByTranslator<T>` | class | `SortBy` → `QueryWrapper` ORDER BY |
 | `MybatisUpdateTranslator<T>` | class | `UpdateAssignments` → `UpdateWrapper` SET |
 | `MybatisValueConverter` | object | Converts OSPF custom types to JDBC-compatible types |
+| `MybatisColumnBinder` | class | Strong-typed column binder mapping property paths to MyBatis column names |
+| `asMybatisResolver` | extension | Convert a `MybatisColumnBinder` into a `MybatisColumnNameResolver` |
+| `HasColumnMapping.mybatisResolver()` | extension | Build `MybatisColumnNameResolver` from a KSP-generated `HasColumnMapping` schema |
+| `mybatisResolver(columnMapping)` | function | Build `MybatisColumnNameResolver` from an explicit property-to-column map |
 
 ## Quick Start
 
@@ -43,6 +47,39 @@ repository.update(where, assignments)
 // Delete
 repository.delete(where)
 ```
+
+## Strong-Typed Column Binding
+
+`MybatisColumnBinder` maps AST paths to backend column names. Pair it with a KSP-generated `HasColumnMapping` schema so property names resolve to physical columns without hand-written string resolvers:
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.ColumnNamingStrategy
+import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+import fuookami.ospf.kotlin.framework.persistence.expression.mybatisResolver
+
+@PredicateEntity(
+    schemaName = "UserSchema",
+    generateColumnMapping = true,
+    namingStrategy = ColumnNamingStrategy.SnakeCase
+)
+data class User(val id: Long, val userName: String, val status: String)
+
+// UserSchema (generated) implements HasColumnMapping
+val resolver: MybatisColumnNameResolver = UserSchema.mybatisResolver()
+
+class UserRepository(mapper: UserMapper) : MybatisRepository<User, UserMapper>(
+    mapper = mapper,
+    resolveColumnName = UserSchema.mybatisResolver()
+)
+
+// Predicate uses schema property names; resolver maps them to columns
+val where = UserSchema.predicate { (status eq "active") and (userName like "%test%") }
+val users = repository.find(where)
+```
+
+When `columnMapping` has no entry for a path, `MybatisColumnBinder` falls back to camelCase-to-snake_case conversion, matching MyBatis conventions.
+
+`ColumnBinder<C>.toResolver()` converts any binder into a `PersistenceFieldResolver<C>`, and `MybatisColumnBinder.asMybatisResolver()` returns the specialized `MybatisColumnNameResolver`.
 
 ## MybatisScalarSql
 

@@ -20,6 +20,10 @@
 | `SqlitePatternMatchPolicy` | object | SQLite LIKE |
 | `PostgresPatternMatchPolicy` | object | PostgreSQL LIKE |
 | `MySqlPatternMatchPolicy` | object | MySQL LIKE |
+| `KtormColumnBinder<T>` | class | 基于 Ktorm `Table` 的强类型列绑定器，实现 `ColumnBinder<ColumnDeclaring<*>>` |
+| `asKtormResolver` | extension | 将 `KtormColumnBinder` 转为 `KtormColumnResolver` |
+| `HasColumnMapping.ktormResolver(table)` | extension | 从 KSP 生成的 `HasColumnMapping` schema + Ktorm 表构建 `KtormColumnResolver` |
+| `ktormResolver(table, columnMapping)` | function | 从 Ktorm 表 + 显式映射构建 `KtormColumnResolver` |
 
 ## 快速开始
 
@@ -49,6 +53,38 @@ repository.update(where, assignments)
 // 删除
 repository.delete(where)
 ```
+
+## 强类型列绑定
+
+`KtormColumnBinder` 提供基于 Ktorm 表的强类型列绑定能力，把属性路径映射到 Ktorm `ColumnDeclaring<*>`。配合 KSP 生成的 `HasColumnMapping`，可以避免手写字符串映射：
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.ktormResolver
+
+// KSP 生成：object UserSchema : PredicateSchema<User>(), HasColumnMapping { ... }
+val resolver: KtormColumnResolver = UserSchema.ktormResolver(UsersTable)
+
+class UserRepository(database: Database) : KtormRepository<User>(
+    database = database,
+    table = UsersTable,
+    resolveColumn = UserSchema.ktormResolver(UsersTable)
+) {
+    override fun mapToEntity(row: QueryRowSet): User? = TODO()
+}
+
+// 强类型谓词 + 列绑定 resolver 一起使用
+val where = UserSchema.predicate { (status eq "active") and (age gt 18) }
+val users = repository.find(where)
+```
+
+也可以显式传入映射，或从 `KtormColumnBinder` 直接转 resolver：
+
+```kotlin
+val explicitResolver = ktormResolver(UsersTable, mapOf("status" to "user_status"))
+val binderResolver = KtormColumnBinder(UsersTable, mapping).asKtormResolver()
+```
+
+无 `columnMapping` 时回退到属性名原值，再在表列中查找匹配项。
 
 ## PatternMatchPolicy
 

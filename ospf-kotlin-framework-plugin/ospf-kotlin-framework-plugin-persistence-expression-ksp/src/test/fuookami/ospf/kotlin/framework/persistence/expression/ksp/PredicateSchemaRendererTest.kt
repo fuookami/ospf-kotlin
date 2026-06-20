@@ -105,4 +105,51 @@ class PredicateSchemaRendererTest {
         assertTrue(code.contains("columnMapping"))
         assertTrue(code.contains("createBinder"))
     }
+
+    @Test
+    @DisplayName("Render columnMapping with SnakeCase naming strategy / SnakeCase 命名策略生成蛇形列名")
+    fun renderColumnMappingWithSnakeCaseNamingStrategy() {
+        val code = PredicateSchemaRenderer.render(
+            PredicateSchemaModel(
+                packageName = "example",
+                entityName = "User",
+                kotlinEntityName = "User",
+                schemaName = "Users",
+                generateResolver = false,
+                generateColumnMapping = true,
+                properties = listOf(
+                    PredicateProperty("id", "id", "id"),
+                    PredicateProperty("userName", "user_name", "userName"),
+                    PredicateProperty("firstName", "first_name", "firstName")
+                )
+            )
+        )
+
+        assertTrue(code.contains("HasColumnMapping"))
+        assertTrue(code.contains("\"id\" to \"id\""))
+        assertTrue(code.contains("\"userName\" to \"user_name\""))
+        assertTrue(code.contains("\"firstName\" to \"first_name\""))
+    }
+
+    @Test
+    @DisplayName("Render columnMapping with Identity naming strategy / Identity 命名策略生成恒等列名")
+    fun renderColumnMappingWithIdentityNamingStrategy() {
+        val code = PredicateSchemaRenderer.render(
+            PredicateSchemaModel(
+                packageName = "example",
+                entityName = "User",
+                kotlinEntityName = "User",
+                schemaName = "Users",
+                generateResolver = false,
+                generateColumnMapping = true,
+                properties = listOf(
+                    PredicateProperty("id", "id", "id"),
+                    PredicateProperty("userName", "userName", "userName")
+                )
+            )
+        )
+
+        assertTrue(code.contains("\"id\" to \"id\""))
+        assertTrue(code.contains("\"userName\" to \"userName\""))
+    }
 }

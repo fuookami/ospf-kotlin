@@ -10,6 +10,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 import com.baomidou.mybatisplus.core.mapper.BaseMapper
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
 
@@ -65,8 +67,9 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
         limit: Int?,
         offset: Int?
     ): List<E> {
-        var wrapper = QueryWrapper<E>()
-        wrapper = booleanTranslator.translate(wrapper, where).value!!
+        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
+        if (translateResult is Failed) return emptyList()
+        var wrapper = translateResult.value!!
 
         // 应用排序
         // Apply order by
@@ -97,9 +100,9 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @return 实体数量 / Entity count
      */
     override fun count(where: BooleanExpression): Long {
-        val wrapper = QueryWrapper<E>()
-        booleanTranslator.translate(wrapper, where).value!!
-        return mapper.selectCount(wrapper)
+        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
+        if (translateResult is Failed) return 0L
+        return mapper.selectCount(translateResult.value!!)
     }
 
     /**
@@ -114,7 +117,9 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
         if (assignments.isEmpty()) return 0
 
         var updateWrapper = UpdateWrapper<E>()
-        updateWrapper = booleanTranslator.translate(updateWrapper, where).value!!
+        val updateResult = booleanTranslator.translate(updateWrapper, where)
+        if (updateResult is Failed) return 0
+        updateWrapper = updateResult.value!!
         updateWrapper = updateTranslator.apply(updateWrapper, assignments)
 
         return mapper.update(null, updateWrapper)
@@ -128,9 +133,9 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
      * @return 受影响的行数 / Number of affected rows
      */
     override fun delete(where: BooleanExpression): Int {
-        val wrapper = QueryWrapper<E>()
-        booleanTranslator.translate(wrapper, where).value!!
-        return mapper.delete(wrapper)
+        val translateResult = booleanTranslator.translate(QueryWrapper<E>(), where)
+        if (translateResult is Failed) return 0
+        return mapper.delete(translateResult.value!!)
     }
 
     companion object {

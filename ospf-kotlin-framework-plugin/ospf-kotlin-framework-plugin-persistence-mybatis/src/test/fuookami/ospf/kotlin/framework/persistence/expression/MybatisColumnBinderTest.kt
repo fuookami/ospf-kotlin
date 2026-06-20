@@ -5,11 +5,12 @@
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.bool
 
 @DisplayName("MybatisColumnBinder Tests / MyBatis 列绑定器测试")
 class MybatisColumnBinderTest {
@@ -46,42 +47,42 @@ class MybatisColumnBinderTest {
     }
 
     @Test
-    @DisplayName("withMybatisMapping provides resolveColumn via HasColumnMapping / withMybatisMapping 通过 HasColumnMapping 提供 resolveColumn")
-    fun withMybatisMappingProvidesResolveColumnViaHasColumnMapping() {
-        var resolvedId: String? = null
-        var resolvedUserName: String? = null
-        UserSchema.withMybatisMapping {
-            resolvedId = resolveColumn("id")
-            resolvedUserName = resolveColumn("userName")
-            bool(true)
-        }
-        assertEquals("user_id", resolvedId)
-        assertEquals("user_name", resolvedUserName)
+    @DisplayName("asMybatisResolver resolves via columnMapping / asMybatisResolver 通过 columnMapping 解析")
+    fun asMybatisResolverResolvesViaColumnMapping() {
+        val binder = MybatisColumnBinder(UserSchema.columnMapping)
+        val resolver = binder.asMybatisResolver()
+        assertEquals("user_id", resolver("id"))
+        assertEquals("user_name", resolver("userName"))
+        assertEquals("user_status", resolver("status"))
     }
 
     @Test
-    @DisplayName("withMybatisMapping with explicit mapping / withMybatisMapping 显式传入映射")
-    fun withMybatisMappingWithExplicitMapping() {
-        val mapping = mapOf("id" to "user_id", "status" to "user_status")
-        var resolvedId: String? = null
-        UserSchema.withMybatisMapping(mapping) {
-            resolvedId = resolveColumn("id")
-            bool(true)
-        }
-        assertEquals("user_id", resolvedId)
+    @DisplayName("HasColumnMapping.mybatisResolver resolves columns / HasColumnMapping.mybatisResolver 解析列")
+    fun hasColumnMappingMybatisResolverResolvesColumns() {
+        val resolver = UserSchema.mybatisResolver()
+        assertEquals("user_id", resolver("id"))
+        assertEquals("user_name", resolver("userName"))
+        assertEquals("user_status", resolver("status"))
     }
 
     @Test
-    @DisplayName("withMybatisMapping without HasColumnMapping falls back to snake case / 无 HasColumnMapping 时回退到蛇形命名")
-    fun withMybatisMappingWithoutHasColumnMapping() {
-        val schema = object : PredicateSchema<User>() {
-            val userName = field(User::userName)
-        }
-        var resolved: String? = null
-        schema.withMybatisMapping {
-            resolved = resolveColumn("userName")
-            bool(true)
-        }
-        assertEquals("user_name", resolved)
+    @DisplayName("mybatisResolver with explicit mapping / 显式映射的 mybatisResolver")
+    fun mybatisResolverWithExplicitMapping() {
+        val resolver = mybatisResolver(UserSchema.columnMapping)
+        assertEquals("user_id", resolver("id"))
+        assertEquals("user_name", resolver("userName"))
+        assertEquals("user_status", resolver("status"))
+    }
+
+    @Test
+    @DisplayName("predicate with schema fields compiles and produces BooleanExpression / predicate 使用 schema 字段构造表达式")
+    fun predicateUsingSchemaFields() {
+        // 验证 predicate { status eq "active" } 可以编译并产生 BooleanExpression
+        val where = UserSchema.predicate { status eq "active" }
+        assertNotNull(where) // BooleanExpression 不为 null
+
+        // 验证 resolver 能解析表达式中的路径
+        val resolver = UserSchema.mybatisResolver()
+        assertEquals("user_status", resolver("status"))
     }
 }

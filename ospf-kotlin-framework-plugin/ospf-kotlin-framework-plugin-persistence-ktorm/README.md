@@ -20,6 +20,10 @@ Ktorm-based relational persistence plugin for the OSPF Kotlin framework.
 | `SqlitePatternMatchPolicy` | object | SQLite LIKE |
 | `PostgresPatternMatchPolicy` | object | PostgreSQL LIKE |
 | `MySqlPatternMatchPolicy` | object | MySQL LIKE |
+| `KtormColumnBinder<T>` | class | Strong-typed column binder over a Ktorm `Table`, implements `ColumnBinder<ColumnDeclaring<*>>` |
+| `asKtormResolver` | extension | Convert a `KtormColumnBinder` into a `KtormColumnResolver` |
+| `HasColumnMapping.ktormResolver(table)` | extension | Build a `KtormColumnResolver` from a KSP-generated `HasColumnMapping` schema + Ktorm table |
+| `ktormResolver(table, columnMapping)` | function | Build a `KtormColumnResolver` from a Ktorm table + explicit mapping |
 
 ## Quick Start
 
@@ -49,6 +53,50 @@ repository.update(where, assignments)
 // Delete
 repository.delete(where)
 ```
+
+## Strong-Typed Column Binding
+
+`KtormColumnBinder` bridges a KSP-generated schema (`HasColumnMapping`) to a Ktorm table, producing a `KtormColumnResolver` that maps property paths to Ktorm `ColumnDeclaring` columns. It avoids hand-written `when (path)` resolvers.
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.HasColumnMapping
+import fuookami.ospf.kotlin.framework.persistence.expression.ktormResolver
+
+// KSP-generated schema (implements HasColumnMapping via generateColumnMapping = true)
+object Users : PredicateSchema<User>(), HasColumnMapping {
+    override val columnMapping: Map<String, String> = mapOf(
+        "id" to "user_id",
+        "status" to "user_status"
+    )
+    val id = field(User::id)
+    val status = field(User::status)
+}
+
+object UsersTable : Table<Nothing>("users") {
+    val userId = int("user_id")
+    val userStatus = varchar("user_status")
+}
+
+class UserRepository(db: Database) : KtormRepository<User>(
+    database = db,
+    table = UsersTable,
+    resolveColumn = Users.ktormResolver(UsersTable)
+) {
+    override fun mapToEntity(row: QueryRowSet): User? = TODO()
+}
+
+// Predicate built from typed schema fields; columns resolved via columnMapping
+val where = Users.predicate { status eq "active" }
+val users = repository.find(where)
+```
+
+Use the explicit-mapping overload when you cannot annotate the entity:
+
+```kotlin
+val resolver = ktormResolver(UsersTable, mapOf("id" to "user_id", "status" to "user_status"))
+```
+
+`KtormColumnBinder` falls back to the raw path when a path is absent from `columnMapping`, matching the table column name directly.
 
 ## PatternMatchPolicy
 

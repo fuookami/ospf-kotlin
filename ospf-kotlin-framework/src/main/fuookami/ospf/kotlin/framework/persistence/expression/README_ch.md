@@ -237,7 +237,88 @@ val updated = repository.update(where, assignments)
 val deleted = repository.delete(where)
 ```
 
-默认策略是 `UnsupportedPredicatePolicy.AlwaysFalse`：无法下推的谓词返回空结果或恒假条件，不会退化为未过滤查询。需要更严格行为时，可以在 repository 构造时选择 `FailFast`。`ClientFilter` 是保留策略；在客户端过滤真正实现前会明确失败。
+默认策略是 `UnsupportedPredicatePolicy.AlwaysFalse`：无法下推的谓词返回空结果或恒假条件，不会退化为未过滤查询。`FailFast` 与 `ClientFilter` 会在 translator 层返回失败；当前 repository 方法是非 Result API 边界，因此会返回空结果或 `0`，确保不支持谓词不会变成全表扫描。
+
+## 强类型列绑定
+
+除字符串 `resolver` 外，框架提供强类型列绑定层，可在不手写字符串映射表的情况下将 schema 属性路径映射到后端列。该层为可选，与字符串 resolver 完全向后兼容。
+
+### 核心 API
+
+| 符号 | 类型 | 说明 |
+| --- | --- | --- |
+| `ColumnBinder<C>` | interface | 将属性路径解析为类型为 `C` 的后端列 |
+| `HasColumnMapping` | interface | 标记 schema 暴露 `columnMapping: Map<String, String>` |
+| `ColumnNamingStrategy` | enum | `Identity` 或 `SnakeCase`；控制 KSP 如何推导列名 |
+| `ColumnBinder.toResolver()` | extension | 将 `ColumnBinder<C>` 转为 `PersistenceFieldResolver<C>` |
+
+实现 `HasColumnMapping` 的 `PredicateSchema` 可交给后端 resolver 工厂，使属性路径被翻译为具体列。schema 字段（`field(User::status)`）仍是 AST 入口；binder 只影响路径到后端列的解析方式。
+
+### 启用列映射生成
+
+在 `@PredicateEntity` 上设置 `generateColumnMapping = true`。可选 `namingStrategy`，让 KSP 在无 `@PredicateField` 的情况下推导列名：
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+import fuookami.ospf.kotlin.framework.persistence.expression.ColumnNamingStrategy
+
+@PredicateEntity(
+    schemaName = "Users",
+    generateColumnMapping = true,
+    namingStrategy = ColumnNamingStrategy.SnakeCase
+)
+data class User(val id: Long, val userName: String, val status: String)
+```
+
+KSP 生成：
+
+```kotlin
+object Users : PredicateSchema<User>(), HasColumnMapping {
+    val id = field(User::id)
+    val userName = field(User::userName)
+    val status = field(User::status)
+
+    override val columnMapping: Map<String, String> = mapOf(
+        "id" to "id",
+        "userName" to "user_name",
+        "status" to "status"
+    )
+
+    fun <C> createBinder(resolver: (String) -> C?): ColumnBinder<C> { ... }
+}
+```
+
+`@PredicateField` 优先级最高；`namingStrategy` 仅作用于未注解的属性。启用 `generateColumnMapping` 时，实体不能声明名为 `columnMapping` 的属性。
+
+### 接入后端
+
+后端插件提供基于 `HasColumnMapping` 的 resolver 工厂：
+
+```kotlin
+// Ktorm
+val resolver: KtormColumnResolver = Users.ktormResolver(UsersTable)
+class UserRepository(db: Database) : KtormRepository<User>(
+    database = db,
+    table = UsersTable,
+    resolveColumn = resolver
+)
+
+// MyBatis-Plus
+val resolver: MybatisColumnNameResolver = Users.mybatisResolver()
+class UserRepository(mapper: UserMapper) : MybatisRepository<User, UserMapper>(
+    mapper = mapper,
+    resolveColumnName = resolver
+)
+```
+
+谓词仍从 schema 字段构造，因此 AST path 在编译期受类型检查：
+
+```kotlin
+val where = Users.predicate { (status eq "active") and (userName like "%test%") }
+val users = repository.find(where)
+```
+
+完整 resolver 工厂 API 见 Ktorm 与 MyBatis-Plus 插件 README。
 
 ## Resolver
 

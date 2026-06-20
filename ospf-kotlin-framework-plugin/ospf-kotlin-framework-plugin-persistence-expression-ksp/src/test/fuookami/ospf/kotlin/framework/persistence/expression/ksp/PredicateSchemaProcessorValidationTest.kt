@@ -156,6 +156,82 @@ class PredicateSchemaProcessorValidationTest {
         assertTrue(generated.contains("fun <C> createBinder(resolver: (String) -> C?): ColumnBinder<C>"), "Should declare createBinder")
     }
 
+    @Test
+    @DisplayName("Generate columnMapping with SnakeCase naming strategy / SnakeCase 命名策略生成蛇形列名")
+    fun generateColumnMappingWithSnakeCaseNamingStrategy() {
+        val entitySource = """
+            package fixture
+
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+            import fuookami.ospf.kotlin.framework.persistence.expression.ColumnNamingStrategy
+
+            @PredicateEntity(
+                schemaName = "Users",
+                generateColumnMapping = true,
+                namingStrategy = ColumnNamingStrategy.SnakeCase
+            )
+            data class User(val id: Long, val userName: String, val firstName: String)
+            """.trimIndent()
+        val result = compile(entitySource)
+
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, result.messages)
+        val generated = result.sourcesGeneratedBySymbolProcessor
+            .first { it.name == "Users.kt" }
+            .readText()
+        assertTrue(generated.contains("HasColumnMapping"), "Should implement HasColumnMapping")
+        assertTrue(generated.contains("\"id\" to \"id\""), "Should map id with identity")
+        assertTrue(generated.contains("\"userName\" to \"user_name\""), "Should map userName to user_name")
+        assertTrue(generated.contains("\"firstName\" to \"first_name\""), "Should map firstName to first_name")
+    }
+
+    @Test
+    @DisplayName("Generate columnMapping with Identity naming strategy / Identity 命名策略生成恒等列名")
+    fun generateColumnMappingWithIdentityNamingStrategy() {
+        val entitySource = """
+            package fixture
+
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+
+            @PredicateEntity(schemaName = "Users", generateColumnMapping = true)
+            data class User(val id: Long, val userName: String)
+            """.trimIndent()
+        val result = compile(entitySource)
+
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, result.messages)
+        val generated = result.sourcesGeneratedBySymbolProcessor
+            .first { it.name == "Users.kt" }
+            .readText()
+        assertTrue(generated.contains("\"id\" to \"id\""), "Should map id with identity")
+        assertTrue(generated.contains("\"userName\" to \"userName\""), "Should map userName with identity")
+    }
+
+    @Test
+    @DisplayName("PredicateField annotation overrides naming strategy / @PredicateField 注解覆盖命名策略")
+    fun predicateFieldOverridesNamingStrategy() {
+        val entitySource = """
+            package fixture
+
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateEntity
+            import fuookami.ospf.kotlin.framework.persistence.expression.PredicateField
+            import fuookami.ospf.kotlin.framework.persistence.expression.ColumnNamingStrategy
+
+            @PredicateEntity(
+                schemaName = "Users",
+                generateColumnMapping = true,
+                namingStrategy = ColumnNamingStrategy.SnakeCase
+            )
+            data class User(@PredicateField("uid") val id: Long, val userName: String)
+            """.trimIndent()
+        val result = compile(entitySource)
+
+        assertEquals(KotlinCompilation.ExitCode.OK, result.exitCode, result.messages)
+        val generated = result.sourcesGeneratedBySymbolProcessor
+            .first { it.name == "Users.kt" }
+            .readText()
+        assertTrue(generated.contains("\"id\" to \"uid\""), "Should use @PredicateField name for id")
+        assertTrue(generated.contains("\"userName\" to \"user_name\""), "Should use SnakeCase for userName")
+    }
+
     private fun compile(source: String): JvmCompilationResult {
         val output = ByteArrayOutputStream()
         return KotlinCompilation().apply {

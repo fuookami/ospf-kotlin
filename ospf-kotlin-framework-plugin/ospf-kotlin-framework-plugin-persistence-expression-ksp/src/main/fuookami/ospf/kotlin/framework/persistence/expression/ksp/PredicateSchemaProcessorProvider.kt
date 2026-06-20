@@ -64,6 +64,17 @@ internal data class PredicateProperty(
 )
 
 /**
+ * 列命名策略枚举（与 framework 层 ColumnNamingStrategy 对应）
+ * Column naming strategy enum (mirrors framework layer ColumnNamingStrategy)
+ */
+internal enum class KspColumnNamingStrategy {
+    /** 恒等映射 / Identity mapping */
+    Identity,
+    /** 驼峰转蛇形 / Camel case to snake case */
+    SnakeCase
+}
+
+/**
  * 谓词 schema 模型
  * Predicate schema model
  *

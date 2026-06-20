@@ -4,11 +4,16 @@
  *
  * 提供强类型列绑定能力，作为现有字符串 resolver 的补充选项。
  * Provides strong-typed column binding capability as a complement to the existing string resolver.
+ *
+ * 设计说明 / Design Notes:
+ * - 列绑定发生在 binder → resolver 层，不在 DSL 层。
+ *   Column binding occurs at the binder → resolver layer, not at the DSL layer.
+ * - 用户通过 PredicateSchema.predicate { ... } 构造 BooleanExpression（字段来自 schema 接收者），
+ *   再通过 ColumnBinder.toResolver() 生成 PersistenceFieldResolver 交给仓储。
+ *   Users construct BooleanExpression via PredicateSchema.predicate { ... } (fields from schema receiver),
+ *   then generate PersistenceFieldResolver via ColumnBinder.toResolver() to hand to repository.
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
-
-import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
 
 /**
  * 列映射接口（KSP 生成的 schema 实现此接口）
@@ -36,42 +41,10 @@ interface ColumnBinder<C> {
 }
 
 /**
- * 列绑定上下文
- * Column binding context
+ * 将 ColumnBinder 转为 PersistenceFieldResolver
+ * Convert ColumnBinder to PersistenceFieldResolver
  *
- * @param E 实体类型 / Entity type
  * @param C 列类型 / Column type
- * @property schema 谓词 schema / Predicate schema
- * @property binder 列绑定器 / Column binder
+ * @return 持久化字段解析器 / Persistence field resolver
  */
-class ColumnBindingContext<E, C>(
-    private val schema: PredicateSchema<E>,
-    private val binder: ColumnBinder<C>
-) {
-    /**
-     * 解析属性路径
-     * Resolve property path
-     *
-     * @param path 属性路径 / Property path
-     * @return 对应的列，未找到时返回 null / Corresponding column, or null if not found
-     */
-    fun resolveColumn(path: String): C? = binder.resolve(path)
-}
-
-/**
- * 带列绑定的 predicate DSL
- * Predicate DSL with column binding
- *
- * @param E 实体类型 / Entity type
- * @param C 列类型 / Column type
- * @param binder 列绑定器 / Column binder
- * @param block DSL 块 / DSL block
- * @return 布尔表达式 / Boolean expression
- */
-fun <E, C> PredicateSchema<E>.predicateWith(
-    binder: ColumnBinder<C>,
-    block: ColumnBindingContext<E, C>.() -> BooleanExpression
-): BooleanExpression {
-    val context = ColumnBindingContext<E, C>(this, binder)
-    return block(context)
-}
+fun <C> ColumnBinder<C>.toResolver(): PersistenceFieldResolver<C> = { path -> resolve(path) }

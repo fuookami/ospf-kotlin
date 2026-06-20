@@ -12,8 +12,8 @@ import org.junit.jupiter.api.Test
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.predicate
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.PredicateSchema
-import fuookami.ospf.kotlin.math.symbol.expression.dsl.bool
 
 @DisplayName("KtormColumnBinder Tests / Ktorm 列绑定器测试")
 class KtormColumnBinderTest {
@@ -60,39 +60,42 @@ class KtormColumnBinderTest {
     }
 
     @Test
-    @DisplayName("withKtormTable provides resolveColumn via HasColumnMapping / withKtormTable 通过 HasColumnMapping 提供 resolveColumn")
-    fun withKtormTableProvidesResolveColumnViaHasColumnMapping() {
-        var resolvedId: Any? = null
-        UserSchema.withKtormTable(UsersTable) {
-            resolvedId = resolveColumn("id")
-            bool(true)
-        }
-        assertNotNull(resolvedId)
+    @DisplayName("asKtormResolver resolves via columnMapping / asKtormResolver 通过 columnMapping 解析")
+    fun asKtormResolverResolvesViaColumnMapping() {
+        val binder = KtormColumnBinder(UsersTable, UserSchema.columnMapping)
+        val resolver = binder.asKtormResolver()
+        assertNotNull(resolver("id"))
+        assertNotNull(resolver("status"))
+        assertNull(resolver("unknown"))
     }
 
     @Test
-    @DisplayName("withKtormTable with explicit mapping / withKtormTable 显式传入映射")
-    fun withKtormTableWithExplicitMapping() {
-        val mapping = mapOf("id" to "user_id", "name" to "user_name", "status" to "user_status")
-        var resolvedId: Any? = null
-        UserSchema.withKtormTable(UsersTable, mapping) {
-            resolvedId = resolveColumn("id")
-            bool(true)
-        }
-        assertNotNull(resolvedId)
+    @DisplayName("HasColumnMapping.ktormResolver resolves columns / HasColumnMapping.ktormResolver 解析列")
+    fun hasColumnMappingKtormResolverResolvesColumns() {
+        val resolver = UserSchema.ktormResolver(UsersTable)
+        assertNotNull(resolver("id"))
+        assertNotNull(resolver("status"))
+        assertNull(resolver("unknown"))
     }
 
     @Test
-    @DisplayName("withKtormTable without HasColumnMapping uses empty mapping / 无 HasColumnMapping 时使用空映射")
-    fun withKtormTableWithoutHasColumnMapping() {
-        val schema = object : PredicateSchema<User>() {
-            val id = field(User::id)
-        }
-        var resolvedId: Any? = null
-        schema.withKtormTable(UsersTable) {
-            resolvedId = resolveColumn("id")
-            bool(true)
-        }
-        assertNull(resolvedId)
+    @DisplayName("ktormResolver with explicit mapping / 显式映射的 ktormResolver")
+    fun ktormResolverWithExplicitMapping() {
+        val resolver = ktormResolver(UsersTable, UserSchema.columnMapping)
+        assertNotNull(resolver("id"))
+        assertNotNull(resolver("status"))
+        assertNull(resolver("unknown"))
+    }
+
+    @Test
+    @DisplayName("predicate with schema fields compiles and produces BooleanExpression / predicate 使用 schema 字段构造表达式")
+    fun predicateUsingSchemaFields() {
+        // 验证 predicate { status eq "active" } 可以编译并产生 BooleanExpression
+        val where = UserSchema.predicate { status eq "active" }
+        assertNotNull(where)
+
+        // 验证 resolver 能解析表达式中的路径
+        val resolver = UserSchema.ktormResolver(UsersTable)
+        assertNotNull(resolver("status"))
     }
 }

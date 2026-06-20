@@ -105,6 +105,11 @@ class PredicateSchemaProcessor(
             }
             val generateResolver = annotation.booleanArgument("generateResolver") ?: true
             val generateColumnMapping = annotation.booleanArgument("generateColumnMapping") ?: false
+            val namingStrategyName = annotation.enumArgument("namingStrategy") ?: "Identity"
+            val namingStrategy = when (namingStrategyName) {
+                "SnakeCase" -> KspColumnNamingStrategy.SnakeCase
+                else -> KspColumnNamingStrategy.Identity
+            }
             var hasPropertyError = false
             val properties = getAllProperties()
                 .filter { it.isVisibleSchemaProperty() }
@@ -119,8 +124,8 @@ class PredicateSchemaProcessor(
                         hasPropertyError = true
                         return@mapNotNull null
                     }
-                    val backendName = property.predicateFieldName()
-                    if (backendName != null && backendName.isBlank()) {
+                    val annotatedBackendName = property.predicateFieldName()
+                    if (annotatedBackendName != null && annotatedBackendName.isBlank()) {
                         logger.error(
                             "Predicate field '$propertyName' in $entityName has a blank backend name",
                             property
@@ -128,9 +133,13 @@ class PredicateSchemaProcessor(
                         hasPropertyError = true
                         return@mapNotNull null
                     }
+                    // @PredicateField 优先，否则根据 namingStrategy 推导
+                    // @PredicateField takes precedence, otherwise derive from namingStrategy
+                    val backendName = annotatedBackendName
+                        ?: applyNamingStrategy(propertyName, namingStrategy)
                     PredicateProperty(
                         propertyName = propertyName,
-                        backendName = backendName ?: propertyName,
+                        backendName = backendName,
                         kotlinName = kotlinName
                     )
                 }
@@ -254,6 +263,54 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.stringArgument(name: Str
  */
 private fun com.google.devtools.ksp.symbol.KSAnnotation.booleanArgument(name: String): Boolean? {
     return arguments.firstOrNull { it.name?.asString() == name }?.value as? Boolean
+}
+
+/**
+ * 从注解中获取枚举参数值（返回枚举条目名称）
+ * Get enum argument value from annotation (returns enum entry name)
+ *
+ * @param name 参数名 / Parameter name
+ * @return 枚举条目名称，不存在时返回 null / Enum entry name, or null if not present
+ */
+private fun com.google.devtools.ksp.symbol.KSAnnotation.enumArgument(name: String): String? {
+    val value = arguments.firstOrNull { it.name?.asString() == name }?.value
+    return (value as? com.google.devtools.ksp.symbol.KSName)?.asString()
+        ?: value?.toString()?.substringAfterLast('.')
+}
+
+/**
+ * 根据命名策略计算后端列名
+ * Compute backend column name based on naming strategy
+ *
+ * @param propertyName Kotlin 属性名 / Kotlin property name
+ * @param namingStrategy 命名策略 / Naming strategy
+ * @return 后端列名 / Backend column name
+ */
+private fun applyNamingStrategy(propertyName: String, namingStrategy: KspColumnNamingStrategy): String {
+    return when (namingStrategy) {
+        KspColumnNamingStrategy.Identity -> propertyName
+        KspColumnNamingStrategy.SnakeCase -> camelToSnakeCase(propertyName)
+    }
+}
+
+/**
+ * 驼峰转蛇形命名
+ * Camel case to snake case
+ *
+ * @param name 驼峰命名 / Camel case name
+ * @return 蛇形命名 / Snake case name
+ */
+private fun camelToSnakeCase(name: String): String {
+    return buildString {
+        for ((index, char) in name.withIndex()) {
+            if (char.isUpperCase()) {
+                if (index > 0) append('_')
+                append(char.lowercaseChar())
+            } else {
+                append(char)
+            }
+        }
+    }
 }
 
 private val kotlinKeywords = setOf(
