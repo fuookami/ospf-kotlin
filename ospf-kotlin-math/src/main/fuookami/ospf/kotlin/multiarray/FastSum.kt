@@ -92,13 +92,21 @@ fun <T> AbstractMultiArray<T, *>.sumAxisSafe(axis: Int, zero: T): Ret<MultiArray
 
     // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
-        val vector = shape.vector(linearIdx)
+        val vector = when (val result = shape.vector(linearIdx)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         // Calculate result coordinates (remove summed axis) / 计算结果坐标（移除求和轴）
         val resultVector = vector.filterIndexed { i, _ -> i != axis }.toIntArray()
 
         // Accumulate / 累加
-        val resultLinearIdx = result.shape.index(resultVector)
+        val resultLinearIdx = when (val indexResult = result.shape.index(resultVector)) {
+            is Ok -> indexResult.value
+            is Failed -> return Failed(indexResult.error)
+            is Fatal -> return Fatal(indexResult.errors)
+        }
         result[resultLinearIdx] = result[resultLinearIdx] + this[linearIdx]
     }
 
@@ -152,13 +160,21 @@ fun <T> AbstractMultiArray<T, *>.sumAxesSafe(axes: IntArray, zero: T): Ret<Multi
 
     // Iterate all elements and accumulate to result / 遍历所有元素并累加到结果
     for (linearIdx in 0 until size) {
-        val vector = shape.vector(linearIdx)
+        val vector = when (val result = shape.vector(linearIdx)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         // Calculate result coordinates (remove summed axes) / 计算结果坐标（移除求和轴）
         val resultVector = vector.filterIndexed { i, _ -> i !in axesSet }.toIntArray()
 
         // Accumulate / 累加
-        val resultLinearIdx = result.shape.index(resultVector)
+        val resultLinearIdx = when (val indexResult = result.shape.index(resultVector)) {
+            is Ok -> indexResult.value
+            is Failed -> return Failed(indexResult.error)
+            is Fatal -> return Fatal(indexResult.errors)
+        }
         result[resultLinearIdx] = result[resultLinearIdx] + this[linearIdx]
     }
 
@@ -201,7 +217,11 @@ fun <T> AbstractMultiArray<T, *>.cumsumAxisSafe(axis: Int, zero: T): Ret<MultiAr
 
     // For each "slice" along other dimensions, compute cumulative sum / 对每个切片沿指定轴计算累积和
     for (linearIdx in 0 until size) {
-        val vector = shape.vector(linearIdx)
+        val vector = when (val result = shape.vector(linearIdx)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         // If this is the first element along the axis, start fresh / 若为轴方向首个元素，直接赋值
         // Otherwise, add previous cumulative sum / 否则加上前一个累积和
@@ -211,7 +231,11 @@ fun <T> AbstractMultiArray<T, *>.cumsumAxisSafe(axis: Int, zero: T): Ret<MultiAr
             // Get the previous element's coordinates / 获取前一个元素的坐标
             val prevVector = vector.copyOf()
             prevVector[axis] = vector[axis] - 1
-            val prevLinearIdx = shape.index(prevVector)
+            val prevLinearIdx = when (val indexResult = shape.index(prevVector)) {
+                is Ok -> indexResult.value
+                is Failed -> return Failed(indexResult.error)
+                is Fatal -> return Fatal(indexResult.errors)
+            }
 
             result[linearIdx] = result[prevLinearIdx] + this[linearIdx]
         }

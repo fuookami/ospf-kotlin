@@ -157,7 +157,7 @@ open class MVOPolicy<ObjValue, V>(
         return Flt64.one - max(
             Flt64(iteration.time / timeLimit),
             iteration.iteration.toFlt64() / iterationLimit.toFlt64()
-        ).pow(Flt64(6.0).reciprocal()).toFlt64()
+        ).pow(Flt64(6.0).reciprocal())!!.toFlt64()
     }
 
     /** 计算白洞概率 / Calculate white hole rates */

@@ -441,7 +441,7 @@ class Load(
         if (!::loadEstimateLongitudinalTorque.isInitialized) {
             loadEstimateLongitudinalTorque = QuantityLinearIntermediateSymbols1<Flt64>("load_longitudinal_torque", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm
+                val torquePerWeight = (aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm)!!
                 QuantityLinearIntermediateSymbol(
                     LinearExpressionSymbol(
                         torquePerWeight.to(aircraftModel.torqueUnit)!!.value * estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value,
@@ -466,7 +466,7 @@ class Load(
         if (!::loadActualLongitudinalTorque.isInitialized) {
             loadActualLongitudinalTorque = QuantityLinearIntermediateSymbols1<Flt64>("load_actual_longitudinal_torque", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm
+                val torquePerWeight = (aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm)!!
                 QuantityLinearIntermediateSymbol(
                     LinearExpressionSymbol(
                         torquePerWeight.to(aircraftModel.torqueUnit)!!.value * actualLoadWeight[j].to(aircraftModel.weightUnit)!!.value,
@@ -492,7 +492,7 @@ class Load(
             if (!::loadLateralTorque.isInitialized) {
                 loadLateralTorque = QuantityLinearIntermediateSymbols1<Flt64>("load_lateral_torque", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
-                    val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.lateralArm
+                    val torquePerWeight = (aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.lateralArm)!!
                     QuantityLinearIntermediateSymbol(
                         LinearExpressionSymbol(
                             torquePerWeight.to(aircraftModel.torqueUnit)!!.value * estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value,

@@ -49,7 +49,7 @@ class FastSumTest {
         val array = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i + 1.0) }
 
         // Sum along axis 0: [1+4, 2+5, 3+6] = [5, 7, 9]
-        val sum = array.sumAxis(0, Flt64.zero)
+        val sum = array.sumAxis(0, Flt64.zero).value!!
 
         assertEquals(3, sum.size)
         assertTrue((sum[0] - Flt64(5.0)).abs() < Flt64(1e-10))
@@ -65,7 +65,7 @@ class FastSumTest {
         val array = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i + 1.0) }
 
         // Sum along axis 1: [1+2+3, 4+5+6] = [6, 15]
-        val sum = array.sumAxis(1, Flt64.zero)
+        val sum = array.sumAxis(1, Flt64.zero).value!!
 
         assertEquals(2, sum.size)
         assertTrue((sum[0] - Flt64(6.0)).abs() < Flt64(1e-10))
@@ -76,9 +76,7 @@ class FastSumTest {
     fun testSumAxisOutOfBounds() {
         val array = MultiArray.newWith(Shape2(2, 3), Flt64.zero)
 
-        assertFailsWith<AxisOutOfBoundsException> {
-            array.sumAxis(2, Flt64.zero)
-        }
+        assertTrue(array.sumAxis(2, Flt64.zero).failed)
     }
 
     @Test
@@ -87,7 +85,7 @@ class FastSumTest {
         val array = MultiArray.newBy(Shape3(2, 3, 2)) { i, _ -> Flt64(i + 1.0) }
 
         // Sum along axis 1 -> shape becomes [2, 2]
-        val sum = array.sumAxis(1, Flt64.zero)
+        val sum = array.sumAxis(1, Flt64.zero).value!!
 
         assertEquals(4, sum.size)
         assertEquals(2, sum.shape.dimension)
@@ -102,7 +100,7 @@ class FastSumTest {
     @Test
     fun testSumAxesEmpty() {
         val array = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i + 1.0) }
-        val sum = array.sumAxes(intArrayOf(), Flt64.zero)
+        val sum = array.sumAxes(intArrayOf(), Flt64.zero).value!!
 
         assertEquals(array.size, sum.size)
     }
@@ -113,7 +111,7 @@ class FastSumTest {
         val array = MultiArray.newBy(Shape3(2, 3, 2)) { i, _ -> Flt64(i + 1.0) }
 
         // Sum along axes [0, 2] -> shape becomes [3]
-        val sum = array.sumAxes(intArrayOf(0, 2), Flt64.zero)
+        val sum = array.sumAxes(intArrayOf(0, 2), Flt64.zero).value!!
 
         assertEquals(3, sum.size)
         assertEquals(1, sum.shape.dimension)
@@ -124,7 +122,7 @@ class FastSumTest {
         val array = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i + 1.0) }
 
         // Sum along all axes -> scalar (represented as 0-dim array with size 1)
-        val sum = array.sumAxes(intArrayOf(0, 1), Flt64.zero)
+        val sum = array.sumAxes(intArrayOf(0, 1), Flt64.zero).value!!
 
         assertEquals(1, sum.size)
         assertTrue((sum[0] - Flt64(21.0)).abs() < Flt64(1e-10))
@@ -144,7 +142,7 @@ class FastSumTest {
         // Cumsum along axis 1:
         // [[1, 1+2, 1+2+3], [4, 4+5, 4+5+6]]
         // = [[1, 3, 6], [4, 9, 15]]
-        val cumsum = array.cumsumAxis(1, Flt64.zero)
+        val cumsum = array.cumsumAxis(1, Flt64.zero).value!!
 
         assertEquals(6, cumsum.size)
         assertTrue((cumsum[intArrayOf(0, 0)] - Flt64(1.0)).abs() < Flt64(1e-10))
@@ -165,7 +163,7 @@ class FastSumTest {
         // Cumsum along axis 0:
         // [[1, 2, 3], [1+4, 2+5, 3+6]]
         // = [[1, 2, 3], [5, 7, 9]]
-        val cumsum = array.cumsumAxis(0, Flt64.zero)
+        val cumsum = array.cumsumAxis(0, Flt64.zero).value!!
 
         assertEquals(6, cumsum.size)
         assertTrue((cumsum[intArrayOf(0, 0)] - Flt64(1.0)).abs() < Flt64(1e-10))
@@ -178,8 +176,6 @@ class FastSumTest {
     fun testCumsumAxisOutOfBounds() {
         val array = MultiArray.newWith(Shape2(2, 3), Flt64.zero)
 
-        assertFailsWith<AxisOutOfBoundsException> {
-            array.cumsumAxis(2, Flt64.zero)
-        }
+        assertTrue(array.cumsumAxis(2, Flt64.zero).failed)
     }
 }

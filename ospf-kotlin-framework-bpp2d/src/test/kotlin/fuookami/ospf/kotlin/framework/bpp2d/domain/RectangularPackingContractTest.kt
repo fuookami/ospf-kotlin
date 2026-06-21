@@ -93,10 +93,10 @@ class RectangularPackingContractTest {
         val box = boxNeed.toGeometryBox2()
 
         assertTrue((projection as QuantityRectangle2).area eq Quantity(FltX(6.0), SquareMeter))
-        assertTrue(placement.maxX eq Quantity(FltX(3.0), Meter))
-        assertTrue(placement.maxY eq Quantity(FltX(5.0), Meter))
-        assertTrue(box.maxX eq Quantity(FltX(3.0), Meter))
-        assertTrue(box.maxY eq Quantity(FltX(5.0), Meter))
+        assertTrue(placement.maxX().valueOrFail() eq Quantity(FltX(3.0), Meter))
+        assertTrue(placement.maxY().valueOrFail() eq Quantity(FltX(5.0), Meter))
+        assertTrue(box.maxX().valueOrFail() eq Quantity(FltX(3.0), Meter))
+        assertTrue(box.maxY().valueOrFail() eq Quantity(FltX(5.0), Meter))
     }
 
     @Test
@@ -124,17 +124,18 @@ class RectangularPackingContractTest {
         val rhs = rhsNeed.toGeometryBox2()
         val apart = apartNeed.toGeometryBox2()
 
-        assertTrue(lhs.overlapped(rhs))
-        assertFalse(lhs.overlapped(apart))
+        assertTrue(lhs.overlapped(rhs).valueOrFail())
+        assertFalse(lhs.overlapped(apart).valueOrFail())
 
         val needIntersection = lhsNeed.intersect(rhsNeed)
         assertNotNull(needIntersection)
 
-        val geometryIntersection = lhs.intersect(rhs)
+        val geometryIntersection = lhs.intersect(rhs).valueOrFail().orFail()
         assertNotNull(geometryIntersection)
 
         assertTrue(geometryIntersection.width eq needIntersection.width)
         assertTrue(geometryIntersection.height eq needIntersection.height)
-        assertTrue((geometryIntersection.width * geometryIntersection.height) eq Quantity(FltX(0.75), SquareMeter))
+        val geometryArea = (geometryIntersection.width * geometryIntersection.height).orFail()
+        assertTrue(geometryArea eq Quantity(FltX(0.75), SquareMeter))
     }
 }

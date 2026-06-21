@@ -7,7 +7,6 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -51,11 +50,12 @@ class MybatisScalarTranslatorTest {
     fun unsupportedScalarShouldFollowPolicy() {
         val alwaysFalseTranslator = MybatisScalarTranslator(resolver)
         val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val unresolved = alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown")))
+        val failed = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
-        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))).value)
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(ScalarCustom<Int>("x"))
-        }
+        assertTrue(unresolved.ok)
+        assertNull(unresolved.value)
+        assertTrue(failed.failed)
     }
 
     @Test
@@ -87,10 +87,11 @@ class MybatisScalarTranslatorTest {
         val alwaysFalseTranslator = MybatisScalarTranslator(resolver)
         val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+        val unsupported = alwaysFalseTranslator.translate(unknown)
+        val failed = failFastTranslator.translate(unknown)
 
-        assertNull(alwaysFalseTranslator.translate(unknown).value)
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(unknown)
-        }
+        assertTrue(unsupported.ok)
+        assertNull(unsupported.value)
+        assertTrue(failed.failed)
     }
 }

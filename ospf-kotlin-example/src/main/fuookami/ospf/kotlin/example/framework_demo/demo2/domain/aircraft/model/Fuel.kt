@@ -46,9 +46,10 @@ data class FuelTankBalancedArm(
                 points[it - 1].volume.partialOrd(volume) is Order.Less
                     && volume.partialOrd(points[it].volume) is Order.Less
             }
-            val dy = points[i][phase] - points[i - 1][phase]
-            val dx = points[i].volume - points[i - 1].volume
-            (dy / dx) * (volume - points[i - 1].volume)
+            val dy = (points[i][phase] - points[i - 1][phase])!!
+            val dx = (points[i].volume - points[i - 1].volume)!!
+            val slope = (dy / dx)!!
+            (slope * (volume - points[i - 1].volume)!!)!!
         }
     }
 }
@@ -108,7 +109,7 @@ data class FuelConstant(
         ): FuelConstant {
             var index = Quantity(Flt64.zero, aircraftModel.torqueUnit)
             for (tank in tanks) {
-                index += formula.index(tank.weight, tank.balancedArm)
+                index = (index + formula.index(tank.weight, tank.balancedArm))!!
             }
             return FuelConstant(
                 density = density,

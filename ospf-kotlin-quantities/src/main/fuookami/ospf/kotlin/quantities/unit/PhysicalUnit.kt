@@ -223,27 +223,27 @@ abstract class PhysicalUnit {
             is UnitConversionRule.Linear if targetRule is UnitConversionRule.Linear -> {
                 // 线性 → 线性: target = value * thisScale / targetScale
                 val factor = thisRule.scale / targetRule.scale
-                value * factor.value
+                value * (factor.value ?: return null)
             }
 
             is UnitConversionRule.Linear if targetRule is UnitConversionRule.Affine -> {
                 // 线性 → 仿射: 先转到标准，再从标准转到仿射目标
                 // standard = value * thisScale; target = (standard - targetOffset) / targetScale
-                val standard = value * thisRule.scale.value
-                (standard - targetRule.offset) / targetRule.scale.value
+                val standard = value * (thisRule.scale.value ?: return null)
+                (standard - targetRule.offset) / (targetRule.scale.value ?: return null)
             }
 
             is UnitConversionRule.Affine if targetRule is UnitConversionRule.Linear -> {
                 // 仿射 → 线性: standard = value * thisScale + thisOffset; target = standard / targetScale
-                val standard = value * thisRule.scale.value + thisRule.offset
-                standard / targetRule.scale.value
+                val standard = value * (thisRule.scale.value ?: return null) + thisRule.offset
+                standard / (targetRule.scale.value ?: return null)
             }
 
             is UnitConversionRule.Affine if targetRule is UnitConversionRule.Affine -> {
                 // 仿射 → 仿射: 通过标准单位中转
                 // standard = value * thisScale + thisOffset; target = (standard - targetOffset) / targetScale
-                val standard = value * thisRule.scale.value + thisRule.offset
-                (standard - targetRule.offset) / targetRule.scale.value
+                val standard = value * (thisRule.scale.value ?: return null) + thisRule.offset
+                (standard - targetRule.offset) / (targetRule.scale.value ?: return null)
             }
 
             else -> null

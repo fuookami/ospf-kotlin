@@ -73,7 +73,7 @@ class PackageSolutionLikeAdapterTest {
             )
         )
 
-        val program = node.toPackingProgram()
+        val program = node.toPackingProgram().value ?: fail("packing program should be built")
         assertEquals(UInt64(2), program.materialAmounts()[materialAmount.key])
         assertTrue(program.materialAmounts().containsKey(materialBoth.key))
         assertTrue(!program.materialAmounts().containsKey(materialWeight.key))
@@ -123,7 +123,7 @@ class PackageSolutionLikeAdapterTest {
             children = listOf(childByAmount, childByWeight)
         )
 
-        val program = parent.toPackingProgram()
+        val program = parent.toPackingProgram().value ?: fail("packing program should be built")
         assertEquals(PackageClassification.Outer, program.classification)
         assertEquals(2, program.packages?.size)
         assertEquals(UInt64(3), program.materialAmounts()[material.key])
@@ -148,7 +148,7 @@ class PackageSolutionLikeAdapterTest {
             )
         )
 
-        val program = node.toPackingProgram()
+        val program = node.toPackingProgram().value ?: fail("packing program should be built")
         assertTrue(program.materials[material.key]?.weight?.value is FltX)
         val fltXWeight = program.materialWeights()[material.key]?.value?.toDouble()
         assertNotNull(fltXWeight)

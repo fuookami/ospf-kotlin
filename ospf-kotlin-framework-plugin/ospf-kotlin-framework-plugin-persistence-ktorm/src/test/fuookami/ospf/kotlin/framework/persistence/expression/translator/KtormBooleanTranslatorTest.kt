@@ -6,7 +6,6 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -23,6 +22,7 @@ import org.ktorm.schema.varchar
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
 class KtormBooleanTranslatorTest {
@@ -68,8 +68,8 @@ class KtormBooleanTranslatorTest {
                 ScalarConstant(65)
             )
 
-            val gt = translator.translate(gtExpr) as BinaryExpression<Boolean>
-            val le = translator.translate(leExpr) as BinaryExpression<Boolean>
+            val gt = translator.translate(gtExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val le = translator.translate(leExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, gt.type)
             assertEquals(BinaryExpressionType.LESS_THAN_OR_EQUAL, le.type)
@@ -84,7 +84,7 @@ class KtormBooleanTranslatorTest {
                 ScalarReference(PropertyPath.parse("age"))
             )
 
-            val translated = translator.translate(expr) as BinaryExpression<Boolean>
+            val translated = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
             assertEquals(BinaryExpressionType.LESS_THAN, translated.type)
         }
 
@@ -106,8 +106,8 @@ class KtormBooleanTranslatorTest {
                 ScalarConstant<Int>(25)
             )
 
-            val columnColumnResult = translator.translate(columnColumn) as BinaryExpression<Boolean>
-            val arithmeticResult = translator.translate(arithmetic) as BinaryExpression<Boolean>
+            val columnColumnResult = translator.translate(columnColumn).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val arithmeticResult = translator.translate(arithmetic).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, columnColumnResult.type)
             assertEquals(BinaryExpressionType.GREATER_THAN, arithmeticResult.type)
@@ -126,7 +126,7 @@ class KtormBooleanTranslatorTest {
                 ScalarConstant(10)
             )
 
-            val result = translator.translate(expr) as BinaryExpression<Boolean>
+            val result = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
             assertEquals("ABS", (result.left as FunctionExpression<*>).functionName)
@@ -137,7 +137,7 @@ class KtormBooleanTranslatorTest {
         fun shouldTranslatePropertyPredicate() {
             val expr = prop(Entity::age) gt 18
 
-            val result = translator.translate(expr) as BinaryExpression<Boolean>
+            val result = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, result.type)
         }
@@ -156,8 +156,8 @@ class KtormBooleanTranslatorTest {
             )
             val notInExpr = inExpr.copy(negated = true)
 
-            val inResult = translator.translate(inExpr) as InListExpression
-            val notInResult = translator.translate(notInExpr) as InListExpression
+            val inResult = translator.translate(inExpr).valueOrFail().orFail() as InListExpression
+            val notInResult = translator.translate(notInExpr).valueOrFail().orFail() as InListExpression
 
             assertEquals(false, inResult.notInList)
             assertEquals(true, notInResult.notInList)
@@ -182,8 +182,8 @@ class KtormBooleanTranslatorTest {
                 ScalarConstant(10)
             )
 
-            val poTranslated = translator.translate(poExpr) as BinaryExpression<Boolean>
-            val domainTranslated = translator.translate(domainExpr) as BinaryExpression<Boolean>
+            val poTranslated = translator.translate(poExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val domainTranslated = translator.translate(domainExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.GREATER_THAN, poTranslated.type)
             assertEquals(BinaryExpressionType.EQUAL, domainTranslated.type)
@@ -198,7 +198,7 @@ class KtormBooleanTranslatorTest {
                 ScalarConstant(1)
             )
 
-            val translated = translator.translate(expr) as BinaryExpression<Boolean>
+            val translated = translator.translate(expr).valueOrFail().orFail() as BinaryExpression<Boolean>
             assertEquals(BinaryExpressionType.EQUAL, translated.type)
         }
 
@@ -208,24 +208,23 @@ class KtormBooleanTranslatorTest {
             val falseExpr = BooleanConstant(Trivalent.False)
             val customExpr = BooleanCustom("x")
 
-            val falseResult = translator.translate(falseExpr) as BinaryExpression<Boolean>
-            val customResult = translator.translate(customExpr) as BinaryExpression<Boolean>
+            val falseResult = translator.translate(falseExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val customResult = translator.translate(customExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.EQUAL, falseResult.type)
             assertEquals(BinaryExpressionType.EQUAL, customResult.type)
         }
 
         @Test
-        @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
-        fun failFastShouldThrowForUnsupportedPredicate() {
+        @DisplayName("fail fast should return failed for unsupported predicate / FailFast 应对不支持谓词返回失败")
+        fun failFastShouldReturnFailedForUnsupportedPredicate() {
             val failFastTranslator = KtormBooleanTranslator(
                 resolver,
-                unsupportedPredicatePolicy = fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy.FailFast
+                unsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
             )
 
-            assertThrows(IllegalArgumentException::class.java) {
-                failFastTranslator.translate(BooleanCustom("x"))
-            }
+            val result = failFastTranslator.translate(BooleanCustom("x"))
+            assertTrue(result.failed)
         }
     }
 
@@ -245,9 +244,9 @@ class KtormBooleanTranslatorTest {
             val orExpr = OrExpression(listOf(andExpr, BooleanConstant(Trivalent.True)))
             val notExpr = NotExpression(orExpr)
 
-            val andResult = translator.translate(andExpr) as BinaryExpression<Boolean>
-            val orResult = translator.translate(orExpr) as BinaryExpression<Boolean>
-            val notResult = translator.translate(notExpr) as UnaryExpression<Boolean>
+            val andResult = translator.translate(andExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val orResult = translator.translate(orExpr).valueOrFail().orFail() as BinaryExpression<Boolean>
+            val notResult = translator.translate(notExpr).valueOrFail().orFail() as UnaryExpression<Boolean>
 
             assertEquals(BinaryExpressionType.AND, andResult.type)
             assertEquals(BinaryExpressionType.OR, orResult.type)
@@ -260,8 +259,8 @@ class KtormBooleanTranslatorTest {
             val isNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNull)
             val isNotNull = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNotNull)
 
-            val left = translator.translate(isNull) as UnaryExpression<Boolean>
-            val right = translator.translate(isNotNull) as UnaryExpression<Boolean>
+            val left = translator.translate(isNull).valueOrFail().orFail() as UnaryExpression<Boolean>
+            val right = translator.translate(isNotNull).valueOrFail().orFail() as UnaryExpression<Boolean>
 
             assertNotNull(left)
             assertNotNull(right)

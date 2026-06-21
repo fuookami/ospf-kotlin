@@ -234,7 +234,7 @@ private fun <T : Any, S : Shape> reorderToStorageOrder(
     val reordered = arrayOfNulls<Any>(shape.size)
     var inputIndex = 0
     for (vector in shape.iterate(accessOrder)) {
-        reordered[shape.index(vector)] = list[inputIndex++]
+        reordered[shape.indexUnchecked(vector)] = list[inputIndex++]
     }
     return reordered
 }

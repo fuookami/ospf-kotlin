@@ -116,9 +116,9 @@ class PositionMaximumLoadWeight(
             mzfw: Quantity<Flt64>
         ): PositionMaximumLoadWeight {
             assert(piecewise.isNotEmpty())
-            val mlw = piecewise.map { it.mlw }.maxWithThreeWayComparator { lhs, rhs ->
+            val mlw = piecewise.map { it.mlw }.maxWithThreeWayComparatorOrNull { lhs, rhs ->
                 (lhs partialOrd rhs)!!
-            }
+            }!!
             return PositionMaximumLoadWeight(
                 aircraftModel = aircraftModel,
                 position = position,

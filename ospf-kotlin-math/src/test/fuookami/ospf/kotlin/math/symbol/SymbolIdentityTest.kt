@@ -50,8 +50,8 @@ class SymbolIdentityTest {
         val plain = TestSymbol("x")
 
         assertTrue(identified.hasStableId())
-        assertEquals(SymbolId("stable-x"), identified.requireStableId())
-        assertFailsWith<IllegalStateException> { plain.requireStableId() }
+        assertEquals(SymbolId("stable-x"), identified.requireStableId().value!!)
+        assertTrue(plain.requireStableId().failed)
     }
 
     @Test

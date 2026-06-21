@@ -16,7 +16,8 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.pow
@@ -68,7 +69,7 @@ private fun integerPowByFloatingIndex(
     index: FloatingNumber<*>,
     toFltX: () -> FltX,
     source: String
-): FloatingNumber<*> = when (index) {
+): FloatingNumber<*>? = when (index) {
     is Flt32 -> Flt32(value.toFloat().pow(index.value))
     is Flt64 -> Flt64(value.toDouble().pow(index.value))
     is FltX -> toFltX().pow(index)
@@ -90,12 +91,25 @@ private fun integerPowByFloatingIndex(
  *             The concrete type implementing this interface
  */
 interface IntegerNumberImpl<Self : IntegerNumberImpl<Self>> : IntegerNumber<Self> {
-    /** 倒数；仅对 +/-1 有效 / Reciprocal; only valid for +/-1 */
-    override fun reciprocal() = when (this) {
+    /** 可空倒数；仅对 +/-1 有效 / Nullable reciprocal; only valid for +/-1 */
+    fun reciprocalOrNull(): Self? = when (this) {
         constants.one -> constants.one.copy()
         -constants.one -> -constants.one
-        else -> throw ArithmeticException("Reciprocal is undefined in Integer domain for non-unit value: $this")
+        else -> null
     }
+
+    /** 安全倒数；仅对 +/-1 有效 / Safe reciprocal; only valid for +/-1 */
+    fun reciprocalSafe(): Ret<Self> {
+        return reciprocalOrNull()?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "整数倒数未定义：非单位值没有整数域倒数，value=$this。 / Integer reciprocal is undefined for non-unit value: $this."
+            )
+    }
+
+    /** 倒数；仅对 +/-1 有效 / Reciprocal; only valid for +/-1 */
+    override fun reciprocal(): Self = reciprocalOrNull()
+        ?: throw ArithmeticException("Reciprocal is undefined in Integer domain for non-unit value: $this")
 
     /** 自增 / Increment */
     override operator fun inc() = this + constants.one
@@ -356,7 +370,7 @@ value class Int8(internal val value: Byte) : IntegerNumberImpl<Int8>, Copyable<I
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         integerPowByFloatingIndex(value, index, ::toFltX, "Int8")
 
     /** 转换为 Int8 / Convert to Int8 */
@@ -560,7 +574,7 @@ value class Int16(internal val value: Short) : IntegerNumberImpl<Int16>, Copyabl
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         integerPowByFloatingIndex(value, index, ::toFltX, "Int16")
 
     /** 转换为 Int8 / Convert to Int8 */
@@ -764,7 +778,7 @@ value class Int32(val value: Int) : IntegerNumberImpl<Int32>, Copyable<Int32> {
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         integerPowByFloatingIndex(value, index, ::toFltX, "Int32")
 
     /** 转换为原始 Int 值 / Convert to raw Int value */
@@ -973,7 +987,7 @@ value class Int64(internal val value: Long) : IntegerNumberImpl<Int64>, Copyable
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         integerPowByFloatingIndex(value, index, ::toFltX, "Int64")
 
     /** 转换为 Int / Convert to Int */
@@ -1220,7 +1234,7 @@ value class IntX(internal val value: BigInteger) : IntegerNumberImpl<IntX>, Copy
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)
         is FltX -> toFltX().pow(index)

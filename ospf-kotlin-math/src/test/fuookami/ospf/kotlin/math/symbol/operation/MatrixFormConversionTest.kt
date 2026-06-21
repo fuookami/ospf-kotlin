@@ -30,7 +30,7 @@ class MatrixFormConversionTest {
         val form = polynomial.toMatrixForm(
             order = listOf(y, x),
             zero = Int64.zero
-        )
+        ).value!!
         val rebuilt = linearPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
@@ -64,7 +64,7 @@ class MatrixFormConversionTest {
                 val half = coefficient / Int64.two
                 half to half
             }
-        )
+        ).value!!
         val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
@@ -95,7 +95,7 @@ class MatrixFormConversionTest {
             constant = Flt64(5.0)
         )
 
-        val quickPath = polynomial.toFlt64MatrixForm(order = order)
+        val quickPath = polynomial.toFlt64MatrixForm(order = order).value!!
         val matrixPath = polynomial.toMatrixForm(
             order = order,
             zero = Flt64.zero,
@@ -103,7 +103,7 @@ class MatrixFormConversionTest {
                 val half = coefficient / Flt64.two
                 half to half
             }
-        )
+        ).value!!
 
         for (i in order.indices) {
             for (j in order.indices) {
@@ -153,12 +153,7 @@ class MatrixFormConversionTest {
             constant = Int64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.toMatrixForm(
-                order = listOf(x, x),
-                zero = Int64.zero
-            )
-        }
+        assertTrue(polynomial.toMatrixForm(order = listOf(x, x), zero = Int64.zero).failed)
     }
 
     @Test
@@ -186,14 +181,14 @@ class MatrixFormConversionTest {
                 val half = coefficient / Flt64.two
                 half to half
             }
-        )
+        ).value!!
         val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Flt64.zero
         )
 
-        val originValue = polynomial.evaluateQuadraticOrdered(order = order, values = values)
-        val rebuiltValue = rebuilt.evaluateQuadraticOrdered(order = order, values = values)
+        val originValue = polynomial.evaluateQuadraticOrdered(order = order, values = values).value!!
+        val rebuiltValue = rebuilt.evaluateQuadraticOrdered(order = order, values = values).value!!
 
         assertEquals(originValue.toDouble(), rebuiltValue.toDouble(), 1e-10)
         assertEquals(polynomial.constant, rebuilt.constant)
@@ -224,7 +219,7 @@ class MatrixFormConversionTest {
                 val half = coefficient / Flt64.two
                 half to half
             }
-        )
+        ).value!!
         val hessianFromFlt64 = polynomial.hessian(order = order)
 
         for (i in order.indices) {
@@ -255,7 +250,7 @@ class MatrixFormConversionTest {
                 val half = coefficient / Int64.two
                 half to half
             }
-        )
+        ).value!!
         val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
@@ -267,7 +262,7 @@ class MatrixFormConversionTest {
         assertEquals(Int64.zero, form.q[1][1])
         assertEquals(listOf(Int64(5L), Int64.zero), form.c)
         assertEquals(Int64(7L), form.d)
-        assertEquals(Int64(28L), rebuilt.evaluateQuadraticOrdered(listOf(x, y), listOf(Int64.one, Int64.two)))
+        assertEquals(Int64(28L), rebuilt.evaluateQuadraticOrdered(listOf(x, y), listOf(Int64.one, Int64.two)).value!!)
     }
 
     @Test
@@ -280,7 +275,7 @@ class MatrixFormConversionTest {
             constant = Int64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
+        assertTrue(
             cubicCanonical.toMatrixForm(
                 order = listOf(x),
                 zero = Int64.zero,
@@ -288,7 +283,7 @@ class MatrixFormConversionTest {
                     val half = coefficient / Int64.two
                     half to half
                 }
-            )
-        }
+            ).failed
+        )
     }
 }

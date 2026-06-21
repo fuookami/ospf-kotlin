@@ -121,7 +121,7 @@ class EinsumTest {
         val matrix = MultiArray.newWith(Shape2(2, 3), Flt64.one)
 
         // Create tensor expression
-        val expr = TensorExpr(matrix, IndexList.of(IndexLabel.I, IndexLabel.J))
+        val expr = TensorExpr.new(matrix, IndexList.of(IndexLabel.I, IndexLabel.J)).value!!
 
         assertEquals("i, j", expr.indexNames)
         assertEquals(listOf(0, 1), expr.indexIds)
@@ -133,7 +133,7 @@ class EinsumTest {
     fun testTensorExprWithDefaultIndices() {
         // Test auto-assigning default indices
         val matrix = MultiArray.newWith(Shape2(2, 3), Flt64.one)
-        val expr = TensorExpr.withDefaultIndices(matrix)
+        val expr = TensorExpr.withDefaultIndices(matrix).value!!
 
         assertEquals(2, expr.indices.length)
         assertEquals(IndexLabel.I, expr.indices.indices[0])
@@ -145,9 +145,7 @@ class EinsumTest {
         // Test throwing exception when dimensions don't match
         val matrix = MultiArray.newWith(Shape2(2, 3), Flt64.one)
 
-        assertFailsWith<EinsumError.IndexListLengthMismatch> {
-            TensorExpr(matrix, IndexList.of(IndexLabel.I))  // Expected 2 indices, but only 1
-        }
+        assertTrue(TensorExpr.new(matrix, IndexList.of(IndexLabel.I)).failed)
     }
 
     // ========================================================================
@@ -161,7 +159,7 @@ class EinsumTest {
         val b = MultiArray.newBy(Shape2(2, 2)) { i, _ -> Flt64(i + 5.0) }
 
         // Matrix multiplication
-        val c = matmul(a, b, Flt64.zero)
+        val c = matmul(a, b, Flt64.zero).value!!
 
         // Result shape should be 2x2
         assertEquals(2, c.shape.dimension)
@@ -175,9 +173,7 @@ class EinsumTest {
         val b = MultiArray.newWith(Shape2(4, 5), Flt64.one)
 
         // This matrix multiplication should fail (dimension mismatch)
-        assertFailsWith<EinsumError.IncompatibleShapes> {
-            matmul(a, b, Flt64.zero)
-        }
+        assertTrue(matmul(a, b, Flt64.zero).failed)
     }
 
     @Test
@@ -193,7 +189,7 @@ class EinsumTest {
         }
 
         // C = A @ B
-        val c = matmul(a, b, Flt64.zero)
+        val c = matmul(a, b, Flt64.zero).value!!
 
         // Verify C[0,0] = 1*5 + 2*7 = 19
         assertTrue((c[intArrayOf(0, 0)] - Flt64(19.0)).abs() < Flt64(1e-10))
@@ -210,7 +206,7 @@ class EinsumTest {
         val b = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }
 
         // Dot product: 1*1 + 2*2 + 3*3 = 14
-        val result = dot(a, b, Flt64.zero)
+        val result = dot(a, b, Flt64.zero).value!!
         assertTrue((result - Flt64(14.0)).abs() < Flt64(1e-10))
     }
 
@@ -220,9 +216,7 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape1(3), Flt64.one)
         val b = MultiArray.newWith(Shape1(4), Flt64.one)
 
-        assertFailsWith<EinsumError.IncompatibleShapes> {
-            dot(a, b, Flt64.zero)
-        }
+        assertTrue(dot(a, b, Flt64.zero).failed)
     }
 
     // ========================================================================
@@ -237,7 +231,7 @@ class EinsumTest {
         }
 
         // Trace = 3
-        val result = trace(a, Flt64.zero)
+        val result = trace(a, Flt64.zero).value!!
         assertTrue((result - Flt64(3.0)).abs() < Flt64(1e-10))
     }
 
@@ -246,9 +240,7 @@ class EinsumTest {
         // Test trace of non-square matrix
         val a = MultiArray.newWith(Shape2(2, 3), Flt64.one)
 
-        assertFailsWith<EinsumError.UnsupportedOperation> {
-            trace(a, Flt64.zero)
-        }
+        assertTrue(trace(a, Flt64.zero).failed)
     }
 
     // ========================================================================
@@ -262,7 +254,7 @@ class EinsumTest {
         val b = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }  // [1, 2, 3]
 
         // Outer product
-        val result = outer(a, b, Flt64.zero)
+        val result = outer(a, b, Flt64.zero).value!!
 
         // Result shape should be 2x3
         assertEquals(2, result.shape.dimension)
@@ -287,7 +279,7 @@ class EinsumTest {
         // Create 2x3 matrix
         val a = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i) }
 
-        val result = transpose(a)
+        val result = transpose(a).value!!
 
         // Shape after transpose should be 3x2
         assertEquals(3, result.shape[0])
@@ -301,7 +293,7 @@ class EinsumTest {
             Flt64(vec[0] * 10 + vec[1])
         }
 
-        val result = transpose(a)
+        val result = transpose(a).value!!
 
         // Verify values
         // a[0,2] = 2 -> result[2,0] = 2
@@ -318,7 +310,7 @@ class EinsumTest {
     fun testTransposeEmptyRowMatrix() {
         // shape [0, 3] -> [3, 0]
         val a = MultiArray.newWith(Shape2(0, 3), Flt64.one)
-        val result = transpose(a)
+        val result = transpose(a).value!!
 
         assertEquals(3, result.shape[0])
         assertEquals(0, result.shape[1])
@@ -328,7 +320,7 @@ class EinsumTest {
     fun testTransposeEmptyColMatrix() {
         // shape [2, 0] -> [0, 2]
         val a = MultiArray.newWith(Shape2(2, 0), Flt64.one)
-        val result = transpose(a)
+        val result = transpose(a).value!!
 
         assertEquals(0, result.shape[0])
         assertEquals(2, result.shape[1])
@@ -345,7 +337,7 @@ class EinsumTest {
         val b = MultiArray.newWith(Shape2(3, 4), Flt64(2.0))
 
         // Contract axis 1 of a with axis 0 of b, equivalent to matrix multiplication
-        val result = contract(a, 1, b, 0, Flt64.zero)
+        val result = contract(a, 1, b, 0, Flt64.zero).value!!
 
         // Result shape should be 2x4
         assertEquals(2, result.shape[0])
@@ -361,7 +353,7 @@ class EinsumTest {
             Flt64(v[0] * 100 + v[1] * 10 + v[2] + 1)
         }
 
-        val result = contract(a, 2, b, 0, Flt64.zero)
+        val result = contract(a, 2, b, 0, Flt64.zero).value!!
 
         assertEquals(4, result.shape.dimension)
         assertEquals(2, result.shape[0])
@@ -397,9 +389,7 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape2(2, 3), Flt64.one)
         val b = MultiArray.newWith(Shape2(3, 4), Flt64(2.0))
 
-        assertFailsWith<EinsumError.IndexOutOfBounds> {
-            contract(a, -1, b, 0, Flt64.zero)
-        }
+        assertTrue(contract(a, -1, b, 0, Flt64.zero).failed)
     }
 
     @Test
@@ -407,9 +397,7 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape2(2, 3), Flt64.one)
         val b = MultiArray.newWith(Shape2(3, 4), Flt64(2.0))
 
-        assertFailsWith<EinsumError.IndexOutOfBounds> {
-            contract(a, 0, b, -1, Flt64.zero)
-        }
+        assertTrue(contract(a, 0, b, -1, Flt64.zero).failed)
     }
 
     // ========================================================================
@@ -422,11 +410,10 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape2(2, 3), Flt64.one)
         val b = MultiArray.newWith(Shape2(3, 4), Flt64(2.0))
 
-        val result = einsum(a, b, "ij,jk->ik", Flt64.zero)
+        val result = einsum(a, b, "ij,jk->ik", Flt64.zero).value!!
 
         // Verify shape
-        assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<*, *>
+        val resultArray = assertIs<MultiArray<*, *>>(result)
         assertEquals(2, resultArray.shape[0])
         assertEquals(4, resultArray.shape[1])
     }
@@ -437,10 +424,9 @@ class EinsumTest {
         val a = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }
         val b = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }
 
-        val result = einsum(a, b, "i,i->", Flt64.zero)
+        val result = assertIs<Flt64>(einsum(a, b, "i,i->", Flt64.zero).value!!)
 
         // Dot product result should be scalar
-        assertTrue(result is Flt64)
         assertTrue((result - Flt64(14.0)).abs() < Flt64(1e-10))
     }
 
@@ -450,11 +436,10 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape1(2), Flt64.one)
         val b = MultiArray.newWith(Shape1(3), Flt64(2.0))
 
-        val result = einsum(a, b, "i,j->ij", Flt64.zero)
+        val result = einsum(a, b, "i,j->ij", Flt64.zero).value!!
 
         // Verify shape
-        assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<*, *>
+        val resultArray = assertIs<MultiArray<*, *>>(result)
         assertEquals(2, resultArray.shape[0])
         assertEquals(3, resultArray.shape[1])
     }
@@ -466,9 +451,9 @@ class EinsumTest {
             if (vec[0] == vec[1]) Flt64.one else Flt64.zero
         }
 
-        val result = einsum(a, "ii->", Flt64.zero)
+        val result = assertIs<Flt64>(einsum(a, "ii->", Flt64.zero).value!!)
 
-        assertTrue((result as Flt64 - Flt64(3.0)).abs() < Flt64(1e-10))
+        assertTrue((result - Flt64(3.0)).abs() < Flt64(1e-10))
     }
 
     @Test
@@ -476,11 +461,10 @@ class EinsumTest {
         // Test string notation transpose
         val a = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i) }
 
-        val result = einsum(a, "ij->ji", Flt64.zero)
+        val result = einsum(a, "ij->ji", Flt64.zero).value!!
 
         // Verify shape
-        assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<*, *>
+        val resultArray = assertIs<MultiArray<*, *>>(result)
         assertEquals(3, resultArray.shape[0])
         assertEquals(2, resultArray.shape[1])
     }
@@ -495,7 +479,7 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape2(2, 3), Flt64.one)
         val b = MultiArray.newWith(Shape2(3, 4), Flt64(2.0))
 
-        val result = einstein(a, b, Flt64.zero).matmul()
+        val result = einstein(a, b, Flt64.zero).matmul().value!!
 
         assertEquals(2, result.shape[0])
         assertEquals(4, result.shape[1])
@@ -507,7 +491,7 @@ class EinsumTest {
         val a = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }
         val b = MultiArray.newBy(Shape1(3)) { i, _ -> Flt64(i + 1.0) }
 
-        val result = einstein(a, b, Flt64.zero).dot()
+        val result = einstein(a, b, Flt64.zero).dot().value!!
 
         assertTrue((result - Flt64(14.0)).abs() < Flt64(1e-10))
     }
@@ -518,7 +502,7 @@ class EinsumTest {
         val a = MultiArray.newWith(Shape1(2), Flt64.one)
         val b = MultiArray.newWith(Shape1(3), Flt64(2.0))
 
-        val result = einstein(a, b, Flt64.zero).outer()
+        val result = einstein(a, b, Flt64.zero).outer().value!!
 
         assertEquals(2, result.shape[0])
         assertEquals(3, result.shape[1])
@@ -531,7 +515,7 @@ class EinsumTest {
             if (vec[0] == vec[1]) Flt64.one else Flt64.zero
         }
 
-        val result = einstein(a, Flt64.zero).trace()
+        val result = einstein(a, Flt64.zero).trace().value!!
 
         assertTrue((result - Flt64(3.0)).abs() < Flt64(1e-10))
     }
@@ -541,7 +525,7 @@ class EinsumTest {
         // Test DSL transpose
         val a = MultiArray.newBy(Shape2(2, 3)) { i, _ -> Flt64(i) }
 
-        val result = einstein(a, Flt64.zero).transpose()
+        val result = einstein(a, Flt64.zero).transpose().value!!
 
         assertEquals(3, result.shape[0])
         assertEquals(2, result.shape[1])

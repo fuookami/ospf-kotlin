@@ -350,8 +350,16 @@ class ColumnGenerationStandardExecutors(
             if (milpResult is Fatal) return@ColumnGenerationFinalSolver Fatal(milpResult.errors)
             val solved = (milpResult as Ok).value
             model.setSolution(normalizeScalarSolution(solved.solution).value!!)
-            val selectedBins = collectSelectedBins(model, bins, state.columns, assignment)
-            config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins)?.value!!
+            val selectedBins = when (val result = collectSelectedBins(model, bins, state.columns, assignment)) {
+                is Ok -> result.value
+                is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+            }
+            when (val depthBoundary = config.depthBoundaryLayerOrientationPolicy?.ensureSatisfied(selectedBins) ?: ok) {
+                is Ok -> {}
+                is Failed -> return@ColumnGenerationFinalSolver Failed(depthBoundary.error)
+                is Fatal -> return@ColumnGenerationFinalSolver Fatal(depthBoundary.errors)
+            }
             val selectedColumns = collectSelectedColumns(
                 model = model,
                 columns = state.columns,
@@ -533,11 +541,11 @@ class ColumnGenerationStandardExecutors(
         bins: List<Bin<BinLayer, FltX>>,
         columns: List<BinLayer>,
         assignment: PreciseAssignment
-    ): List<Bin<BinLayer, FltX>> {
+    ): Ret<List<Bin<BinLayer, FltX>>> {
         val selected = ArrayList<Bin<BinLayer, FltX>>()
         for ((binIndex, baseBin) in bins.withIndex()) {
             val placements = ArrayList<QuantityPlacement3<BinLayer, FltX>>()
-            var zCursor = baseBin.shape.depth - baseBin.shape.depth
+            var zCursor = (baseBin.shape.depth - baseBin.shape.depth)!!
             for ((columnIndex, column) in columns.withIndex()) {
                 val raw = tokenValue(model, assignment.x[binIndex, columnIndex])
                 val copies = raw.toDouble().roundToInt()
@@ -546,8 +554,12 @@ class ColumnGenerationStandardExecutors(
                 }
                 repeat(copies) {
                     val layerCopy = column.copy()
-                    placements.add(layerCopy.toLayerPlacement(z = zCursor))
-                    zCursor = zCursor + layerCopy.depth
+                    when (val result = layerCopy.toLayerPlacement(z = zCursor)) {
+                        is Ok -> placements.add(result.value)
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
+                    zCursor = (zCursor + layerCopy.depth)!!
                 }
             }
             if (placements.isNotEmpty()) {
@@ -560,7 +572,7 @@ class ColumnGenerationStandardExecutors(
                 )
             }
         }
-        return selected
+        return Ok(selected)
     }
 
     private fun fallbackFinalBins(columns: List<BinLayer>): List<Bin<BinLayer, FltX>> {

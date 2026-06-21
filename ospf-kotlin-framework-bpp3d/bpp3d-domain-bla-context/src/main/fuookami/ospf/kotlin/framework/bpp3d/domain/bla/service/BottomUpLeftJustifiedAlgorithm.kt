@@ -200,7 +200,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                     // 2. 被上一个放置的物料包住的点
                     val lastAvailablePoints = lastFeasiblePoints.filter {
                         it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的�?
-                                && !lastPlacement.contains(it, withUpperBound = false)                              // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面�?
+                                && lastPlacement.contains(it, withUpperBound = false).value != true                 // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面�?
                     }
                     (lastAvailablePoints + feasiblePoints(
                         targetPlacements = listOf(lastPlacement),
@@ -278,7 +278,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
                 thisPoints.removeAll {
                     fixedPlacements.any { fixedPlacement ->
-                        fixedPlacement?.contains(it, withUpperBound = false) ?: false
+                        fixedPlacement?.contains(it, withUpperBound = false)?.value ?: false
                     }
                 }
                 ret.addAll(thisPoints)
@@ -286,7 +286,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         ret.removeAll {
             fixedPlacements.any { fixedPlacement ->
-                fixedPlacement?.contains(it, withUpperBound = false) ?: false
+                fixedPlacement?.contains(it, withUpperBound = false)?.value ?: false
             }
         }
         if (ret.isEmpty()) {
@@ -437,6 +437,21 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
             }
         }
-        return ok(fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) })
+        for (fixedPlacement in fixedPlacements.asSequence().filterNotNull()) {
+            when (val result = fixedPlacement.overlapped(placement)) {
+                is Ok -> if (result.value) {
+                    return ok(false)
+                }
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+        return ok(true)
     }
 }

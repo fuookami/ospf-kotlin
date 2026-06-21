@@ -100,9 +100,10 @@ inline fun <reified T : FloatingNumber<T>> ln(
     digits: Int = x.constants.decimalDigits!!,
     precision: T = x.constants.epsilon
 ): T? {
+    val constants = resolveFloatingNumberConstantsOrNull<T>("Log") ?: return null
     return ln(
         x = x,
-        constants = resolveFloatingNumberConstants<T>("Log"),
+        constants = constants,
         digits = digits,
         precision = precision
     )
@@ -158,10 +159,11 @@ inline fun <reified T : FloatingNumber<T>> log(
     digits: Int = x.constants.decimalDigits!!,
     precision: T = x.constants.epsilon
 ): T? {
+    val constants = resolveFloatingNumberConstantsOrNull<T>("Log") ?: return null
     return log(
         x = x,
         base = base,
-        constants = resolveFloatingNumberConstants<T>("Log"),
+        constants = constants,
         digits = digits,
         precision = precision
     )

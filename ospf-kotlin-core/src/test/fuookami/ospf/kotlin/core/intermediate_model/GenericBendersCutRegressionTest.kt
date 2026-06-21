@@ -55,7 +55,7 @@ class GenericBendersCutRegressionTest {
             tokens = tokens,
             converter = numberCase.converter,
             name = "lin_cut_${numberCase.name.lowercase()}"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel(
             parent = LinearMetaModel<V>(
                 name = "generic-cut-linear-${numberCase.name.lowercase()}",
@@ -128,7 +128,7 @@ class GenericBendersCutRegressionTest {
             tokens = tokens,
             converter = numberCase.converter,
             name = "quad_cut_${numberCase.name.lowercase()}"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel(
             parent = QuadraticMetaModel<V>(
                 name = "generic-cut-quadratic-${numberCase.name.lowercase()}",

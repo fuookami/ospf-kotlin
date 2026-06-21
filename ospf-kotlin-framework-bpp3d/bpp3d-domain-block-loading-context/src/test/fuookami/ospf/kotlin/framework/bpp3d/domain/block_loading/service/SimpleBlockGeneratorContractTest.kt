@@ -48,14 +48,15 @@ class SimpleBlockGeneratorContractTest {
         enabledOrientations: List<Orientation>
     ): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         val height = FltX(1.0) * Meter
         val weight = FltX(1.0) * Kilogram
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
+            width = diameter,
             height = height,
-            depth = radius + radius,
+            depth = diameter,
             weight = weight,
             enabledOrientations = enabledOrientations,
             batchNo = BatchNo("B-$id"),
@@ -100,27 +101,24 @@ class SimpleBlockGeneratorContractTest {
             )
         )
         for (axis in listOf(Axis3.X, Axis3.Z)) {
-            val error = assertFailsWith<IllegalArgumentException> {
-                generator(
-                    items = mapOf(
-                        cylinderItem(
-                            id = "cylinder-axis-$axis",
-                            axis = axis,
-                            enabledOrientations = listOf(Orientation.Upright)
-                        ) to UInt64(8)
-                    ),
-                    space = Container3Shape(
-                        width = FltX(2.0) * Meter,
-                        height = FltX(2.0) * Meter,
-                        depth = FltX(2.0) * Meter
-                    ),
-                    patterns = emptyList(),
-                    restWeight = FltX.maximum
-                )
-            }
+            val blocks = generator(
+                items = mapOf(
+                    cylinderItem(
+                        id = "cylinder-axis-$axis",
+                        axis = axis,
+                        enabledOrientations = listOf(Orientation.Upright)
+                    ) to UInt64(8)
+                ),
+                space = Container3Shape(
+                    width = FltX(2.0) * Meter,
+                    height = FltX(2.0) * Meter,
+                    depth = FltX(2.0) * Meter
+                ),
+                patterns = emptyList(),
+                restWeight = FltX.maximum
+            )
 
-            assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
-            assertTrue(error.message?.contains("got $axis") == true)
+            assertTrue(blocks.isEmpty())
         }
     }
 
@@ -133,26 +131,24 @@ class SimpleBlockGeneratorContractTest {
                 withRemainder = false
             )
         )
-        val error = assertFailsWith<IllegalArgumentException> {
-            generator(
-                items = mapOf(
-                    cylinderItem(
-                        id = "cylinder-side",
-                        axis = Axis3.Y,
-                        enabledOrientations = listOf(Orientation.Side)
-                    ) to UInt64(8)
-                ),
-                space = Container3Shape(
-                    width = FltX(2.0) * Meter,
-                    height = FltX(2.0) * Meter,
-                    depth = FltX(2.0) * Meter
-                ),
-                patterns = emptyList(),
-                restWeight = FltX.maximum
-            )
-        }
+        val blocks = generator(
+            items = mapOf(
+                cylinderItem(
+                    id = "cylinder-side",
+                    axis = Axis3.Y,
+                    enabledOrientations = listOf(Orientation.Side)
+                ) to UInt64(8)
+            ),
+            space = Container3Shape(
+                width = FltX(2.0) * Meter,
+                height = FltX(2.0) * Meter,
+                depth = FltX(2.0) * Meter
+            ),
+            patterns = emptyList(),
+            restWeight = FltX.maximum
+        )
 
-        assertTrue(error.message?.contains("only upright orientations are allowed") == true)
+        assertTrue(blocks.isEmpty())
     }
 
     @Test

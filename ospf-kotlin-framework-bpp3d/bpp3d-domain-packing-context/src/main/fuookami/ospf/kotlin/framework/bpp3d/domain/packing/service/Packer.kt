@@ -57,12 +57,16 @@ class Packer(
     suspend operator fun invoke(
         bins: List<Bin<BinLayer, FltX>>,
         context: PackingContext = PackingContext()
-    ): PackingResult {
+    ): Ret<PackingResult> {
         val packedBins = bins.mapIndexed { index, bin ->
-            requireSingleCylinderAxisPerLayer(
+            when (val result = requireSingleCylinderAxisPerLayer(
                 bin = bin,
                 source = "Packer.invoke"
-            )!!
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             val itemPlacements = bin.dump().units
             val loadingOrders = loadingOrderCalculator(itemPlacements).toMap()
             val packedBin = PackedBin(
@@ -76,18 +80,22 @@ class Packer(
                     )
                 }
             )
-            requirePackedBinShapeGeometry(
+            when (val result = requirePackedBinShapeGeometry(
                 bin = packedBin,
                 source = "Packer.invoke"
-            )!!
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             packedBin
         }
 
-        return PackingResult(
+        return Ok(PackingResult(
             aggregation = PackingAggregation(packedBins),
             materialSummary = summarizeMaterials(packedBins),
             info = context.info
-        )
+        ))
     }
 
     /**

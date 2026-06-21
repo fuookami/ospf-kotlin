@@ -23,6 +23,8 @@
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
@@ -219,7 +221,7 @@ object FltXPowerStrategy {
      * @param digits 精度位数 / Number of precision digits
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
-     * @return 幂函数值 / Power value
+     * @return 幂函数值结果 / Power value result
      */
     fun pow(
         base: FltX,
@@ -227,7 +229,65 @@ object FltXPowerStrategy {
         digits: Int,
         precision: FltX = defaultPrecision(digits),
         maxIterations: Int = 8192
-    ): FltX {
+    ): Ret<FltX> {
+        return powSafe(
+            base = base,
+            index = index,
+            digits = digits,
+            precision = precision,
+            maxIterations = maxIterations
+        )
+    }
+
+    /**
+     * 安全计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Safely compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值结果 / Power value result
+     */
+    fun powSafe(
+        base: FltX,
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): Ret<FltX> {
+        return powOrNull(
+            base = base,
+            index = index,
+            digits = digits,
+            precision = precision,
+            maxIterations = maxIterations
+        )?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "FltX 幂计算失败：底数的自然对数未定义，base=$base。 / FltX power failed: ln(base) is undefined, base=$base."
+            )
+    }
+
+    /**
+     * 尝试计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Tries to compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值，未定义时返回 null / Power value, or null if undefined
+     */
+    fun powOrNull(
+        base: FltX,
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltX? {
         if (index.stripTrailingZeros() eq index.round()) {
             return pow(
                 base = base,
@@ -237,8 +297,7 @@ object FltXPowerStrategy {
                 precision = precision
             )
         }
-        val lnBase = ln(base, digits, precision, maxIterations)
-            ?: throw ArithmeticException("ln(base) is undefined for base: $base")
+        val lnBase = ln(base, digits, precision, maxIterations) ?: return null
         return exp(index * lnBase, digits, precision, maxIterations)
     }
 }

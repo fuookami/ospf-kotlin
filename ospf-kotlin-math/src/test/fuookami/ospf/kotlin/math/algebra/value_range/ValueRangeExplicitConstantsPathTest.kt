@@ -64,14 +64,14 @@ class ValueRangeExplicitConstantsPathTest {
     }
 
     @Test
-    fun reifiedConstructorsShouldThrowWhenFallbackDisabled() {
-        assertFailsWith<IllegalStateException> { ValueRange<Flt64>() }
-        assertFailsWith<IllegalStateException> { ValueRange(Flt64.one) }
-        assertFailsWith<IllegalStateException> { ValueRange(Flt64.one, Flt64.three) }
-        assertFailsWith<IllegalStateException> { ValueRange.geq(Flt64.one) }
-        assertFailsWith<IllegalStateException> { ValueRange.gr(Flt64.one) }
-        assertFailsWith<IllegalStateException> { ValueRange.leq(Flt64.three) }
-        assertFailsWith<IllegalStateException> { ValueRange.ls(Flt64.three) }
+    fun reifiedConstructorsShouldFailWhenFallbackDisabled() {
+        assertTrue(ValueRange<Flt64>().failed)
+        assertTrue(ValueRange(Flt64.one).failed)
+        assertTrue(ValueRange(Flt64.one, Flt64.three).failed)
+        assertTrue(ValueRange.geq(Flt64.one).failed)
+        assertTrue(ValueRange.gr(Flt64.one).failed)
+        assertTrue(ValueRange.leq(Flt64.three).failed)
+        assertTrue(ValueRange.ls(Flt64.three).failed)
     }
 
     @Test

@@ -119,7 +119,7 @@ class UnifiedDemandEntriesTest {
                     mode = Bpp3dDemandMode.ItemAmount
                 )
             )
-        )
+        ).value ?: fail("item demand entries should be built")
         val materialEntries = demandEntriesFromLabeledMaterialDemands(
             materials = listOf(
                 Bpp3dMaterialDemand(
@@ -128,7 +128,7 @@ class UnifiedDemandEntriesTest {
                     mode = Bpp3dDemandMode.ItemMaterialWeight
                 )
             )
-        )
+        ).value ?: fail("material demand entries should be built")
 
         assertEquals(Bpp3dDemandMode.ItemAmount::class, itemEntries.single().mode::class)
         assertEquals(Bpp3dDemandMode.ItemMaterialWeight::class, materialEntries.single().mode::class)
@@ -139,7 +139,7 @@ class UnifiedDemandEntriesTest {
         val item = item("item-invalid-mode")
         val material = material("material-invalid-mode")
 
-        assertFailsWith<IllegalArgumentException> {
+        assertTrue(
             demandEntriesFromLabeledItemDemands(
                 items = listOf(
                     Bpp3dItemDemand(
@@ -148,10 +148,10 @@ class UnifiedDemandEntriesTest {
                         mode = Bpp3dDemandMode.Material
                     )
                 )
-            )
-        }
+            ).failed
+        )
 
-        assertFailsWith<IllegalArgumentException> {
+        assertTrue(
             demandEntriesFromLabeledMaterialDemands(
                 materials = listOf(
                     Bpp3dMaterialDemand(
@@ -160,8 +160,8 @@ class UnifiedDemandEntriesTest {
                         mode = Bpp3dDemandMode.Item
                     )
                 )
-            )
-        }
+            ).failed
+        )
     }
 
     @Test

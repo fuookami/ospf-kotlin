@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.math.geometry
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.quantities.orFail
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -24,9 +26,8 @@ class GeometryPlacementTest {
             )
         )
 
-        assertTrue(lhs.overlapped(rhs))
-        val intersection = lhs.intersect(rhs)
-        assertNotNull(intersection)
+        assertTrue(lhs.overlapped(rhs).valueOrFail())
+        val intersection = lhs.intersect(rhs).valueOrFail().orFail()
         assertTrue(intersection.width eq (1.0 * Meter))
         assertTrue(intersection.height eq (1.0 * Meter))
     }
@@ -50,8 +51,10 @@ class GeometryPlacementTest {
             )
         )
 
-        assertTrue(!lhs.overlapped(rhs))
-        assertNull(lhs.intersect(rhs))
+        assertTrue(!lhs.overlapped(rhs).valueOrFail())
+        val intersection = lhs.intersect(rhs)
+        assertTrue(intersection.ok)
+        assertNull(intersection.value)
     }
 
     @Test
@@ -77,9 +80,8 @@ class GeometryPlacementTest {
             )
         )
 
-        assertTrue(cuboidPlacement.overlapped(cylinderPlacement))
-        val intersection = cuboidPlacement.intersect(cylinderPlacement)
-        assertNotNull(intersection)
+        assertTrue(cuboidPlacement.overlapped(cylinderPlacement).valueOrFail())
+        val intersection = cuboidPlacement.intersect(cylinderPlacement).valueOrFail().orFail()
         assertTrue(intersection.width eq (1.0 * Meter))
         assertTrue(intersection.height eq (1.0 * Meter))
         assertTrue(intersection.depth eq (2.0 * Meter))

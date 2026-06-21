@@ -43,7 +43,7 @@ class TriangulationTest {
                     point2(Flt64(0.5), Flt64(1.2))
                 )
             )
-        )
+        ).value!!
 
         assertTrue(triangles.isNotEmpty())
         val zValues = triangles.flatMap { triangle -> listOf(triangle.p1.z, triangle.p2.z, triangle.p3.z) }
@@ -124,7 +124,7 @@ class TriangulationTest {
                     point2(Flt64(0.4), Flt64(2.2))
                 )
             )
-        )
+        ).value!!
 
         val zValues = triangles.flatMap { triangle -> listOf(triangle.p1.z, triangle.p2.z, triangle.p3.z) }
         assertTrue(zValues.any { it == l1 })
@@ -169,16 +169,16 @@ class TriangulationTest {
 
     @Test
     fun triangulate3ShouldRejectDuplicateProjectedVertices() {
-        assertFailsWith<IllegalArgumentException> {
-            triangulate(
-                listOf(
-                    point3(Flt64.zero, Flt64.zero, Flt64.zero),
-                    point3(Flt64.one, Flt64.zero, Flt64.one),
-                    point3(Flt64.zero, Flt64.one, Flt64.two),
-                    point3(Flt64.zero, Flt64.zero, Flt64(3.0))
-                )
+        val result = triangulate(
+            listOf(
+                point3(Flt64.zero, Flt64.zero, Flt64.zero),
+                point3(Flt64.one, Flt64.zero, Flt64.one),
+                point3(Flt64.zero, Flt64.one, Flt64.two),
+                point3(Flt64.zero, Flt64.zero, Flt64(3.0))
             )
-        }
+        )
+
+        assertTrue(result.failed)
     }
 
     // ============================================================================

@@ -146,12 +146,11 @@ class ProjectionPlacementContractTest {
             x = Quantity(FltX(0.5), Meter),
             y = Quantity(FltX(0.5), Meter)
         )
-        val intersect = left.intersect(right)
+        val intersect = left.intersect(right).valueOrFail().orFail()
 
-        assertTrue(left.contains(inside))
-        assertTrue(left.overlapped(right))
-        assertTrue(intersect != null)
-        assertTrue(intersect!!.width eq Quantity(FltX(1.0), Meter))
+        assertTrue(left.contains(inside).valueOrFail())
+        assertTrue(left.overlapped(right).valueOrFail())
+        assertTrue(intersect.width eq Quantity(FltX(1.0), Meter))
         assertTrue(intersect.height eq Quantity(FltX(2.0), Meter))
     }
 

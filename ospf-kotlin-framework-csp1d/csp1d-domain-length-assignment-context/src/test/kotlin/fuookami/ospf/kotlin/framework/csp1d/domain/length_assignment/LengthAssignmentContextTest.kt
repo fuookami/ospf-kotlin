@@ -9,7 +9,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class LengthAssignmentContextTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+    private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
+
+    private fun LengthAssignmentContext<Flt64>.assignOrFail(
+        input: LengthAssignmentInput<Flt64>
+    ): LengthAssignmentResult<Flt64> {
+        return assign(input).value ?: fail("length assignment should succeed")
+    }
 
     private fun dynamicProduct(
         id: String = "dp",
@@ -41,7 +47,7 @@ class LengthAssignmentContextTest {
         }
 
         val ctx = LengthAssignmentContext(arithmetic, derivation)
-        val result = ctx.assign(
+        val result = ctx.assignOrFail(
             LengthAssignmentInput(
                 dynamicProducts = listOf(p),
                 demands = listOf(demand)
@@ -64,7 +70,7 @@ class LengthAssignmentContextTest {
         }
 
         val ctx = LengthAssignmentContext(arithmetic, derivation)
-        val result = ctx.assign(
+        val result = ctx.assignOrFail(
             LengthAssignmentInput(
                 dynamicProducts = listOf(p),
                 demands = listOf(demand)
@@ -84,7 +90,7 @@ class LengthAssignmentContextTest {
         val derivation = LengthDerivation<Flt64> { _, _ -> null }
 
         val ctx = LengthAssignmentContext(arithmetic, derivation)
-        val result = ctx.assign(
+        val result = ctx.assignOrFail(
             LengthAssignmentInput(
                 dynamicProducts = listOf(p),
                 demands = listOf(demand)
@@ -110,7 +116,7 @@ class LengthAssignmentContextTest {
         }
 
         val ctx = LengthAssignmentContext(arithmetic, derivation)
-        val result = ctx.assign(
+        val result = ctx.assignOrFail(
             LengthAssignmentInput(
                 dynamicProducts = listOf(p),
                 demands = listOf(demand)

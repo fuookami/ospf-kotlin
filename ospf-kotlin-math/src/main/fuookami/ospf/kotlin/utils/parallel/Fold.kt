@@ -85,8 +85,12 @@ suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
 suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendExtractor<U, T>
-): U where U : Arithmetic<U>, U : Plus<U, U> {
-    return sumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
+): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
+    return when (val constants = resolveArithmeticConstantsSafe<U>("Fold")) {
+        is Ok -> Ok(sumOfParallelly(constants.value, chunkSize, extractor))
+        is Failed -> Failed(constants.error)
+        is Fatal -> Fatal(constants.errors)
+    }
 }
 
 /** 并行计算集合元素之和（带错误处理），遇到错误时立即中止 / Compute sum in parallel with error handling, aborts on first error */
@@ -131,7 +135,11 @@ suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return trySumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
+    return when (val constants = resolveArithmeticConstantsSafe<U>("Fold")) {
+        is Ok -> trySumOfParallelly(constants.value, chunkSize, extractor)
+        is Failed -> Failed(constants.error)
+        is Fatal -> Fatal(constants.errors)
+    }
 }
 
 /** 并行计算集合元素之和（收集所有错误），继续计算并收集所有错误 / Compute sum in parallel collecting all errors, continues computation */
@@ -175,5 +183,9 @@ suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>
 ): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return exTrySumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
+    return when (val constants = resolveArithmeticConstantsSafe<U>("Fold")) {
+        is Ok -> exTrySumOfParallelly(constants.value, chunkSize, extractor)
+        is Failed -> Failed(constants.error)
+        is Fatal -> Fatal(constants.errors)
+    }
 }

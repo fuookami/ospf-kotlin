@@ -129,7 +129,7 @@ class NSameGeneratorTest {
         assertTrue(plans.isNotEmpty())
         // Each plan should have at most 3 slices (amount per slice = 1, but knife count limits total)
         for (plan in plans) {
-            val totalAmount = plan.slices.sumOf { it.amount.toInt() }
+            val totalAmount = plan.slices.fold(0) { total, slice -> total + slice.amount.toInt() }
             assertTrue(totalAmount <= 3)
         }
     }

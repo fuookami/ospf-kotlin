@@ -1,6 +1,6 @@
 # ospf-kotlin-framework-csp1d
 
-[中文](README_ch.md)
+:us: English | :cn: [简体中文](README_ch.md)
 
 `ospf-kotlin-framework-csp1d` is a reusable one-dimensional cutting stock framework. It keeps the reusable CSP1D kernel in this repository and leaves downstream request DTOs, formula languages, project runtime parameters, tenant context, heartbeat logic, and solver plugin selection to business adapters.
 

@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -14,6 +15,14 @@ import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
+
+private fun Ret<*>.errorMessageOrFail(message: String): String {
+    return when (this) {
+        is Ok -> fail(message)
+        is Failed -> error.message ?: ""
+        is Fatal -> errors.joinToString("; ") { it.message }
+    }
+}
 
 class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
     private object Cargo : AbstractCargoAttribute
@@ -103,11 +112,10 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         for (axis in listOf(Axis3.X, Axis3.Z)) {
             val layer = horizontalCylinderLayer(axis)
 
-            val exception = kotlin.test.assertFailsWith<IllegalArgumentException> {
-                layer.toModel().toLayerPlacement()
-            }
+            val error = layer.toModel().toLayerPlacement()
+                .errorMessageOrFail("layer placement should fail")
 
-            assertTrue(exception.message?.contains("only verified axis-aware generated candidates are allowed") == true)
+            assertTrue(error.contains("only verified axis-aware generated candidates are allowed"))
         }
     }
 
@@ -135,7 +143,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = generated.first { result ->
             result.source == "circle-packing-horizontal-grid-single-axis=x"
         }.layer
-        val placement = layer.toLayerPlacement()
+        val placement = layer.toLayerPlacement().value ?: fail("layer placement should be built")
 
         assertEquals(layer.units.size, placement.unit.units.size)
         assertTrue(
@@ -214,7 +222,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = generated.first { result ->
             result.source == "circle-packing-horizontal-supported-stack-axis=x"
         }.layer
-        val placement = layer.toLayerPlacement()
+        val placement = layer.toLayerPlacement().value ?: fail("layer placement should be built")
 
         assertEquals(2, placement.unit.units.size)
         assertTrue(
@@ -293,7 +301,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = generated.first { result ->
             result.source == "circle-packing-horizontal-supported-stack-multi-axis=x"
         }.layer
-        val placement = layer.toLayerPlacement()
+        val placement = layer.toLayerPlacement().value ?: fail("layer placement should be built")
 
         assertEquals(4, placement.unit.units.size)
         assertTrue(
@@ -379,7 +387,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = generated.first { result ->
             result.source == "circle-packing-horizontal-hanging-support-multi-axis=$sourceAxis"
         }.layer
-        val placement = layer.toLayerPlacement()
+        val placement = layer.toLayerPlacement().value ?: fail("layer placement should be built")
 
         val expectedSupportCount = if (axis == Axis3.X) {
             3
@@ -480,7 +488,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         val layer = generated.first { result ->
             result.source == "circle-packing-horizontal-supported-stack-heterogeneous-axis=x"
         }.layer
-        val placement = layer.toLayerPlacement()
+        val placement = layer.toLayerPlacement().value ?: fail("layer placement should be built")
 
         assertEquals(3, placement.unit.units.size)
         assertTrue(

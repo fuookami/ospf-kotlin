@@ -10,6 +10,7 @@
  */
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -67,9 +68,10 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
          *
          * @return 零多项式 / Zero polynomial
          */
-        inline fun <reified T> zero(): MutableCanonicalPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
-            val constants = resolveArithmeticConstants<T>("MutableCanonicalPolynomial.zero")
-            return MutableCanonicalPolynomial(emptyList(), constants.zero)
+        inline fun <reified T> zero(): Ret<MutableCanonicalPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
+            return resolveArithmeticConstantsSafe<T>("MutableCanonicalPolynomial.zero").mapResolved { constants ->
+                MutableCanonicalPolynomial(emptyList(), constants.zero)
+            }
         }
 
         /**
@@ -78,9 +80,10 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
          *
          * @return 值为 1 的多项式 / Polynomial with value 1
          */
-        inline fun <reified T> one(): MutableCanonicalPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
-            val constants = resolveArithmeticConstants<T>("MutableCanonicalPolynomial.one")
-            return MutableCanonicalPolynomial(emptyList(), constants.one)
+        inline fun <reified T> one(): Ret<MutableCanonicalPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
+            return resolveArithmeticConstantsSafe<T>("MutableCanonicalPolynomial.one").mapResolved { constants ->
+                MutableCanonicalPolynomial(emptyList(), constants.one)
+            }
         }
 
         /**

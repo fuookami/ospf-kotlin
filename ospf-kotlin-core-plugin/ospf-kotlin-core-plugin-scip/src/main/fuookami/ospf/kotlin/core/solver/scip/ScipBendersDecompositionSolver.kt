@@ -192,7 +192,7 @@ class ScipLinearBendersDecompositionSolver(
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                             token.variable to result.value.solution[index]
                         }.toMap() + fixedVariables)
-                        val dualObject = dualSolution.sumOf { (constraint, value) ->
+                        val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
@@ -477,7 +477,7 @@ class ScipQuadraticBendersDecompositionSolver(
                         metaModel.tokens.setSolution(model.tokensInSolver.mapIndexed { index, token ->
                             token.variable to result.value.solution[index]
                         }.toMap() + fixedVariables)
-                        val dualObject = dualSolution.sumOf { (constraint, value) ->
+                        val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {

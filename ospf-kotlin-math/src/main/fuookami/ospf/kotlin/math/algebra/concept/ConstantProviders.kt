@@ -8,6 +8,8 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import kotlin.reflect.full.companionObjectInstance
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 零常量提供而
@@ -185,6 +187,24 @@ data object CompanionConstantProviderResolver {
     }
 }
 
+@PublishedApi
+internal inline fun <T, R> Ret<T>.mapResolved(crossinline extractor: (T) -> R): Ret<R> {
+    return when (this) {
+        is Ok -> Ok(extractor(value))
+        is Failed -> Failed(error)
+        is Fatal -> Fatal(errors)
+    }
+}
+
+@PublishedApi
+internal inline fun <T, R> Ret<T>.flatMapResolved(crossinline extractor: (T) -> Ret<R>): Ret<R> {
+    return when (this) {
+        is Ok -> extractor(value)
+        is Failed -> Failed(error)
+        is Fatal -> Fatal(errors)
+    }
+}
+
 /**
  * 通过伴生对象反射解析常量提供而
  * Resolve constant provider through companion object reflection
@@ -204,23 +224,78 @@ data object CompanionConstantProviderResolver {
 internal inline fun <reified T, reified C : Any> resolveCompanionProvider(
     caller: String,
     expectedTypeName: String
-): C {
+): Ret<C> {
+    return resolveCompanionProviderSafe<T, C>(
+        caller = caller,
+        expectedTypeName = expectedTypeName
+    )
+}
+
+/**
+ * 安全解析伴生对象常量提供者
+ * Safely resolve constant provider through companion object reflection
+ *
+ * @param T 目标类型
+ * @param T The target type
+ * @param C 常量提供者类型
+ * @param C The constant provider type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @param expectedTypeName 期望的类型名称
+ * @param expectedTypeName The expected type name
+ * @return 常量提供者解析结果
+ * @return The constant provider resolution result
+ */
+@PublishedApi
+internal inline fun <reified T, reified C : Any> resolveCompanionProviderSafe(
+    caller: String,
+    expectedTypeName: String
+): Ret<C> {
     val typeName = T::class.qualifiedName ?: T::class.simpleName ?: "unknown type"
     if (!CompanionConstantProviderResolver.reflectionFallbackEnabled) {
-        throw IllegalStateException(
+        return Failed(
+            ErrorCode.IllegalArgument,
             "Companion reflection fallback is disabled for $typeName in $caller. " +
                     "Pass explicit provider/constants or enable fallback by " +
                     "-D${CompanionConstantProviderResolver.reflectionFallbackEnabledProperty}=true."
         )
     }
     val companion = T::class.companionObjectInstance
-        ?: throw IllegalStateException(
+        ?: return Failed(
+            ErrorCode.IllegalArgument,
             "Type $typeName has no companion object in $caller, expected $expectedTypeName provider."
         )
-    return companion as? C
-        ?: throw IllegalStateException(
+    return (companion as? C)?.let { Ok(it) }
+        ?: Failed(
+            ErrorCode.IllegalArgument,
             "Companion object of $typeName does not implement $expectedTypeName in $caller."
         )
+}
+
+/**
+ * 尝试解析伴生对象常量提供者，失败返回 null
+ * Try resolving constant provider through companion object reflection, returning null on failure
+ *
+ * @param T 目标类型
+ * @param T The target type
+ * @param C 常量提供者类型
+ * @param C The constant provider type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @param expectedTypeName 期望的类型名称
+ * @param expectedTypeName The expected type name
+ * @return 常量提供者，失败时返回 null
+ * @return The constant provider, or null on failure
+ */
+@PublishedApi
+internal inline fun <reified T, reified C : Any> resolveCompanionProviderOrNull(
+    caller: String,
+    expectedTypeName: String
+): C? {
+    return resolveCompanionProviderSafe<T, C>(
+        caller = caller,
+        expectedTypeName = expectedTypeName
+    ).value
 }
 
 /**
@@ -234,10 +309,43 @@ internal inline fun <reified T, reified C : Any> resolveCompanionProvider(
  * @return 算术常量
  * @return The arithmetic constants
  */
-inline fun <reified T> resolveArithmeticConstants(caller: String): ArithmeticConstants<T> where T : Arithmetic<T> {
-    return resolveCompanionProvider<T, ArithmeticConstants<T>>(
-        caller,
-        "ArithmeticConstants<${T::class.simpleName}>"
+inline fun <reified T> resolveArithmeticConstants(caller: String): Ret<ArithmeticConstants<T>> where T : Arithmetic<T> {
+    return resolveArithmeticConstantsSafe(caller)
+}
+
+/**
+ * 安全解析算术常量
+ * Safely resolve arithmetic constants
+ *
+ * @param T 算术类型
+ * @param T The arithmetic type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 算术常量解析结果
+ * @return The arithmetic constants resolution result
+ */
+inline fun <reified T> resolveArithmeticConstantsSafe(caller: String): Ret<ArithmeticConstants<T>> where T : Arithmetic<T> {
+    return resolveCompanionProviderSafe<T, ArithmeticConstants<T>>(
+        caller = caller,
+        expectedTypeName = "ArithmeticConstants<${T::class.simpleName}>"
+    )
+}
+
+/**
+ * 尝试解析算术常量，失败返回 null
+ * Try resolving arithmetic constants, returning null on failure
+ *
+ * @param T 算术类型
+ * @param T The arithmetic type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 算术常量，失败时返回 null
+ * @return The arithmetic constants, or null on failure
+ */
+inline fun <reified T> resolveArithmeticConstantsOrNull(caller: String): ArithmeticConstants<T>? where T : Arithmetic<T> {
+    return resolveCompanionProviderOrNull<T, ArithmeticConstants<T>>(
+        caller = caller,
+        expectedTypeName = "ArithmeticConstants<${T::class.simpleName}>"
     )
 }
 
@@ -252,10 +360,43 @@ inline fun <reified T> resolveArithmeticConstants(caller: String): ArithmeticCon
  * @return 实数常量
  * @return The real number constants
  */
-inline fun <reified T> resolveRealNumberConstants(caller: String): RealNumberConstants<T> where T : RealNumber<T> {
-    return resolveCompanionProvider<T, RealNumberConstants<T>>(
-        caller,
-        "RealNumberConstants<${T::class.simpleName}>"
+inline fun <reified T> resolveRealNumberConstants(caller: String): Ret<RealNumberConstants<T>> where T : RealNumber<T> {
+    return resolveRealNumberConstantsSafe(caller)
+}
+
+/**
+ * 安全解析实数常量
+ * Safely resolve real number constants
+ *
+ * @param T 实数类型
+ * @param T The real number type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 实数常量解析结果
+ * @return The real number constants resolution result
+ */
+inline fun <reified T> resolveRealNumberConstantsSafe(caller: String): Ret<RealNumberConstants<T>> where T : RealNumber<T> {
+    return resolveCompanionProviderSafe<T, RealNumberConstants<T>>(
+        caller = caller,
+        expectedTypeName = "RealNumberConstants<${T::class.simpleName}>"
+    )
+}
+
+/**
+ * 尝试解析实数常量，失败返回 null
+ * Try resolving real number constants, returning null on failure
+ *
+ * @param T 实数类型
+ * @param T The real number type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 实数常量，失败时返回 null
+ * @return The real number constants, or null on failure
+ */
+inline fun <reified T> resolveRealNumberConstantsOrNull(caller: String): RealNumberConstants<T>? where T : RealNumber<T> {
+    return resolveCompanionProviderOrNull<T, RealNumberConstants<T>>(
+        caller = caller,
+        expectedTypeName = "RealNumberConstants<${T::class.simpleName}>"
     )
 }
 
@@ -270,9 +411,42 @@ inline fun <reified T> resolveRealNumberConstants(caller: String): RealNumberCon
  * @return 浮点数常里
  * @return The floating number constants
  */
-inline fun <reified T> resolveFloatingNumberConstants(caller: String): FloatingNumberConstants<T> where T : FloatingNumber<T> {
-    return resolveCompanionProvider<T, FloatingNumberConstants<T>>(
-        caller,
-        "FloatingNumberConstants<${T::class.simpleName}>"
+inline fun <reified T> resolveFloatingNumberConstants(caller: String): Ret<FloatingNumberConstants<T>> where T : FloatingNumber<T> {
+    return resolveFloatingNumberConstantsSafe(caller)
+}
+
+/**
+ * 安全解析浮点数常量
+ * Safely resolve floating number constants
+ *
+ * @param T 浮点数类型
+ * @param T The floating number type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 浮点数常量解析结果
+ * @return The floating number constants resolution result
+ */
+inline fun <reified T> resolveFloatingNumberConstantsSafe(caller: String): Ret<FloatingNumberConstants<T>> where T : FloatingNumber<T> {
+    return resolveCompanionProviderSafe<T, FloatingNumberConstants<T>>(
+        caller = caller,
+        expectedTypeName = "FloatingNumberConstants<${T::class.simpleName}>"
+    )
+}
+
+/**
+ * 尝试解析浮点数常量，失败返回 null
+ * Try resolving floating number constants, returning null on failure
+ *
+ * @param T 浮点数类型
+ * @param T The floating number type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 浮点数常量，失败时返回 null
+ * @return The floating number constants, or null on failure
+ */
+inline fun <reified T> resolveFloatingNumberConstantsOrNull(caller: String): FloatingNumberConstants<T>? where T : FloatingNumber<T> {
+    return resolveCompanionProviderOrNull<T, FloatingNumberConstants<T>>(
+        caller = caller,
+        expectedTypeName = "FloatingNumberConstants<${T::class.simpleName}>"
     )
 }

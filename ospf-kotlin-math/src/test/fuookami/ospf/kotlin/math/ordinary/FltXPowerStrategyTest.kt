@@ -36,10 +36,10 @@ class FltXPowerStrategyTest {
         val digits = 18
         val precision = FltXPowerStrategy.defaultPrecision(digits)
 
-        val intPow = FltXPowerStrategy.pow(FltX("2"), FltX("10"), digits, precision)
+        val intPow = FltXPowerStrategy.pow(FltX("2"), FltX("10"), digits, precision).value!!
         assertTrue((intPow - FltX("1024")).abs() <= FltX("1e-8"))
 
-        val fractionalPow = FltXPowerStrategy.pow(FltX("9"), FltX("0.5"), digits, precision)
+        val fractionalPow = FltXPowerStrategy.pow(FltX("9"), FltX("0.5"), digits, precision).value!!
         assertTrue((fractionalPow - FltX("3")).abs() <= FltX("1e-6"))
     }
 
@@ -63,15 +63,11 @@ class FltXPowerStrategyTest {
     }
 
     @Test
-    fun powShouldThrowForFractionalExponentOnNonPositiveBase() {
+    fun powShouldFailForFractionalExponentOnNonPositiveBase() {
         val digits = 18
         val precision = FltXPowerStrategy.defaultPrecision(digits)
 
-        assertFailsWith<ArithmeticException> {
-            FltXPowerStrategy.pow(FltX("-4"), FltX("0.5"), digits, precision)
-        }
-        assertFailsWith<ArithmeticException> {
-            FltXPowerStrategy.pow(FltX.zero, FltX("0.5"), digits, precision)
-        }
+        assertTrue(FltXPowerStrategy.pow(FltX("-4"), FltX("0.5"), digits, precision).failed)
+        assertTrue(FltXPowerStrategy.pow(FltX.zero, FltX("0.5"), digits, precision).failed)
     }
 }

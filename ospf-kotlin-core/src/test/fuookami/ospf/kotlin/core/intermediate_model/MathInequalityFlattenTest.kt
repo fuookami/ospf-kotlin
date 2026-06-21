@@ -162,7 +162,9 @@ class MathInequalityFlattenTest {
     @Test
     fun rtn64TypeShouldExpandCorrectly() {
         val x = RealVar("x")
-        val converter = fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64ValueConverter<Rtn64>("MathInequalityFlattenTest")
+        val converter = fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64ValueConverter<Rtn64>(
+            "MathInequalityFlattenTest"
+        ).valueOrFail()
         val two = converter.intoValue(Flt64(2.0))
         val one = converter.intoValue(Flt64.one)
         val five = converter.intoValue(Flt64(5.0))

@@ -217,7 +217,7 @@ data class StochasticUniversalSelection(
         weights: List<Flt64>,
         amount: UInt64
     ): List<UInt64> {
-        val sum = weights.sum()
+        val sum = weights.sum(Flt64)
         val step = sum / amount.toFlt64()
         val start = randomGenerator()!! * step
         val positions = amount.indices.map { start + it.toFlt64() * step }

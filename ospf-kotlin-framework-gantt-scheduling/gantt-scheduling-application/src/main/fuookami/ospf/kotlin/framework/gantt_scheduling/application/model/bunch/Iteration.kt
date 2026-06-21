@@ -76,7 +76,7 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
                 bestReducedCost[bunch.executor]?.let { min(thisReducedCost, it) } ?: thisReducedCost
         }
 
-        val currentDualObj = prevLpObj + bestReducedCost.values.sum()
+        val currentDualObj = prevLpObj + bestReducedCost.values.sum(Flt64)
         if (bestDualObj ls currentDualObj && currentDualObj ls bestObj) {
             logger.debug { "best dual obj: $bestDualObj -> $currentDualObj" }
             bestDualObj = currentDualObj

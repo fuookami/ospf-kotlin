@@ -274,7 +274,8 @@ private class Demo4Resource(
 ) : ExecutionResource<ResourceCapacity<FltX>, FltX>(
     id = "demo4-resource",
     name = "demo4-resource",
-    capacities = capacities
+    capacities = capacities,
+    initialQuantityValue = FltX.zero
 ) {
     override fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         task: AbstractTask<E, A>,

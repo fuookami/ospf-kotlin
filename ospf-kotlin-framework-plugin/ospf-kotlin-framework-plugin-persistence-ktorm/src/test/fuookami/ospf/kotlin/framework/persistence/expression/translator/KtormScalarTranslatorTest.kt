@@ -7,7 +7,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import org.ktorm.expression.ArgumentExpression
@@ -38,15 +38,15 @@ class KtormScalarTranslatorTest {
     @DisplayName("should translate reference constant and arithmetic / 应翻译引用常量与算术表达式")
     fun shouldTranslateReferenceConstantAndArithmetic() {
         val translator = KtormScalarTranslator(resolver)
-        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price"))).value
-        val constant = translator.translate(ScalarConstant(100)).value
+        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price"))).valueOrFail().orFail()
+        val constant = translator.translate(ScalarConstant(100)).valueOrFail().orFail()
         val arithmetic = translator.translate(
             ScalarBinary(
                 BinaryOperator.Multiply,
                 ScalarReference<Int>(PropertyPath.parse("price")),
                 ScalarReference(PropertyPath.parse("quantity"))
             )
-        ).value as BinaryExpression<*>
+        ).valueOrFail().orFail() as BinaryExpression<*>
 
         assertNotNull(reference)
         assertTrueArgument(constant)
@@ -58,11 +58,12 @@ class KtormScalarTranslatorTest {
     fun unsupportedScalarShouldFollowPolicy() {
         val alwaysFalseTranslator = KtormScalarTranslator(resolver)
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val unresolved = alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown")))
+        val failed = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
-        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))).value)
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(ScalarCustom<Int>("x"))
-        }
+        assertTrue(unresolved.ok)
+        assertNull(unresolved.value)
+        assertTrue(failed.failed)
     }
 
     @Test
@@ -74,13 +75,13 @@ class KtormScalarTranslatorTest {
                 ScalarFunctionNames.Abs,
                 listOf(ScalarReference<Int>(PropertyPath.parse("price")))
             )
-        ).value as FunctionExpression<*>
+        ).valueOrFail().orFail() as FunctionExpression<*>
         val lowerExpr = translator.translate(
             ScalarFunction(
                 ScalarFunctionNames.Lower,
                 listOf(ScalarConstant("ABC"))
             )
-        ).value as FunctionExpression<*>
+        ).valueOrFail().orFail() as FunctionExpression<*>
 
         assertEquals("ABS", absExpr.functionName)
         assertEquals("LOWER", lowerExpr.functionName)
@@ -92,11 +93,12 @@ class KtormScalarTranslatorTest {
         val alwaysFalseTranslator = KtormScalarTranslator(resolver)
         val failFastTranslator = KtormScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+        val unsupported = alwaysFalseTranslator.translate(unknown)
+        val failed = failFastTranslator.translate(unknown)
 
-        assertNull(alwaysFalseTranslator.translate(unknown).value)
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(unknown)
-        }
+        assertTrue(unsupported.ok)
+        assertNull(unsupported.value)
+        assertTrue(failed.failed)
     }
 
     private fun assertTrueArgument(expr: org.ktorm.expression.ScalarExpression<*>?) {

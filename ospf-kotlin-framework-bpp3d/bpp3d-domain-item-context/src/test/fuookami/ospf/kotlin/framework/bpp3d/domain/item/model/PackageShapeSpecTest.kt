@@ -250,29 +250,30 @@ class PackageShapeSpecTest {
     }
 
     @Test
-    fun verticalCylinderRadiusWeightFunctionKeyShouldRejectDiscreteRadiusCandidates() {
-        assertFailsWith<IllegalArgumentException> {
-            PackageShapeSpec.VerticalCylinder(
-                radius = FltX(0.5) * Meter,
-                axis = Axis3.Y,
-                radiusCandidates = listOf(
-                    FltX(0.4) * Meter,
-                    FltX(0.5) * Meter
-                ),
-                radiusWeightFunctionKey = "continuous-radius-prototype"
-            )
-        }
+    fun verticalCylinderRadiusWeightFunctionKeyShouldExposeDiscreteMetadataConflict() {
+        val candidatesSpec = PackageShapeSpec.VerticalCylinder(
+            radius = FltX(0.5) * Meter,
+            axis = Axis3.Y,
+            radiusCandidates = listOf(
+                FltX(0.4) * Meter,
+                FltX(0.5) * Meter
+            ),
+            radiusWeightFunctionKey = "continuous-radius-prototype"
+        )
+        val stepSpec = PackageShapeSpec.VerticalCylinder(
+            radius = FltX(0.5) * Meter,
+            axis = Axis3.Y,
+            radiusMin = FltX(0.4) * Meter,
+            radiusMax = FltX(0.6) * Meter,
+            radiusStep = FltX(0.1) * Meter,
+            radiusWeightFunctionKey = "continuous-radius-prototype"
+        )
 
-        assertFailsWith<IllegalArgumentException> {
-            PackageShapeSpec.VerticalCylinder(
-                radius = FltX(0.5) * Meter,
-                axis = Axis3.Y,
-                radiusMin = FltX(0.4) * Meter,
-                radiusMax = FltX(0.6) * Meter,
-                radiusStep = FltX(0.1) * Meter,
-                radiusWeightFunctionKey = "continuous-radius-prototype"
-            )
-        }
+        val candidatesPrototype = assertNotNull(candidatesSpec.continuousRadiusSolverPrototype().value)
+        val stepPrototype = assertNotNull(stepSpec.continuousRadiusSolverPrototype().value)
+
+        assertTrue(candidatesPrototype.gaps.contains(ContinuousCylinderRadiusOptimizationGap.DiscreteRadiusMetadataConflict))
+        assertTrue(stepPrototype.gaps.contains(ContinuousCylinderRadiusOptimizationGap.DiscreteRadiusMetadataConflict))
     }
 
     @Test

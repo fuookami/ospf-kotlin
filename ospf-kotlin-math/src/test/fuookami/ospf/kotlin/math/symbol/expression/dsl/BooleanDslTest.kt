@@ -299,7 +299,7 @@ class BooleanDslTest {
             val dslExpr = path("age") gt 18
 
             // Parser
-            val parserExpr = parseBooleanExpression("age > 18")
+            val parserExpr = parseBooleanExpression("age > 18").value!!
 
             // 验证结构相同 / Verify same structure
             assertTrue(parserExpr is Comparison<*>)
@@ -317,7 +317,7 @@ class BooleanDslTest {
             val dslExpr = (path("age") gt 18) and (path("status") eq "active")
 
             // Parser
-            val parserExpr = parseBooleanExpression("age > 18 and status = 'active'")
+            val parserExpr = parseBooleanExpression("age > 18 and status = 'active'").value!!
 
             assertTrue(parserExpr is AndExpression)
 
@@ -338,7 +338,7 @@ class BooleanDslTest {
             // Parser
             val parserExpr = parseBooleanExpression(
                 "(age > 18 and status = 'active') or not status = 'deleted'"
-            )
+            ).value!!
 
             assertTrue(parserExpr is OrExpression)
         }
@@ -350,7 +350,7 @@ class BooleanDslTest {
             val dslExpr = path("status").inValues("active", "pending")
 
             // Parser
-            val parserExpr = parseBooleanExpression("status in ('active', 'pending')")
+            val parserExpr = parseBooleanExpression("status in ('active', 'pending')").value!!
 
             assertTrue(parserExpr is InExpression<*>)
 
@@ -368,7 +368,7 @@ class BooleanDslTest {
             val dslExpr = path("name").isNotNull()
 
             // Parser
-            val parserExpr = parseBooleanExpression("name is not null")
+            val parserExpr = parseBooleanExpression("name is not null").value!!
 
             assertTrue(parserExpr is NullCheck)
 
@@ -386,7 +386,7 @@ class BooleanDslTest {
             val dslExpr = path("user.address.city") eq "Beijing"
 
             // Parser
-            val parserExpr = parseBooleanExpression("user.address.city = 'Beijing'")
+            val parserExpr = parseBooleanExpression("user.address.city = 'Beijing'").value!!
 
             assertTrue(parserExpr is Comparison<*>)
 

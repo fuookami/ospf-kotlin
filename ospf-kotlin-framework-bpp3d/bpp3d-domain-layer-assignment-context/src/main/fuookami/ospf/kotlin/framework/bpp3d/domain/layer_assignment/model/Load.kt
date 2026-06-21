@@ -208,32 +208,39 @@ fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
-    return demandEntriesFromLabeledItemDemands(
-        items = items.map { (item, quantity) ->
-            Bpp3dItemDemand(
-                item = item,
-                quantity = quantity
-            )
-        },
-        demandValueAdapter = demandValueAdapter
-    )
+    return items.map { (item, quantity) ->
+        val demandValue = demandValueFromQuantity(quantity, demandValueAdapter)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.Item,
+            key = Bpp3dDemandKey.Item(item),
+            demand = demandValue,
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = quantity.unit
+        )
+    }
 }
 
 fun demandEntriesFromLabeledItemDemands(
     items: List<ItemDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
-): List<Bpp3dDemandEntry<FltX>> {
-    return items.map { demand ->
-        val mode = resolveItemDemandMode(demand.mode).value!!
+): Ret<List<Bpp3dDemandEntry<FltX>>> {
+    val entries = ArrayList<Bpp3dDemandEntry<FltX>>()
+    for (demand in items) {
+        val mode = when (val result = resolveItemDemandMode(demand.mode)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
-        Bpp3dDemandEntry(
+        entries.add(Bpp3dDemandEntry(
             mode = mode,
             key = Bpp3dDemandKey.Item(demand.item),
             demand = demandValue,
             demandRange = exactDemandRange(demandValue),
             quantityUnit = demand.quantity.unit
-        )
+        ))
     }
+    return ok(entries)
 }
 
 fun demandEntriesFromItems(
@@ -270,39 +277,46 @@ fun demandEntriesFromItemRanges(
 private fun demandEntriesFromMaterialDemandsByKey(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
-): List<Bpp3dDemandEntry<FltX>> {
-    return materials.map { demand ->
-        val mode = resolveMaterialDemandMode(demand.mode).value!!
+): Ret<List<Bpp3dDemandEntry<FltX>>> {
+    val entries = ArrayList<Bpp3dDemandEntry<FltX>>()
+    for (demand in materials) {
+        val mode = when (val result = resolveMaterialDemandMode(demand.mode)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val demandValue = demandValueFromQuantity(demand.quantity, demandValueAdapter)
-        Bpp3dDemandEntry(
+        entries.add(Bpp3dDemandEntry(
             mode = mode,
             key = Bpp3dDemandKey.Material(demand.material),
             demand = demandValue,
             demandRange = exactDemandRange(demandValue),
             quantityUnit = demand.quantity.unit
-        )
+        ))
     }
+    return ok(entries)
 }
 
 fun demandEntriesFromMaterialDemands(
     materials: List<Pair<Material<FltX>, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
-    return demandEntriesFromMaterialDemandsByKey(
-        materials = materials.map { (material, demand) ->
-            Bpp3dMaterialDemand(
-                material = material.key,
-                quantity = demand
-            )
-        },
-        demandValueAdapter = demandValueAdapter
-    )
+    return materials.map { (material, demand) ->
+        val demandValue = demandValueFromQuantity(demand, demandValueAdapter)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.Material,
+            key = Bpp3dDemandKey.Material(material.key),
+            demand = demandValue,
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = demand.unit
+        )
+    }
 }
 
 fun demandEntriesFromLabeledMaterialDemands(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
-): List<Bpp3dDemandEntry<FltX>> {
+): Ret<List<Bpp3dDemandEntry<FltX>>> {
     return demandEntriesFromMaterialDemandsByKey(
         materials = materials,
         demandValueAdapter = demandValueAdapter
@@ -313,15 +327,16 @@ private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
-    return demandEntriesFromMaterialDemandsByKey(
-        materials = materials.map { (material, demand) ->
-            Bpp3dMaterialDemand(
-                material = material,
-                quantity = Quantity(FltX(demand.toULong().toDouble()), DemandCountUnit)
-            )
-        },
-        demandValueAdapter = demandValueAdapter
-    )
+    return materials.map { (material, demand) ->
+        val demandValue = demandValueAdapter.amountToSolver(demand)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.Material,
+            key = Bpp3dDemandKey.Material(material),
+            demand = demandValue,
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = DemandCountUnit
+        )
+    }
 }
 
 fun demandEntriesFromMaterialAmounts(
@@ -338,15 +353,16 @@ private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ): List<Bpp3dDemandEntry<FltX>> {
-    return demandEntriesFromMaterialDemandsByKey(
-        materials = materials.map { (material, demand) ->
-            Bpp3dMaterialDemand(
-                material = material,
-                quantity = demand
-            )
-        },
-        demandValueAdapter = demandValueAdapter
-    )
+    return materials.map { (material, demand) ->
+        val demandValue = demandValueFromQuantity(demand, demandValueAdapter)
+        Bpp3dDemandEntry(
+            mode = Bpp3dDemandMode.Material,
+            key = Bpp3dDemandKey.Material(material),
+            demand = demandValue,
+            demandRange = exactDemandRange(demandValue),
+            quantityUnit = demand.unit
+        )
+    }
 }
 
 fun demandEntriesFromMaterialWeights(

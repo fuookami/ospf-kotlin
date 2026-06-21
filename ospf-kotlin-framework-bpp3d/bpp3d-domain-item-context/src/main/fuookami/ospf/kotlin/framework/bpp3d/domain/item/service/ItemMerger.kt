@@ -13,6 +13,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 private fun scalar(value: Number): FltX = FltX(value.toDouble())
 private fun scalar(value: ULong): FltX = FltX(value.toDouble())
 
+private fun <T> Try.failureAsRet(): Ret<T>? {
+    return when (this) {
+        is Ok -> null
+        is Failed -> Failed(error)
+        is Fatal -> Fatal(errors)
+    }
+}
+
 data object ItemMerger {
     data class Config(
         val mergeFillerWhenOnlyFiller: Boolean = true,
@@ -102,11 +110,11 @@ data object ItemMerger {
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<ItemMergeUnit> {
+    ): Ret<List<ItemMergeUnit>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
-        )!!
+        ).failureAsRet<List<ItemMergeUnit>>()?.let { return it }
         return merge(
             items = items,
             space = binType.asContainer3Shape(),
@@ -126,11 +134,11 @@ data object ItemMerger {
         predicate: Predicate<Item>? = null,
         fillerPredicate: Predicate<Item>? = null,
         config: Config = Config()
-    ): List<ItemMergeUnit> {
+    ): Ret<List<ItemMergeUnit>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMerge
-        )!!
+        ).failureAsRet<List<ItemMergeUnit>>()?.let { return it }
         val withFillerMerging = config.mergeFillerWhenOnlyFiller && items.any { item -> fillerPredicate?.invoke(item) == false }
 
         var restItems = if (!withFillerMerging) {
@@ -141,44 +149,60 @@ data object ItemMerger {
         val mergedItems = ArrayList<ItemMergeUnit>()
 
         if (config.mergeAsPatternBlock) {
-            val (thisMergedItems, thisRestItems) = mergePatternBlocks(
+            val (thisMergedItems, thisRestItems) = when (val result = mergePatternBlocks(
                 items = restItems,
                 space = space,
                 patterns = patterns,
                 restWeight = restWeight,
                 patternConfig = config.patternConfig
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             mergedItems.addAll(thisMergedItems)
             restItems = thisRestItems
         }
 
         if (config.mergeAsHollowSquareBlock) {
-            val (thisMergedItems, thisRestItems) = mergeHollowSquareBlocks(
+            val (thisMergedItems, thisRestItems) = when (val result = mergeHollowSquareBlocks(
                 items = restItems,
                 space = space,
                 restWeight = restWeight
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             mergedItems.addAll(thisMergedItems)
             restItems = thisRestItems
         }
 
         if (config.mergeAsBlock) {
-            val (thisMergedItems, thisRestItems) = mergeBlocks(
+            val (thisMergedItems, thisRestItems) = when (val result = mergeBlocks(
                 items = restItems,
                 space = space,
                 restWeight = restWeight,
                 config = config
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             mergedItems.addAll(thisMergedItems)
             restItems = thisRestItems
         }
 
         if (config.mergeAsPile) {
-            val (thisMergedItems, thisRestItems) = mergePiles(
+            val (thisMergedItems, thisRestItems) = when (val result = mergePiles(
                 items = restItems,
                 space = space,
                 restWeight = restWeight
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
             mergedItems.addAll(thisMergedItems)
             restItems = thisRestItems
         }
@@ -187,18 +211,18 @@ data object ItemMerger {
         if (!withFillerMerging) {
             mergedItems.addAll(items.filter { item -> predicate?.let { it(item) } == false || fillerPredicate?.let { it(item) } == true })
         }
-        return mergedItems
+        return Ok(mergedItems.toList())
     }
 
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
         restWeight: FltX = FltX.maximum
-    ): Pair<List<Pile>, List<Item>> {
+    ): Ret<Pair<List<Pile>, List<Item>>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergePiles
-        )!!
+        ).failureAsRet<Pair<List<Pile>, List<Item>>>()?.let { return it }
         val averagePileBottomArea = items.fold(FltX.zero) { acc, item -> acc + Bottom.shape(item).area.value } / scalar(items.size)
         val averagePileWeight = restWeight / (Bottom.shape(space).area.value / averagePileBottomArea)
         val mergedItems = ArrayList<Pile>()
@@ -273,7 +297,7 @@ data object ItemMerger {
                 break
             }
         }
-        return Pair(mergedItems, restItems.map { it.unit })
+        return Ok(Pair(mergedItems, restItems.map { it.unit }))
     }
 
     fun mergeBlocks(
@@ -281,11 +305,11 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: FltX = FltX.maximum,
         config: Config = Config()
-    ): Pair<List<SimpleBlock>, List<Item>> {
+    ): Ret<Pair<List<SimpleBlock>, List<Item>>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergeBlocks
-        )!!
+        ).failureAsRet<Pair<List<SimpleBlock>, List<Item>>>()?.let { return it }
         val mergedItems = ArrayList<SimpleBlock>()
         val restItems = items.groupBy { it }.map { Pair(it.key, it.value.toMutableList()) }.toMap()
         for ((item, list) in restItems) {
@@ -382,7 +406,7 @@ data object ItemMerger {
                 }
             }
         }
-        return Pair(mergedItems, restItems.flatMap { it.value })
+        return Ok(Pair(mergedItems, restItems.flatMap { it.value }))
     }
 
     suspend fun mergePatternBlocks(
@@ -391,11 +415,11 @@ data object ItemMerger {
         patterns: List<Pattern>,
         restWeight: FltX = FltX.maximum,
         patternConfig: Pattern.ConfigBuilder = Pattern.ConfigBuilder()
-    ): Pair<List<CommonBlock>, List<Item>> {
+    ): Ret<Pair<List<CommonBlock>, List<Item>>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergePatternBlocks
-        )!!
+        ).failureAsRet<Pair<List<CommonBlock>, List<Item>>>()?.let { return it }
         val mergedItems = ArrayList<CommonBlock>()
         var restItems = items.toList()
         while (true) {
@@ -454,7 +478,7 @@ data object ItemMerger {
                 break
             }
         }
-        return Pair(mergedItems, restItems)
+        return Ok(Pair(mergedItems, restItems))
     }
 
     fun mergeHollowSquareBlocks(
@@ -462,18 +486,22 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: FltX = FltX.maximum,
         config: Config = Config()
-    ): Pair<List<HollowSquareBlock>, List<Item>> {
+    ): Ret<Pair<List<HollowSquareBlock>, List<Item>>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items,
             path = CylinderCapabilityPath.ItemMergeHollowSquareBlocks
-        )!!
+        ).failureAsRet<Pair<List<HollowSquareBlock>, List<Item>>>()?.let { return it }
         val restItems = items.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
-        return mergeHollowSquareBlocks(
+        return when (val result = mergeHollowSquareBlocks(
             items = restItems,
             space = space,
             restWeight = restWeight,
             config = config
-        ).let { Pair(it.first, it.second.flatMap { item -> (UInt64.zero until item.value).map { item.key } }) }
+        )) {
+            is Ok -> Ok(Pair(result.value.first, result.value.second.flatMap { item -> (UInt64.zero until item.value).map { item.key } }))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
     }
 
     fun mergeHollowSquareBlocks(
@@ -481,11 +509,11 @@ data object ItemMerger {
         space: AbstractContainer3Shape,
         restWeight: FltX = FltX.maximum,
         config: Config = Config()
-    ): Pair<List<HollowSquareBlock>, Map<Item, UInt64>> {
+    ): Ret<Pair<List<HollowSquareBlock>, Map<Item, UInt64>>> {
         requireNoCylinderItemsForCuboidOnlyPath(
             items = items.keys,
             path = CylinderCapabilityPath.ItemMergeHollowSquareBlocks
-        )!!
+        ).failureAsRet<Pair<List<HollowSquareBlock>, Map<Item, UInt64>>>()?.let { return it }
         val restItems = items.toMutableMap()
         val mergedItems = ArrayList<HollowSquareBlock>()
         for ((item, restAmount) in restItems) {
@@ -651,7 +679,7 @@ data object ItemMerger {
 
             restItems[item] = thisRestAmount
         }
-        return Pair(mergedItems, restItems)
+        return Ok(Pair(mergedItems, restItems))
     }
 
     /**

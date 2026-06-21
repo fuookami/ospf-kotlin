@@ -23,6 +23,7 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -146,11 +147,13 @@ fun <I> gcd(
  * @param numbers 整数集合 / Collection of integers
  * @return 最大公约数 / Greatest common divisor
  */
-inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
-    return gcd(
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("GCD")
-    )
+inline fun <reified I> gcd(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
+        gcd(
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -187,14 +190,16 @@ fun <I> gcd(
  * @param numbers 其余整数 / Remaining integers
  * @return 最大公约数 / Greatest common divisor
  */
-inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
-    return gcd(
-        x = x,
-        y = y,
-        z = z,
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("GCD")
-    )
+inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
+        gcd(
+            x = x,
+            y = y,
+            z = z,
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -231,11 +236,13 @@ fun <I> gcdMod(
  * @param numbers 整数集合 / Collection of integers
  * @return 最大公约数 / Greatest common divisor
  */
-inline fun <reified I> gcdMod(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
-    return gcdMod(
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("GCD")
-    )
+inline fun <reified I> gcdMod(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
+        gcdMod(
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -272,14 +279,16 @@ fun <I> gcdMod(
  * @param numbers 其余整数 / Remaining integers
  * @return 最大公约数 / Greatest common divisor
  */
-inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
-    return gcdMod(
-        x = x,
-        y = y,
-        z = z,
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("GCD")
-    )
+inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
+        gcdMod(
+            x = x,
+            y = y,
+            z = z,
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -421,8 +430,8 @@ fun gcd(x: RtnX, y: RtnX): RtnX {
  */
 fun gcd(numbers: Iterable<RtnX>): RtnX {
     return RtnX(
-        gcd(numbers.map { it.num }),
-        lcm(numbers.map { it.den })
+        gcd(numbers.map { it.num }, IntX),
+        lcm(numbers.map { it.den }, IntX)
     )
 }
 

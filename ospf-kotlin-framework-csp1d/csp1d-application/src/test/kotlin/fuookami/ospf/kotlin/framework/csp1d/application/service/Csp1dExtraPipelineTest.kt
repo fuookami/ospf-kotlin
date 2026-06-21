@@ -4,6 +4,7 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -606,7 +607,7 @@ class Csp1dExtraPipelineTest {
                 problem = problem,
                 solveConfig = solveConfig
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
@@ -665,7 +666,7 @@ class Csp1dExtraPipelineTest {
                 problem = problem,
                 solveConfig = solveConfig
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)
@@ -725,7 +726,7 @@ class Csp1dExtraPipelineTest {
                 problem = problem,
                 solveConfig = solveConfig
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dSolutionStatus.Partial, result.solution.status)
         // 验证扩展管线约束在尝试求解最终 MILP 时已注册 /
@@ -862,7 +863,7 @@ class Csp1dExtraPipelineTest {
             solvingStatusCallBack: SolvingStatusCallBack?
         ): Ret<Flt64FeasibleSolverOutput> {
             captureConstraintNames(metaModel)
-            throw IllegalStateException("forced final MILP failure for partial path test")
+            return Failed(ErrorCode.ApplicationError, "forced final MILP failure for partial path test")
         }
 
         override suspend fun solveLP(

@@ -89,11 +89,14 @@ class ValueWrapperSerializer<T>(
          * 创建值包装器序列化器的便捷方法（自动解析常量，
          * Convenience method to create value wrapper serializer (auto-resolves constants)
          *
-         * @return 新的 ValueWrapperSerializer 实例
+         * @return 新的 ValueWrapperSerializer 实例解析结果
+         * @return The ValueWrapperSerializer resolution result
          */
         @OptIn(InternalSerializationApi::class)
-        inline operator fun <reified T> invoke(): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(resolveRealNumberConstants<T>("ValueWrapper"))
+        inline operator fun <reified T> invoke(): Ret<ValueWrapperSerializer<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return resolveRealNumberConstantsSafe<T>("ValueWrapper").mapResolved { constants ->
+                invoke(constants)
+            }
         }
     }
 
@@ -208,7 +211,9 @@ sealed class ValueWrapper<T>(
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(value, resolveRealNumberConstants<T>("ValueWrapper"))
+            return resolveRealNumberConstantsSafe<T>("ValueWrapper").flatMapResolved { constants ->
+                invoke(value, constants)
+            }
         }
 
         /**
@@ -247,12 +252,15 @@ sealed class ValueWrapper<T>(
          * 创建正无穷值包装器（自动解析常量）
          * Creates positive infinity value wrapper (auto-resolves constants)
          *
-         * @return 正无穷值包装器
+         * @return 正无穷值包装器解析结果
+         * @return The positive infinity value wrapper resolution result
          */
         inline operator fun <reified T> invoke(
             _inf: GlobalInfinity
-        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
-            return Infinity(resolveRealNumberConstants<T>("ValueWrapper"))
+        ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return resolveRealNumberConstantsSafe<T>("ValueWrapper").mapResolved { constants ->
+                Infinity(constants)
+            }
         }
 
         /**
@@ -274,13 +282,16 @@ sealed class ValueWrapper<T>(
          * 创建负无穷值包装器（自动解析常量）
          * Creates negative infinity value wrapper (auto-resolves constants)
          *
-         * @return 负无穷值包装器
+         * @return 负无穷值包装器解析结果
+         * @return The negative infinity value wrapper resolution result
          */
         @Suppress("UNCHECKED_AS")
         inline operator fun <reified T> invoke(
             _negInf: GlobalNegativeInfinity
-        ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
-            return NegativeInfinity(resolveRealNumberConstants<T>("ValueWrapper"))
+        ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return resolveRealNumberConstantsSafe<T>("ValueWrapper").mapResolved { constants ->
+                NegativeInfinity(constants)
+            }
         }
 
         /**

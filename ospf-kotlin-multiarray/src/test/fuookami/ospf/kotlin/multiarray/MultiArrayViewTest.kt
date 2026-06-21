@@ -33,8 +33,8 @@ class MultiArrayViewTest {
         val view = array[_a, _a]
 
         assertEquals(20, view.size)
-        assertEquals(0, view[0, 0])
-        assertEquals(19, view[3, 4])
+        assertOkEquals(0, view[0, 0])
+        assertOkEquals(19, view[3, 4])
     }
 
     // ========================================================================
@@ -132,9 +132,9 @@ class MultiArrayViewTest {
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
 
-        assertEquals(0, view[intArrayOf(0, 0)])
-        assertEquals(1, view[intArrayOf(0, 1)])
-        assertEquals(19, view[intArrayOf(3, 4)])
+        assertOkEquals(0, view[intArrayOf(0, 0)])
+        assertOkEquals(1, view[intArrayOf(0, 1)])
+        assertOkEquals(19, view[intArrayOf(3, 4)])
     }
 
     @Test
@@ -144,9 +144,9 @@ class MultiArrayViewTest {
         val array = MultiArray(Shape2(4, 5)) { i, _ -> i }
         val view = array[_a, _a]
 
-        assertEquals(0, view[0, 0])
-        assertEquals(1, view[0, 1])
-        assertEquals(19, view[3, 4])
+        assertOkEquals(0, view[0, 0])
+        assertOkEquals(1, view[0, 1])
+        assertOkEquals(19, view[3, 4])
     }
 
     // ========================================================================
@@ -395,9 +395,9 @@ class MultiArrayViewTest {
 
         // 原数组 [0, 1] = 1, 转置后 [1, 0] = 1
         // Original [0, 1] = 1, after transpose [1, 0] = 1
-        assertEquals(1, view[1, 0])
-        assertEquals(2, view[2, 0])
-        assertEquals(10, view[0, 1])
+        assertOkEquals(1, view[1, 0])
+        assertOkEquals(2, view[2, 0])
+        assertOkEquals(10, view[0, 1])
     }
 
     @Test

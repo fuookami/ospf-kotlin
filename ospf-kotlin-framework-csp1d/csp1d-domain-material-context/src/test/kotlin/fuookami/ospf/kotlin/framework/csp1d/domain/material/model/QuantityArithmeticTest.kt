@@ -15,10 +15,10 @@ class QuantityArithmeticTest {
         val a = Quantity(Flt64(3.0), Meter)
         val b = Quantity(Flt64(2.0), Meter)
 
-        val sum = arith.add(a, b)
+        val sum = assertNotNull(arith.add(a, b).value)
         assertTrue(sum eq Quantity(Flt64(5.0), Meter))
 
-        val diff = arith.subtract(a, b)
+        val diff = assertNotNull(arith.subtract(a, b).value)
         assertTrue(diff eq Quantity(Flt64(1.0), Meter))
     }
 
@@ -28,10 +28,10 @@ class QuantityArithmeticTest {
         val a = Quantity(FltX("3.0"), Kilogram)
         val b = Quantity(FltX("1.5"), Kilogram)
 
-        val sum = arith.add(a, b)
+        val sum = assertNotNull(arith.add(a, b).value)
         assertTrue(sum eq Quantity(FltX("4.5"), Kilogram))
 
-        val diff = arith.subtract(a, b)
+        val diff = assertNotNull(arith.subtract(a, b).value)
         assertTrue(diff eq Quantity(FltX("1.5"), Kilogram))
     }
 

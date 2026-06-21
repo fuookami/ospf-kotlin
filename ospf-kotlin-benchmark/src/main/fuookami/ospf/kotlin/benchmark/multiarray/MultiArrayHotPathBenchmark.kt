@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.multiarray.Shape3
 import fuookami.ospf.kotlin.multiarray.StorageOrder
 import fuookami.ospf.kotlin.multiarray.fromList
 import fuookami.ospf.kotlin.multiarray.flatten
+import fuookami.ospf.kotlin.multiarray.vectorUnchecked
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
@@ -47,7 +48,7 @@ open class MultiArrayHotPathBenchmark {
         val size = shape.size
         sourceList = List(size) { it % 97 }
         dense = MutableMultiArray.newWith(shape, 0)
-        vectors = List(size) { shape.vector(it) }
+        vectors = List(size) { shape.vectorUnchecked(it) }
 
         for (i in vectors.indices) {
             dense[vectors[i]] = sourceList[i]
@@ -82,8 +83,8 @@ open class MultiArrayHotPathBenchmark {
 
     @Benchmark
     fun fromListRowMajor(): Int {
-        val arr = MutableMultiArray.fromList(shape, sourceList, AccessOrder.RowMajor)
-        return arr[shape.vector(shape.size / 2)]
+        val arr = MutableMultiArray.fromList(shape, sourceList, AccessOrder.RowMajor).value!!
+        return arr[shape.vectorUnchecked(shape.size / 2)]
     }
 
     @Benchmark

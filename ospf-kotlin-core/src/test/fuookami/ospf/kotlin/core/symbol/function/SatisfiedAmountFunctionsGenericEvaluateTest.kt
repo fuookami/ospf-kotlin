@@ -107,12 +107,12 @@ class SatisfiedAmountFunctionsGenericEvaluateTest {
                 relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_ineq_x_le_1"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.one
-            ),
+            ).value ?: fail("linear constraint input should be built"),
             LinearConstraintInput.from(
                 relation = LinearInequality(yPoly, zeroPoly, Comparison.GE, "${numberCase.name.lowercase()}_ineq_y_ge_0"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.zero
-            )
+            ).value ?: fail("linear constraint input should be built")
         )
 
         val countFunction = SatisfiedAmountInequalityFunction.from(

@@ -7,7 +7,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import org.bson.Document
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.symbol.expression.*
@@ -27,15 +27,15 @@ class MongoScalarTranslatorTest {
     @DisplayName("should translate reference constant and arithmetic / 应翻译引用常量与算术表达式")
     fun shouldTranslateReferenceConstantAndArithmetic() {
         val translator = MongoScalarTranslator(resolver)
-        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price")))
-        val constant = translator.translate(ScalarConstant(100))
+        val reference = translator.translate(ScalarReference<Int>(PropertyPath.parse("price"))).valueOrFail()
+        val constant = translator.translate(ScalarConstant(100)).valueOrFail()
         val arithmetic = translator.translate(
             ScalarBinary(
                 BinaryOperator.Multiply,
                 ScalarReference<Int>(PropertyPath.parse("price")),
                 ScalarReference(PropertyPath.parse("quantity"))
             )
-        ) as Document
+        ).valueOrFail() as Document
 
         assertEquals("\$price", reference)
         assertEquals(100, constant)
@@ -47,11 +47,12 @@ class MongoScalarTranslatorTest {
     fun unsupportedScalarShouldFollowPolicy() {
         val alwaysFalseTranslator = MongoScalarTranslator(resolver)
         val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val unresolved = alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown")))
+        val failed = failFastTranslator.translate(ScalarCustom<Int>("x"))
 
-        assertNull(alwaysFalseTranslator.translate(ScalarReference<Int>(PropertyPath.parse("unknown"))))
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(ScalarCustom<Int>("x"))
-        }
+        assertTrue(unresolved.ok)
+        assertNull(unresolved.value)
+        assertTrue(failed.failed)
     }
 
     @Test
@@ -63,19 +64,19 @@ class MongoScalarTranslatorTest {
                 ScalarFunctionNames.Abs,
                 listOf(ScalarReference<Int>(PropertyPath.parse("price")))
             )
-        ) as Document
+        ).valueOrFail() as Document
         val lowerExpr = translator.translate(
             ScalarFunction(
                 ScalarFunctionNames.Lower,
                 listOf(ScalarReference<String>(PropertyPath.parse("price")))
             )
-        ) as Document
+        ).valueOrFail() as Document
         val coalesceExpr = translator.translate(
             ScalarFunction(
                 ScalarFunctionNames.Coalesce,
                 listOf(ScalarReference<String>(PropertyPath.parse("price")), ScalarConstant("fallback"))
             )
-        ) as Document
+        ).valueOrFail() as Document
 
         assertEquals("\$price", absExpr["\$abs"])
         assertEquals("\$price", lowerExpr["\$toLower"])
@@ -88,10 +89,11 @@ class MongoScalarTranslatorTest {
         val alwaysFalseTranslator = MongoScalarTranslator(resolver)
         val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val unknown = ScalarFunction("unknown", listOf(ScalarConstant(1)))
+        val unsupported = alwaysFalseTranslator.translate(unknown)
+        val failed = failFastTranslator.translate(unknown)
 
-        assertNull(alwaysFalseTranslator.translate(unknown))
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(unknown)
-        }
+        assertTrue(unsupported.ok)
+        assertNull(unsupported.value)
+        assertTrue(failed.failed)
     }
 }

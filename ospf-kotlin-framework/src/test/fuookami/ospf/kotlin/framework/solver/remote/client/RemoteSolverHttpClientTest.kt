@@ -8,6 +8,8 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
@@ -57,7 +59,7 @@ class RemoteSolverHttpClientTest {
                 budgetLimit = Flt64(12.5),
                 deadline = Instant.fromEpochMilliseconds(123L)
             )
-        )
+        ).valueOrFail()
 
         assertEquals(TaskId.of("task-1"), response.taskId)
         assertEquals(true, response.accepted)
@@ -100,7 +102,7 @@ class RemoteSolverHttpClientTest {
             transport = http
         )
 
-        val response = client.get(TaskId.of("task-1"))
+        val response = client.get(TaskId.of("task-1")).valueOrFail()
 
         assertEquals(TaskId.of("task-1"), response?.taskId)
         assertEquals(TaskStatus.RUNNING, response?.status)
@@ -120,7 +122,10 @@ class RemoteSolverHttpClientTest {
             transport = http
         )
 
-        assertNull(client.get(TaskId.of("missing-task")))
+        val response = client.get(TaskId.of("missing-task"))
+
+        assertTrue(response.ok)
+        assertNull(response.value)
     }
 
     @Test
@@ -143,7 +148,7 @@ class RemoteSolverHttpClientTest {
                 operator = OperatorId.of("tester"),
                 source = OperationSource.of("unit-test")
             )
-        )
+        ).valueOrFail()
         val resumed = client.resume(
             taskId = TaskId.of("task-1"),
             request = RemoteTaskResumeRequest(
@@ -151,7 +156,7 @@ class RemoteSolverHttpClientTest {
                 source = OperationSource.of("unit-test"),
                 reason = ReasonCode.of("manual-resume")
             )
-        )
+        ).valueOrFail()
 
         assertEquals(TaskStatus.STOPPING, stopped.status)
         assertEquals(TaskStatus.QUEUED, resumed.status)
@@ -182,14 +187,14 @@ class RemoteSolverHttpClientTest {
             transport = http
         )
 
-        val error = assertThrows(RemoteSolverException::class.java) {
-            client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
-        }
+        val result = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
 
-        assertEquals(RemoteSolverErrorCode.INVALID_ARGUMENT, error.code)
-        assertEquals("payloadRef is required", error.message)
-        assertEquals("trace-error", error.metadata["traceId"])
-        assertEquals("400", error.metadata["status"])
+        assertTrue(result is Failed<*, *, *>)
+        val error = result as Failed<*, *, *>
+        assertEquals(ErrorCode.IllegalArgument, error.code)
+        assertTrue(error.message?.contains("payloadRef is required") == true)
+        assertTrue(error.message?.contains("trace-error") == true)
+        assertTrue(error.message?.contains("status=400") == true)
     }
 
     @Test
@@ -227,7 +232,7 @@ class RemoteSolverHttpClientTest {
             )
         )
 
-        val response = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
+        val response = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1"))).valueOrFail()
 
         assertEquals(TaskId.of("task-custom"), response.taskId)
         assertEquals("from-plugin", response.message)
@@ -250,7 +255,7 @@ class RemoteSolverHttpClientTest {
 
         RemoteSolverHttpTransportPlugins.register(plugin)
 
-        assertEquals(plugin, RemoteSolverHttpTransportPlugins.resolve("unit-registry"))
+        assertEquals(plugin, RemoteSolverHttpTransportPlugins.resolve("unit-registry").valueOrFail())
         assertEquals(true, RemoteSolverHttpTransportPlugins.names().contains("jdk"))
         assertEquals(true, RemoteSolverHttpTransportPlugins.names().contains("unit-registry"))
     }
@@ -304,8 +309,8 @@ class RemoteSolverHttpClientTest {
             sliceId = SliceId.of("slice-1"),
             nodeId = NodeId.of("node-1"),
             tenantId = TenantId.of("tenant-a")
-        )
-        val slice = client.awaitSliceEnd(handle, 100.milliseconds)
+        ).valueOrFail()
+        val slice = client.awaitSliceEnd(handle, 100.milliseconds).valueOrFail()
 
         assertEquals(TaskId.of("task-1"), handle.taskId)
         assertEquals(true, slice.completed)
@@ -326,21 +331,21 @@ class RemoteSolverHttpClientTest {
             resumeMode = RemoteSolverHttpResumeMode.STRICT_CHECKPOINT
         )
 
-        val error = assertThrows(RemoteSolverException::class.java) {
-            runBlocking {
-                client.resume(
-                    payload = SolvePayload(SerializedLinearModel.empty()),
-                    checkpoint = ObjectRef.of(path = "checkpoints/specific"),
-                    taskId = TaskId.of("task-1"),
-                    sliceId = SliceId.of("slice-1"),
-                    nodeId = NodeId.of("node-1"),
-                    tenantId = TenantId.of("tenant-a")
-                )
-            }
+        val result = runBlocking {
+            client.resume(
+                payload = SolvePayload(SerializedLinearModel.empty()),
+                checkpoint = ObjectRef.of(path = "checkpoints/specific"),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                tenantId = TenantId.of("tenant-a")
+            )
         }
 
-        assertEquals(RemoteSolverErrorCode.INVALID_ARGUMENT, error.code)
-        assertEquals("checkpoints/specific", error.metadata["checkpointPath"])
+        assertTrue(result is Failed<*, *, *>)
+        val error = result as Failed<*, *, *>
+        assertEquals(ErrorCode.IllegalArgument, error.code)
+        assertTrue(error.message?.contains("checkpoints/specific") == true)
     }
 
     private fun actionEnvelope(status: String): String {

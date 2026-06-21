@@ -169,39 +169,17 @@ fun externalCall(): Ret<Response> {
 }
 ```
 
-### 5.3 基础设施层
+### 5.3 协议边界不变量 / Protocol Boundary Invariants
 
-极少数基础设施代码（如并行计算工具库）可能保留异常，但必须：
-- 提供 Result 版本的替代 API
-- 在文档中明确说明
-- 逐步迁移
+以下场景因协议或不变量约束而保留 `throw`/`require`，不属于迁移范围：
 
-## 6. 迁移策略
+- **Serializer 协议**：`KSerializer.deserialize` 返回类型为 `T`，Kotlin 序列化框架不允许返回 `Ret<T>`，反序列化失败必须抛 `SerializationException`。
+- **Iterator 协议**：`Iterator.next()` 在 `hasNext() == false` 时必须抛 `NoSuchElementException`，这是 Kotlin 标准库契约。
+- **值对象内部不变量**：`UInteger`/`Integer`/`Rational` 的倒数、零分母等在内部工厂返回 `Ret` 后的不可达路径中保留 `throw`，作为防御性断言。
+- **已编译闭包运行时校验**：`CompileOps` 中 `requireValuesSize` 等校验在已编译求值闭包中运行，属于调用方契约违反的快速失败，不返回 `Ret`。
 
-### 6.1 识别需要迁移的代码
 
-使用以下命令搜索项目中的 throw 语句：
-
-```bash
-grep -r "throw\s+" --include="*.kt" --exclude-dir=test
-```
-
-### 6.2 迁移优先级
-
-1. **高优先级**：应用层、领域服务层
-2. **中优先级**：领域模型层、基础设施层
-3. **低优先级**：工具库、并行计算库
-
-### 6.3 迁移步骤
-
-1. 识别函数的失败路径
-2. 定义适当的 ErrorCode
-3. 修改返回类型为 Result 变体
-4. 将 throw 替换为返回 Failed/Fatal
-5. 更新所有调用点
-6. 添加测试覆盖
-
-## 7. ErrorCode 扩展
+## 6. ErrorCode 扩展
 
 当现有 ErrorCode 不足以表达错误类型时：
 
@@ -209,9 +187,10 @@ grep -r "throw\s+" --include="*.kt" --exclude-dir=test
 2. 如果需要新的领域特定错误码，在相应模块定义扩展枚举
 3. 确保错误码值不与现有 ErrorCode 冲突
 
-## 8. 错误消息规范
+## 7. 错误消息规范
 
 - 使用简洁明了的中英双语消息
 - 包含足够的上下文信息（如参数值、状态）
 - 避免暴露内部实现细节
 - 格式：`"操作失败：原因 / Operation failed: reason"`
+

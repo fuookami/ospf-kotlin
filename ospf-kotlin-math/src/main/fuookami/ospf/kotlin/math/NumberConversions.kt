@@ -74,9 +74,9 @@ fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
  * Convert String to UIntX
  *
  * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
- * @return 转换后的 UIntX 值 / Converted UIntX value
+ * @return UIntX 转换结果 / UIntX conversion result
  */
-fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
+fun String.toUIntX(radix: Int = 10) = UIntX.of(this, radix)
 /**
  * String 转 UIntX，失败返回 null
  * Convert String to UIntX, return null on failure
@@ -84,7 +84,7 @@ fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
  * @param radix 进制基数，默认为 10 / Radix base, defaults to 10
  * @return 转换后的 UIntX 值，失败时返回 null / Converted UIntX value, or null on failure
  */
-fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
+fun String.toUIntXOrNull(radix: Int = 10) = UIntX.ofOrNull(this, radix)
 
 /** Boolean 转 Flt64 / Convert Boolean to Flt64 */
 fun Boolean.toFlt64() = if (this) Flt64.one else Flt64.zero

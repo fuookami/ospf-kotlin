@@ -1,8 +1,9 @@
-package fuookami.ospf.kotlin.math.geometry
+﻿package fuookami.ospf.kotlin.math.geometry
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -38,8 +39,8 @@ class GeometryCrossDomainReuseTest {
             )
         )
 
-        assertTrue(item.placement.overlapped(other.placement))
-        val intersect = item.placement.intersect(other.placement)
+        assertTrue(item.placement.overlapped(other.placement).valueOrFail())
+        val intersect = item.placement.intersect(other.placement).valueOrFail()
         assertNotNull(intersect)
         assertTrue(intersect.width eq (1.0 * Meter))
     }
@@ -67,8 +68,8 @@ class GeometryCrossDomainReuseTest {
             )
         )
 
-        assertTrue(stock.region.overlapped(cut.region))
-        val intersect = stock.region.intersect(cut.region)
+        assertTrue(stock.region.overlapped(cut.region).valueOrFail())
+        val intersect = stock.region.intersect(cut.region).valueOrFail()
         assertNotNull(intersect)
         assertTrue(intersect.width eq Quantity(FltX(2.0), Meter))
     }

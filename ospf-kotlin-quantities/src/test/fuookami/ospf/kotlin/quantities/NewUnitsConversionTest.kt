@@ -334,7 +334,7 @@ class NewUnitsConversionTest {
     fun `arithmetic_kibibyteAdditionShouldWork`() {
         val twoKiB = Flt64(2.0) * Kibibyte
         val threeKiB = Flt64(3.0) * Kibibyte
-        val sum = twoKiB + threeKiB
+        val sum = (twoKiB + threeKiB).orFail()
         assertEquals(5.0, sum.value.toDouble(), 1e-10)
         val inByte = sum.to(InfoByte)!!
         assertEquals(5120.0, inByte.value.toDouble(), 1e-10)
@@ -346,7 +346,7 @@ class NewUnitsConversionTest {
         val twoKilonewton = Flt64(2.0) * Kilonewton
         val inNewton = twoKilonewton.to(Newton)!!
         val twoNewton = Flt64(2.0) * Newton
-        val ratio = inNewton / twoNewton
+        val ratio = (inNewton / twoNewton).orFail()
         assertEquals(1000.0, ratio.value.toDouble(), 1e-10)
     }
 
@@ -354,7 +354,7 @@ class NewUnitsConversionTest {
     fun `arithmetic_stressAdditionShouldWork`() {
         val twoKPa = Flt64(2.0) * KilopascalStress
         val threeKPa = Flt64(3.0) * KilopascalStress
-        val sum = twoKPa + threeKPa
+        val sum = (twoKPa + threeKPa).orFail()
         assertEquals(5.0, sum.value.toDouble(), 1e-10)
         val inPa = sum.to(PascalStress)!!
         assertEquals(5000.0, inPa.value.toDouble(), 1e-10)

@@ -75,8 +75,8 @@ class DataFrameTest {
         df.setByName(0, "A", 100)
         df.setByName(0, "B", 200)
 
-        assertEquals(100, df.getByName(0, "A"))
-        assertEquals(200, df.getByName(0, "B"))
+        assertEquals(100, df.getByName(0, "A").valueOrFail())
+        assertEquals(200, df.getByName(0, "B").valueOrFail())
     }
 
     @Test
@@ -85,9 +85,7 @@ class DataFrameTest {
         // Test invalid column name
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
 
-        assertFailsWith<IllegalArgumentException> {
-            df.getByName(0, "C")
-        }
+        assertFailed(df.getByName(0, "C"))
     }
 
     @Test
@@ -153,7 +151,7 @@ class DataFrameTest {
         df.set(1, 0, 2)
         df.set(2, 0, 3)
 
-        assertEquals(listOf(1, 2, 3), df.getColumnByName("A"))
+        assertEquals(listOf(1, 2, 3), df.getColumnByName("A").valueOrFail())
     }
 
     @Test
@@ -240,7 +238,7 @@ class DataFrameTest {
             }
         }
 
-        val selected = df.select("A", "C")
+        val selected = df.select("A", "C").valueOrFail()
 
         assertEquals(3, selected.getNRows())
         assertEquals(2, selected.getNCols())
@@ -255,9 +253,7 @@ class DataFrameTest {
         // Test select invalid column
         val df = DataFrame<Int>(3, 2, listOf("A", "B"))
 
-        assertFailsWith<IllegalArgumentException> {
-            df.select("A", "C")
-        }
+        assertFailed(df.select("A", "C"))
     }
 
     // ========================================================================
@@ -373,7 +369,7 @@ class DataFrameTest {
         df.set(1, 1, 5)
         df.set(2, 1, 6)
 
-        val map = df.toMap()
+        val map = df.toMap().valueOrFail()
 
         assertEquals(2, map.size)
         assertEquals(listOf(1, 2, 3), map["A"])

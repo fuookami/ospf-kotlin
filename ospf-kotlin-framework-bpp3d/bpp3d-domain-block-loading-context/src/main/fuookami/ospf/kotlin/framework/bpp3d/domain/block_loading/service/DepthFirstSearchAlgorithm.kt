@@ -93,9 +93,9 @@ class DepthFirstSearchAlgorithm(
         bins: Map<BinType<FltX>, UInt64>,
         blockTable: List<Block>
     ): Pair<List<Bin<Block, FltX>>, List<Item>> {
-        requireNoCylinderItemsForCuboidSearch(
-            items = items
-        )
+        if (requireNoCylinderItemsForCuboidSearch(items = items).failed) {
+            return Pair(emptyList(), items.flatten())
+        }
         val restItems = items.toMutableMap()
         val availableBins = bins.toMutableMap()
 
@@ -173,9 +173,11 @@ class DepthFirstSearchAlgorithm(
         fixedSpaces: List<Space> = emptyList(),
         scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
-        requireNoCylinderItemsForCuboidSearch(
-            items = items
-        )
+        if (requireNoCylinderItemsForCuboidSearch(items = items).failed) {
+            val promise = Channel<List<Space>>()
+            promise.close()
+            return ChannelGuard(promise)
+        }
         val restItems = items.toMutableMap()
         val promise = Channel<List<Space>>()
         scope.launch(Dispatchers.Default) {
@@ -206,9 +208,11 @@ class DepthFirstSearchAlgorithm(
         fixedSpaces: List<Space> = emptyList(),
         scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
-        requireNoCylinderItemsForCuboidSearch(
-            items = items
-        )
+        if (requireNoCylinderItemsForCuboidSearch(items = items).failed) {
+            val promise = Channel<List<Space>>()
+            promise.close()
+            return ChannelGuard(promise)
+        }
         val restItems = items.toMutableMap()
 
         val promise = Channel<List<Space>>()

@@ -144,8 +144,8 @@ class GWOPolicy<ObjValue, V>(
             ((Flt64(iteration.time.toDouble(DurationUnit.SECONDS)) * Flt64.pi)
                     / (Flt64.two * Flt64(timeLimit.toDouble(DurationUnit.SECONDS)))).exp()
         )
-        val alphaA = (maxA * iterationCoefficient).pow(growthRateAlpha * (minA / maxA).lg2()!!).toFlt64()
-        val betaA = (maxA * iterationCoefficient).pow(growthRateBeta * (minA / maxA).lg2()!!).toFlt64()
+        val alphaA = (maxA * iterationCoefficient).pow(growthRateAlpha * (minA / maxA).lg2()!!)!!.toFlt64()
+        val betaA = (maxA * iterationCoefficient).pow(growthRateBeta * (minA / maxA).lg2()!!)!!.toFlt64()
         return listOf(alphaA, betaA, (alphaA + betaA) / Flt64.two)
     }
 
@@ -255,7 +255,7 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
     ): List<Wolf<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model
-            .initialSolutions(population.sumOf { it.densityRange.lowerBound.value.unwrap() })
+            .initialSolutions(population.sumOf(UInt64) { it.densityRange.lowerBound.value.unwrap() })
             .map {
                 Wolf(
                     solution = it,
@@ -263,7 +263,7 @@ class GreyWolfOptimizer<Obj, ObjValue, V>(
                 )
             }
         var populations = population.mapIndexed { i, thisPopulation ->
-            val fromIndex = population.take(i).sumOf { it.densityRange.lowerBound.value.unwrap() }
+            val fromIndex = population.take(i).sumOf(UInt64) { it.densityRange.lowerBound.value.unwrap() }
             val toIndex = fromIndex + thisPopulation.densityRange.upperBound.value.unwrap()
             val thisIndividuals = initialSolutions
                 .subList(fromIndex.toInt(), toIndex.toInt())

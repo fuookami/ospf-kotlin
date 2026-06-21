@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
  * @return 转换后的数值 / The casted numeric value
  */
 @Suppress("UNCHECKED_CAST")
-private fun <V : FloatingNumber<V>> castDistanceValue(value: Any): V {
+private fun <V : FloatingNumber<V>> castDistanceValue(value: Any?): V {
     // 安全不变量：距离运算在同一 V 数域中闭包，sqrt/pow 结果与输入域一致。
     // Safety invariant: distance operations are closed in the same V domain, so sqrt/pow results are V-compatible.
     return value as V

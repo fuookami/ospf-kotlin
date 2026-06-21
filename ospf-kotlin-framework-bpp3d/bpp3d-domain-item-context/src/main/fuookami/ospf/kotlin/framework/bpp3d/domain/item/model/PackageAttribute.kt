@@ -13,29 +13,32 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
-private fun ItemView.supportPackingShape(): PackingShape3<FltX> {
+private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
     val itemShape = placementPackingShape ?: unit.packingShape
     if (itemShape is CylinderPackingShape3) {
-        requireUprightVerticalCylinderSupport(
+        if (requireUprightVerticalCylinderSupport(
             shape = itemShape,
             orientation = orientation,
             path = CylinderCapabilityPath.PackageAttributeSupport
-        )!!
+        ).failed) {
+            return null
+        }
         return itemShape
     }
     return asPackingShape3()
 }
 
-private fun ItemView.bottomFootprintArea(): Quantity<FltX> {
+private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
+    val packingShape = supportPackingShapeOrNull() ?: return null
     val shapePlacement = ShapePlacement3(
-        shape = supportPackingShape(),
+        shape = packingShape,
         position = point3FltX()
     )
     return shapePlacement.footprintOverlapArea(shapePlacement)
 }
 
-private fun ItemView.bottomFootprintMinSpan(): Quantity<FltX> {
-    return when (val footprint = supportPackingShape().footprint()) {
+private fun ItemView.bottomFootprintMinSpanOrNull(): Quantity<FltX>? {
+    return when (val footprint = supportPackingShapeOrNull()?.footprint() ?: return null) {
         is ShapeFootprint2.Circle -> footprint.radius + footprint.radius
         is ShapeFootprint2.Rectangle -> if (footprint.width leq footprint.depth) footprint.width else footprint.depth
     }
@@ -110,8 +113,8 @@ data class AbsoluteHangingPolicy(
             return false
         }
 
-        val footprintArea = item.bottomFootprintArea()
-        val footprintMinSpan = item.bottomFootprintMinSpan()
+        val footprintArea = item.bottomFootprintAreaOrNull() ?: return false
+        val footprintMinSpan = item.bottomFootprintMinSpanOrNull() ?: return false
         val maxDifferenceSpan = maxDifference * (FltX.one * footprintMinSpan.unit)
         val maxHangingArea = maxDifferenceSpan * footprintMinSpan
         val hangingArea = footprintArea - bottomSupport.area
@@ -149,7 +152,7 @@ data class RelativeHangingPolicy(
             return false
         }
 
-        val footprintArea = item.bottomFootprintArea()
+        val footprintArea = item.bottomFootprintAreaOrNull() ?: return false
         val maxHangingArea = footprintArea * hangingPercentage
         val hangingArea = footprintArea - bottomSupport.area
         return hangingArea leq maxHangingArea

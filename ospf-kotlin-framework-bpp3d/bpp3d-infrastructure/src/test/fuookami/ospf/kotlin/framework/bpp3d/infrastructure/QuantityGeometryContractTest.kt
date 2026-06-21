@@ -116,7 +116,7 @@ class QuantityGeometryContractTest {
     }
 
     @Test
-    fun quantityPointRejectsIncomparableUnits() {
+    fun quantityPointSafeOrderReportsIncomparableUnits() {
         val lhs = QuantityPoint2(
             x = FltX(1.0) * Meter,
             y = FltX(1.0) * Meter
@@ -126,9 +126,7 @@ class QuantityGeometryContractTest {
             y = FltX(1.0) * Meter
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            lhs ord rhs
-        }
+        assertTrue((lhs ordSafe rhs).failed)
     }
 
     @Test

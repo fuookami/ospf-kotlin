@@ -339,8 +339,8 @@ class SCAPolicy<ObjValue, V>(
         val safePopulation = targetPopulation(population)
         val flt64Solutions = safePopulation.map { ind -> ind.solution.map { converter.fromValue(it) } }
         val center = flt64Solutions.flatMap { it }.averageOrNull() ?: Flt64.zero
-        return flt64Solutions.sumOf { solution ->
-            solution.sumOf { position ->
+        return flt64Solutions.sumOf(Flt64) { solution ->
+            solution.sumOf(Flt64) { position ->
                 (position - center).abs()
             }
         } / Flt64(population.size * flt64Solutions.first().size)
@@ -362,14 +362,14 @@ class SCAPolicy<ObjValue, V>(
         val safePopulation = targetPopulation(population)
         val targetBest = targetIndividual(best)
         val bestFlt64 = targetBest.solution.map { converter.fromValue(it) }
-        val maxDistance = model.tokens.tokens.sumOf {
+        val maxDistance = model.tokens.tokens.sumOf(Flt64) {
             val upper = converter.fromValue(unwrapBoundValue(it.upperBound!!.value.unwrap()))
             val lower = converter.fromValue(unwrapBoundValue(it.lowerBound!!.value.unwrap()))
             (upper - lower).sqr()
         }.sqrt()
-        return safePopulation.sumOf { individual ->
+        return safePopulation.sumOf(Flt64) { individual ->
             val solFlt64 = individual.solution.map { converter.fromValue(it) }
-            solFlt64.withIndex().sumOf { (index, position) ->
+            solFlt64.withIndex().sumOf(Flt64) { (index, position) ->
                 (position - bestFlt64[index]).sqr()
             }.sqrt()
         } / (Flt64(population.size) * maxDistance)

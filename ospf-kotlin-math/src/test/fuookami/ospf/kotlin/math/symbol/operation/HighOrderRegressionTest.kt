@@ -36,7 +36,7 @@ class HighOrderRegressionTest {
         val mapped = mapOf<Symbol, Flt64>(z to values[0], x to values[1], y to values[2])
 
         val direct = polynomial.evaluate(MapValueProvider(mapped))!!
-        val compiled = polynomial.compileEval(order)(values)
+        val compiled = polynomial.compileEval(order).value!!(values)
 
         assertTrue((direct - compiled).abs() <= Flt64(1e-9))
     }
@@ -61,8 +61,8 @@ class HighOrderRegressionTest {
         val order = listOf(x, y, z)
         val values = listOf(Flt64(1.5), Flt64(-2.0), Flt64(0.75))
 
-        val expected = polynomial.gradient(order).map { it.evaluateOrdered(order, values) }
-        val compiled = polynomial.compileGradient(order)(values)
+        val expected = polynomial.gradient(order).map { it.evaluateOrdered(order, values).value!! }
+        val compiled = polynomial.compileGradient(order).value!!(values)
 
         assertEquals(expected.size, compiled.size)
         for (i in expected.indices) {
@@ -85,7 +85,7 @@ class HighOrderRegressionTest {
             constant = Flt64(3.0)
         )
 
-        val partial = polynomial.partialEvaluate(mapOf<Symbol, Flt64>(x to Flt64(2.0)))
+        val partial = polynomial.partialEvaluate(mapOf<Symbol, Flt64>(x to Flt64(2.0))).value!!
         val fullValues = mapOf<Symbol, Flt64>(x to Flt64(2.0), y to Flt64(-1.5), z to Flt64(0.25))
         val reducedValues = mapOf<Symbol, Flt64>(y to Flt64(-1.5), z to Flt64(0.25))
 

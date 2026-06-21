@@ -1,8 +1,9 @@
-package fuookami.ospf.kotlin.math.geometry
+﻿package fuookami.ospf.kotlin.math.geometry
 
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -15,7 +16,7 @@ class GeometryCylinder3Test {
             axis = Axis3.X
         )
 
-        val remapped = cylinder.permute(QuantityAxisPermutation3.YXZ)
+        val remapped = cylinder.permute(QuantityAxisPermutation3.YXZ).valueOrFail()
         assertTrue(remapped.axis == Axis3.Y)
         assertTrue(remapped.boundingCuboid.width eq (2.0 * Meter))
         assertTrue(remapped.boundingCuboid.height eq (5.0 * Meter))
@@ -92,7 +93,7 @@ class GeometryCylinder3Test {
             )
         )
 
-        assertTrue(cylinderPlacement.overlapped(cuboidPlacement))
-        assertTrue(!cylinderPlacement.overlapped(farPlacement))
+        assertTrue(cylinderPlacement.overlapped(cuboidPlacement).value!!)
+        assertTrue(!cylinderPlacement.overlapped(farPlacement).value!!)
     }
 }

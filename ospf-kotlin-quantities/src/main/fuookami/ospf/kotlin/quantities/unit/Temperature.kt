@@ -17,8 +17,9 @@ import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.dimension.Temperature
 
+private val fahrenheitLinearScaleValue = FltX(5L) / FltX(9L)
 private val fahrenheitLinearScale = Scale(RtnX(5, 9))
-private val fahrenheitAffineOffset = FltX(273.15) - FltX(32L) * fahrenheitLinearScale.value
+private val fahrenheitAffineOffset = FltX(273.15) - FltX(32L) * fahrenheitLinearScaleValue
 
 /**
  * 开尔文（SI 基本单位）

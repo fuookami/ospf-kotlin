@@ -71,7 +71,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      * @param arg 参数 / Argument
      * @return 影子价格总和 / Shadow price sum
      */
-    open operator fun invoke(arg: Args) = _extractors.sumOf { it(this, arg) }
+    open operator fun invoke(arg: Args) = _extractors.sumOf(Flt64) { it(this, arg) }
 
     /**
      * 按键获取影子价格
@@ -205,7 +205,7 @@ fun <
 ): Try {
     when (val args = this.args) {
         is ShadowPriceKey -> {
-            shadowPrices.symbols[this]?.sumOf { it.second }?.let {
+            shadowPrices.symbols[this]?.sumOf(Flt64) { it.second }?.let {
                 shadowPriceMap.putOrAdd(ShadowPrice(args, it))
             }
         }

@@ -49,23 +49,17 @@ class FoldConstantPathTest {
     }
 
     @Test
-    fun reifiedDefaultPathsShouldThrowWhenFallbackDisabled() {
+    fun reifiedDefaultPathsShouldFailWhenFallbackDisabled() {
         val numbers = listOf(1, 2, 3)
 
-        assertFailsWith<IllegalStateException> {
-            runBlocking {
-                numbers.sumOfParallelly<Int, Int64> { Int64(it.toLong()) }
-            }
+        runBlocking {
+            assertTrue(numbers.sumOfParallelly<Int, Int64> { Int64(it.toLong()) }.failed)
         }
-        assertFailsWith<IllegalStateException> {
-            runBlocking {
-                numbers.trySumOfParallelly<Int, Int64> { Ok(Int64(it.toLong())) }
-            }
+        runBlocking {
+            assertTrue(numbers.trySumOfParallelly<Int, Int64> { Ok(Int64(it.toLong())) }.failed)
         }
-        assertFailsWith<IllegalStateException> {
-            runBlocking {
-                numbers.exTrySumOfParallelly<Int, Int64> { Ok(Int64(it.toLong())) }
-            }
+        runBlocking {
+            assertTrue(numbers.exTrySumOfParallelly<Int, Int64> { Ok(Int64(it.toLong())) }.failed)
         }
     }
 

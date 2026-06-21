@@ -17,8 +17,9 @@ import kotlin.math.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.pow
@@ -76,7 +77,7 @@ private fun uIntegerPowByFloatingIndex(
     index: FloatingNumber<*>,
     toFltX: () -> FltX,
     source: String
-): FloatingNumber<*> = when (index) {
+): FloatingNumber<*>? = when (index) {
     is Flt32 -> Flt32(floatValue.pow(index.value))
     is Flt64 -> Flt64(doubleValue.pow(index.value))
     is FltX -> toFltX().pow(index)
@@ -102,11 +103,24 @@ private fun uIntegerPowByFloatingIndex(
 interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<Self> {
     /** 绝对值（返回自身）/ Absolute value (returns self) */
     override fun abs() = copy()
-    /** 倒数；仅对 1 有效 / Reciprocal; only valid for 1 */
-    override fun reciprocal() = when (this) {
+    /** 可空倒数；仅对 1 有效 / Nullable reciprocal; only valid for 1 */
+    fun reciprocalOrNull(): Self? = when (this) {
         constants.one -> constants.one.copy()
-        else -> throw ArithmeticException("Reciprocal is undefined in UInteger domain for non-unit value: $this")
+        else -> null
     }
+
+    /** 安全倒数；仅对 1 有效 / Safe reciprocal; only valid for 1 */
+    fun reciprocalSafe(): Ret<Self> {
+        return reciprocalOrNull()?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "无符号整数倒数未定义：非单位值没有无符号整数域倒数，value=$this。 / Unsigned integer reciprocal is undefined for non-unit value: $this."
+            )
+    }
+
+    /** 倒数；仅对 1 有效 / Reciprocal; only valid for 1 */
+    override fun reciprocal(): Self = reciprocalOrNull()
+        ?: throw ArithmeticException("Reciprocal is undefined in UInteger domain for non-unit value: $this")
 
     /** 整数除法 / Integer division */
     override fun intDiv(rhs: Self) = this / rhs
@@ -399,7 +413,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt8")
 
     /** 转换为 Int8 / Convert to Int8 */
@@ -616,7 +630,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt16")
 
     /** 转换为 Int8 / Convert to Int8 */
@@ -833,7 +847,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt32")
 
     /** 转换为原始 Int 值 / Convert to raw Int value */
@@ -1064,7 +1078,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt64")
 
     /** 转换为 Int / Convert to Int */
@@ -1125,7 +1139,11 @@ data object UIntXSerializer : KSerializer<UIntX> {
     }
 
     override fun deserialize(decoder: Decoder): UIntX {
-        return UIntX(decoder.decodeString())
+        return when (val result = UIntX.of(decoder.decodeString())) {
+            is Ok -> result.value
+            is Failed -> serializationFailure(result.error.message)
+            is Fatal -> serializationFailure(result.errors.joinToString { it.message })
+        }
     }
 }
 
@@ -1176,6 +1194,133 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
 
         @JvmStatic
         override val maximum: UIntX get() = UIntX(Double.MAX_VALUE.toString())
+
+        /**
+         * 创建 UIntX。
+         * Creates a UIntX value.
+         *
+         * @param value 原始整数值 / Raw integer value
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun of(value: BigInteger): Ret<UIntX> {
+            return if (value < BigInteger.ZERO) {
+                Failed(
+                    ErrorCode.IllegalArgument,
+                    "无符号整数不能为负数：value=$value。 / Unsigned integer cannot be negative: value=$value."
+                )
+            } else {
+                ok(UIntX(value))
+            }
+        }
+
+        /**
+         * 创建 UIntX。
+         * Creates a UIntX value.
+         *
+         * @param value Long 值 / Long value
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun of(value: Long): Ret<UIntX> {
+            return of(BigInteger.valueOf(value))
+        }
+
+        /**
+         * 从字符串创建 UIntX。
+         * Creates a UIntX value from string.
+         *
+         * @param value 字符串表示 / String representation
+         * @param radix 进制基数 / Radix base
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun of(value: String, radix: Int = 10): Ret<UIntX> {
+            if (radix !in Character.MIN_RADIX..Character.MAX_RADIX) {
+                return Failed(
+                    ErrorCode.IllegalArgument,
+                    "进制基数非法：radix=$radix。 / Illegal radix: radix=$radix."
+                )
+            }
+            val parsed = value.toBigIntegerOrNull(radix) ?: return Failed(
+                ErrorCode.IllegalArgument,
+                "无符号整数解析失败：value=$value, radix=$radix。 / Failed to parse unsigned integer: value=$value, radix=$radix."
+            )
+            return of(parsed)
+        }
+
+        /**
+         * 安全创建 UIntX。
+         * Safely creates a UIntX value.
+         *
+         * @param value 原始整数值 / Raw integer value
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun ofSafe(value: BigInteger): Ret<UIntX> {
+            return of(value)
+        }
+
+        /**
+         * 安全创建 UIntX。
+         * Safely creates a UIntX value.
+         *
+         * @param value Long 值 / Long value
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun ofSafe(value: Long): Ret<UIntX> {
+            return of(value)
+        }
+
+        /**
+         * 安全创建 UIntX。
+         * Safely creates a UIntX value.
+         *
+         * @param value 字符串表示 / String representation
+         * @param radix 进制基数 / Radix base
+         * @return UIntX 创建结果 / UIntX creation result
+         */
+        fun ofSafe(value: String, radix: Int = 10): Ret<UIntX> {
+            return of(value, radix)
+        }
+
+        /**
+         * 创建 UIntX，失败返回 null。
+         * Creates a UIntX value, returning null on failure.
+         *
+         * @param value 原始整数值 / Raw integer value
+         * @return UIntX 或 null / UIntX or null
+         */
+        fun ofOrNull(value: BigInteger): UIntX? {
+            return when (val result = of(value)) {
+                is Ok -> result.value
+                is Failed -> null
+                is Fatal -> null
+            }
+        }
+
+        /**
+         * 创建 UIntX，失败返回 null。
+         * Creates a UIntX value, returning null on failure.
+         *
+         * @param value Long 值 / Long value
+         * @return UIntX 或 null / UIntX or null
+         */
+        fun ofOrNull(value: Long): UIntX? {
+            return ofOrNull(BigInteger.valueOf(value))
+        }
+
+        /**
+         * 从字符串创建 UIntX，失败返回 null。
+         * Creates a UIntX value from string, returning null on failure.
+         *
+         * @param value 字符串表示 / String representation
+         * @param radix 进制基数 / Radix base
+         * @return UIntX 或 null / UIntX or null
+         */
+        fun ofOrNull(value: String, radix: Int = 10): UIntX? {
+            return when (val result = of(value, radix)) {
+                is Ok -> result.value
+                is Failed -> null
+                is Fatal -> null
+            }
+        }
     }
 
     /**
@@ -1332,7 +1477,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *         The power result
      */
     @kotlin.jvm.Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)
         is FltX -> toFltX().pow(index)
@@ -1532,10 +1677,10 @@ fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
  *
  * @param radix 进制基数，默认为 10
  *              The radix base, defaults to 10
- * @return UIntX 值
- *         The UIntX value
+ * @return UIntX 转换结果
+ *         The UIntX conversion result
  */
-fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
+fun String.toUIntX(radix: Int = 10) = UIntX.of(this, radix)
 
 /**
  * 将字符串转换为 UIntX，如果转换失败则返回 null
@@ -1546,4 +1691,4 @@ fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
  * @return UIntX 值或 null
  *         The UIntX value or null
  */
-fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
+fun String.toUIntXOrNull(radix: Int = 10) = UIntX.ofOrNull(this, radix)

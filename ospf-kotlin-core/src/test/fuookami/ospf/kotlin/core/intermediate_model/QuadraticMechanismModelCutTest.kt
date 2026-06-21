@@ -41,7 +41,7 @@ class QuadraticMechanismModelCutTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-optimal"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel(name = "cut-parent-optimal", converter = flt64TestConverter),
             name = "cut-model-optimal",
@@ -84,7 +84,7 @@ class QuadraticMechanismModelCutTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-linear-fallback"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel(name = "cut-parent-linear", converter = flt64TestConverter),
             name = "cut-model-linear",

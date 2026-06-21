@@ -17,6 +17,7 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
@@ -80,9 +81,42 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
  * @return 解析到的 Flt64ValueConverter 提供者
  * @return The resolved Flt64ValueConverter provider
  */
-inline fun <reified V> resolveFlt64ValueConverter(caller: String): Flt64ValueConverter<V> where V : RealNumber<V> {
-    return resolveCompanionProvider<V, Flt64ValueConverter<V>>(
-        caller,
-        "Flt64ValueConverter<${V::class.simpleName}>"
+inline fun <reified V> resolveFlt64ValueConverter(caller: String): Ret<Flt64ValueConverter<V>> where V : RealNumber<V> {
+    return resolveFlt64ValueConverterSafe(caller)
+}
+
+/**
+ * 安全解析 Flt64ValueConverter
+ * Safely resolve Flt64ValueConverter
+ *
+ * @param V 目标数值类型
+ * @param V The target numeric type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return Flt64ValueConverter 解析结果
+ * @return The Flt64ValueConverter resolution result
+ */
+inline fun <reified V> resolveFlt64ValueConverterSafe(caller: String): Ret<Flt64ValueConverter<V>> where V : RealNumber<V> {
+    return resolveCompanionProviderSafe<V, Flt64ValueConverter<V>>(
+        caller = caller,
+        expectedTypeName = "Flt64ValueConverter<${V::class.simpleName}>"
+    )
+}
+
+/**
+ * 尝试解析 Flt64ValueConverter，失败返回 null
+ * Try resolving Flt64ValueConverter, returning null on failure
+ *
+ * @param V 目标数值类型
+ * @param V The target numeric type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return Flt64ValueConverter，失败时返回 null
+ * @return The Flt64ValueConverter, or null on failure
+ */
+inline fun <reified V> resolveFlt64ValueConverterOrNull(caller: String): Flt64ValueConverter<V>? where V : RealNumber<V> {
+    return resolveCompanionProviderOrNull<V, Flt64ValueConverter<V>>(
+        caller = caller,
+        expectedTypeName = "Flt64ValueConverter<${V::class.simpleName}>"
     )
 }

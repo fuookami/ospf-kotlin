@@ -27,12 +27,15 @@ class Formula(
     val doiCorrection: Quantity<Flt64>,
 ) {
     fun balancedArm(mac: MAC): Quantity<Flt64> {
-        return mac.mac * chord + lip
+        return ((mac.mac * chord)!! + lip)!!
     }
 
     @JvmName("balancedArm")
     fun balancedArm(index: Quantity<Flt64>, totalWeight: Quantity<Flt64>): Quantity<Flt64> {
-        return (index - doiCorrection) * forceDistanceCoefficient / aircraftModel.gravity(totalWeight) + standardDatum
+        val correctedIndex = (index - doiCorrection)!!
+        val correctedTorque = (correctedIndex * forceDistanceCoefficient)!!
+        val armOffset = (correctedTorque / aircraftModel.gravity(totalWeight))!!
+        return (armOffset + standardDatum)!!
     }
 
     @JvmName("balancedArmPolynomial")
@@ -47,15 +50,22 @@ class Formula(
     }
 
     fun arm(index: Quantity<Flt64>, weight: Quantity<Flt64>): Quantity<Flt64> {
-        return index * forceDistanceCoefficient / aircraftModel.gravity(weight) + standardDatum
+        val torque = (index * forceDistanceCoefficient)!!
+        val armOffset = (torque / aircraftModel.gravity(weight))!!
+        return (armOffset + standardDatum)!!
     }
 
     fun index(mac: MAC, totalWeight: Quantity<Flt64>): Quantity<Flt64> {
-        return totalWeight * (balancedArm(mac) - standardDatum) / forceDistanceCoefficient + doiCorrection
+        val armOffset = (balancedArm(mac) - standardDatum)!!
+        val torque = (totalWeight * armOffset)!!
+        val index = (torque / forceDistanceCoefficient)!!
+        return (index + doiCorrection)!!
     }
 
     fun index(weight: Quantity<Flt64>, arm: Quantity<Flt64>): Quantity<Flt64> {
-        return aircraftModel.gravity(weight) * (arm - standardDatum) / forceDistanceCoefficient
+        val armOffset = (arm - standardDatum)!!
+        val torque = (aircraftModel.gravity(weight) * armOffset)!!
+        return (torque / forceDistanceCoefficient)!!
     }
 
     fun index(weight: Quantity<Flt64>, position: Position): Quantity<Flt64> {
@@ -63,7 +73,7 @@ class Formula(
     }
 
     fun mac(balancedArm: Quantity<Flt64>): MAC {
-        return MAC(((balancedArm - lip) / chord).value)
+        return MAC(((balancedArm - lip)!! / chord)!!.value)
     }
 
     fun mac(index: Quantity<Flt64>, totalWeight: Quantity<Flt64>): MAC {

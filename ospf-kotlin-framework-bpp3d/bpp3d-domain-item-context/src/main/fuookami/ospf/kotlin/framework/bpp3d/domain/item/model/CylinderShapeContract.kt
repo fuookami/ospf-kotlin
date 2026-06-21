@@ -555,6 +555,48 @@ fun continuousCylinderRadiusSolverPrototype(
     if (lowerBound != null && upperBound != null && upperBound.convertTo(lowerBound.unit) == null) {
         return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
     }
+    if (source.isBlank()) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype source must not be blank.")
+    }
+    if (lowerBound != null && lowerBound.value.toDouble() <= 0.0) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype lower bound must be positive.")
+    }
+    if (upperBound != null && upperBound.value.toDouble() <= 0.0) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype upper bound must be positive.")
+    }
+    if (selectedRadius != null && selectedRadius.value.toDouble() <= 0.0) {
+        return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype initial radius must be positive.")
+    }
+    if (selectedRadius != null && lowerBound != null) {
+        val lower = lowerBound.convertTo(selectedRadius.unit)
+            ?: return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+        if (selectedRadius.value.toDouble() < lower.value.toDouble()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "Continuous cylinder radius solver prototype selected or initial radius must be greater than or equal to lower bound."
+            )
+        }
+    }
+    if (selectedRadius != null && upperBound != null) {
+        val upper = upperBound.convertTo(selectedRadius.unit)
+            ?: return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+        if (selectedRadius.value.toDouble() > upper.value.toDouble()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "Continuous cylinder radius solver prototype selected or initial radius must be less than or equal to upper bound."
+            )
+        }
+    }
+    if (lowerBound != null && upperBound != null) {
+        val upper = upperBound.convertTo(lowerBound.unit)
+            ?: return Failed(ErrorCode.IllegalArgument, "Continuous cylinder radius solver prototype bounds must be length-compatible.")
+        if (lowerBound.value.toDouble() > upper.value.toDouble()) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "Continuous cylinder radius solver prototype lower bound must be less than or equal to upper bound."
+            )
+        }
+    }
     return Ok(ContinuousCylinderRadiusSolverPrototype(
         source = source,
         radiusWeightFunctionKey = key,
@@ -815,11 +857,10 @@ fun requireVerticalCylinderAxis(
     require(path.status == CylinderCapabilityStatus.VerticalCandidateOnly) {
         "Cylinder capability path ${path.name} is not a vertical candidate path."
     }
-    requireVerticalCylinderAxis(
+    return requireVerticalCylinderAxis(
         shape = shape,
         source = path.source
-    )!!
-    return ok
+    )
 }
 
 /**
@@ -878,12 +919,11 @@ fun requireUprightVerticalCylinderSupport(
     require(path.status == CylinderCapabilityStatus.UprightVerticalSupportOnly) {
         "Cylinder capability path ${path.name} is not an upright vertical support path."
     }
-    requireUprightVerticalCylinderSupport(
+    return requireUprightVerticalCylinderSupport(
         shape = shape,
         orientation = orientation,
         source = path.source
-    )!!
-    return ok
+    )
 }
 
 /**
@@ -898,7 +938,11 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try 
     if (shape !is CylinderPackingShape3) {
         return ok
     }
-    requireVerticalCylinderAxis(shape = shape, source = source)!!
+    when (val ret = requireVerticalCylinderAxis(shape = shape, source = source)) {
+        is Ok -> {}
+        is Failed -> return Failed(ret.error)
+        is Fatal -> return Fatal(ret.errors)
+    }
     val unsupportedOrientations = item.enabledOrientations.filter { it.category != OrientationCategory.Upright }
     if (unsupportedOrientations.isNotEmpty()) {
         return Failed(ErrorCode.IllegalArgument, unsupportedCylinderOrientationMessage(source))
@@ -920,11 +964,10 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabil
     require(path == CylinderCapabilityPath.SimpleBlockCandidate) {
         "Cylinder capability path ${path.name} is not the simple block candidate path."
     }
-    requireSupportedCylinderItemForSimpleBlock(
+    return requireSupportedCylinderItemForSimpleBlock(
         item = item,
         source = path.source
-    )!!
-    return ok
+    )
 }
 
 /**
@@ -966,12 +1009,11 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
     require(path.status == CylinderCapabilityStatus.CuboidOnly && path.pathPredicate != null) {
         "Cylinder capability path ${path.name} is not a cuboid-only path."
     }
-    requireNoCylinderItemsForCuboidOnlyPath(
+    return requireNoCylinderItemsForCuboidOnlyPath(
         items = items,
         source = path.source,
         pathPredicate = path.pathPredicate
-    )!!
-    return ok
+    )
 }
 
 /**

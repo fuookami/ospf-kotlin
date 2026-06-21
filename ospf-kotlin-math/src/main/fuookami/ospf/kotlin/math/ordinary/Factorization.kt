@@ -169,11 +169,13 @@ fun <I> factorize(
  * @param num 待分解的整数 / Integer to factorize
  * @return 质因数分解结果列表 / List of (prime, exponent) pairs
  */
-inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    return factorize(
-        num = num,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+inline fun <reified I> factorize(num: I): Ret<List<Pair<I, Int>>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
+        factorize(
+            num = num,
+            constants = constants
+        )
+    }
 }
 
 /** 将质因数分解结果还原为原整数（内部实现） / Convert factorization result back to original integer (internal) */
@@ -219,10 +221,12 @@ fun <I> defactorize(
 inline fun <reified I> defactorize(
     factors: Iterable<Pair<I, Int>>
 ): Ret<I> where I : Integer<I>, I : Pow<I> {
-    return defactorize(
-        factors = factors,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+    return resolveRealNumberConstantsSafe<I>("Factorization").flatMapResolved { constants ->
+        defactorize(
+            factors = factors,
+            constants = constants
+        )
+    }
 }
 
 /** 根据质因数分解结果计算所有因数（内部实现） / Compute all divisors from factorization result (internal) */
@@ -280,11 +284,13 @@ fun <I> divisors(
  */
 inline fun <reified I> divisors(
     factors: List<Pair<I, Int>>
-): List<I> where I : Integer<I>, I : Pow<I> {
-    return divisors(
-        factors = factors,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+): Ret<List<I>> where I : Integer<I>, I : Pow<I> {
+    return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
+        divisors(
+            factors = factors,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -311,11 +317,13 @@ fun <I> divisors(
  */
 inline fun <reified I> divisors(
     num: I
-): List<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
-    return divisors(
-        num = num,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+): Ret<List<I>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
+    return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
+        divisors(
+            num = num,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -359,11 +367,13 @@ fun <I> divisorCount(
  */
 inline fun <reified I> divisorCount(
     num: I
-): Int where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    return divisorCount(
-        num = num,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+): Ret<Int> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
+        divisorCount(
+            num = num,
+            constants = constants
+        )
+    }
 }
 
 /** 计算欧拉函数值（内部实现） / Compute Euler's totient function value (internal) */
@@ -406,9 +416,11 @@ fun <I> eulerTotient(
  */
 inline fun <reified I> eulerTotient(
     num: I
-): I where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {
-    return eulerTotient(
-        num = num,
-        constants = resolveRealNumberConstants<I>("Factorization")
-    )
+): Ret<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {
+    return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
+        eulerTotient(
+            num = num,
+            constants = constants
+        )
+    }
 }

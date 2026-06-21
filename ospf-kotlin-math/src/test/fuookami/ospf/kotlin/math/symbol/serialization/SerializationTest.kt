@@ -101,7 +101,7 @@ class SerializationTest {
             displayName = "Test Inequality"
         )
         val json = li.toJsonString()
-        val restored = linearInequalityFromJson(json)
+        val restored = linearInequalityFromJson(json).value!!
         assertLinearPolynomialEquals(li.lhs, restored.lhs)
         assertLinearPolynomialEquals(li.rhs, restored.rhs)
         assertEquals(li.comparison, restored.comparison)
@@ -123,7 +123,7 @@ class SerializationTest {
             comparison = Comparison.LE
         )
         val json = ci.toJsonString()
-        val restored = canonicalInequalityFromJson(json)
+        val restored = canonicalInequalityFromJson(json).value!!
         assertCanonicalPolynomialEquals(ci.lhs, restored.lhs)
         assertCanonicalPolynomialEquals(ci.rhs, restored.rhs)
         assertEquals(ci.comparison, restored.comparison)
@@ -145,7 +145,7 @@ class SerializationTest {
             displayName = "Test Quadratic Inequality"
         )
         val json = qi.toJsonString()
-        val restored = quadraticInequalityFromJson(json)
+        val restored = quadraticInequalityFromJson(json).value!!
         assertQuadraticPolynomialEquals(qi.lhs, restored.lhs)
         assertQuadraticPolynomialEquals(qi.rhs, restored.rhs)
         assertEquals(qi.comparison, restored.comparison)

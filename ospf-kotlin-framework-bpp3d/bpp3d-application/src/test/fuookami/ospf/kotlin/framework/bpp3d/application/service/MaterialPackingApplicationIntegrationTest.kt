@@ -204,7 +204,7 @@ class MaterialPackingApplicationIntegrationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).valueOrFail()
 
         val plan = response.materialPackingPlan
         assertNotNull(plan)
@@ -236,7 +236,7 @@ class MaterialPackingApplicationIntegrationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).valueOrFail()
 
         val plan = response.materialPackingPlan
         assertNotNull(plan)
@@ -268,7 +268,7 @@ class MaterialPackingApplicationIntegrationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).valueOrFail()
 
         val plan = response.materialPackingPlan
         assertNotNull(plan)
@@ -324,7 +324,7 @@ class MaterialPackingApplicationIntegrationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).valueOrFail()
 
         assertTrue(response.result.finalSolved)
         assertEquals(null, response.materialPackingPlan)

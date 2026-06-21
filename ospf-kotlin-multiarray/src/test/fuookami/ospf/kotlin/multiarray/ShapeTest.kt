@@ -37,9 +37,9 @@ class ShapeTest {
         // 测试一维形状索引计算
         // Test 1D shape index calculation
         val shape = Shape1(5)
-        assertEquals(0, shape.index(intArrayOf(0)))
-        assertEquals(2, shape.index(intArrayOf(2)))
-        assertEquals(4, shape.index(intArrayOf(4)))
+        assertEquals(0, shape.indexValue(intArrayOf(0)))
+        assertEquals(2, shape.indexValue(intArrayOf(2)))
+        assertEquals(4, shape.indexValue(intArrayOf(4)))
     }
 
     @Test
@@ -47,9 +47,9 @@ class ShapeTest {
         // 测试一维形状向量转换
         // Test 1D shape vector conversion
         val shape = Shape1(5)
-        assertArrayEquals(intArrayOf(0), shape.vector(0))
-        assertArrayEquals(intArrayOf(2), shape.vector(2))
-        assertArrayEquals(intArrayOf(4), shape.vector(4))
+        assertArrayEquals(intArrayOf(0), shape.vectorValue(0))
+        assertArrayEquals(intArrayOf(2), shape.vectorValue(2))
+        assertArrayEquals(intArrayOf(4), shape.vectorValue(4))
     }
 
     @Test
@@ -57,8 +57,8 @@ class ShapeTest {
         // 测试一维形状越界异常
         // Test 1D shape out of bounds exception
         val shape = Shape1(5)
-        assertFailsWith<OutOfShapeException> { shape.index(intArrayOf(5)) }
-        assertFailsWith<OutOfShapeException> { shape.index(intArrayOf(-1)) }
+        assertTrue(shape.index(intArrayOf(5)).failed)
+        assertTrue(shape.index(intArrayOf(-1)).failed)
     }
 
     @Test
@@ -66,8 +66,8 @@ class ShapeTest {
         // 测试一维形状向量越界异常
         // Test 1D shape vector out of bounds exception
         val shape = Shape1(5)
-        assertFailsWith<ArrayIndexOutOfBoundsException> { shape.vector(5) }
-        assertFailsWith<ArrayIndexOutOfBoundsException> { shape.vector(-1) }
+        assertTrue(shape.vector(5).failed)
+        assertTrue(shape.vector(-1).failed)
     }
 
     @Test
@@ -121,13 +121,13 @@ class ShapeTest {
         // Test 2D row-major index calculation
         val shape = Shape2(3, 4)
 
-        assertEquals(0, shape.index(intArrayOf(0, 0)))
-        assertEquals(1, shape.index(intArrayOf(0, 1)))
-        assertEquals(2, shape.index(intArrayOf(0, 2)))
-        assertEquals(3, shape.index(intArrayOf(0, 3)))
-        assertEquals(4, shape.index(intArrayOf(1, 0)))
-        assertEquals(5, shape.index(intArrayOf(1, 1)))
-        assertEquals(11, shape.index(intArrayOf(2, 3)))
+        assertEquals(0, shape.indexValue(intArrayOf(0, 0)))
+        assertEquals(1, shape.indexValue(intArrayOf(0, 1)))
+        assertEquals(2, shape.indexValue(intArrayOf(0, 2)))
+        assertEquals(3, shape.indexValue(intArrayOf(0, 3)))
+        assertEquals(4, shape.indexValue(intArrayOf(1, 0)))
+        assertEquals(5, shape.indexValue(intArrayOf(1, 1)))
+        assertEquals(11, shape.indexValue(intArrayOf(2, 3)))
     }
 
     @Test
@@ -136,12 +136,12 @@ class ShapeTest {
         // Test 2D column-major index calculation
         val shape = Shape2.withOrder(3, 4, StorageOrder.ColumnMajor)
 
-        assertEquals(0, shape.index(intArrayOf(0, 0)))
-        assertEquals(1, shape.index(intArrayOf(1, 0)))
-        assertEquals(2, shape.index(intArrayOf(2, 0)))
-        assertEquals(3, shape.index(intArrayOf(0, 1)))
-        assertEquals(4, shape.index(intArrayOf(1, 1)))
-        assertEquals(11, shape.index(intArrayOf(2, 3)))
+        assertEquals(0, shape.indexValue(intArrayOf(0, 0)))
+        assertEquals(1, shape.indexValue(intArrayOf(1, 0)))
+        assertEquals(2, shape.indexValue(intArrayOf(2, 0)))
+        assertEquals(3, shape.indexValue(intArrayOf(0, 1)))
+        assertEquals(4, shape.indexValue(intArrayOf(1, 1)))
+        assertEquals(11, shape.indexValue(intArrayOf(2, 3)))
     }
 
     @Test
@@ -150,12 +150,12 @@ class ShapeTest {
         // Test 2D row-major vector conversion
         val shape = Shape2(3, 4)
 
-        assertArrayEquals(intArrayOf(0, 0), shape.vector(0))
-        assertArrayEquals(intArrayOf(0, 1), shape.vector(1))
-        assertArrayEquals(intArrayOf(0, 3), shape.vector(3))
-        assertArrayEquals(intArrayOf(1, 0), shape.vector(4))
-        assertArrayEquals(intArrayOf(1, 1), shape.vector(5))
-        assertArrayEquals(intArrayOf(2, 3), shape.vector(11))
+        assertArrayEquals(intArrayOf(0, 0), shape.vectorValue(0))
+        assertArrayEquals(intArrayOf(0, 1), shape.vectorValue(1))
+        assertArrayEquals(intArrayOf(0, 3), shape.vectorValue(3))
+        assertArrayEquals(intArrayOf(1, 0), shape.vectorValue(4))
+        assertArrayEquals(intArrayOf(1, 1), shape.vectorValue(5))
+        assertArrayEquals(intArrayOf(2, 3), shape.vectorValue(11))
     }
 
     @Test
@@ -164,12 +164,12 @@ class ShapeTest {
         // Test 2D column-major vector conversion
         val shape = Shape2.withOrder(3, 4, StorageOrder.ColumnMajor)
 
-        assertArrayEquals(intArrayOf(0, 0), shape.vector(0))
-        assertArrayEquals(intArrayOf(1, 0), shape.vector(1))
-        assertArrayEquals(intArrayOf(2, 0), shape.vector(2))
-        assertArrayEquals(intArrayOf(0, 1), shape.vector(3))
-        assertArrayEquals(intArrayOf(1, 1), shape.vector(4))
-        assertArrayEquals(intArrayOf(2, 3), shape.vector(11))
+        assertArrayEquals(intArrayOf(0, 0), shape.vectorValue(0))
+        assertArrayEquals(intArrayOf(1, 0), shape.vectorValue(1))
+        assertArrayEquals(intArrayOf(2, 0), shape.vectorValue(2))
+        assertArrayEquals(intArrayOf(0, 1), shape.vectorValue(3))
+        assertArrayEquals(intArrayOf(1, 1), shape.vectorValue(4))
+        assertArrayEquals(intArrayOf(2, 3), shape.vectorValue(11))
     }
 
     @Test
@@ -177,8 +177,8 @@ class ShapeTest {
         // 测试二维形状维度不匹配异常
         // Test 2D shape dimension mismatch exception
         val shape = Shape2(3, 4)
-        assertFailsWith<DimensionMismatchingException> { shape.index(intArrayOf(0)) }
-        assertFailsWith<DimensionMismatchingException> { shape.index(intArrayOf(0, 1, 2)) }
+        assertTrue(shape.index(intArrayOf(0)).failed)
+        assertTrue(shape.index(intArrayOf(0, 1, 2)).failed)
     }
 
     // ========================================================================
@@ -222,11 +222,11 @@ class ShapeTest {
         // Test 3D row-major index calculation
         val shape = Shape3(2, 3, 4)
 
-        assertEquals(0, shape.index(intArrayOf(0, 0, 0)))
-        assertEquals(1, shape.index(intArrayOf(0, 0, 1)))
-        assertEquals(4, shape.index(intArrayOf(0, 1, 0)))
-        assertEquals(12, shape.index(intArrayOf(1, 0, 0)))
-        assertEquals(23, shape.index(intArrayOf(1, 2, 3)))
+        assertEquals(0, shape.indexValue(intArrayOf(0, 0, 0)))
+        assertEquals(1, shape.indexValue(intArrayOf(0, 0, 1)))
+        assertEquals(4, shape.indexValue(intArrayOf(0, 1, 0)))
+        assertEquals(12, shape.indexValue(intArrayOf(1, 0, 0)))
+        assertEquals(23, shape.indexValue(intArrayOf(1, 2, 3)))
     }
 
     @Test
@@ -235,11 +235,11 @@ class ShapeTest {
         // Test 3D row-major vector conversion
         val shape = Shape3(2, 3, 4)
 
-        assertArrayEquals(intArrayOf(0, 0, 0), shape.vector(0))
-        assertArrayEquals(intArrayOf(0, 0, 1), shape.vector(1))
-        assertArrayEquals(intArrayOf(0, 1, 0), shape.vector(4))
-        assertArrayEquals(intArrayOf(1, 0, 0), shape.vector(12))
-        assertArrayEquals(intArrayOf(1, 2, 3), shape.vector(23))
+        assertArrayEquals(intArrayOf(0, 0, 0), shape.vectorValue(0))
+        assertArrayEquals(intArrayOf(0, 0, 1), shape.vectorValue(1))
+        assertArrayEquals(intArrayOf(0, 1, 0), shape.vectorValue(4))
+        assertArrayEquals(intArrayOf(1, 0, 0), shape.vectorValue(12))
+        assertArrayEquals(intArrayOf(1, 2, 3), shape.vectorValue(23))
     }
 
     // ========================================================================
@@ -319,11 +319,11 @@ class ShapeTest {
         // Test dynamic shape index calculation
         val shape = DynShape(intArrayOf(2, 3, 4))
 
-        assertEquals(0, shape.index(intArrayOf(0, 0, 0)))
-        assertEquals(1, shape.index(intArrayOf(0, 0, 1)))
-        assertEquals(4, shape.index(intArrayOf(0, 1, 0)))
-        assertEquals(12, shape.index(intArrayOf(1, 0, 0)))
-        assertEquals(23, shape.index(intArrayOf(1, 2, 3)))
+        assertEquals(0, shape.indexValue(intArrayOf(0, 0, 0)))
+        assertEquals(1, shape.indexValue(intArrayOf(0, 0, 1)))
+        assertEquals(4, shape.indexValue(intArrayOf(0, 1, 0)))
+        assertEquals(12, shape.indexValue(intArrayOf(1, 0, 0)))
+        assertEquals(23, shape.indexValue(intArrayOf(1, 2, 3)))
     }
 
     @Test
@@ -332,11 +332,11 @@ class ShapeTest {
         // Test dynamic shape vector conversion
         val shape = DynShape(intArrayOf(2, 3, 4))
 
-        assertArrayEquals(intArrayOf(0, 0, 0), shape.vector(0))
-        assertArrayEquals(intArrayOf(0, 0, 1), shape.vector(1))
-        assertArrayEquals(intArrayOf(0, 1, 0), shape.vector(4))
-        assertArrayEquals(intArrayOf(1, 0, 0), shape.vector(12))
-        assertArrayEquals(intArrayOf(1, 2, 3), shape.vector(23))
+        assertArrayEquals(intArrayOf(0, 0, 0), shape.vectorValue(0))
+        assertArrayEquals(intArrayOf(0, 0, 1), shape.vectorValue(1))
+        assertArrayEquals(intArrayOf(0, 1, 0), shape.vectorValue(4))
+        assertArrayEquals(intArrayOf(1, 0, 0), shape.vectorValue(12))
+        assertArrayEquals(intArrayOf(1, 2, 3), shape.vectorValue(23))
     }
 
     @Test
@@ -478,12 +478,12 @@ class ShapeTest {
         // Test dimension offset
         val shape = Shape3(2, 3, 4)
 
-        assertEquals(12, shape.offset(0))
-        assertEquals(4, shape.offset(1))
-        assertEquals(1, shape.offset(2))
+        assertEquals(12, shape.offsetValue(0))
+        assertEquals(4, shape.offsetValue(1))
+        assertEquals(1, shape.offsetValue(2))
 
-        assertFailsWith<DimensionMismatchingException> { shape.offset(3) }
-        assertFailsWith<DimensionMismatchingException> { shape.offset(-1) }
+        assertTrue(shape.offset(3).failed)
+        assertTrue(shape.offset(-1).failed)
     }
 
     @Test
@@ -506,6 +506,18 @@ class ShapeTest {
     // 辅助函数
     // Helper functions
     // ========================================================================
+
+    private fun Shape.indexValue(vector: IntArray): Int {
+        return index(vector).value ?: fail("index should succeed")
+    }
+
+    private fun Shape.vectorValue(index: Int): IntArray {
+        return vector(index).value ?: fail("vector should succeed")
+    }
+
+    private fun Shape.offsetValue(dimension: Int): Int {
+        return offset(dimension).value ?: fail("offset should succeed")
+    }
 
     private fun assertArrayEquals(expected: IntArray, actual: IntArray) {
         assertEquals(expected.size, actual.size, "Array sizes differ")

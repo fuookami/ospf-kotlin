@@ -208,10 +208,13 @@ data class ValueRange<T>(
          * 创建全范围值范围（自动解析常量，
          * Creates full range value range (auto-resolves constants)
          *
-         * @return 全范围的值范囌
+         * @return 全范围的值范围解析结果
+         * @return The full value range resolution result
          */
-        inline operator fun <reified T> invoke(): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(resolveRealNumberConstants<T>("ValueRange"))
+        inline operator fun <reified T> invoke(): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return resolveRealNumberConstantsSafe<T>("ValueRange").mapResolved { constants ->
+                invoke(constants)
+            }
         }
 
         /**
@@ -227,7 +230,9 @@ data class ValueRange<T>(
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(value, resolveRealNumberConstants<T>("ValueRange"))
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                invoke(value, constants)
+            }
         }
 
         /**
@@ -267,13 +272,15 @@ data class ValueRange<T>(
             lbInterval: Interval = Interval.Closed,
             ubInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return ValueRange(
-                lb = lb,
-                ub = ub,
-                lbInterval = lbInterval,
-                ubInterval = ubInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                ValueRange(
+                    lb = lb,
+                    ub = ub,
+                    lbInterval = lbInterval,
+                    ubInterval = ubInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -343,12 +350,14 @@ data class ValueRange<T>(
             ub: Infinity,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(
-                lb = lb,
-                ub = ub,
-                lbInterval = lbInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                invoke(
+                    lb = lb,
+                    ub = ub,
+                    lbInterval = lbInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -403,12 +412,14 @@ data class ValueRange<T>(
             ub: T,
             ubInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(
-                lb = lb,
-                ub = ub,
-                ubInterval = ubInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                invoke(
+                    lb = lb,
+                    ub = ub,
+                    ubInterval = ubInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -461,11 +472,13 @@ data class ValueRange<T>(
             lb: T,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return geq(
-                lb = lb,
-                lbInterval = lbInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                geq(
+                    lb = lb,
+                    lbInterval = lbInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -478,10 +491,12 @@ data class ValueRange<T>(
         inline fun <reified T> gr(
             lb: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return gr(
-                lb = lb,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                gr(
+                    lb = lb,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -554,11 +569,13 @@ data class ValueRange<T>(
             ub: T,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return leq(
-                ub = ub,
-                lbInterval = lbInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                leq(
+                    ub = ub,
+                    lbInterval = lbInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -571,10 +588,12 @@ data class ValueRange<T>(
         inline fun <reified T> ls(
             ub: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return ls(
-                ub = ub,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                ls(
+                    ub = ub,
+                    constants = constants
+                )
+            }
         }
 
         /**
@@ -651,13 +670,15 @@ data class ValueRange<T>(
             lbInterval: Interval,
             ubInterval: Interval
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return ValueRange(
-                lb = lb,
-                ub = ub,
-                lbInterval = lbInterval,
-                ubInterval = ubInterval,
-                constants = resolveRealNumberConstants<T>("ValueRange")
-            )
+            return resolveRealNumberConstantsSafe<T>("ValueRange").flatMapResolved { constants ->
+                ValueRange(
+                    lb = lb,
+                    ub = ub,
+                    lbInterval = lbInterval,
+                    ubInterval = ubInterval,
+                    constants = constants
+                )
+            }
         }
 
         /**

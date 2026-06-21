@@ -19,8 +19,9 @@ import kotlinx.serialization.json.*
 import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.*
@@ -41,6 +42,37 @@ private fun <I> ensureNonZeroDenominator(den: I)
         where I : Integer<I>, I : NumberField<I> {
     if (den eq den.constants.zero) {
         throw ArithmeticException("Rational denominator cannot be zero.")
+    }
+}
+
+private fun <I> isZeroDenominator(den: I): Boolean
+        where I : Integer<I>, I : NumberField<I> {
+    return den eq den.constants.zero
+}
+
+private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
+    return Failed(
+        ErrorCode.IllegalArgument,
+        "有理数分母不能为零：den=$den。 / Rational denominator cannot be zero: den=$den."
+    )
+}
+
+private inline fun <Self, I> rationalOf(
+    den: I,
+    build: () -> Self
+): Ret<Self> where I : Integer<I>, I : NumberField<I> {
+    return if (isZeroDenominator(den)) {
+        zeroDenominatorFailure(den)
+    } else {
+        ok(build())
+    }
+}
+
+private fun <Self> Ret<Self>.orNull(): Self? {
+    return when (this) {
+        is Ok -> value
+        is Failed -> null
+        is Fatal -> null
     }
 }
 
@@ -65,7 +97,7 @@ private fun <I> ensureNonZeroDenominator(den: I)
  */
 abstract class RationalSerializer<Self, I>(
     name: String,
-    val ctor: (I, I) -> Self,
+    val ctor: (I, I) -> Ret<Self>,
 ) : KSerializer<Self> where Self : Rational<Self, I>, I : Integer<I>, I : NumberField<I> {
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor(name) {
         element<JsonElement>("num")
@@ -96,10 +128,14 @@ abstract class RationalSerializer<Self, I>(
             fields = descriptor.elementNames,
             serializerName = "RationalSerializer"
         )
-        return ctor(
+        return when (val result = ctor(
             jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["num"]!!),
-            jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["den"]!!),
-        )
+            jsonDecoder.json.decodeFromJsonElement(valueSerializer, element["den"]!!)
+        )) {
+            is Ok -> result.value
+            is Failed -> serializationFailure(result.error.message)
+            is Fatal -> serializationFailure(result.errors.joinToString { it.message })
+        }
     }
 }
 
@@ -146,8 +182,23 @@ abstract class Rational<Self, I> protected constructor(
 
     /** 取负 / Negation */
     override operator fun unaryMinus() = ctor(-num, den)
+    /** 可空倒数 / Nullable reciprocal */
+    fun reciprocalOrNull(): Self? = if (num eq integerConstants.zero) {
+        null
+    } else {
+        ctor(den, num)
+    }
+    /** 安全倒数 / Safe reciprocal */
+    fun reciprocalSafe(): Ret<Self> {
+        return reciprocalOrNull()?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "有理数倒数未定义：零没有倒数，value=$this。 / Rational reciprocal is undefined for zero: $this."
+            )
+    }
     /** 倒数 / Reciprocal */
-    override fun reciprocal() = ctor(den, num)
+    override fun reciprocal(): Self = reciprocalOrNull()
+        ?: throw ArithmeticException("Reciprocal is undefined for zero rational value: $this")
     /** 绝对值 / Absolute value */
     override fun abs() = ctor(num.abs(), den)
 
@@ -338,7 +389,7 @@ abstract class RationalConstants<Self, I> protected constructor(
  * 用于 Rtn8 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Rtn8 type in the Kotlin serialization framework.
  */
-data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::invoke) {
+data object Rtn8Serializer : RationalSerializer<Rtn8, Int8>("Rtn8", Rtn8::of) {
     override val valueSerializer = Int8Serializer
 }
 
@@ -364,6 +415,22 @@ data class Rtn8 internal constructor(
     override val den: Int8
 ) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
+        fun of(num: Int8, den: Int8): Ret<Rtn8> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                val negative = (num < Int8.zero) xor (den < Int8.zero)
+                if (negative) {
+                    Rtn8(-num.abs() / divisor, den.abs() / divisor)
+                } else {
+                    Rtn8(num.abs() / divisor, den.abs() / divisor)
+                }
+            }
+        }
+
+        fun ofOrNull(num: Int8, den: Int8): Rtn8? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -438,7 +505,7 @@ data class Rtn8 internal constructor(
  * 用于 Rtn16 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Rtn16 type in the Kotlin serialization framework.
  */
-data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke) {
+data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::of) {
     override val valueSerializer = Int16Serializer
 }
 
@@ -464,6 +531,17 @@ data class Rtn16 internal constructor(
     override val den: Int16
 ) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
+        fun of(num: Int16, den: Int16): Ret<Rtn16> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                Rtn16(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: Int16, den: Int16): Rtn16? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -533,7 +611,7 @@ data class Rtn16 internal constructor(
  * 用于 Rtn32 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Rtn32 type in the Kotlin serialization framework.
  */
-data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke) {
+data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::of) {
     override val valueSerializer = Int32Serializer
 }
 
@@ -559,6 +637,17 @@ data class Rtn32 internal constructor(
     override val den: Int32
 ) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
+        fun of(num: Int32, den: Int32): Ret<Rtn32> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                Rtn32(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: Int32, den: Int32): Rtn32? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -628,7 +717,7 @@ data class Rtn32 internal constructor(
  * 用于 Rtn64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Rtn64 type in the Kotlin serialization framework.
  */
-data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke) {
+data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::of) {
     override val valueSerializer = Int64Serializer
 }
 
@@ -654,6 +743,17 @@ data class Rtn64 internal constructor(
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64ValueConverter<Rtn64> {
+        fun of(num: Int64, den: Int64): Ret<Rtn64> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                Rtn64(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: Int64, den: Int64): Rtn64? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -728,7 +828,7 @@ data class Rtn64 internal constructor(
  * 用于 RtnX（任意精度有理数）类型的 Kotlin 序列化框架序列化器。
  * Serializer for the RtnX (arbitrary precision rational number) type in the Kotlin serialization framework.
  */
-data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
+data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::of) {
     override val valueSerializer = IntXSerializer
 }
 
@@ -754,8 +854,27 @@ data class RtnX internal constructor(
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64ValueConverter<RtnX> {
+        fun of(num: Int, den: Int): Ret<RtnX> {
+            return of(IntX(num.toLong()), IntX(den.toLong()))
+        }
+
+        fun ofOrNull(num: Int, den: Int): RtnX? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: Int, den: Int): RtnX {
             return RtnX(IntX(num.toLong()), IntX(den.toLong()))
+        }
+
+        fun of(num: IntX, den: IntX): Ret<RtnX> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                RtnX(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: IntX, den: IntX): RtnX? {
+            return of(num, den).orNull()
         }
 
         operator fun invoke(num: IntX, den: IntX): RtnX {
@@ -835,7 +954,7 @@ data class RtnX internal constructor(
  * 用于 URtn8 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the URtn8 type in the Kotlin serialization framework.
  */
-object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::invoke) {
+object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::of) {
     override val valueSerializer = UInt8Serializer
 }
 
@@ -861,6 +980,17 @@ data class URtn8 internal constructor(
     override val den: UInt8
 ) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
+        fun of(num: UInt8, den: UInt8): Ret<URtn8> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                URtn8(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: UInt8, den: UInt8): URtn8? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -930,7 +1060,7 @@ data class URtn8 internal constructor(
  * 用于 URtn16 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the URtn16 type in the Kotlin serialization framework.
  */
-object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::invoke) {
+object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::of) {
     override val valueSerializer = UInt16Serializer
 }
 
@@ -956,6 +1086,17 @@ data class URtn16 internal constructor(
     override val den: UInt16
 ) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
+        fun of(num: UInt16, den: UInt16): Ret<URtn16> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                URtn16(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: UInt16, den: UInt16): URtn16? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1025,7 +1166,7 @@ data class URtn16 internal constructor(
  * 用于 URtn32 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the URtn32 type in the Kotlin serialization framework.
  */
-object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::invoke) {
+object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::of) {
     override val valueSerializer = UInt32Serializer
 }
 
@@ -1051,6 +1192,17 @@ data class URtn32 internal constructor(
     override val den: UInt32
 ) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
+        fun of(num: UInt32, den: UInt32): Ret<URtn32> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                URtn32(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: UInt32, den: UInt32): URtn32? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1120,7 +1272,7 @@ data class URtn32 internal constructor(
  * 用于 URtn64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the URtn64 type in the Kotlin serialization framework.
  */
-object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::invoke) {
+object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::of) {
     override val valueSerializer = UInt64Serializer
 }
 
@@ -1146,10 +1298,29 @@ data class URtn64 internal constructor(
     override val den: UInt64
 ) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
+        fun of(num: UInt64, den: UInt64): Ret<URtn64> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                URtn64(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: UInt64, den: UInt64): URtn64? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
             return URtn64(num / divisor, den / divisor)
+        }
+
+        fun of(num: Int, den: Int): Ret<URtn64> {
+            return of(UInt64(num), UInt64(den))
+        }
+
+        fun ofOrNull(num: Int, den: Int): URtn64? {
+            return of(num, den).orNull()
         }
 
         operator fun invoke(num: Int, den: Int): URtn64 {
@@ -1219,7 +1390,7 @@ data class URtn64 internal constructor(
  * 用于 URtnX（任意精度无符号有理数）类型的 Kotlin 序列化框架序列化器。
  * Serializer for the URtnX (arbitrary precision unsigned rational number) type in the Kotlin serialization framework.
  */
-object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::invoke) {
+object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::of) {
     override val valueSerializer = UIntXSerializer
 }
 
@@ -1245,6 +1416,17 @@ data class URtnX internal constructor(
     override val den: UIntX
 ) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
+        fun of(num: UIntX, den: UIntX): Ret<URtnX> {
+            return rationalOf(den) {
+                val divisor = gcdMod(num.abs(), den.abs())
+                URtnX(num / divisor, den / divisor)
+            }
+        }
+
+        fun ofOrNull(num: UIntX, den: UIntX): URtnX? {
+            return of(num, den).orNull()
+        }
+
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())

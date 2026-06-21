@@ -37,9 +37,9 @@ class ShapeBoundaryTest {
         // Test zero-dimension shape index/vector inverse transform
         val shape = DynShape(intArrayOf())
         // For 0-dim shape, index(emptyArray) should return 0
-        assertEquals(0, shape.index(intArrayOf()))
+        assertEquals(0, shape.indexValue(intArrayOf()))
         // vector(0) should return empty array
-        val vec = shape.vector(0)
+        val vec = shape.vectorValue(0)
         assertTrue(vec.isEmpty())
     }
 
@@ -72,8 +72,8 @@ class ShapeBoundaryTest {
 
         // Only valid index is 0
         for (shape in listOf(shapeRowMajor, shapeColMajor)) {
-            val vec = shape.vector(0)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(0)
+            val idx = shape.indexValue(vec)
             assertEquals(0, idx)
         }
     }
@@ -135,8 +135,8 @@ class ShapeBoundaryTest {
         // Record original index calculation results
         val originalIndices = mutableMapOf<IntArray, Int>()
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            originalIndices[vec.copyOf()] = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            originalIndices[vec.copyOf()] = shape.indexValue(vec)
         }
 
         // 修改输入数组
@@ -146,7 +146,7 @@ class ShapeBoundaryTest {
         // 验证索引计算仍然正确
         // Verify index calculation remains correct
         for ((vec, expectedIdx) in originalIndices) {
-            assertEquals(expectedIdx, shape.index(vec))
+            assertEquals(expectedIdx, shape.indexValue(vec))
         }
     }
 
@@ -165,8 +165,8 @@ class ShapeBoundaryTest {
         // 验证逆变换仍然正确
         // Verify inverse transform remains correct
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            assertEquals(i, shape.index(vec))
+            val vec = shape.vectorValue(i)
+            assertEquals(i, shape.indexValue(vec))
         }
     }
 
@@ -219,8 +219,8 @@ class ShapeBoundaryTest {
 
         // 验证唯一元素的索引
         // Verify single element index
-        assertEquals(0, shape.index(intArrayOf(0, 0, 0)))
-        assertArrayEquals(intArrayOf(0, 0, 0), shape.vector(0))
+        assertEquals(0, shape.indexValue(intArrayOf(0, 0, 0)))
+        assertArrayEquals(intArrayOf(0, 0, 0), shape.vectorValue(0))
     }
 
     @Test
@@ -235,9 +235,17 @@ class ShapeBoundaryTest {
         // 验证逆变换
         // Verify inverse transform
         for (i in listOf(0, 512, 1023)) {
-            val vec = shape.vector(i)
-            assertEquals(i, shape.index(vec))
+            val vec = shape.vectorValue(i)
+            assertEquals(i, shape.indexValue(vec))
         }
+    }
+
+    private fun Shape.indexValue(vector: IntArray): Int {
+        return index(vector).value ?: fail("index should succeed")
+    }
+
+    private fun Shape.vectorValue(index: Int): IntArray {
+        return vector(index).value ?: fail("vector should succeed")
     }
 
     // Helper function for array comparison

@@ -110,8 +110,8 @@ class AccessOrderIteratorContractTest {
         val shape = Shape2(2, 3)
         val columnMajorList = listOf(0, 3, 1, 4, 2, 5)
 
-        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
-        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor).valueOrFail()
+        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor).valueOrFail()
 
         assertEquals(listOf(0, 1, 2, 3, 4, 5), immutable.flatten(AccessOrder.RowMajor))
         assertEquals(listOf(0, 1, 2, 3, 4, 5), mutable.flatten(AccessOrder.RowMajor))
@@ -124,8 +124,8 @@ class AccessOrderIteratorContractTest {
         val shape = Shape2.withOrder(2, 3, StorageOrder.ColumnMajor)
         val columnMajorList = listOf(0, 3, 1, 4, 2, 5)
 
-        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
-        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor).valueOrFail()
+        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor).valueOrFail()
 
         assertEquals(listOf(0, 3, 1, 4, 2, 5), immutable.flatten(AccessOrder.ColumnMajor))
         assertEquals(listOf(0, 3, 1, 4, 2, 5), mutable.flatten(AccessOrder.ColumnMajor))

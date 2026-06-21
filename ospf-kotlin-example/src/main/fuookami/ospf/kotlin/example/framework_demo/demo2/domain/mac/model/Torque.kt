@@ -58,10 +58,10 @@ class Torque(
 
                     FlightPhase.ZeroFuel -> {}
                 }
-                poly += (fuselage.dow * fuselage.balancedArm).to(aircraftModel.torqueUnit)!!.value
+                poly += (fuselage.dow * fuselage.balancedArm)!!.to(aircraftModel.torqueUnit)!!.value
                 poly += fuselage.liferaft?.let {
                     val arm = formula.arm(it.index, it.weight)
-                    (it.weight * arm).to(aircraftModel.torqueUnit)!!.value
+                    (it.weight * arm)!!.to(aircraftModel.torqueUnit)!!.value
                 } ?: Flt64.zero
                 Quantity(
                     LinearExpressionSymbol(

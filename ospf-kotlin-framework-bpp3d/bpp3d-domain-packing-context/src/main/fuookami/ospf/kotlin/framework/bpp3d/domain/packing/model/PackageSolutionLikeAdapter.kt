@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -32,7 +33,7 @@ data class PackageSolutionLikeNode(
 private fun mergeMaterialValue(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
-): PackingProgramMaterialValue {
+): Ret<PackingProgramMaterialValue> {
     return mergePackingProgramMaterialValues(lhs, rhs)
 }
 
@@ -47,26 +48,41 @@ private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMateria
     }
 }
 
-fun PackageSolutionLikeNode.toPackingProgram(): PackingProgram<FltX> {
-    val childPrograms = children.map { child -> child.toPackingProgram() }
+fun PackageSolutionLikeNode.toPackingProgram(): Ret<PackingProgram<FltX>> {
+    val childPrograms = ArrayList<PackingProgram<FltX>>()
+    for (child in children) {
+        when (val result = child.toPackingProgram()) {
+            is Ok -> childPrograms.add(result.value)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+    }
     val mergedMaterials = LinkedHashMap<MaterialKey, PackingProgramMaterialValue>()
     for (child in childPrograms) {
         for ((material, value) in child.materials) {
-            mergedMaterials[material] = mergeMaterialValue(
+            mergedMaterials[material] = when (val result = mergeMaterialValue(
                 lhs = mergedMaterials[material],
                 rhs = value
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
     }
     for (materialItem in materialItems) {
-        mergedMaterials[materialItem.material] = mergeMaterialValue(
+        mergedMaterials[materialItem.material] = when (val result = mergeMaterialValue(
             lhs = mergedMaterials[materialItem.material],
             rhs = materialItem.quantity.toMaterialValue()
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
     }
-    return PackingProgram(
+    return ok(PackingProgram(
         shape = shape,
         packages = childPrograms.ifEmpty { null },
         materials = mergedMaterials
-    )
+    ))
 }

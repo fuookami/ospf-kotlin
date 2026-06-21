@@ -76,7 +76,7 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * @return 转换后的数值 / The casted numeric value
      */
     @Suppress("UNCHECKED_CAST")
-    private fun castValue(value: Any): V {
+    private fun castValue(value: Any?): V {
         // 安全不变量：当前三角形数值泛型为 V，sqrt 结果与输入域一致。
         // Safety invariant: triangle numeric generic is V, and sqrt result stays in the same numeric domain.
         return value as V

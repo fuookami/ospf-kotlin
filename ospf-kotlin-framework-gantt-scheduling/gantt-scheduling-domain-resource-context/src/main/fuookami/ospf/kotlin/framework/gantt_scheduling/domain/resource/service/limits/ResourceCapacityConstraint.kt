@@ -193,7 +193,7 @@ class ResourceCapacityConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    usage.timeSlots.sumOf {
+                    usage.timeSlots.sumOf(Flt64) {
                         it.relationTo(null, args.task).toSolverValue() *
                                 (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                     }
@@ -201,7 +201,7 @@ class ResourceCapacityConstraint<
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
                     if (args.task != null) {
-                        usage.timeSlots.sumOf {
+                        usage.timeSlots.sumOf(Flt64) {
                             it.relationTo(null, args.task).toSolverValue() *
                                     (map[ResourceCapacityShadowPriceKey(it)]?.price ?: Flt64.zero)
                         }

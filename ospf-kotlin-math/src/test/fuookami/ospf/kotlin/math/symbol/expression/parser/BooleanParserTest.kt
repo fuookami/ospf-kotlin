@@ -69,7 +69,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse simple comparison / 解析简单比较")
         fun testParseSimpleComparison() {
-            val expr = parseBooleanExpression("age > 18")
+            val expr = parseBooleanExpression("age > 18").value!!
 
             assertTrue(expr is Comparison<*>)
             val comp = expr as Comparison<*>
@@ -79,7 +79,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse string comparison / 解析字符串比较")
         fun testParseStringComparison() {
-            val expr = parseBooleanExpression("status = 'active'")
+            val expr = parseBooleanExpression("status = 'active'").value!!
 
             assertTrue(expr is Comparison<*>)
             val comp = expr as Comparison<*>
@@ -89,7 +89,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse path expression / 解析路径表达式")
         fun testParsePathExpression() {
-            val expr = parseBooleanExpression("user.address.city = 'Beijing'")
+            val expr = parseBooleanExpression("user.address.city = 'Beijing'").value!!
 
             assertTrue(expr is Comparison<*>)
             val comp = expr as Comparison<*>
@@ -101,7 +101,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse and expression / 解析逻辑与")
         fun testParseAndExpression() {
-            val expr = parseBooleanExpression("age > 18 and status = 'active'")
+            val expr = parseBooleanExpression("age > 18 and status = 'active'").value!!
 
             assertTrue(expr is AndExpression)
             val and = expr as AndExpression
@@ -111,7 +111,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse or expression / 解析逻辑或")
         fun testParseOrExpression() {
-            val expr = parseBooleanExpression("age < 18 or age > 65")
+            val expr = parseBooleanExpression("age < 18 or age > 65").value!!
 
             assertTrue(expr is OrExpression)
             val or = expr as OrExpression
@@ -121,7 +121,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse not expression / 解析逻辑非")
         fun testParseNotExpression() {
-            val expr = parseBooleanExpression("not status = 'deleted'")
+            val expr = parseBooleanExpression("not status = 'deleted'").value!!
 
             assertTrue(expr is NotExpression)
             val not = expr as NotExpression
@@ -131,7 +131,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse complex expression (A and B) or not C / 解析复杂表达式")
         fun testParseComplexExpression() {
-            val expr = parseBooleanExpression("(age > 18 and status = 'active') or not status = 'deleted'")
+            val expr = parseBooleanExpression("(age > 18 and status = 'active') or not status = 'deleted'").value!!
 
             assertTrue(expr is OrExpression)
             val or = expr as OrExpression
@@ -149,7 +149,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse in expression / 解析 in 表达式")
         fun testParseInExpression() {
-            val expr = parseBooleanExpression("status in ('active', 'pending')")
+            val expr = parseBooleanExpression("status in ('active', 'pending')").value!!
 
             assertTrue(expr is InExpression<*>)
             val inExpr = expr as InExpression<*>
@@ -160,7 +160,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse not in expression / 解析 not in 表达式")
         fun testParseNotInExpression() {
-            val expr = parseBooleanExpression("status not in ('deleted', 'archived')")
+            val expr = parseBooleanExpression("status not in ('deleted', 'archived')").value!!
 
             assertTrue(expr is InExpression<*>)
             val inExpr = expr as InExpression<*>
@@ -171,7 +171,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse is null expression / 解析 is null 表达式")
         fun testParseIsNullExpression() {
-            val expr = parseBooleanExpression("name is null")
+            val expr = parseBooleanExpression("name is null").value!!
 
             assertTrue(expr is NullCheck)
             val nullCheck = expr as NullCheck
@@ -182,7 +182,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse is not null expression / 解析 is not null 表达式")
         fun testParseIsNotNullExpression() {
-            val expr = parseBooleanExpression("name is not null")
+            val expr = parseBooleanExpression("name is not null").value!!
 
             assertTrue(expr is NullCheck)
             val nullCheck = expr as NullCheck
@@ -193,7 +193,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse like expression / 解析 like 表达式")
         fun testParseLikeExpression() {
-            val expr = parseBooleanExpression("name like 'A%'")
+            val expr = parseBooleanExpression("name like 'A%'").value!!
 
             assertTrue(expr is PatternMatch<*>)
             val match = expr as PatternMatch<*>
@@ -204,7 +204,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse not like expression / 解析 not like 表达式")
         fun testParseNotLikeExpression() {
-            val expr = parseBooleanExpression("name not like 'A%'")
+            val expr = parseBooleanExpression("name not like 'A%'").value!!
 
             assertTrue(expr is PatternMatch<*>)
             val match = expr as PatternMatch<*>
@@ -215,7 +215,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse path with is not null / 解析带路径的 is not null")
         fun testParsePathIsNotNull() {
-            val expr = parseBooleanExpression("user.email is not null")
+            val expr = parseBooleanExpression("user.email is not null").value!!
 
             assertTrue(expr is NullCheck)
             val nullCheck = expr as NullCheck
@@ -225,7 +225,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse flattened and / 解析扁平化的 and")
         fun testParseFlattenedAnd() {
-            val expr = parseBooleanExpression("a = 1 and b = 2 and c = 3")
+            val expr = parseBooleanExpression("a = 1 and b = 2 and c = 3").value!!
 
             assertTrue(expr is AndExpression)
             val and = expr as AndExpression
@@ -235,7 +235,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse flattened or / 解析扁平化的 or")
         fun testParseFlattenedOr() {
-            val expr = parseBooleanExpression("a = 1 or b = 2 or c = 3")
+            val expr = parseBooleanExpression("a = 1 or b = 2 or c = 3").value!!
 
             assertTrue(expr is OrExpression)
             val or = expr as OrExpression
@@ -247,7 +247,7 @@ class BooleanParserTest {
         fun testOperatorPrecedence() {
             // a or b and c 应该解析为 a or (b and c)
             // a or b and c should parse as a or (b and c)
-            val expr = parseBooleanExpression("a = 1 or b = 2 and c = 3")
+            val expr = parseBooleanExpression("a = 1 or b = 2 and c = 3").value!!
 
             assertTrue(expr is OrExpression)
             val or = expr as OrExpression
@@ -258,7 +258,7 @@ class BooleanParserTest {
         @Test
         @DisplayName("Parse number values / 解析数字值")
         fun testParseNumberValues() {
-            val expr = parseBooleanExpression("age >= 18")
+            val expr = parseBooleanExpression("age >= 18").value!!
 
             assertTrue(expr is Comparison<*>)
             val comp = expr as Comparison<*>
@@ -281,19 +281,15 @@ class BooleanParserTest {
         }
 
         @Test
-        @DisplayName("Parse empty expression throws / 解析空表达式抛出异常")
+        @DisplayName("Parse empty expression fails / 解析空表达式失败")
         fun testParseEmpty() {
-            assertThrows(ParseException::class.java) {
-                parseBooleanExpression("")
-            }
+            assertTrue(parseBooleanExpression("").failed)
         }
 
         @Test
-        @DisplayName("Unknown token should throw / 未知字符应抛出异常")
+        @DisplayName("Unknown token should fail / 未知字符应失败")
         fun testUnknownTokenThrows() {
-            assertThrows(ParseException::class.java) {
-                parseBooleanExpression("age @ 18")
-            }
+            assertTrue(parseBooleanExpression("age @ 18").failed)
         }
     }
 }

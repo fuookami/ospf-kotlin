@@ -14,7 +14,12 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+
+private fun flattenFailureMessage(error: Throwable, operation: String): String {
+    return error.message ?: operation
+}
 
 /**
  * 线性约束输入
@@ -77,14 +82,24 @@ data class LinearConstraintInput<V>(
             rhsConstant: V,
             name: String = "",
             displayName: String? = null
-        ): LinearConstraintInput<V> where V : RealNumber<V>, V : NumberField<V> {
-            return LinearConstraintInput(
-                flattenData = relation.toLinearFlattenData().getOrThrow(),
-                sign = relation.comparison,
-                lhsRange = lhsRange,
-                name = name,
-                displayName = displayName,
-                rhsConstant = rhsConstant
+        ): Ret<LinearConstraintInput<V>> where V : RealNumber<V>, V : NumberField<V> {
+            return relation.toLinearFlattenData().fold(
+                onSuccess = { flattenData ->
+                    ok(LinearConstraintInput(
+                        flattenData = flattenData,
+                        sign = relation.comparison,
+                        lhsRange = lhsRange,
+                        name = name,
+                        displayName = displayName,
+                        rhsConstant = rhsConstant
+                    ))
+                },
+                onFailure = { error ->
+                    Failed(
+                        ErrorCode.IllegalArgument,
+                        flattenFailureMessage(error, "Failed to flatten linear inequality.")
+                    )
+                }
             )
         }
 
@@ -108,7 +123,7 @@ data class LinearConstraintInput<V>(
             rhsConstant: V,
             name: String = "",
             displayName: String? = null
-        ): LinearConstraintInput<V> where V : RealNumber<V>, V : NumberField<V> {
+        ): Ret<LinearConstraintInput<V>> where V : RealNumber<V>, V : NumberField<V> {
             return from(
                 relation = relation,
                 lhsRange = lhsRange.toValueRange(converter),
@@ -220,15 +235,24 @@ data class Flt64LinearConstraintInput(
             rhsConstant: Flt64 = Flt64.zero,
             name: String = "",
             displayName: String? = null
-        ): Flt64LinearConstraintInput where V : RealNumber<V>, V : NumberField<V> {
-            val flattenData = relation.toLinearFlattenDataFlt64(converter).getOrThrow()
-            return Flt64LinearConstraintInput(
-                flattenData = flattenData,
-                sign = relation.comparison,
-                lhsRange = lhsRange,
-                name = name,
-                displayName = displayName,
-                rhsConstant = rhsConstant
+        ): Ret<Flt64LinearConstraintInput> where V : RealNumber<V>, V : NumberField<V> {
+            return relation.toLinearFlattenDataFlt64(converter).fold(
+                onSuccess = { flattenData ->
+                    ok(Flt64LinearConstraintInput(
+                        flattenData = flattenData,
+                        sign = relation.comparison,
+                        lhsRange = lhsRange,
+                        name = name,
+                        displayName = displayName,
+                        rhsConstant = rhsConstant
+                    ))
+                },
+                onFailure = { error ->
+                    Failed(
+                        ErrorCode.IllegalArgument,
+                        flattenFailureMessage(error, "Failed to flatten linear inequality as Flt64.")
+                    )
+                }
             )
         }
     }

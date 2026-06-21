@@ -83,7 +83,7 @@ class ColumnGenerationQuantityShapeSpecEntryPointTest {
         val selectedRadius = assertNotNull(cylinderSpec.continuousRadiusSelectionResult())
         assertEquals("quantity-shape-spec-v1", selectedRadius.key)
         assertTrue(selectedRadius.selectedRadius eq (FltX(0.5) * Meter))
-        val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "quantity DTO"))
+        val solverPrototype = assertNotNull(cylinderSpec.continuousRadiusSolverPrototype(source = "quantity DTO").value)
         assertEquals("quantity-shape-spec-v1", solverPrototype.radiusWeightFunctionKey)
         assertEquals("cylinder_radius_quantity_DTO_quantity_shape_spec_v1_Y", solverPrototype.variableName)
         assertTrue(solverPrototype.initialRadius!! eq (FltX(0.5) * Meter))

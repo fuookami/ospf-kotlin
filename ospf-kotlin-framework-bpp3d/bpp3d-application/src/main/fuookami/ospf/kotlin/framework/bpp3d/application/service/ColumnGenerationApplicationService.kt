@@ -360,7 +360,11 @@ class ColumnGenerationApplicationService(
         val combinedAnalyzer = when {
             packingAnalyzer != null && solutionAnalyzer != null -> {
                 ColumnGenerationSolutionAnalyzer<FltX> { state ->
-                    solutionAnalyzer.analyze(state)
+                    when (val result = solutionAnalyzer.analyze(state)) {
+                        is Ok -> {}
+                        is Failed -> return@ColumnGenerationSolutionAnalyzer Failed(result.error)
+                        is Fatal -> return@ColumnGenerationSolutionAnalyzer Fatal(result.errors)
+                    }
                     packingAnalyzer.analyze(state)
                 }
             }

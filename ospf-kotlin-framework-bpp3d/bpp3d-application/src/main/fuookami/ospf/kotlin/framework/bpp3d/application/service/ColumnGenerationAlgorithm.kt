@@ -207,7 +207,7 @@ fun interface ColumnGenerationSolutionAnalyzer<V> {
      *
      * @param state 列生成状态 / column generation state
      */
-    suspend fun analyze(state: ColumnGenerationState<V>)
+    suspend fun analyze(state: ColumnGenerationState<V>): Try
 }
 
 /**
@@ -421,7 +421,11 @@ class ColumnGenerationAlgorithm<V>(
             finalSolved = true
         }
         analyzeSolution(finalState)
-        solutionAnalyzer?.analyze(finalState)
+        when (val result = solutionAnalyzer?.analyze(finalState) ?: ok) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
 
         return Ok(ColumnGenerationResult<V>(
             columns = columns,

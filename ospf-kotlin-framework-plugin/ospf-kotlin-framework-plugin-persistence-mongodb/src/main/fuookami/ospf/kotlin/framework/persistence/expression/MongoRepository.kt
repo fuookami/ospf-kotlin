@@ -9,7 +9,6 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 
 import com.mongodb.client.MongoCollection
 import com.mongodb.client.MongoDatabase
-import com.mongodb.client.model.Filters
 import org.bson.Document
 import org.bson.conversions.Bson
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
@@ -69,7 +68,7 @@ abstract class MongoRepository<E : Any>(
         limit: Int?,
         offset: Int?
     ): List<E> {
-        val filter = booleanTranslator.translate(where).value ?: Filters.empty()
+        val filter = booleanTranslator.translate(where).value ?: return emptyList()
 
         var findIterable = collection.find(filter)
 
@@ -100,7 +99,7 @@ abstract class MongoRepository<E : Any>(
      * @return 实体数量 / Entity count
      */
     override fun count(where: BooleanExpression): Long {
-        val filter = booleanTranslator.translate(where).value ?: Filters.empty()
+        val filter = booleanTranslator.translate(where).value ?: return 0L
         return collection.countDocuments(filter)
     }
 

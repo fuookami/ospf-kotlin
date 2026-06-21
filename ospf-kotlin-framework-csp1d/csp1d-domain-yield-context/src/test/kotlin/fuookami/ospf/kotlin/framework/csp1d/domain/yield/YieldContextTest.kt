@@ -7,10 +7,17 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.DemandAggregationKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
 
 class YieldContextTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+    private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
+
+    private fun YieldContext<Flt64>.analyzeOrFail(
+        produce: Produce<Flt64>,
+        demands: List<ProductDemand<Flt64>>
+    ): YieldAnalysis<Flt64> {
+        return analyze(produce, demands).value ?: fail("yield analysis should succeed")
+    }
 
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
@@ -64,7 +71,7 @@ class YieldContextTest {
         )
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, demands)
+        val analysis = ctx.analyzeOrFail(produce, demands)
 
         assertEquals(1, analysis.underProductions.size)
         assertEquals(0, analysis.overProductions.size)
@@ -87,7 +94,7 @@ class YieldContextTest {
         )
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, demands)
+        val analysis = ctx.analyzeOrFail(produce, demands)
 
         assertEquals(0, analysis.underProductions.size)
         assertEquals(1, analysis.overProductions.size)
@@ -116,7 +123,7 @@ class YieldContextTest {
         )
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, demands)
+        val analysis = ctx.analyzeOrFail(produce, demands)
 
         assertEquals(1, analysis.outputs.size)
         assertTrue(analysis.outputs[0].totalQuantity eq Quantity(Flt64(7.0), Kilogram))
@@ -141,7 +148,7 @@ class YieldContextTest {
         val weightRequirement = ProductDemand.weight(p, Quantity(Flt64(10.0), Kilogram))
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, listOf(rollRequirement, weightRequirement))
+        val analysis = ctx.analyzeOrFail(produce, listOf(rollRequirement, weightRequirement))
 
         // 卷数单位没有贡献，应全量欠产 / Roll-count unit has no contribution, so it is fully under-produced
         assertEquals(2, analysis.underProductions.size)
@@ -167,7 +174,7 @@ class YieldContextTest {
         val sheetRequirement = ProductDemand.sheet(p, Quantity(Flt64(100.0), SheetCountUnit))
 
         val ctx = YieldContext(arithmetic)
-        val analysis = ctx.analyze(produce, listOf(sheetRequirement))
+        val analysis = ctx.analyzeOrFail(produce, listOf(sheetRequirement))
 
         assertEquals(1, analysis.underProductions.size)
         assertTrue(analysis.underProductions[0].shortfall eq Quantity(Flt64(100.0), SheetCountUnit))

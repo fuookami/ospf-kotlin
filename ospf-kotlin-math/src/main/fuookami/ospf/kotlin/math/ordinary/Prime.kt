@@ -22,6 +22,7 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
@@ -317,10 +318,11 @@ fun <I> getPrimes(num: I, constants: RealNumberConstants<I>): List<I> where I : 
  * @param num 素数上界 / Prime upper bound
  * @return 不超过 num 的素数列表 / List of primes up to num
  */
-inline fun <reified I> getPrimes(num: I): List<I> where I : Integer<I> {
-
-    return getPrimes(
-        num = num,
-        constants = resolveRealNumberConstants<I>("Prime")
-    )
+inline fun <reified I> getPrimes(num: I): Ret<List<I>> where I : Integer<I> {
+    return resolveRealNumberConstantsSafe<I>("Prime").mapResolved { constants ->
+        getPrimes(
+            num = num,
+            constants = constants
+        )
+    }
 }

@@ -292,7 +292,8 @@ class Csp1dColumnGenerationRealSolverTest {
             )
         )
 
-        val milpResult = Csp1dMilpSolver(solver).solve(input)
+        val milpResult = Csp1dMilpSolver(solver).solve(input).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         assertTrue(milpResult.produce.unmetDemands.isEmpty(), "Warm-started MILP should meet demand")
@@ -432,7 +433,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).value
+            ?: fail("Recovery solve should succeed")
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -508,7 +510,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).value
+            ?: fail("Column-generation recovery solve should succeed")
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -578,7 +581,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = seedSolution
                 )
             )
-        )
+        ).value
+            ?: fail("Column-generation recovery solve should succeed")
 
         val secondResult = Csp1dColumnGenerationRecovery<Flt64>(
             solver = solver,
@@ -593,7 +597,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = firstResult.solution
                 )
             )
-        )
+        ).value
+            ?: fail("Column-generation recovery solve should succeed")
 
         assertEquals(Csp1dRecoveryStatus.Solved, firstResult.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, firstResult.trace.warmStartStatus)
@@ -685,7 +690,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).value
+            ?: fail("Recovery solve should succeed")
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -822,7 +828,8 @@ class Csp1dColumnGenerationRealSolverTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).value
+            ?: fail("Recovery solve should succeed")
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -893,7 +900,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val usage = milpResult.produce.cuttingPlans.firstOrNull {
@@ -1258,7 +1266,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             lengthConfig = lengthConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         assertTrue(
@@ -1316,7 +1325,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -1370,7 +1380,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -1415,7 +1426,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             wasteConfig = wasteConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val wasteResult = milpResult.wasteResult
@@ -1511,7 +1523,8 @@ class Csp1dColumnGenerationRealSolverTest {
             input = input,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -1566,7 +1579,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             lengthConfig = lengthConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val lengthResult = milpResult.lengthResult
@@ -1828,7 +1842,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -1885,7 +1900,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -1941,7 +1957,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             yieldConfig = yieldConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val yieldResult = milpResult.yieldResult
@@ -2023,7 +2040,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             wasteConfig = wasteConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val wasteResult = milpResult.wasteResult
@@ -2103,7 +2121,8 @@ class Csp1dColumnGenerationRealSolverTest {
             input = input,
             yieldConfig = yieldConfig,
             wasteConfig = wasteConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         assertNotNull(milpResult.yieldResult, "Yield result should not be null")
@@ -2242,7 +2261,8 @@ class Csp1dColumnGenerationRealSolverTest {
         val milpResult = Csp1dMilpSolver(solver).solve(
             input = input,
             lengthConfig = lengthConfig
-        )
+        ).value
+            ?: fail("MILP solve should succeed")
 
         assertNotNull(milpResult, "MILP result should not be null")
         val lengthResult = milpResult.lengthResult

@@ -155,7 +155,7 @@ interface CGPipeline<
                     shadowPrices.constraints[it.first]
                 }
                 if (values.isNotEmpty()) {
-                    key to values.sum()
+                    key to values.sum(Flt64)
                 } else {
                     null
                 }

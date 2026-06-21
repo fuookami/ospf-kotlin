@@ -8,6 +8,7 @@ import kotlin.math.PI
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -59,7 +60,7 @@ class MixedShapeGeometryTest {
     ): ActualItem {
         val radius = FltX(radiusValue) * Meter
         val length = FltX(heightValue) * Meter
-        val diameter = radius + radius
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = id,
             name = id,
@@ -298,12 +299,7 @@ class MixedShapeGeometryTest {
             weight = FltX(10.0) * Kilogram
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            cylinder.enabledStackingOn(support)
-        }
-
-        assertTrue(error.message?.contains("coordinate-less cylinder stacking and hanging support") == true)
-        assertTrue(error.message?.contains("verified 3D placement support coverage") == true)
+        assertFalse(cylinder.enabledStackingOn(support))
     }
 
     @Test
@@ -382,12 +378,7 @@ class MixedShapeGeometryTest {
             weight = FltX(10.0) * Kilogram
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            cylinder.view(Orientation.Side).enabledStackingOn(support)
-        }
-
-        assertTrue(error.message?.contains("coordinate-less cylinder stacking and hanging support") == true)
-        assertTrue(error.message?.contains("verified 3D placement support coverage") == true)
+        assertFalse(cylinder.view(Orientation.Side).enabledStackingOn(support))
     }
 
     @Test
@@ -395,15 +386,14 @@ class MixedShapeGeometryTest {
         val cuboid = cuboidItem("box1", 1.0, 2.0, 3.0)
         val cylinder = cylinderItem("cyl1", 0.5, 1.5)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.merge(
-                items = listOf(cuboid, cylinder),
-                space = space(),
-                restWeight = FltX.maximum,
-                patterns = emptyList()
-            )
-        }
+        val result = ItemMerger.merge(
+            items = listOf(cuboid, cylinder),
+            space = space(),
+            restWeight = FltX.maximum,
+            patterns = emptyList()
+        )
 
-        assertTrue(error.message?.contains("item merge paths are cuboid-only") == true)
+        assertTrue(result is Failed)
+        assertTrue(result.message.contains("item merge paths are cuboid-only"))
     }
 }

@@ -16,7 +16,7 @@ import org.bson.Document
 import org.bson.conversions.Bson
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
-import org.junit.jupiter.api.Assertions.assertThrows
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
@@ -135,25 +135,34 @@ class MongoRepositoryTest {
     }
 
     @Test
-    @DisplayName("unsupported policy should fail explicitly / 不支持策略应明确失败")
-    fun unsupportedPolicyShouldFailExplicitly() {
+    @DisplayName("unsupported policy should return empty without collection query / 不支持策略应返回空且不查询集合")
+    fun unsupportedPolicyShouldReturnEmptyWithoutCollectionQuery() {
+        val failFastRecorder = Recorder()
+        val clientFilterRecorder = Recorder()
         val failFastRepository = TestRepository(
-            createDatabaseProxy(Recorder(), FindState(emptyList())),
+            createDatabaseProxy(
+                failFastRecorder,
+                FindState(docs = listOf(Document(mapOf("name" to "a"))))
+            ),
             resolver,
             UnsupportedPredicatePolicy.FailFast
         )
         val clientFilterRepository = TestRepository(
-            createDatabaseProxy(Recorder(), FindState(emptyList())),
+            createDatabaseProxy(
+                clientFilterRecorder,
+                FindState(docs = listOf(Document(mapOf("name" to "b"))))
+            ),
             resolver,
             UnsupportedPredicatePolicy.ClientFilter
         )
 
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastRepository.find(BooleanCustom("x"))
-        }
-        assertThrows(IllegalArgumentException::class.java) {
-            clientFilterRepository.find(BooleanCustom("x"))
-        }
+        val failFastResult = failFastRepository.find(BooleanCustom("x"))
+        val clientFilterResult = clientFilterRepository.find(BooleanCustom("x"))
+
+        assertTrue(failFastResult.isEmpty())
+        assertTrue(clientFilterResult.isEmpty())
+        assertNull(failFastRecorder.lastFindFilter)
+        assertNull(clientFilterRecorder.lastFindFilter)
     }
 
     @Suppress("UNCHECKED_CAST")

@@ -116,6 +116,6 @@ class WastingMinimizationContext<V : RealNumber<V>>(
     }
 
     private fun multiplyQuantities(a: Quantity<V>, b: Quantity<V>): Quantity<V> {
-        return a * b
+        return (a * b)!!
     }
 }

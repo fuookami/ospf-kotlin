@@ -457,7 +457,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
             lb: T,
             ub: T
         ): Ret<ClosedTypedValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return closed(lb, ub, resolveRealNumberConstants<T>("TypedValueRange.closed"))
+            return resolveRealNumberConstantsSafe<T>("TypedValueRange.closed").flatMapResolved { constants ->
+                closed(lb, ub, constants)
+            }
         }
 
         /**
@@ -472,7 +474,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
             lb: T,
             ub: T
         ): Ret<OpenTypedValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return open(lb, ub, resolveRealNumberConstants<T>("TypedValueRange.open"))
+            return resolveRealNumberConstantsSafe<T>("TypedValueRange.open").flatMapResolved { constants ->
+                open(lb, ub, constants)
+            }
         }
 
         /**
@@ -487,7 +491,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
             lb: T,
             ub: T
         ): Ret<ClosedOpenTypedValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return closedOpen(lb, ub, resolveRealNumberConstants<T>("TypedValueRange.closedOpen"))
+            return resolveRealNumberConstantsSafe<T>("TypedValueRange.closedOpen").flatMapResolved { constants ->
+                closedOpen(lb, ub, constants)
+            }
         }
 
         /**
@@ -502,7 +508,9 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
             lb: T,
             ub: T
         ): Ret<OpenClosedTypedValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return openClosed(lb, ub, resolveRealNumberConstants<T>("TypedValueRange.openClosed"))
+            return resolveRealNumberConstantsSafe<T>("TypedValueRange.openClosed").flatMapResolved { constants ->
+                openClosed(lb, ub, constants)
+            }
         }
     }
 

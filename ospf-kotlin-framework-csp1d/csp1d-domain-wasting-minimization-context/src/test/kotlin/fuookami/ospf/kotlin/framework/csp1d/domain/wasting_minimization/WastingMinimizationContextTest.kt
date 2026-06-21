@@ -9,7 +9,13 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 
 class WastingMinimizationContextTest {
-    private val arithmetic = DefaultQuantityArithmetic.resolveFor(Flt64.one).value
+    private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
+
+    private fun WastingMinimizationContext<Flt64>.analyzeOrFail(
+        selectedPlans: List<CuttingPlanUsage<Flt64>>
+    ): WasteAnalysis<Flt64> {
+        return analyze(selectedPlans).value ?: fail("waste analysis should succeed")
+    }
 
     private fun material(): Material<Flt64> {
         return Material(
@@ -76,7 +82,7 @@ class WastingMinimizationContextTest {
         )
 
         val ctx = WastingMinimizationContext(arithmetic)
-        val analysis = ctx.analyze(listOf(
+        val analysis = ctx.analyzeOrFail(listOf(
             CuttingPlanUsage(p1, UInt64.one),
             CuttingPlanUsage(p2, UInt64.one)
         ))
@@ -105,7 +111,7 @@ class WastingMinimizationContextTest {
         )
 
         val ctx = WastingMinimizationContext(arithmetic)
-        val analysis = ctx.analyze(listOf(CuttingPlanUsage(plan, UInt64.one)))
+        val analysis = ctx.analyzeOrFail(listOf(CuttingPlanUsage(plan, UInt64.one)))
 
         assertNotNull(analysis.totalRestMaterial)
         // restWidth = 2.0 - 1.5 = 0.5 m, length = 100 m, restMaterial = 0.5 * 100 = 50 m^2
@@ -130,7 +136,7 @@ class WastingMinimizationContextTest {
         )
 
         val ctx = WastingMinimizationContext(arithmetic)
-        val analysis = ctx.analyze(listOf(CuttingPlanUsage(plan, UInt64(3UL))))
+        val analysis = ctx.analyzeOrFail(listOf(CuttingPlanUsage(plan, UInt64(3UL))))
 
         assertNotNull(analysis.totalRestWidth)
         // restWidth = 0.5 m per plan, 3 batches → 1.5 m total

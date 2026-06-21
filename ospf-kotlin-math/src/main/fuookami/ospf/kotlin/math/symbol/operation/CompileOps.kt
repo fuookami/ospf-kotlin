@@ -51,13 +51,13 @@ private data class CompiledCanonicalGradientMonomial<T>(
  * Compile an ordered symbol list into a symbol-to-index map
  *
  * @param order 符号顺序列表 / Ordered list of symbols
- * @return 符号到索引的映射 / Map from symbol to its index
+ * @return 符号到索引的映射结果 / Result containing map from symbol to its index
  */
-private fun compileOrderIndex(order: List<Symbol>): Map<Symbol, Int> {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
+private fun compileOrderIndex(order: List<Symbol>): Ret<Map<Symbol, Int>> {
+    if (order.toSet().size != order.size) {
+        return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
     }
-    return order.withIndex().associate { it.value to it.index }
+    return Ok(order.withIndex().associate { it.value to it.index })
 }
 
 /**
@@ -109,7 +109,11 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ): Ret<(List<T>) -> T> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineLinearTerms(zero, isZero)
     } else {
@@ -159,7 +163,11 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): Ret<(List<T>) -> T> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineQuadraticTerms(zero, isZero, symbolComparator)
     } else {
@@ -228,7 +236,11 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     symbolComparator: Comparator<Symbol>? = null,
     one: T
 ): Ret<(List<T>) -> T> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
@@ -344,7 +356,11 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ): Ret<(List<T>) -> List<T>> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineLinearTerms(zero, isZero)
     } else {
@@ -385,7 +401,11 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): Ret<(List<T>) -> List<T>> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineQuadraticTerms(zero, isZero, symbolComparator)
     } else {
@@ -455,7 +475,11 @@ fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): Ret<(List<T>) -> List<T>> where T : Ring<T> {
-    val indexOfSymbol = compileOrderIndex(order)
+    val indexOfSymbol = when (val result = compileOrderIndex(order)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
     val source = if (combineTerms) {
         combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {

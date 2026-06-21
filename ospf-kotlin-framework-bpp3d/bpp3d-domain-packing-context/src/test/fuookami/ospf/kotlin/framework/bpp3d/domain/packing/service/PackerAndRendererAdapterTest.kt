@@ -8,6 +8,7 @@ import kotlin.math.*
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -15,6 +16,18 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
+
+private fun <T> Ret<T>.valueOrFail(message: String): T {
+    return value ?: fail(message)
+}
+
+private fun Ret<*>.errorMessageOrFail(message: String): String {
+    return when (this) {
+        is Ok -> fail(message)
+        is Failed -> error.message ?: ""
+        is Fatal -> errors.joinToString("; ") { it.message }
+    }
+}
 
 class PackerAndRendererAdapterTest {
     private object CargoAttr : fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
@@ -74,7 +87,7 @@ class PackerAndRendererAdapterTest {
         val radius = FltX(radiusValue) * Meter
         val height = FltX(lengthValue) * Meter
         val cylinderWeight = FltX(1.0) * Kilogram
-        val diameter = radius + radius
+        val diameter = assertNotNull(radius + radius)
         val pack = Package.innerPackage(
             shape = PackageShape(
                 width = when (axis) {
@@ -251,7 +264,7 @@ class PackerAndRendererAdapterTest {
                 selectedRadius(itemA, 0.3),
                 selectedRadius(itemB, 0.4)
             )
-        )
+        ).valueOrFail("schema should be built")
         val renderedByName = schema.loadingPlans.first().items.associateBy { it.name }
 
         assertEquals(0.3, assertNotNull(renderedByName[itemA.name]?.radius).toDouble(), 1e-10)
@@ -272,11 +285,11 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext(info = mapOf("source" to "unit-test"))
-        )
+        ).valueOrFail("packing should succeed")
         assertEquals(1, result.materialSummary.size)
         assertEquals(UInt64(2), result.materialSummary.first().amount)
 
-        val schema = PackingRendererAdapter().toSchema(result)
+        val schema = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built")
         assertEquals("1", schema.kpi["bin_count"])
         assertEquals("1", schema.kpi["material_count"])
         assertEquals(1, schema.loadingPlans.size)
@@ -339,8 +352,8 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext()
-        )
-        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+        ).valueOrFail("packing should succeed")
+        val items = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built").loadingPlans.first().items
 
         assertEquals(2, items.size)
         assertEquals(0.0, items[0].z.toDouble(), 1e-9)
@@ -361,8 +374,8 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext()
-        )
-        val schema = PackingRendererAdapter().toSchema(result)
+        ).valueOrFail("packing should succeed")
+        val schema = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built")
         val item = schema.loadingPlans.first().items.first()
 
         assertEquals("Cylinder", item.shapeType.name)
@@ -388,8 +401,8 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext()
-        )
-        val schema = PackingRendererAdapter().toSchema(result)
+        ).valueOrFail("packing should succeed")
+        val schema = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built")
         val plan = schema.loadingPlans.first()
 
         assertEquals(2, plan.items.size)
@@ -421,15 +434,13 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(2.2, 0.0))
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(bin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("outside bin") == true)
-        assertTrue(error.message?.contains("type=outside_bin") == true)
-        assertTrue(error.message?.contains("item[0]") == true)
+        val error = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("outside bin"))
+        assertTrue(error.contains("type=outside_bin"))
+        assertTrue(error.contains("item[0]"))
     }
 
     @Test
@@ -446,15 +457,13 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(0.0, 0.0), Pair(0.25, 0.0))
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(bin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("overlaps") == true)
-        assertTrue(error.message?.contains("type=overlap") == true)
-        assertTrue(error.message?.contains("bin=bin-1") == true)
+        val error = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("overlaps"))
+        assertTrue(error.contains("type=overlap"))
+        assertTrue(error.contains("bin=bin-1"))
     }
 
     @Test
@@ -474,7 +483,7 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext()
-        )
+        ).valueOrFail("packing should succeed")
 
         assertEquals(2, result.aggregation.bins.first().items.size)
     }
@@ -494,11 +503,9 @@ class PackerAndRendererAdapterTest {
         )
         val result = toPackingResult(bin)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("overlaps") == true)
-        assertTrue(error.message?.contains("type=overlap") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("overlaps"))
+        assertTrue(error.contains("type=overlap"))
     }
 
     @Test
@@ -516,12 +523,10 @@ class PackerAndRendererAdapterTest {
         )
         val result = toPackingResult(bin)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("type=outside_bin") == true)
-        assertTrue(error.message?.contains("HorizontalCylinderX") == true)
-        assertTrue(error.message?.contains("PackingRendererAdapter.toSchema") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("type=outside_bin"))
+        assertTrue(error.contains("HorizontalCylinderX"))
+        assertTrue(error.contains("PackingRendererAdapter.toSchema"))
     }
 
     @Test
@@ -543,8 +548,8 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(bin),
             context = PackingContext()
-        )
-        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+        ).valueOrFail("packing should succeed")
+        val items = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built").loadingPlans.first().items
 
         assertEquals(2, items.size)
         assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
@@ -572,8 +577,8 @@ class PackerAndRendererAdapterTest {
         val result = Packer().invoke(
             bins = listOf(binX, binZ),
             context = PackingContext()
-        )
-        val schema = PackingRendererAdapter().toSchema(result)
+        ).valueOrFail("packing should succeed")
+        val schema = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built")
         val items = schema.loadingPlans.flatMap { it.items }
 
         assertEquals(2, schema.loadingPlans.size)
@@ -595,13 +600,11 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(0.0, 0.0), Pair(2.0, 0.0))
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(bin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("mixes cylinder axes") == true)
+        val error = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("mixes cylinder axes"))
     }
 
     @Test
@@ -618,13 +621,11 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(0.0, 0.0), Pair(0.0, 0.0))
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(bin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("overlaps") == true)
+        val error = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("overlaps"))
     }
 
     @Test
@@ -642,10 +643,8 @@ class PackerAndRendererAdapterTest {
         )
         val result = toPackingResult(bin)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("overlaps") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("overlaps"))
     }
 
     @Test
@@ -663,10 +662,8 @@ class PackerAndRendererAdapterTest {
         )
         val result = toPackingResult(bin)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("overlaps") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("overlaps"))
     }
 
     @Test
@@ -705,14 +702,12 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(bin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("must be placed on bin floor") == true)
-        assertTrue(error.message?.contains("type=horizontal_support") == true)
+        val error = Packer().invoke(
+            bins = listOf(bin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("must be placed on bin floor"))
+        assertTrue(error.contains("type=horizontal_support"))
     }
 
     @Test
@@ -760,7 +755,7 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+        val items = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built").loadingPlans.first().items
 
         assertEquals(2, items.size)
         assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
@@ -811,7 +806,7 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+        val items = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built").loadingPlans.first().items
 
         assertEquals(2, items.size)
         assertTrue(items.any { it.axis?.name == "Z" && it.algorithmShapeType.name == "HorizontalCylinderZ" })
@@ -885,7 +880,7 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val items = PackingRendererAdapter().toSchema(result).loadingPlans.first().items
+        val items = PackingRendererAdapter().toSchema(result).valueOrFail("schema should be built").loadingPlans.first().items
 
         assertEquals(3, items.size)
         assertTrue(items.any { it.axis?.name == "X" && it.algorithmShapeType.name == "HorizontalCylinderX" })
@@ -936,11 +931,9 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("type=horizontal_support") == true)
-        assertTrue(error.message?.contains("cuboid support coverage") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("type=horizontal_support"))
+        assertTrue(error.contains("cuboid support coverage"))
     }
 
     @Test
@@ -994,11 +987,9 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(result)
-        }
-        assertTrue(error.message?.contains("type=horizontal_support") == true)
-        assertTrue(error.message?.contains("cuboid support coverage") == true)
+        val error = PackingRendererAdapter().toSchema(result).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("type=horizontal_support"))
+        assertTrue(error.contains("cuboid support coverage"))
     }
 
     @Test
@@ -1045,7 +1036,7 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val tangentSchema = PackingRendererAdapter().toSchema(tangentResult)
+        val tangentSchema = PackingRendererAdapter().toSchema(tangentResult).valueOrFail("schema should be built")
         assertEquals(2, tangentSchema.loadingPlans.first().items.size)
 
         val overlapResult = PackingResult(
@@ -1083,11 +1074,9 @@ class PackerAndRendererAdapterTest {
             )
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(overlapResult)
-        }
-        assertTrue(error.message?.contains("type=overlap") == true)
-        assertTrue(error.message?.contains("VerticalCylinder") == true)
+        val error = PackingRendererAdapter().toSchema(overlapResult).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("type=overlap"))
+        assertTrue(error.contains("VerticalCylinder"))
     }
 
     @Test
@@ -1107,7 +1096,7 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(0.0, 0.0), Pair(0.0, 1.1))
         )
         val separatedResult = toPackingResult(separatedBin)
-        val separatedSchema = PackingRendererAdapter().toSchema(separatedResult)
+        val separatedSchema = PackingRendererAdapter().toSchema(separatedResult).valueOrFail("schema should be built")
 
         assertEquals(2, separatedSchema.loadingPlans.first().items.size)
 
@@ -1120,12 +1109,10 @@ class PackerAndRendererAdapterTest {
         )
         val crossingResult = toPackingResult(crossingBin)
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            PackingRendererAdapter().toSchema(crossingResult)
-        }
-        assertTrue(error.message?.contains("type=overlap") == true)
-        assertTrue(error.message?.contains("HorizontalCylinderX") == true)
-        assertTrue(error.message?.contains("VerticalCylinder") == true)
+        val error = PackingRendererAdapter().toSchema(crossingResult).errorMessageOrFail("schema should fail")
+        assertTrue(error.contains("type=overlap"))
+        assertTrue(error.contains("HorizontalCylinderX"))
+        assertTrue(error.contains("VerticalCylinder"))
     }
 
     @Test
@@ -1145,7 +1132,7 @@ class PackerAndRendererAdapterTest {
         val tangentResult = Packer().invoke(
             bins = listOf(tangentBin),
             context = PackingContext()
-        )
+        ).valueOrFail("packing should succeed")
         assertEquals(2, tangentResult.aggregation.bins.first().items.size)
 
         val overlapBin = layerBin(
@@ -1153,14 +1140,12 @@ class PackerAndRendererAdapterTest {
             positions = listOf(Pair(0.0, 0.0), Pair(0.75, 0.75))
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            Packer().invoke(
-                bins = listOf(overlapBin),
-                context = PackingContext()
-            )
-        }
-        assertTrue(error.message?.contains("type=overlap") == true)
-        assertTrue(error.message?.contains("Cuboid") == true)
-        assertTrue(error.message?.contains("VerticalCylinder") == true)
+        val error = Packer().invoke(
+            bins = listOf(overlapBin),
+            context = PackingContext()
+        ).errorMessageOrFail("packing should fail")
+        assertTrue(error.contains("type=overlap"))
+        assertTrue(error.contains("Cuboid"))
+        assertTrue(error.contains("VerticalCylinder"))
     }
 }

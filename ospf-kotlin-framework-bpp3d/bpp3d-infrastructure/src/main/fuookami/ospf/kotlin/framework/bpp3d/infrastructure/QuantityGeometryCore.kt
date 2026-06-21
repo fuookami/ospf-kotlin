@@ -395,11 +395,21 @@ data class QuantityPoint2<V : FloatingNumber<V>>(
     }
 
     infix fun ord(rhs: QuantityPoint2<V>): Order {
-        when (val yOrder = quantityOrd(y, rhs.y, "y")) {
-            Order.Equal -> {}
-            else -> return yOrder
+        return ordSafe(rhs).value ?: Order.Equal
+    }
+
+    /** 安全比较二维点 / Safely compare 2D points */
+    infix fun ordSafe(rhs: QuantityPoint2<V>): Ret<Order> {
+        val yOrder = when (val result = quantityOrdSafe(y, rhs.y, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        return quantityOrd(x, rhs.x, "x")
+        when (yOrder) {
+            Order.Equal -> {}
+            else -> return ok(yOrder)
+        }
+        return quantityOrdSafe(x, rhs.x, "x")
     }
 }
 
@@ -425,15 +435,30 @@ data class QuantityPoint3<V : FloatingNumber<V>>(
     }
 
     infix fun ord(rhs: QuantityPoint3<V>): Order {
-        when (val zOrder = quantityOrd(z, rhs.z, "z")) {
-            Order.Equal -> {}
-            else -> return zOrder
+        return ordSafe(rhs).value ?: Order.Equal
+    }
+
+    /** 安全比较三维点 / Safely compare 3D points */
+    infix fun ordSafe(rhs: QuantityPoint3<V>): Ret<Order> {
+        val zOrder = when (val result = quantityOrdSafe(z, rhs.z, "z")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
-        when (val yOrder = quantityOrd(y, rhs.y, "y")) {
+        when (zOrder) {
             Order.Equal -> {}
-            else -> return yOrder
+            else -> return ok(zOrder)
         }
-        return quantityOrd(x, rhs.x, "x")
+        val yOrder = when (val result = quantityOrdSafe(y, rhs.y, "y")) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        when (yOrder) {
+            Order.Equal -> {}
+            else -> return ok(yOrder)
+        }
+        return quantityOrdSafe(x, rhs.x, "x")
     }
 }
 

@@ -25,6 +25,24 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 /** 任务时间物理量 / Task time quantity */
 typealias TaskTimeQuantity<V> = Quantity<V>
 
+private fun captureLinearConstraintInput(
+    result: Ret<LinearConstraintInput<Flt64>>,
+    onFailure: (Try) -> Unit
+): LinearConstraintInput<Flt64>? {
+    return when (result) {
+        is Ok -> result.value
+        is Failed -> {
+            onFailure(Failed(result.error))
+            null
+        }
+
+        is Fatal -> {
+            onFailure(Fatal(result.errors))
+            null
+        }
+    }
+}
+
 /**
  * 松弛符号构建 / Slack symbol construction
  *
@@ -420,6 +438,8 @@ abstract class TaskTimeImpl<
     }
 
     override fun register(model: MetaModel<Flt64>): Try {
+        var constructionFailure: Try = ok
+
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
                 delayTime = LinearIntermediateSymbols1<Flt64>(
@@ -904,20 +924,35 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction.from(
-                                    inequality = LinearConstraintInput.from(
+                                val input = captureLinearConstraintInput(
+                                    LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq timeBoundary.valueOf(lastEndTime),
                                         converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
-                                    ),
-                                    converter = schedulingSolverValueAdapter,
-                                    name = "on_last_end_time_${task}"
-                                )
+                                    )
+                                ) { constructionFailure = it }
+                                if (input == null) {
+                                    LinearIntermediateSymbol.empty(
+                                        Flt64,
+                                        name = "on_last_end_time_${task}"
+                                    )
+                                } else {
+                                    IfThenFunction.from(
+                                        inequality = input,
+                                        converter = schedulingSolverValueAdapter,
+                                        name = "on_last_end_time_${task}"
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            }
+            when (val failure = constructionFailure) {
+                is Ok -> {}
+                is Failed -> return Failed(failure.error)
+                is Fatal -> return Fatal(failure.errors)
             }
             when (val result = model.add(onLastEndTime)) {
                 is Ok -> {}
@@ -954,21 +989,36 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction.from(
-                                    inequality = LinearConstraintInput.from(
+                                val input = captureLinearConstraintInput(
+                                    LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq timeBoundary.valueOf(earliestEndTime),
                                         converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
-                                    ),
-                                    converter = schedulingSolverValueAdapter,
-                                    name = "on_earliest_end_time_${task}"
-                                )
+                                    )
+                                ) { constructionFailure = it }
+                                if (input == null) {
+                                    LinearIntermediateSymbol.empty(
+                                        Flt64,
+                                        name = "on_earliest_end_time_${task}"
+                                    )
+                                } else {
+                                    IfThenFunction.from(
+                                        inequality = input,
+                                        converter = schedulingSolverValueAdapter,
+                                        name = "on_earliest_end_time_${task}"
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+        when (val failure = constructionFailure) {
+            is Ok -> {}
+            is Failed -> return Failed(failure.error)
+            is Fatal -> return Fatal(failure.errors)
         }
         when (val result = model.add(onEarliestEndTime)) {
             is Ok -> {}
@@ -1038,20 +1088,35 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction.from(
-                                    inequality = LinearConstraintInput.from(
+                                val input = captureLinearConstraintInput(
+                                    LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq timeBoundary.afterWindowDurationValue(lastEndTime),
                                         converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
-                                    ),
-                                    converter = schedulingSolverValueAdapter,
-                                    name = "not_on_last_end_time_${task}"
-                                )
+                                    )
+                                ) { constructionFailure = it }
+                                if (input == null) {
+                                    LinearIntermediateSymbol.empty(
+                                        Flt64,
+                                        name = "not_on_last_end_time_${task}"
+                                    )
+                                } else {
+                                    IfThenFunction.from(
+                                        inequality = input,
+                                        converter = schedulingSolverValueAdapter,
+                                        name = "not_on_last_end_time_${task}"
+                                    )
+                                }
                             }
                         }
                     }
                 }
+            }
+            when (val failure = constructionFailure) {
+                is Ok -> {}
+                is Failed -> return Failed(failure.error)
+                is Fatal -> return Fatal(failure.errors)
             }
             when (val result = model.add(notOnLastEndTime)) {
                 is Ok -> {}
@@ -1088,21 +1153,36 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction.from(
-                                    inequality = LinearConstraintInput.from(
+                                val input = captureLinearConstraintInput(
+                                    LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq timeBoundary.beforeWindowDurationValue(earliestEndTime),
                                         converter = schedulingSolverValueAdapter,
                                         lhsRange = estimateEndTime[task].range.range!!,
                                         rhsConstant = Flt64.zero
-                                    ),
-                                    converter = schedulingSolverValueAdapter,
-                                    name = "not_on_earliest_end_time_${task}"
-                                )
+                                    )
+                                ) { constructionFailure = it }
+                                if (input == null) {
+                                    LinearIntermediateSymbol.empty(
+                                        Flt64,
+                                        name = "not_on_earliest_end_time_${task}"
+                                    )
+                                } else {
+                                    IfThenFunction.from(
+                                        inequality = input,
+                                        converter = schedulingSolverValueAdapter,
+                                        name = "not_on_earliest_end_time_${task}"
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
+        }
+        when (val failure = constructionFailure) {
+            is Ok -> {}
+            is Failed -> return Failed(failure.error)
+            is Fatal -> return Fatal(failure.errors)
         }
         when (val result = model.add(notOnEarliestEndTime)) {
             is Ok -> {}

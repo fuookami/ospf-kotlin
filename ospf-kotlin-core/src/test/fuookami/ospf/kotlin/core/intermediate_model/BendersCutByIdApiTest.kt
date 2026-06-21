@@ -55,7 +55,7 @@ class BendersCutByIdApiTest {
             tokens = tokens,
             converter = numberCase.converter,
             name = "lin_cut_${numberCase.name.lowercase()}"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel(
             parent = LinearMetaModel<V>(
                 name = "by-id-linear-${numberCase.name.lowercase()}",
@@ -129,7 +129,7 @@ class BendersCutByIdApiTest {
             tokens = tokens,
             converter = numberCase.converter,
             name = "quad_cut_${numberCase.name.lowercase()}"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel(
             parent = QuadraticMetaModel<V>(
                 name = "by-id-quadratic-${numberCase.name.lowercase()}",

@@ -38,7 +38,7 @@ class OrdinaryExplicitConstantsPathTest {
     fun explicitConstantsPathsShouldWorkWhenFallbackDisabled() {
         val factors = factorize(UInt64(12), UInt64)
         assertEquals(listOf(UInt64.two to 2, UInt64.three to 1), factors)
-        assertEquals(UInt64(12), defactorize(factors, UInt64))
+        assertEquals(UInt64(12), defactorize(factors, UInt64).value!!)
         assertEquals(
             listOf(UInt64.one, UInt64.two, UInt64(3), UInt64(4), UInt64(6), UInt64(12)),
             divisors(UInt64(12), UInt64)
@@ -65,31 +65,31 @@ class OrdinaryExplicitConstantsPathTest {
 
         assertNear(ln(Flt64.e, Flt64), Flt64.one)
         assertNear(log(Flt64.e, Flt64.e, Flt64), Flt64.one)
-        assertEquals(UInt64(1024), pow(UInt64.two, 10, UInt64))
+        val powValue = powSafe(UInt64.two, 10, UInt64).value!!
+        assertEquals(UInt64(1024), powValue)
         assertNear(powf(Flt64(9.0), Flt64.half, Flt64), Flt64(3.0))
         assertNear(exp(Flt64.one, Flt64), Flt64.e)
     }
 
     @Test
-    fun reifiedPathsShouldThrowWhenFallbackDisabled() {
-        assertFailsWith<IllegalStateException> { factorize(UInt64(12)) }
-        assertFailsWith<IllegalStateException> { defactorize(listOf(UInt64.two to 2, UInt64.three to 1)) }
-        assertFailsWith<IllegalStateException> { divisors(UInt64(12)) }
-        assertFailsWith<IllegalStateException> { divisorCount(UInt64(12)) }
-        assertFailsWith<IllegalStateException> { eulerTotient(UInt64(12)) }
-        assertFailsWith<IllegalStateException> { gcd(listOf(UInt64(48), UInt64(18), UInt64(30))) }
-        assertFailsWith<IllegalStateException> { gcdMod(listOf(UInt64(48), UInt64(18), UInt64(30))) }
-        assertFailsWith<IllegalStateException> { gcd(UInt64(48), UInt64(18), UInt64(30)) }
-        assertFailsWith<IllegalStateException> { gcdMod(UInt64(48), UInt64(18), UInt64(30)) }
-        assertFailsWith<IllegalStateException> { lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))) }
-        assertFailsWith<IllegalStateException> { lcm(listOf(UInt64(4), UInt64(6), UInt64(8))) }
-        assertFailsWith<IllegalStateException> { lcmByFactorization(UInt64(4), UInt64(6), UInt64(8)) }
-        assertFailsWith<IllegalStateException> { lcm(UInt64(4), UInt64(6), UInt64(8)) }
-        assertFailsWith<IllegalStateException> { getPrimes(UInt64(11)) }
-        assertFailsWith<IllegalStateException> { ln(Flt64.e) }
-        assertFailsWith<IllegalStateException> { log(Flt64.e, Flt64.e) }
-        assertFailsWith<IllegalStateException> { pow(UInt64.two, 10) }
-        assertFailsWith<IllegalStateException> { powf(Flt64(9.0), Flt64.half) }
-        assertFailsWith<IllegalStateException> { exp(Flt64.one) }
+    fun reifiedPathsShouldFailWhenFallbackDisabled() {
+        assertTrue(factorize(UInt64(12)).failed)
+        assertTrue(defactorize(listOf(UInt64.two to 2, UInt64.three to 1)).failed)
+        assertTrue(divisors(UInt64(12)).failed)
+        assertTrue(divisorCount(UInt64(12)).failed)
+        assertTrue(eulerTotient(UInt64(12)).failed)
+        assertTrue(gcd(listOf(UInt64(48), UInt64(18), UInt64(30))).failed)
+        assertTrue(gcdMod(listOf(UInt64(48), UInt64(18), UInt64(30))).failed)
+        assertTrue(gcd(UInt64(48), UInt64(18), UInt64(30)).failed)
+        assertTrue(gcdMod(UInt64(48), UInt64(18), UInt64(30)).failed)
+        assertTrue(lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))).failed)
+        assertTrue(lcm(listOf(UInt64(4), UInt64(6), UInt64(8))).failed)
+        assertTrue(lcmByFactorization(UInt64(4), UInt64(6), UInt64(8)).failed)
+        assertTrue(lcm(UInt64(4), UInt64(6), UInt64(8)).failed)
+        assertNull(ln(Flt64.e))
+        assertNull(log(Flt64.e, Flt64.e))
+        assertTrue(pow(UInt64.two, 10).failed)
+        assertTrue(powf(Flt64(9.0), Flt64.half).failed)
+        assertTrue(exp(Flt64.one).failed)
     }
 }

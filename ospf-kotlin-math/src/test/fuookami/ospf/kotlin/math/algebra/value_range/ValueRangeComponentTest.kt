@@ -176,7 +176,7 @@ class ValueRangeComponentTest {
     fun boundPlusShouldWork() {
         val value = ValueWrapper(Flt64(5.0), Flt64).value!!
         val bound = Bound(value, Interval.Closed)
-        val result = bound + Flt64(3.0)
+        val result = (bound + Flt64(3.0))!!
 
         assertEquals(Flt64(8.0), result.value.unwrap())
         assertEquals(Interval.Closed, result.interval)
@@ -186,7 +186,7 @@ class ValueRangeComponentTest {
     fun boundMinusShouldWork() {
         val value = ValueWrapper(Flt64(5.0), Flt64).value!!
         val bound = Bound(value, Interval.Closed)
-        val result = bound - Flt64(3.0)
+        val result = (bound - Flt64(3.0))!!
 
         assertEquals(Flt64(2.0), result.value.unwrap())
         assertEquals(Interval.Closed, result.interval)
@@ -196,7 +196,7 @@ class ValueRangeComponentTest {
     fun boundTimesShouldWork() {
         val value = ValueWrapper(Flt64(5.0), Flt64).value!!
         val bound = Bound(value, Interval.Closed)
-        val result = bound * Flt64(2.0)
+        val result = (bound * Flt64(2.0))!!
 
         assertEquals(Flt64(10.0), result.value.unwrap())
         assertEquals(Interval.Closed, result.interval)
@@ -206,7 +206,7 @@ class ValueRangeComponentTest {
     fun boundDivShouldWork() {
         val value = ValueWrapper(Flt64(10.0), Flt64).value!!
         val bound = Bound(value, Interval.Closed)
-        val result = bound / Flt64(2.0)
+        val result = (bound / Flt64(2.0))!!
 
         assertEquals(Flt64(5.0), result.value.unwrap())
         assertEquals(Interval.Closed, result.interval)

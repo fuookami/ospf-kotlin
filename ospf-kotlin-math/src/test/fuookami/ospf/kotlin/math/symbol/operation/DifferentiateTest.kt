@@ -187,8 +187,6 @@ class DifferentiateTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.hessian(order = listOf(x, y, z))
-        }
+        assertTrue(polynomial.hessian(order = listOf(x, y, z)).failed)
     }
 }

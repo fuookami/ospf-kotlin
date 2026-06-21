@@ -32,7 +32,7 @@ class GeometryPrimitiveTest {
         assertTrue(euclidean eq Flt64(5.0))
         assertTrue(manhattan eq Flt64(7.0))
         assertTrue(chebyshev eq Flt64(4.0))
-        assertTrue(minkowski3 eq Flt64(91.0).pow(Flt64(1.0 / 3.0)).toFlt64())
+        assertTrue(minkowski3 eq Flt64(91.0).pow(Flt64(1.0 / 3.0))!!.toFlt64())
     }
 
     @Test

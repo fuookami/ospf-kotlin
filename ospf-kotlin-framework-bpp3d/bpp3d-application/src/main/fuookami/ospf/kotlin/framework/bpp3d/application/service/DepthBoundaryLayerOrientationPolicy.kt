@@ -60,16 +60,24 @@ data class DepthBoundaryLayerOrientationPolicy(
             if (orderedLayers.isEmpty()) {
                 continue
             }
-            ensureBoundaryLayerSatisfied(
+            when (val first = ensureBoundaryLayerSatisfied(
                 binIndex = binIndex,
                 side = DepthBoundaryLayerSide.First,
                 placement = orderedLayers.first()
-            ).value!!
-            ensureBoundaryLayerSatisfied(
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(first.error)
+                is Fatal -> return Fatal(first.errors)
+            }
+            when (val last = ensureBoundaryLayerSatisfied(
                 binIndex = binIndex,
                 side = DepthBoundaryLayerSide.Last,
                 placement = orderedLayers.last()
-            ).value!!
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(last.error)
+                is Fatal -> return Fatal(last.errors)
+            }
         }
         return ok
     }
@@ -91,14 +99,18 @@ data class DepthBoundaryLayerOrientationPolicy(
             return ok
         }
         for (unitPlacement in placement.unit.units) {
-            ensureBoundaryUnitSatisfied(
+            when (val unit = ensureBoundaryUnitSatisfied(
                 binIndex = binIndex,
                 side = side,
                 layerPlacement = placement,
                 unitPlacement = unitPlacement,
                 allowedCylinderAxes = allowedCylinderAxes,
                 allowedCuboidOrientations = allowedCuboidOrientations
-            ).value!!
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(unit.error)
+                is Fatal -> return Fatal(unit.errors)
+            }
         }
         return ok
     }

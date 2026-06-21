@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.quantities
+﻿package fuookami.ospf.kotlin.quantities
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
@@ -14,15 +14,16 @@ class QuantityTest {
     @Test
     fun eq() {
         val value = Flt64.one * Meter
-        assert((value * value) eq (Flt64.one * SquareMeter))
+        assert((value * value).orFail() eq (Flt64.one * SquareMeter))
     }
 
     @Test
     fun ord() {
         val value = Flt64.one * Meter
-        assert((value * value) partialOrd (Flt64.one * SquareMeter) == Order.Equal)
-        assert((value * value) partialOrd (Flt64.two * SquareMeter) is Order.Less)
-        assert((value * value) partialOrd (Flt64.one * CubicMeter) == null)
+        val square = (value * value).orFail()
+        assert(square partialOrd (Flt64.one * SquareMeter) == Order.Equal)
+        assert(square partialOrd (Flt64.two * SquareMeter) is Order.Less)
+        assert(square partialOrd (Flt64.one * CubicMeter) == null)
     }
 
     @Test
@@ -57,12 +58,8 @@ class QuantityTest {
         val length = Flt64.one * Meter
         val time = Flt64.one * Second
 
-        assertFailsWith<DimensionMismatchException> {
-            length + time
-        }
-        assertFailsWith<DimensionMismatchException> {
-            length - time
-        }
+        assertTrue(length.plusSafe(time).failed)
+        assertTrue(length.minusSafe(time).failed)
     }
 
     // ========================================================================
@@ -117,13 +114,13 @@ class QuantityTest {
 
         // 5. 测试相同单位的加�?
         val anotherThreeTome = Quantity(Flt64(3.0), tomeUnit)
-        val sum = threeTome + anotherThreeTome
+        val sum = (threeTome + anotherThreeTome).orFail()
         assertEquals(6.0, sum.value.toDouble(), 1e-10)
 
         // 6. 测试相同单位的除�?
         val sixTome = Quantity(Flt64(6.0), tomeUnit)
         val twoTome = Quantity(Flt64(2.0), tomeUnit)
-        val quotient = sixTome / twoTome
+        val quotient = (sixTome / twoTome)!!
         assertEquals(3.0, quotient.value.toDouble(), 1e-10)
         // 验证结果是无量纲（量纲符号为空�?1"或包�?1"�?
         val quotientSymbol = quotient.unit.quantity.dimensionSymbol()
@@ -171,7 +168,7 @@ class QuantityTest {
         // 量纲计算: M ÷ (M/T) = M × T/M = T
         val sixKg = Flt64(6.0) * Kilogram
         val twoKgPerTome = Flt64(2.0) * kilogramPerTome
-        val result1 = sixKg / twoKgPerTome
+        val result1 = (sixKg / twoKgPerTome)!!
 
         assertEquals(3.0, result1.value.toDouble(), 1e-10)
         assert(result1.unit.quantity.dimensionSymbol().contains("T")) {
@@ -183,7 +180,7 @@ class QuantityTest {
         // 量纲计算: T × (M/T) = M
         val nineTome = Flt64(9.0) * tomeUnit
         val threeKgPerTome = Flt64(3.0) * kilogramPerTome
-        val result2 = nineTome * threeKgPerTome
+        val result2 = (nineTome * threeKgPerTome).orFail()
 
         assertEquals(27.0, result2.value.toDouble(), 1e-10)
         assert(result2.unit.quantity.dimensionSymbol().contains("M")) {
@@ -204,7 +201,7 @@ class QuantityTest {
         // 7. 测试�? �?/ 3 千克每卷 不等�?27 千克
         // Test: 9 T / 3 (kg/T) != 27 kg
         // 量纲计算: T ÷ (M/T) = T × T/M = T²/M �?M
-        val result3 = nineTome / threeKgPerTome
+        val result3 = (nineTome / threeKgPerTome)!!
 
         // 验证结果值是 3，但量纲不是 M
         assertEquals(3.0, result3.value.toDouble(), 1e-10)
@@ -281,7 +278,7 @@ class QuantityTest {
         // 量纲计算: L × (Z/L) = Z (可能包含 L^0)
         val threeLing = Flt64(3.0) * lingUnit
         val threeZhangPerLing = Flt64(3.0) * zhangPerLing
-        val result1 = threeLing * threeZhangPerLing
+        val result1 = (threeLing * threeZhangPerLing).orFail()
 
         assertEquals(9.0, result1.value.toDouble(), 1e-10)
         // 验证结果量纲包含 Z（张），可能还包�?L^0
@@ -294,7 +291,7 @@ class QuantityTest {
         // 量纲计算: Z ÷ (Z/L) = Z × L/Z = L (可能包含 Z^0)
         val eighteenZhang = Flt64(18.0) * zhangUnit
         val sixZhangPerLing = Flt64(6.0) * zhangPerLing
-        val result2 = eighteenZhang / sixZhangPerLing
+        val result2 = (eighteenZhang / sixZhangPerLing)!!
 
         assertEquals(3.0, result2.value.toDouble(), 1e-10)
         // 验证结果量纲包含 L（令），可能还包�?Z^0
@@ -354,7 +351,7 @@ class QuantityTest {
         // 4. 测试乘法�? 千克 × 3 卷每千克 = 9 �?
         val threeKg = Quantity(Flt64(3.0), Kilogram)
         val threeTomePerKg = Quantity(Flt64(3.0), tomePerKilogram)
-        val product = threeKg * threeTomePerKg
+        val product = (threeKg * threeTomePerKg).orFail()
 
         // 验证结果值为 9
         assertEquals(9.0, product.value.toDouble(), 1e-10)
@@ -366,7 +363,7 @@ class QuantityTest {
         // 5. 测试除法�? �?/ 2 卷每千克 = 3 千克
         val sixTome = Quantity(Flt64(6.0), tomeUnit)
         val twoTomePerKg = Quantity(Flt64(2.0), tomePerKilogram)
-        val result = sixTome / twoTomePerKg
+        val result = (sixTome / twoTomePerKg)!!
 
         // 验证结果值为 3
         assertEquals(3.0, result.value.toDouble(), 1e-10)

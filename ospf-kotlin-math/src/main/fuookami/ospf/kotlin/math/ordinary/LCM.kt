@@ -26,6 +26,7 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -83,11 +84,13 @@ fun <I> lcmByFactorization(
  * @param numbers 整数集合 / Collection of integers
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmByFactorization(
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcmByFactorization(
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -118,12 +121,14 @@ fun <I> lcmByFactorization(
  * @param y 第二个整数 / Second integer
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmByFactorization(
-        x = x,
-        y = y,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcmByFactorization(x: I, y: I): Ret<I> where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcmByFactorization(
+            x = x,
+            y = y,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -160,14 +165,16 @@ fun <I> lcmByFactorization(
  * @param numbers 其余整数 / Remaining integers
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmByFactorization(
-        x = x,
-        y = y,
-        z = z,
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcmByFactorization(
+            x = x,
+            y = y,
+            z = z,
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -204,12 +211,14 @@ fun <I> lcm(
  * @param y 第二个整数 / Second integer
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
-    return lcm(
-        x = x,
-        y = y,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcm(x: I, y: I): Ret<I> where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcm(
+            x = x,
+            y = y,
+            constants = constants
+        )
+    }
 }
 /**
  * 计算多个整数的最小公倍数
@@ -233,11 +242,13 @@ fun <I> lcm(
  * @param numbers 整数集合 / Collection of integers
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
-    return lcm(
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcm(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcm(
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -274,14 +285,16 @@ fun <I> lcm(
  * @param numbers 其余整数 / Remaining integers
  * @return 最小公倍数 / Least common multiple
  */
-inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
-    return lcm(
-        x = x,
-        y = y,
-        z = z,
-        numbers = numbers,
-        constants = resolveRealNumberConstants<I>("LCM")
-    )
+inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+    return resolveRealNumberConstantsSafe<I>("LCM").mapResolved { constants ->
+        lcm(
+            x = x,
+            y = y,
+            z = z,
+            numbers = numbers,
+            constants = constants
+        )
+    }
 }
 
 /**
@@ -363,8 +376,8 @@ fun lcm(x: RtnX, y: RtnX): RtnX {
  */
 fun lcm(numbers: Iterable<RtnX>): RtnX {
     return RtnX(
-        lcm(numbers.map { it.num }),
-        gcd(numbers.map { it.den })
+        lcm(numbers.map { it.num }, IntX),
+        gcd(numbers.map { it.den }, IntX)
     )
 }
 

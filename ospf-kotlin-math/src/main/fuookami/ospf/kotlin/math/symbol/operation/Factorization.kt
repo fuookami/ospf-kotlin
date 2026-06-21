@@ -146,7 +146,7 @@ fun <T> solveQuadratic(coefficients: QuadraticCoefficients<T>): PolynomialRoots<
 
 /** 将求值结果强制转换为目标浮点类型 / Cast an evaluation result to the target floating-point type */
 @Suppress("UNCHECKED_CAST")
-private fun <T> castToFloatingType(value: Any): T where T : Field<T>, T : FloatingNumber<T> {
+private fun <T> castToFloatingType(value: Any?): T where T : Field<T>, T : FloatingNumber<T> {
     // 安全不变量：solveQuadratic 的 T 是具体 FloatingNumber<T>，sqrt 对该数值族返回同族实例。
     // Safety invariant: T in solveQuadratic is a concrete FloatingNumber<T>, and sqrt returns an instance from the same numeric family.
     return value as T

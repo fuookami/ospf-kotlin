@@ -41,7 +41,7 @@ class MultiArrayTest {
 
     @Test
     fun testMultiArrayNewWithDefault() {
-        val array = MultiArray.new<Int, Shape1>(Shape1(5))
+        val array = MultiArray.new<Int, Shape1>(Shape1(5)).valueOrFail()
 
         assertEquals(5, array.size)
         assertEquals(0, array[0])

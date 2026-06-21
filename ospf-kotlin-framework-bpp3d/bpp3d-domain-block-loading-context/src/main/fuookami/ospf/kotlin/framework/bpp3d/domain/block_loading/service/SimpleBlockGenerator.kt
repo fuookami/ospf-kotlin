@@ -81,10 +81,12 @@ class SimpleBlockGenerator(
     ): List<Block> {
         val blocks = ArrayList<Block>()
         for ((item, amount) in items) {
-            requireSupportedCylinderItemForSimpleBlock(
+            if (requireSupportedCylinderItemForSimpleBlock(
                 item = item,
                 path = CylinderCapabilityPath.SimpleBlockCandidate
-            )!!
+            ).failed) {
+                continue
+            }
 
             if (config.mergeAsPatternBlock) {
                 for (pattern in patterns) {

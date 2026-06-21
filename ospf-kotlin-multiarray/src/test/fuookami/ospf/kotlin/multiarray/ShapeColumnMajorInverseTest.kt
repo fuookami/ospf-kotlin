@@ -11,8 +11,8 @@ class ShapeColumnMajorInverseTest {
         val shape = Shape2.withOrder(3, 4, StorageOrder.ColumnMajor)
 
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            val idx = shape.indexValue(vec)
             assertEquals(i, idx, "index(vector($i)) should equal $i")
         }
     }
@@ -22,8 +22,8 @@ class ShapeColumnMajorInverseTest {
         val shape = Shape3.withOrder(2, 3, 4, StorageOrder.ColumnMajor)
 
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            val idx = shape.indexValue(vec)
             assertEquals(i, idx, "index(vector($i)) should equal $i")
         }
     }
@@ -33,8 +33,8 @@ class ShapeColumnMajorInverseTest {
         val shape = Shape4.withOrder(2, 3, 4, 5, StorageOrder.ColumnMajor)
 
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            val idx = shape.indexValue(vec)
             assertEquals(i, idx, "index(vector($i)) should equal $i")
         }
     }
@@ -44,8 +44,8 @@ class ShapeColumnMajorInverseTest {
         val shape = DynShape.withOrder(intArrayOf(2, 3, 4, 5), StorageOrder.ColumnMajor)
 
         for (i in 0 until shape.size) {
-            val vec = shape.vector(i)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            val idx = shape.indexValue(vec)
             assertEquals(i, idx, "index(vector($i)) should equal $i")
         }
     }
@@ -57,9 +57,17 @@ class ShapeColumnMajorInverseTest {
 
         repeat(100) {
             val i = random.nextInt(shape.size)
-            val vec = shape.vector(i)
-            val idx = shape.index(vec)
+            val vec = shape.vectorValue(i)
+            val idx = shape.indexValue(vec)
             assertEquals(i, idx)
         }
+    }
+
+    private fun Shape.indexValue(vector: IntArray): Int {
+        return index(vector).value ?: fail("index should succeed")
+    }
+
+    private fun Shape.vectorValue(index: Int): IntArray {
+        return vector(index).value ?: fail("vector should succeed")
     }
 }

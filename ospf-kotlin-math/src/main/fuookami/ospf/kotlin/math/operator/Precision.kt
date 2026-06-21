@@ -23,7 +23,7 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
 /**
@@ -193,10 +193,11 @@ fun <T> withPrecision(
  */
 inline fun <reified T> withPrecision(
     precision: T? = null
-): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> {
+): Ret<Precision<T>> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> {
     if (precision != null) {
-        return Precision(precision)
+        return Ok(Precision(precision))
     }
-    val constants = resolveRealNumberConstants<T>("Precision")
-    return withPrecision(constants, constants.decimalPrecision)
+    return resolveRealNumberConstantsSafe<T>("Precision").mapResolved { constants ->
+        withPrecision(constants, constants.decimalPrecision)
+    }
 }

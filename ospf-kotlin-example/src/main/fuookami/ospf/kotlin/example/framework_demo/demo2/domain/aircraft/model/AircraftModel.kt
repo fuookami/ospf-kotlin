@@ -71,6 +71,6 @@ data class AircraftModel(
 
     fun gravity(weight: Quantity<Flt64>): Quantity<Flt64> {
         val forcePerWeight = Flt64.one * (forceUnit / weightUnit)
-        return weight * forcePerWeight
+        return (weight * forcePerWeight)!!
     }
 }

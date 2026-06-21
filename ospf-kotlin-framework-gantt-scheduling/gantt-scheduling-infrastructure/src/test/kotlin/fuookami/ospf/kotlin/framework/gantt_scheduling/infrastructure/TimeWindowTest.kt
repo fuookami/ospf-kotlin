@@ -180,7 +180,7 @@ class TimeWindowTest {
         
         // Verify: time slots should cover the remaining time
         // 验证：时段应该覆盖剩余时间
-        val totalDuration = timeSlots.sumOf { it.duration.inWholeSeconds }
+        val totalDuration = timeSlots.fold(0L) { total, slot -> total + slot.duration.inWholeSeconds }
         // 4 hours - 1 hour excluded = 3 hours
         // 4小时 - 1小时排除 = 3小时
         assert(totalDuration == 3 * 60 * 60L) {
@@ -235,7 +235,7 @@ class TimeWindowTest {
         
         // Verify: total duration should be 8 - 2 = 6 hours
         // 验证：总时长应该是 8 - 2 = 6小时
-        val totalDuration = timeSlots.sumOf { it.duration.inWholeSeconds }
+        val totalDuration = timeSlots.fold(0L) { total, slot -> total + slot.duration.inWholeSeconds }
         assert(totalDuration == 6 * 60 * 60L) {
             "Total duration should be 6 hours (8 - 2 excluded)"
         }
@@ -320,7 +320,7 @@ class TimeWindowTest {
         
         // Verify: total duration should be 48 hours
         // 验证：总时长应该是48小时
-        val totalDuration = timeSlots.sumOf { it.duration.inWholeSeconds }
+        val totalDuration = timeSlots.fold(0L) { total, slot -> total + slot.duration.inWholeSeconds }
         assert(totalDuration == 48 * 60 * 60L) {
             "Total duration should be 48 hours"
         }
@@ -677,7 +677,7 @@ class TimeWindowTest {
 
         // Verify: total duration equals window duration
         // 验证：总时长等于时间窗时长
-        val totalDuration = timeSlots.sumOf { it.duration.inWholeSeconds }
+        val totalDuration = timeSlots.fold(0L) { total, slot -> total + slot.duration.inWholeSeconds }
         assert(totalDuration == 5 * 60L) {
             "Total duration should be 5 minutes"
         }
@@ -943,7 +943,7 @@ class TimeWindowTest {
 
         // Verify: total duration should be 4 hours minus excluded duration (2 hours: 09:00-11:00)
         // 验证：总时长应该是4小时减去排除时长（2小时：09:00-11:00）
-        val totalDuration = timeSlots.sumOf { it.duration.inWholeSeconds }
+        val totalDuration = timeSlots.fold(0L) { total, slot -> total + slot.duration.inWholeSeconds }
         assert(totalDuration == 2 * 60 * 60L) {
             "Total duration should be 2 hours (4 - 2 excluded)"
         }

@@ -6,6 +6,8 @@ import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.orFail
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -54,8 +56,7 @@ class SymbolQuantityTest {
         val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
         // 转换到厘米: (200x + 100) cm
-        val inCm = distance.to(Centimeter)
-        assertNotNull(inCm)
+        val inCm = distance.to(Centimeter).orFail()
         assertEquals(Flt64(200.0), inCm.value.monomials[0].coefficient)
         assertEquals(Flt64(100.0), inCm.value.constant)
     }
@@ -82,7 +83,7 @@ class SymbolQuantityTest {
         )
         val distance2: Quantity<LinearPolynomial<Flt64>> = Quantity(poly2, Centimeter)
 
-        val sum = distance1 + distance2
+        val sum = (distance1 + distance2).valueOrFail()
         assertEquals(Meter, sum.unit)
         // LinearPolynomial.plus doesn't combine like terms automatically
         assertEquals(2, sum.value.monomials.size)  // [2x, 0.03x]
@@ -130,8 +131,7 @@ class SymbolQuantityTest {
         )
         val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
-        val evaluated = distance.evaluate(mapOf(x to Flt64(3.0)))
-        assertNotNull(evaluated)
+        val evaluated = distance.evaluate(mapOf(x to Flt64(3.0))).orFail()
         assertEquals(Meter, evaluated.unit)
         assertEquals(Flt64(7.0), evaluated.value)
     }

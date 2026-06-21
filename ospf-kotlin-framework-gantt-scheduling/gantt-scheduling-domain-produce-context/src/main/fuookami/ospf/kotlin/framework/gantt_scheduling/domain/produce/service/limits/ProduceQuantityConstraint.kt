@@ -181,7 +181,7 @@ class ProduceQuantityConstraint<
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
                             task.nonZeroProduceMaterials<P>()
-                                .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                                .sumOf(Flt64) { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {
@@ -194,7 +194,7 @@ class ProduceQuantityConstraint<
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
                             task.nonZeroProduceMaterials<P>()
-                                .sumOf { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                                .sumOf(Flt64) { map[ProduceQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {

@@ -167,8 +167,10 @@ class RectangularPackingDemandTest {
             .toPlacement2Need()
             .toGeometryPlacement2()
             .intersect(placementB.toPlacement2Need().toGeometryPlacement2())
+            .valueOrFail()
+            .orFail()
         assertNotNull(geometryIntersection)
-        val geometryArea = geometryIntersection.width * geometryIntersection.height
+        val geometryArea = (geometryIntersection.width * geometryIntersection.height).orFail()
 
         assertTrue(needIntersection.area eq geometryArea)
         assertTrue(geometryArea eq Quantity(FltX(2.0), SquareMeter))

@@ -132,7 +132,11 @@ inline fun <
             )
         }
     }
-    return Ok(SchedulingSolverValueAdapter.create<V>().intoValue(ret))
+    return when (val adapter = SchedulingSolverValueAdapter.create<V>()) {
+        is Ok -> Ok(adapter.value.intoValue(ret))
+        is Failed -> Failed(adapter.error)
+        is Fatal -> Fatal(adapter.errors)
+    }
 }
 
 /** 抽象甘特调度影子价格提取器类型别名 / Abstract Gantt scheduling shadow price extractor type alias */

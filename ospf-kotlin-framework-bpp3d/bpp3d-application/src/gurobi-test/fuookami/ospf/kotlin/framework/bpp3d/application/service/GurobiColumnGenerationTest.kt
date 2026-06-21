@@ -4,12 +4,16 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
-import kotlin.test.*
-import kotlin.time.Duration.Companion.*
+import java.io.File
+import java.util.Locale
 import kotlin.random.Random
+import kotlin.test.*
+import kotlin.time.Duration.Companion.ZERO
+import kotlin.time.Duration.Companion.seconds
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64 as SolverFlt64
 import fuookami.ospf.kotlin.math.algebra.value_range.*
@@ -22,8 +26,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
-import java.io.File
-import java.util.Locale
 
 @EnabledIfSystemProperty(named = "bpp3d.gurobi.cg.test.enabled", matches = "true")
 class GurobiColumnGenerationTest {
@@ -31,6 +33,22 @@ class GurobiColumnGenerationTest {
 
     private fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
         return fold(0) { acc, item -> acc + selector(item) }
+    }
+
+    private fun <T> Ret<T>.orFail(message: String): T {
+        return value ?: fail(failureMessage()?.let { "$message: $it" } ?: message)
+    }
+
+    private fun <T> Ret<T>.orIllegalArgument(message: String): T {
+        return value ?: throw IllegalArgumentException(failureMessage()?.let { "$message: $it" } ?: message)
+    }
+
+    private fun <T> Ret<T>.failureMessage(): String? {
+        return when (this) {
+            is Failed -> message
+            is Fatal -> firstError?.message
+            else -> null
+        }
     }
 
     private fun <T> Iterable<T>.sumOfLong(selector: (T) -> Long): Long {
@@ -312,7 +330,7 @@ class GurobiColumnGenerationTest {
         return layerBinOf(
             shape = resolvedBinType,
             units = listOf(
-                layer.toLayerPlacement()
+                layer.toLayerPlacement().orIllegalArgument("layer placement should be built")
             )
         )
     }
@@ -1072,10 +1090,9 @@ class GurobiColumnGenerationTest {
             column = column,
             fieldName = fieldName,
             parseValue = { raw ->
-                runCatching { Orientation.require(raw.trim()) }
-                    .getOrElse {
-                        throw IllegalStateException("invalid orientation in $fieldName: $raw")
-                    }
+                Orientation.require(raw.trim())
+                    .value
+                    ?: throw IllegalStateException("invalid orientation in $fieldName: $raw")
             }
         )
     }
@@ -2409,7 +2426,7 @@ class GurobiColumnGenerationTest {
                 "diameter_step requires diameter_min and diameter_max for cylinder row: $rowDescription"
             )
         }
-        val solverPrototype = try {
+        val solverPrototypeResult = try {
             continuousCylinderRadiusSolverPrototype(
                 source = "Gurobi CSV",
                 radiusWeightFunctionKey = radiusWeightFunctionKey,
@@ -2431,6 +2448,19 @@ class GurobiColumnGenerationTest {
                 exception
             )
         }
+        if (!solverPrototypeResult.ok) {
+            val keyText = radiusWeightFunctionKey
+                ?.takeIf { it.isNotBlank() }
+                ?.let { ", key=$it" }
+                ?: ""
+            val failureText = solverPrototypeResult.failureMessage()
+                ?.let { ": $it" }
+                ?: ""
+            throw IllegalStateException(
+                "invalid continuous cylinder radius metadata$keyText, $rowDescription$failureText"
+            )
+        }
+        val solverPrototype = solverPrototypeResult.value
         val gapReport = continuousCylinderRadiusOptimizationGapReport(
             source = "Gurobi CSV",
             radiusWeightFunctionKey = radiusWeightFunctionKey,
@@ -2694,11 +2724,13 @@ class GurobiColumnGenerationTest {
             layerRequestBuilder = executors.requestBuilder(),
             solutionAnalyzer = ColumnGenerationSolutionAnalyzer { state ->
                 analyzedState = state
+                ok
             },
             initialColumns = { listOf(seedLayer) }
         )
 
         val result = algorithm.solve(items = listOf<Item>(actualItem))
+            .orFail("Gurobi column generation algorithm should solve")
         assertNotNull(capturedRequest)
         assertNotNull(analyzedState)
         assertTrue(result.finalSolved)
@@ -2760,7 +2792,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi column generation application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -2847,7 +2879,7 @@ class GurobiColumnGenerationTest {
                 generators = listOf(CirclePackingLayerGenerator())
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi horizontal cylinder application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -2966,7 +2998,7 @@ class GurobiColumnGenerationTest {
                 generators = listOf(CirclePackingLayerGenerator())
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi heterogeneous horizontal cylinder application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -3044,7 +3076,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi multi-material application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -3151,7 +3183,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi medium production-like application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -3260,7 +3292,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi large production-like application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -3392,7 +3424,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi mixed demand application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)
@@ -3447,7 +3479,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi CSV-driven application service should solve")
         val expectedGroupCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.group.count")
             ?: scenario.groupCount
         val expectedMaterialCount = optionalIntProperty("bpp3d.gurobi.dataset.expected.material.count")
@@ -3560,7 +3592,7 @@ class GurobiColumnGenerationTest {
                     )
                 ),
                 packingAnalyzer = ColumnGenerationPackingAnalyzer()
-            )
+            ).orFail("Gurobi CSV-driven suite application service should solve: ${scenarioCase.name}")
             totalElapsed += response.result.elapsed
             printScenarioMetrics(
                 caseName = scenarioCase.name,
@@ -3666,7 +3698,7 @@ class GurobiColumnGenerationTest {
                     )
                 ),
                 packingAnalyzer = ColumnGenerationPackingAnalyzer()
-            )
+            ).orFail("Gurobi deterministic random application service should solve: ${scenarioCase.name}")
             totalElapsed += response.result.elapsed
             printScenarioMetrics(
                 caseName = scenarioCase.name,
@@ -3839,7 +3871,7 @@ class GurobiColumnGenerationTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).orFail("Gurobi large multi-bin triple demand application service should solve")
 
         assertTrue(response.result.finalSolved)
         assertEquals(1, response.result.lpSolvedTimes)

@@ -144,7 +144,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *         The cast Self value
      */
     @Suppress("UNCHECKED_CAST")
-    private fun castFloatingToSelf(value: Any): Self {
+    private fun castFloatingToSelf(value: Any?): Self {
         return value as Self
     }
 
@@ -165,8 +165,8 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
         return value as Self?
     }
 
-    override fun sqrt(): Self = castFloatingToSelf(pow(constants.one / constants.two))
-    override fun cbrt(): Self = castFloatingToSelf(pow(constants.one / constants.three))
+    override fun sqrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.two))
+    override fun cbrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.three))
 
     override fun lg(): Self? = castNullableFloatingToSelf(log(constants.ten))
     override fun lg2(): Self? = castNullableFloatingToSelf(log(constants.two))
@@ -503,12 +503,17 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> Flt32(value.pow(index.value))
         is Flt64 -> Flt64(value.toDouble().pow(index.value))
         is FltX -> toFltX().pow(index)
         else -> toFltX().pow(index.toFltX())
     }
+
+    /** 平方根 / Square root */
+    override fun sqrt() = Flt32(sqrt(value))
+    /** 立方根 / Cube root */
+    override fun cbrt() = Flt32(value.toDouble().pow(1.0 / 3.0).toFloat())
 
     /** 指数函数 e^x / Exponential function e^x */
     override fun exp() = Flt32(exp(value))
@@ -998,12 +1003,17 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> Flt64(value.pow(index.value.toDouble()))
         is Flt64 -> Flt64(value.pow(index.value))
         is FltX -> toFltX().pow(index)
         else -> toFltX().pow(index.toFltX())
     }
+
+    /** 平方根 / Square root */
+    override fun sqrt() = Flt64(sqrt(value))
+    /** 立方根 / Cube root */
+    override fun cbrt() = Flt64(value.pow(1.0 / 3.0))
 
     /** 指数函数 e^x / Exponential function e^x */
     override fun exp() = Flt64(exp(value))
@@ -1321,7 +1331,7 @@ interface FltXInterface {
 @Serializable(with = FltXSerializer::class)
 value class FltX(internal val value: BigDecimal) :
     FltXInterface, FloatingImpl<FltX>, Copyable<FltX>,
-    LogP<FloatingNumber<*>, FloatingNumber<*>>, PowFP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>> {
+    LogP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>> {
     /**
      * FltX 常量对象
      * FltX Constants Object
@@ -1681,8 +1691,7 @@ value class FltX(internal val value: BigDecimal) :
      * @return 幂运算结果
      *         The power result
      */
-    @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FltX = when (index) {
+    override fun pow(index: FloatingNumber<*>): FltX? = when (index) {
         is Flt32 -> pow(index, decimalDigits)
         is Flt64 -> pow(index, decimalDigits)
         is FltX -> pow(
@@ -1718,7 +1727,7 @@ value class FltX(internal val value: BigDecimal) :
     fun pow(
         index: FloatingNumber<*>,
         digits: Int
-    ): FltX = pow(
+    ): FltX? = pow(
         index = index,
         digits = digits + 1,
         precision = FltXPowerStrategy.defaultPrecision(digits + 1)
@@ -1737,19 +1746,18 @@ value class FltX(internal val value: BigDecimal) :
      * @return 幂运算结果
      *         The power result
      */
-    @Throws(IllegalArgumentException::class)
-    override fun pow(
+    fun pow(
         index: FloatingNumber<*>,
         digits: Int,
         precision: FloatingNumber<*>
-    ): FltX {
+    ): FltX? {
         val indexFltX = when (index) {
             is Flt32 -> index.toFltX()
             is Flt64 -> index.toFltX()
             is FltX -> index
             else -> index.toFltX()
         }
-        return FltXPowerStrategy.pow(
+        return FltXPowerStrategy.powOrNull(
             base = this.withScale(digits),
             index = indexFltX.withScale(digits),
             digits = digits,
@@ -1771,6 +1779,7 @@ value class FltX(internal val value: BigDecimal) :
      */
     fun exp(digits: Int) = exp(
         index = this,
+        constants = FltX,
         digits = digits + 1,
         precision = FltXPowerStrategy.defaultPrecision(digits + 1)
     )

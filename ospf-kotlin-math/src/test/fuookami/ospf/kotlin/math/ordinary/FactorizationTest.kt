@@ -20,8 +20,8 @@ class FactorizationTest {
 
     @Test
     fun defactorize() {
-        assertEquals(UInt64(12), defactorize(listOf(UInt64.two to 2, UInt64.three to 1), UInt64))
-        assertEquals(UInt64.one, defactorize(emptyList(), UInt64))
+        assertEquals(UInt64(12), defactorize(listOf(UInt64.two to 2, UInt64.three to 1), UInt64).value!!)
+        assertEquals(UInt64.one, defactorize(emptyList(), UInt64).value!!)
     }
 
     @Test

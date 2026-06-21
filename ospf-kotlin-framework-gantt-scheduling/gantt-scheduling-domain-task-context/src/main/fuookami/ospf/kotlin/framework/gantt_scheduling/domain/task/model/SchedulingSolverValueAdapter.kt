@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -38,12 +39,13 @@ interface SchedulingSolverValueAdapter<V : RealNumber<V>> : IntoValue<V> {
          * Flt64 走 Identity 快速路径，其他类型通过 resolveFlt64ValueConverter 反射解析。
          * Flt64 takes the Identity fast path; other types are resolved via resolveFlt64ValueConverter reflection.
          */
-        inline fun <reified V : RealNumber<V>> create(): SchedulingSolverValueAdapter<V> {
+        inline fun <reified V : RealNumber<V>> create(): Ret<SchedulingSolverValueAdapter<V>> {
             return if (V::class == Flt64::class) {
                 @Suppress("UNCHECKED_CAST")
-                Flt64 as SchedulingSolverValueAdapter<V>
+                Ok(Flt64 as SchedulingSolverValueAdapter<V>)
             } else {
-                GenericSolverValueAdapter(resolveFlt64ValueConverter("SchedulingSolverValueAdapter.create"))
+                resolveFlt64ValueConverter<V>("SchedulingSolverValueAdapter.create")
+                    .map { converter -> GenericSolverValueAdapter(converter) }
             }
         }
     }

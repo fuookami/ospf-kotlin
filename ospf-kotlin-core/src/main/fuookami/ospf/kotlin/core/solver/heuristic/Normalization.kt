@@ -58,7 +58,7 @@ data object SumNormalization : ObjectiveNormalization<Flt64, Flt64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         val minMaxObjs = objs.map { (it - minObj) / (maxObj - minObj) }
-        val sum = minMaxObjs.sum()
+        val sum = minMaxObjs.sum(Flt64)
         return if (model.compareObjective(minObj, maxObj) is Order.Less) {
             if (sum neq Flt64.zero) {
                 minMaxObjs.map { Flt64.one - it / sum }

@@ -1,4 +1,4 @@
-/**
+﻿/**
  * 仿射转换规则测试
  * Affine conversion rule tests
  *
@@ -186,18 +186,16 @@ class AffineConversionTest {
     fun testAffineMultiplyThrows() {
         val temp1 = Flt64(100.0) * Celsius
         val temp2 = Flt64(50.0) * Kelvin
-        assertFailsWith<IllegalArgumentException> {
-            temp1 * temp2
-        }
+        assertNull(temp1 * temp2)
+        assertTrue(temp1.timesSafe(temp2).failed)
     }
 
     @Test
     fun testAffineDivideThrows() {
         val temp1 = Flt64(100.0) * Celsius
         val temp2 = Flt64(50.0) * Kelvin
-        assertFailsWith<IllegalArgumentException> {
-            temp1 / temp2
-        }
+        assertNull(temp1 / temp2)
+        assertTrue(temp1.divSafe(temp2).failed)
     }
 
     // ========================================================================
@@ -291,16 +289,15 @@ class AffineConversionTest {
     fun testSameAffineUnitAddition() {
         val temp1 = Flt64(10.0) * Celsius
         val temp2 = Flt64(20.0) * Celsius
-        assertFailsWith<IllegalArgumentException> {
-            temp1 + temp2
-        }
+        assertNull(temp1 + temp2)
+        assertTrue(temp1.plusSafe(temp2).failed)
     }
 
     @Test
     fun testSameAffineUnitSubtraction() {
         val temp1 = Flt64(100.0) * Celsius
         val temp2 = Flt64(0.0) * Celsius
-        val result = temp1 - temp2
+        val result = (temp1 - temp2)!!
         result.value.assertApprox(Flt64(100.0))
         assertFalse(result.unit.isAffine)
         assertEquals(Celsius.quantity, result.unit.quantity)
@@ -313,17 +310,15 @@ class AffineConversionTest {
     @Test
     fun testScalarMultiplyWithAffineUnit() {
         val temp = Flt64(100.0) * Celsius
-        assertFailsWith<IllegalArgumentException> {
-            temp * Flt64(2.0)
-        }
+        assertNull(temp * Flt64(2.0))
+        assertTrue(temp.timesSafe(Flt64(2.0)).failed)
     }
 
     @Test
     fun testScalarDivideWithAffineUnit() {
         val temp = Flt64(100.0) * Celsius
-        assertFailsWith<IllegalArgumentException> {
-            temp / Flt64(2.0)
-        }
+        assertNull(temp / Flt64(2.0))
+        assertTrue(temp.divSafe(Flt64(2.0)).failed)
     }
 
     // ========================================================================

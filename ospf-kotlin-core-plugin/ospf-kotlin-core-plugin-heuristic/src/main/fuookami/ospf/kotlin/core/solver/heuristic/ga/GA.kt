@@ -347,7 +347,7 @@ class GeneAlgorithm<Obj, ObjValue, V>(
     ): List<Chromosome<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model
-            .initialSolutions(population.sumOf { it.densityRange.lowerBound.value.unwrap() })
+            .initialSolutions(population.sumOf(UInt64) { it.densityRange.lowerBound.value.unwrap() })
             .map {
                 Chromosome(
                     solution = it,
@@ -355,7 +355,7 @@ class GeneAlgorithm<Obj, ObjValue, V>(
                 )
             }
         var populations = population.mapIndexed { i, thisPopulation ->
-            val fromIndex = population.take(i).sumOf { it.densityRange.lowerBound.value.unwrap() }
+            val fromIndex = population.take(i).sumOf(UInt64) { it.densityRange.lowerBound.value.unwrap() }
             val toIndex = fromIndex + thisPopulation.densityRange.upperBound.value.unwrap()
             val thisIndividuals = initialSolutions
                 .subList(fromIndex.toInt(), toIndex.toInt())

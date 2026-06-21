@@ -7,10 +7,10 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import com.mongodb.MongoClientSettings
 import org.bson.BsonDocument
 import org.bson.conversions.Bson
-import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
@@ -32,8 +32,9 @@ class MongoBooleanTranslatorTest {
     private val translator = MongoBooleanTranslator(resolver)
     private val codec = MongoClientSettings.getDefaultCodecRegistry()
 
-    private fun json(bson: Bson?): String {
-        return (bson ?: error("bson is null")).toBsonDocument(BsonDocument::class.java, codec).toJson()
+    private fun json(result: Ret<Bson?>): String {
+        val bson = result.valueOrFail().orFail("bson is null")
+        return bson.toBsonDocument(BsonDocument::class.java, codec).toJson()
     }
 
     @Test
@@ -196,12 +197,11 @@ class MongoBooleanTranslatorTest {
     }
 
     @Test
-    @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
-    fun failFastShouldThrowForUnsupportedPredicate() {
+    @DisplayName("fail fast should return failed for unsupported predicate / FailFast 应对不支持谓词返回失败")
+    fun failFastShouldReturnFailedForUnsupportedPredicate() {
         val failFastTranslator = MongoBooleanTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
 
-        assertThrows(IllegalArgumentException::class.java) {
-            failFastTranslator.translate(BooleanCustom("x"))
-        }
+        val result = failFastTranslator.translate(BooleanCustom("x"))
+        assertTrue(result.failed)
     }
 }

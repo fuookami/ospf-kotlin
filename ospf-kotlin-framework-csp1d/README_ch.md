@@ -1,6 +1,6 @@
 # ospf-kotlin-framework-csp1d
 
-[English](README.md)
+:us: [English](README.md) | :cn: 简体中文
 
 `ospf-kotlin-framework-csp1d` 是可复用的一维分切开发包。它只沉淀通用 CSP1D 内核；下游请求 DTO、公式语言、项目运行参数、租户上下文、心跳逻辑和 solver 插件选择留给业务适配层。
 

@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
@@ -13,11 +14,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  */
 internal fun requireNoCylinderItemsForCuboidSearch(
     items: Map<Item, UInt64>
-) {
-    requireNoCylinderItemsForCuboidOnlyPath(
+): Try {
+    return requireNoCylinderItemsForCuboidOnlyPath(
         items = items
             .filter { (_, amount) -> amount != UInt64.zero }
             .keys,
         path = CylinderCapabilityPath.DfsMlhsCuboidSearch
-    )!!
+    )
 }

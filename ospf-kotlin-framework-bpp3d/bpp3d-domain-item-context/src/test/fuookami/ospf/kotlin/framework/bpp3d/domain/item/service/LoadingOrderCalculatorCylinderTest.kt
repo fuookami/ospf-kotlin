@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -29,12 +30,13 @@ class LoadingOrderCalculatorCylinderTest {
 
     private fun cylinderItem(id: String): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
@@ -48,12 +50,13 @@ class LoadingOrderCalculatorCylinderTest {
 
     private fun cylinderItem(id: String, axis: Axis3): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),

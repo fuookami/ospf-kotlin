@@ -150,8 +150,8 @@ class PlacementTest {
             )
         )
 
-        assertTrue(left overlapped tangent)
-        assertFalse(left overlapped far)
+        assertTrue((left overlapped tangent).valueOrFail())
+        assertFalse((left overlapped far).valueOrFail())
     }
 
     @Test
@@ -194,8 +194,8 @@ class PlacementTest {
             )
         )
 
-        assertTrue(circle overlapped overlappedRect)
-        assertFalse(circle overlapped separatedRect)
+        assertTrue((circle overlapped overlappedRect).valueOrFail())
+        assertFalse((circle overlapped separatedRect).valueOrFail())
     }
 
     @Test
@@ -231,8 +231,8 @@ class PlacementTest {
             )
         )
 
-        assertFalse(base overlapped touchingTop)
-        assertTrue(base overlapped crossingTop)
+        assertFalse((base overlapped touchingTop).valueOrFail())
+        assertTrue((base overlapped crossingTop).valueOrFail())
     }
 
     @Test

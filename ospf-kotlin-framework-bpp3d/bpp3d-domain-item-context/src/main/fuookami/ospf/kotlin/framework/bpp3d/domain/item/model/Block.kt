@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -75,10 +76,14 @@ class HollowSquareBlock(
             space: AbstractContainer3Shape,
             amount: UInt64 = UInt64.maximum
         ): HollowSquareBlock? {
-            val units = ItemMerger.mergeHollowSquareBlocks(
+            val units = when (val result = ItemMerger.mergeHollowSquareBlocks(
                 items = mapOf(Pair(item, UInt64.maximum)),
                 space = space
-            )
+            )) {
+                is Ok -> result.value
+                is Failed -> return null
+                is Fatal -> return null
+            }
 
             return if (units.first.isNotEmpty() && units.first.first().amounts[item]!! leq amount) {
                 units.first.first()

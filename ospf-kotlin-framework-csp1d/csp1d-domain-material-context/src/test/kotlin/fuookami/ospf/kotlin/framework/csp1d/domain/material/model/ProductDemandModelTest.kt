@@ -80,11 +80,11 @@ class ProductDemandModelTest {
             quantity = Quantity(Flt64(9.0), RollCountUnit)
         )
 
-        val contribution = demand.contribution(
+        val contribution = assertNotNull(demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
             arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
-        )
+        ).value)
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(3.0), RollCountUnit))
     }
@@ -103,11 +103,11 @@ class ProductDemandModelTest {
             quantity = Quantity(Flt64(30.0), Kilogram)
         )
 
-        val contribution = demand.contribution(
+        val contribution = assertNotNull(demand.contribution(
             width = product.width.first(),
             amount = UInt64(3UL),
             arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
-        )
+        ).value)
 
         assertEquals(true, contribution.quantity eq Quantity(Flt64(30.0), Kilogram))
     }

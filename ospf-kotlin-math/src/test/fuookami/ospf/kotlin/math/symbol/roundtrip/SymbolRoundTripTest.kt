@@ -97,7 +97,7 @@ class SymbolRoundTripTest {
             comparison = Comparison.LE
         )
         val json = original.toJsonString()
-        val restored = linearInequalityFromJson(json)
+        val restored = linearInequalityFromJson(json).value!!
         assertLinearPolynomialEquals(original.lhs, restored.lhs)
         assertLinearPolynomialEquals(original.rhs, restored.rhs)
         assertEquals(original.comparison, restored.comparison)
@@ -114,7 +114,7 @@ class SymbolRoundTripTest {
             comparison = Comparison.GE
         )
         val json = original.toJsonString()
-        val restored = canonicalInequalityFromJson(json)
+        val restored = canonicalInequalityFromJson(json).value!!
         assertCanonicalPolynomialEquals(original.lhs, restored.lhs)
         assertCanonicalPolynomialEquals(original.rhs, restored.rhs)
         assertEquals(original.comparison, restored.comparison)
@@ -131,7 +131,7 @@ class SymbolRoundTripTest {
             comparison = Comparison.LE
         )
         val json = original.toJsonString()
-        val restored = quadraticInequalityFromJson(json)
+        val restored = quadraticInequalityFromJson(json).value!!
         assertQuadraticPolynomialEquals(original.lhs, restored.lhs)
         assertQuadraticPolynomialEquals(original.rhs, restored.rhs)
         assertEquals(original.comparison, restored.comparison)

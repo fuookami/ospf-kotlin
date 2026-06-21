@@ -4,7 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -349,7 +350,18 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData().getOrThrow()
+    fun flattenData(): Ret<LinearFlattenData<V>> {
+        return inequality.toLinearFlattenData().fold(
+            onSuccess = { flattenData -> ok(flattenData) },
+            onFailure = { error ->
+                Failed(
+                    ErrorCode.IllegalArgument,
+                    error.message ?: "Failed to flatten linear inequality."
+                )
+            }
+        )
+    }
+
     val sign: Comparison get() = inequality.comparison
     val name: String get() = constraintName
     val displayName: String? get() = constraintDisplayName
@@ -359,8 +371,13 @@ data class LinearInequalityConstraint<V>(
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
+        val sourceFlattenData = when (val result = flattenData()) {
+            is Ok -> result.value
+            is Failed -> return null
+            is Fatal -> return null
+        }
         @Suppress("UNCHECKED_CAST")
-        val targetFlattenData = flattenData as LinearFlattenData<V1>
+        val targetFlattenData = sourceFlattenData as LinearFlattenData<V1>
         val lhsValue = evaluateFlattenDataWithResults(targetFlattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue.toFlt64(), Flt64.zero)

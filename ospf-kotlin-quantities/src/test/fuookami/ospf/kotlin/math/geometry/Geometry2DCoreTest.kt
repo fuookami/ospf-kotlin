@@ -1,8 +1,9 @@
-package fuookami.ospf.kotlin.math.geometry
+﻿package fuookami.ospf.kotlin.math.geometry
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -46,11 +47,11 @@ class Geometry2DCoreTest {
             shape = QuantityRectangle2(width = 2.0 * Meter, height = 3.0 * Meter)
         )
 
-        assertTrue(lhs.contains(x = 1.0 * Meter, y = 1.0 * Meter))
-        assertTrue(lhs.maxX eq (4.0 * Meter))
-        assertTrue(lhs.maxY eq (3.0 * Meter))
-        assertTrue(lhs.overlapped(rhs))
-        val intersection = lhs.intersect(rhs)
+        assertTrue(lhs.contains(x = 1.0 * Meter, y = 1.0 * Meter).value!!)
+        assertTrue(lhs.maxX().value!! eq (4.0 * Meter))
+        assertTrue(lhs.maxY().value!! eq (3.0 * Meter))
+        assertTrue(lhs.overlapped(rhs).value!!)
+        val intersection = lhs.intersect(rhs).valueOrFail()
         assertNotNull(intersection)
         assertTrue(intersection.width eq (1.0 * Meter))
         assertTrue(intersection.height eq (2.0 * Meter))
@@ -79,9 +80,11 @@ class Geometry2DCoreTest {
             shape = QuantityRectangle2(width = 1.0 * Meter, height = 1.0 * Meter)
         )
 
-        assertTrue(circleA.overlapped(circleB))
-        assertTrue(!circleA.overlapped(farCircle))
-        assertTrue(circleB.overlapped(rectangle))
-        assertNull(farCircle.intersect(rectangle))
+        assertTrue(circleA.overlapped(circleB).value!!)
+        assertTrue(!circleA.overlapped(farCircle).value!!)
+        assertTrue(circleB.overlapped(rectangle).value!!)
+        val intersection = farCircle.intersect(rectangle)
+        assertTrue(intersection.ok)
+        assertNull(intersection.value)
     }
 }

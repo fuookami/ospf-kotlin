@@ -46,7 +46,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-opt"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel<Flt64>(
             parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt", converter = flt64Converter),
             name = "cut-model-lin-opt",
@@ -87,7 +87,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-feas"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel<Flt64>(
             parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas", converter = flt64Converter),
             name = "cut-model-lin-feas",
@@ -138,7 +138,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-opt"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt", converter = flt64Converter),
             name = "cut-model-qc-opt",
@@ -183,7 +183,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-feas"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas", converter = flt64Converter),
             name = "cut-model-qc-feas",
@@ -227,7 +227,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-opt-out"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel<Flt64>(
             parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out", converter = flt64Converter),
             name = "cut-model-lin-opt-out",
@@ -273,7 +273,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-feas-out"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel<Flt64>(
             parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out", converter = flt64Converter),
             name = "cut-model-lin-feas-out",
@@ -329,7 +329,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-opt-out"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out", converter = flt64Converter),
             name = "cut-model-qc-opt-out",
@@ -381,7 +381,7 @@ class BendersCutApiTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc-feas-out"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out", converter = flt64Converter),
             name = "cut-model-qc-feas-out",

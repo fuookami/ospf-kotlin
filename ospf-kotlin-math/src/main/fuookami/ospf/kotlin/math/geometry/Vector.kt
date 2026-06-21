@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * @return 转换后的数值 / The casted numeric value
  */
 @Suppress("UNCHECKED_CAST")
-private fun <V : FloatingNumber<V>> castVectorValue(value: Any): V {
+private fun <V : FloatingNumber<V>> castVectorValue(value: Any?): V {
     // 安全不变量：向量范数/夹角结果与向量分量处于同一 V 数域。
     // Safety invariant: vector norm/angle results stay in the same V numeric domain as vector components.
     return value as V

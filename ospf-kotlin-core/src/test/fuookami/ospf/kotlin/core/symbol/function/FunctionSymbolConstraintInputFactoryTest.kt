@@ -57,7 +57,7 @@ class FunctionSymbolConstraintInputFactoryTest {
                 relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_if_input_ineq"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.one
-            )
+            ).value ?: fail("linear constraint input should be built")
 
             val ifFunc = IfFunction.from(
                 inequality = input,

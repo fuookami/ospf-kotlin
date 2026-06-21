@@ -268,7 +268,7 @@ class ScipColumnGenerationSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(result.value.solution)
-                        val dualObject = dualSolution.sumOf { (constraint, value) ->
+                        val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
                             constraint.rhs * value
                         }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {

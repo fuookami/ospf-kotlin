@@ -50,28 +50,28 @@ class QuantityValueRangeTest {
     @Test
     fun testPlus() {
         val range = range(Flt64.one, Flt64.two).value!!
-        val addedRange = range + Flt64.one
+        val addedRange = (range + Flt64.one)!!
         assert(addedRange.lowerBound.value.unwrap() eq Flt64.two)
         assert(addedRange.upperBound.value.unwrap() eq Flt64.three)
-        val twiceRange = range + range
+        val twiceRange = (range + range)!!
         assert(twiceRange.lowerBound.value.unwrap() eq Flt64.two)
         assert(twiceRange.upperBound.value.unwrap() eq Flt64(4.0))
-        val infRange = range + Flt64.infinity
+        val infRange = (range + Flt64.infinity)!!
         assert(infRange.lowerBound.value is ValueWrapper.Infinity)
         assert(infRange.lowerBound.interval == Interval.Open)
         assert(infRange.upperBound.value is ValueWrapper.Infinity)
         assert(infRange.upperBound.interval == Interval.Open)
-        val negInfRange = range + -Flt64.infinity
+        val negInfRange = (range + -Flt64.infinity)!!
         assert(negInfRange.lowerBound.value is ValueWrapper.NegativeInfinity)
         assert(negInfRange.lowerBound.interval == Interval.Open)
         assert(negInfRange.upperBound.value is ValueWrapper.NegativeInfinity)
         assert(negInfRange.upperBound.interval == Interval.Open)
-        val infRange2 = rangeToInfinity(Flt64.one).value!! + Flt64.one
+        val infRange2 = (rangeToInfinity(Flt64.one).value!! + Flt64.one)!!
         assert(infRange2.lowerBound.value.unwrap() eq Flt64.two)
         assert(infRange2.lowerBound.interval == Interval.Closed)
         assert(infRange2.upperBound.value is ValueWrapper.Infinity)
         assert(infRange2.upperBound.interval == Interval.Open)
-        val negInfRange2 = rangeFromNegativeInfinity(Flt64.one).value!! + Flt64.one
+        val negInfRange2 = (rangeFromNegativeInfinity(Flt64.one).value!! + Flt64.one)!!
         assert(negInfRange2.lowerBound.value is ValueWrapper.NegativeInfinity)
         assert(negInfRange2.lowerBound.interval == Interval.Open)
         assert(negInfRange2.upperBound.value.unwrap() eq Flt64.two)
@@ -81,10 +81,10 @@ class QuantityValueRangeTest {
     @Test
     fun testSubtract() {
         val range = range(Flt64.one, Flt64.two).value!!
-        val subtractedRange = range - Flt64.one
+        val subtractedRange = (range - Flt64.one)!!
         assert(subtractedRange.lowerBound.value.unwrap() eq Flt64.zero)
         assert(subtractedRange.upperBound.value.unwrap() eq Flt64.one)
-        val noneRange = range - range
+        val noneRange = (range - range)!!
         assert(noneRange.lowerBound.value.unwrap() eq -Flt64.one)
         assert(noneRange.upperBound.value.unwrap() eq Flt64.one)
     }

@@ -66,7 +66,7 @@ class LinearDensity(
         if (!::linearDensity.isInitialized) {
             linearDensity = QuantityLinearIntermediateSymbols1<Flt64>("linear_density", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val coefficient = Flt64.one / position.shape.length.to(aircraftModel.lengthUnit)!!.value
+                val coefficient = (Flt64.one / position.shape.length.to(aircraftModel.lengthUnit)!!.value)!!
                 Quantity(
                     LinearExpressionSymbol(
                         LinearMonomial(coefficient, load.estimateLoadWeight[j].value),

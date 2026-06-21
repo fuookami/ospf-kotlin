@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.ZERO
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -352,10 +353,14 @@ private fun <V> mapItemsToLayers(
     orderedItems: List<Item>
 ): List<Bpp3dLayerGenerationResult<V>> {
     for (item in orderedItems) {
-        requireVerticalCylinderAxis(
+        when (val axisCheck = requireVerticalCylinderAxis(
             shape = item.packingShape,
             path = CylinderCapabilityPath.DefaultLayerCandidate
-        )!!
+        )) {
+            is Ok -> {}
+            is Failed -> return emptyList()
+            is Fatal -> return emptyList()
+        }
     }
     return rankByShadowScore(
         request = request,
@@ -471,11 +476,15 @@ private suspend fun <V> mapItemsToPileLayers(
     val layers = LinkedHashSet<BinLayer>()
     for (item in request.items) {
         val orientation = pickOrientation(item, request.bin) ?: continue
-        requireUprightVerticalCylinderSupport(
+        when (val supportCheck = requireUprightVerticalCylinderSupport(
             shape = item.packingShape,
             orientation = orientation,
             path = CylinderCapabilityPath.PileSupportCandidate
-        )!!
+        )) {
+            is Ok -> {}
+            is Failed -> continue
+            is Fatal -> continue
+        }
         val itemView = item.view(orientation)
         val maxByBinHeight = (bin.height.value / itemView.height.value).floor().toUInt64()
         if (maxByBinHeight <= UInt64.one) {
@@ -720,7 +729,7 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
         return null
     }
 
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * FltX(0.5)
+    val radialOffset = ((cylinderRadialSpan - supportRadialSpan)!! * FltX(0.5))!!
     val supportPosition = when (axis) {
         Axis3.X -> layerPoint3(z = radialOffset)
         Axis3.Y -> point3FltX()
@@ -796,7 +805,7 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
         view = supportView,
         axis = axis
     )
-    val radialOffset = (cylinderRadialSpan - supportRadialSpan) * FltX(0.5)
+    val radialOffset = ((cylinderRadialSpan - supportRadialSpan)!! * FltX(0.5))!!
     val placements = ArrayList<QuantityPlacement3<Item, FltX>>(supportCount + 1)
     for (index in 0 until supportCount) {
         val axisOffset = supportAxisSpan * FltX(index.toDouble())
@@ -886,9 +895,9 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
             continue
         }
 
-        val radialOffset = (cylinderRadialSpan - referenceRadialSpan) * FltX(0.5)
+        val radialOffset = ((cylinderRadialSpan - referenceRadialSpan)!! * FltX(0.5))!!
         val placements = ArrayList<QuantityPlacement3<Item, FltX>>(supportCount + 1)
-        var axisOffset = cylinderAxisSpan * FltX(0.0)
+        var axisOffset = (cylinderAxisSpan * FltX(0.0))!!
         for (supportView in eligibleSupports.take(supportCount)) {
             val position = when (axis) {
                 Axis3.X -> layerPoint3(x = axisOffset, z = radialOffset)
@@ -901,7 +910,7 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
                     position = position
                 )
             )
-            axisOffset += referenceAxisSpan
+            axisOffset = (axisOffset + referenceAxisSpan)!!
         }
         placements.add(
             QuantityPlacement3<Item, FltX>(
@@ -1057,7 +1066,7 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
 
         val supportPlacements = ArrayList<QuantityPlacement3<Item, FltX>>()
         var coveredAxisSpan = 0.0
-        var axisOffset = cylinderAxisSpan * FltX(0.0)
+        var axisOffset = (cylinderAxisSpan * FltX(0.0))!!
         for (supportView in eligibleSupports) {
             val supportAxisSpan = horizontalCylinderSupportAxisSpan(
                 view = supportView,
@@ -1075,7 +1084,7 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
                 )
             )
             coveredAxisSpan += supportAxisSpan.value.toDouble()
-            axisOffset += supportAxisSpan
+            axisOffset = (axisOffset + supportAxisSpan)!!
             if (coveredAxisSpan + 1e-7 >= cylinderAxisSpanValue) {
                 supportPlacements.add(
                     QuantityPlacement3<Item, FltX>(
@@ -1103,7 +1112,7 @@ private fun circlePackingStackedLayerIsGeometryValid(
     }
     for (lhsIndex in shapePlacements.indices) {
         for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
-            if (shapePlacements[lhsIndex] overlapped shapePlacements[rhsIndex]) {
+            if (shapePlacements[lhsIndex].overlapped(shapePlacements[rhsIndex]).value == true) {
                 return false
             }
         }
@@ -1540,13 +1549,13 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
             }
 
             val hexRowStepScale = sqrt(3.0) / 2.0
-            val hexRowStep = diameter * FltX(hexRowStepScale)
+            val hexRowStep = (diameter * FltX(hexRowStepScale))!!
             val hexRowStepValue = hexRowStep.value.toDouble()
             if (hexRowStepValue > 0.0) {
                 val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
                 var row = 0
                 while (true) {
-                    val z = hexRowStep * FltX(row.toDouble())
+                    val z = (hexRowStep * FltX(row.toDouble()))!!
                     if (z.value.toDouble() + diameterValue > binDepth) {
                         break
                     }
@@ -1554,7 +1563,7 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
                     var col = 0
                     while (true) {
                         val xScale = col.toDouble() + offset
-                        val x = diameter * FltX(xScale)
+                        val x = (diameter * FltX(xScale))!!
                         if (x.value.toDouble() + diameterValue > binWidth) {
                             break
                         }

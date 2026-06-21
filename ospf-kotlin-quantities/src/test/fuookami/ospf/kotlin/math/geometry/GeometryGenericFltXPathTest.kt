@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.math.geometry
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 
@@ -21,9 +22,9 @@ class GeometryGenericFltXPathTest {
         )
 
         assertTrue(cuboid.volume eq Quantity(FltX(24.0), CubicMeter))
-        assertTrue(box.maxX eq Quantity(FltX(2.0), Meter))
-        assertTrue(box.maxY eq Quantity(FltX(4.0), Meter))
-        assertTrue(box.maxZ eq Quantity(FltX(6.0), Meter))
+        assertTrue(box.maxX().valueOrFail() eq Quantity(FltX(2.0), Meter))
+        assertTrue(box.maxY().valueOrFail() eq Quantity(FltX(4.0), Meter))
+        assertTrue(box.maxZ().valueOrFail() eq Quantity(FltX(6.0), Meter))
     }
 
     @Test
@@ -60,9 +61,9 @@ class GeometryGenericFltXPathTest {
                 height = Quantity(FltX(2.0), Meter)
             )
         )
-        assertTrue(placement2A.overlapped(placement2B))
-        assertTrue(placement2A.maxX eq Quantity(FltX(4.0), Meter))
-        assertTrue(placement2A.maxY eq Quantity(FltX(3.0), Meter))
+        assertTrue(placement2A.overlapped(placement2B).valueOrFail())
+        assertTrue(placement2A.maxX().valueOrFail() eq Quantity(FltX(4.0), Meter))
+        assertTrue(placement2A.maxY().valueOrFail() eq Quantity(FltX(3.0), Meter))
 
         val placement3A = QuantityPlacement3(
             x = Quantity(FltX.zero, Meter),
@@ -84,7 +85,7 @@ class GeometryGenericFltXPathTest {
                 depth = Quantity(FltX(2.0), Meter)
             )
         )
-        assertTrue(placement3A.overlapped(placement3B))
-        assertTrue(placement3A.maxZ eq Quantity(FltX(2.0), Meter))
+        assertTrue(placement3A.overlapped(placement3B).valueOrFail())
+        assertTrue(placement3A.maxZ().valueOrFail() eq Quantity(FltX(2.0), Meter))
     }
 }

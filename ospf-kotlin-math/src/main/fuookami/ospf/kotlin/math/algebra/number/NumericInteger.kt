@@ -73,7 +73,7 @@ interface NumericInteger<Self, I>
 
     /** 计算浮点数次幂 / Calculate floating-point power */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)
         is Flt64 -> toFlt64().pow(index)
         is FltX -> toFltX().pow(index)
@@ -1152,7 +1152,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)
         is Flt64 -> toFlt64().pow(index)
         is FltX -> toFltX().pow(index)

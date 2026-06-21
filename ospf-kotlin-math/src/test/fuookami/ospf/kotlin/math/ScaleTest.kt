@@ -21,7 +21,7 @@ class ScaleTest {
         val unit = assertNotNull(Scale(base, 1) / base)
 
         assertTrue(unit.scales.isEmpty())
-        assertTrue(unit.value eq FltX.one)
+        assertTrue(unit.value!! eq FltX.one)
     }
 
     @Test
@@ -46,7 +46,7 @@ class ScaleTest {
 
         assertEquals(1, merged.scales.size)
         assertTrue(merged.scales.first().second eq FltX(2L))
-        assertTrue(merged.value eq FltX(100L))
+        assertTrue(merged.value!! eq FltX(100L))
     }
 
     @Test

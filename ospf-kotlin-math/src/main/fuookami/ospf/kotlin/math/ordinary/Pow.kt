@@ -247,13 +247,15 @@ inline fun <reified T> pow(
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
 ): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
-    return pow(
-        base = base,
-        index = index,
-        constants = resolveRealNumberConstants<T>("Pow"),
-        digits = digits,
-        precision = precision
-    )
+    return resolveRealNumberConstantsSafe<T>("Pow").flatMapResolved { constants ->
+        pow(
+            base = base,
+            index = index,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )
+    }
 }
 
 /**
@@ -272,13 +274,15 @@ inline fun <reified T> powSafe(
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
 ): Ret<T> where T : TimesSemiGroup<T>, T : RealNumber<T> {
-    return powSafe(
-        base = base,
-        index = index,
-        constants = resolveRealNumberConstants<T>("Pow"),
-        digits = digits,
-        precision = precision
-    )
+    return resolveRealNumberConstantsSafe<T>("Pow").flatMapResolved { constants ->
+        powSafe(
+            base = base,
+            index = index,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )
+    }
 }
 
 /**
@@ -297,10 +301,11 @@ inline fun <reified T> powOrNull(
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
 ): T? where T : TimesSemiGroup<T>, T : RealNumber<T> {
+    val constants = resolveRealNumberConstantsOrNull<T>("Pow") ?: return null
     return powOrNull(
         base = base,
         index = index,
-        constants = resolveRealNumberConstants<T>("Pow"),
+        constants = constants,
         digits = digits,
         precision = precision
     )
@@ -320,14 +325,16 @@ inline fun <reified T> pow(
     index: Int,
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
-): T where T : TimesGroup<T>, T : RealNumber<T> {
-    return pow(
-        base = base,
-        index = index,
-        constants = resolveRealNumberConstants<T>("Pow"),
-        digits = digits,
-        precision = precision
-    )
+): Ret<T> where T : TimesGroup<T>, T : RealNumber<T> {
+    return resolveRealNumberConstantsSafe<T>("Pow").mapResolved { constants ->
+        pow(
+            base = base,
+            index = index,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )
+    }
 }
 
 /**
@@ -376,14 +383,16 @@ inline fun <reified T : FloatingNumber<T>> powf(
     index: T,
     digits: Int = base.constants.decimalDigits ?: 0,
     precision: T = base.constants.epsilon
-): T {
-    return powf(
-        base = base,
-        index = index,
-        constants = resolveFloatingNumberConstants<T>("Pow"),
-        digits = digits,
-        precision = precision
-    )
+): Ret<T> {
+    return resolveFloatingNumberConstantsSafe<T>("Pow").mapResolved { constants ->
+        powf(
+            base = base,
+            index = index,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )
+    }
 }
 /**
  * 计算指数函数 exp(index)，使用泰勒级数展开
@@ -430,11 +439,13 @@ inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
     digits: Int = index.constants.decimalDigits ?: 0,
     precision: T = index.constants.epsilon
-): T {
-    return exp(
-        index = index,
-        constants = resolveFloatingNumberConstants<T>("Pow"),
-        digits = digits,
-        precision = precision
-    )
+): Ret<T> {
+    return resolveFloatingNumberConstantsSafe<T>("Pow").mapResolved { constants ->
+        exp(
+            index = index,
+            constants = constants,
+            digits = digits,
+            precision = precision
+        )
+    }
 }

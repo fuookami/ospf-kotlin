@@ -103,7 +103,7 @@ class FullSumGeneratorTest {
         assertTrue(plans.isNotEmpty())
         // Each plan should have at most 3 slices (amount per slice = 1, but knife count limits total)
         for (plan in plans) {
-            val totalAmount = plan.slices.sumOf { it.amount.toInt() }
+            val totalAmount = plan.slices.fold(0) { total, slice -> total + slice.amount.toInt() }
             assertTrue(totalAmount <= 3, "Plan total amount $totalAmount should be <= 3")
         }
     }
@@ -131,7 +131,7 @@ class FullSumGeneratorTest {
         assertTrue(plans.isNotEmpty())
         // All plans should have at least 2 slices
         for (plan in plans) {
-            val totalAmount = plan.slices.sumOf { it.amount.toInt() }
+            val totalAmount = plan.slices.fold(0) { total, slice -> total + slice.amount.toInt() }
             assertTrue(totalAmount >= 2, "Plan total amount $totalAmount should be >= 2 (minKnifeCount)")
         }
     }

@@ -7,7 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -32,12 +32,13 @@ class ItemMergerCylinderTest {
 
     private fun cylinderItem(id: String): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
@@ -79,75 +80,66 @@ class ItemMergerCylinderTest {
         }
     }
 
-    private fun assertCuboidOnlyError(error: IllegalArgumentException) {
-        assertTrue(error.message?.contains("item merge paths are cuboid-only") == true)
+    private fun assertCuboidOnlyError(result: Ret<*>) {
+        assertTrue(result is Failed)
+        assertTrue(result.message.contains("item merge paths are cuboid-only"))
     }
 
     @Test
     fun itemMergerShouldRejectCylinderInTopLevelMerge() = runBlocking {
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.merge(
-                items = listOf(cylinderItem("cylinder-top-level")),
-                space = space(),
-                restWeight = FltX.maximum,
-                patterns = emptyList()
-            )
-        }
+        val result = ItemMerger.merge(
+            items = listOf(cylinderItem("cylinder-top-level")),
+            space = space(),
+            restWeight = FltX.maximum,
+            patterns = emptyList()
+        )
 
-        assertCuboidOnlyError(error)
+        assertCuboidOnlyError(result)
     }
 
     @Test
     fun itemMergerShouldRejectCylinderInPileMerge() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.mergePiles(
-                items = listOf(cylinderItem("cylinder-pile")),
-                space = space(),
-                restWeight = FltX.maximum
-            )
-        }
+        val result = ItemMerger.mergePiles(
+            items = listOf(cylinderItem("cylinder-pile")),
+            space = space(),
+            restWeight = FltX.maximum
+        )
 
-        assertCuboidOnlyError(error)
+        assertCuboidOnlyError(result)
     }
 
     @Test
     fun itemMergerShouldRejectCylinderInBlockMerge() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.mergeBlocks(
-                items = listOf(cylinderItem("cylinder-block")),
-                space = space(),
-                restWeight = FltX.maximum
-            )
-        }
+        val result = ItemMerger.mergeBlocks(
+            items = listOf(cylinderItem("cylinder-block")),
+            space = space(),
+            restWeight = FltX.maximum
+        )
 
-        assertCuboidOnlyError(error)
+        assertCuboidOnlyError(result)
     }
 
     @Test
     fun itemMergerShouldRejectCylinderInPatternBlockMerge() = runBlocking {
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.mergePatternBlocks(
-                items = listOf(cylinderItem("cylinder-pattern-block")),
-                space = space(),
-                patterns = listOf(pattern()),
-                restWeight = FltX.maximum
-            )
-        }
+        val result = ItemMerger.mergePatternBlocks(
+            items = listOf(cylinderItem("cylinder-pattern-block")),
+            space = space(),
+            patterns = listOf(pattern()),
+            restWeight = FltX.maximum
+        )
 
-        assertCuboidOnlyError(error)
+        assertCuboidOnlyError(result)
     }
 
     @Test
     fun itemMergerShouldRejectCylinderInHollowSquareMerge() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            ItemMerger.mergeHollowSquareBlocks(
-                items = mapOf(cylinderItem("cylinder-hollow") to UInt64(8)),
-                space = space(),
-                restWeight = FltX.maximum
-            )
-        }
+        val result = ItemMerger.mergeHollowSquareBlocks(
+            items = mapOf(cylinderItem("cylinder-hollow") to UInt64(8)),
+            space = space(),
+            restWeight = FltX.maximum
+        )
 
-        assertCuboidOnlyError(error)
+        assertCuboidOnlyError(result)
     }
 
     @Test

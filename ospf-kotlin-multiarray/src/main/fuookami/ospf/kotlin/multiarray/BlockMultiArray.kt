@@ -263,7 +263,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
         ): BlockMultiArray<T, S> {
             val blocks = mutableMapOf<IndexKey, T>()
             for (i in 0 until array.shape.size) {
-                val vector = array.shape.vector(i)
+                val vector = array.shape.vectorUnchecked(i)
                 val value = array[vector]
                 if (filter(value)) {
                     blocks[IndexKey.persistent(vector)] = value

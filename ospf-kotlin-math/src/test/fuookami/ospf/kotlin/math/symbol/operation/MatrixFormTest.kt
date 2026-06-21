@@ -27,7 +27,7 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y)).value!!
 
         assertEquals(3.0, matrixForm.q[0][0])
         assertEquals(1.0, matrixForm.q[0][1])
@@ -50,7 +50,7 @@ class MatrixFormTest {
             constant = Flt64(7.0)
         )
 
-        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(y, x))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(y, x)).value!!
         val rebuilt = flt64LinearPolynomialFromMatrixForm(matrixForm).combineTerms()
 
         assertEquals(-3.0, matrixForm.c[0])
@@ -74,7 +74,7 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y)).value!!
         val rebuilt = flt64QuadraticPolynomialFromMatrixForm(matrixForm).combineTerms()
 
         assertEquals(polynomial.constant, rebuilt.constant)
@@ -92,9 +92,7 @@ class MatrixFormTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.toFlt64MatrixForm(order = listOf(x))
-        }
+        assertTrue(polynomial.toFlt64MatrixForm(order = listOf(x)).failed)
     }
 
     @Test
@@ -105,9 +103,7 @@ class MatrixFormTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.toFlt64MatrixForm(order = listOf(x, x))
-        }
+        assertTrue(polynomial.toFlt64MatrixForm(order = listOf(x, x)).failed)
     }
 
     @Test
@@ -137,7 +133,7 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y)).value!!
 
         assertEquals(3.0, matrixForm.q[0][0])
         assertEquals(1.0, matrixForm.q[0][1])
@@ -165,7 +161,7 @@ class MatrixFormTest {
             constant = Flt64(6.0)
         )
 
-        val matrixForm = polynomial.toFlt64MatrixForm(order = order)
+        val matrixForm = polynomial.toFlt64MatrixForm(order = order).value!!
         val hessian = polynomial.hessian(order = order)
 
         for (i in order.indices) {
@@ -187,8 +183,6 @@ class MatrixFormTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.toFlt64MatrixForm(order = listOf(x, y, z))
-        }
+        assertTrue(polynomial.toFlt64MatrixForm(order = listOf(x, y, z)).failed)
     }
 }

@@ -43,8 +43,10 @@ fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmet
 }
 
 /** 计算 Iterable 元素之和（自动解析常量） / Calculate sum of Iterable elements (auto-resolve constants) */
-inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
-    return sum(resolveArithmeticConstants<T>("Collection"))
+inline fun <reified T> Iterable<T>.sum(): Ret<T> where T : Arithmetic<T>, T : Plus<T, T> {
+    return resolveArithmeticConstantsSafe<T>("Collection").mapResolved { constants ->
+        sum(constants)
+    }
 }
 
 /**
@@ -66,7 +68,8 @@ fun <T> Iterable<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : 
 
 /** 计算 Iterable 可空元素之和（自动解析常量） / Calculate sum of nullable Iterable elements (auto-resolve) */
 inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    return sumOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return sumOrNull(constants)
 }
 
 /**
@@ -95,8 +98,10 @@ inline fun <T, U> Iterable<T>.sumOf(
  */
 inline fun <T, reified U> Iterable<T>.sumOf(
     crossinline extractor: Extractor<U, T>
-): U where U : Arithmetic<U>, U : Plus<U, U> {
-    return sumOf(resolveArithmeticConstants<U>("Collection"), extractor)
+): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
+    return resolveArithmeticConstantsSafe<U>("Collection").mapResolved { constants ->
+        sumOf(constants, extractor)
+    }
 }
 
 /**
@@ -122,7 +127,8 @@ inline fun <T, U> Iterable<T>.sumOfOrNull(
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor) { null }
+    val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor) { null }
 }
 
 /**
@@ -160,7 +166,8 @@ inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U?
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
+    val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor, defaultValue)
 }
 
 /**
@@ -178,8 +185,10 @@ fun <K, V> Map<K, V>.sum(constants: ArithmeticConstants<V>): V where V : Arithme
 }
 
 /** 计算 Map 值之和（自动解析常量） / Calculate sum of Map values (auto-resolve constants) */
-inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V, V> {
-    return sum(resolveArithmeticConstants<V>("Collection"))
+inline fun <K, reified V> Map<K, V>.sum(): Ret<V> where V : Arithmetic<V>, V : Plus<V, V> {
+    return resolveArithmeticConstantsSafe<V>("Collection").mapResolved { constants ->
+        sum(constants)
+    }
 }
 
 /**
@@ -199,7 +208,8 @@ fun <K, V> Map<K, V?>.sumOrNull(constants: ArithmeticConstants<V>): V? where V :
 
 /** 计算 Map 可空值之和（自动解析常量） / Calculate sum of nullable Map values (auto-resolve) */
 inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V : Plus<V, V> {
-    return sumOrNull(resolveArithmeticConstants<V>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<V>("Collection") ?: return null
+    return sumOrNull(constants)
 }
 
 /**
@@ -228,8 +238,10 @@ inline fun <K, V, T> Map<K, V>.sumOf(
  */
 inline fun <K, V, reified T> Map<K, V>.sumOf(
     crossinline extractor: Extractor<T, Map.Entry<K, V>>
-): T where T : Arithmetic<T>, T : Plus<T, T> {
-    return sumOf(resolveArithmeticConstants<T>("Collection"), extractor)
+): Ret<T> where T : Arithmetic<T>, T : Plus<T, T> {
+    return resolveArithmeticConstantsSafe<T>("Collection").mapResolved { constants ->
+        sumOf(constants, extractor)
+    }
 }
 
 /**
@@ -255,7 +267,8 @@ inline fun <K, V, T> Map<K, V>.sumOfOrNull(
 inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    return this.sumOfOrNull(resolveArithmeticConstants<T>("Collection"), extractor) { null }
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor) { null }
 }
 
 /**
@@ -293,7 +306,8 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
     crossinline defaultValue: (Map.Entry<K, V>) -> T?
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    return this.sumOfOrNull(resolveArithmeticConstants<T>("Collection"), extractor, defaultValue)
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor, defaultValue)
 }
 
 /**
@@ -311,8 +325,10 @@ fun <T> Sequence<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmet
 }
 
 /** 计算 Sequence 元素之和（自动解析常量） / Calculate sum of Sequence elements (auto-resolve) */
-inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
-    return sum(resolveArithmeticConstants<T>("Collection"))
+inline fun <reified T> Sequence<T>.sum(): Ret<T> where T : Arithmetic<T>, T : Plus<T, T> {
+    return resolveArithmeticConstantsSafe<T>("Collection").mapResolved { constants ->
+        sum(constants)
+    }
 }
 
 /**
@@ -334,7 +350,8 @@ fun <T> Sequence<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : 
 
 /** 计算 Sequence 可空元素之和（自动解析常量） / Calculate sum of nullable Sequence elements (auto-resolve) */
 inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    return sumOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return sumOrNull(constants)
 }
 
 /**
@@ -363,8 +380,10 @@ inline fun <T, U> Sequence<T>.sumOf(
  */
 inline fun <T, reified U> Sequence<T>.sumOf(
     crossinline extractor: Extractor<U, T>
-): U where U : Arithmetic<U>, U : Plus<U, U> {
-    return sumOf(resolveArithmeticConstants<U>("Collection"), extractor)
+): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
+    return resolveArithmeticConstantsSafe<U>("Collection").mapResolved { constants ->
+        sumOf(constants, extractor)
+    }
 }
 
 /**
@@ -390,7 +409,8 @@ inline fun <T, U> Sequence<T>.sumOfOrNull(
 inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor) { null }
+    val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor) { null }
 }
 
 /**
@@ -428,7 +448,8 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U? = { null }
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
+    val constants = resolveArithmeticConstantsOrNull<U>("Collection") ?: return null
+    return this.sumOfOrNull(constants, extractor, defaultValue)
 }
 
 // Return Failed on empty collection to avoid division by zero / 空集合返回 Failed 避免除零
@@ -459,7 +480,9 @@ fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Ret<Flt64> where
 
 /** 计算 Iterable 元素平均值，返回 Flt64（自动解析常量） / Calculate average as Flt64 (auto-resolve) */
 inline fun <reified T> Iterable<T>.averageSafe(): Ret<Flt64> where T : RealNumber<T> {
-    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+    return resolveArithmeticConstantsSafe<T>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Iterable 元素平均值，返回 Flt64（自动解析常量） / Calculate average as Flt64 (auto-resolve) */
@@ -498,7 +521,9 @@ fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Ret<T> where T :
 /** 计算 Iterable 元素平均值，返回同类型（自动解析常量） / Calculate average as same type (auto-resolve) */
 @JvmName("iterableAverageSafeAsSameType")
 inline fun <reified T> Iterable<T>.averageSafe(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
-    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+    return resolveArithmeticConstantsSafe<T>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Iterable 元素平均值，返回同类型（自动解析常量） / Calculate average as same type (auto-resolve) */
@@ -533,7 +558,8 @@ fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? wh
 
 /** 计算 Iterable 可空元素平均值，返回 Flt64（自动解析常量） / Average of nullable elements as Flt64 (auto-resolve) */
 inline fun <reified T> Iterable<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return averageOrNull(constants)
 }
 
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
@@ -562,7 +588,8 @@ fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where 
 
 /** 计算 Iterable 可空元素平均值，返回同类型（自动解析常量） / Average of nullable elements (auto-resolve) */
 inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return averageOrNull(constants)
 }
 
 // Return Failed on empty map to avoid division by zero / 空 Map 返回 Failed 避免除零
@@ -593,7 +620,9 @@ fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Ret<Flt64> wher
 
 /** 计算 Map 值平均值，返回 Flt64（自动解析常量） / Average of Map values as Flt64 (auto-resolve) */
 inline fun <K, reified V> Map<K, V>.averageSafe(): Ret<Flt64> where V : RealNumber<V> {
-    return averageSafe(resolveArithmeticConstants<V>("Collection"))
+    return resolveArithmeticConstantsSafe<V>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Map 值平均值，返回 Flt64（自动解析常量） / Average of Map values as Flt64 (auto-resolve) */
@@ -632,7 +661,9 @@ fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Ret<V> where V 
 /** 计算 Map 值平均值，返回同类型（自动解析常量） / Average of Map values as same type (auto-resolve) */
 @JvmName("mapAverageSafeAsSameType")
 inline fun <K, reified V> Map<K, V>.averageSafe(): Ret<V> where V : RealNumber<V>, V : Div<V, V> {
-    return averageSafe(resolveArithmeticConstants<V>("Collection"))
+    return resolveArithmeticConstantsSafe<V>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Map 值平均值，返回同类型（自动解析常量） / Average of Map values as same type (auto-resolve) */
@@ -665,7 +696,8 @@ fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): Flt64? w
 
 /** 计算 Map 可空值平均值，返回 Flt64（自动解析常量） / Average of nullable Map values as Flt64 (auto-resolve) */
 inline fun <K, reified V> Map<K, V?>.averageOrNull(): Flt64? where V : RealNumber<V> {
-    return averageOrNull(resolveArithmeticConstants<V>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<V>("Collection") ?: return null
+    return averageOrNull(constants)
 }
 
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
@@ -692,7 +724,8 @@ fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): V? where
 
 /** 计算 Map 可空值平均值，返回同类型（自动解析常量） / Average of nullable Map values (auto-resolve) */
 inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>, V : Div<V, V> {
-    return averageOrNull(resolveArithmeticConstants<V>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<V>("Collection") ?: return null
+    return averageOrNull(constants)
 }
 
 // Return Failed on empty sequence to avoid division by zero / 空序列返回 Failed 避免除零
@@ -723,7 +756,9 @@ fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Ret<Flt64> where
 
 /** 计算 Sequence 元素平均值，返回 Flt64（自动解析常量） / Average of Sequence elements as Flt64 (auto-resolve) */
 inline fun <reified T> Sequence<T>.averageSafe(): Ret<Flt64> where T : RealNumber<T> {
-    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+    return resolveArithmeticConstantsSafe<T>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Sequence 元素平均值，返回 Flt64（自动解析常量） / Average of Sequence elements as Flt64 (auto-resolve) */
@@ -762,7 +797,9 @@ fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Ret<T> where T :
 /** 计算 Sequence 元素平均值，返回同类型（自动解析常量） / Average of Sequence elements as same type (auto-resolve) */
 @JvmName("sequenceAverageSafeAsSameType")
 inline fun <reified T> Sequence<T>.averageSafe(): Ret<T> where T : RealNumber<T>, T : Div<T, T> {
-    return averageSafe(resolveArithmeticConstants<T>("Collection"))
+    return resolveArithmeticConstantsSafe<T>("Collection").flatMapResolved { constants ->
+        averageSafe(constants)
+    }
 }
 
 /** 计算 Sequence 元素平均值，返回同类型（自动解析常量） / Average of Sequence elements as same type (auto-resolve) */
@@ -797,7 +834,8 @@ fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? wh
 
 /** 计算 Sequence 可空元素平均值，返回 Flt64（自动解析常量） / Average of nullable Sequence as Flt64 (auto-resolve) */
 inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return averageOrNull(constants)
 }
 
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
@@ -826,5 +864,6 @@ fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where 
 
 /** 计算 Sequence 可空元素平均值，返回同类型（自动解析常量） / Average of nullable Sequence (auto-resolve) */
 inline fun <reified T> Sequence<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
+    val constants = resolveArithmeticConstantsOrNull<T>("Collection") ?: return null
+    return averageOrNull(constants)
 }

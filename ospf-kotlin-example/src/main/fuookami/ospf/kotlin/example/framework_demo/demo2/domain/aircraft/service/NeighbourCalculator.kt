@@ -118,11 +118,11 @@ data object IndirectPhysicsNeighbourCalculator {
         position1: Position,
         position2: Position
     ): Boolean {
-        val distance = nearEnoughLongitudinalRatio * min(position1.shape.length, position2.shape.length)!!
+        val distance = (nearEnoughLongitudinalRatio * min(position1.shape.length, position2.shape.length)!!)!!
         return if ((position2.coordinate.backArm leq position1.coordinate.frontArm)!!) {
-            return ((position1.coordinate.frontArm - position2.coordinate.backArm) leq distance)!!
+            return (((position1.coordinate.frontArm - position2.coordinate.backArm)!!) leq distance)!!
         } else if ((position1.coordinate.backArm leq position2.coordinate.frontArm)!!) {
-            return ((position2.coordinate.frontArm - position1.coordinate.backArm) leq distance)!!
+            return (((position2.coordinate.frontArm - position1.coordinate.backArm)!!) leq distance)!!
         } else {
             true
         }

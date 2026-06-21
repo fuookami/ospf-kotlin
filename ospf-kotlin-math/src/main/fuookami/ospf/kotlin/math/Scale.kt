@@ -152,13 +152,24 @@ data class Scale(
         }
     }
 
-    val value by lazy {
-        scales.fold(FltX.one) { acc, scale ->
-            acc * when (val base = scale.first) {
+    val valueOrNull: FltX? by lazy {
+        var acc = FltX.one
+        for (scale in scales) {
+            val power = when (val base = scale.first) {
                 is Either.Left -> base.value.pow(scale.second)
                 is Either.Right -> base.value.pow(scale.second)
-            }
-        }.stripTrailingZeros()
+            } ?: return@lazy null
+            acc *= power
+        }
+        acc.stripTrailingZeros()
+    }
+
+    val value: FltX?
+        get() = valueOrNull
+
+    fun valueSafe(): Ret<FltX> {
+        return valueOrNull?.let { Ok(it) }
+            ?: Failed(ErrorCode.IllegalArgument, "缩放因子值未定义。 / Scale value is undefined.")
     }
 
     /**
@@ -412,6 +423,6 @@ data class Scale(
  * @param scale 缩放因子 / The scale factor
  * @return 缩放因子的浮点值 / The floating-point value of the scale factor
  */
-fun getValue(scale: Scale): FltX {
+fun getValue(scale: Scale): FltX? {
     return scale.value
 }

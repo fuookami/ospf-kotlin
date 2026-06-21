@@ -48,8 +48,8 @@ class CollectionConstantPathTest {
             listOf<Int64?>(Int64.one, null, Int64.three).asSequence().sumOfOrNull(Int64, { it }, { Int64.zero })
         )
         val floats = listOf(Flt64.one, Flt64.two, Flt64.three)
-        val iterableAverage: Flt64 = floats.average(Flt64)
-        val sequenceAverage: Flt64 = floats.asSequence().average(Flt64)
+        val iterableAverage: Flt64 = floats.average(Flt64).value!!
+        val sequenceAverage: Flt64 = floats.asSequence().average(Flt64).value!!
         assertEquals(Flt64(2.0), iterableAverage)
         assertEquals(Flt64(2.0), sequenceAverage)
 
@@ -71,33 +71,31 @@ class CollectionConstantPathTest {
         )
         assertEquals(null, mapOf("a" to Int64.one, "b" to null).sumOrNull(Int64))
         val floatMap = mapOf("a" to Flt64.one, "b" to Flt64.two, "c" to Flt64.three)
-        val mapAverage: Flt64 = floatMap.average(Flt64)
+        val mapAverage: Flt64 = floatMap.average(Flt64).value!!
         val mapNullableAverage: Flt64? = floatMap.mapValues { it.value as Flt64? }.averageOrNull(Flt64)
         assertEquals(Flt64(2.0), mapAverage)
         assertEquals(Flt64(2.0), mapNullableAverage)
     }
 
     @Test
-    fun reifiedDefaultPathsShouldThrowWhenFallbackDisabled() {
+    fun reifiedDefaultPathsShouldFailWhenFallbackDisabled() {
         val numbers = listOf(Int64.one, Int64.two, Int64.three)
         val map: Map<String, Int64> = mapOf("a" to Int64.one, "b" to Int64.two)
         val nullableMap: Map<String, Int64?> = mapOf("a" to Int64.one, "b" to Int64.two)
-        assertFailsWith<IllegalStateException> { numbers.sum<Int64>() }
-        assertFailsWith<IllegalStateException> { numbers.map { it as Int64? }.sumOrNull<Int64>() }
-        assertFailsWith<IllegalStateException> { numbers.sumOf<Int64, Int64> { it } }
-        assertFailsWith<IllegalStateException> { numbers.map { it as Int64? }.sumOfOrNull<Int64?, Int64> { it } }
-        assertFailsWith<IllegalStateException> { numbers.asSequence().sum<Int64>() }
-        assertFailsWith<IllegalStateException> { numbers.asSequence().sumOf<Int64, Int64> { it } }
-        assertFailsWith<IllegalStateException> { numbers.asSequence().map { it as Int64? }.sumOrNull<Int64>() }
-        assertFailsWith<IllegalStateException> {
-            numbers.asSequence().map { it as Int64? }.sumOfOrNull<Int64?, Int64> { it }
-        }
-        assertFailsWith<IllegalStateException> { map.sum() }
-        assertFailsWith<IllegalStateException> { map.sumOf { it.value } }
-        assertFailsWith<IllegalStateException> { nullableMap.sumOrNull() }
-        assertFailsWith<IllegalStateException> { numbers.average<Int64>() }
-        assertFailsWith<IllegalStateException> { numbers.map { it as Int64? }.averageOrNull<Int64>() }
-        assertFailsWith<IllegalStateException> { withPrecision<Flt64>() }
+        assertTrue(numbers.sum<Int64>().failed)
+        assertNull(numbers.map { it as Int64? }.sumOrNull<Int64>())
+        assertTrue(numbers.sumOf<Int64, Int64> { it }.failed)
+        assertNull(numbers.map { it as Int64? }.sumOfOrNull<Int64?, Int64> { it })
+        assertTrue(numbers.asSequence().sum<Int64>().failed)
+        assertTrue(numbers.asSequence().sumOf<Int64, Int64> { it }.failed)
+        assertNull(numbers.asSequence().map { it as Int64? }.sumOrNull<Int64>())
+        assertNull(numbers.asSequence().map { it as Int64? }.sumOfOrNull<Int64?, Int64> { it })
+        assertTrue(map.sum().failed)
+        assertTrue(map.sumOf { it.value }.failed)
+        assertNull(nullableMap.sumOrNull())
+        assertTrue(numbers.average<Int64>().failed)
+        assertNull(numbers.map { it as Int64? }.averageOrNull<Int64>())
+        assertTrue(withPrecision<Flt64>().failed)
     }
 
     @Test
@@ -108,7 +106,7 @@ class CollectionConstantPathTest {
             assertTrue(Flt64(1.0) unequal Flt64(1.02))
         }
 
-        val explicitReifiedPrecision = withPrecision<Flt64>(Flt64(0.01))
+        val explicitReifiedPrecision = withPrecision<Flt64>(Flt64(0.01)).value!!
         with(explicitReifiedPrecision) {
             assertTrue(Flt64(1.0) equal Flt64(1.005))
             assertTrue(Flt64(1.0) unequal Flt64(1.02))

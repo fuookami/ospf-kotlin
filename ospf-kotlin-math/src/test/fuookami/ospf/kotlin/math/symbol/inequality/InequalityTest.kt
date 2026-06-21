@@ -144,11 +144,11 @@ class InequalityTest {
         val order = listOf(y, x)
         assertEquals(
             true,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64.two, Flt64.one))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.two, Flt64.one)).value!!
         )
         assertEquals(
             false,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64(3.0), Flt64(2.0)))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(3.0), Flt64(2.0))).value!!
         )
     }
 
@@ -180,11 +180,11 @@ class InequalityTest {
         val order = listOf(y, x)
         assertEquals(
             true,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64.one, Flt64(2.0)))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.one, Flt64(2.0))).value!!
         )
         assertEquals(
             false,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64.zero, Flt64(3.0)))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.zero, Flt64(3.0))).value!!
         )
     }
 
@@ -267,11 +267,11 @@ class InequalityTest {
         val order = listOf(y, x)
         assertEquals(
             true,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64.one))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64.one)).value!!
         )
         assertEquals(
             false,
-            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64(3.0)))
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64(3.0))).value!!
         )
     }
 }

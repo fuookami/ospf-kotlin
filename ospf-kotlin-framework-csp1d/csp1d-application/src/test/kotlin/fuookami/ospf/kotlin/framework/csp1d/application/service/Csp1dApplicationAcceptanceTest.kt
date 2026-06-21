@@ -4,6 +4,7 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -66,7 +67,7 @@ private class Csp1dFailingMilpSolver : ColumnGenerationSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<Flt64FeasibleSolverOutput> {
-        throw IllegalStateException("forced final MILP failure")
+        return Failed(ErrorCode.ApplicationError, "forced final MILP failure")
     }
 
     override suspend fun solveLP(
@@ -108,7 +109,7 @@ private class Csp1dFailingLpSolver : ColumnGenerationSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
     ): Ret<ColumnGenerationSolver.LPResult> {
-        throw IllegalStateException("forced LP failure")
+        return Failed(ErrorCode.ApplicationError, "forced LP failure")
     }
 }
 
@@ -1050,7 +1051,7 @@ class Csp1dApplicationAcceptanceTest {
                     cuttingPlans = listOf(warmStartPlan)
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.AdapterUnsupported, result.trace.warmStartStatus)
@@ -1109,7 +1110,7 @@ class Csp1dApplicationAcceptanceTest {
                     cuttingPlans = listOf(warmStartPlan)
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1229,7 +1230,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1328,7 +1329,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1463,7 +1464,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1616,7 +1617,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1683,7 +1684,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = seedSolution
                 )
             )
-        )
+        ).valueOrFail()
         val solver = Csp1dInitialResultCapturingSolver()
 
         val secondResult = Csp1dColumnGenerationRecovery<Flt64>(
@@ -1699,7 +1700,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = firstResult.solution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, firstResult.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, firstResult.trace.warmStartStatus)
@@ -1772,7 +1773,7 @@ class Csp1dApplicationAcceptanceTest {
                     previousSolution = previousSolution
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Applied, result.trace.warmStartStatus)
@@ -1824,7 +1825,7 @@ class Csp1dApplicationAcceptanceTest {
                 problem = problem,
                 warmStart = Csp1dWarmStart()
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Ignored, result.trace.warmStartStatus)
@@ -1881,7 +1882,7 @@ class Csp1dApplicationAcceptanceTest {
                     cuttingPlans = listOf(invalidPlan)
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.RetriedWithoutWarmStart, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.Invalid, result.trace.warmStartStatus)
@@ -2044,7 +2045,7 @@ class Csp1dApplicationAcceptanceTest {
                     allowPartialSolution = false
                 )
             )
-        )
+        ).valueOrFail()
 
         assertEquals(Csp1dRecoveryStatus.Solved, result.trace.status)
         assertEquals(Csp1dWarmStartStatus.NotProvided, result.trace.warmStartStatus)

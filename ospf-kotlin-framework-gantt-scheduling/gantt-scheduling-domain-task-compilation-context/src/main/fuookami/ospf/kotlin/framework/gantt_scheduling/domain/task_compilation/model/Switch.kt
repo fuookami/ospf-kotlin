@@ -19,6 +19,24 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 /** 切换时间物理量 / Switch time quantity */
 typealias SwitchTimeQuantity<V> = Quantity<V>
 
+private fun captureLinearConstraintInput(
+    result: Ret<LinearConstraintInput<Flt64>>,
+    onFailure: (Try) -> Unit
+): LinearConstraintInput<Flt64>? {
+    return when (result) {
+        is Ok -> result.value
+        is Failed -> {
+            onFailure(Failed(result.error))
+            null
+        }
+
+        is Fatal -> {
+            onFailure(Fatal(result.errors))
+            null
+        }
+    }
+}
+
 /** 切换接口 / Switch interface */
 interface Switch {
     val switch: LinearIntermediateSymbols3<Flt64>
@@ -121,6 +139,8 @@ class TaskSchedulingSwitch<
     override lateinit var switchTime: LinearIntermediateSymbols2<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
+        var constructionFailure: Try = ok
+
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
                 frontOf = LinearIntermediateSymbols2<Flt64>(
@@ -135,19 +155,34 @@ class TaskSchedulingSwitch<
                             name = "front_of_${task1}_${task2}"
                         )
                     } else {
-                        IfFunction.from(
-                            inequality = LinearConstraintInput.from(
+                        val input = captureLinearConstraintInput(
+                            LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
                                 converter = schedulingSolverValueAdapter,
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!,
                                 rhsConstant = Flt64.zero
-                            ),
-                            converter = schedulingSolverValueAdapter,
-                            name = "front_of_${task1}_$task2"
-                        )
+                            )
+                        ) { constructionFailure = it }
+                        if (input == null) {
+                            LinearIntermediateSymbol.empty(
+                                Flt64,
+                                name = "front_of_${task1}_$task2"
+                            )
+                        } else {
+                            IfFunction.from(
+                                inequality = input,
+                                converter = schedulingSolverValueAdapter,
+                                name = "front_of_${task1}_$task2"
+                            )
+                        }
                     }
                     result
                 }
+            }
+            when (val failure = constructionFailure) {
+                is Ok -> {}
+                is Failed -> return Failed(failure.error)
+                is Fatal -> return Fatal(failure.errors)
             }
             when (val result = model.add(frontOf)) {
                 is Ok -> {}

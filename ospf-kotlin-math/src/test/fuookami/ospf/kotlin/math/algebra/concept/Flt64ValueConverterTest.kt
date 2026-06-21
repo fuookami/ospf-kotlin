@@ -56,10 +56,10 @@ class Flt64ValueConverterTest {
         val previous = System.getProperty(property)
         System.setProperty(property, "true")
         try {
-            assertTrue(resolveFlt64ValueConverter<Flt64>("test") === Flt64)
-            assertTrue(resolveFlt64ValueConverter<FltX>("test") === FltX)
-            assertTrue(resolveFlt64ValueConverter<Rtn64>("test") === Rtn64)
-            assertTrue(resolveFlt64ValueConverter<RtnX>("test") === RtnX)
+            assertTrue(resolveFlt64ValueConverter<Flt64>("test").value!! === Flt64)
+            assertTrue(resolveFlt64ValueConverter<FltX>("test").value!! === FltX)
+            assertTrue(resolveFlt64ValueConverter<Rtn64>("test").value!! === Rtn64)
+            assertTrue(resolveFlt64ValueConverter<RtnX>("test").value!! === RtnX)
         } finally {
             if (previous == null) {
                 System.clearProperty(property)

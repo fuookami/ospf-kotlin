@@ -9,6 +9,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -113,7 +114,7 @@ class RemoteSolverClientTest {
     }
 
     @Test
-    fun solveThrowsAndStopsWhenMaxRoundsExceeded() {
+    fun solveFailsAndStopsWhenMaxRoundsExceeded() {
         val port = RecordingExecutionPort(
             sliceResults = mutableListOf(
                 SliceResult(
@@ -128,21 +129,19 @@ class RemoteSolverClientTest {
         )
         val client = RemoteSolverClient(port)
 
-        val error = assertThrows(RemoteSolverException::class.java) {
-            runBlocking {
-                client.solve(
-                    payload = payload(),
-                    taskId = TaskId.of("task-1"),
-                    sliceId = SliceId.of("slice-1"),
-                    nodeId = NodeId.of("node-1"),
-                    tenantId = TenantId.of("tenant-1"),
-                    quantum = 100.milliseconds,
-                    maxRounds = UInt64.one
-                )
-            }
+        val result = runBlocking {
+            client.solve(
+                payload = payload(),
+                taskId = TaskId.of("task-1"),
+                sliceId = SliceId.of("slice-1"),
+                nodeId = NodeId.of("node-1"),
+                tenantId = TenantId.of("tenant-1"),
+                quantum = 100.milliseconds,
+                maxRounds = UInt64.one
+            )
         }
 
-        assertEquals(RemoteSolverErrorCode.REMOTE_SOLVE_NOT_COMPLETED_WITHIN_MAX_ROUNDS, error.code)
+        assertTrue(result.failed)
         assertEquals(1, port.stopCalls)
     }
 
@@ -428,10 +427,10 @@ class RemoteSolverClientTest {
             sliceId: SliceId,
             nodeId: NodeId,
             tenantId: TenantId
-        ): ExecutionHandle {
+        ): Ret<ExecutionHandle> {
             startCalls += 1
             startedPayload = payload
-            return handle
+            return Ok(handle)
         }
 
         override suspend fun resume(
@@ -441,30 +440,31 @@ class RemoteSolverClientTest {
             sliceId: SliceId,
             nodeId: NodeId,
             tenantId: TenantId
-        ): ExecutionHandle {
+        ): Ret<ExecutionHandle> {
             resumeCalls += 1
             startedPayload = payload
             resumeCheckpoint = checkpoint
-            return handle
+            return Ok(handle)
         }
 
-        override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): SliceResult {
+        override suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): Ret<SliceResult> {
             this.quantum.add(quantum)
-            return sliceResults.removeFirst()
+            return Ok(sliceResults.removeFirst())
         }
 
-        override suspend fun exportCheckpoint(handle: ExecutionHandle): ObjectRef? {
-            return checkpoints.removeFirstOrNull()
+        override suspend fun exportCheckpoint(handle: ExecutionHandle): Ret<ObjectRef?> {
+            return Ok(checkpoints.removeFirstOrNull())
         }
 
-        override suspend fun fetchFinalResult(handle: ExecutionHandle): SolveResult? {
-            return finalResult
+        override suspend fun fetchFinalResult(handle: ExecutionHandle): Ret<SolveResult?> {
+            return Ok(finalResult)
         }
 
-        override suspend fun stop(handle: ExecutionHandle): Boolean {
+        override suspend fun stop(handle: ExecutionHandle): Ret<Boolean> {
             stopCalls += 1
-            stopFailure?.let { throw it }
-            return true
+            return stopFailure
+                ?.let { Failed(ErrorCode.ApplicationFailed, it.message ?: "stop failed") }
+                ?: Ok(true)
         }
     }
 

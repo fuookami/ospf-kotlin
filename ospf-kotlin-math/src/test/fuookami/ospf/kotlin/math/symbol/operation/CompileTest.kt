@@ -44,9 +44,9 @@ class CompileTest {
             constant = Flt64(-1.0)
         )
 
-        assertEquals(linear.evaluateOrdered(order, values), linear.compileEval(order)(values))
-        assertEquals(quadratic.evaluateOrdered(order, values), quadratic.compileEval(order)(values))
-        assertEquals(canonical.evaluateOrdered(order, values), canonical.compileEval(order)(values))
+        assertEquals(linear.evaluateOrdered(order, values).value!!, linear.compileEval(order).value!!(values))
+        assertEquals(quadratic.evaluateOrdered(order, values).value!!, quadratic.compileEval(order).value!!(values))
+        assertEquals(canonical.evaluateOrdered(order, values).value!!, canonical.compileEval(order).value!!(values))
     }
 
     @Test
@@ -82,12 +82,12 @@ class CompileTest {
         )
 
         val linearExpected = linear.gradient(order)
-        val quadraticExpected = quadratic.gradient(order).map { it.evaluateOrdered(order, values) }
-        val canonicalExpected = canonical.gradient(order).map { it.evaluateOrdered(order, values) }
+        val quadraticExpected = quadratic.gradient(order).map { it.evaluateOrdered(order, values).value!! }
+        val canonicalExpected = canonical.gradient(order).map { it.evaluateOrdered(order, values).value!! }
 
-        assertEquals(linearExpected, linear.compileGradient(order)(values))
-        assertEquals(quadraticExpected, quadratic.compileGradient(order)(values))
-        assertEquals(canonicalExpected, canonical.compileGradient(order)(values))
+        assertEquals(linearExpected, linear.compileGradient(order).value!!(values))
+        assertEquals(quadraticExpected, quadratic.compileGradient(order).value!!(values))
+        assertEquals(canonicalExpected, canonical.compileGradient(order).value!!(values))
     }
 
     @Test
@@ -97,10 +97,10 @@ class CompileTest {
         val order = emptyList<Symbol>()
         val values = emptyList<Flt64>()
 
-        assertEquals(Flt64(8.0), emptyLinear.compileEval(order)(values))
-        assertEquals(emptyList(), emptyLinear.compileGradient(order)(values))
-        assertEquals(Flt64(-3.0), emptyCanonical.compileEval(order)(values))
-        assertEquals(emptyList(), emptyCanonical.compileGradient(order)(values))
+        assertEquals(Flt64(8.0), emptyLinear.compileEval(order).value!!(values))
+        assertEquals(emptyList(), emptyLinear.compileGradient(order).value!!(values))
+        assertEquals(Flt64(-3.0), emptyCanonical.compileEval(order).value!!(values))
+        assertEquals(emptyList(), emptyCanonical.compileGradient(order).value!!(values))
     }
 
     @Test
@@ -114,12 +114,8 @@ class CompileTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.compileEval(order = listOf(x))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.compileGradient(order = listOf(x))
-        }
+        assertTrue(polynomial.compileEval(order = listOf(x)).failed)
+        assertTrue(polynomial.compileGradient(order = listOf(x)).failed)
     }
 
     @Test
@@ -132,12 +128,8 @@ class CompileTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.compileEval(order = listOf(x, x))
-        }
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.compileGradient(order = listOf(x, x))
-        }
+        assertTrue(polynomial.compileEval(order = listOf(x, x)).failed)
+        assertTrue(polynomial.compileGradient(order = listOf(x, x)).failed)
     }
 
     @Test
@@ -150,8 +142,8 @@ class CompileTest {
             ),
             constant = Flt64.zero
         )
-        val compiledEval = polynomial.compileEval(order = listOf(x, y))
-        val compiledGradient = polynomial.compileGradient(order = listOf(x, y))
+        val compiledEval = polynomial.compileEval(order = listOf(x, y)).value!!
+        val compiledGradient = polynomial.compileGradient(order = listOf(x, y)).value!!
 
         assertFailsWith<IllegalArgumentException> {
             compiledEval(listOf(Flt64.one))

@@ -161,8 +161,13 @@ private fun <V> buildConstraints(
 ): Ret<MutableList<LinearConstraintImpl<V>>> where V : RealNumber<V>, V : NumberField<V> {
     val constraints = ArrayList<LinearConstraintImpl<V>>()
     for (constraint in metaModel._relationConstraints) {
+        val flattenData = when (val result = constraint.flattenData()) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         when (val result = LinearConstraintImpl(
-            relation = LinearRelationImpl(constraint.flattenData, constraint.sign),
+            relation = LinearRelationImpl(flattenData, constraint.sign),
             tokens = tokens,
             converter = metaModel.converter,
             lazy = constraint.lazy,

@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -23,6 +24,12 @@ class DepthBoundaryLayerOrientationPolicyTest {
         lateralBalance = null,
         typeCode = "BIN-DEPTH-POLICY"
     )
+
+    private fun assertPolicyFailed(block: () -> Try): String {
+        val result = block()
+        assertTrue(result is Failed)
+        return result.error.message ?: ""
+    }
 
     @Test
     fun depthBoundaryPolicyShouldNotRestrictWhenDisabled() {
@@ -71,14 +78,14 @@ class DepthBoundaryLayerOrientationPolicyTest {
             )
         )
 
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val message = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
             ).ensureSatisfied(listOf(bin))
         }
 
-        assertTrue(exception.message?.contains("boundary=first") == true)
-        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+        assertTrue(message.contains("boundary=first"))
+        assertTrue(message.contains("cuboid_orientation=Upright"))
     }
 
     @Test
@@ -94,14 +101,14 @@ class DepthBoundaryLayerOrientationPolicyTest {
             )
         )
 
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val message = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 lastLayerAllowedCuboidOrientations = setOf(Orientation.Side)
             ).ensureSatisfied(listOf(bin))
         }
 
-        assertTrue(exception.message?.contains("boundary=last") == true)
-        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+        assertTrue(message.contains("boundary=last"))
+        assertTrue(message.contains("cuboid_orientation=Upright"))
     }
 
     @Test
@@ -128,15 +135,15 @@ class DepthBoundaryLayerOrientationPolicyTest {
             )
         )
 
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val message = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCuboidOrientations = setOf(Orientation.Upright),
                 lastLayerAllowedCuboidOrientations = setOf(Orientation.Side)
             ).ensureSatisfied(listOf(bin))
         }
 
-        assertTrue(exception.message?.contains("boundary=last") == true)
-        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+        assertTrue(message.contains("boundary=last"))
+        assertTrue(message.contains("cuboid_orientation=Upright"))
     }
 
     @Test
@@ -162,15 +169,15 @@ class DepthBoundaryLayerOrientationPolicyTest {
             )
         )
 
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val message = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
             ).ensureSatisfied(listOf(validBin, invalidBin))
         }
 
-        assertTrue(exception.message?.contains("bin=1") == true)
-        assertTrue(exception.message?.contains("boundary=first") == true)
-        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+        assertTrue(message.contains("bin=1"))
+        assertTrue(message.contains("boundary=first"))
+        assertTrue(message.contains("cuboid_orientation=Upright"))
     }
 
     @Test
@@ -200,14 +207,14 @@ class DepthBoundaryLayerOrientationPolicyTest {
             firstLayerAllowedCylinderAxes = setOf(Axis3.X, Axis3.Y)
         ).ensureSatisfied(listOf(bin))
 
-        val exception = assertFailsWith<IllegalArgumentException> {
+        val message = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCylinderAxes = setOf(Axis3.X)
             ).ensureSatisfied(listOf(bin))
         }
 
-        assertTrue(exception.message?.contains("boundary=first") == true)
-        assertTrue(exception.message?.contains("cylinder_axis=Y") == true)
+        assertTrue(message.contains("boundary=first"))
+        assertTrue(message.contains("cylinder_axis=Y"))
     }
 
     @Test
@@ -236,23 +243,23 @@ class DepthBoundaryLayerOrientationPolicyTest {
             lastLayerAllowedCylinderAxes = setOf(Axis3.Z)
         ).ensureSatisfied(listOf(bin))
 
-        val firstException = assertFailsWith<IllegalArgumentException> {
+        val firstMessage = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
                 lastLayerAllowedCylinderAxes = setOf(Axis3.Z)
             ).ensureSatisfied(listOf(bin))
         }
-        assertTrue(firstException.message?.contains("boundary=first") == true)
-        assertTrue(firstException.message?.contains("cylinder_axis=X") == true)
+        assertTrue(firstMessage.contains("boundary=first"))
+        assertTrue(firstMessage.contains("cylinder_axis=X"))
 
-        val lastException = assertFailsWith<IllegalArgumentException> {
+        val lastMessage = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCylinderAxes = setOf(Axis3.X),
                 lastLayerAllowedCylinderAxes = setOf(Axis3.Y)
             ).ensureSatisfied(listOf(bin))
         }
-        assertTrue(lastException.message?.contains("boundary=last") == true)
-        assertTrue(lastException.message?.contains("cylinder_axis=Z") == true)
+        assertTrue(lastMessage.contains("boundary=last"))
+        assertTrue(lastMessage.contains("cylinder_axis=Z"))
     }
 
     @Test
@@ -273,21 +280,21 @@ class DepthBoundaryLayerOrientationPolicyTest {
             firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
         ).ensureSatisfied(listOf(bin))
 
-        val cuboidException = assertFailsWith<IllegalArgumentException> {
+        val cuboidMessage = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCylinderAxes = setOf(Axis3.Y),
                 firstLayerAllowedCuboidOrientations = setOf(Orientation.Upright)
             ).ensureSatisfied(listOf(bin))
         }
-        assertTrue(cuboidException.message?.contains("cuboid_orientation=Side") == true)
+        assertTrue(cuboidMessage.contains("cuboid_orientation=Side"))
 
-        val cylinderException = assertFailsWith<IllegalArgumentException> {
+        val cylinderMessage = assertPolicyFailed {
             DepthBoundaryLayerOrientationPolicy(
                 firstLayerAllowedCylinderAxes = setOf(Axis3.X),
                 firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
             ).ensureSatisfied(listOf(bin))
         }
-        assertTrue(cylinderException.message?.contains("cylinder_axis=Y") == true)
+        assertTrue(cylinderMessage.contains("cylinder_axis=Y"))
     }
 
     private fun packageAttribute(): PackageAttribute {

@@ -9,21 +9,17 @@ import fuookami.ospf.kotlin.core.model.basic.*
 class ConstraintRelationTest {
     @Test
     fun fromComparisonShouldMapCorrectly() {
-        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation(Comparison.LE))
-        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation(Comparison.LT))
-        assertEquals(ConstraintRelation.Equal, ConstraintRelation(Comparison.EQ))
-        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation(Comparison.GE))
-        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation(Comparison.GT))
+        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation.ofSafe(Comparison.LE).valueOrFail())
+        assertEquals(ConstraintRelation.LessEqual, ConstraintRelation.ofSafe(Comparison.LT).valueOrFail())
+        assertEquals(ConstraintRelation.Equal, ConstraintRelation.ofSafe(Comparison.EQ).valueOrFail())
+        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation.ofSafe(Comparison.GE).valueOrFail())
+        assertEquals(ConstraintRelation.GreaterEqual, ConstraintRelation.ofSafe(Comparison.GT).valueOrFail())
     }
 
     @Test
-    fun fromComparisonShouldThrowOnNE() {
-        try {
-            ConstraintRelation(Comparison.NE)
-            assertTrue(false, "Should have thrown")
-        } catch (_: InvalidConstraintSignFromComparison) {
-            // expected
-        }
+    fun fromComparisonShouldFailOnNE() {
+        assertNull(ConstraintRelation.ofOrNull(Comparison.NE))
+        assertTrue(ConstraintRelation.ofSafe(Comparison.NE).failed)
     }
 
     @Test
@@ -44,7 +40,7 @@ class ConstraintRelationTest {
     fun roundTripShouldPreserveRelation() {
         for (relation in ConstraintRelation.entries) {
             val comparison = relation.toComparison()
-            val roundTripped = ConstraintRelation(comparison)
+            val roundTripped = ConstraintRelation.ofSafe(comparison).valueOrFail()
             assertEquals(relation, roundTripped, "Round trip failed for $relation")
         }
     }

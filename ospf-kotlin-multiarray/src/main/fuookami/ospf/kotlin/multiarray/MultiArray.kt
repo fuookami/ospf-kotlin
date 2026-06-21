@@ -90,8 +90,26 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      */
     protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
         if (!::list.isInitialized) {
-            list = (0..<shape.size).map { ctor(it, shape.vector(it)) }.toMutableList()
+            list = (0..<shape.size).map { ctor(it, shape.vectorUnchecked(it)) }.toMutableList()
         }
+    }
+
+    protected fun checkedIndex(vector: IntArray): Int {
+        if (vector.size != shape.dimension) {
+            throw DimensionMismatchingException(shape.dimension, vector.size)
+        }
+        for (i in shape.indices) {
+            val index = vector[i]
+            val length = shape[i]
+            if (index < 0 || index >= length) {
+                throw OutOfShapeException(
+                    dimension = i,
+                    length = length,
+                    vectorIndex = index
+                )
+            }
+        }
+        return shape.indexUnchecked(vector)
     }
 
     override fun containsAll(elements: Collection<@UnsafeVariance T>): Boolean {
@@ -140,7 +158,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      */
     @JvmName("getByIntArray")
     operator fun get(v: IntArray): T {
-        return list[shape.index(v)]
+        return list[checkedIndex(v)]
     }
 
     /**
@@ -149,7 +167,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      */
     @JvmName("getByInts")
     operator fun get(vararg v: Int): T {
-        return list[shape.index(v)]
+        return list[checkedIndex(v)]
     }
 
     /**
@@ -165,7 +183,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      * Get element by Indexed vararg
      */
     operator fun get(vararg v: Indexed): T {
-        return list[shape.index(v.map { it.index }.toIntArray())]
+        return list[checkedIndex(v.map { it.index }.toIntArray())]
     }
 
     /**
@@ -173,7 +191,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      * Create view by any type array
      */
     operator fun get(vararg v: Any): MultiArrayView<T, S> {
-        return MultiArrayView(this, shape.dummyVector(*v))
+        return MultiArrayView(this, shape.dummyVectorUnchecked(*v))
     }
 
     /**
@@ -195,7 +213,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      */
     fun enumerate(): Sequence<Triple<Int, IntArray, T>> = sequence {
         for (i in 0 until shape.size) {
-            yield(Triple(i, shape.vector(i), list[i]))
+            yield(Triple(i, shape.vectorUnchecked(i), list[i]))
         }
     }
 }
@@ -305,9 +323,9 @@ open class MultiArray<out T : Any, S : Shape>(
 
         return MultiArray(newShape) { newLinearIndex, _ ->
             // Convert new linear index to vector coordinates / 将新线性索引转换为向量坐标
-            val vector = newShape.vector(newLinearIndex)
+            val vector = newShape.vectorUnchecked(newLinearIndex)
             // Use same vector to access original array (preserves value) / 使用相同向量访问原数组（保持值不变）
-            val oldLinearIndex = shape.index(vector)
+            val oldLinearIndex = shape.indexUnchecked(vector)
             list[oldLinearIndex]
         }
     }
@@ -486,7 +504,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
      */
     @JvmName("setByIntArray")
     operator fun set(v: IntArray, value: T) {
-        list[shape.index(v)] = value
+        list[checkedIndex(v)] = value
     }
 
     /**
@@ -498,7 +516,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
      */
     @JvmName("setByInts")
     operator fun set(vararg v: Int, value: T) {
-        list[shape.index(v)] = value
+        list[checkedIndex(v)] = value
     }
 
     /**
@@ -520,7 +538,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
      * @param value 要设置的值 / Value to set
      */
     operator fun set(vararg v: Indexed, value: T) {
-        list[shape.index(v.map { it.index }.toIntArray())] = value
+        list[checkedIndex(v.map { it.index }.toIntArray())] = value
     }
 
     /**
@@ -543,7 +561,7 @@ open class MutableMultiArray<T : Any, S : Shape>(
      */
     fun fillBy(generator: (Int, IntArray) -> T) {
         for (i in 0 until size) {
-            list[i] = generator(i, shape.vector(i))
+            list[i] = generator(i, shape.vectorUnchecked(i))
         }
     }
 

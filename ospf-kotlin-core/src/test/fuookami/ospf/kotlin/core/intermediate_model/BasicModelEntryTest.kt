@@ -73,7 +73,7 @@ class BasicModelEntryTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "c1"
-        )
+        ).valueOrFail()
         val mechanismModel = LinearMechanismModel(
             parent = LinearMetaModel(name = "factory-parent", converter = flt64TestConverter),
             name = "factory-model",
@@ -182,7 +182,7 @@ class BasicModelEntryTest {
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "qc1"
-        )
+        ).valueOrFail()
         val mechanismModel = QuadraticMechanismModel<Flt64>(
             parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = flt64TestConverter),
             name = "factory-model-q",

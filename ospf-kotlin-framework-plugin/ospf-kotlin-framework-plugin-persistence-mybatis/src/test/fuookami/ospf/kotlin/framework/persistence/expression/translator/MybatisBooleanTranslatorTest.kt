@@ -311,16 +311,15 @@ class MybatisBooleanTranslatorTest {
         }
 
         @Test
-        @DisplayName("fail fast should throw for unsupported predicate / FailFast 应对不支持谓词抛异常")
-        fun failFastShouldThrowForUnsupportedPredicate() {
+        @DisplayName("fail fast should return failed for unsupported predicate / FailFast 应对不支持谓词返回失败")
+        fun failFastShouldReturnFailedForUnsupportedPredicate() {
             val failFastTranslator = MybatisBooleanTranslator<TestEntity>(
                 resolver,
                 UnsupportedPredicatePolicy.FailFast
             )
 
-            assertThrows(IllegalArgumentException::class.java) {
-                failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
-            }
+            val result = failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
+            assertTrue(result.failed)
         }
 
         @Test
@@ -340,12 +339,11 @@ class MybatisBooleanTranslatorTest {
                 ScalarConstant(1)
             )
 
-            assertThrows(IllegalArgumentException::class.java) {
-                failFastTranslator.translate(QueryWrapper(), expr).value!!
-            }
-            assertThrows(IllegalArgumentException::class.java) {
-                clientFilterTranslator.translate(QueryWrapper(), expr).value!!
-            }
+            val failFastResult = failFastTranslator.translate(QueryWrapper(), expr)
+            val clientFilterResult = clientFilterTranslator.translate(QueryWrapper(), expr)
+
+            assertTrue(failFastResult.failed)
+            assertTrue(clientFilterResult.failed)
         }
     }
 }

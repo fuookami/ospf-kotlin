@@ -247,13 +247,17 @@ internal fun requirePackedBinShapeGeometry(
     }
 
     geometries.forEachIndexed { index, geometry ->
-        requireHorizontalCylinderSupport(
+        when (val support = requireHorizontalCylinderSupport(
             geometry = geometry,
             index = index,
             geometries = geometries,
             binName = bin.name,
             source = source
-        )!!
+        )) {
+            is Ok -> {}
+            is Failed -> return Failed(support.error)
+            is Fatal -> return Fatal(support.errors)
+        }
     }
 
     for (lhsIndex in geometries.indices) {

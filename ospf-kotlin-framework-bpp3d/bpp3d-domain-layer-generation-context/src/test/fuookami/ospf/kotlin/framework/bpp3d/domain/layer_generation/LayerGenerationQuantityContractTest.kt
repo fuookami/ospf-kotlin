@@ -8,6 +8,7 @@ import kotlin.math.*
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -16,6 +17,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
+
+private fun <T> Ret<T>.valueOrFail(message: String): T {
+    return value ?: fail(message)
+}
 
 class LayerGenerationQuantityContractTest {
     private val cargo = object : AbstractCargoAttribute {}
@@ -40,7 +45,7 @@ class LayerGenerationQuantityContractTest {
         radiusValue: Double = 0.5
     ): ActualItem {
         val radius = FltX(radiusValue) * Meter
-        val diameter = radius + radius
+        val diameter = assertNotNull(radius + radius)
         val length = FltX(1.0) * Meter
         val weight = FltX(0.2) * Kilogram
         val shape = when (axis) {
@@ -141,7 +146,8 @@ class LayerGenerationQuantityContractTest {
         }
         for (lhsIndex in shapePlacements.indices) {
             for (rhsIndex in (lhsIndex + 1) until shapePlacements.size) {
-                assertTrue(!(shapePlacements[lhsIndex] overlapped shapePlacements[rhsIndex]))
+                val overlapped = assertNotNull((shapePlacements[lhsIndex] overlapped shapePlacements[rhsIndex]).value)
+                assertFalse(overlapped)
             }
         }
     }
@@ -660,7 +666,7 @@ class LayerGenerationQuantityContractTest {
     }
 
     @Test
-    fun pileLayerGeneratorShouldRejectHorizontalCylinderAxes() = runBlocking {
+    fun pileLayerGeneratorShouldReturnEmptyForHorizontalCylinderAxes() = runBlocking {
         val bin = BinType(
             width = FltX(1.0) * Meter,
             height = FltX(3.0) * Meter,
@@ -677,24 +683,21 @@ class LayerGenerationQuantityContractTest {
                 axis = axis
             )
 
-            val error = assertFailsWith<IllegalArgumentException> {
-                PileLayerGenerator<FltX>().generate(
-                    Bpp3dLayerGenerationRequest(
-                        iteration = 0,
-                        bin = bin,
-                        items = listOf(item),
-                        maxCandidates = 4
-                    )
+            val generated = PileLayerGenerator<FltX>().generate(
+                Bpp3dLayerGenerationRequest(
+                    iteration = 0,
+                    bin = bin,
+                    items = listOf(item),
+                    maxCandidates = 4
                 )
-            }
+            )
 
-            assertTrue(error.message?.contains("PileLayerGenerator") == true)
-            assertTrue(error.message?.contains("only upright Axis3.Y items are allowed") == true)
+            assertTrue(generated.isEmpty())
         }
     }
 
     @Test
-    fun fallbackLayerGeneratorsShouldRejectHorizontalCylinderAxesWithoutBin() = runBlocking {
+    fun fallbackLayerGeneratorsShouldReturnEmptyForHorizontalCylinderAxesWithoutBin() = runBlocking {
         val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
             "block" to BlockLayerGenerator<FltX>(),
             "bl-local" to BLLocalLayerGenerator<FltX>(),
@@ -711,24 +714,21 @@ class LayerGenerationQuantityContractTest {
                     axis = axis
                 )
 
-                val error = assertFailsWith<IllegalArgumentException> {
-                    generator.generate(
-                        Bpp3dLayerGenerationRequest(
-                            iteration = 0,
-                            items = listOf(item),
-                            maxCandidates = 4
-                        )
+                val generated = generator.generate(
+                    Bpp3dLayerGenerationRequest(
+                        iteration = 0,
+                        items = listOf(item),
+                        maxCandidates = 4
                     )
-                }
+                )
 
-                assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
-                assertTrue(error.message?.contains("$axis") == true)
+                assertTrue(generated.isEmpty())
             }
         }
     }
 
     @Test
-    fun blockLoadingLayerGeneratorsShouldRejectHorizontalCylinderAxesWithBin() = runBlocking {
+    fun blockLoadingLayerGeneratorsShouldReturnEmptyForHorizontalCylinderAxesWithBin() = runBlocking {
         val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
             "block" to BlockLayerGenerator<FltX>(),
             "bl-local" to BLLocalLayerGenerator<FltX>(),
@@ -752,20 +752,16 @@ class LayerGenerationQuantityContractTest {
                     axis = axis
                 )
 
-                val error = assertFailsWith<IllegalArgumentException> {
-                    generator.generate(
-                        Bpp3dLayerGenerationRequest(
-                            iteration = 0,
-                            bin = bin,
-                            items = listOf(item),
-                            maxCandidates = 4
-                        )
+                val generated = generator.generate(
+                    Bpp3dLayerGenerationRequest(
+                        iteration = 0,
+                        bin = bin,
+                        items = listOf(item),
+                        maxCandidates = 4
                     )
-                }
+                )
 
-                assertTrue(error.message?.contains("SimpleBlockGenerator") == true)
-                assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
-                assertTrue(error.message?.contains("$axis") == true)
+                assertTrue(generated.isEmpty())
             }
         }
     }
@@ -920,7 +916,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.first().items.first()
+        ).valueOrFail("schema should be built").loadingPlans.first().items.first()
         assertEquals("HorizontalCylinderX", renderedItem.algorithmShapeType.name)
         assertEquals("X", renderedItem.axis?.name)
     }
@@ -979,7 +975,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.first().items.first()
+        ).valueOrFail("schema should be built").loadingPlans.first().items.first()
         assertEquals("HorizontalCylinderZ", renderedItem.algorithmShapeType.name)
         assertEquals("Z", renderedItem.axis?.name)
     }
@@ -1052,7 +1048,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.single().items
+        ).valueOrFail("schema should be built").loadingPlans.single().items
         assertEquals(2, renderedItems.size)
         assertTrue(
             renderedItems.any { item ->
@@ -1132,7 +1128,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.single().items
+        ).valueOrFail("schema should be built").loadingPlans.single().items
         assertEquals(4, renderedItems.size)
         assertTrue(
             renderedItems.any { item ->
@@ -1224,7 +1220,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.single().items
+        ).valueOrFail("schema should be built").loadingPlans.single().items
         assertEquals(3, renderedItems.size)
         assertTrue(
             renderedItems.any { item ->
@@ -1527,7 +1523,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.single().items
+        ).valueOrFail("schema should be built").loadingPlans.single().items
         assertEquals(4, renderedItems.size)
         assertTrue(
             renderedItems.any { item ->
@@ -1618,11 +1614,12 @@ class LayerGenerationQuantityContractTest {
     @Test
     fun circlePackingLayerGeneratorShouldAcceptSelectedContinuousRadiusWeightFunctionKey() = runBlocking {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = weight,
             packageType = PackageType.CartonContainer
         )
@@ -1684,7 +1681,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.first().items.first()
+        ).valueOrFail("schema should be built").loadingPlans.first().items.first()
         assertEquals(0.5, rendered.radius!!.toDouble(), 1e-9)
         assertEquals(PI * 0.5 * 0.5 * 1.0, rendered.actualVolume!!.toDouble(), 1e-9)
     }
@@ -1833,12 +1830,13 @@ class LayerGenerationQuantityContractTest {
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusCandidates() = runBlocking {
         val radius = FltX(0.15) * Meter
+        val diameter = assertNotNull(radius + radius)
         val height = FltX(1.0) * Meter
         val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
-            width = radius + radius,
+            width = diameter,
             height = height,
-            depth = radius + radius,
+            depth = diameter,
             weight = weight,
             packageType = PackageType.CartonContainer
         )
@@ -1911,7 +1909,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        )
+        ).valueOrFail("schema should be built")
         val sourcePlacement = largeRadius.layer.items.first()
         val renderedItem = schema.loadingPlans.first().items.first()
         assertEquals(0.18, renderedItem.radius!!.toDouble(), 1e-9)
@@ -1925,7 +1923,7 @@ class LayerGenerationQuantityContractTest {
     @Test
     fun circlePackingLayerGeneratorShouldExpandDynamicRadiusHorizontalCandidates() = runBlocking {
         val radius = FltX(0.15) * Meter
-        val diameter = radius + radius
+        val diameter = assertNotNull(radius + radius)
         val length = FltX(1.0) * Meter
         val weight = FltX(0.2) * Kilogram
         val shape = PackageShape(
@@ -2005,7 +2003,7 @@ class LayerGenerationQuantityContractTest {
             PackingResult(
                 aggregation = PackingAggregation(listOf(packedBin))
             )
-        ).loadingPlans.first().items.first()
+        ).valueOrFail("schema should be built").loadingPlans.first().items.first()
         assertEquals("HorizontalCylinderX", renderedItem.algorithmShapeType.name)
         assertEquals("X", renderedItem.axis?.name)
         assertEquals(0.18, renderedItem.radius!!.toDouble(), 1e-9)

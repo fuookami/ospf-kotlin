@@ -149,16 +149,18 @@ private fun <V> Quantity<V>.quantityBinarySafe(
 private val affineFlt64Tolerance = Flt64(1e-10)
 private val affineFltXTolerance = FltX("1e-12")
 
-private fun PhysicalUnit.toStandardValue(value: FltX): FltX {
+private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
     return when (val rule = conversionRule) {
-        is UnitConversionRule.Linear -> value * rule.scale.value
-        is UnitConversionRule.Affine -> value * rule.scale.value + rule.offset
+        is UnitConversionRule.Linear -> value * (rule.scale.value ?: return null)
+        is UnitConversionRule.Affine -> value * (rule.scale.value ?: return null) + rule.offset
     }
 }
 
 private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: PhysicalUnit): FltX? {
     if (quantity != unit.quantity) return null
-    return value * scale.value / unit.scale.value
+    val sourceScale = scale.value ?: return null
+    val targetScale = unit.scale.value ?: return null
+    return value * sourceScale / targetScale
 }
 
 private fun PhysicalUnit.linearDifferenceUnit(): PhysicalUnit {
@@ -277,10 +279,12 @@ private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quant
     if (!this.unit.isAffine && !other.unit.isAffine) return null
 
     return if (this.unit.isAffine && other.unit.isAffine) {
-        val difference = this.unit.toStandardValue(this.value.toFltX()) -
-                other.unit.toStandardValue(other.value.toFltX())
+        val lhsStandard = this.unit.toStandardValue(this.value.toFltX()) ?: return null
+        val rhsStandard = other.unit.toStandardValue(other.value.toFltX()) ?: return null
+        val difference = lhsStandard - rhsStandard
         val differenceUnit = this.unit.linearDifferenceUnit()
-        Quantity((difference / differenceUnit.scale.value).toFlt64(), differenceUnit)
+        val differenceScale = differenceUnit.scale.value ?: return null
+        Quantity((difference / differenceScale).toFlt64(), differenceUnit)
     } else if (this.unit.isAffine) {
         val delta = other.unit.convertLinearDifferenceValue(other.value.toFltX(), this.unit) ?: return null
         Quantity(this.value - delta.toFlt64(), this.unit)
@@ -294,10 +298,12 @@ private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity
     if (!this.unit.isAffine && !other.unit.isAffine) return null
 
     return if (this.unit.isAffine && other.unit.isAffine) {
-        val difference = this.unit.toStandardValue(this.value) -
-                other.unit.toStandardValue(other.value)
+        val lhsStandard = this.unit.toStandardValue(this.value) ?: return null
+        val rhsStandard = other.unit.toStandardValue(other.value) ?: return null
+        val difference = lhsStandard - rhsStandard
         val differenceUnit = this.unit.linearDifferenceUnit()
-        Quantity(difference / differenceUnit.scale.value, differenceUnit)
+        val differenceScale = differenceUnit.scale.value ?: return null
+        Quantity(difference / differenceScale, differenceUnit)
     } else if (this.unit.isAffine) {
         val delta = other.unit.convertLinearDifferenceValue(other.value, this.unit) ?: return null
         Quantity(this.value - delta, this.unit)
@@ -315,7 +321,9 @@ private fun <V> Quantity<V>.linearQuantityBinaryOrNull(
     return if (this.unit == other.unit) {
         Quantity(combine(this.value, other.value), this.unit)
     } else if (this.unit.quantity == other.unit.quantity) {
-        if (this.unit.scale.value leq other.unit.scale.value) {
+        val thisScale = this.unit.scale.value ?: return null
+        val otherScale = other.unit.scale.value ?: return null
+        if (thisScale leq otherScale) {
             val converted = other.convert(this.unit) ?: return null
             Quantity(combine(this.value, converted.value), this.unit)
         } else {

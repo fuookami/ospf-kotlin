@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
@@ -95,22 +96,31 @@ class ColumnGenerationPackingAnalyzer(
      *
      * @param state 列生成状态 / column generation state
      */
-    override suspend fun analyze(state: ColumnGenerationState<FltX>) {
+    override suspend fun analyze(state: ColumnGenerationState<FltX>): Try {
         val bins: List<Bin<BinLayer, FltX>> = if (state.bins.isNotEmpty()) {
             state.bins
         } else {
             state.columns.mapNotNull { layer ->
                 val bin = layer.bin ?: return@mapNotNull null
+                val placement = when (val placementResult = layer.copy().toLayerPlacement()) {
+                    is Ok -> placementResult.value
+                    is Failed -> return Failed(placementResult.error)
+                    is Fatal -> return Fatal(placementResult.errors)
+                }
                 layerBinOf(
                     shape = bin,
-                    units = listOf(layer.copy().toLayerPlacement())
+                    units = listOf(placement)
                 )
             }
         }
-        val packingResult = packer.invoke(
+        val packingResult = when (val result = packer.invoke(
             bins = bins,
             context = contextBuilder(state)
-        )
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val continuousRadiusSelectionResults = buildNativeContinuousRadiusSelectionResults(
             prototypes = state.continuousRadiusSolverPrototypes,
             solverResults = state.continuousRadiusSolverResults
@@ -121,7 +131,11 @@ class ColumnGenerationPackingAnalyzer(
             pwlContinuousRadiusResults = state.pwlContinuousRadiusResults
         )
         val allContinuousRadiusSelectionResults = continuousRadiusSelectionResults + pwlSelectionResults
-        val schema = rendererAdapter.toSchema(packingResult, allContinuousRadiusSelectionResults)
+        val schema = when (val result = rendererAdapter.toSchema(packingResult, allContinuousRadiusSelectionResults)) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
         val demandModeShadowPriceTotals = LinkedHashMap<String, FltX>()
         val demandModeShadowPriceEntryCounts = LinkedHashMap<String, Int>()
         for ((key, value) in state.shadowPrices) {
@@ -153,6 +167,7 @@ class ColumnGenerationPackingAnalyzer(
             demandModeShadowPriceTotals = demandModeShadowPriceTotals,
             demandModeShadowPriceEntryCounts = demandModeShadowPriceEntryCounts
         )
+        return ok
     }
 }
 
@@ -177,7 +192,7 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQ
     shadowPrices: Map<DemandModeKey, FltX> = emptyMap(),
     materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
-) {
+): Try {
     val modelColumns = columns.map { layer -> layer.toModel(materialCache, itemCache) }
     val resolvedBins = if (bins.isNotEmpty()) {
         bins
@@ -193,8 +208,12 @@ suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQ
             )
         }
     }
-    depthBoundaryLayerOrientationPolicy?.ensureSatisfied(resolvedBins)
-    analyze(
+    when (val result = depthBoundaryLayerOrientationPolicy?.ensureSatisfied(resolvedBins) ?: ok) {
+        is Ok -> {}
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return analyze(
         state = ColumnGenerationState(
             iteration = iteration,
             columns = modelColumns,

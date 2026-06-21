@@ -5,6 +5,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.PI
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.times
@@ -67,7 +68,7 @@ class PackingRendererAdapter {
      * @param result 装箱结果 / packing result
      * @return 渲染方案 DTO / rendering schema DTO
      */
-    fun toSchema(result: PackingResult): SchemaDTO {
+    fun toSchema(result: PackingResult): Ret<SchemaDTO> {
         return toSchema(result, emptyList())
     }
 
@@ -82,7 +83,7 @@ class PackingRendererAdapter {
     fun toSchema(
         result: PackingResult,
         continuousRadiusSelectionResults: List<CylinderRadiusSelectionResult>
-    ): SchemaDTO {
+    ): Ret<SchemaDTO> {
         val solverRadiusByVariableName = continuousRadiusSelectionResults.mapNotNull { result ->
             result.variableName?.let { variableName -> variableName to result }
         }.toMap()
@@ -90,11 +91,16 @@ class PackingRendererAdapter {
             .groupBy { it.key }
             .filterValues { it.size == 1 }
             .mapValues { (_, results) -> results.single() }
-        val loadingPlans = result.aggregation.bins.map { bin ->
-            requirePackedBinShapeGeometry(
+        val loadingPlans = ArrayList<RenderLoadingPlanDTO>()
+        for (bin in result.aggregation.bins) {
+            when (val geometryResult = requirePackedBinShapeGeometry(
                 bin = bin,
                 source = "PackingRendererAdapter.toSchema"
-            )!!
+            )) {
+                is Ok -> {}
+                is Failed -> return Failed(geometryResult.error)
+                is Fatal -> return Fatal(geometryResult.errors)
+            }
             val itemDtos = bin.items.map { packed ->
                 val placement = packed.placement
                 val shape = placement.resolvedPackingShape()
@@ -124,7 +130,9 @@ class PackingRendererAdapter {
                         // 非 PWL 路径：直接使用 solver 选出的半径。
                         // Non-PWL path: use solver-selected radius directly.
                         val solverRadius = solverResult.selectedRadius
-                        (FltX(PI) * solverRadius * solverRadius * cylinderShape.cylinder.height).value.toFltX()
+                        val radiusSquared = (solverRadius * solverRadius)!!
+                        val baseArea = (FltX(PI) * radiusSquared)!!
+                        (baseArea * cylinderShape.cylinder.height)!!.value.toFltX()
                     }
                 } else {
                     shape.actualVolume.value.toFltX()
@@ -136,7 +144,7 @@ class PackingRendererAdapter {
                     cylinderShape?.radius?.value?.toFltX()
                 }
                 val diameter: FltX? = if (cylinderShape != null && solverResult != null) {
-                    (solverResult.selectedRadius * FltX(2.0)).value.toFltX()
+                    (solverResult.selectedRadius * FltX(2.0))!!.value.toFltX()
                 } else {
                     cylinderShape?.diameter?.value?.toFltX()
                 }
@@ -196,7 +204,7 @@ class PackingRendererAdapter {
                 usedVolume / totalVolume
             }
 
-            RenderLoadingPlanDTO(
+            loadingPlans.add(RenderLoadingPlanDTO(
                 group = bin.group,
                 name = bin.name,
                 typeCode = bin.type.typeCode,
@@ -207,7 +215,7 @@ class PackingRendererAdapter {
                 weight = itemDtos.fold(FltX.zero) { acc, item -> acc + item.weight },
                 volume = usedVolume,
                 items = itemDtos
-            )
+            ))
         }
 
         val kpi = linkedMapOf<String, String>().apply {
@@ -218,9 +226,9 @@ class PackingRendererAdapter {
             }
         }
 
-        return SchemaDTO(
+        return Ok(SchemaDTO(
             kpi = kpi,
             loadingPlans = loadingPlans
-        )
+        ))
     }
 }

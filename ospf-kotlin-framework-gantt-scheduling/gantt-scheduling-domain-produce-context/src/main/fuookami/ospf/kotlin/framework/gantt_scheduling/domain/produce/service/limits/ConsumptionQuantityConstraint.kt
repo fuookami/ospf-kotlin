@@ -182,7 +182,7 @@ class ConsumptionQuantityConstraint<
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
                             task.nonZeroConsumptionMaterials<C>()
-                                .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                                .sumOf(Flt64) { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {
@@ -195,7 +195,7 @@ class ConsumptionQuantityConstraint<
                     when (val task = args.task) {
                         is ProductionTask<*, *, *, *, *> -> {
                             task.nonZeroConsumptionMaterials<C>()
-                                .sumOf { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
+                                .sumOf(Flt64) { map[ConsumptionQuantityShadowPriceKey(it)]?.price ?: Flt64.zero }
                         }
 
                         else -> {

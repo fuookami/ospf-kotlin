@@ -166,48 +166,38 @@ sealed interface PackageShapeSpec {
         )
 
         init {
-            require(radius.value.toDouble() > 0.0) {
-                "Vertical cylinder radius must be positive."
-            }
+            val normalizedRadius = radius.toPositiveQuantityOrRequire(radius.unit, "radius")
+            val normalizedRadiusMin = radiusMin?.toPositiveQuantityOrRequire(radius.unit, "radiusMin")
+            val normalizedRadiusMax = radiusMax?.toPositiveQuantityOrRequire(radius.unit, "radiusMax")
             if (radiusCandidates.isNotEmpty()) {
                 require(resolvedRadiusCandidates.any { it sameCylinderRadiusValue radius }) {
                     "Resolved radius must be included in radius candidates when candidates are provided."
                 }
             }
-            radiusMin?.let {
-                require(it.value.toDouble() > 0.0) {
-                    "Vertical cylinder radiusMin must be positive."
-                }
-            }
-            radiusMax?.let {
-                require(it.value.toDouble() > 0.0) {
-                    "Vertical cylinder radiusMax must be positive."
-                }
-            }
-            if (radiusMin != null && radiusMax != null) {
-                require(radiusMin.convertTo(radius.unit)!!.value.toDouble() <= radiusMax.convertTo(radius.unit)!!.value.toDouble()) {
+            if (normalizedRadiusMin != null && normalizedRadiusMax != null) {
+                require(normalizedRadiusMin.value.toDouble() <= normalizedRadiusMax.value.toDouble()) {
                     "Vertical cylinder radiusMin must be less than or equal to radiusMax."
                 }
             }
-            radiusMin?.let {
-                require(radius.value.toDouble() >= it.convertTo(radius.unit)!!.value.toDouble()) {
+            normalizedRadiusMin?.let {
+                require(normalizedRadius.value.toDouble() >= it.value.toDouble()) {
                     "Resolved radius must be greater than or equal to radiusMin."
                 }
             }
-            radiusMax?.let {
-                require(radius.value.toDouble() <= it.convertTo(radius.unit)!!.value.toDouble()) {
+            normalizedRadiusMax?.let {
+                require(normalizedRadius.value.toDouble() <= it.value.toDouble()) {
                     "Resolved radius must be less than or equal to radiusMax."
                 }
             }
             diameterMin?.let {
                 val minimumRadius = it.toRadiusQuantity(radius.unit, "diameterMin")
-                require(radius.value.toDouble() >= minimumRadius.value.toDouble()) {
+                require(normalizedRadius.value.toDouble() >= minimumRadius.value.toDouble()) {
                     "Resolved radius diameter must be greater than or equal to diameterMin."
                 }
             }
             diameterMax?.let {
                 val maximumRadius = it.toRadiusQuantity(radius.unit, "diameterMax")
-                require(radius.value.toDouble() <= maximumRadius.value.toDouble()) {
+                require(normalizedRadius.value.toDouble() <= maximumRadius.value.toDouble()) {
                     "Resolved radius diameter must be less than or equal to diameterMax."
                 }
             }
@@ -228,17 +218,36 @@ private fun Quantity<FltX>.toPositiveQuantity(
 ): Ret<Quantity<FltX>> {
     val converted = convertTo(unit)
         ?: return Failed(ErrorCode.IllegalArgument, "Vertical cylinder $fieldName must use a length-compatible unit.")
-    require(converted.value.toDouble() > 0.0) {
-        "Vertical cylinder $fieldName must be positive."
+    if (converted.value.toDouble() <= 0.0) {
+        return Failed(ErrorCode.IllegalArgument, "Vertical cylinder $fieldName must be positive.")
     }
     return ok(converted)
+}
+
+private fun <T> Ret<T>.requireValue(): T {
+    val result = this
+    require(result is Ok) {
+        when (result) {
+            is Failed -> result.error.message
+            is Fatal -> result.errors.joinToString("; ") { it.message }
+            else -> "Unexpected failure."
+        }
+    }
+    return result.value
+}
+
+private fun Quantity<FltX>.toPositiveQuantityOrRequire(
+    unit: PhysicalUnit,
+    fieldName: String
+): Quantity<FltX> {
+    return toPositiveQuantity(unit, fieldName).requireValue()
 }
 
 private fun Quantity<FltX>.toRadiusQuantity(
     unit: PhysicalUnit,
     fieldName: String
 ): Quantity<FltX> {
-    val converted = toPositiveQuantity(unit, fieldName).value!!
+    val converted = toPositiveQuantityOrRequire(unit, fieldName)
     return Quantity(FltX(converted.value.toDouble() / 2.0), unit)
 }
 
@@ -264,9 +273,9 @@ private fun intervalCandidates(
     unit: PhysicalUnit,
     fieldPrefix: String
 ): List<Quantity<FltX>> {
-    val normalizedMin = min.toPositiveQuantity(unit, "${fieldPrefix}Min").value!!
-    val normalizedMax = max.toPositiveQuantity(unit, "${fieldPrefix}Max").value!!
-    val normalizedStep = step.toPositiveQuantity(unit, "${fieldPrefix}Step").value!!
+    val normalizedMin = min.toPositiveQuantityOrRequire(unit, "${fieldPrefix}Min")
+    val normalizedMax = max.toPositiveQuantityOrRequire(unit, "${fieldPrefix}Max")
+    val normalizedStep = step.toPositiveQuantityOrRequire(unit, "${fieldPrefix}Step")
     val minValue = normalizedMin.value.toDouble()
     val maxValue = normalizedMax.value.toDouble()
     val stepValue = normalizedStep.value.toDouble()
@@ -315,63 +324,63 @@ private fun resolveVerticalCylinderRadiusCandidates(
     diameterMax: Quantity<FltX>?,
     diameterStep: Quantity<FltX>?
 ): List<Quantity<FltX>> {
-    radius.toPositiveQuantity(radius.unit, "radius").value!!
-    radiusMin?.toPositiveQuantity(radius.unit, "radiusMin")?.value!!
-    radiusMax?.toPositiveQuantity(radius.unit, "radiusMax")?.value!!
-    radiusStep?.toPositiveQuantity(radius.unit, "radiusStep")?.value!!
-    diameterMin?.toPositiveQuantity(radius.unit, "diameterMin")?.value!!
-    diameterMax?.toPositiveQuantity(radius.unit, "diameterMax")?.value!!
-    diameterStep?.toPositiveQuantity(radius.unit, "diameterStep")?.value!!
+    val normalizedRadius = radius.toPositiveQuantityOrRequire(radius.unit, "radius")
+    val normalizedRadiusMin = radiusMin?.toPositiveQuantityOrRequire(radius.unit, "radiusMin")
+    val normalizedRadiusMax = radiusMax?.toPositiveQuantityOrRequire(radius.unit, "radiusMax")
+    val normalizedRadiusStep = radiusStep?.toPositiveQuantityOrRequire(radius.unit, "radiusStep")
+    val normalizedDiameterMin = diameterMin?.toPositiveQuantityOrRequire(radius.unit, "diameterMin")
+    val normalizedDiameterMax = diameterMax?.toPositiveQuantityOrRequire(radius.unit, "diameterMax")
+    val normalizedDiameterStep = diameterStep?.toPositiveQuantityOrRequire(radius.unit, "diameterStep")
 
-    if (radiusMin != null && radiusMax != null) {
-        require(radiusMin.convertTo(radius.unit)!!.value.toDouble() <= radiusMax.convertTo(radius.unit)!!.value.toDouble()) {
+    if (normalizedRadiusMin != null && normalizedRadiusMax != null) {
+        require(normalizedRadiusMin.value.toDouble() <= normalizedRadiusMax.value.toDouble()) {
             "Vertical cylinder radiusMin must be less than or equal to radiusMax."
         }
     }
-    if (diameterMin != null && diameterMax != null) {
-        require(diameterMin.convertTo(radius.unit)!!.value.toDouble() <= diameterMax.convertTo(radius.unit)!!.value.toDouble()) {
+    if (normalizedDiameterMin != null && normalizedDiameterMax != null) {
+        require(normalizedDiameterMin.value.toDouble() <= normalizedDiameterMax.value.toDouble()) {
             "Vertical cylinder diameterMin must be less than or equal to diameterMax."
         }
     }
-    if (radiusStep != null) {
-        require(radiusMin != null && radiusMax != null) {
+    if (normalizedRadiusStep != null) {
+        require(normalizedRadiusMin != null && normalizedRadiusMax != null) {
             "Vertical cylinder radiusStep requires radiusMin and radiusMax."
         }
     }
-    if (diameterStep != null) {
-        require(diameterMin != null && diameterMax != null) {
+    if (normalizedDiameterStep != null) {
+        require(normalizedDiameterMin != null && normalizedDiameterMax != null) {
             "Vertical cylinder diameterStep requires diameterMin and diameterMax."
         }
     }
 
     val hasExplicitCandidates = radiusCandidates.isNotEmpty()
-    val hasRadiusInterval = radiusMin != null && radiusMax != null && radiusStep != null
-    val hasDiameterInterval = diameterMin != null && diameterMax != null && diameterStep != null
+    val hasRadiusInterval = normalizedRadiusMin != null && normalizedRadiusMax != null && normalizedRadiusStep != null
+    val hasDiameterInterval = normalizedDiameterMin != null && normalizedDiameterMax != null && normalizedDiameterStep != null
     require(hasExplicitCandidates || !hasRadiusInterval || !hasDiameterInterval) {
         "Vertical cylinder radius interval and diameter interval cannot both generate candidates."
     }
 
     return when {
         hasExplicitCandidates -> distinctSortedRadiusCandidates(
-            radiusCandidates.map { it.toPositiveQuantity(radius.unit, "radiusCandidates").value!! }
+            radiusCandidates.map { it.toPositiveQuantityOrRequire(radius.unit, "radiusCandidates") }
         )
 
-        hasRadiusInterval -> intervalCandidates(
-            min = radiusMin,
-            max = radiusMax,
-            step = radiusStep,
+        normalizedRadiusMin != null && normalizedRadiusMax != null && normalizedRadiusStep != null -> intervalCandidates(
+            min = normalizedRadiusMin,
+            max = normalizedRadiusMax,
+            step = normalizedRadiusStep,
             unit = radius.unit,
             fieldPrefix = "radius"
         )
 
-        hasDiameterInterval -> diameterIntervalRadiusCandidates(
-            min = diameterMin,
-            max = diameterMax,
-            step = diameterStep,
+        normalizedDiameterMin != null && normalizedDiameterMax != null && normalizedDiameterStep != null -> diameterIntervalRadiusCandidates(
+            min = normalizedDiameterMin,
+            max = normalizedDiameterMax,
+            step = normalizedDiameterStep,
             unit = radius.unit
         )
 
-        else -> listOf(radius.toPositiveQuantity(radius.unit, "radius").value!!)
+        else -> listOf(normalizedRadius)
     }
 }
 
@@ -434,7 +443,19 @@ private fun plusPackingProgramWeight(
         return ok(lhs)
     }
     return when (lhs.value) {
-        is FltX -> ok((lhs as Quantity<FltX>) + packingProgramWeightToFltXQuantity(rhs).value!!)
+        is FltX -> {
+            when (val rhsQuantity = packingProgramWeightToFltXQuantity(rhs)) {
+                is Ok -> {
+                    when (val sum = (lhs as Quantity<FltX>).plusSafe(rhsQuantity.value)) {
+                        is Ok -> ok(sum.value)
+                        is Failed -> Failed(sum.error)
+                        is Fatal -> Fatal(sum.errors)
+                    }
+                }
+                is Failed -> Failed(rhsQuantity.error)
+                is Fatal -> Fatal(rhsQuantity.errors)
+            }
+        }
         else -> Failed(ErrorCode.IllegalArgument, "Unsupported packing material quantity scalar: ${lhs.value}")
     }
 }
@@ -442,17 +463,21 @@ private fun plusPackingProgramWeight(
 private fun mergePackingProgramMaterialValue(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
-): PackingProgramMaterialValue {
+): Ret<PackingProgramMaterialValue> {
     val amount = when {
         lhs?.amount == null -> rhs.amount
         rhs.amount == null -> lhs.amount
         else -> lhs.amount + rhs.amount
     }
-    val weight = plusPackingProgramWeight(lhs?.weight, rhs.weight).value!!
-    return PackingProgramMaterialValue(
+    val weight = when (val result = plusPackingProgramWeight(lhs?.weight, rhs.weight)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return ok(PackingProgramMaterialValue(
         amount = amount,
         weight = weight
-    )
+    ))
 }
 
 /**
@@ -466,7 +491,7 @@ private fun mergePackingProgramMaterialValue(
 fun mergePackingProgramMaterialValues(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
-): PackingProgramMaterialValue {
+): Ret<PackingProgramMaterialValue> {
     return mergePackingProgramMaterialValue(lhs, rhs)
 }
 
@@ -521,21 +546,25 @@ data class PackingProgram<V : FloatingNumber<V>>(
         fun <V : FloatingNumber<V>> outerPackage(
             shape: PackageShape<V>,
             packages: List<PackingProgram<V>>
-        ): PackingProgram<V> {
+        ): Ret<PackingProgram<V>> {
             val materials = LinkedHashMap<MaterialKey, PackingProgramMaterialValue>()
             for (pack in packages) {
                 for ((materialNo, value) in pack.materials) {
-                    materials[materialNo] = mergePackingProgramMaterialValue(
+                    materials[materialNo] = when (val result = mergePackingProgramMaterialValue(
                         lhs = materials[materialNo],
                         rhs = value
-                    )
+                    )) {
+                        is Ok -> result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
             }
-            return PackingProgram(
+            return ok(PackingProgram(
                 shape = shape,
                 packages = packages,
                 materials = materials,
-            )
+            ))
         }
 
         fun innerPackage(

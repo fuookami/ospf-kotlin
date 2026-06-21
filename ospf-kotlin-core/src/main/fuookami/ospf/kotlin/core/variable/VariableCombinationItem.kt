@@ -46,7 +46,7 @@ class CombinationVariableItem<T, Type : VariableType<T>>(
 ) : AbstractVariableItem<T, Type>(type, name, constants) where T : RealNumber<T>, T : NumberField<T> {
     override val dimension by parent::dimension
     override val identifier by parent::identifier
-    override val vectorView by lazy { parent.shape.vector(index) }
+    override val vectorView by lazy { parent.shape.vectorUnchecked(index) }
 }
 
 /**

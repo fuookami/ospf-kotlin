@@ -65,9 +65,7 @@ class SymbolDimensionTest {
         registry.register(y)
 
         // x(m) + y(s) 应该失败
-        assertThrows<DimensionMismatchException> {
-            registry.validateAddSubDimension(listOf(x, y))
-        }
+        assertTrue(registry.validateAddSubDimension(listOf(x, y)).failed)
     }
 
     @Test

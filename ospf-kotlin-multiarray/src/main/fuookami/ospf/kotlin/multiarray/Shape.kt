@@ -25,9 +25,9 @@
  *
  * 索引计算：
  * Index calculation:
- * - [index(vector)]: 将向量索引转换为线性索引
+ * - [index(vector)]: 将向量索引转换为线性索引结果
  *   Convert vector index to linear index
- * - [vector(index)]: 将线性索引转换为向量索引
+ * - [vector(index)]: 将线性索引转换为向量索引结果
  *   Convert linear index to vector index
  *
  * 存储顺序：
@@ -46,11 +46,11 @@
  *
  * // 向量索引转线性索引
  * // Vector index to linear index
- * val linearIdx = shape.index(intArrayOf(1, 2, 3))
+ * val linearIdx = shape.index(intArrayOf(1, 2, 3)).value
  *
  * // 线性索引转向量索引
  * // Linear index to vector index
- * val vectorIdx = shape.vector(15)
+ * val vectorIdx = shape.vector(15).value
  * ```
  * @see MultiArray
  * @see StorageOrder
@@ -174,13 +174,45 @@ interface Shape {
      * 将向量索引转换为线性索引
      * Convert vector index to linear index
      */
-    fun index(vector: IntArray): Int
+    fun index(vector: IntArray): Ret<Int>
+
+    /**
+     * 安全转换向量索引
+     * Safely converts vector index to linear index
+     */
+    fun indexSafe(vector: IntArray): Ret<Int> {
+        return index(vector)
+    }
+
+    /**
+     * 尝试转换向量索引
+     * Tries to convert vector index to linear index
+     */
+    fun indexOrNull(vector: IntArray): Int? {
+        return index(vector).value
+    }
 
     /**
      * 将线性索引转换为向量索引
      * Convert linear index to vector index
      */
-    fun vector(index: Int): IntArray
+    fun vector(index: Int): Ret<IntArray>
+
+    /**
+     * 安全转换线性索引
+     * Safely converts linear index to vector index
+     */
+    fun vectorSafe(index: Int): Ret<IntArray> {
+        return vector(index)
+    }
+
+    /**
+     * 尝试转换线性索引
+     * Tries to convert linear index to vector index
+     */
+    fun vectorOrNull(index: Int): IntArray? {
+        return vector(index).value
+    }
 
     /**
      * 检查是否为空
@@ -214,9 +246,8 @@ interface Shape {
      * 获取指定维度的步长
      * Get the stride for the specified dimension
      */
-    fun offset(dimension: Int): Int {
-        return offsetOrNull(dimension)
-            ?: throw DimensionMismatchingException(this.dimension, dimension)
+    fun offset(dimension: Int): Ret<Int> {
+        return offsetSafe(dimension)
     }
 
     /**
@@ -310,24 +341,8 @@ interface Shape {
      * 从任意类型数组创建虚拟向量
      * Create dummy vector from any type array
      */
-    fun dummyVector(vararg v: Any): DummyVector {
-        return dummyVectorOrNull(*v) ?: if (v.size != dimension) {
-            throw DimensionMismatchingException(
-                dimension = dimension,
-                vectorDimension = v.size
-            )
-        } else {
-            val unknown = v.first { index ->
-                index !== _a &&
-                        index !is IntRange &&
-                        index !is Int &&
-                        index !is Indexed &&
-                        index !is DummyIndex
-            }
-            throw UnknownDummyIndexTypeException(
-                cls = unknown.javaClass.kotlin
-            )
-        }
+    fun dummyVector(vararg v: Any): Ret<DummyVector> {
+        return dummyVectorSafe(*v)
     }
 
     /**
@@ -382,6 +397,70 @@ interface Shape {
     fun dummyVectorOrNull(vararg v: Any): DummyVector? {
         return dummyVectorSafe(*v).value
     }
+}
+
+private fun <T> dimensionMismatchingFailure(
+    dimension: Int,
+    vectorDimension: Int
+): Ret<T> {
+    return Failed(
+        ErrorCode.IllegalArgument,
+        "维度不匹配：期望 $dimension，实际 $vectorDimension / Dimension mismatch: expected $dimension, got $vectorDimension"
+    )
+}
+
+private fun <T> outOfShapeFailure(
+    dimension: Int,
+    length: Int,
+    vectorIndex: Int
+): Ret<T> {
+    return Failed(
+        ErrorCode.IllegalArgument,
+        "形状索引越界：第 $dimension 维长度为 $length，实际索引 $vectorIndex / Shape index out of bounds: dimension $dimension length is $length, got $vectorIndex"
+    )
+}
+
+private fun <T> linearIndexOutOfBoundsFailure(
+    index: Int,
+    size: Int
+): Ret<T> {
+    return Failed(
+        ErrorCode.IllegalArgument,
+        "线性索引越界：索引 $index 不在形状大小 $size 内 / Linear index out of bounds: index $index is outside shape size $size"
+    )
+}
+
+/**
+ * 不校验地转换向量索引
+ * Converts vector index without validation
+ *
+ * @param vector 向量索引 / Vector index
+ * @return 线性索引；仅应在调用方已保证索引合法时使用 / Linear index; use only when caller has guaranteed validity
+ */
+fun Shape.indexUnchecked(vector: IntArray): Int {
+    return indexOrNull(vector) ?: -1
+}
+
+/**
+ * 不校验地转换线性索引
+ * Converts linear index without validation
+ *
+ * @param index 线性索引 / Linear index
+ * @return 向量索引；仅应在调用方已保证索引合法时使用 / Vector index; use only when caller has guaranteed validity
+ */
+fun Shape.vectorUnchecked(index: Int): IntArray {
+    return vectorOrNull(index) ?: IntArray(dimension)
+}
+
+/**
+ * 不校验地创建虚拟向量
+ * Creates dummy vector without validation
+ *
+ * @param v 虚拟索引参数 / Dummy index arguments
+ * @return 虚拟向量；仅应在调用方已保证参数合法时使用 / Dummy vector; use only when caller has guaranteed validity
+ */
+fun Shape.dummyVectorUnchecked(vararg v: Any): DummyVector {
+    return dummyVectorOrNull(*v) ?: emptyList()
 }
 
 /**
@@ -444,43 +523,42 @@ data class Shape1 private constructor(
 
     override val dimension = 1
     override val size by ::d1
+    private val dimensions = intArrayOf(d1)
 
     override val offsets: IntArray by lazy { intArrayOf(1) }
 
     @Throws(ArrayIndexOutOfBoundsException::class)
     override operator fun get(index: Int): Int {
-        return when (index) {
-            0 -> d1
-            else -> throw ArrayIndexOutOfBoundsException("Dimension index $index out of bounds for shape dimension $dimension")
-        }
+        return dimensions[index]
     }
 
-    @Throws(DimensionMismatchingException::class, OutOfShapeException::class)
-    override fun index(vector: IntArray): Int {
+    override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             1 -> if (vector[0] < 0 || vector[0] >= d1) {
-                throw OutOfShapeException(
+                outOfShapeFailure(
                     dimension = 0,
                     length = d1,
                     vectorIndex = vector[0]
                 )
             } else {
-                vector[0] * offsets[0]
+                Ok(vector[0] * offsets[0])
             }
 
-            else -> throw DimensionMismatchingException(
+            else -> dimensionMismatchingFailure(
                 dimension = 1,
                 vectorDimension = vector.size
             )
         }
     }
 
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun vector(index: Int): IntArray {
+    override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= d1) {
-            throw ArrayIndexOutOfBoundsException("Index $index out of bounds for shape size $d1")
+            linearIndexOutOfBoundsFailure(
+                index = index,
+                size = d1
+            )
         } else {
-            intArrayOf(index / offsets[0])
+            Ok(intArrayOf(index / offsets[0]))
         }
     }
 
@@ -561,6 +639,7 @@ data class Shape2 private constructor(
     private val totalSize by lazy { d1 * d2 }
     override val dimension = 2
     override val size get() = totalSize
+    private val dimensions = intArrayOf(d1, d2)
 
     override val offsets: IntArray by lazy {
         when (storageOrder) {
@@ -570,46 +649,44 @@ data class Shape2 private constructor(
     }
 
     override operator fun get(index: Int): Int {
-        return when (index) {
-            0 -> d1
-            1 -> d2
-            else -> throw ArrayIndexOutOfBoundsException("Dimension index $index out of bounds for shape dimension $dimension")
-        }
+        return dimensions[index]
     }
 
-    override fun index(vector: IntArray): Int {
+    override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             2 -> {
                 if (vector[0] < 0 || vector[0] >= d1) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 0,
                         length = d1,
                         vectorIndex = vector[0]
                     )
                 } else if (vector[1] < 0 || vector[1] >= d2) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 1,
                         length = d2,
                         vectorIndex = vector[1]
                     )
                 } else {
-                    vector[0] * offsets[0] + vector[1] * offsets[1]
+                    Ok(vector[0] * offsets[0] + vector[1] * offsets[1])
                 }
             }
 
-            else -> throw DimensionMismatchingException(
+            else -> dimensionMismatchingFailure(
                 dimension = 2,
                 vectorDimension = vector.size
             )
         }
     }
 
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun vector(index: Int): IntArray {
+    override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
-            throw ArrayIndexOutOfBoundsException("Index $index out of bounds for shape size $totalSize")
+            linearIndexOutOfBoundsFailure(
+                index = index,
+                size = totalSize
+            )
         } else {
-            when (storageOrder) {
+            Ok(when (storageOrder) {
                 StorageOrder.RowMajor -> {
                     intArrayOf(index / offsets[0], index % offsets[0] / offsets[1])
                 }
@@ -619,7 +696,7 @@ data class Shape2 private constructor(
                     // So: v[0] = index % d1, v[1] = index / d1 / 因此：v[0] = index % d1, v[1] = index / d1
                     intArrayOf(index % d1, index / d1)
                 }
-            }
+            })
         }
     }
 
@@ -706,6 +783,7 @@ data class Shape3 private constructor(
     private val totalSize by lazy { d1 * d2 * d3 }
     override val dimension = 3
     override val size get() = totalSize
+    private val dimensions = intArrayOf(d1, d2, d3)
 
     override val offsets: IntArray by lazy {
         when (storageOrder) {
@@ -715,53 +793,50 @@ data class Shape3 private constructor(
     }
 
     override operator fun get(index: Int): Int {
-        return when (index) {
-            0 -> d1
-            1 -> d2
-            2 -> d3
-            else -> throw ArrayIndexOutOfBoundsException("Dimension index $index out of bounds for shape dimension $dimension")
-        }
+        return dimensions[index]
     }
 
-    override fun index(vector: IntArray): Int {
+    override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             3 -> {
                 if (vector[0] < 0 || vector[0] >= d1) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 0,
                         length = d1,
                         vectorIndex = vector[0]
                     )
                 } else if (vector[1] < 0 || vector[1] >= d2) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 1,
                         length = d2,
                         vectorIndex = vector[1]
                     )
                 } else if (vector[2] < 0 || vector[2] >= d3) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 2,
                         length = d3,
                         vectorIndex = vector[2]
                     )
                 } else {
-                    vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2]
+                    Ok(vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2])
                 }
             }
 
-            else -> throw DimensionMismatchingException(
+            else -> dimensionMismatchingFailure(
                 dimension = 3,
                 vectorDimension = vector.size
             )
         }
     }
 
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun vector(index: Int): IntArray {
+    override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
-            throw ArrayIndexOutOfBoundsException("Index $index out of bounds for shape size $totalSize")
+            linearIndexOutOfBoundsFailure(
+                index = index,
+                size = totalSize
+            )
         } else {
-            when (storageOrder) {
+            Ok(when (storageOrder) {
                 StorageOrder.RowMajor -> {
                     var currentIndex = index
                     intArrayOf(
@@ -779,7 +854,7 @@ data class Shape3 private constructor(
                     currentIndex /= d2
                     intArrayOf(v0, v1, currentIndex)
                 }
-            }
+            })
         }
     }
 
@@ -872,6 +947,7 @@ data class Shape4 private constructor(
     private val totalSize by lazy { d1 * d2 * d3 * d4 }
     override val dimension = 4
     override val size get() = totalSize
+    private val dimensions = intArrayOf(d1, d2, d3, d4)
 
     override val offsets: IntArray by lazy {
         when (storageOrder) {
@@ -881,60 +957,56 @@ data class Shape4 private constructor(
     }
 
     override operator fun get(index: Int): Int {
-        return when (index) {
-            0 -> d1
-            1 -> d2
-            2 -> d3
-            3 -> d4
-            else -> throw ArrayIndexOutOfBoundsException("Dimension index $index out of bounds for shape dimension $dimension")
-        }
+        return dimensions[index]
     }
 
-    override fun index(vector: IntArray): Int {
+    override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             4 -> {
                 if (vector[0] < 0 || vector[0] >= d1) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 0,
                         length = d1,
                         vectorIndex = vector[0]
                     )
                 } else if (vector[1] < 0 || vector[1] >= d2) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 1,
                         length = d2,
                         vectorIndex = vector[1]
                     )
                 } else if (vector[2] < 0 || vector[2] >= d3) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 2,
                         length = d3,
                         vectorIndex = vector[2]
                     )
                 } else if (vector[3] < 0 || vector[3] >= d4) {
-                    throw OutOfShapeException(
+                    outOfShapeFailure(
                         dimension = 3,
                         length = d4,
                         vectorIndex = vector[3]
                     )
                 } else {
-                    vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2] + vector[3] * offsets[3]
+                    Ok(vector[0] * offsets[0] + vector[1] * offsets[1] + vector[2] * offsets[2] + vector[3] * offsets[3])
                 }
             }
 
-            else -> throw DimensionMismatchingException(
+            else -> dimensionMismatchingFailure(
                 dimension = 4,
                 vectorDimension = vector.size
             )
         }
     }
 
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun vector(index: Int): IntArray {
+    override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
-            throw ArrayIndexOutOfBoundsException("Index $index out of bounds for shape size $totalSize")
+            linearIndexOutOfBoundsFailure(
+                index = index,
+                size = totalSize
+            )
         } else {
-            when (storageOrder) {
+            Ok(when (storageOrder) {
                 StorageOrder.RowMajor -> {
                     var currentIndex = index
                     intArrayOf(
@@ -955,7 +1027,7 @@ data class Shape4 private constructor(
                     currentIndex /= d3
                     intArrayOf(v0, v1, v2, currentIndex)
                 }
-            }
+            })
         }
     }
 
@@ -1111,14 +1183,14 @@ data class DynShape private constructor(
         return shape[index]
     }
 
-    override fun index(vector: IntArray): Int {
+    override fun index(vector: IntArray): Ret<Int> {
         if (dimension != vector.size) {
-            throw DimensionMismatchingException(dimension, vector.size)
+            return dimensionMismatchingFailure(dimension, vector.size)
         }
         var ret = 0
         for (i in shape.indices) {
             if (vector[i] < 0 || vector[i] >= shape[i]) {
-                throw OutOfShapeException(
+                return outOfShapeFailure(
                     dimension = i,
                     length = shape[i],
                     vectorIndex = vector[i]
@@ -1126,15 +1198,17 @@ data class DynShape private constructor(
             }
             ret += vector[i] * offsets[i]
         }
-        return ret
+        return Ok(ret)
     }
 
-    @Throws(ArrayIndexOutOfBoundsException::class)
-    override fun vector(index: Int): IntArray {
+    override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
-            throw ArrayIndexOutOfBoundsException("Index $index out of bounds for shape size $totalSize")
+            linearIndexOutOfBoundsFailure(
+                index = index,
+                size = totalSize
+            )
         } else {
-            when (storageOrder) {
+            Ok(when (storageOrder) {
                 StorageOrder.RowMajor -> {
                     var currentIndex = index
                     IntArray(dimension) { i ->
@@ -1156,7 +1230,7 @@ data class DynShape private constructor(
                         }
                     }
                 }
-            }
+            })
         }
     }
 

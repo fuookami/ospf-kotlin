@@ -4,6 +4,7 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -68,7 +69,7 @@ class Csp1dCgLifecycleTest {
             registrationStatusCallBack: RegistrationStatusCallBack?,
             solvingStatusCallBack: SolvingStatusCallBack?
         ): Ret<Flt64FeasibleSolverOutput> {
-            throw IllegalStateException("forced final MILP failure")
+            return Failed(ErrorCode.ApplicationError, "forced final MILP failure")
         }
 
         override suspend fun solveLP(

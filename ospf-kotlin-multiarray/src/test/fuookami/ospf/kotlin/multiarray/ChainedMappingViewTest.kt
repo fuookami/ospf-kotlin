@@ -45,11 +45,11 @@ class ChainedMappingViewTest {
         // 验证数据访问
         // Verify data access
         // transposed[0,0] should equal array[0,0] (row=0,col=0)
-        assertEquals(array[intArrayOf(0, 0)], transposed[intArrayOf(0, 0)])
+        assertOkEquals(array[intArrayOf(0, 0)], transposed[intArrayOf(0, 0)])
         // transposed[1,0] should equal array[0,1] (row=0,col=1)
-        assertEquals(array[intArrayOf(0, 1)], transposed[intArrayOf(1, 0)])
+        assertOkEquals(array[intArrayOf(0, 1)], transposed[intArrayOf(1, 0)])
         // transposed[0,1] should equal array[1,0] (row=1,col=0)
-        assertEquals(array[intArrayOf(1, 0)], transposed[intArrayOf(0, 1)])
+        assertOkEquals(array[intArrayOf(1, 0)], transposed[intArrayOf(0, 1)])
     }
 
     @Test
@@ -82,7 +82,7 @@ class ChainedMappingViewTest {
             for (b in 0 until 2) {
                 for (c in 0 until 3) {
                     val expected = array[intArrayOf(b, c, a)]
-                    assertEquals(expected, reordered[intArrayOf(a, b, c)])
+                    assertOkEquals(expected, reordered[intArrayOf(a, b, c)])
                 }
             }
         }
@@ -112,7 +112,7 @@ class ChainedMappingViewTest {
             for (newCol in 0 until 4) {
                 val oldRow = newCol
                 val oldCol = newRow
-                assertEquals(
+                assertOkEquals(
                     array[intArrayOf(oldRow, oldCol)],
                     transposed[intArrayOf(newRow, newCol)]
                 )
@@ -148,7 +148,7 @@ class ChainedMappingViewTest {
         for (i in 0 until 2) {
             for (j in 0 until 3) {
                 for (k in 0 until 4) {
-                    assertEquals(array[intArrayOf(i, j, k)], identity[intArrayOf(i, j, k)])
+                    assertOkEquals(array[intArrayOf(i, j, k)], identity[intArrayOf(i, j, k)])
                 }
             }
         }

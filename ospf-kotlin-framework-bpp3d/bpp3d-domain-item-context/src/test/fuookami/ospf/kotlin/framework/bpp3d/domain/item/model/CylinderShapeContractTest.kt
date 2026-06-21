@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -13,6 +14,16 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 class CylinderShapeContractTest {
+    private fun assertFailedMessage(
+        result: Try,
+        vararg expectedMessages: String
+    ) {
+        assertTrue(result is Failed)
+        for (expectedMessage in expectedMessages) {
+            assertTrue(result.message.contains(expectedMessage))
+        }
+    }
+
     private fun packageAttribute(): PackageAttribute {
         return PackageAttribute(
             packageType = PackageType.CartonContainer,
@@ -25,11 +36,12 @@ class CylinderShapeContractTest {
 
     private fun cylinderShape(axis: Axis3): PackingShape3<FltX> {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         val height = FltX(1.0) * Meter
         val shape = PackageShape(
-            width = radius + radius,
+            width = diameter,
             height = height,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             packageType = PackageType.CartonContainer,
             shapeSpec = PackageShapeSpec.VerticalCylinder(
@@ -42,12 +54,13 @@ class CylinderShapeContractTest {
 
     private fun cylinderItem(axis: Axis3): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = "cylinder-$axis",
             name = "cylinder-$axis",
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-CYL-$axis"),
@@ -100,83 +113,87 @@ class CylinderShapeContractTest {
 
     @Test
     fun verifiedGeneratedPlacementShouldRejectUnverifiedHorizontalCylinderCandidate() {
-        requireVerifiedGeneratedCylinderCandidate(
+        assertTrue(requireVerifiedGeneratedCylinderCandidate(
             shape = cylinderShape(Axis3.Y),
             verifiedAxisAwareCandidate = false,
             path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-        )
-        requireVerifiedGeneratedCylinderCandidate(
+        ).ok)
+        assertTrue(requireVerifiedGeneratedCylinderCandidate(
             shape = cylinderShape(Axis3.X),
             verifiedAxisAwareCandidate = true,
             path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
+        ).ok)
+
+        val result = requireVerifiedGeneratedCylinderCandidate(
+            shape = cylinderShape(Axis3.Z),
+            verifiedAxisAwareCandidate = false,
+            path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            requireVerifiedGeneratedCylinderCandidate(
-                shape = cylinderShape(Axis3.Z),
-                verifiedAxisAwareCandidate = false,
-                path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-            )
-        }
-
-        assertTrue(error.message?.contains("LayerPlacementAdapter.toLayerPlacement") == true)
-        assertTrue(error.message?.contains("verified axis-aware generated candidates") == true)
+        assertFailedMessage(
+            result,
+            "LayerPlacementAdapter.toLayerPlacement",
+            "verified axis-aware generated candidates"
+        )
     }
 
     @Test
     fun verticalCandidatePathShouldRejectHorizontalCylinderAxis() {
-        requireVerticalCylinderAxis(
+        assertTrue(requireVerticalCylinderAxis(
             shape = cylinderShape(Axis3.Y),
+            path = CylinderCapabilityPath.DefaultLayerCandidate
+        ).ok)
+
+        val result = requireVerticalCylinderAxis(
+            shape = cylinderShape(Axis3.X),
             path = CylinderCapabilityPath.DefaultLayerCandidate
         )
 
-        val error = assertFailsWith<IllegalArgumentException> {
-            requireVerticalCylinderAxis(
-                shape = cylinderShape(Axis3.X),
-                path = CylinderCapabilityPath.DefaultLayerCandidate
-            )
-        }
-
-        assertTrue(error.message?.contains("LayerGeneration.defaultCandidate") == true)
-        assertTrue(error.message?.contains("only Axis3.Y is allowed") == true)
+        assertFailedMessage(
+            result,
+            "LayerGeneration.defaultCandidate",
+            "only Axis3.Y is allowed"
+        )
     }
 
     @Test
     fun axisAwareCandidatePathShouldAcceptHorizontalCylinderAxis() {
-        requireAxisAwareCylinderCandidate(
+        assertTrue(requireAxisAwareCylinderCandidate(
             shape = cylinderShape(Axis3.X),
             path = CylinderCapabilityPath.CirclePackingCandidate
-        )
-        requireAxisAwareCylinderCandidate(
+        ).ok)
+        assertTrue(requireAxisAwareCylinderCandidate(
             shape = cylinderShape(Axis3.Z),
             path = CylinderCapabilityPath.CirclePackingCandidate
-        )
+        ).ok)
     }
 
     @Test
     fun supportPathShouldRejectHorizontalCylinderAxis() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            requireUprightVerticalCylinderSupport(
-                shape = cylinderShape(Axis3.Z),
-                orientation = Orientation.Upright,
-                path = CylinderCapabilityPath.PackageAttributeSupport
-            )
-        }
+        val result = requireUprightVerticalCylinderSupport(
+            shape = cylinderShape(Axis3.Z),
+            orientation = Orientation.Upright,
+            path = CylinderCapabilityPath.PackageAttributeSupport
+        )
 
-        assertTrue(error.message?.contains("PackageAttribute.supportPackingShape") == true)
-        assertTrue(error.message?.contains("only upright Axis3.Y items are allowed") == true)
+        assertFailedMessage(
+            result,
+            "PackageAttribute.supportPackingShape",
+            "only upright Axis3.Y items are allowed"
+        )
     }
 
     @Test
     fun cuboidOnlyPathShouldUseSharedCapabilityMessage() {
-        val error = assertFailsWith<IllegalArgumentException> {
-            requireNoCylinderItemsForCuboidOnlyPath(
-                items = listOf(cylinderItem(Axis3.Y)),
-                path = CylinderCapabilityPath.ItemMergeBlocks
-            )
-        }
+        val result = requireNoCylinderItemsForCuboidOnlyPath(
+            items = listOf(cylinderItem(Axis3.Y)),
+            path = CylinderCapabilityPath.ItemMergeBlocks
+        )
 
-        assertTrue(error.message?.contains("ItemMerger.mergeBlocks") == true)
-        assertTrue(error.message?.contains("item merge paths are cuboid-only") == true)
+        assertFailedMessage(
+            result,
+            "ItemMerger.mergeBlocks",
+            "item merge paths are cuboid-only"
+        )
     }
 }

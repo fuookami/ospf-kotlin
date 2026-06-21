@@ -152,7 +152,7 @@ class ColumnGenerationAlgorithmTest {
         return layerBinOf(
             shape = binType,
             units = listOf(
-                layer.toLayerPlacement()
+                layer.toLayerPlacement().value ?: fail("layer placement should be built")
             )
         )
     }
@@ -223,7 +223,7 @@ class ColumnGenerationAlgorithmTest {
         val result = algorithm.solveQuantity(
             items = listOf(quantityItem),
             config = ColumnGenerationConfig(finalMilpEnabled = false)
-        )
+        ).unwrap()
 
         assertEquals(1, result.lpSolvedTimes)
         assertEquals(0, result.columns.size)
@@ -422,6 +422,7 @@ class ColumnGenerationAlgorithmTest {
             },
             solutionAnalyzer = ColumnGenerationSolutionAnalyzer { state ->
                 analyzerVariables = state.continuousRadiusSolverPrototypes.map { it.variableName }
+                ok
             },
             layerRequestBuilder = ColumnGenerationLayerRequestBuilder { state, items, cgConfig ->
                 requestBuilderVariables.addAll(state.continuousRadiusSolverPrototypes.map { it.variableName })
@@ -723,7 +724,7 @@ class ColumnGenerationAlgorithmTest {
                 axis = Axis3.Y,
                 radiusMin = FltX(0.4) * Meter,
                 radiusMax = FltX(0.6) * Meter
-            )
+            ).value
         )
         val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
@@ -877,7 +878,7 @@ class ColumnGenerationAlgorithmTest {
                 axis = Axis3.Y,
                 radiusMin = FltX(0.4) * Meter,
                 radiusMax = FltX(0.6) * Meter
-            )
+            ).value
         )
         val demandEntries: List<Bpp3dDemandEntry<FltX>> = listOf(
             fixedDemandEntry(
@@ -1078,6 +1079,7 @@ class ColumnGenerationAlgorithmTest {
             layerRequestBuilder = executors.requestBuilder(),
             solutionAnalyzer = ColumnGenerationSolutionAnalyzer { state ->
                 analyzedState = state
+                ok
             },
             initialColumns = { listOf(seedLayer) }
         )
@@ -1388,7 +1390,7 @@ class ColumnGenerationAlgorithmTest {
         )
         val response = service.solve(
             request = request
-        )
+        ).unwrap()
 
         assertEquals(1, response.result.lpSolvedTimes)
         assertEquals(listOf(FltX(3.0)), response.result.lpObjectives)
@@ -1465,29 +1467,29 @@ class ColumnGenerationAlgorithmTest {
             }
         }
 
-        val exception = assertFailsWith<IllegalArgumentException> {
-            ColumnGenerationApplicationService(solver).solve(
-                request = ColumnGenerationApplicationRequest(
-                    itemDemands = listOf(Pair(actualItem, UInt64.one)),
-                    demandEntries = demandEntries,
-                    initialColumns = listOf(seedLayer),
-                    finalBins = listOf(finalBin),
-                    generators = listOf(
-                        object : Bpp3dLayerGenerator<FltX> {
-                            override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
-                                return emptyList()
-                            }
+        val response = ColumnGenerationApplicationService(solver).solve(
+            request = ColumnGenerationApplicationRequest(
+                itemDemands = listOf(Pair(actualItem, UInt64.one)),
+                demandEntries = demandEntries,
+                initialColumns = listOf(seedLayer),
+                finalBins = listOf(finalBin),
+                generators = listOf(
+                    object : Bpp3dLayerGenerator<FltX> {
+                        override suspend fun generate(request: Bpp3dLayerGenerationRequest<FltX>): List<Bpp3dLayerGenerationResult<FltX>> {
+                            return emptyList()
                         }
-                    ),
-                    depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
-                        firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
-                    )
+                    }
+                ),
+                depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                    firstLayerAllowedCuboidOrientations = setOf(Orientation.Side)
                 )
             )
-        }
+        )
 
-        assertTrue(exception.message?.contains("boundary=first") == true)
-        assertTrue(exception.message?.contains("cuboid_orientation=Upright") == true)
+        assertTrue(response is Failed)
+        val message = (response as Failed).error.message
+        assertTrue(message?.contains("boundary=first") == true)
+        assertTrue(message?.contains("cuboid_orientation=Upright") == true)
     }
 
     @Test
@@ -1636,7 +1638,7 @@ class ColumnGenerationAlgorithmTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).unwrap()
 
         assertTrue(response.result.finalSolved)
         assertEquals(listOf(FltX(11.0)), response.result.lpObjectives)
@@ -1751,7 +1753,7 @@ class ColumnGenerationAlgorithmTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).unwrap()
 
         assertTrue(response.result.finalSolved)
         assertEquals(listOf(FltX(13.0)), response.result.lpObjectives)
@@ -1887,7 +1889,7 @@ class ColumnGenerationAlgorithmTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).unwrap()
 
         assertTrue(response.result.finalSolved)
         assertEquals(listOf(FltX(19.0)), response.result.lpObjectives)
@@ -2021,7 +2023,7 @@ class ColumnGenerationAlgorithmTest {
                 )
             ),
             packingAnalyzer = ColumnGenerationPackingAnalyzer()
-        )
+        ).unwrap()
 
         assertTrue(response.result.finalSolved)
         assertEquals(listOf(FltX(37.0)), response.result.lpObjectives)

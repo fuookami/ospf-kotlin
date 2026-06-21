@@ -16,7 +16,7 @@ import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 
@@ -70,7 +70,7 @@ interface NumericUInteger<Self, I>
 
     /** 计算浮点数次幂 / Calculate floating-point power */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)
         is Flt64 -> toFlt64().pow(index)
         is FltX -> toFltX().pow(index)
@@ -1041,7 +1041,11 @@ class NUIntXSerializer : KSerializer<NUIntX> {
     }
 
     override fun deserialize(decoder: Decoder): NUIntX {
-        return NUIntX(UIntX(decoder.decodeString()))
+        return when (val result = UIntX.of(decoder.decodeString())) {
+            is Ok -> NUIntX(result.value)
+            is Failed -> serializationFailure(result.error.message)
+            is Fatal -> serializationFailure(result.errors.joinToString { it.message })
+        }
     }
 }
 
@@ -1232,7 +1236,7 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
      *         The power result
      */
     @Throws(IllegalArgumentException::class)
-    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFltX().pow(index)
         is Flt64 -> toFltX().pow(index)
         is FltX -> toFltX().pow(index)

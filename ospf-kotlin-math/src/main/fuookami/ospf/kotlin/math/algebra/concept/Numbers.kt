@@ -69,7 +69,7 @@ interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
 interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, Ord<Self>, Eq<Self>,
     Bounded<Self>, Infinite<Self>, Fixed<Self>, Epsilon<Self>,
     Log<FloatingNumber<*>, FloatingNumber<*>>,
-    PowF<FloatingNumber<*>, FloatingNumber<*>>,
+    PowF<FloatingNumber<*>, FloatingNumber<*>?>,
     Exp<FloatingNumber<*>>, Trigonometry<FloatingNumber<*>> {
     /**
      * 实数常量
@@ -708,12 +708,14 @@ interface RationalNumberConstants<Self : RationalNumber<Self, I>, I> : RealNumbe
  * @param Self 浮点数类型，必须继承自 FloatingNumber
  * @param Self The floating number type, must extend FloatingNumber
  */
-interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, NumberField<Self>, Pow<Self>, Reciprocal<Self> {
+interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, NumberField<Self>, Pow<Self> {
     /**
      * 浮点数常量
      * Floating number constants
      */
     override val constants: FloatingNumberConstants<Self>
+
+    override fun reciprocal(): Self
 }
 
 /**

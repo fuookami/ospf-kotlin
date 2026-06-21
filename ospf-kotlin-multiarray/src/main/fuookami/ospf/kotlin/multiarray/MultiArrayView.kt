@@ -134,7 +134,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by linear index
      */
     operator fun get(i: Int): T {
-        return origin[actualVectorUnchecked(shape.vector(i))]
+        return origin[actualVectorUnchecked(shape.vectorUnchecked(i))]
     }
 
     /**
@@ -150,7 +150,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Get element by Indexed interface
      */
     operator fun get(e: Indexed): T {
-        return origin[actualVectorUnchecked(shape.vector(e.index))]
+        return origin[actualVectorUnchecked(shape.vectorUnchecked(e.index))]
     }
 
     /**
@@ -193,7 +193,7 @@ class MultiArrayView<out T : Any, S : Shape>(
      */
     operator fun get(vararg v: Any): MultiArrayView<T, S> {
         val newDummyVector = ArrayList<DummyIndex>()
-        val subDummyVector = shape.dummyVector(*v)
+        val subDummyVector = shape.dummyVectorUnchecked(*v)
         var j = 0
 
         for (i in origin.shape.indices) {
@@ -364,7 +364,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     override fun iterator(): Iterator<T> {
         return iterator {
             for (i in 0 until shape.size) {
-                yield(origin[mapVectorUnchecked(shape.vector(i))])
+                yield(origin[mapVectorUnchecked(shape.vectorUnchecked(i))])
             }
         }
     }
@@ -377,7 +377,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      * @return 元素值 / Element value
      */
     operator fun get(i: Int): T {
-        return origin[mapVectorUnchecked(shape.vector(i))]
+        return origin[mapVectorUnchecked(shape.vectorUnchecked(i))]
     }
 
     /**
@@ -399,7 +399,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      * @return 元素值 / Element value
      */
     operator fun get(e: Indexed): T {
-        return origin[mapVectorUnchecked(shape.vector(e.index))]
+        return origin[mapVectorUnchecked(shape.vectorUnchecked(e.index))]
     }
 
     /** 通过 IntArray 向量索引获取元素 / Get element by IntArray vector index */
@@ -423,7 +423,7 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
      */
     operator fun get(vararg v: Any): MappedMultiArrayView<T, S> {
         val newMapVector = ArrayList<MapIndex>()
-        val subDummyVector = shape.dummyVector(*v)
+        val subDummyVector = shape.dummyVectorUnchecked(*v)
         var j = 0
 
         for ((i, mapIndex) in mapVector.withIndex()) {

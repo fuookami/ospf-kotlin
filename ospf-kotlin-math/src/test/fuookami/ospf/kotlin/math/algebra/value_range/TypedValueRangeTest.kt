@@ -59,8 +59,8 @@ class TypedValueRangeTest {
     fun scalarShiftShouldPreserveTypedIntervals() {
         val range = TypedValueRange.closedOpen(Flt64.one, Flt64(4.0), Flt64).value!!
 
-        val shifted = range + Flt64.two
-        val shiftedBack = shifted - Flt64.two
+        val shifted = (range + Flt64.two)!!
+        val shiftedBack = (shifted - Flt64.two)!!
 
         assertEquals(Interval.Closed, shifted.lowerInterval)
         assertEquals(Interval.Open, shifted.upperInterval)
@@ -94,8 +94,8 @@ class TypedValueRangeTest {
         val lhs = TypedValueRange.closed(Flt64.one, Flt64.two, Flt64).value!!
         val rhs = TypedValueRange.closed(Flt64(3.0), Flt64(4.0), Flt64).value!!
 
-        val sum = lhs + rhs
-        val diff = rhs - lhs
+        val sum = (lhs + rhs)!!
+        val diff = (rhs - lhs)!!
 
         assertEquals(Flt64(4.0), sum.lowerBound.unwrap())
         assertEquals(Flt64(6.0), sum.upperBound.unwrap())

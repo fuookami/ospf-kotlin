@@ -29,12 +29,13 @@ class SearchAlgorithmCylinderGuardTest {
 
     private fun cylinderItem(id: String, axis: Axis3 = Axis3.Y): ActualItem {
         val radius = FltX(0.5) * Meter
+        val diameter = assertNotNull(radius + radius)
         return ActualItem(
             id = id,
             name = id,
-            width = radius + radius,
+            width = diameter,
             height = FltX(1.0) * Meter,
-            depth = radius + radius,
+            depth = diameter,
             weight = FltX(1.0) * Kilogram,
             enabledOrientations = listOf(Orientation.Upright),
             batchNo = BatchNo("B-$id"),
@@ -61,15 +62,14 @@ class SearchAlgorithmCylinderGuardTest {
         )
 
         for (axis in listOf(Axis3.X, Axis3.Y, Axis3.Z)) {
-            val error = assertFailsWith<IllegalArgumentException> {
-                algorithm(
-                    items = mapOf(cylinderItem(id = "dfs-cylinder-$axis", axis = axis) to UInt64.one),
-                    shape = shape(),
-                    blockTable = emptyList()
-                )
-            }
+            val result = algorithm(
+                items = mapOf(cylinderItem(id = "dfs-cylinder-$axis", axis = axis) to UInt64.one),
+                shape = shape(),
+                blockTable = emptyList()
+            )
 
-            assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+            assertTrue(result.tryReceive().isFailure)
+            result.close()
         }
     }
 
@@ -80,15 +80,14 @@ class SearchAlgorithmCylinderGuardTest {
         )
 
         for (axis in listOf(Axis3.X, Axis3.Y, Axis3.Z)) {
-            val error = assertFailsWith<IllegalArgumentException> {
-                algorithm(
-                    items = mapOf(cylinderItem(id = "mlhs-cylinder-$axis", axis = axis) to UInt64.one),
-                    shape = shape(),
-                    blockTable = emptyList()
-                )
-            }
+            val result = algorithm(
+                items = mapOf(cylinderItem(id = "mlhs-cylinder-$axis", axis = axis) to UInt64.one),
+                shape = shape(),
+                blockTable = emptyList()
+            )
 
-            assertTrue(error.message?.contains("DFS/MLHS space-splitting path is cuboid-only") == true)
+            assertTrue(result.tryReceive().isFailure)
+            result.close()
         }
     }
 }

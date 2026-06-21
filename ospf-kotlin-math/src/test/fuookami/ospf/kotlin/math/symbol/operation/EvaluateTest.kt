@@ -155,9 +155,9 @@ class EvaluateTest {
             y to Flt64(3.0)
         )
 
-        assertEquals(linear.evaluate(MapValueProvider(mappedValues)), linear.evaluateOrdered(order, orderedValues))
-        assertEquals(quadratic.evaluate(MapValueProvider(mappedValues)), quadratic.evaluateOrdered(order, orderedValues))
-        assertEquals(canonical.evaluate(MapValueProvider(mappedValues)), canonical.evaluateOrdered(order, orderedValues))
+        assertEquals(linear.evaluate(MapValueProvider(mappedValues)), linear.evaluateOrdered(order, orderedValues).value!!)
+        assertEquals(quadratic.evaluate(MapValueProvider(mappedValues)), quadratic.evaluateOrdered(order, orderedValues).value!!)
+        assertEquals(canonical.evaluate(MapValueProvider(mappedValues)), canonical.evaluateOrdered(order, orderedValues).value!!)
     }
 
     @Test
@@ -168,9 +168,7 @@ class EvaluateTest {
             constant = Flt64.zero
         )
 
-        assertFailsWith<IllegalArgumentException> {
-            polynomial.evaluateOrdered(order = listOf(x), values = emptyList())
-        }
+        assertTrue(polynomial.evaluateOrdered(order = listOf(x), values = emptyList()).failed)
     }
 
     @Test
@@ -226,8 +224,8 @@ class EvaluateTest {
         )
         val values = mapOf<Symbol, Flt64>(x to Flt64(4.0))
 
-        val byMap = polynomial.partialEvaluate(values)
-        val byProvider = polynomial.partialEvaluate(MapValueProvider(values))
+        val byMap = polynomial.partialEvaluate(values).value!!
+        val byProvider = polynomial.partialEvaluate(MapValueProvider(values)).value!!
 
         assertEquals(byMap, byProvider)
         assertEquals(Flt64.one, byMap.constant)
@@ -251,7 +249,7 @@ class EvaluateTest {
                 x to closedRange(1.0, 3.0),
                 y to closedRange(2.0, 5.0)
             )
-        )
+        )!!
         assertEquals(Flt64(-12.0), extremum?.lowerBound?.value?.unwrapOrNull())
         assertEquals(Flt64.one, extremum?.upperBound?.value?.unwrapOrNull())
     }
@@ -273,7 +271,7 @@ class EvaluateTest {
                 x to closedRange(-1.0, 3.0),
                 y to closedRange(0.0, 4.0)
             )
-        )
+        )!!
         assertEquals(Flt64(-22.0), extremum?.lowerBound?.value?.unwrapOrNull())
         assertEquals(Flt64(14.0), extremum?.upperBound?.value?.unwrapOrNull())
     }

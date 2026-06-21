@@ -10,6 +10,7 @@
  */
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -66,9 +67,10 @@ class MutableLinearPolynomial<T : NumberField<T>>(
          *
          * @return 零多项式 / Zero polynomial
          */
-        inline fun <reified T> zero(): MutableLinearPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
-            val constants = resolveArithmeticConstants<T>("MutableLinearPolynomial.zero")
-            return MutableLinearPolynomial(emptyList(), constants.zero)
+        inline fun <reified T> zero(): Ret<MutableLinearPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
+            return resolveArithmeticConstantsSafe<T>("MutableLinearPolynomial.zero").mapResolved { constants ->
+                MutableLinearPolynomial(emptyList(), constants.zero)
+            }
         }
 
         /**
@@ -80,9 +82,10 @@ class MutableLinearPolynomial<T : NumberField<T>>(
          *
          * @return 值为 1 的多项式 / Polynomial with value 1
          */
-        inline fun <reified T> one(): MutableLinearPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
-            val constants = resolveArithmeticConstants<T>("MutableLinearPolynomial.one")
-            return MutableLinearPolynomial(emptyList(), constants.one)
+        inline fun <reified T> one(): Ret<MutableLinearPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
+            return resolveArithmeticConstantsSafe<T>("MutableLinearPolynomial.one").mapResolved { constants ->
+                MutableLinearPolynomial(emptyList(), constants.one)
+            }
         }
 
         /**

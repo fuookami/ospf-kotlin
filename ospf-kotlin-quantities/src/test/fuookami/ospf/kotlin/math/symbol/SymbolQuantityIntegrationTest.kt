@@ -8,6 +8,8 @@ import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.orFail
+import fuookami.ospf.kotlin.quantities.valueOrFail
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
@@ -44,8 +46,8 @@ class SymbolQuantityIntegrationTest {
         val distance = Quantity(poly, Meter)
         val inCm = distance.to(Centimeter)
         assertNotNull(inCm)
-        assertEquals(Flt64(200.0), inCm!!.value.monomials[0].coefficient)
-        assertEquals(Flt64(100.0), inCm.value.constant)
+        assertEquals(Flt64(200.0), inCm.orFail().value.monomials[0].coefficient)
+        assertEquals(Flt64(100.0), inCm.orFail().value.constant)
     }
 
     @Test
@@ -62,7 +64,7 @@ class SymbolQuantityIntegrationTest {
         )
         val distance2 = Quantity(poly2, Centimeter)
 
-        val sum = distance1 + distance2
+        val sum = (distance1 + distance2).valueOrFail()
         assertEquals(Meter, sum.unit)
     }
 
@@ -80,9 +82,7 @@ class SymbolQuantityIntegrationTest {
         )
         val time = Quantity(polyTime, Second)
 
-        assertThrows(DimensionMismatchException::class.java) {
-            length + time
-        }
+        assertTrue((length + time).failed)
     }
 
     @Test
@@ -114,8 +114,8 @@ class SymbolQuantityIntegrationTest {
 
         val standard = distance.to(Meter)
         assertNotNull(standard)
-        assertEquals(Flt64(0.02), standard!!.value.monomials[0].coefficient)
-        assertEquals(Flt64(0.01), standard.value.constant)
+        assertEquals(Flt64(0.02), standard.orFail().value.monomials[0].coefficient)
+        assertEquals(Flt64(0.01), standard.orFail().value.constant)
     }
 
     @Test
@@ -177,6 +177,6 @@ class SymbolQuantityIntegrationTest {
         // 求值
         val evaluated = quantity.evaluate(mapOf(x to Flt64(3.0)))
         assertNotNull(evaluated)
-        assertEquals(Flt64(35.0), evaluated!!.value) // 10*3 + 5 = 35
+        assertEquals(Flt64(35.0), evaluated.orFail().value) // 10*3 + 5 = 35
     }
 }

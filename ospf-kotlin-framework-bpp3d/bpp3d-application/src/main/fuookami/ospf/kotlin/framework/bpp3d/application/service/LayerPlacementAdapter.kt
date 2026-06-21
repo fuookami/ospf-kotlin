@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -14,11 +15,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackin
  * 统一创建 BinLayer 的放置对象。
  * Create BinLayer placement via a unified adapter.
  */
-internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): QuantityPlacement3<BinLayer, FltX> {
-    ensureGeneratedCylinderCandidatePath(
+internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): Ret<QuantityPlacement3<BinLayer, FltX>> {
+    when (val result = ensureGeneratedCylinderCandidatePath(
         layer = this
-    )
-    return toKnownCoordinateLayerPlacement(z)
+    )) {
+        is Ok -> {}
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return Ok(toKnownCoordinateLayerPlacement(z))
 }
 
 /**
@@ -44,12 +49,17 @@ internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null)
  * 统一创建空层箱体，避免业务处散落 QuantityPlacement3 构造。
  * Build a bin with one placed layer via adapter.
  */
-internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): Bin<BinLayer, FltX> {
-    return layerBinOf(
+internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): Ret<Bin<BinLayer, FltX>> {
+    val placement = when (val result = layer.toLayerPlacement(z)) {
+        is Ok -> result.value
+        is Failed -> return Failed(result.error)
+        is Fatal -> return Fatal(result.errors)
+    }
+    return Ok(layerBinOf(
         shape = type,
-        units = listOf(layer.toLayerPlacement(z)),
+        units = listOf(placement),
         batchNo = batchNo
-    )
+    ))
 }
 
 /**
@@ -79,16 +89,21 @@ internal fun Item.toItemPlacement(
  * 应用层使用共享圆柱契约校验生成候选能力。
  * Application layer uses the shared cylinder contract to validate generated candidate capability.
  */
-internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer) {
+internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer): Try {
     for (placement in layer.units) {
         if (placement.unit !is Item) {
             continue
         }
         val shape = placement.resolvedPackingShape()
-        requireVerifiedGeneratedCylinderCandidate(
+        when (val result = requireVerifiedGeneratedCylinderCandidate(
             shape = shape,
             verifiedAxisAwareCandidate = layer.from == CirclePackingLayerGenerator::class,
             path = CylinderCapabilityPath.ApplicationLayerPlacementCandidate
-        )!!
+        )) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
     }
+    return ok
 }
