@@ -46,9 +46,9 @@ abstract class HexalySolver : AutoCloseable {
 
             ok
         } catch (e: HxException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -62,9 +62,9 @@ abstract class HexalySolver : AutoCloseable {
 
             ok
         } catch (e: HxException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            terminated()
+            solverTerminated()
         }
     }
 
@@ -96,9 +96,9 @@ abstract class HexalySolver : AutoCloseable {
 
             ok
         } catch (e: HxException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

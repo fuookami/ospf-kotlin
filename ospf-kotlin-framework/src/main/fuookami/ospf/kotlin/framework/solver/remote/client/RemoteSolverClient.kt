@@ -115,9 +115,20 @@ class RemoteSolverClient(
         executionPort.stop(handle)
 
         return finalResult?.let { Ok(it) } ?: Failed(
-            Err(
-                ErrorCode.Other,
-                "Remote solve does not complete within maxRounds=$maxRounds (taskId=$taskId, sliceId=$sliceId)."
+            ExErr(
+                code = ErrorCode.ApplicationFailed,
+                message = "Remote solve does not complete within maxRounds=$maxRounds (taskId=$taskId, sliceId=$sliceId).",
+                value = RemoteSolverFailureDetail(
+                    code = RemoteSolverErrorCode.REMOTE_SOLVE_NOT_COMPLETED_WITHIN_MAX_ROUNDS,
+                    message = "Remote solve does not complete within maxRounds=$maxRounds.",
+                    metadata = mapOf(
+                        "taskId" to taskId.value,
+                        "sliceId" to sliceId.value,
+                        "maxRounds" to maxRounds.toString()
+                    ),
+                    taskId = taskId.value,
+                    sliceId = sliceId.value
+                )
             )
         )
     }

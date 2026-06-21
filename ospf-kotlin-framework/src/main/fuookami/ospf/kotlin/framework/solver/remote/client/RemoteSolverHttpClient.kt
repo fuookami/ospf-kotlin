@@ -79,14 +79,26 @@ class RemoteSolverHttpClient(
     private fun <T> failedRemote(
         code: RemoteSolverErrorCode,
         message: String,
-        metadata: Map<String, String> = emptyMap()
+        metadata: Map<String, String> = emptyMap(),
+        httpStatus: Int? = null,
+        taskId: String? = null,
+        sliceId: String? = null,
+        requestId: String? = null
     ): Ret<T> {
+        val detail = RemoteSolverFailureDetail(
+            code = code,
+            message = message,
+            metadata = metadata,
+            httpStatus = httpStatus,
+            taskId = taskId,
+            sliceId = sliceId,
+            requestId = requestId
+        )
         return Failed(
-            code.toErrorCode(),
-            remoteErrorMessage(
-                code = code,
-                message = message,
-                metadata = metadata
+            ExErr(
+                code = code.toErrorCode(),
+                message = remoteErrorMessage(code = code, message = message, metadata = metadata),
+                value = detail
             )
         )
     }
@@ -195,7 +207,9 @@ class RemoteSolverHttpClient(
                 metadata = mapOf(
                     "taskId" to taskId.value,
                     "checkpointPath" to checkpoint.path.value
-                )
+                ),
+                taskId = taskId.value,
+                sliceId = sliceId.value
             )
         }
         when (val result = resume(taskId = taskId)) {
@@ -222,7 +236,9 @@ class RemoteSolverHttpClient(
                 is Ok -> result.value ?: return failedRemote(
                     code = RemoteSolverErrorCode.TASK_FAILED,
                     message = "Remote task is not found: ${handle.taskId}.",
-                    metadata = mapOf("taskId" to handle.taskId.value)
+                    metadata = mapOf("taskId" to handle.taskId.value),
+                    taskId = handle.taskId.value,
+                    sliceId = handle.sliceId.value
                 )
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
@@ -292,7 +308,17 @@ class RemoteSolverHttpClient(
                 bytes.decodeToString()
             )
         } catch (e: Exception) {
-            return Failed(ErrorCode.DeserializationFailed, "Failed to decode remote solve result: ${e.message}")
+            return failedRemote(
+                code = RemoteSolverErrorCode.INTERNAL_ERROR,
+                message = "Failed to decode remote solve result: ${e.message}",
+                metadata = mapOf(
+                    "taskId" to handle.taskId.value,
+                    "sliceId" to handle.sliceId.value,
+                    "resultRef" to resultRef.path.value
+                ),
+                taskId = handle.taskId.value,
+                sliceId = handle.sliceId.value
+            )
         }
         return Ok(SolveResult(
             feasible = solution.feasible,
@@ -340,9 +366,17 @@ class RemoteSolverHttpClient(
             Ok(transport.send(request))
         } catch (e: InterruptedException) {
             Thread.currentThread().interrupt()
-            Failed(ErrorCode.ApplicationStopped, "Remote solver HTTP request interrupted: ${e.message}")
+            failedRemote(
+                code = RemoteSolverErrorCode.INTERNAL_ERROR,
+                message = "Remote solver HTTP request interrupted: ${e.message}",
+                metadata = mapOf("url" to request.url, "method" to request.method)
+            )
         } catch (e: Exception) {
-            Failed(ErrorCode.ApplicationFailed, "Remote solver HTTP request failed: ${e.message}")
+            failedRemote(
+                code = RemoteSolverErrorCode.INTERNAL_ERROR,
+                message = "Remote solver HTTP request failed: ${e.message}",
+                metadata = mapOf("url" to request.url, "method" to request.method)
+            )
         }
     }
 
@@ -467,13 +501,24 @@ class RemoteSolverHttpClient(
                 response.body
             )
         } catch (e: Exception) {
-            return Failed(ErrorCode.DeserializationFailed, "Failed to decode remote solver response: ${e.message}")
+            return failedRemote(
+                code = RemoteSolverErrorCode.INTERNAL_ERROR,
+                message = "Failed to decode remote solver response: ${e.message}",
+                metadata = buildMap {
+                    put("status", response.statusCode.toString())
+                    if (response.body.isNotBlank()) {
+                        put("body", response.body.take(500))
+                    }
+                },
+                httpStatus = response.statusCode
+            )
         }
         if (envelope.code != "OK") {
             return failedRemote(
                 code = envelope.code.toRemoteErrorCode(),
                 message = envelope.message,
-                metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap()
+                metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap(),
+                httpStatus = response.statusCode
             )
         }
         return envelope.data
@@ -481,7 +526,8 @@ class RemoteSolverHttpClient(
             ?: failedRemote(
             code = RemoteSolverErrorCode.INTERNAL_ERROR,
             message = "Remote solver response data is null.",
-            metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap()
+            metadata = envelope.traceId?.let { mapOf("traceId" to it) } ?: emptyMap(),
+            httpStatus = response.statusCode
         )
     }
 
@@ -502,7 +548,8 @@ class RemoteSolverHttpClient(
                 if (body.isNotBlank()) {
                     put("body", body)
                 }
-            }
+            },
+            httpStatus = response.statusCode
         )
     }
 
@@ -520,7 +567,9 @@ class RemoteSolverHttpClient(
         val storage = objectStoragePort ?: return failedRemote(
             code = RemoteSolverErrorCode.INVALID_ARGUMENT,
             message = "objectStoragePort is required when RemoteSolverHttpClient is used as SolverExecutionPort.",
-            metadata = mapOf("taskId" to taskId.value)
+            metadata = mapOf("taskId" to taskId.value),
+            taskId = taskId.value,
+            sliceId = sliceId.value
         )
         return try {
             Ok(storage.put(
@@ -536,7 +585,9 @@ class RemoteSolverHttpClient(
             failedRemote(
                 code = RemoteSolverErrorCode.STORAGE_IO_FAILED,
                 message = "Failed to put remote solver payload: ${e.message}",
-                metadata = mapOf("taskId" to taskId.value)
+                metadata = mapOf("taskId" to taskId.value),
+                taskId = taskId.value,
+                sliceId = sliceId.value
             )
         }
     }

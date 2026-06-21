@@ -272,7 +272,7 @@ class TaskSchedulingExecutionResourceUsage<
 
     override fun register(model: MetaModel<Flt64>): Try {
         return Failed(
-            ErrorCode.Other,
+            ErrorCode.ApplicationFailed,
             "TaskSchedulingExecutionResourceUsage.register 暂未实现，请使用 BunchSchedulingExecutionResourceUsage 或补充任务级执行资源建模。"
         )
     }

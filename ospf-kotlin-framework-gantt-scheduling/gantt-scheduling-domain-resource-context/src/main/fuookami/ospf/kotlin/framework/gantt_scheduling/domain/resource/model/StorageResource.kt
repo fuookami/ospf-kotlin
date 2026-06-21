@@ -546,7 +546,7 @@ class TaskSchedulingStorageResourceUsage<
 
     override fun register(model: MetaModel<Flt64>): Try {
         return Failed(
-            ErrorCode.Other,
+            ErrorCode.ApplicationFailed,
             "TaskSchedulingStorageResourceUsage.register 暂未实现，请使用 IterativeTaskSchedulingStorageResourceUsage 或补充任务级库位资源建模。"
         )
     }

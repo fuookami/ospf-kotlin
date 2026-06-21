@@ -201,15 +201,23 @@ class MongoBooleanTranslator(
 
     private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson> {
         return when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> Failed(
-                ErrorCode.IllegalArgument,
-                "Unsupported predicate ${expression.typeName}: $reason"
-            )
+            UnsupportedPredicatePolicy.FailFast -> {
+                val detail = UnsupportedPredicateDetail.failFast(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MongoDB"
+                )
+                Failed(detail.toError())
+            }
             UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse())
-            UnsupportedPredicatePolicy.ClientFilter -> Failed(
-                ErrorCode.IllegalArgument,
-                "ClientFilter is not implemented for unsupported predicate ${expression.typeName}: $reason"
-            )
+            UnsupportedPredicatePolicy.ClientFilter -> {
+                val detail = UnsupportedPredicateDetail.clientFilter(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MongoDB"
+                )
+                Failed(detail.toError())
+            }
         }
     }
 

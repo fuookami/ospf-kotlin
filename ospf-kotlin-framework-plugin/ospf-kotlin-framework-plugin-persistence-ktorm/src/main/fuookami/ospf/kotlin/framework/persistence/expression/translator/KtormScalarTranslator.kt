@@ -23,7 +23,7 @@ import org.ktorm.schema.VarcharSqlType
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * Ktorm 标量表达式翻译器
@@ -152,12 +152,23 @@ class KtormScalarTranslator(
 
     private fun unsupported(reason: String): Ret<KtormScalarExpression<*>?> {
         return when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> Failed(ErrorCode.IllegalArgument, reason)
+            UnsupportedPredicatePolicy.FailFast -> {
+                val detail = UnsupportedPredicateDetail.failFast(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "Ktorm"
+                )
+                Failed(detail.toError())
+            }
             UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
-            UnsupportedPredicatePolicy.ClientFilter -> Failed(
-                ErrorCode.IllegalArgument,
-                "ClientFilter is not implemented for unsupported predicate: $reason"
-            )
+            UnsupportedPredicatePolicy.ClientFilter -> {
+                val detail = UnsupportedPredicateDetail.clientFilter(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "Ktorm"
+                )
+                Failed(detail.toError())
+            }
         }
     }
 }

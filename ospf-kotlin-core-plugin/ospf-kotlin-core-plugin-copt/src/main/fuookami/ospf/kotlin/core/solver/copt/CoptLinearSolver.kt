@@ -278,9 +278,9 @@ private class CoptLinearSolverImpl(
             }
             ok
         } catch (e: CoptException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -390,9 +390,9 @@ private class CoptLinearSolverImpl(
             }
             ok
         } catch (e: CoptException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 
@@ -466,9 +466,9 @@ private class CoptLinearSolverImpl(
                 failByStatus(status)
             }
         } catch (e: CoptException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

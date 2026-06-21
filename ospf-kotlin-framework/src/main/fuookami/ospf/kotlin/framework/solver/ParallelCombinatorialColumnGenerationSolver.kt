@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.error.SolverNotFoundError
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -89,7 +90,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -154,7 +155,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }
@@ -203,7 +204,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -268,7 +269,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }

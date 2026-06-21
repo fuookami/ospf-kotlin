@@ -1583,7 +1583,7 @@ open class IterativeTaskSchedulingTaskTime<
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             return Failed(
-                ErrorCode.Other,
+                ErrorCode.ApplicationFailed,
                 "IterativeTaskTime.register 暂未实现 withRedundancy 路径，请先关闭 redundancyRange 或补充冗余建模逻辑。"
             )
         }

@@ -305,3 +305,84 @@ fun VariableError.asCoreError(): CoreError = CoreError.Variable(this)
 fun ModelError.asCoreError(): CoreError = CoreError.Model(this)
 /** 将求解器错误转换为核心错误 / Convert a solver error to a core error */
 fun SolverError.asCoreError(): CoreError = CoreError.Solver(this)
+
+// ============================================================================
+// 命名错误子类型：用于重复构造点去重，调用方可通过 `when (error is XxxError)` 稳定断言
+// Named error subclasses: deduplicate repeated construction points, callers can assert via `when (error is XxxError)`
+// ============================================================================
+
+/**
+ * 求解器未找到错误。
+ * Solver not found error.
+ *
+ * 替代重复的 `Failed(ErrorCode.SolverNotFound, "No solver valid.")` 构造。
+ * Replaces repeated `Failed(ErrorCode.SolverNotFound, "No solver valid.")` constructions.
+ *
+ * @property solver 尝试查找的求解器名称（可选）/ Name of the solver that was looked up (optional)
+ */
+class SolverNotFoundError(
+    val solver: String? = null
+) : Err<ErrorCode>(
+    code = ErrorCode.SolverNotFound,
+    message = if (solver != null) "No solver valid: $solver" else "No solver valid."
+)
+
+/**
+ * 求解器环境丢失错误。
+ * Solver environment lost error.
+ *
+ * 替代重复的 `Failed(ErrorCode.OREngineEnvironmentLost, ...)` 构造。
+ * Replaces repeated `Failed(ErrorCode.OREngineEnvironmentLost, ...)` constructions.
+ *
+ * @property detail 环境丢失的描述 / Description of the environment loss
+ */
+class SolverEnvironmentLostError(
+    val detail: String? = null
+) : Err<ErrorCode>(
+    code = ErrorCode.OREngineEnvironmentLost,
+    message = detail ?: "Solver environment lost."
+)
+
+/**
+ * 求解器求解异常错误。
+ * Solver solving exception error.
+ *
+ * 替代重复的 `Failed(ErrorCode.OREngineSolvingException, ...)` 构造。
+ * Replaces repeated `Failed(ErrorCode.OREngineSolvingException, ...)` constructions.
+ *
+ * @property detail 求解异常的描述 / Description of the solving exception
+ */
+class SolverSolvingError(
+    val detail: String? = null
+) : Err<ErrorCode>(
+    code = ErrorCode.OREngineSolvingException,
+    message = detail ?: "Solver solving exception."
+)
+
+/**
+ * 求解器建模异常错误。
+ * Solver modeling exception error.
+ *
+ * 替代重复的 `Failed(ErrorCode.OREngineModelingException, ...)` 构造。
+ * Replaces repeated `Failed(ErrorCode.OREngineModelingException, ...)` constructions.
+ *
+ * @property detail 建模异常的描述 / Description of the modeling exception
+ */
+class SolverModelingError(
+    val detail: String? = null
+) : Err<ErrorCode>(
+    code = ErrorCode.OREngineModelingException,
+    message = detail ?: "Solver modeling exception."
+)
+
+/**
+ * 求解器终止错误。
+ * Solver terminated error.
+ *
+ * 替代重复的 `Failed(ErrorCode.OREngineTerminated)` 构造。
+ * Replaces repeated `Failed(ErrorCode.OREngineTerminated)` constructions.
+ */
+class SolverTerminatedError : Err<ErrorCode>(
+    code = ErrorCode.OREngineTerminated,
+    message = "Solver terminated."
+)

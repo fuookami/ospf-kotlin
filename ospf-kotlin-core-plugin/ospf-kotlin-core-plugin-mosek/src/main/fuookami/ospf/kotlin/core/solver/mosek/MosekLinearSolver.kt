@@ -278,9 +278,9 @@ class MosekLinearSolverImpl(
 
             ok
         } catch (e: Exception) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: java.lang.Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 

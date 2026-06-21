@@ -30,7 +30,7 @@ suspend inline fun <T> Iterable<T>.tryFirstParallelly(
 ): Ret<T> {
     return when (val result = tryFirstOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -53,11 +53,11 @@ suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
 ): ExRet<T> {
     return when (val result = exTryFirstOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
     }
 }
 
@@ -176,7 +176,7 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
 ): Ret<R> {
     return when (val result = tryFirstNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -200,11 +200,11 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
 ): ExRet<R> {
     return when (val result = exTryFirstNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
     }
 }
 
@@ -325,7 +325,7 @@ suspend inline fun <T> Iterable<T>.tryLastParallelly(
 ): Ret<T> {
     return when (val result = tryLastOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -348,11 +348,11 @@ suspend inline fun <T> Iterable<T>.exTryLastParallelly(
 ): ExRet<T> {
     return when (val result = exTryLastOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "Collection contains no element matching the predicate."))
     }
 }
 
@@ -471,7 +471,7 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
 ): Ret<R> {
     return when (val result = tryLastNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -495,11 +495,11 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
 ): ExRet<R> {
     return when (val result = exTryLastNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "No element of the collection was transformed to a non-null value."))
+            ?: Failed(Err(ErrorCode.DataNotFound, "No element of the collection was transformed to a non-null value."))
     }
 }
 

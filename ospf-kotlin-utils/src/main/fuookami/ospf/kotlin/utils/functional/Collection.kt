@@ -256,7 +256,7 @@ inline fun <T> Iterable<T>.safeMaxWithComparator(
     crossinline comparator: Comparator<T>
 ): Ret<T> {
     return this.maxWithComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器求最大值，集合为空时返回错误 / Find maximum using partial comparator, return error if empty */
@@ -264,7 +264,7 @@ inline fun <T> Iterable<T>.safeMaxWithPartialComparator(
     crossinline comparator: PartialComparator<T>
 ): Ret<T> {
     return this.maxWithPartialComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器求最大值，集合为空时返回错误 / Find maximum using three-way comparator, return error if empty */
@@ -272,7 +272,7 @@ inline fun <T> Iterable<T>.safeMaxWithThreeWayComparator(
     crossinline comparator: ThreeWayComparator<T>
 ): Ret<T> {
     return this.maxWithThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器求最大值，集合为空时返回错误 / Find maximum using partial three-way comparator, return error if empty */
@@ -280,7 +280,7 @@ inline fun <T> Iterable<T>.safeMaxWithPartialThreeWayComparator(
     crossinline comparator: PartialThreeWayComparator<T>
 ): Ret<T> {
     return this.maxWithPartialThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用比较器和提取器求最大值，集合为空时返回 null / Find maximum using comparator and extractor, return null if empty */
@@ -341,7 +341,7 @@ inline fun <T, U> Iterable<U>.safeMaxOfWithComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.maxOfWithComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器和提取器求最大值，集合为空时返回错误 / Find maximum using partial comparator and extractor, return error if empty */
@@ -350,7 +350,7 @@ inline fun <T, U> Iterable<U>.safeMaxOfWithPartialComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.maxOfWithPartialComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器和提取器求最大值，集合为空时返回错误 / Find maximum using three-way comparator and extractor, return error if empty */
@@ -359,7 +359,7 @@ inline fun <T, U> Iterable<U>.safeMaxOfWithThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.maxOfWithThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器和提取器求最大值，集合为空时返回错误 / Find maximum using partial three-way comparator and extractor, return error if empty */
@@ -368,7 +368,7 @@ inline fun <T, U> Iterable<U>.safeMaxOfWithPartialThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.maxOfWithPartialThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用比较器求最小值，集合为空时返回 null / Find minimum using comparator, return null if empty */
@@ -424,7 +424,7 @@ inline fun <T> Iterable<T>.safeMinWithComparator(
     crossinline comparator: Comparator<T>
 ): Ret<T> {
     return this.minWithComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器求最小值，集合为空时返回错误 / Find minimum using partial comparator, return error if empty */
@@ -432,7 +432,7 @@ inline fun <T> Iterable<T>.safeMinWithPartialComparator(
     crossinline comparator: PartialComparator<T>
 ): Ret<T> {
     return this.minWithPartialComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器求最小值，集合为空时返回错误 / Find minimum using three-way comparator, return error if empty */
@@ -440,7 +440,7 @@ inline fun <T> Iterable<T>.safeMinWithThreeWayComparator(
     crossinline comparator: ThreeWayComparator<T>
 ): Ret<T> {
     return this.minWithThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器求最小值，集合为空时返回错误 / Find minimum using partial three-way comparator, return error if empty */
@@ -448,7 +448,7 @@ inline fun <T> Iterable<T>.safeMinWithPartialThreeWayComparator(
     crossinline comparator: PartialThreeWayComparator<T>
 ): Ret<T> {
     return this.minWithPartialThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用比较器和提取器求最小值，集合为空时返回 null / Find minimum using comparator and extractor, return null if empty */
@@ -509,7 +509,7 @@ inline fun <T, U> Iterable<U>.safeMinOfWithComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.minOfWithComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器和提取器求最小值，集合为空时返回错误 / Find minimum using partial comparator and extractor, return error if empty */
@@ -518,7 +518,7 @@ inline fun <T, U> Iterable<U>.safeMinOfWithPartialComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.minOfWithPartialComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器和提取器求最小值，集合为空时返回错误 / Find minimum using three-way comparator and extractor, return error if empty */
@@ -527,7 +527,7 @@ inline fun <T, U> Iterable<U>.safeMinOfWithThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.minOfWithThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器和提取器求最小值，集合为空时返回错误 / Find minimum using partial three-way comparator and extractor, return error if empty */
@@ -536,7 +536,7 @@ inline fun <T, U> Iterable<U>.safeMinOfWithPartialThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<T> {
     return this.minOfWithPartialThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 同时获取最小值和最大值，集合为空时返回 null / Find both min and max simultaneously, return null if empty */
@@ -662,7 +662,7 @@ inline fun <T> Iterable<T>.safeMinMaxWithComparator(
     crossinline comparator: Comparator<T>
 ): Ret<Pair<T, T>> {
     return this.minMaxWithComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器同时获取最小值和最大值，集合为空时返回错误 / Find min and max using partial comparator, return error if empty */
@@ -670,7 +670,7 @@ inline fun <T> Iterable<T>.safeMinMaxWithPartialComparator(
     crossinline comparator: PartialComparator<T>
 ): Ret<Pair<T, T>> {
     return this.minMaxWithPartialComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器同时获取最小值和最大值，集合为空时返回错误 / Find min and max using three-way comparator, return error if empty */
@@ -678,7 +678,7 @@ inline fun <T> Iterable<T>.safeMinMaxWithThreeWayComparator(
     crossinline comparator: ThreeWayComparator<T>
 ): Ret<Pair<T, T>> {
     return this.minMaxWithThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器同时获取最小值和最大值，集合为空时返回错误 / Find min and max using partial three-way comparator, return error if empty */
@@ -686,7 +686,7 @@ inline fun <T> Iterable<T>.safeMinMaxWithPartialThreeWayComparator(
     crossinline comparator: PartialThreeWayComparator<T>
 ): Ret<Pair<T, T>> {
     return this.minMaxWithPartialThreeWayComparatorOrNull(comparator)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用比较器和提取器同时获取提取值的最小最大值，集合为空时返回 null / Find min and max of extracted value using comparator, return null if empty */
@@ -747,7 +747,7 @@ inline fun <T, U> Iterable<U>.safeMinMaxOfWithComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<Pair<T, T>> {
     return this.minMaxOfWithComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏比较器和提取器同时获取提取值的最小最大值，集合为空时返回错误 / Find min and max of extracted value using partial comparator, return error if empty */
@@ -756,7 +756,7 @@ inline fun <T, U> Iterable<U>.safeMinMaxOfWithPartialComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<Pair<T, T>> {
     return this.minMaxOfWithPartialComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用三路比较器和提取器同时获取提取值的最小最大值，集合为空时返回错误 / Find min and max of extracted value using three-way comparator, return error if empty */
@@ -765,7 +765,7 @@ inline fun <T, U> Iterable<U>.safeMinMaxOfWithThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<Pair<T, T>> {
     return this.minMaxOfWithThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 使用偏三路比较器和提取器同时获取提取值的最小最大值，集合为空时返回错误 / Find min and max of extracted value using partial three-way comparator, return error if empty */
@@ -774,7 +774,7 @@ inline fun <T, U> Iterable<U>.safeMinMaxOfWithPartialThreeWayComparator(
     crossinline extractor: Extractor<T, U>
 ): Ret<Pair<T, T>> {
     return this.minMaxOfWithPartialThreeWayComparatorOrNull(comparator, extractor)?.let { Ok(it) }
-        ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+        ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
 }
 
 /** 关联非 null 键值对 / Associate non-null key-value pairs */

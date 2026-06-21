@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.error.SolverNotFoundError
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
@@ -110,7 +111,7 @@ class ParallelCombinatorialQuadraticSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -194,7 +195,7 @@ class ParallelCombinatorialQuadraticSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }
@@ -263,7 +264,7 @@ class ParallelCombinatorialQuadraticSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -347,7 +348,7 @@ class ParallelCombinatorialQuadraticSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }

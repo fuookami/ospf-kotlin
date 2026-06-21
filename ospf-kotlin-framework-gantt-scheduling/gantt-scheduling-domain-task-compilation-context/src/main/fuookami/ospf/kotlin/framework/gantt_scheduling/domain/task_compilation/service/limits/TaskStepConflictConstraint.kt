@@ -36,7 +36,7 @@ class TaskStepConflictConstraint<
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (conflictTaskGroup.isEmpty()) {
-            return Failed(ErrorCode.Other, "TaskStepConflictConstraint 暂未实现 conflictTaskGroup 推导逻辑。")
+            return Failed(ErrorCode.ApplicationFailed, "TaskStepConflictConstraint 暂未实现 conflictTaskGroup 推导逻辑。")
         }
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
             when (val result = model.addConstraint(
@@ -67,6 +67,6 @@ class TaskStepConflictConstraint<
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
-        return Failed(ErrorCode.Other, "TaskStepConflictConstraint.refresh 暂未实现 shadow price 回填逻辑。")
+        return Failed(ErrorCode.ApplicationFailed, "TaskStepConflictConstraint.refresh 暂未实现 shadow price 回填逻辑。")
     }
 }

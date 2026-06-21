@@ -6,7 +6,7 @@ import mosek.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.solverSolvingException
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** MOSEK 求解器抽象基类，提供环境初始化和状态分析的通用实现 / MOSEK solver abstract base class, provides common implementation for environment initialization and status analysis */
@@ -77,9 +77,9 @@ abstract class MosekSolver : AutoCloseable {
 
             ok
         } catch (e: Exception) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: java.lang.Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

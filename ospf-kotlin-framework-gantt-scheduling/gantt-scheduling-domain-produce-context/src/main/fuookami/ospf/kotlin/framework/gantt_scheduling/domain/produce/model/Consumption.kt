@@ -340,7 +340,7 @@ class TaskSchedulingConsumption<
 
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         return Failed(
-            ErrorCode.Other,
+            ErrorCode.ApplicationFailed,
             "TaskSchedulingConsumption.register 暂未实现，请使用 BunchSchedulingConsumption 或补充任务级消费建模。"
         )
     }

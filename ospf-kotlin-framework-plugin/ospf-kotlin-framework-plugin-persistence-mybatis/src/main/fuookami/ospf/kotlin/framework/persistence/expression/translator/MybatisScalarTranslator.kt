@@ -9,7 +9,7 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
+import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
@@ -147,12 +147,23 @@ class MybatisScalarTranslator(
 
     private fun unsupported(reason: String): Ret<MybatisScalarSql?> {
         return when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> Failed(ErrorCode.IllegalArgument, reason)
+            UnsupportedPredicatePolicy.FailFast -> {
+                val detail = UnsupportedPredicateDetail.failFast(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "MyBatis"
+                )
+                Failed(detail.toError())
+            }
             UnsupportedPredicatePolicy.AlwaysFalse -> Ok(null)
-            UnsupportedPredicatePolicy.ClientFilter -> Failed(
-                ErrorCode.IllegalArgument,
-                "ClientFilter is not implemented for unsupported predicate: $reason"
-            )
+            UnsupportedPredicatePolicy.ClientFilter -> {
+                val detail = UnsupportedPredicateDetail.clientFilter(
+                    expressionType = "ScalarExpression",
+                    reason = reason,
+                    backendName = "MyBatis"
+                )
+                Failed(detail.toError())
+            }
         }
     }
 }

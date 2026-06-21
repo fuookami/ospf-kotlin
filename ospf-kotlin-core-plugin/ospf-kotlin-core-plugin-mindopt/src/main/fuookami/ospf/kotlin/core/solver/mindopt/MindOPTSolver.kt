@@ -39,9 +39,9 @@ abstract class MindOPTSolver : AutoCloseable {
             mindoptModel = MDOModel(env, name)
             ok
         } catch (e: MDOException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -51,9 +51,9 @@ abstract class MindOPTSolver : AutoCloseable {
             mindoptModel.optimize()
             ok
         } catch (e: MDOException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 
@@ -87,9 +87,9 @@ abstract class MindOPTSolver : AutoCloseable {
             }
             ok
         } catch (e: MDOException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

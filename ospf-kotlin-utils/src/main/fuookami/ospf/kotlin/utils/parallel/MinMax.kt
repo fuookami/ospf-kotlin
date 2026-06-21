@@ -26,7 +26,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
 ): Ret<Pair<T, T>> {
     return when (val result = tryMinMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -50,11 +50,11 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinMaxByParallelly(
 ): ExRet<Pair<T, T>> {
     return when (val result = exTryMinMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
     }
 }
 

@@ -86,7 +86,7 @@ class CplexLinearSolver(
                             cplex.populate()
                             ok
                         } catch (e: IloException) {
-                            solvingException(e.message)
+                            solverSolvingException(e.message)
                         }
                     }
                     .analyzingSolution { _, cplex, variables, _ ->
@@ -439,7 +439,7 @@ private class CplexLinearSolverImpl(
                 try {
                     cplex.solve()
                 } catch (e: IloException) {
-                    return solvingException(e.message)
+                    return solverSolvingException(e.message)
                 }
                 return ok
             }

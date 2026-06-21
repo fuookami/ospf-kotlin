@@ -55,9 +55,9 @@ abstract class GurobiSolver : AutoCloseable {
             grbModel.set(GRB.StringAttr.ModelName, name)
             ok
         } catch (e: GRBException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -83,9 +83,9 @@ abstract class GurobiSolver : AutoCloseable {
             grbModel.set(GRB.StringAttr.ModelName, name)
             ok
         } catch (e: GRBException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -99,9 +99,9 @@ abstract class GurobiSolver : AutoCloseable {
             grbModel.optimize()
             ok
         } catch (e: GRBException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            terminated()
+            solverTerminated()
         }
     }
 
@@ -139,9 +139,9 @@ abstract class GurobiSolver : AutoCloseable {
             }
             ok
         } catch (e: GRBException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

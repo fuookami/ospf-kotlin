@@ -94,15 +94,23 @@ class MybatisBooleanTranslator<T : Any>(
         expression: BooleanExpression
     ): Ret<W> {
         return when (unsupportedPredicatePolicy) {
-            UnsupportedPredicatePolicy.FailFast -> Failed(
-                ErrorCode.IllegalArgument,
-                "Unsupported predicate ${expression.typeName}: $reason"
-            )
+            UnsupportedPredicatePolicy.FailFast -> {
+                val detail = UnsupportedPredicateDetail.failFast(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MyBatis"
+                )
+                Failed(detail.toError())
+            }
             UnsupportedPredicatePolicy.AlwaysFalse -> Ok(alwaysFalse(wrapper))
-            UnsupportedPredicatePolicy.ClientFilter -> Failed(
-                ErrorCode.IllegalArgument,
-                "ClientFilter is not implemented for unsupported predicate ${expression.typeName}: $reason"
-            )
+            UnsupportedPredicatePolicy.ClientFilter -> {
+                val detail = UnsupportedPredicateDetail.clientFilter(
+                    expressionType = expression.typeName,
+                    reason = reason,
+                    backendName = "MyBatis"
+                )
+                Failed(detail.toError())
+            }
         }
     }
 

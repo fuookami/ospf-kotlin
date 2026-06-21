@@ -291,7 +291,7 @@ class TaskSchedulingConnectionResourceUsage<
 
     override fun register(model: MetaModel<Flt64>): Try {
         return Failed(
-            ErrorCode.Other,
+            ErrorCode.ApplicationFailed,
             "TaskSchedulingConnectionResourceUsage.register 暂未实现，请使用 BunchSchedulingConnectionResourceUsage 或补充任务级连接资源建模。"
         )
     }

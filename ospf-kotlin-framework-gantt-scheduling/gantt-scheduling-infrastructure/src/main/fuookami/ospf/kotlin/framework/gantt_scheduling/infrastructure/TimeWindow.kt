@@ -404,7 +404,7 @@ data class TimeWindow<V : RealNumber<V>>(
             DurationUnit.SECONDS -> Ok(1.toDuration(DurationUnit.MINUTES))
             DurationUnit.MINUTES -> Ok(1.toDuration(DurationUnit.HOURS))
             DurationUnit.HOURS -> Ok(1.toDuration(DurationUnit.DAYS))
-            else -> Failed(ErrorCode.Other, "TimeWindow.upperInterval 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
+            else -> Failed(ErrorCode.IllegalArgument, "TimeWindow.upperInterval 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
         }
     }
 
@@ -437,7 +437,7 @@ data class TimeWindow<V : RealNumber<V>>(
             DurationUnit.SECONDS -> DurationUnit.MINUTES
             DurationUnit.MINUTES -> DurationUnit.HOURS
             DurationUnit.HOURS -> DurationUnit.DAYS
-            else -> return Failed(ErrorCode.Other, "TimeWindow.upper 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
+            else -> return Failed(ErrorCode.IllegalArgument, "TimeWindow.upper 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。")
         }
         return Ok(TimeWindow(
             window = window,

@@ -228,9 +228,9 @@ private class HexalyLinearSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -334,9 +334,9 @@ private class HexalyLinearSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -394,9 +394,9 @@ private class HexalyLinearSolverImpl(
                 failByStatus(status)
             }
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 }

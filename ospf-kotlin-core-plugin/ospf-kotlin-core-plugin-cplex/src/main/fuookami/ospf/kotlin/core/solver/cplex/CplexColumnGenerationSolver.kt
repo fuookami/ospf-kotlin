@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.solvingException
+import fuookami.ospf.kotlin.core.solver.solverSolvingException
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
@@ -163,7 +163,7 @@ class CplexColumnGenerationSolver(
                                 cplex.populate()
                                 ok
                             } catch (e: IloException) {
-                                solvingException(e.message)
+                                solverSolvingException(e.message)
                             }
                         }
                         .analyzingSolution { _, cplex, variables, _ ->

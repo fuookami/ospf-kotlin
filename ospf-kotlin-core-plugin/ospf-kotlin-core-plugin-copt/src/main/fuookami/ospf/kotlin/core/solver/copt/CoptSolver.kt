@@ -56,9 +56,9 @@ abstract class CoptSolver : AutoCloseable {
             coptModel = env.createModel(name)
             ok
         } catch (e: CoptException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -84,9 +84,9 @@ abstract class CoptSolver : AutoCloseable {
             coptModel = env.createModel(name)
             ok
         } catch (e: CoptException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 
@@ -100,9 +100,9 @@ abstract class CoptSolver : AutoCloseable {
             }
             ok
         } catch (e: CoptException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            terminated()
+            solverTerminated()
         }
     }
 
@@ -140,9 +140,9 @@ abstract class CoptSolver : AutoCloseable {
             }
             ok
         } catch (e: CoptException) {
-            environmentLost(e.message)
+            solverEnvironmentLost(e.message)
         } catch (e: Exception) {
-            environmentLost()
+            solverEnvironmentLost()
         }
     }
 }

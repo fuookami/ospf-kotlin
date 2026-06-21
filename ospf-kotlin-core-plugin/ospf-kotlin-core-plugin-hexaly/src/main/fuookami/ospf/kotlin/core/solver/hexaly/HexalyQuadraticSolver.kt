@@ -264,9 +264,9 @@ private class HexalyQuadraticSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -370,9 +370,9 @@ private class HexalyQuadraticSolverImpl(
             }
             ok
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -430,9 +430,9 @@ private class HexalyQuadraticSolverImpl(
                 failByStatus(status)
             }
         } catch (e: HxException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 }

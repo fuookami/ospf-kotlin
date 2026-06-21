@@ -70,7 +70,7 @@ class CplexQuadraticSolver(
                             cplex.populate()
                             ok
                         } catch (e: IloException) {
-                            solvingException(e.message)
+                            solverSolvingException(e.message)
                         }
                     }
                     .analyzingSolution { _, cplex, variables, _ ->
@@ -423,7 +423,7 @@ private class CplexQuadraticSolverImpl(
                 try {
                     cplex.solve()
                 } catch (e: IloException) {
-                    return solvingException(e.message)
+                    return solverSolvingException(e.message)
                 }
                 return ok
             }

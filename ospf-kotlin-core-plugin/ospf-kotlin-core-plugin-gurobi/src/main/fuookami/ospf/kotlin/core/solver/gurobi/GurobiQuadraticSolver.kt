@@ -292,9 +292,9 @@ private class GurobiQuadraticSolverImpl(
             }
             ok
         } catch (e: GRBException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -395,9 +395,9 @@ private class GurobiQuadraticSolverImpl(
             }
             ok
         } catch (e: GRBException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -466,9 +466,9 @@ private class GurobiQuadraticSolverImpl(
                 failByStatus(status)
             }
         } catch (e: GRBException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }

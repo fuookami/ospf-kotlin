@@ -31,7 +31,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
 ): Ret<T> {
     return when (val result = tryMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -55,11 +55,11 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByParallelly(
 ): ExRet<T> {
     return when (val result = exTryMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
     }
 }
 
@@ -208,7 +208,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByParallelly(
 ): Ret<T> {
     return when (val result = tryMinByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
     }
@@ -232,11 +232,11 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByParallelly(
 ): ExRet<T> {
     return when (val result = exTryMinByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
         is Failed -> Failed(result.error)
         is Fatal -> Fatal(result.errors)
         is Warn -> result.value?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
+            ?: Failed(Err(ErrorCode.DataEmpty, "Collection is empty."))
     }
 }
 

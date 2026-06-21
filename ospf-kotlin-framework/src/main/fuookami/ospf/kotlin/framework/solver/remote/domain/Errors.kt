@@ -73,6 +73,43 @@ class RemoteSolverException(
 ) : RuntimeException(message, cause)
 
 /**
+ * 远程求解失败详情。
+ * Remote solver failure detail.
+ *
+ * 保留远程求解错误的结构化信息，便于调用方按错误类型分支处理。
+ * Preserves structured remote solver error information for callers to branch by error type.
+ *
+ * @property code 远程求解错误码 / Remote solver error code
+ * @property message 错误消息 / Error message
+ * @property metadata 元数据 / Metadata
+ * @property httpStatus HTTP 状态码（可选）/ HTTP status code (optional)
+ * @property taskId 任务 ID（可选）/ Task ID (optional)
+ * @property sliceId 切片 ID（可选）/ Slice ID (optional)
+ * @property requestId 请求 ID（可选）/ Request ID (optional)
+ */
+data class RemoteSolverFailureDetail(
+    val code: RemoteSolverErrorCode,
+    val message: String,
+    val metadata: Map<String, String> = emptyMap(),
+    val httpStatus: Int? = null,
+    val taskId: String? = null,
+    val sliceId: String? = null,
+    val requestId: String? = null
+) {
+    /**
+     * 转换为 API 错误码字符串。
+     * Convert to API error code string.
+     */
+    fun toApiCode(): String = code.name
+
+    /**
+     * 转换为原因码字符串。
+     * Convert to reason code string.
+     */
+    fun toReasonCode(): String = code.name
+}
+
+/**
  * 远程求解错误映射器。
  * Remote solve error mapper.
  */

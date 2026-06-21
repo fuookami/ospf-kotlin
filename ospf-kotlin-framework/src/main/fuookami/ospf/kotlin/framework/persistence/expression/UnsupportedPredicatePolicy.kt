@@ -7,6 +7,7 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 
 /**
@@ -36,18 +37,10 @@ enum class UnsupportedPredicatePolicy {
 /**
  * 谓词翻译结果
  * Predicate translation result
- */
-/**
- * 谓词翻译结果
- * Predicate translation result
  *
  * @param T 翻译目标类型 / Translation target type
  */
 sealed class PredicateTranslation<out T> {
-    /**
-     * 翻译成功
-     * Translation succeeded
-     */
     /**
      * 翻译成功
      * Translation succeeded
@@ -60,10 +53,6 @@ sealed class PredicateTranslation<out T> {
     /**
      * 不支持的谓词
      * Unsupported predicate
-     */
-    /**
-     * 不支持的谓词
-     * Unsupported predicate
      *
      * @property reason 不支持的原因 / Reason for unsupported
      * @property expression 不可翻译的原始表达式，可能为 null / Original untranslatable expression, may be null
@@ -72,4 +61,83 @@ sealed class PredicateTranslation<out T> {
         val reason: String,
         val expression: BooleanExpression? = null
     ) : PredicateTranslation<Nothing>()
+}
+
+/**
+ * 不支持谓词详情
+ * Unsupported predicate detail
+ *
+ * 保留不支持谓词的结构化信息，便于调用方按错误类型分支处理。
+ * Preserves structured unsupported predicate information for callers to branch by error type.
+ *
+ * @property expressionType 表达式类型 / Expression type
+ * @property reason 不支持的原因 / Reason for unsupported
+ * @property policy 不支持谓词策略 / Unsupported predicate policy
+ * @property backendName 后端名称（如 MyBatis、MongoDB、Ktorm）/ Backend name (e.g., MyBatis, MongoDB, Ktorm)
+ */
+data class UnsupportedPredicateDetail(
+    val expressionType: String,
+    val reason: String,
+    val policy: UnsupportedPredicatePolicy,
+    val backendName: String
+) {
+    companion object {
+        /**
+         * 创建 FailFast 策略的详情
+         * Create detail for FailFast policy
+         */
+        fun failFast(
+            expressionType: String,
+            reason: String,
+            backendName: String
+        ): UnsupportedPredicateDetail {
+            return UnsupportedPredicateDetail(
+                expressionType = expressionType,
+                reason = reason,
+                policy = UnsupportedPredicatePolicy.FailFast,
+                backendName = backendName
+            )
+        }
+
+        /**
+         * 创建 ClientFilter 策略的详情
+         * Create detail for ClientFilter policy
+         */
+        fun clientFilter(
+            expressionType: String,
+            reason: String,
+            backendName: String
+        ): UnsupportedPredicateDetail {
+            return UnsupportedPredicateDetail(
+                expressionType = expressionType,
+                reason = reason,
+                policy = UnsupportedPredicatePolicy.ClientFilter,
+                backendName = backendName
+            )
+        }
+    }
+
+    /**
+     * 转换为错误
+     * Convert to error
+     */
+    fun toError(): Error<ErrorCode> {
+        return when (policy) {
+            UnsupportedPredicatePolicy.FailFast -> ExErr(
+                ErrorCode.IllegalArgument,
+                "Unsupported predicate [$expressionType]: $reason (backend=$backendName, policy=FailFast)",
+                this
+            )
+            UnsupportedPredicatePolicy.ClientFilter -> ExErr(
+                ErrorCode.ApplicationFailed,
+                "Unsupported predicate [$expressionType]: $reason (backend=$backendName, policy=ClientFilter)",
+                this
+            )
+            UnsupportedPredicatePolicy.AlwaysFalse -> ExErr(
+                ErrorCode.ApplicationError,
+                "Unsupported predicate [$expressionType]: $reason (backend=$backendName, policy=AlwaysFalse)",
+                this
+            )
+        }
+    }
 }

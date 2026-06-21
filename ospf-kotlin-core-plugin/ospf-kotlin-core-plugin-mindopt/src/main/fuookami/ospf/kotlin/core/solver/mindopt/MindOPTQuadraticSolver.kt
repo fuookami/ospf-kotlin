@@ -256,9 +256,9 @@ private class MindOPTQuadraticSolverImpl(
             }
             ok
         } catch (e: MDOException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -356,9 +356,9 @@ private class MindOPTQuadraticSolverImpl(
             }
             ok
         } catch (e: MDOException) {
-            modelingException(e.message)
+            solverModelingException(e.message)
         } catch (e: Exception) {
-            modelingException()
+            solverModelingException()
         }
     }
 
@@ -427,9 +427,9 @@ private class MindOPTQuadraticSolverImpl(
                 failByStatus(status)
             }
         } catch (e: MDOException) {
-            solvingException(e.message)
+            solverSolvingException(e.message)
         } catch (e: Exception) {
-            solvingException()
+            solverSolvingException()
         }
     }
 }
