@@ -11,6 +11,7 @@ import kotlin.time.*
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingSolvingError
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
@@ -207,7 +208,7 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
     }
 
     fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
-        return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
+        return Failed(GanttSchedulingSolvingError("infeasible policy"))
     }
 
     val advance: Duration
@@ -313,7 +314,7 @@ open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
 
     override fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         if (!assigningEnabled(policy)) {
-            return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
+            return Failed(GanttSchedulingSolvingError("infeasible policy"))
         }
         return Ok(AbstractUnplannedTask(id, name, policy))
     }
@@ -468,7 +469,7 @@ open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, ou
 
     override fun assign(policy: @UnsafeVariance A): Ret<AbstractTask<E, A>> {
         if (!assigningEnabled(policy)) {
-            return Failed(Err(ErrorCode.ApplicationFailed, "infeasible policy"))
+            return Failed(GanttSchedulingSolvingError("infeasible policy"))
         }
         return Ok(AbstractPlannedTask(this, policy))
     }

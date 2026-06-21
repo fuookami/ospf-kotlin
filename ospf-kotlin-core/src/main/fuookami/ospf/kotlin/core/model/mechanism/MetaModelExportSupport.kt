@@ -97,7 +97,7 @@ private suspend fun <V> exportMetaModelOpm(
     val temp = when (metaModel.tokens) {
         is MutableTokenTable<*> -> metaModel.tokens.copy()
         is ConcurrentMutableTokenTable<*> -> metaModel.tokens.copy()
-        else -> return Failed(ErrorCode.Other, "Unknown token table type: ${metaModel.tokens::class}")
+        else -> return Failed(ErrorCode.IllegalArgument, "Unknown token table type: ${metaModel.tokens::class}")
     }
 
     for (symbol in metaModel.tokens.symbols) {

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.produce
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -174,7 +175,7 @@ class ProduceAggregation<V : RealNumber<V>>(
         return if (value != null && index < value.shape.size) {
             Ok(value)
         } else {
-            Failed(ErrorCode.ApplicationError, "ProduceAggregation not registered yet")
+            Failed(Csp1dLifecycleError("ProduceAggregation not registered yet"))
         }
     }
 

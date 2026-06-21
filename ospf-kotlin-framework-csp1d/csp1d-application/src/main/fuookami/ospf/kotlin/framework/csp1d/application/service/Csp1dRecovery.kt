@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
@@ -300,8 +301,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 planCount = Int64(warmStart.plans.size.toLong())
             )
             return Failed(
-                ErrorCode.ApplicationError,
-                "Warm start cannot be applied and fallback is disabled: ${warmStart.status}"
+                Csp1dLifecycleError("Warm start cannot be applied and fallback is disabled: ${warmStart.status}")
             )
         }
 
@@ -433,8 +433,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
                 planCount = Int64(warmStart.plans.size.toLong())
             )
             return Failed(
-                ErrorCode.ApplicationError,
-                "Warm start cannot be applied and fallback is disabled: ${warmStart.status}"
+                Csp1dLifecycleError("Warm start cannot be applied and fallback is disabled: ${warmStart.status}")
             )
         }
 

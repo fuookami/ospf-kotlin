@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 import kotlin.math.roundToLong
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -760,9 +761,6 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
         _yieldConfig?.underProductionPenalty?.values?.firstOrNull()?.let { return Ok(it) }
         _wasteConfig?.trimWidthPenalty?.let { return Ok(it) }
         _lengthConfig?.batchMinPenalty?.let { return Ok(it) }
-        return Failed(Err(
-            ErrorCode.ApplicationError,
-            "Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"
-        ))
+        return Failed(Csp1dLifecycleError("Cannot derive domain value sample from ProduceInput; at least one demand, material, or config with domain value is required"))
     }
 }

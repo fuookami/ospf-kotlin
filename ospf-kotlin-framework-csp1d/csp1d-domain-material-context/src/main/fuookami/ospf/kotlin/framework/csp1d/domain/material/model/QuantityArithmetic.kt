@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dTypeError
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -85,7 +86,7 @@ object DefaultQuantityArithmetic {
         return when (sample) {
             is Flt64 -> Ok(defaultQuantityArithmetic64 as QuantityArithmetic<V>)
             is FltX -> Ok(defaultQuantityArithmeticX as QuantityArithmetic<V>)
-            else -> Failed(Err(ErrorCode.ApplicationError, "Unsupported RealNumber type: ${sample::class}"))
+            else -> Failed(Csp1dTypeError("Unsupported RealNumber type: ${sample::class}"))
         }
     }
 }

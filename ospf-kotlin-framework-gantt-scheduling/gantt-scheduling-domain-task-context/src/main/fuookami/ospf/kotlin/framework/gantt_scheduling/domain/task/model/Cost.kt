@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingLifecycleError
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -122,7 +123,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         return if (value != null) {
             Ok(value)
         } else {
-            Failed(ErrorCode.ApplicationError, "cost sum is required to build solver cost")
+            Failed(GanttSchedulingLifecycleError("cost sum is required to build solver cost"))
         }
     }
 

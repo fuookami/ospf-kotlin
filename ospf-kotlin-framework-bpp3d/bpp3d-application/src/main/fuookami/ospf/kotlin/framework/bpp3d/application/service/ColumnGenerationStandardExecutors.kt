@@ -7,6 +7,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import kotlin.math.roundToInt
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dCapabilityError
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -41,7 +42,7 @@ private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): Ret<MetaDualSo
 
     val ctor = MetaDualSolution::class.java.declaredConstructors
         .firstOrNull { it.parameterCount == 2 }
-        ?: return Failed(ErrorCode.IllegalArgument, "MetaDualSolution constructor is unavailable")
+        ?: return Failed(Bpp3dCapabilityError("MetaDualSolution constructor is unavailable"))
     @Suppress("UNCHECKED_CAST")
     return ok(ctor.newInstance(
         constraints,

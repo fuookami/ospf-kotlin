@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dSolvingError
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -317,7 +318,7 @@ class ColumnGenerationApplicationService(
             if (materialPackingPlan.solveInfo.status != MaterialPackingStatus.Optimal ||
                 materialPackingPlan.restMaterials.values.any { it != UInt64.zero }
             ) {
-                return Failed(ErrorCode.ApplicationFailed, "material packing infeasible: ${materialPackingPlan.solveInfo.rawStatus ?: "unknown"}")
+                return Failed(Bpp3dSolvingError("material packing infeasible: ${materialPackingPlan.solveInfo.rawStatus ?: "unknown"}"))
             }
         }
 

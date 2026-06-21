@@ -222,7 +222,7 @@ fun <V> Quantity<V>.toDuration(): Ret<Duration> where V : RealNumber<V> {
 
     // 获取从当前单位到秒的转换因子
     val factor = this.unit.to(Second)?.value?.toFlt64()?.toDouble() ?: return Failed(
-        ErrorCode.Other,
+        ErrorCode.IllegalArgument,
         "Failed to convert ${this.unit.name} to seconds"
     )
 
@@ -290,7 +290,7 @@ inline fun <reified V> Duration.toQuantity(unit: PhysicalUnit): Ret<Quantity<V>>
 
     // 获取从秒到目标单位的转换因子
     val factor = Second.to(unit)?.value?.toFlt64()?.toDouble() ?: return Failed(
-        ErrorCode.Other,
+        ErrorCode.IllegalArgument,
         "Failed to convert seconds to ${unit.name}"
     )
 
@@ -329,7 +329,7 @@ fun <V> Duration.toQuantity(unit: PhysicalUnit, converter: DurationConverter<V>)
 
     // 获取从秒到目标单位的转换因子
     val factor = Second.to(unit)?.value?.toFlt64()?.toDouble() ?: return Failed(
-        ErrorCode.Other,
+        ErrorCode.IllegalArgument,
         "Failed to convert seconds to ${unit.name}"
     )
 

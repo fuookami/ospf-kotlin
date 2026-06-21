@@ -43,3 +43,4 @@ Cargo.lock
 .tmp-*/
 /.codegraph/
 .claude/
+/.supergoal/

@@ -8,6 +8,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingLifecycleError
 
 /**
  * 步骤关系枚举 / Step relation enumeration
@@ -173,7 +174,7 @@ data class TaskStepGraphBuilder<
         relation: StepRelation
     ): Try {
         if (steps.any { !this@TaskStepGraphBuilder.steps.contains(it) }) {
-            return Failed(Err(ErrorCode.ApplicationError, "step not in"))
+            return Failed(GanttSchedulingLifecycleError("step not in"))
         }
         startSteps = Pair(steps, relation)
         return ok
@@ -199,7 +200,7 @@ data class TaskStepGraphBuilder<
     ): Try {
         for (step in from) {
             if ((forwardTaskStepVector[step]?.to ?: emptyList()).any { it == to }) {
-                return Failed(Err(ErrorCode.ApplicationError, "no step to ${to.id}"))
+                return Failed(GanttSchedulingLifecycleError("no step to ${to.id}"))
             }
         }
 

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -807,8 +808,8 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
             .build()
         when (val result = context.register(model)) {
             is Ok -> {}
-            is Failed -> return Failed(Err(ErrorCode.ApplicationError, "register LP context failed: ${result.error}"))
-            is Fatal -> return Failed(Err(ErrorCode.ApplicationError, "register LP context fatal: ${result.errors}"))
+            is Failed -> return Failed(Csp1dLifecycleError("register LP context failed: ${result.error}"))
+            is Fatal -> return Failed(Csp1dLifecycleError("register LP context fatal: ${result.errors}"))
         }
         return Ok(LpMaster(
             model = model,

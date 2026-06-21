@@ -9,6 +9,8 @@ import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dInternalError
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dCapabilityError
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -93,7 +95,7 @@ abstract class Pattern {
                     }
 
                     else -> {
-                        return Failed(Err(ErrorCode.ApplicationError, "Logic error!"))
+                        return Failed(Bpp3dInternalError("Logic error!"))
                     }
                 }
             }
@@ -247,12 +249,10 @@ abstract class Pattern {
     ): Result<List<List<QuantityPlacement3<Item, FltX>>>, ErrorCode, Error<ErrorCode>> {
         if (hasCylinderItem(originItems.keys)) {
             return Failed(
-                Err(
-                    ErrorCode.ApplicationError,
-                    unsupportedCylinderCuboidOnlyPathMessage(
-                        source = CylinderCapabilityPath.PatternPlacement.source,
-                        pathPredicate = CylinderCapabilityPath.PatternPlacement.pathPredicate!!
-                    )
+                Bpp3dCapabilityError(unsupportedCylinderCuboidOnlyPathMessage(
+                    source = CylinderCapabilityPath.PatternPlacement.source,
+                    pathPredicate = CylinderCapabilityPath.PatternPlacement.pathPredicate!!
+                )
                 )
             )
         }
