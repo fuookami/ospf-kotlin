@@ -580,21 +580,21 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
         )
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        val exception = assertFailsWith<IllegalArgumentException> {
-            analyzer.analyzeFromQuantity(
-                iteration = 9,
-                columns = listOf(layer)
-            )
-        }
+        val result = analyzer.analyzeFromQuantity(
+            iteration = 9,
+            columns = listOf(layer)
+        )
 
-        assertTrue(exception.message?.contains("mixes cylinder axes") == true)
+        assertTrue(result is Failed, "Expected Failed result but got ${result::class.simpleName}")
+        val errorMessage = result.errorMessageOrFail("Expected Failed result")
+        assertTrue(errorMessage.contains("mixes cylinder axes"), "Error message should contain 'mixes cylinder axes': $errorMessage")
     }
 
     @Test
     fun analyzerShouldApplyDepthBoundaryPolicyToKnownCoordinateQuantityBins() = runBlocking {
         val analyzer = ColumnGenerationPackingAnalyzer()
 
-        analyzer.analyzeFromQuantity(
+        val successResult = analyzer.analyzeFromQuantity(
             iteration = 10,
             columns = listOf(horizontalCylinderLayer(Axis3.X)),
             depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
@@ -603,22 +603,23 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             )
         )
 
+        assertTrue(successResult is Ok, "Expected Ok result for valid policy")
         val latest = analyzer.latest
         assertNotNull(latest)
         assertEquals("10", latest.schema.kpi["cg_iteration"])
 
-        val exception = assertFailsWith<IllegalArgumentException> {
-            analyzer.analyzeFromQuantity(
-                iteration = 11,
-                columns = listOf(horizontalCylinderLayer(Axis3.X)),
-                depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
-                    firstLayerAllowedCylinderAxes = setOf(Axis3.Z)
-                )
+        val result = analyzer.analyzeFromQuantity(
+            iteration = 11,
+            columns = listOf(horizontalCylinderLayer(Axis3.X)),
+            depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                firstLayerAllowedCylinderAxes = setOf(Axis3.Z)
             )
-        }
+        )
 
-        assertTrue(exception.message?.contains("boundary=first") == true)
-        assertTrue(exception.message?.contains("cylinder_axis=X") == true)
+        assertTrue(result is Failed, "Expected Failed result but got ${result::class.simpleName}")
+        val errorMessage = result.errorMessageOrFail("Expected Failed result")
+        assertTrue(errorMessage.contains("boundary=first"), "Error message should contain 'boundary=first': $errorMessage")
+        assertTrue(errorMessage.contains("cylinder_axis=X"), "Error message should contain 'cylinder_axis=X': $errorMessage")
     }
 
     @Test
@@ -639,19 +640,19 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             units = listOf(modelLayer.toKnownCoordinateLayerPlacement())
         )
 
-        val exception = assertFailsWith<IllegalArgumentException> {
-            ColumnGenerationPackingAnalyzer().analyzeFromQuantity(
-                iteration = 12,
-                columns = listOf(layer),
-                bins = listOf(explicitBin),
-                depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
-                    lastLayerAllowedCylinderAxes = setOf(Axis3.X)
-                )
+        val result = ColumnGenerationPackingAnalyzer().analyzeFromQuantity(
+            iteration = 12,
+            columns = listOf(layer),
+            bins = listOf(explicitBin),
+            depthBoundaryLayerOrientationPolicy = DepthBoundaryLayerOrientationPolicy(
+                lastLayerAllowedCylinderAxes = setOf(Axis3.X)
             )
-        }
+        )
 
-        assertTrue(exception.message?.contains("boundary=last") == true)
-        assertTrue(exception.message?.contains("cylinder_axis=Z") == true)
+        assertTrue(result is Failed, "Expected Failed result but got ${result::class.simpleName}")
+        val errorMessage = result.errorMessageOrFail("Expected Failed result")
+        assertTrue(errorMessage.contains("boundary=last"), "Error message should contain 'boundary=last': $errorMessage")
+        assertTrue(errorMessage.contains("cylinder_axis=Z"), "Error message should contain 'cylinder_axis=Z': $errorMessage")
     }
 
     private fun horizontalCylinderLayer(axis: Axis3): QuantityBinLayer<FltX> {

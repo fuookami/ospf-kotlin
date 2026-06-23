@@ -75,6 +75,7 @@ class InitialFlightTaskBunchGenerator(
             if (cost == null) {
                 null
             } else {
+                @Suppress("UNCHECKED_CAST")
                 FlightTaskBunch(aircraft, flightTasks, Int64.zero, cost as Cost<FltX>)
             }
         }
@@ -211,6 +212,7 @@ class InitialFlightTaskBunchGenerator(
         return if (cost == null) {
             null
         } else {
+            @Suppress("UNCHECKED_CAST")
             FlightTaskBunch(aircraft, flightTasks, Int64.zero, cost as Cost<FltX>)
         }
     }

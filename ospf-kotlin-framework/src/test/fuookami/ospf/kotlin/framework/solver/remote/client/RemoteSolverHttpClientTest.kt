@@ -232,6 +232,7 @@ class RemoteSolverHttpClientTest {
 
         val error = failed.error
         assertTrue(error is ExErr<*, *>)
+        @Suppress("UNCHECKED_CAST")
         val exErr = error as ExErr<*, RemoteSolverFailureDetail>
         val detail = exErr.value
 

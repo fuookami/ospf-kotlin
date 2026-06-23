@@ -70,6 +70,7 @@ internal fun <T : Ring<T>> computeRingPowerOrNull(value: T, power: Int, one: T):
         return null
     }
     val reciprocal = try {
+        @Suppress("UNCHECKED_CAST")
         (value as? TimesGroup<T>)?.reciprocal()
     } catch (_: Exception) {
         null

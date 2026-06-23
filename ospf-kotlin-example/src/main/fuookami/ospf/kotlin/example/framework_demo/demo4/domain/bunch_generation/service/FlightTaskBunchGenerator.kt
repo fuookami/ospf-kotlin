@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generatio
 
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
@@ -167,6 +167,7 @@ private data class Label(
             flightTasks.add(label.flightTask!!)
         }
         val totalCost = totalCostCalculator(aircraft, flightTasks)
+        @Suppress("UNCHECKED_CAST")
         return totalCost?.let { FlightTaskBunch(aircraft, flightTasks, iteration, it as Cost<FltX>) }
     }
 
@@ -364,6 +365,7 @@ class FlightTaskBunchGenerator(
         }
 
         val builder = LabelBuilder(succNode, prevLabel, recoveryTask)
+        @Suppress("UNCHECKED_CAST")
         builder.cost += cost as Cost<FltX>
         builder.shadowPrice += shadowPrice
         return Label(builder)

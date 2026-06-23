@@ -102,6 +102,7 @@ class RemoteSolverFailureDetailTest {
         val error = (result as Failed<*, *, *>).error
         assertTrue(error is ExErr<*, *>)
 
+        @Suppress("UNCHECKED_CAST")
         val exErr = error as ExErr<*, RemoteSolverFailureDetail>
         val extractedDetail = exErr.value
 
@@ -128,6 +129,7 @@ class RemoteSolverFailureDetailTest {
         val error = (result as Failed<*, *, *>).error
         assertTrue(error is ExErr<*, *>)
 
+        @Suppress("UNCHECKED_CAST")
         val exErr = error as ExErr<*, RemoteSolverFailureDetail>
         val extractedDetail = exErr.value
 
@@ -158,6 +160,7 @@ class RemoteSolverFailureDetailTest {
         val error = (result as Failed<*, *, *>).error
         assertTrue(error is ExErr<*, *>)
 
+        @Suppress("UNCHECKED_CAST")
         val exErr = error as ExErr<*, RemoteSolverFailureDetail>
         val extractedDetail = exErr.value
 

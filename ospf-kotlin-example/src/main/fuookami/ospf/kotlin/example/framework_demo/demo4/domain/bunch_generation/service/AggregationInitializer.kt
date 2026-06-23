@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
-import kotlinx.datetime.*
 import kotlin.time.*
 import kotlin.time.Duration.Companion.hours
 import fuookami.ospf.kotlin.utils.functional.*
@@ -98,7 +97,7 @@ class AggregationInitializer {
             }
         }
         for ((_, thisFlightTasks) in flightTaskGroups) {
-            thisFlightTasks.sortBy { it.time?.start ?: it.timeWindow?.start ?: kotlinx.datetime.Instant.DISTANT_FUTURE }
+            thisFlightTasks.sortBy { it.time?.start ?: it.timeWindow?.start ?: Instant.DISTANT_FUTURE }
         }
         return flightTaskGroups
     }

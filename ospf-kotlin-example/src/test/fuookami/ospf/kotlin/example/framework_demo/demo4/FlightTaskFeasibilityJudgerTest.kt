@@ -1,5 +1,8 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
 package fuookami.ospf.kotlin.example.framework_demo.demo4
 
+import kotlin.time.Instant
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test

@@ -70,6 +70,7 @@ class MongoScalarTranslatorTest {
         val failed = result as Failed<*, *, *>
         val error = failed.error
         assertTrue(error is ExErr<*, *>)
+        @Suppress("UNCHECKED_CAST")
         val exErr = error as ExErr<*, UnsupportedPredicateDetail>
         val detail = exErr.value
 
