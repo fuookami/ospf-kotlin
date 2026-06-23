@@ -40,6 +40,13 @@ class MybatisColumnBinder(
     private val columnMapping: Map<String, String> = emptyMap(),
     private val namingTransfer: NameTransfer = NameTransfer(NamingSystem.CamelCase, NamingSystem.SnakeCase)
 ) : ColumnBinder<String> {
+    /**
+     * 解析属性路径为后端列名
+     * Resolve property path to backend column name
+     *
+     * @param path 属性路径 / Property path
+     * @return 后端列名，无映射时回退到蛇形命名转换 / Backend column name, falls back to snake_case conversion when no mapping found
+     */
     override fun resolve(path: String): String? {
         return columnMapping[path] ?: namingTransfer(path)
     }

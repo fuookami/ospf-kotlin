@@ -5,18 +5,24 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.quantities.quantity.plus
 import fuookami.ospf.kotlin.quantities.quantity.minus
+import fuookami.ospf.kotlin.quantities.quantity.plus
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 包装底面形状，包含宽度、深度、重量和包装类型。
+ * Package bottom shape, including width, depth, weight and package type.
+ *
+ * @param V 数值类型 / numeric type
+ */
 data class PackageBottomShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val depth: Quantity<V>,
@@ -70,6 +76,12 @@ data class PackageBottomShape<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 包装形状，包含宽度、高度、深度、重量、包装类型和形状规格。
+ * Package shape, including width, height, depth, weight, package type and shape spec.
+ *
+ * @param V 数值类型 / numeric type
+ */
 data class PackageShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val height: Quantity<V>,
@@ -139,9 +151,29 @@ data class PackageShape<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 包装形状规格，区分长方体和垂直圆柱。
+ * Package shape spec, distinguishing cuboid and vertical cylinder.
+ */
 sealed interface PackageShapeSpec {
+    /** 长方体形状规格 / Cuboid shape spec */
     data object Cuboid : PackageShapeSpec
 
+    /**
+     * 垂直圆柱形状规格，支持连续半径选择。
+     * Vertical cylinder shape spec, supporting continuous radius selection.
+     *
+     * @property radius 圆柱半径 / cylinder radius
+     * @property axis 圆柱轴向 / cylinder axis
+     * @property radiusCandidates 候选半径列表 / candidate radius list
+     * @property radiusMin 最小半径 / minimum radius
+     * @property radiusMax 最大半径 / maximum radius
+     * @property radiusWeightFunctionKey 半径权重函数键 / radius weight function key
+     * @property radiusStep 半径步长 / radius step
+     * @property diameterMin 最小直径 / minimum diameter
+     * @property diameterMax 最大直径 / maximum diameter
+     * @property diameterStep 直径步长 / diameter step
+     */
     data class VerticalCylinder(
         val radius: Quantity<FltX>,
         val axis: Axis3 = Axis3.Y,
@@ -212,6 +244,7 @@ private infix fun Quantity<FltX>.sameCylinderRadiusValue(rhs: Quantity<FltX>): B
     return abs(value.toDouble() - converted.value.toDouble()) <= CylinderRadiusCandidateTolerance
 }
 
+/** 转换为正物理量 / Convert to positive quantity */
 private fun Quantity<FltX>.toPositiveQuantity(
     unit: PhysicalUnit,
     fieldName: String
@@ -224,6 +257,12 @@ private fun Quantity<FltX>.toPositiveQuantity(
     return ok(converted)
 }
 
+/**
+ * 从 Ret 结果中提取成功值，若为失败则抛出 require 异常。
+ * Extract the success value from a Ret result; throws a require exception if it is a failure.
+ *
+ * @return 成功时的值 / the value on success
+ */
 private fun <T> Ret<T>.requireValue(): T {
     val result = this
     require(result is Ok) {
@@ -236,6 +275,14 @@ private fun <T> Ret<T>.requireValue(): T {
     return result.value
 }
 
+/**
+ * 将量转换到指定单位并要求为正值，转换或验证失败时抛出 require 异常。
+ * Convert a quantity to the specified unit and require it to be positive; throws a require exception on conversion or validation failure.
+ *
+ * @param unit 目标物理单位 / target physical unit
+ * @param fieldName 字段名（用于错误消息） / field name (used in error messages)
+ * @return 转换后的正值量 / the converted positive quantity
+ */
 private fun Quantity<FltX>.toPositiveQuantityOrRequire(
     unit: PhysicalUnit,
     fieldName: String
@@ -314,6 +361,7 @@ private fun diameterIntervalRadiusCandidates(
     }
 }
 
+/** 解析垂直圆柱半径候选值 / Resolve vertical cylinder radius candidates */
 private fun resolveVerticalCylinderRadiusCandidates(
     radius: Quantity<FltX>,
     radiusCandidates: List<Quantity<FltX>>,
@@ -424,6 +472,7 @@ data class PackingProgramMaterialValue(
 }
 
 @Suppress("UNCHECKED_CAST")
+/** 将装箱程序重量转换为 FltX 物理量 / Convert packing program weight to FltX quantity */
 private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
     return when (value.value) {
         is FltX -> ok(value as Quantity<FltX>)
@@ -432,6 +481,7 @@ private fun packingProgramWeightToFltXQuantity(value: Quantity<*>): Ret<Quantity
 }
 
 @Suppress("UNCHECKED_CAST")
+/** 加上装箱程序重量 / Add packing program weight */
 private fun plusPackingProgramWeight(
     lhs: Quantity<*>?,
     rhs: Quantity<*>?
@@ -460,6 +510,7 @@ private fun plusPackingProgramWeight(
     }
 }
 
+/** 合并装箱程序材料值 / Merge packing program material value */
 private fun mergePackingProgramMaterialValue(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
@@ -536,12 +587,14 @@ private fun toDiscreteAmount(value: Any): UInt64 {
     }
 }
 
+/** 装箱程序数据 / Packing program data */
 data class PackingProgram<V : FloatingNumber<V>>(
     val shape: PackageShape<V>,
     val pattern: PackagePattern? = null,
     val packages: List<PackingProgram<V>>? = null,
     val materials: Map<MaterialKey, PackingProgramMaterialValue>
 ) {
+    /** 伴生对象 / Companion object */
     companion object {
         fun <V : FloatingNumber<V>> outerPackage(
             shape: PackageShape<V>,

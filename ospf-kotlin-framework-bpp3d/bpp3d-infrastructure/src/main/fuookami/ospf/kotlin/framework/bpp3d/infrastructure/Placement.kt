@@ -106,10 +106,12 @@ data class QuantityPlacement2<
         )
     }
 
+    /** 判断是否重叠 / Check if overlapped */
     fun overlapped(rhs: QuantityPlacement2<*, V, P>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
 
+    /** 计算交集 / Compute intersection */
     fun intersect(rhs: QuantityPlacement2<*, V, P>): Ret<GeometryRectangle2<V>?> {
         val intersection = when (val result = toGeometryPlacement().intersect(rhs.toGeometryPlacement())) {
             is Ok -> result.value
@@ -222,6 +224,7 @@ data class QuantityPlacement3<
         )
     }
 
+    /** 判断是否重叠 / Check if overlapped */
     infix fun overlapped(rhs: QuantityPlacement3<*, V>): Ret<Boolean> {
         return toGeometryPlacement().overlapped(rhs.toGeometryPlacement())
     }
@@ -490,6 +493,7 @@ data class ShapePlacement3(
         )
     }
 
+    /** 判断是否重叠 / Check if overlapped */
     infix fun overlapped(rhs: ShapePlacement3): Ret<Boolean> {
         if (!verticalOverlapped(rhs)) {
             return ok(false)
@@ -516,12 +520,25 @@ typealias Placement2<T, V, P> = QuantityPlacement2<T, V, P>
 /** 三维放置主类型名。Primary 3D placement type name. */
 typealias Placement3<T, V> = QuantityPlacement3<T, V>
 
+/**
+ * 将三维放置转换为形状放置，使用默认形状解析器。
+ * Convert 3D placement to shape placement using default shape resolver.
+ *
+ * @return 形状放置 / shape placement
+ */
 fun QuantityPlacement3<*, FltX>.asShapePlacement3(): ShapePlacement3 {
     return asShapePlacement3 { placement ->
         placement.view.asPackingShape3()
     }
 }
 
+/**
+ * 将三维放置转换为形状放置，使用自定义形状解析器。
+ * Convert 3D placement to shape placement using custom shape resolver.
+ *
+ * @param shapeResolver 形状解析器 / shape resolver
+ * @return 形状放置 / shape placement
+ */
 fun QuantityPlacement3<*, FltX>.asShapePlacement3(
     shapeResolver: (QuantityPlacement3<*, FltX>) -> PackingShape3<FltX>
 ): ShapePlacement3 {
@@ -531,6 +548,13 @@ fun QuantityPlacement3<*, FltX>.asShapePlacement3(
     )
 }
 
+/**
+ * 获取顶层放置列表，即没有被其他放置覆盖的放置。
+ * Get top placements, i.e., placements not covered by other placements.
+ *
+ * @param placements 放置列表 / placement list
+ * @return 顶层放置列表 / top placement list
+ */
 fun topPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<QuantityPlacement3<*, FltX>> {
     val bottomFootprintPlacements = placements.associateWith { placement ->
         QuantityPlacement2(
@@ -564,6 +588,13 @@ fun topPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<QuantityP
     return topPlacements
 }
 
+/**
+ * 获取底层放置列表，即没有放置在其下方的放置。
+ * Get bottom placements, i.e., placements with no placement below them.
+ *
+ * @param placements 放置列表 / placement list
+ * @return 底层放置列表 / bottom placement list
+ */
 fun bottomPlacements(placements: List<QuantityPlacement3<*, FltX>>): List<QuantityPlacement3<*, FltX>> {
     val bottomFootprintPlacements = placements.associateWith { placement ->
         QuantityPlacement2(

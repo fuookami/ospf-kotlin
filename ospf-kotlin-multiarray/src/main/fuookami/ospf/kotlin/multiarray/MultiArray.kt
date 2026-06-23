@@ -94,6 +94,13 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
         }
     }
 
+    /**
+     * 验证索引向量并转换为线性索引，维度或越界时抛出异常。
+     * Validate index vector and convert to linear index, throw on dimension mismatch or out of bounds.
+     *
+     * @param vector 索引向量 / Index vector
+     * @return 线性索引 / Linear index
+     */
     protected fun checkedIndex(vector: IntArray): Int {
         if (vector.size != shape.dimension) {
             throw DimensionMismatchingException(shape.dimension, vector.size)

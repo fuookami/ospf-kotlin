@@ -2,17 +2,17 @@
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.service
 
-import kotlinx.datetime.Instant
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import kotlinx.datetime.Instant
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 批次生成配置。Configuration for bunch generation.

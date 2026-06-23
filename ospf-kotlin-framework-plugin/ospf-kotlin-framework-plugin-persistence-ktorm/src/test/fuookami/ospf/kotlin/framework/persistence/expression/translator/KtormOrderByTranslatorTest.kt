@@ -15,8 +15,8 @@ import org.ktorm.expression.OrderType
 import org.ktorm.expression.SelectExpression
 import org.ktorm.expression.UnaryExpression
 import org.ktorm.expression.UnaryExpressionType
-import org.ktorm.schema.Table
 import org.ktorm.schema.int
+import org.ktorm.schema.Table
 import org.ktorm.schema.varchar
 import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrder
 import fuookami.ospf.kotlin.framework.persistence.expression.NullsOrderSupport

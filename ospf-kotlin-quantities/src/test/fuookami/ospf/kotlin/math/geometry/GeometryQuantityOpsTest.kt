@@ -2,11 +2,11 @@ package fuookami.ospf.kotlin.math.geometry
 
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.orFail
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.functional.Order
 
 class GeometryQuantityOpsTest {
     @Test

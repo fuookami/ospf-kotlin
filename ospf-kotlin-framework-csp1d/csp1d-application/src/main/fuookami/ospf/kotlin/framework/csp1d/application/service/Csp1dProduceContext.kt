@@ -1,15 +1,6 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import kotlin.math.roundToLong
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.CuttingPlanGenerationStatistics
@@ -17,18 +8,27 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.LengthAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.service.pipeline.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.service.pipeline.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.WasteAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.OverProductionAreaMeasure as DomainOverProductionAreaMeasure
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.service.pipeline.RestMaterialMeasure as DomainRestMaterialMeasure
-import fuookami.ospf.kotlin.framework.csp1d.domain.yield.YieldAggregation
+import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.WasteAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.service.pipeline.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.yield.YieldAggregation
 import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * CSP1D 产出模型上下文 / CSP1D produce model context
@@ -62,6 +62,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
     override val materials: List<Material<V>> get() = produce.materials
     override val machines: List<Machine<V>> get() = produce.machines
 
+    /** 将 Flt64 值转换为域值类型 / Convert Flt64 value to domain value type */
     override fun toDomainValue(value: Flt64): V = (convertSolverValue(domainValueSample, value) as Ok).value
 
     override fun register(model: LinearMetaModel<Flt64>): Try {
@@ -547,36 +548,78 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     private val _objectivePolicies = ArrayList<Csp1dObjectivePolicy<V>>()
     private val _extensions = ArrayList<Csp1dModelingExtension<V>>()
 
+    /**
+     * 设置 yield 建模配置 / Set yield modeling config
+     *
+     * @param config yield 建模配置 / Yield modeling config
+     * @return 构建器自身 / Builder itself
+     */
     fun yieldConfig(config: YieldModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._yieldConfig = config
         return this
     }
 
+    /**
+     * 设置 waste 建模配置 / Set waste modeling config
+     *
+     * @param config waste 建模配置 / Waste modeling config
+     * @return 构建器自身 / Builder itself
+     */
     fun wasteConfig(config: WasteMinimizationConfig<V>): Csp1dProduceContextBuilder<V> {
         this._wasteConfig = config
         return this
     }
 
+    /**
+     * 设置 length 建模配置 / Set length modeling config
+     *
+     * @param config length 建模配置 / Length modeling config
+     * @return 构建器自身 / Builder itself
+     */
     fun lengthConfig(config: LengthAssignmentModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._lengthConfig = config
         return this
     }
 
+    /**
+     * 设置建模模式（LP 或 MILP）/ Set modeling mode (LP or MILP)
+     *
+     * @param mode 建模模式 / Modeling mode
+     * @return 构建器自身 / Builder itself
+     */
     fun mode(mode: Csp1dModelingMode): Csp1dProduceContextBuilder<V> {
         this._mode = mode
         return this
     }
 
+    /**
+     * 设置是否为最终 MILP 求解 / Set whether this is a final MILP solve
+     *
+     * @param isFinalMilp 是否为最终 MILP / Whether this is final MILP
+     * @return 构建器自身 / Builder itself
+     */
     fun isFinalMilp(isFinalMilp: Boolean): Csp1dProduceContextBuilder<V> {
         this._isFinalMilp = isFinalMilp
         return this
     }
 
+    /**
+     * 追加额外约束管线 / Append extra constraint pipeline
+     *
+     * @param pipeline 约束管线 / Constraint pipeline
+     * @return 构建器自身 / Builder itself
+     */
     fun extraPipeline(pipeline: Pipeline<LinearMetaModel<Flt64>>): Csp1dProduceContextBuilder<V> {
         _extraPipelines.add(pipeline)
         return this
     }
 
+    /**
+     * 追加目标函数策略 / Append objective policy
+     *
+     * @param policy 目标函数策略 / Objective policy
+     * @return 构建器自身 / Builder itself
+     */
     fun objectivePolicy(policy: Csp1dObjectivePolicy<V>): Csp1dProduceContextBuilder<V> {
         _objectivePolicies.add(policy)
         return this
@@ -592,6 +635,14 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
         return this
     }
 
+    /**
+     * 构建 Csp1dProduceContext 实例 / Build Csp1dProduceContext instance
+     *
+     * 解析所有扩展管线，组装产出/yield/waste/length 聚合与约束管线，返回完整建模上下文。
+     * Resolves all extension pipelines, assembles produce/yield/waste/length aggregations with constraint pipelines, and returns the complete modeling context.
+     *
+     * @return CSP1D 产出模型上下文 / CSP1D produce model context
+     */
     fun build(): Csp1dProduceContext<V> {
         val yieldCfg = _yieldConfig
         val wasteCfg = _wasteConfig

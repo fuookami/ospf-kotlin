@@ -3,22 +3,30 @@
 /** 切换模型 / Switch model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.core.symbol.function.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /** 切换时间物理量 / Switch time quantity */
 typealias SwitchTimeQuantity<V> = Quantity<V>
 
+/**
+ * 捕获线性约束输入结果，失败时调用回调并返回 null。
+ * Capture linear constraint input result, invoke callback on failure and return null.
+ *
+ * @param result 约束输入结果 / Constraint input result
+ * @param onFailure 失败时的回调函数 / Callback function on failure
+ * @return 成功时返回约束输入，失败时返回 null / Constraint input on success, null on failure
+ */
 private fun captureLinearConstraintInput(
     result: Ret<LinearConstraintInput<Flt64>>,
     onFailure: (Try) -> Unit

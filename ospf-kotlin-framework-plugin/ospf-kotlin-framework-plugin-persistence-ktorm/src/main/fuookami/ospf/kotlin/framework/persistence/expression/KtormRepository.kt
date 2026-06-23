@@ -11,8 +11,8 @@ import org.ktorm.database.Database
 import org.ktorm.dsl.*
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
-import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 import fuookami.ospf.kotlin.framework.persistence.expression.translator.*
+import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 
 /**
  * 列名解析器

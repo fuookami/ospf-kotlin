@@ -8,12 +8,12 @@
 package fuookami.ospf.kotlin.framework.solver
 
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.error.SolverNotFoundError
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 串行组合列生成求解器

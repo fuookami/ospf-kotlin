@@ -5,11 +5,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.ceil
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -37,6 +37,13 @@ class MaterialPacker(
         }
     }
 
+    /**
+     * 将重量需求量转换为装箱数量类型。仅支持 FltX 标量类型。
+     * Convert a weight demand quantity to the packing quantity type. Only FltX scalar type is supported.
+     *
+     * @param value 待转换的重量需求量 / weight demand quantity to convert
+     * @return 转换后的装箱数量，标量类型不支持时失败 / converted packing quantity, fails when scalar type is unsupported
+     */
     @Suppress("UNCHECKED_CAST")
     private fun weightDemandToPackingQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
         return when (value.value) {

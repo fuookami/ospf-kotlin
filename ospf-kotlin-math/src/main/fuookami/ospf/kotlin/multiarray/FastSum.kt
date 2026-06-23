@@ -17,9 +17,9 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 // ============================================================================
 // FastSum - High-performance summation for MultiArray

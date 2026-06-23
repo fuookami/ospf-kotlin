@@ -2,16 +2,17 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 
 class YieldContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
+    /** 执行产出分析，失败时抛出断言错误 / Execute yield analysis, throw on failure */
     private fun YieldContext<Flt64>.analyzeOrFail(
         produce: Produce<Flt64>,
         demands: List<ProductDemand<Flt64>>

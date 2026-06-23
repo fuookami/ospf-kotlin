@@ -4,18 +4,39 @@
  */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.utils.functional.Generator
 
+/**
+ * 从范围中获取有限的父代数量，若无法确定则返回默认值 1。
+ * Get a finite parent amount from the range, defaulting to 1 if undetermined.
+ *
+ * 优先使用固定值，其次使用下界，最终回退到 1。
+ * Prefers the fixed value, then the lower bound, and falls back to 1.
+ *
+ * @param range 父代数量的值范围 / The value range for parent amount
+ * @return 父代数量 / The parent amount
+ */
 private fun finiteParentAmountOrDefault(range: ValueRange<UInt64>): UInt64 {
     return range.fixedValue
         ?: range.lowerBound.value.unwrapOrNull()
         ?: UInt64.one
 }
 
+/**
+ * 在范围内随机生成父代数量，若范围或随机数不可用则返回 null。
+ * Generate a random parent amount within the range, returning null if the range or random value is unavailable.
+ *
+ * 通过在下界与上界之间随机插值来计算父代数量。
+ * Calculates the parent amount by interpolating randomly between the lower and upper bounds.
+ *
+ * @param range 父代数量的值范围 / The value range for parent amount
+ * @param randomGenerator 随机数生成器（产生 [0,1) 的 Flt64）/ Random number generator producing Flt64 in [0,1)
+ * @return 随机父代数量，或 null / The random parent amount, or null
+ */
 private fun randomParentAmountOrNull(
     range: ValueRange<UInt64>,
     randomGenerator: Generator<Flt64>
@@ -26,6 +47,17 @@ private fun randomParentAmountOrNull(
     return (lowerBound + (random * diff.toFlt64()).round().toUInt64())
 }
 
+/**
+ * 根据权重在范围内计算父代数量，若范围不可用则返回 null。
+ * Calculate parent amount within the range based on a weight, returning null if the range is unavailable.
+ *
+ * 通过权重在下界与上界之间进行线性插值来计算父代数量。
+ * Calculates the parent amount by linearly interpolating between the lower and upper bounds using the weight.
+ *
+ * @param range 父代数量的值范围 / The value range for parent amount
+ * @param weight 插值权重，通常在 [0,1] 之间 / Interpolation weight, typically in [0,1]
+ * @return 加权父代数量，或 null / The weighted parent amount, or null
+ */
 private fun weightedParentAmountOrNull(
     range: ValueRange<UInt64>,
     weight: Flt64

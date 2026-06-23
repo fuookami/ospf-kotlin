@@ -16,9 +16,9 @@ package fuookami.ospf.kotlin.multiarray.einsum
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.multiarray.*
 
 /**
  * Einstein notation tests

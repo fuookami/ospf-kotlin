@@ -4,12 +4,12 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 求解器单位系统配置。
@@ -96,6 +96,15 @@ class ScaledBpp3dSolverValueAdapter(
         return quantityToSolver(value, unitSystem.weightUnit, scale.weight).value!!
     }
 
+    /**
+     * 将物理量转换为求解器数值，先做单位归一化再乘以缩放因子。
+     * Convert a physical quantity to a solver value by normalizing to the target unit and applying the scale factor.
+     *
+     * @param value 待转换的物理量 / quantity to convert
+     * @param targetUnit 目标单位 / target unit for normalization
+     * @param factor 缩放因子 / scale factor to apply
+     * @return 成功时返回求解器数值，单位不兼容时返回错误 / solver value on success, error if units are incompatible
+     */
     private fun quantityToSolver(
         value: Quantity<FltX>,
         targetUnit: PhysicalUnit,

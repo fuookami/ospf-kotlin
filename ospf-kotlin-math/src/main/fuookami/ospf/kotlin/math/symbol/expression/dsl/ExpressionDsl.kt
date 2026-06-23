@@ -21,10 +21,10 @@
 package fuookami.ospf.kotlin.math.symbol.expression.dsl
 
 import kotlin.reflect.KProperty1
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
  * 布尔表达式构建器

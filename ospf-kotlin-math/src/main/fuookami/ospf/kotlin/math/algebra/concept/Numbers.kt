@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 数环接口
@@ -715,6 +715,7 @@ interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, Number
      */
     override val constants: FloatingNumberConstants<Self>
 
+    /** 计算倒数 / Compute reciprocal */
     override fun reciprocal(): Self
 }
 

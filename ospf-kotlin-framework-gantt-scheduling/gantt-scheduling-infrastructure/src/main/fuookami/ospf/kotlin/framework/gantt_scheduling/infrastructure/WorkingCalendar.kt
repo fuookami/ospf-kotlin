@@ -5,16 +5,16 @@ import kotlin.math.ceil
 import kotlin.time.Duration
 import kotlin.time.Instant
 import kotlinx.datetime.DayOfWeek
-import fuookami.ospf.kotlin.utils.max
-import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
 
 /** 日历时长物理量 / Calendar duration quantity */
 typealias CalendarDurationQuantity<V> = Quantity<V>

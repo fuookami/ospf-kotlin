@@ -17,10 +17,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
 
+/** 解包 Ret 值，失败时抛出断言错误 / Unwrap Ret value, throw on failure */
 private fun <T> Ret<T>.valueOrFail(message: String): T {
     return value ?: fail(message)
 }
 
+/** 获取 Ret 错误消息或失败 / Get Ret error message or fail */
 private fun Ret<*>.errorMessageOrFail(message: String): String {
     return when (this) {
         is Ok -> fail(message)
@@ -32,6 +34,7 @@ private fun Ret<*>.errorMessageOrFail(message: String): String {
 class PackerAndRendererAdapterTest {
     private object CargoAttr : fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 
+    /** 创建默认包装属性 / Create default package attribute */
     private fun packageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
@@ -42,6 +45,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+    /** 创建测试用长方体货物 / Create test cuboid item */
     private fun item(
         id: String,
         material: Material<FltX>,
@@ -76,6 +80,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+    /** 创建测试用圆柱货物 / Create test cylinder item */
     private fun cylinderItem(
         id: String,
         material: Material<FltX>,
@@ -132,6 +137,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+    /** 将 Bin 转换为 PackingResult / Convert Bin to PackingResult */
     private fun toPackingResult(bin: Bin<BinLayer, FltX>): PackingResult {
         val packed = PackedBin(
             name = "bin-test",
@@ -148,6 +154,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+ /** 创建默认箱子类型 / Create default bin type */
     private fun binType(): BinType<FltX> {
         return BinType(
             width = FltX(3.0) * Meter,
@@ -160,6 +167,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+    /** 创建单层箱子 / Create single-layer bin */
     private fun layerBin(
         items: List<ActualItem>,
         positions: List<Pair<Double, Double>> = items.indices.map { index -> Pair(index.toDouble(), 0.0) }
@@ -194,6 +202,7 @@ class PackerAndRendererAdapterTest {
         )
     }
 
+    /** 创建多层箱子 / Create multi-layer bin */
     private fun multiLayerBin(layers: List<Pair<List<ActualItem>, Double>>): Bin<BinLayer, FltX> {
         val binType = binType()
         val layerPlacements = layers.mapIndexed { index, (items, z) ->

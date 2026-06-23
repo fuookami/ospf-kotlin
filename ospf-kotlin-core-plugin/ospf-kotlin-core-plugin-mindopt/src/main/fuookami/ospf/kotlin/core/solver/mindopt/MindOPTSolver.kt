@@ -1,10 +1,10 @@
 /** MindOPT 求解器基类 / MindOPT solver base */
 package fuookami.ospf.kotlin.core.solver.mindopt
 
-import com.alibaba.damo.mindopt.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.functional.*
+import com.alibaba.damo.mindopt.*
 
 /** MindOPT 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / MindOPT solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 abstract class MindOPTSolver : AutoCloseable {

@@ -1,13 +1,13 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
  * FullSum 方案生成器，枚举所有宽度求和组合 / FullSum generator: enumerate all width-sum combinations

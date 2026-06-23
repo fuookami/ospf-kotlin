@@ -5,14 +5,20 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.quantities.unit.Meter
 
+/**
+ * 获取物品视图的支撑包装形状，圆柱件不满足直立垂直支撑条件时返回 null。
+ * Get the support packing shape of the item view; returns null when a cylinder item does not satisfy upright-vertical support conditions.
+ *
+ * @return 支撑包装形状或 null / the support packing shape or null
+ */
 private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
     val itemShape = placementPackingShape ?: unit.packingShape
     if (itemShape is CylinderPackingShape3) {
@@ -28,6 +34,12 @@ private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
     return asPackingShape3()
 }
 
+/**
+ * 计算物品视图底部投影面积，若无法获取支撑包装形状则返回 null。
+ * Calculate the bottom footprint area of the item view; returns null if the support packing shape is unavailable.
+ *
+ * @return 底部投影面积或 null / the bottom footprint area or null
+ */
 private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
     val packingShape = supportPackingShapeOrNull() ?: return null
     val shapePlacement = ShapePlacement3(
@@ -37,6 +49,12 @@ private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
     return shapePlacement.footprintOverlapArea(shapePlacement)
 }
 
+/**
+ * 获取物品视图底部投影的最小跨度（圆柱取直径、矩形取宽深较小值），无法获取形状时返回 null。
+ * Get the minimum span of the item view's bottom footprint (diameter for circles, lesser of width/depth for rectangles); returns null if the shape is unavailable.
+ *
+ * @return 底部投影最小跨度或 null / the minimum bottom footprint span or null
+ */
 private fun ItemView.bottomFootprintMinSpanOrNull(): Quantity<FltX>? {
     return when (val footprint = supportPackingShapeOrNull()?.footprint() ?: return null) {
         is ShapeFootprint2.Circle -> footprint.radius + footprint.radius
@@ -95,6 +113,7 @@ data class LinearDeformationAttribute(
 }
 
 interface AbstractHangingPolicy {
+    /** 启用堆叠标志 / Enabled stacking flag */
     fun enabledStackingOn(
         item: ItemView,
         bottomSupport: BottomSupport
@@ -315,8 +334,31 @@ data class FilterStackingOnPolicy(
     }
 }
 
+/** 货物属性接口 / Cargo attribute interface */
 interface AbstractCargoAttribute
 
+/**
+ * 包装属性，定义货物的堆叠、变形、悬挂等约束规则。
+ * Package attribute, defining stacking, deformation, hanging and other constraint rules for items.
+ *
+ * @property packageType 包装类型 / package type
+ * @property packageMaxLayer 最大堆叠层数 / maximum stacking layer count
+ * @property maxHeight 最大高度 / maximum height
+ * @property minDepth 最小深度 / minimum depth
+ * @property maxDepth 最大深度 / maximum depth
+ * @property overPackageTypes 可堆叠在上方的包装类型列表 / list of package types that can be stacked on top
+ * @property bottomOnly 是否仅允许底层放置 / whether only bottom placement is allowed
+ * @property topFlat 顶部是否平整 / whether the top is flat
+ * @property sideOnTopLayer 侧放允许的顶层层数 / allowed top layer count for side placement
+ * @property lieOnTopLayer 平放允许的顶层层数 / allowed top layer count for lie placement
+ * @property cargoAttribute 货物属性 / cargo attribute
+ * @property weightAttribute 重量属性 / weight attribute
+ * @property deformationAttribute 变形属性 / deformation attribute
+ * @property hangingPolicy 悬挂策略 / hanging policy
+ * @property stackingOnPolicy 堆叠策略 / stacking on policy
+ * @property extraOrientationRule 额外朝向规则 / extra orientation rule
+ * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
+ */
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,

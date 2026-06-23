@@ -23,10 +23,10 @@
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlin.collections.iterator
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.error.*
 
 /**
  * 计算 Iterable 元素之和 / Calculate sum of Iterable elements

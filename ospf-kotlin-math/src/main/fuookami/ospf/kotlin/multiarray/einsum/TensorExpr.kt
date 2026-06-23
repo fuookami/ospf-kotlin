@@ -8,9 +8,9 @@
 package fuookami.ospf.kotlin.multiarray.einsum
 
 import kotlin.ConsistentCopyVisibility
+import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.multiarray.*
 
 /**
  * 带索引标记的张量表达式/ Tensor expression with index labels
@@ -81,6 +81,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
      */
     val dimension: Int = data.shape.dimension
 
+    /** 工厂方法 / Factory methods */
     companion object {
         /**
          * 创建带索引的张量表达式，失败时返回 null

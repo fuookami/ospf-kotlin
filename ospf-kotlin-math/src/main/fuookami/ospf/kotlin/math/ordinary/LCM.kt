@@ -26,12 +26,12 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 通过因式分解计算多个整数的最小公倍数（内部实现）

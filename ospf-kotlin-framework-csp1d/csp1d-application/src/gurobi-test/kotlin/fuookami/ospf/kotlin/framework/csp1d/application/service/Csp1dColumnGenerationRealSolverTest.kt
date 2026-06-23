@@ -2,11 +2,8 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import kotlin.test.*
 import kotlinx.coroutines.runBlocking
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.condition.EnabledIfSystemProperty
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gurobi.GurobiColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
@@ -14,9 +11,12 @@ import fuookami.ospf.kotlin.framework.csp1d.application.service.WasteMinimizatio
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 
 /**
  * CSP1D 列生成真实 solver 收敛验证 / CSP1D column generation real solver convergence verification

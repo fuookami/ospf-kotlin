@@ -1,13 +1,13 @@
 package fuookami.ospf.kotlin.math.symbol.parse
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 private data class TestSymbol(
     override val name: String,
@@ -29,12 +29,14 @@ class DirectPolynomialParserTest {
         }
     }
 
+    /** 解析成功结果 / Parse successful result */
     private fun <T> parseSuccess(result: ParseResult<T>): T {
         assertTrue(result is Ok)
         return result.value
     }
 
     @Test
+    /** 测试常量解析 / Test constant parsing */
     fun testConstant() {
         val result = parseSuccess(parseCanonicalFlt64("42", symbolOf))
         assertEquals(Flt64(42.0), result.constant)
@@ -42,6 +44,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试负常量解析 / Test negative constant parsing */
     fun testNegativeConstant() {
         val result = parseSuccess(parseCanonicalFlt64("-3", symbolOf))
         assertEquals(Flt64(-3.0), result.constant)
@@ -49,6 +52,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试单变量解析 / Test single variable parsing */
     fun testSingleVariable() {
         val result = parseSuccess(parseCanonicalFlt64("x", symbolOf))
         assertEquals<Flt64>(Flt64.zero, result.constant)
@@ -58,6 +62,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试变量加常量解析 / Test variable plus constant parsing */
     fun testVariablePlusConstant() {
         val result = parseSuccess(parseCanonicalFlt64("x + 5", symbolOf))
         assertEquals(Flt64(5.0), result.constant)
@@ -66,6 +71,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试变量减常量解析 / Test variable minus constant parsing */
     fun testVariableMinusConstant() {
         val result = parseSuccess(parseCanonicalFlt64("x - 3", symbolOf))
         assertEquals(Flt64(-3.0), result.constant)
@@ -74,6 +80,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试缩放变量解析 / Test scaled variable parsing */
     fun testScaledVariable() {
         val result = parseSuccess(parseCanonicalFlt64("2 * x", symbolOf))
         assertEquals<Flt64>(Flt64.zero, result.constant)
@@ -82,6 +89,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试线性组合解析 / Test linear combination parsing */
     fun testLinearCombination() {
         val result = parseSuccess(parseCanonicalFlt64("3 * x + 2 * y + 1", symbolOf))
         assertEquals(Flt64(1.0), result.constant)
@@ -89,6 +97,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试二次项解析 / Test quadratic term parsing */
     fun testQuadraticTerm() {
         val result = parseSuccess(parseCanonicalFlt64("x * y", symbolOf))
         assertEquals<Flt64>(Flt64.zero, result.constant)
@@ -98,6 +107,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试括号解析 / Test parentheses parsing */
     fun testParentheses() {
         val result = parseSuccess(parseCanonicalFlt64("(x + 1) * 2", symbolOf))
         assertEquals(Flt64(2.0), result.constant)
@@ -106,6 +116,7 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试线性解析 / Test linear parsing */
     fun testParseLinear() {
         val result = parseSuccess(parseLinearFlt64("3 * x + 2 * y + 1", symbolOf))
         assertNotNull(result)
@@ -119,12 +130,14 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试二次解析 / Test quadratic parsing */
     fun testParseQuadratic() {
         val result = parseSuccess(parseQuadraticFlt64("x * y + 3 * x + 1", symbolOf))
         assertNotNull(result)
     }
 
     @Test
+    /** 测试标准不等式解析 / Test canonical inequality parsing */
     fun testParseCanonicalInequality() {
         val result = parseSuccess(parseCanonicalInequalityFlt64("x + 1 <= 5", symbolOf))
         assertNotNull(result)
@@ -132,12 +145,14 @@ class DirectPolynomialParserTest {
     }
 
     @Test
+    /** 测试线性不等式解析 / Test linear inequality parsing */
     fun testParseLinearInequality() {
         val result = parseSuccess(parseLinearInequalityFlt64("3 * x + 2 <= 10", symbolOf))
         assertNotNull(result)
     }
 
     @Test
+    /** 测试二次不等式解析 / Test quadratic inequality parsing */
     fun testParseQuadraticInequality() {
         val result = parseSuccess(parseQuadraticInequalityFlt64("x * y + 3 * x <= 10", symbolOf))
         assertNotNull(result)

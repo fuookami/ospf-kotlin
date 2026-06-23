@@ -7,10 +7,10 @@
  */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.Contains
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 区间类型标记接口

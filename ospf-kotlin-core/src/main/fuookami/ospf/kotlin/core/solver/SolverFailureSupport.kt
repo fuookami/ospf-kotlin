@@ -1,9 +1,9 @@
 /** 求解器失败支持 / Solver failure support */
 package fuookami.ospf.kotlin.core.solver
 
+import fuookami.ospf.kotlin.core.error.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.error.*
 
 /**
  * `core.solver` 的插件支持 API：失败构造与回调失败透传。

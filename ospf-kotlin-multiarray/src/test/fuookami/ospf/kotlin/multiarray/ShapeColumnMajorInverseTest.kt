@@ -63,10 +63,12 @@ class ShapeColumnMajorInverseTest {
         }
     }
 
+    /** 获取形状指定向量的线性索引值 / Get linear index value for shape at given vector */
     private fun Shape.indexValue(vector: IntArray): Int {
         return index(vector).value ?: fail("index should succeed")
     }
 
+    /** 获取形状指定线性索引的向量值 / Get vector value for shape at given linear index */
     private fun Shape.vectorValue(index: Int): IntArray {
         return vector(index).value ?: fail("vector should succeed")
     }

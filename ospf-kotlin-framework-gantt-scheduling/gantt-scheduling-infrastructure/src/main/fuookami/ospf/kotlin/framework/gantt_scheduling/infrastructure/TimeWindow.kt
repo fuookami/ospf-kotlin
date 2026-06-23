@@ -8,19 +8,19 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 import kotlin.math.*
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import kotlin.time.Instant
 import kotlin.time.toDuration
 import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.max
-import fuookami.ospf.kotlin.utils.min
-import fuookami.ospf.kotlin.utils.truncatedTo
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.toDuration
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
+import fuookami.ospf.kotlin.utils.truncatedTo
 
 /** 时间窗口数值物理量 / Time-window value quantity */
 typealias TimeWindowValueQuantity<V> = Quantity<V>

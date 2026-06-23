@@ -1,9 +1,9 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /** 描述飞机内货物位置位置的标签。Tags describing the location of a cargo position within the aircraft. */
 enum class PositionLocationTag {

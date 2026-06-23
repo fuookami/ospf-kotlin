@@ -2,11 +2,11 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 class ProductDemandModelTest {
     private fun product(id: String = "p"): Product<Flt64> {

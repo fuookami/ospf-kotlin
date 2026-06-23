@@ -5,8 +5,8 @@
 package fuookami.ospf.kotlin.framework.solver.remote.port
 
 import kotlin.time.Duration
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 求解器执行端口。

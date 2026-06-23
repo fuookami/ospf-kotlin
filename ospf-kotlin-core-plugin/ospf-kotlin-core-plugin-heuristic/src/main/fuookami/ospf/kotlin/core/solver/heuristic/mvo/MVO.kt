@@ -4,13 +4,8 @@ package fuookami.ospf.kotlin.core.solver.heuristic.mvo
 
 import kotlin.random.Random
 import kotlin.time.Duration
-import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.minutes
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.nextFlt64
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.ordinary.max
+import kotlin.time.ExperimentalTime
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
@@ -18,6 +13,11 @@ import fuookami.ospf.kotlin.core.solver.cleanupAfterSolverRun
 import fuookami.ospf.kotlin.core.solver.cleanupOnSolverMemoryPressure
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.nextFlt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.utils.functional.*
 
 private val flt64Converter = object : IntoValue<Flt64> {
     override fun intoValue(value: Flt64) = value

@@ -24,12 +24,12 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /** 计算整数的平方根上界，返回 UInt64 / Compute sqrt upper bound for integer, returning UInt64 */
 private fun <I> computeSqrtLimit(num: I): UInt64 where I : Integer<I> {

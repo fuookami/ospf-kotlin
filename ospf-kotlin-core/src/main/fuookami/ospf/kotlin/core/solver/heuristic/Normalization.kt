@@ -4,12 +4,12 @@
  */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.functional.neq
-import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.neq
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.sum
 
 /**
  * 目标值归一化接口，将目标值列表归一化为权重。

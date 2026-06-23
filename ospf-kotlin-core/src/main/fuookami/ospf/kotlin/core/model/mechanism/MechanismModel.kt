@@ -4,6 +4,8 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import kotlinx.coroutines.*
+import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.core.error.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -13,18 +15,16 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.Linear
-import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.logger
 
 /**
  * 机制模型密封接口
@@ -155,6 +155,21 @@ private fun validateDualById(
     }
 }
 
+/**
+ * 从线性元模型构建线性约束实现列表。
+ * Build a list of linear constraint implementations from a linear meta model.
+ *
+ * 遍历元模型中的所有关系约束，将其扁平化数据与符号表组合为 LinearConstraintImpl 实例。
+ * 遇到第一个错误时立即返回失败。
+ * Iterates over all relation constraints in the meta model, combining their flattened data
+ * with the token table to produce LinearConstraintImpl instances.
+ * Returns failure immediately on the first error.
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 线性元模型 / The linear meta model
+ * @param tokens 符号表 / The token table
+ * @return 包含线性约束列表的结果，或错误 / Result containing the mutable list of linear constraints, or an error
+ */
 private fun <V> buildConstraints(
     metaModel: LinearMetaModel<V>,
     tokens: AbstractTokenTable<V>
@@ -182,6 +197,21 @@ private fun <V> buildConstraints(
     return Ok(constraints)
 }
 
+/**
+ * 从二次元模型构建二次约束实现列表。
+ * Build a list of quadratic constraint implementations from a quadratic meta model.
+ *
+ * 遍历元模型中的所有关系约束，将其扁平化数据与符号表组合为 QuadraticConstraintImpl 实例。
+ * 遇到第一个错误时立即返回失败。
+ * Iterates over all relation constraints in the meta model, combining their flattened data
+ * with the token table to produce QuadraticConstraintImpl instances.
+ * Returns failure immediately on the first error.
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 二次元模型 / The quadratic meta model
+ * @param tokens 符号表 / The token table
+ * @return 包含二次约束列表的结果，或错误 / Result containing the mutable list of quadratic constraints, or an error
+ */
 private fun <V> buildConstraints(
     metaModel: QuadraticMetaModel<V>,
     tokens: AbstractTokenTable<V>

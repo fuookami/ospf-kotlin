@@ -2,15 +2,16 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 
 class WastingMinimizationContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
+    /** 执行浪费最小化分析，失败时抛出断言错误 / Execute waste minimization analysis, throw on failure */
     private fun WastingMinimizationContext<Flt64>.analyzeOrFail(
         selectedPlans: List<CuttingPlanUsage<Flt64>>
     ): WasteAnalysis<Flt64> {

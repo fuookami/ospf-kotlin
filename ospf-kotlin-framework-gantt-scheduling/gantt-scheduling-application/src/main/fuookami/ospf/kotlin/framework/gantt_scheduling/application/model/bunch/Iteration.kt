@@ -4,15 +4,15 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch
 
 import kotlin.time.Clock
 import org.apache.logging.log4j.kotlin.logger
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.IterationSnapshot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.IterationSnapshot
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 任务束迭代器 / Bunch iterator

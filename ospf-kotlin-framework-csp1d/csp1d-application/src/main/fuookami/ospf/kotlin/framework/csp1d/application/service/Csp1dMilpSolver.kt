@@ -1,18 +1,18 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.solver.value.*
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * CSP1D MILP/LP 求解器 / CSP1D MILP/LP solver

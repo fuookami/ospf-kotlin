@@ -7,11 +7,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parser
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.parse.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 /**
  * 解析字符串为规范多项式（泛型类型版本）

@@ -15,14 +15,14 @@ package fuookami.ospf.kotlin.math.algebra.number
 import java.math.*
 import kotlin.math.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
-import kotlinx.serialization.encoding.*
 import kotlinx.serialization.descriptors.*
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.orderOf
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.functional.orderOf
 
 /**
  * 将浮点数转换为有理数
@@ -165,7 +165,9 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
         return value as Self?
     }
 
+    /** 计算平方根 / Compute square root */
     override fun sqrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.two))
+    /** 计算立方根 / Compute cube root */
     override fun cbrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.three))
 
     override fun lg(): Self? = castNullableFloatingToSelf(log(constants.ten))

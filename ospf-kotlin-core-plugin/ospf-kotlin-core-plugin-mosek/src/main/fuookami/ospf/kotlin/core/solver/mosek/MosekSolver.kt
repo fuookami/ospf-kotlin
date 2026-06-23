@@ -2,12 +2,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.mosek
 
-import mosek.*
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.solverSolvingException
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.solver.solverSolvingException
-import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import mosek.*
 
 /** MOSEK 求解器抽象基类，提供环境初始化和状态分析的通用实现 / MOSEK solver abstract base class, provides common implementation for environment initialization and status analysis */
 abstract class MosekSolver : AutoCloseable {

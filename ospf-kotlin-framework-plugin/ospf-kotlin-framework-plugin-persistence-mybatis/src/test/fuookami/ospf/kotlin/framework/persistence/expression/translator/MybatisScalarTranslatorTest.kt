@@ -10,11 +10,11 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.error.ExErr
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicateDetail
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 
 @DisplayName("MybatisScalarTranslator Tests / MyBatis 标量翻译器测试")
 class MybatisScalarTranslatorTest {
@@ -63,6 +63,7 @@ class MybatisScalarTranslatorTest {
 
     @Test
     @DisplayName("fail fast detail should contain correct fields / FailFast detail 应包含正确字段")
+    /** 验证 FailFast 详情包含正确字段 / Verify FailFast detail has correct fields */
     fun failFastDetailShouldContainCorrectFields() {
         val failFastTranslator = MybatisScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
         val result = failFastTranslator.translate(ScalarCustom<Int>("x"))

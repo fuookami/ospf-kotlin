@@ -250,6 +250,7 @@ class PackageShapeSpecTest {
     }
 
     @Test
+    /** 验证圆柱半径权重函数暴露离散元数据冲突 / Verify cylinder radius weight function exposes discrete metadata conflict */
     fun verticalCylinderRadiusWeightFunctionKeyShouldExposeDiscreteMetadataConflict() {
         val candidatesSpec = PackageShapeSpec.VerticalCylinder(
             radius = FltX(0.5) * Meter,

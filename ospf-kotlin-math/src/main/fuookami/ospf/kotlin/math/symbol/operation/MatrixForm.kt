@@ -9,17 +9,17 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 /**
  * 线性多项式矩阵形式
@@ -70,6 +70,7 @@ private fun validateOrder(order: List<Symbol>) {
     }
 }
 
+/** 验证符号顺序 / Validate symbol order */
 private fun validateOrderRet(order: List<Symbol>): Try {
     return if (order.toSet().size == order.size) {
         ok
@@ -78,6 +79,7 @@ private fun validateOrderRet(order: List<Symbol>): Try {
     }
 }
 
+/** 要求符号索引存在 / Require symbol index exists */
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>

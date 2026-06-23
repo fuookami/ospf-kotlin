@@ -108,6 +108,13 @@ class DataFrame<T>(
      */
     fun getColumnIndex(name: String): Int? = columnIndex[name]
 
+    /**
+     * 构建列名未找到的失败结果。
+     * Build failure result for column name not found.
+     *
+     * @param columnName 未找到的列名 / The column name not found
+     * @return 失败结果 / Failure result
+     */
     private fun columnNotFound(columnName: String): Failed<Nothing, ErrorCode, Error<ErrorCode>> {
         return Failed(ErrorCode.DataNotFound, "列名不存在：$columnName / Column name not found")
     }

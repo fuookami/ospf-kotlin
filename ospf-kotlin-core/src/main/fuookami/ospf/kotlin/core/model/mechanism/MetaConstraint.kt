@@ -4,18 +4,18 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 元约束组接口，提供在 MetaModel 上注册和查询约束组的能力。
@@ -350,6 +350,15 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 将内部线性不等式扁平化为 LinearFlattenData。
+     * Flatten the internal linear inequality into LinearFlattenData.
+     *
+     * 将不等式转换为单项式列表加常量的形式，供约束构建和求值使用。
+     * Converts the inequality into a monomial-list-plus-constant form for constraint building and evaluation.
+     *
+     * @return 包含扁平化线性数据的结果，或错误 / Result containing the flattened linear data, or an error
+     */
     fun flattenData(): Ret<LinearFlattenData<V>> {
         return inequality.toLinearFlattenData().fold(
             onSuccess = { flattenData -> ok(flattenData) },
@@ -366,6 +375,13 @@ data class LinearInequalityConstraint<V>(
     val name: String get() = constraintName
     val displayName: String? get() = constraintDisplayName
 
+    /**
+     * 判断约束条件是否成立。
+     * Evaluate whether the constraint condition is satisfied.
+     *
+     * @param value 待判断的值 / Value to evaluate
+     * @return 判断结果 / Evaluation result
+     */
     override fun <V1> isTrue(
         solution: List<V1>,
         tokenTable: AbstractTokenTable<V1>,

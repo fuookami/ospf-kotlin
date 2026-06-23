@@ -17,11 +17,11 @@ import org.ktorm.schema.BooleanSqlType
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.SqlType
+import fuookami.ospf.kotlin.framework.persistence.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * 列名解析器
@@ -71,6 +71,13 @@ class KtormBooleanTranslator(
         }
     }
 
+    /**
+     * 翻译常量布尔表达式
+     * Translate constant boolean expression
+     *
+     * @param expr 常量布尔表达式 / Constant boolean expression
+     * @return 恒真或恒假条件 / Always-true or always-false condition
+     */
     private fun translateConstant(expr: BooleanConstant): Ret<ColumnDeclaring<Boolean>?> {
         return Ok(when (expr.value) {
             Trivalent.True -> alwaysTrue()
@@ -78,6 +85,13 @@ class KtormBooleanTranslator(
         })
     }
 
+    /**
+     * 翻译比较表达式为 Ktorm 二元比较
+     * Translate comparison expression to Ktorm binary comparison
+     *
+     * @param expr 比较表达式 / Comparison expression
+     * @return Ktorm 比较条件 / Ktorm comparison condition
+     */
     private fun translateComparison(expr: Comparison<*>): Ret<ColumnDeclaring<Boolean>?> {
         val left = scalarTranslator.translate(expr.left).value
             ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
@@ -86,6 +100,13 @@ class KtormBooleanTranslator(
         return Ok(buildComparison(left, right, expr.operator))
     }
 
+    /**
+     * 翻译 IN 表达式为 Ktorm InListExpression
+     * Translate IN expression to Ktorm InListExpression
+     *
+     * @param expr IN 表达式 / IN expression
+     * @return Ktorm IN 列表条件 / Ktorm IN list condition
+     */
     private fun translateIn(expr: InExpression<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a column reference", expr)
@@ -108,6 +129,13 @@ class KtormBooleanTranslator(
         ))
     }
 
+    /**
+     * 翻译模式匹配表达式为 LIKE 或正则条件
+     * Translate pattern match expression to LIKE or regex condition
+     *
+     * @param expr 模式匹配表达式 / Pattern match expression
+     * @return Ktorm 模式匹配条件 / Ktorm pattern match condition
+     */
     private fun translatePatternMatch(expr: PatternMatch<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a column reference", expr)
@@ -134,27 +162,64 @@ class KtormBooleanTranslator(
         return Ok(if (expr.negated) condition.not() else condition)
     }
 
+    /**
+     * 翻译空值检查表达式为 IS NULL / IS NOT NULL
+     * Translate null check expression to IS NULL / IS NOT NULL
+     *
+     * @param expr 空值检查表达式 / Null check expression
+     * @return Ktorm 空值检查条件 / Ktorm null check condition
+     */
     private fun translateNullCheck(expr: NullCheck): Ret<ColumnDeclaring<Boolean>?> {
         val column = resolveColumn(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
         return Ok(if (expr.isNull) column.isNull() else column.isNotNull())
     }
 
+    /**
+     * 翻译 AND 逻辑表达式为 Ktorm AND 组合条件
+     * Translate AND logical expression to Ktorm AND combined condition
+     *
+     * @param expr AND 表达式 / AND expression
+     * @return Ktorm AND 条件 / Ktorm AND condition
+     */
     private fun translateAnd(expr: AndExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(conditions.reduce { acc, cond -> acc.and(cond) })
     }
 
+    /**
+     * 翻译 OR 逻辑表达式为 Ktorm OR 组合条件
+     * Translate OR logical expression to Ktorm OR combined condition
+     *
+     * @param expr OR 表达式 / OR expression
+     * @return Ktorm OR 条件 / Ktorm OR condition
+     */
     private fun translateOr(expr: OrExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(conditions.reduce { acc, cond -> acc.or(cond) })
     }
 
+    /**
+     * 翻译 NOT 逻辑表达式为 Ktorm NOT 条件
+     * Translate NOT logical expression to Ktorm NOT condition
+     *
+     * @param expr NOT 表达式 / NOT expression
+     * @return Ktorm NOT 条件 / Ktorm NOT condition
+     */
     private fun translateNot(expr: NotExpression): Ret<ColumnDeclaring<Boolean>?> {
         val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
         return Ok(condition.not())
     }
 
+    /**
+     * 构建 Ktorm 二元比较表达式
+     * Build Ktorm binary comparison expression
+     *
+     * @param left 左操作数标量表达式 / Left operand scalar expression
+     * @param right 右操作数标量表达式 / Right operand scalar expression
+     * @param operator 比较操作符 / Comparison operator
+     * @return Ktorm 布尔比较表达式 / Ktorm boolean comparison expression
+     */
     private fun buildComparison(
         left: ScalarExpression<*>,
         right: ScalarExpression<*>,

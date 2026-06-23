@@ -5,21 +5,21 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import kotlin.math.ceil
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.multiarray.Shape1
-import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.symbol.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * BPP3D 需求域。
@@ -151,18 +151,37 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous) == Bpp3dDemandDomain.Discrete
 }
 
+/**
+ * 货物需求数据类。
+ * Item demand data class.
+ *
+ * @param V 数值类型 / numeric type
+ */
 data class Bpp3dItemDemand<V : FloatingNumber<V>>(
     override val item: Item,
     override val quantity: Quantity<V>,
     override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Item
 ) : ItemDemand<V>
 
+/**
+ * 物料需求数据类。
+ * Material demand data class.
+ *
+ * @param V 数值类型 / numeric type
+ */
 data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
     override val material: MaterialKey,
     override val quantity: Quantity<V>,
     override val mode: Bpp3dDemandMode = Bpp3dDemandMode.Material
 ) : MaterialDemand<V>
 
+/**
+ * 校验并解析货物需求模式，返回 Ret 以替代抛出异常。
+ * Validate and resolve item demand mode, returning Ret instead of throwing.
+ *
+ * @param mode 待校验的需求模式 / demand mode to validate
+ * @return 成功时返回合法的货物需求模式，失败时返回错误 / valid item demand mode on success, error on failure
+ */
 private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Item,
@@ -173,6 +192,13 @@ private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     }
 }
 
+/**
+ * 校验并解析物料需求模式，返回 Ret 以替代抛出异常。
+ * Validate and resolve material demand mode, returning Ret instead of throwing.
+ *
+ * @param mode 待校验的需求模式 / demand mode to validate
+ * @return 成功时返回合法的物料需求模式，失败时返回错误 / valid material demand mode on success, error on failure
+ */
 private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Material,
@@ -194,6 +220,7 @@ private fun demandValueFromQuantity(
     }
 }
 
+/** 精确需求范围 / Exact demand range */
 private fun exactDemandRange(value: FltX): ValueRange<FltX> {
     return ValueRange(
         value,
@@ -204,6 +231,14 @@ private fun exactDemandRange(value: FltX): ValueRange<FltX> {
     ).value!!
 }
 
+/**
+ * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。
+ * Build demand entries from item-quantity pairs, mapping directly to Item mode.
+ *
+ * @param items 货物与数量的配对列表 / list of item-quantity pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -220,6 +255,14 @@ fun demandEntriesFromItemDemands(
     }
 }
 
+/**
+ * 从带标签的货物需求列表构建需求条目，校验需求模式合法性。
+ * Build demand entries from labeled item demands, validating demand mode legality.
+ *
+ * @param items 带标签的货物需求列表 / list of labeled item demands
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
+ */
 fun demandEntriesFromLabeledItemDemands(
     items: List<ItemDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -243,6 +286,14 @@ fun demandEntriesFromLabeledItemDemands(
     return ok(entries)
 }
 
+/**
+ * 从货物-数量对列表构建需求条目，直接映射为 Item 模式。
+ * Build demand entries from item-amount pairs, mapping directly to Item mode.
+ *
+ * @param items 货物与数量的配对列表 / list of item-amount pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromItems(
     items: List<Pair<Item, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -259,6 +310,14 @@ fun demandEntriesFromItems(
     }
 }
 
+/**
+ * 从货物-数量-范围三元组列表构建需求条目。
+ * Build demand entries from item-amount-range triple list.
+ *
+ * @param items 货物、数量和范围的三元组列表 / list of item-amount-range triples
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -274,6 +333,14 @@ fun demandEntriesFromItemRanges(
     }
 }
 
+/**
+ * 从物料需求列表按 MaterialKey 构建需求条目，校验需求模式合法性。
+ * Build demand entries from material demands by MaterialKey, validating demand mode legality.
+ *
+ * @param materials 物料需求列表 / list of material demands
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
+ */
 private fun demandEntriesFromMaterialDemandsByKey(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -297,6 +364,14 @@ private fun demandEntriesFromMaterialDemandsByKey(
     return ok(entries)
 }
 
+/**
+ * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。
+ * Build demand entries from material-quantity pairs, mapping directly to Material mode.
+ *
+ * @param materials 物料与数量的配对列表 / list of material-quantity pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromMaterialDemands(
     materials: List<Pair<Material<FltX>, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -313,6 +388,14 @@ fun demandEntriesFromMaterialDemands(
     }
 }
 
+/**
+ * 从带标签的物料需求列表构建需求条目，校验需求模式合法性。
+ * Build demand entries from labeled material demands, validating demand mode legality.
+ *
+ * @param materials 带标签的物料需求列表 / list of labeled material demands
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
+ */
 fun demandEntriesFromLabeledMaterialDemands(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -323,6 +406,14 @@ fun demandEntriesFromLabeledMaterialDemands(
     )
 }
 
+/**
+ * 从物料键-数量对列表构建需求条目，直接使用数量适配器转换。
+ * Build demand entries from material key-amount pairs, converting directly via amount adapter.
+ *
+ * @param materials 物料键与数量的配对列表 / list of material key-amount pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -339,6 +430,14 @@ private fun demandEntriesFromMaterialAmountsByKey(
     }
 }
 
+/**
+ * 从物料-数量对列表构建需求条目，直接映射为 Material 模式。
+ * Build demand entries from material-amount pairs, mapping directly to Material mode.
+ *
+ * @param materials 物料与数量的配对列表 / list of material-amount pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromMaterialAmounts(
     materials: List<Pair<Material<FltX>, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -349,6 +448,14 @@ fun demandEntriesFromMaterialAmounts(
     )
 }
 
+/**
+ * 从物料键-重量对列表构建需求条目，直接映射为 Material 模式。
+ * Build demand entries from material key-weight pairs, mapping directly to Material mode.
+ *
+ * @param materials 物料键与重量的配对列表 / list of material key-weight pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -365,6 +472,14 @@ private fun demandEntriesFromMaterialWeightsByKey(
     }
 }
 
+/**
+ * 从物料-重量对列表构建需求条目，直接映射为 Material 模式。
+ * Build demand entries from material-weight pairs, mapping directly to Material mode.
+ *
+ * @param materials 物料与重量的配对列表 / list of material-weight pairs
+ * @param demandValueAdapter 需求值适配器 / demand value adapter
+ * @return 需求条目列表 / list of demand entries
+ */
 fun demandEntriesFromMaterialWeights(
     materials: List<Pair<Material<FltX>, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter

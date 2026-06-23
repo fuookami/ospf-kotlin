@@ -123,6 +123,7 @@ class SimpleBlockGeneratorContractTest {
     }
 
     @Test
+/** 验证简单块生成器拒绝侧面朝向的圆柱 / Verify simple block generator rejects cylinder with side orientation */
     fun simpleBlockGeneratorShouldRejectCylinderWithSideOrientation() = runBlocking {
         val generator = SimpleBlockGenerator(
             config = SimpleBlockGenerator.Config(

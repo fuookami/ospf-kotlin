@@ -4,10 +4,10 @@ package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
-import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.functional.*
+import com.gurobi.gurobi.*
 
 /** Gurobi 11 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / Gurobi 11 solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 abstract class GurobiSolver : AutoCloseable {

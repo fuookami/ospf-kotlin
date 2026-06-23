@@ -17,17 +17,17 @@
  */
 package fuookami.ospf.kotlin.math.symbol
 
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 // ============================================================================
 // 符号多项式物理量的单位转换
@@ -162,6 +162,7 @@ fun Quantity<CanonicalPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<Canoni
 // Addition and subtraction for symbol polynomial quantities
 // ============================================================================
 
+/** 安全转换符号物理量操作数 / Safely convert symbol quantity operand */
 private fun <P> Quantity<P>.convertSymbolQuantityOperandSafe(
     other: Quantity<P>,
     operation: String,

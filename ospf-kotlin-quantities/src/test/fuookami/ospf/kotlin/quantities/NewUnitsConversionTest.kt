@@ -3,10 +3,10 @@ package fuookami.ospf.kotlin.quantities
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.Byte as InfoByte
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.dimension.*
 
 class NewUnitsConversionTest {
     // ========================================================================

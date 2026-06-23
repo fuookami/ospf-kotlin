@@ -10,11 +10,11 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.utils.functional.Order
 
 // ============================================================================
 // 一元二次多项式系数提取 / Univariate quadratic polynomial coefficient extraction

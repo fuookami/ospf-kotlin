@@ -4,20 +4,20 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 private val shadowPriceConverter = IntoValue.fromConverter(FltX)
 
@@ -127,6 +127,13 @@ open class DemandConstraint<
     private val shadowPriceExtractor: ((Args) -> FltX?)? = null,
     override val name: String = "demand"
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
+    /**
+     * 按索引获取负载符号，越界时返回错误而非抛出异常。
+     * Retrieve the load symbol by index, returning an error instead of throwing on out-of-bounds.
+     *
+     * @param index 符号索引 / symbol index
+     * @return 成功时返回符号，索引越界时返回错误 / symbol on success, error if index is out of bounds
+     */
     private fun symbolAt(index: Int): Ret<Symbol> {
         return runCatching { load.load[index] as Symbol }.getOrNull()?.let { ok(it) }
             ?: Failed(ErrorCode.IllegalArgument, "Missing load symbol at index $index")

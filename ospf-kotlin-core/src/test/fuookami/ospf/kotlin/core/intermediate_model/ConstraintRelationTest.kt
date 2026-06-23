@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.core.model.basic.*
 
 class ConstraintRelationTest {
     @Test
@@ -17,6 +17,7 @@ class ConstraintRelationTest {
     }
 
     @Test
+    /** 验证 fromComparison 对 NE 返回失败 / Verify fromComparison fails on NE */
     fun fromComparisonShouldFailOnNE() {
         assertNull(ConstraintRelation.ofOrNull(Comparison.NE))
         assertTrue(ConstraintRelation.ofSafe(Comparison.NE).failed)

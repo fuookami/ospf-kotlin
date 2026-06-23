@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 
+/** 获取 Ret 错误消息或失败 / Get Ret error message or fail */
 private fun Ret<*>.errorMessageOrFail(message: String): String {
     return when (this) {
         is Ok -> fail(message)

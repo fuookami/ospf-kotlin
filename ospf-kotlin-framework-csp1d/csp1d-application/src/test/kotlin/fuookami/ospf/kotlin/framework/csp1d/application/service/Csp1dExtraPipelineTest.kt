@@ -4,8 +4,16 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.framework.csp1d.application.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
+import fuookami.ospf.kotlin.framework.model.Pipeline
+import fuookami.ospf.kotlin.framework.solver.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -13,16 +21,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.solver.output.*
-import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.framework.csp1d.application.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
-import fuookami.ospf.kotlin.framework.model.Pipeline
-import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 扩展管线集成测试 / Extra pipeline integration test
@@ -169,6 +169,7 @@ class Csp1dExtraPipelineTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun extraPipelineShouldRegisterSameUnitLengthConstraint(): Unit = runBlocking {
         val material = testMaterial("mat1")
         val product = testProduct("prod1")
@@ -215,6 +216,7 @@ class Csp1dExtraPipelineTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun extraPipelineShouldRegisterSameWidthConstraint(): Unit = runBlocking {
         val material = testMaterial("mat1")
         val product = testProduct("prod1")
@@ -253,6 +255,7 @@ class Csp1dExtraPipelineTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun multipleExtraPipelinesShouldAllRegister(): Unit = runBlocking {
         val material1 = testMaterial("mat1")
         val material2 = testMaterial("mat2")
@@ -300,6 +303,7 @@ class Csp1dExtraPipelineTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun extraPipelineShouldWorkWithLpMode(): Unit = runBlocking {
         val material = testMaterial("mat1")
         val product = testProduct("prod1")

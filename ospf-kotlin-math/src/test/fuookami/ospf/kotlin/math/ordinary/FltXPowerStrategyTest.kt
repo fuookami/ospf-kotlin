@@ -63,6 +63,7 @@ class FltXPowerStrategyTest {
     }
 
     @Test
+    /** 验证非正底数分数指数幂失败 / Verify pow fails for fractional exponent on non-positive base */
     fun powShouldFailForFractionalExponentOnNonPositiveBase() {
         val digits = 18
         val precision = FltXPowerStrategy.defaultPrecision(digits)

@@ -4,9 +4,9 @@ package fuookami.ospf.kotlin.core.solver.output
 import kotlin.test.assertEquals
 import kotlin.time.Duration.Companion.seconds
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.core.testing.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class GenericSolverOutputConversionTest {
     @Test

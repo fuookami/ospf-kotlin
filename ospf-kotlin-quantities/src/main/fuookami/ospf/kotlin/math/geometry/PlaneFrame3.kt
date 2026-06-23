@@ -7,12 +7,12 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 /**
  * 二维平面上的点
@@ -191,6 +191,7 @@ class QuantityPlaneFrame3 private constructor(
         )
     }
 
+    /** 判断相等性 / Check equality */
     override fun equals(other: Any?): Boolean {
         if (this === other) {
             return true
@@ -201,16 +202,19 @@ class QuantityPlaneFrame3 private constructor(
         return firstAxis == other.firstAxis && secondAxis == other.secondAxis
     }
 
+    /** 计算哈希码 / Compute hash code */
     override fun hashCode(): Int {
         var result = firstAxis.hashCode()
         result = 31 * result + secondAxis.hashCode()
         return result
     }
 
+    /** 转换为字符串表示 / Convert to string representation */
     override fun toString(): String {
         return "QuantityPlaneFrame3(firstAxis=$firstAxis, secondAxis=$secondAxis)"
     }
 
+    /** 工厂方法 / Factory methods */
     companion object {
         /** 创建平面框架，非法轴组合返回失败 / Create a plane frame, returning failure for invalid axis combinations */
         fun of(firstAxis: Axis3, secondAxis: Axis3): Ret<QuantityPlaneFrame3> {

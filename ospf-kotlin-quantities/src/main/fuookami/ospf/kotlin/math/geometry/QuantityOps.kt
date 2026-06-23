@@ -7,16 +7,16 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
 
 /**
  * 两个物理量相加（内部辅助函数）
@@ -100,10 +100,12 @@ internal fun <V : FloatingNumber<V>> quantityMinusOrNull(lhs: Quantity<V>, rhs: 
     return quantityMinusSafe(lhs, rhs).value
 }
 
+/** 计算两个物理量的乘积（重载 1）/ Compute product of two quantities (overload 1) */
 internal fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return Quantity(lhs.value * rhs.value, lhs.unit * rhs.unit)
 }
 
+/** 计算两个物理量的乘积（重载 2）/ Compute product of two quantities (overload 2) */
 internal fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: V): Quantity<V> {
     return Quantity(lhs.value * rhs, lhs.unit)
 }

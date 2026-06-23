@@ -12,15 +12,15 @@ package fuookami.ospf.kotlin.math.algebra.number
 
 import java.math.BigInteger
 import kotlin.math.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 使用浮点基数计算整数的对数

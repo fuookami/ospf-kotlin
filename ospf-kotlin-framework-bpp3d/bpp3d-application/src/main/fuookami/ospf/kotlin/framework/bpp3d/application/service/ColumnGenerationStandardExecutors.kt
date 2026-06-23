@@ -420,6 +420,7 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
+    /** 获取层生成候选箱子类型 / Get layer generation candidate bin type */
     private fun layerGenerationCandidateBin(): BinType<FltX>? {
         return finalBins.firstOrNull()?.type
     }
@@ -594,6 +595,7 @@ class ColumnGenerationStandardExecutors(
         return token.doubleResult?.let { FltX(it) } ?: FltX.zero
     }
 
+    /** 标准化标量解决方案 / Normalize scalar solution */
     private fun normalizeScalarSolution(values: List<*>): Ret<List<FltX>> {
         return ok(values.mapIndexed { index, value ->
             when (value) {

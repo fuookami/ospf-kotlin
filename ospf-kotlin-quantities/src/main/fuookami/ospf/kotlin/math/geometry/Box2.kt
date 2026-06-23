@@ -7,14 +7,14 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.quantities.quantity.*
 
 /**
  * 二维包围盒
@@ -90,6 +90,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     private val centerXOrNull: Quantity<V>? get() = centerX().value
     private val centerYOrNull: Quantity<V>? get() = centerY().value
 
+    /** 计算包围盒中心 X 坐标 / Compute bounding box center X coordinate */
     private fun centerX(): Ret<Quantity<V>> {
         return when (val s = shape) {
             is QuantityRectangle2 -> ok(x)
@@ -97,6 +98,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         }
     }
 
+    /** 计算包围盒中心 Y 坐标 / Compute bounding box center Y coordinate */
     private fun centerY(): Ret<Quantity<V>> {
         return when (val s = shape) {
             is QuantityRectangle2 -> ok(y)
@@ -293,6 +295,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         ))
     }
 
+    /** 判断矩形是否重叠 / Check if rectangles overlap */
     private fun rectangleOverlapped(rhs: QuantityBox2<V>): Ret<Boolean> {
         val thisMaxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -349,6 +352,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         return ok(true)
     }
 
+    /** 判断矩形与圆形是否重叠 / Check if rectangle and circle overlap */
     private fun rectCircleOverlapped(circleBox: QuantityBox2<V>, circle: QuantityCircle2<V>): Ret<Boolean> {
         val maxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -404,6 +408,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         return ok(ord is Order.Less || ord is Order.Equal)
     }
 
+    /** 判断两个圆形是否重叠 / Check if two circles overlap */
     private fun circleOverlapped(rhs: QuantityBox2<V>, lhs: QuantityCircle2<V>, rhsCircle: QuantityCircle2<V>): Ret<Boolean> {
         val centerX = when (val result = centerX()) {
             is Ok -> result.value

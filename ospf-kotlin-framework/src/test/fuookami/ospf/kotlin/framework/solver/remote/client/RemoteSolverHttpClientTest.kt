@@ -1,20 +1,24 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
-import kotlin.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.error.ExErr
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 
+/**
+ * 远程求解器 HTTP 客户端测试。
+ * Remote solver HTTP client tests.
+ */
 class RemoteSolverHttpClientTest {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -199,6 +203,7 @@ class RemoteSolverHttpClientTest {
     }
 
     @Test
+    /** 验证错误信封包含详情 / Verify error envelope contains detail */
     fun errorEnvelopeShouldContainDetailInExErrValue() {
         val http = RecordingHttpHandler(
             RemoteSolverHttpResponse(

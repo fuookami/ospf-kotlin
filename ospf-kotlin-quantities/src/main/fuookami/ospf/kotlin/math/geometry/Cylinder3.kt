@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * 三维轴线段

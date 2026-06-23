@@ -80,12 +80,14 @@ class ItemMergerCylinderTest {
         }
     }
 
+    /** 断言仅立方体错误 / Assert cuboid-only error */
     private fun assertCuboidOnlyError(result: Ret<*>) {
         assertTrue(result is Failed)
         assertTrue(result.message.contains("item merge paths are cuboid-only"))
     }
 
     @Test
+    /** 验证顶层合并拒绝圆柱 / Verify top-level merge rejects cylinder */
     fun itemMergerShouldRejectCylinderInTopLevelMerge() = runBlocking {
         val result = ItemMerger.merge(
             items = listOf(cylinderItem("cylinder-top-level")),
@@ -98,6 +100,7 @@ class ItemMergerCylinderTest {
     }
 
     @Test
+    /** 验证堆叠合并拒绝圆柱 / Verify pile merge rejects cylinder */
     fun itemMergerShouldRejectCylinderInPileMerge() {
         val result = ItemMerger.mergePiles(
             items = listOf(cylinderItem("cylinder-pile")),
@@ -109,6 +112,7 @@ class ItemMergerCylinderTest {
     }
 
     @Test
+    /** 验证块合并拒绝圆柱 / Verify block merge rejects cylinder */
     fun itemMergerShouldRejectCylinderInBlockMerge() {
         val result = ItemMerger.mergeBlocks(
             items = listOf(cylinderItem("cylinder-block")),
@@ -120,6 +124,7 @@ class ItemMergerCylinderTest {
     }
 
     @Test
+    /** 验证模式块合并拒绝圆柱 / Verify pattern block merge rejects cylinder */
     fun itemMergerShouldRejectCylinderInPatternBlockMerge() = runBlocking {
         val result = ItemMerger.mergePatternBlocks(
             items = listOf(cylinderItem("cylinder-pattern-block")),
@@ -132,6 +137,7 @@ class ItemMergerCylinderTest {
     }
 
     @Test
+    /** 验证空心方形合并拒绝圆柱 / Verify hollow square merge rejects cylinder */
     fun itemMergerShouldRejectCylinderInHollowSquareMerge() {
         val result = ItemMerger.mergeHollowSquareBlocks(
             items = mapOf(cylinderItem("cylinder-hollow") to UInt64(8)),

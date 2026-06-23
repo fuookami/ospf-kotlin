@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
 
-import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
+import fuookami.ospf.kotlin.utils.error.*
 
 /**
  * 不支持谓词策略
@@ -81,6 +81,7 @@ data class UnsupportedPredicateDetail(
     val policy: UnsupportedPredicatePolicy,
     val backendName: String
 ) {
+    /** 工厂方法 / Factory methods */
     companion object {
         /**
          * 创建 FailFast 策略的详情

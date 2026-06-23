@@ -7,19 +7,33 @@
  */
 package fuookami.ospf.kotlin.multiarray.einsum
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
+/**
+ * 构建 einsum 操作失败结果。
+ * Build einsum operation failure result.
+ *
+ * @param error einsum 错误 / Einsum error
+ * @return 失败的 Ret 结果 / Failed Ret result
+ */
 @PublishedApi
 internal fun <T> einsumFailed(error: EinsumError): Ret<T> {
     return Failed(ErrorCode.IllegalArgument, error.message)
 }
 
+/**
+ * 构建 einsum 操作失败结果。
+ * Build einsum operation failure result.
+ *
+ * @param message 错误描述 / Error description
+ * @return 失败的 Ret 结果 / Failed Ret result
+ */
 @PublishedApi
 internal fun <T> einsumFailed(message: String): Ret<T> {
     return Failed(ErrorCode.IllegalArgument, message)

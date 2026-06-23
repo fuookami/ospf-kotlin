@@ -4,12 +4,6 @@ import kotlin.test.*
 import kotlin.time.Duration
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.solver.output.*
@@ -17,10 +11,16 @@ import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * CSP1D 验收测试使用的 fake solver / Fake solver for CSP1D acceptance tests
@@ -183,6 +183,7 @@ class Csp1dApplicationAcceptanceTest {
     private val fakeSolver = Csp1dFakeSolver()
 
     @Test
+    /** 测试方法 / Test method */
     fun milpShouldSolveRollDemandWithoutDownstreamDependency(): Unit = runBlocking {
         val product = product(
             id = "p-roll",
@@ -283,6 +284,7 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun milpShouldCoverCostarRestWidthWithoutMisreportingMachineCapacity(): Unit = runBlocking {
         val product = product(
             id = "p-capacity",
@@ -496,6 +498,7 @@ class Csp1dApplicationAcceptanceTest {
     }
 
     @Test
+    /** 测试方法 / Test method */
     fun columnGenerationShouldSolveInitialPlans(): Unit = runBlocking {
         val product = product(
             id = "p-cg",

@@ -15,16 +15,16 @@
 package fuookami.ospf.kotlin.math.algebra.number
 
 import kotlin.ConsistentCopyVisibility
-import kotlinx.serialization.json.*
-import kotlinx.serialization.encoding.*
-import kotlinx.serialization.descriptors.*
 import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.functional.*
+import kotlinx.serialization.descriptors.*
+import kotlinx.serialization.encoding.*
+import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 确保分母不为零
@@ -45,11 +45,13 @@ private fun <I> ensureNonZeroDenominator(den: I)
     }
 }
 
+/** 判断分母是否为零 / Check if denominator is zero */
 private fun <I> isZeroDenominator(den: I): Boolean
         where I : Integer<I>, I : NumberField<I> {
     return den eq den.constants.zero
 }
 
+/** 构建分母为零的失败结果 / Build zero denominator failure result */
 private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
     return Failed(
         ErrorCode.IllegalArgument,
@@ -68,6 +70,7 @@ private inline fun <Self, I> rationalOf(
     }
 }
 
+/** 将 Ret 结果转换为可空值 / Convert Ret result to nullable value */
 private fun <Self> Ret<Self>.orNull(): Self? {
     return when (this) {
         is Ok -> value
@@ -414,6 +417,7 @@ data class Rtn8 internal constructor(
     override val num: Int8,
     override val den: Int8
 ) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
         fun of(num: Int8, den: Int8): Ret<Rtn8> {
             return rationalOf(den) {
@@ -530,6 +534,7 @@ data class Rtn16 internal constructor(
     override val num: Int16,
     override val den: Int16
 ) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
         fun of(num: Int16, den: Int16): Ret<Rtn16> {
             return rationalOf(den) {
@@ -636,6 +641,7 @@ data class Rtn32 internal constructor(
     override val num: Int32,
     override val den: Int32
 ) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
         fun of(num: Int32, den: Int32): Ret<Rtn32> {
             return rationalOf(den) {
@@ -742,6 +748,7 @@ data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64ValueConverter<Rtn64> {
         fun of(num: Int64, den: Int64): Ret<Rtn64> {
             return rationalOf(den) {
@@ -853,6 +860,7 @@ data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64ValueConverter<RtnX> {
         fun of(num: Int, den: Int): Ret<RtnX> {
             return of(IntX(num.toLong()), IntX(den.toLong()))
@@ -979,6 +987,7 @@ data class URtn8 internal constructor(
     override val num: UInt8,
     override val den: UInt8
 ) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         fun of(num: UInt8, den: UInt8): Ret<URtn8> {
             return rationalOf(den) {
@@ -1085,6 +1094,7 @@ data class URtn16 internal constructor(
     override val num: UInt16,
     override val den: UInt16
 ) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         fun of(num: UInt16, den: UInt16): Ret<URtn16> {
             return rationalOf(den) {
@@ -1191,6 +1201,7 @@ data class URtn32 internal constructor(
     override val num: UInt32,
     override val den: UInt32
 ) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         fun of(num: UInt32, den: UInt32): Ret<URtn32> {
             return rationalOf(den) {
@@ -1297,6 +1308,7 @@ data class URtn64 internal constructor(
     override val num: UInt64,
     override val den: UInt64
 ) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         fun of(num: UInt64, den: UInt64): Ret<URtn64> {
             return rationalOf(den) {
@@ -1415,6 +1427,7 @@ data class URtnX internal constructor(
     override val num: UIntX,
     override val den: UIntX
 ) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
+    /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         fun of(num: UIntX, den: UIntX): Ret<URtnX> {
             return rationalOf(den) {

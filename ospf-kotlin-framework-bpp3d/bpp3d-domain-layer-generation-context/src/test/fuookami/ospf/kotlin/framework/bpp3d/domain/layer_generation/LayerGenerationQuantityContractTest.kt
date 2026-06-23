@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.PackingRendererAdapter
 
+/** 解包 Ret 值，失败时抛出断言错误 / Unwrap Ret value, throw on failure */
 private fun <T> Ret<T>.valueOrFail(message: String): T {
     return value ?: fail(message)
 }
@@ -25,6 +26,7 @@ private fun <T> Ret<T>.valueOrFail(message: String): T {
 class LayerGenerationQuantityContractTest {
     private val cargo = object : AbstractCargoAttribute {}
 
+    /** 创建默认包装属性 / Create default package attribute */
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
@@ -35,10 +37,12 @@ class LayerGenerationQuantityContractTest {
         )
     }
 
+    /** 创建量纲值 / Create quantity value */
     private fun q(value: FltX, unit: PhysicalUnit): Quantity<FltX> {
         return value * unit
     }
 
+    /** 创建测试用圆柱货物 / Create test cylinder item */
     private fun cylinderItem(
         id: String,
         axis: Axis3,
@@ -94,6 +98,7 @@ class LayerGenerationQuantityContractTest {
         )
     }
 
+    /** 创建测试用长方体货物 / Create test cuboid item */
     private fun cuboidItem(
         id: String,
         widthValue: Double = 1.0,
@@ -124,6 +129,7 @@ class LayerGenerationQuantityContractTest {
         )
     }
 
+    /** 断言圆形装箱层几何正确性 / Assert circle packing layer geometry correctness */
     private fun assertCirclePackingLayerGeometry(layer: BinLayer) {
         val shapePlacements = layer.units.map { placement ->
             val shape = placement.resolvedPackingShape()
@@ -138,6 +144,7 @@ class LayerGenerationQuantityContractTest {
         }
     }
 
+    /** 断言堆叠层几何正确性 / Assert stacked layer geometry correctness */
     private fun assertStackedLayerGeometry(layer: BinLayer) {
         val shapePlacements = layer.units.map { placement ->
             val shape = placement.resolvedPackingShape()
@@ -666,6 +673,7 @@ class LayerGenerationQuantityContractTest {
     }
 
     @Test
+    /** 验证水平圆柱轴时堆层生成器返回空 / Verify pile layer generator returns empty for horizontal cylinder axes */
     fun pileLayerGeneratorShouldReturnEmptyForHorizontalCylinderAxes() = runBlocking {
         val bin = BinType(
             width = FltX(1.0) * Meter,
@@ -697,6 +705,7 @@ class LayerGenerationQuantityContractTest {
     }
 
     @Test
+    /** 验证无容器时回退层生成器返回空 / Verify fallback layer generators return empty without bin */
     fun fallbackLayerGeneratorsShouldReturnEmptyForHorizontalCylinderAxesWithoutBin() = runBlocking {
         val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
             "block" to BlockLayerGenerator<FltX>(),
@@ -728,6 +737,7 @@ class LayerGenerationQuantityContractTest {
     }
 
     @Test
+    /** 验证有容器时装载层生成器返回空 / Verify block loading layer generators return empty with bin */
     fun blockLoadingLayerGeneratorsShouldReturnEmptyForHorizontalCylinderAxesWithBin() = runBlocking {
         val generators: List<Pair<String, Bpp3dLayerGenerator<FltX>>> = listOf(
             "block" to BlockLayerGenerator<FltX>(),

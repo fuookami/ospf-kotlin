@@ -11,10 +11,10 @@
 package fuookami.ospf.kotlin.quantities
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
 
 private fun Flt64.assertApprox(expected: Flt64, epsilon: Double = 1e-10) {
     assertTrue(

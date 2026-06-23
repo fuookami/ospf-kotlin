@@ -4,11 +4,11 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.LoadingOrderCalculator
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.CylinderPackingShape3
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -24,6 +24,14 @@ class Packer(
         sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
     )
 ) {
+    /**
+     * 校验每层中圆柱体的轴向是否一致。同一层内不允许混合不同轴向的圆柱体。
+     * Validate that cylinder axes are consistent within each layer. Mixed cylinder axes in the same layer are not allowed.
+     *
+     * @param bin 待校验的箱子 / bin to validate
+     * @param source 调用来源标识 / caller source identifier
+     * @return 校验结果，轴向不一致时失败 / validation result, fails when mixed axes are detected
+     */
     private fun requireSingleCylinderAxisPerLayer(
         bin: Bin<BinLayer, FltX>,
         source: String

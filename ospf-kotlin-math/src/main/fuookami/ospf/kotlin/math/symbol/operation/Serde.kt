@@ -8,17 +8,17 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import java.io.ByteArrayInputStream
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.serde.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.serialization.*
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.serde.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * 将 Flt64 规范多项式序列化为 JSON 字符串
@@ -205,6 +205,7 @@ private fun comparisonFromDtoString(str: String): Ret<Comparison> {
     }
 }
 
+/** 转换 Flt64 规范多项式为 DTO / Convert Flt64 canonical polynomial to DTO */
 internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
     return CanonicalPolynomialData(
         monomials = monomials.map { CanonicalMonomialData(it.coefficient.value, it.powers.mapKeys { it.key.toDtoIdentifier() }.mapValues { it.value.toInt() }) },
@@ -212,6 +213,7 @@ internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
     )
 }
 
+/** 转换 Flt64 线性多项式为 DTO / Convert Flt64 linear polynomial to DTO */
 internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
     return LinearPolynomialData(
         monomials = monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) },
@@ -219,6 +221,7 @@ internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
     )
 }
 
+/** 转换 Flt64 二次多项式为 DTO / Convert Flt64 quadratic polynomial to DTO */
 internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
     return QuadraticPolynomialData(
         monomials = monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) },
@@ -226,6 +229,7 @@ internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
     )
 }
 
+/** 转换 Flt64 线性不等式为 DTO / Convert Flt64 linear inequality to DTO */
 internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
     return LinearInequalityData(
         lhs = LinearPolynomialData(lhs.monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) }, lhs.constant.value),
@@ -236,6 +240,7 @@ internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
     )
 }
 
+/** 转换 Flt64 二次不等式为 DTO / Convert Flt64 quadratic inequality to DTO */
 internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData {
     return QuadraticInequalityData(
         lhs = QuadraticPolynomialData(lhs.monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) }, lhs.constant.value),
@@ -246,6 +251,7 @@ internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData 
     )
 }
 
+/** 转换 Flt64 规范不等式为 DTO / Convert Flt64 canonical inequality to DTO */
 internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     val combinedLhs = lhs.combineTerms()
     val combinedRhs = rhs.combineTerms()
@@ -256,6 +262,7 @@ internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     )
 }
 
+/** 转换规范多项式数据为 Flt64 域 / Convert canonical polynomial data to Flt64 domain */
 internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalPolynomial<Flt64> {
     return CanonicalPolynomial(
         monomials = monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) },
@@ -263,6 +270,7 @@ internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
+/** 转换线性多项式数据为 Flt64 域 / Convert linear polynomial data to Flt64 domain */
 internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials = monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) },
@@ -270,6 +278,7 @@ internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): L
     )
 }
 
+/** 转换二次多项式数据为 Flt64 域 / Convert quadratic polynomial data to Flt64 domain */
 internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(
         monomials = monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) },
@@ -277,6 +286,7 @@ internal fun QuadraticPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
+/** 转换线性不等式数据为 Flt64 域 / Convert linear inequality data to Flt64 domain */
 internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<LinearInequality<Flt64>> {
     return comparisonFromDtoString(comparison).map { comparison ->
         LinearInequality(
@@ -289,6 +299,7 @@ internal fun LinearInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): R
     }
 }
 
+/** 转换二次不等式数据为 Flt64 域 / Convert quadratic inequality data to Flt64 domain */
 internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<QuadraticInequalityOf<Flt64>> {
     return comparisonFromDtoString(comparison).map { comparison ->
         QuadraticInequalityOf(
@@ -301,6 +312,7 @@ internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol)
     }
 }
 
+/** 转换标准不等式数据为 Flt64 域 / Convert canonical inequality data to Flt64 domain */
 internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): Ret<CanonicalInequality<Flt64>> {
     return comparisonFromDtoString(comparison).map { comparison ->
         CanonicalInequality<Flt64>(

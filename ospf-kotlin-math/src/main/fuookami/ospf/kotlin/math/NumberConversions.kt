@@ -8,8 +8,8 @@
 package fuookami.ospf.kotlin.math
 
 import java.math.BigDecimal
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /** Boolean 转 Int8 / Convert Boolean to Int8 */

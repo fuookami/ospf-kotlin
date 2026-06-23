@@ -1,12 +1,12 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsage
 import fuookami.ospf.kotlin.framework.csp1d.domain.wasting_minimization.model.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 浪费分析结果 / Waste analysis result
@@ -101,6 +101,14 @@ class WastingMinimizationContext<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 重复数量计算，用于浪费最小化。
+     * Repeat quantity calculation for waste minimization.
+     *
+     * @param q 待重复的数量 / Quantity to repeat
+     * @param times 重复次数 / Number of repetitions
+     * @return 重复后的总量 / Total quantity after repetition
+     */
     private fun repeatQuantity(q: Quantity<V>, times: UInt64): Ret<Quantity<V>> {
         var result = Quantity(q.value.constants.zero, q.unit)
         var count = UInt64.zero

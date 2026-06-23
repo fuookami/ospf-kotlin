@@ -4,16 +4,37 @@
  */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.functional.Generator
 
+/**
+ * 从范围中获取有限的变异率，若无法确定则返回默认值 0。
+ * Get a finite mutation rate from the range, defaulting to 0 if undetermined.
+ *
+ * 使用范围的上界作为变异率，若上界不存在则返回 Flt64.zero。
+ * Uses the upper bound of the range as the mutation rate; returns Flt64.zero if the upper bound is absent.
+ *
+ * @param range 变异率的值范围 / The value range for mutation rate
+ * @return 变异率 / The mutation rate
+ */
 private fun finiteMutationRateOrDefault(range: ValueRange<Flt64>): Flt64 {
     return range.upperBound.value.unwrapOrNull() ?: Flt64.zero
 }
 
+/**
+ * 在范围内随机生成变异率，若范围或随机数不可用则返回 null。
+ * Generate a random mutation rate within the range, returning null if the range or random value is unavailable.
+ *
+ * 通过在下界与上界之间随机插值来计算变异率。
+ * Calculates the mutation rate by interpolating randomly between the lower and upper bounds.
+ *
+ * @param range 变异率的值范围 / The value range for mutation rate
+ * @param randomGenerator 随机数生成器（产生 [0,1) 的 Flt64）/ Random number generator producing Flt64 in [0,1)
+ * @return 随机变异率，或 null / The random mutation rate, or null
+ */
 private fun randomMutationRateOrNull(
     range: ValueRange<Flt64>,
     randomGenerator: Generator<Flt64>
@@ -24,6 +45,17 @@ private fun randomMutationRateOrNull(
     return lowerBound + random * diff
 }
 
+/**
+ * 根据权重在范围内计算变异率，若范围不可用则返回 null。
+ * Calculate mutation rate within the range based on a weight, returning null if the range is unavailable.
+ *
+ * 通过权重在下界与上界之间进行线性插值来计算变异率。
+ * Calculates the mutation rate by linearly interpolating between the lower and upper bounds using the weight.
+ *
+ * @param range 变异率的值范围 / The value range for mutation rate
+ * @param weight 插值权重，通常在 [0,1] 之间 / Interpolation weight, typically in [0,1]
+ * @return 加权变异率，或 null / The weighted mutation rate, or null
+ */
 private fun weightedMutationRateOrNull(
     range: ValueRange<Flt64>,
     weight: Flt64
@@ -73,6 +105,13 @@ interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> 
 data class StaticMutationMode<ObjValue, V>(
     val mutationRate: Flt64? = null
 ) : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 对个体执行变异操作。
+     * Apply mutation operation to an individual.
+     *
+     * @param individual 待变异的个体 / Individual to mutate
+     * @return 变异后的个体 / Mutated individual
+     */
     override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,

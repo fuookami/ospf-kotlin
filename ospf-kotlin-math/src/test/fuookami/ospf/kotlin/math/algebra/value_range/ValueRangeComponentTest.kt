@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.math.algebra.value_range
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * Tests for ValueRange subcomponents: Bound, Interval, ValueWrapper

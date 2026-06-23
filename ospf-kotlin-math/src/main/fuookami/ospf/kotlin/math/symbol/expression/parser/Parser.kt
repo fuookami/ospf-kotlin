@@ -21,15 +21,15 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
+import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.Trivalent
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
-import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
 
 /**
  * 布尔表达式解析器

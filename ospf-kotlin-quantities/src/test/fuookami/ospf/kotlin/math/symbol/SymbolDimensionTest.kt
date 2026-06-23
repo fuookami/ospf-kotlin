@@ -2,12 +2,12 @@ package fuookami.ospf.kotlin.math.symbol
 
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 class SymbolDimensionTest {
     @Test

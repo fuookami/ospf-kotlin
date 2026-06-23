@@ -1,13 +1,13 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.yield
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregation
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 产出偏差聚合根 / Yield deviation aggregation root

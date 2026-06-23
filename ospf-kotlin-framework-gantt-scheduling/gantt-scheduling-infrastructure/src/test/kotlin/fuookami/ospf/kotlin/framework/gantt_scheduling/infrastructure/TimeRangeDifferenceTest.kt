@@ -4,9 +4,9 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.test.*
+import kotlin.time.Duration.Companion.hours
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
-import kotlin.time.Duration.Companion.hours
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 

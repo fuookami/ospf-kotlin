@@ -5,8 +5,13 @@ import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 远程求解器失败详情测试。
+ * Remote solver failure detail tests.
+ */
 class RemoteSolverFailureDetailTest {
     @Test
+    /** 验证详情包含所有字段 / Verify detail contains all fields */
     fun detailShouldContainAllFields() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.TASK_FAILED_HARD_TIMEOUT,
@@ -28,6 +33,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证详情默认空元数据 / Verify detail has default empty metadata */
     fun detailShouldHaveDefaultEmptyMetadata() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.INTERNAL_ERROR,
@@ -42,6 +48,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证 toApiCode 返回错误码名称 / Verify toApiCode returns code name */
     fun toApiCodeShouldReturnCodeName() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.NO_ELIGIBLE_NODE_AVAILABLE,
@@ -52,6 +59,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证 toReasonCode 返回错误码名称 / Verify toReasonCode returns code name */
     fun toReasonCodeShouldReturnCodeName() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.STORAGE_IO_FAILED,
@@ -62,6 +70,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证所有错误码被覆盖 / Verify all error codes are covered */
     fun allRemoteSolverErrorCodesShouldBeCovered() {
         // Verify that all error codes can be used in detail
         RemoteSolverErrorCode.entries.forEach { code ->
@@ -75,6 +84,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证失败结果包含详情 / Verify failed result contains detail */
     fun failedResultShouldContainDetailInExErrValue() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.TASK_FAILED_HARD_TIMEOUT,
@@ -105,6 +115,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证最小详情可提取 / Verify minimal detail is extractable */
     fun failedResultWithMinimalDetailShouldBeExtractable() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.INTERNAL_ERROR,
@@ -130,6 +141,7 @@ class RemoteSolverFailureDetailTest {
     }
 
     @Test
+    /** 验证自定义错误码包含详情 / Verify custom error code contains detail */
     fun failedResultWithCustomErrorCodeShouldContainDetail() {
         val detail = RemoteSolverFailureDetail(
             code = RemoteSolverErrorCode.NO_ELIGIBLE_NODE_AVAILABLE,

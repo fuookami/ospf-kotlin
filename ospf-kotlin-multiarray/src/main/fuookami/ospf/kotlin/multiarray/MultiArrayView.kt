@@ -229,6 +229,13 @@ class MultiArrayView<out T : Any, S : Shape>(
         return Ok(actualVectorUnchecked(v))
     }
 
+    /**
+     * 将视图索引向量转换为实际源数组索引向量（不检查边界）。
+     * Convert view index vector to actual source array index vector (no bounds check).
+     *
+     * @param v 视图索引向量 / View index vector
+     * @return 源数组索引向量 / Source array index vector
+     */
     private fun actualVectorUnchecked(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0
@@ -459,6 +466,13 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         return Ok(mapVectorUnchecked(v))
     }
 
+    /**
+     * 将映射视图索引向量转换为源数组索引向量（不检查边界）。
+     * Convert mapped view index vector to source array index vector (no bounds check).
+     *
+     * @param v 映射视图索引向量 / Mapped view index vector
+     * @return 源数组索引向量 / Source array index vector
+     */
     private fun mapVectorUnchecked(v: IntArray): IntArray {
         val result = IntArray(origin.dimension)
         var viewIndex = 0

@@ -22,9 +22,9 @@
  */
 package fuookami.ospf.kotlin.math.ordinary
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 可扩展的素数缓存

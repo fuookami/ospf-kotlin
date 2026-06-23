@@ -57,10 +57,10 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
-import kotlin.reflect.KClass
 import kotlin.ConsistentCopyVisibility
-import fuookami.ospf.kotlin.utils.error.*
+import kotlin.reflect.KClass
 import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -399,6 +399,14 @@ interface Shape {
     }
 }
 
+/**
+ * 构建维度不匹配的失败结果。
+ * Build failure result for dimension mismatch.
+ *
+ * @param dimension 期望维度 / Expected dimension
+ * @param vectorDimension 实际维度 / Actual dimension
+ * @return 失败的 Ret 结果 / Failed Ret result
+ */
 private fun <T> dimensionMismatchingFailure(
     dimension: Int,
     vectorDimension: Int
@@ -409,6 +417,15 @@ private fun <T> dimensionMismatchingFailure(
     )
 }
 
+/**
+ * 构建形状索引越界的失败结果。
+ * Build failure result for shape index out of bounds.
+ *
+ * @param dimension 越界维度 / Out-of-bounds dimension
+ * @param length 维度长度 / Dimension length
+ * @param vectorIndex 实际索引 / Actual index
+ * @return 失败的 Ret 结果 / Failed Ret result
+ */
 private fun <T> outOfShapeFailure(
     dimension: Int,
     length: Int,
@@ -420,6 +437,14 @@ private fun <T> outOfShapeFailure(
     )
 }
 
+/**
+ * 构建线性索引越界的失败结果。
+ * Build failure result for linear index out of bounds.
+ *
+ * @param index 实际索引 / Actual index
+ * @param size 数组大小 / Array size
+ * @return 失败的 Ret 结果 / Failed Ret result
+ */
 private fun <T> linearIndexOutOfBoundsFailure(
     index: Int,
     size: Int
@@ -532,6 +557,7 @@ data class Shape1 private constructor(
         return dimensions[index]
     }
 
+    /** 将索引向量转换为线性索引 / Convert index vector to linear index */
     override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             1 -> if (vector[0] < 0 || vector[0] >= d1) {
@@ -551,6 +577,7 @@ data class Shape1 private constructor(
         }
     }
 
+    /** 将线性索引转换为索引向量 / Convert linear index to index vector */
     override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= d1) {
             linearIndexOutOfBoundsFailure(
@@ -652,6 +679,7 @@ data class Shape2 private constructor(
         return dimensions[index]
     }
 
+    /** 将索引向量转换为线性索引 / Convert index vector to linear index */
     override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             2 -> {
@@ -679,6 +707,7 @@ data class Shape2 private constructor(
         }
     }
 
+    /** 将线性索引转换为索引向量 / Convert linear index to index vector */
     override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
             linearIndexOutOfBoundsFailure(
@@ -796,6 +825,7 @@ data class Shape3 private constructor(
         return dimensions[index]
     }
 
+    /** 将索引向量转换为线性索引 / Convert index vector to linear index */
     override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             3 -> {
@@ -829,6 +859,7 @@ data class Shape3 private constructor(
         }
     }
 
+    /** 将线性索引转换为索引向量 / Convert linear index to index vector */
     override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
             linearIndexOutOfBoundsFailure(
@@ -960,6 +991,7 @@ data class Shape4 private constructor(
         return dimensions[index]
     }
 
+    /** 将索引向量转换为线性索引 / Convert index vector to linear index */
     override fun index(vector: IntArray): Ret<Int> {
         return when (vector.size) {
             4 -> {
@@ -999,6 +1031,7 @@ data class Shape4 private constructor(
         }
     }
 
+    /** 将线性索引转换为索引向量 / Convert linear index to index vector */
     override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
             linearIndexOutOfBoundsFailure(
@@ -1183,6 +1216,7 @@ data class DynShape private constructor(
         return shape[index]
     }
 
+    /** 将索引向量转换为线性索引 / Convert index vector to linear index */
     override fun index(vector: IntArray): Ret<Int> {
         if (dimension != vector.size) {
             return dimensionMismatchingFailure(dimension, vector.size)
@@ -1201,6 +1235,7 @@ data class DynShape private constructor(
         return Ok(ret)
     }
 
+    /** 将线性索引转换为索引向量 / Convert linear index to index vector */
     override fun vector(index: Int): Ret<IntArray> {
         return if (index < 0 || index >= totalSize) {
             linearIndexOutOfBoundsFailure(

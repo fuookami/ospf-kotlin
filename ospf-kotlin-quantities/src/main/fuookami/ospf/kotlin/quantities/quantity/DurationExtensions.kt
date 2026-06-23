@@ -2,12 +2,12 @@
 package fuookami.ospf.kotlin.quantities.quantity
 
 import kotlin.time.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.dimension.Time
+import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.quantities.dimension.Time
 
 /**
  * 时间物理量与 kotlin.time.Duration 互转换扩展

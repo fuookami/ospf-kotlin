@@ -8,12 +8,12 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 import kotlin.reflect.*
 import kotlin.reflect.jvm.jvmName
 import kotlin.time.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingSolvingError
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingSolvingError
-import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
 /**
  * 任务类型，基于KClass / Task type based on KClass

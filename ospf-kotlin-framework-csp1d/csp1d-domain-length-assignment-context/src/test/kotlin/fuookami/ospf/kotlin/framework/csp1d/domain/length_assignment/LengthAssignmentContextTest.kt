@@ -2,15 +2,16 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
 class LengthAssignmentContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
+    /** 执行长度分配，失败时抛出断言错误 / Execute length assignment, throw on failure */
     private fun LengthAssignmentContext<Flt64>.assignOrFail(
         input: LengthAssignmentInput<Flt64>
     ): LengthAssignmentResult<Flt64> {

@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
-import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 internal enum class PolynomialTokenType {
     Number,
@@ -40,6 +40,7 @@ internal class PolynomialLexer(
 ) {
     private var index: Int = 0
 
+    /** 执行词法分析 / Execute lexical analysis */
     fun lex(): ParseResult<List<PolynomialToken>> {
         val tokens = ArrayList<PolynomialToken>()
         while (true) {

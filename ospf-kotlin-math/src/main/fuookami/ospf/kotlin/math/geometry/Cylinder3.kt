@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 三维轴对齐线段，沿某一轴从 from 到 to。

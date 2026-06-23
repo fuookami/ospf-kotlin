@@ -8,8 +8,8 @@ package fuookami.ospf.kotlin.utils.parallel
 
 import kotlin.math.*
 import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.sync.Semaphore
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 

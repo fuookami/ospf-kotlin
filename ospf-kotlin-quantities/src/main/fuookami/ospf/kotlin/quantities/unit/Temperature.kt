@@ -13,8 +13,8 @@
  */
 package fuookami.ospf.kotlin.quantities.unit
 
-import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.Temperature
 
 private val fahrenheitLinearScaleValue = FltX(5L) / FltX(9L)

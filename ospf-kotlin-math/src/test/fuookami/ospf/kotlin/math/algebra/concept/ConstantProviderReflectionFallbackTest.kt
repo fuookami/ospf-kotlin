@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.math.algebra.concept
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 class ConstantProviderReflectionFallbackTest {
     private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty

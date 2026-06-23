@@ -1,24 +1,24 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
-import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
+import java.net.URI
 import kotlin.time.Clock
 import kotlin.time.Duration
-import kotlin.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlinx.coroutines.delay
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 远程求解 HTTP 客户端。
@@ -56,6 +56,12 @@ class RemoteSolverHttpClient(
 ) : SolverExecutionPort {
     private val normalizedBaseUrl = baseUrl.trim().trimEnd('/')
 
+    /**
+     * 将远程求解器错误码转换为框架错误码。
+     * Convert remote solver error code to framework error code.
+     *
+     * @return 对应的框架错误码 / Corresponding framework error code
+     */
     private fun RemoteSolverErrorCode.toErrorCode(): ErrorCode {
         return when (this) {
             RemoteSolverErrorCode.INVALID_ARGUMENT -> ErrorCode.IllegalArgument
@@ -64,6 +70,15 @@ class RemoteSolverHttpClient(
         }
     }
 
+    /**
+     * 构建远程求解器错误消息。
+     * Build remote solver error message.
+     *
+     * @param code 错误码 / Error code
+     * @param message 错误描述 / Error description
+     * @param metadata 附加元数据 / Additional metadata
+     * @return 格式化的错误消息 / Formatted error message
+     */
     private fun remoteErrorMessage(
         code: RemoteSolverErrorCode,
         message: String,
@@ -76,6 +91,19 @@ class RemoteSolverHttpClient(
         }
     }
 
+    /**
+     * 构建远程求解器失败结果，包含详细错误信息。
+     * Build remote solver failure result with detailed error info.
+     *
+     * @param code 远程错误码 / Remote error code
+     * @param message 错误描述 / Error description
+     * @param metadata 附加元数据 / Additional metadata
+     * @param httpStatus HTTP 状态码（可选）/ HTTP status code (optional)
+     * @param taskId 任务 ID（可选）/ Task ID (optional)
+     * @param sliceId 切片 ID（可选）/ Slice ID (optional)
+     * @param requestId 请求 ID（可选）/ Request ID (optional)
+     * @return 失败的 Ret 结果 / Failed Ret result
+     */
     private fun <T> failedRemote(
         code: RemoteSolverErrorCode,
         message: String,
@@ -361,6 +389,13 @@ class RemoteSolverHttpClient(
         }
     }
 
+    /**
+     * 发送 HTTP 请求到远程求解器。
+     * Send HTTP request to remote solver.
+     *
+     * @param request HTTP 请求 / HTTP request
+     * @return HTTP 响应或失败结果 / HTTP response or failure result
+     */
     private fun send(request: RemoteSolverHttpRequest): Ret<RemoteSolverHttpResponse> {
         return try {
             Ok(transport.send(request))
@@ -465,6 +500,15 @@ class RemoteSolverHttpClient(
         ).map { it.toDomain() }
     }
 
+    /**
+     * 构建远程求解器 HTTP 请求，自动注入租户和追踪头。
+     * Build remote solver HTTP request with auto-injected tenant and trace headers.
+     *
+     * @param method HTTP 方法 / HTTP method
+     * @param path 请求路径 / Request path
+     * @param body 请求体（可选）/ Request body (optional)
+     * @return HTTP 请求对象 / HTTP request object
+     */
     private fun request(
         method: String,
         path: String,
@@ -488,6 +532,14 @@ class RemoteSolverHttpClient(
         )
     }
 
+    /**
+     * 解析 API 信封响应，提取数据或错误。
+     * Decode API envelope response, extract data or error.
+     *
+     * @param response HTTP 响应 / HTTP response
+     * @param dataDeserializer 数据反序列化器 / Data deserializer
+     * @return 解析后的数据或失败结果 / Parsed data or failure result
+     */
     private fun <T> decodeEnvelope(
         response: RemoteSolverHttpResponse,
         dataDeserializer: KSerializer<T>
@@ -531,6 +583,13 @@ class RemoteSolverHttpClient(
         )
     }
 
+    /**
+     * 解析错误响应，提取错误信息并构建失败结果。
+     * Decode error response, extract error info and build failure result.
+     *
+     * @param response HTTP 响应 / HTTP response
+     * @return 包含错误详情的失败结果 / Failure result with error details
+     */
     private fun <T> decodeError(response: RemoteSolverHttpResponse): Ret<T> {
         val body = response.body
         val envelope = runCatching {
@@ -553,11 +612,27 @@ class RemoteSolverHttpClient(
         )
     }
 
+    /**
+     * 将字符串错误码转换为 RemoteSolverErrorCode 枚举。
+     * Convert string error code to RemoteSolverErrorCode enum.
+     *
+     * @return 对应的远程求解错误码，无法识别时返回 INTERNAL_ERROR / Corresponding remote solver error code, or INTERNAL_ERROR if unrecognized
+     */
     private fun String.toRemoteErrorCode(): RemoteSolverErrorCode {
         return runCatching { RemoteSolverErrorCode.valueOf(this) }
             .getOrDefault(RemoteSolverErrorCode.INTERNAL_ERROR)
     }
 
+    /**
+     * 将求解载荷上传到对象存储。
+     * Upload solve payload to object storage.
+     *
+     * @param payload 求解载荷 / Solve payload
+     * @param taskId 任务 ID / Task ID
+     * @param sliceId 切片 ID / Slice ID
+     * @param tenantId 租户 ID / Tenant ID
+     * @return 对象引用或失败结果 / Object reference or failure result
+     */
     private suspend fun putPayload(
         payload: SolvePayload,
         taskId: TaskId,

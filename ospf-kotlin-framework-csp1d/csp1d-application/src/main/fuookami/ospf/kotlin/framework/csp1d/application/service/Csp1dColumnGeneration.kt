@@ -1,22 +1,22 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceInput
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 列生成终止原因 / Column generation termination reason
@@ -82,6 +82,25 @@ data class Csp1dColumnGenerationTrace(
     val lpFailureMessage: String? = null
 )
 
+/**
+ * CSP1D 列生成求解器 / CSP1D column generation solver
+ *
+ * 实现列生成主循环：初始方案生成 -> LP 松弛求解 -> pricing 定价 -> 加列迭代 -> 最终 MILP 整数求解。
+ * 支持 flow policy 自定义终止/去重/早停逻辑、warm start 初始方案注入、以及多种 pricing 生成器。
+ *
+ * Implements the column generation main loop: initial plan generation -> LP relaxation solve -> pricing -> column addition iteration -> final MILP integer solve.
+ * Supports flow policy custom termination/deduplication/early-stop logic, warm start initial plan injection, and multiple pricing generators.
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property solver 列生成求解器 / Column generation solver
+ * @property initialGenerator 初始方案生成器 / Initial cutting plan generator
+ * @property pricingGenerator 定价方案生成器 / Pricing cutting plan generator
+ * @property analyzer 解分析器 / Solution analyzer
+ * @property yieldConfig 默认 yield 建模配置 / Default yield modeling config
+ * @property wasteConfig 默认 waste 建模配置 / Default waste modeling config
+ * @property lengthConfig 默认 length 建模配置 / Default length modeling config
+ * @property warmStartPlanUsages warm start 方案使用量 / Warm start plan usages
+ */
 class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val solver: ColumnGenerationSolver,
     private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
@@ -98,6 +117,13 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         val domainValueSample: V
     )
 
+    /**
+     * 列生成求解（仅返回解）/ Column generation solve (returns solution only)
+     *
+     * @param problem 问题定义 / Problem definition
+     * @param solveConfig 显式求解配置，优先级高于 problem.solveConfig / Explicit solve config, higher priority than problem.solveConfig
+     * @return CSP1D 解 / CSP1D solution
+     */
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -108,6 +134,16 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         ).solution
     }
 
+    /**
+     * 带追踪信息的列生成求解 / Column generation solve with trace
+     *
+     * 返回完整列生成结果，包含迭代记录、终止原因、pricing 统计等追踪信息。
+     * Returns complete column generation result including iteration records, termination reason, pricing statistics and other trace information.
+     *
+     * @param problem 问题定义 / Problem definition
+     * @param solveConfig 显式求解配置，优先级高于 problem.solveConfig / Explicit solve config, higher priority than problem.solveConfig
+     * @return 列生成结果（含追踪信息）/ Column generation result with trace
+     */
     suspend fun solveWithTrace(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -773,6 +809,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
     }
 
+    /** 定价目标配置 / Pricing objective configuration */
     private fun pricingObjectiveConfig(solveConfig: Csp1dSolveConfig<V>): Csp1dPricingObjectiveConfig<V> {
         return Csp1dPricingObjectiveConfig(
             planUsagePenalty = solveConfig.lengthConfig?.batchMinPenalty,
@@ -848,6 +885,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+    /** 解析求解配置 / Resolve solve configuration */
     private fun resolveSolveConfig(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>?
@@ -966,6 +1004,13 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     }
 }
 
+/**
+ * CSP1D 列生成结果 / CSP1D column generation result
+ *
+ * @param V 数值类型 / Numeric value type
+ * @property solution CSP1D 解 / CSP1D solution
+ * @property trace 列生成追踪信息 / Column generation trace
+ */
 data class Csp1dColumnGenerationResult<V : RealNumber<V>>(
     val solution: Csp1dSolution<V>,
     val trace: Csp1dColumnGenerationTrace

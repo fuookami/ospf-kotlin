@@ -2,8 +2,8 @@ package fuookami.ospf.kotlin.math
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.functional.Either
 
 class ScaleTest {
     @Test
@@ -25,6 +25,7 @@ class ScaleTest {
     }
 
     @Test
+    /** 验证除以零返回可空或失败结果 / Verify divide by zero returns nullable or failed result */
     fun divideByZeroShouldReturnNullableOrFailedResult() {
         val scale = Scale(10, 2)
 

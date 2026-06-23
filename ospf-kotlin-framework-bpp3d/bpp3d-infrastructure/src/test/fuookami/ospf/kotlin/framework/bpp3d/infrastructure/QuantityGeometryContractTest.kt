@@ -116,6 +116,7 @@ class QuantityGeometryContractTest {
     }
 
     @Test
+    /** 验证不可比较单位时安全排序报告 / Verify safe order reports incomparable units */
     fun quantityPointSafeOrderReportsIncomparableUnits() {
         val lhs = QuantityPoint2(
             x = FltX(1.0) * Meter,

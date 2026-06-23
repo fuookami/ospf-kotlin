@@ -3,9 +3,9 @@
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.quantities.valueOrFail
-import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.Meter
+import fuookami.ospf.kotlin.quantities.valueOrFail
 
 class GeometryCrossDomainReuseTest {
     private data class Bpp2dLikePlacement<V : fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber<V>>(

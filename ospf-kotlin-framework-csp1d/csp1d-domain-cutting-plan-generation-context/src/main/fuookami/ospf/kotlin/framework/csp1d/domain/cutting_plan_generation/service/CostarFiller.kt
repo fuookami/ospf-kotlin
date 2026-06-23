@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.service
 
-import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.utils.functional.Order
 
 /**
  * 配规填充器，为切割方案的剩余宽度填充配规切片 / Costar filler: fills remaining width with costar slices

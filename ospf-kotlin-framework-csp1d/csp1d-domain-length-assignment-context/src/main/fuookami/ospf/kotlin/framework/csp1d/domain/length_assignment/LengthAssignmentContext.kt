@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 长度推导函数：从需求量和产品属性推导卷长 / Length derivation function: derive coil length from demand quantity and product properties

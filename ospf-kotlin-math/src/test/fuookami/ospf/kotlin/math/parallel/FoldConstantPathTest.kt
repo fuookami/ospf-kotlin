@@ -4,10 +4,10 @@ import kotlin.test.*
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.parallel.*
 
 class FoldConstantPathTest {
     companion object {
@@ -49,6 +49,7 @@ class FoldConstantPathTest {
     }
 
     @Test
+    /** 验证禁用回退时具态默认路径失败 / Verify reified default paths fail when fallback disabled */
     fun reifiedDefaultPathsShouldFailWhenFallbackDisabled() {
         val numbers = listOf(1, 2, 3)
 

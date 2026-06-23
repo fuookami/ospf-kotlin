@@ -7,13 +7,13 @@
  */
 package fuookami.ospf.kotlin.math
 
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.operator.*
 
 /**
  * 获取区间的最后一个元素
@@ -68,8 +68,10 @@ internal class IntegerIterator<I>(
         finalElement
     }
 
+    /** 是否有下一个元素 / Whether there is a next element */
     override fun hasNext() = hasNext
 
+    /** 获取下一个元素 / Get the next element */
     override fun next(): I {
         val value = next
         if (value == finalElement) {
@@ -174,6 +176,7 @@ class IntegerRange<I>(
         }
     }
 
+    /** 创建迭代器 / Create iterator */
     override fun iterator(): Iterator<I> {
         return if (validStep) {
             IntegerIterator(
@@ -187,6 +190,7 @@ class IntegerRange<I>(
         }
     }
 
+    /** 判断是否包含指定值 / Check if contains the specified value */
     override fun contains(value: I): Boolean {
         return validStep && if (step > constants.zero) {
             first <= value && value <= last
@@ -195,6 +199,7 @@ class IntegerRange<I>(
         }
     }
 
+    /** 判断是否为空 / Check if empty */
     override fun isEmpty(): Boolean {
         return !validStep || if (step > constants.zero) {
             first > last
@@ -203,6 +208,7 @@ class IntegerRange<I>(
         }
     }
 
+    /** 转换为字符串 / Convert to string */
     override fun toString(): String {
         return if (!validStep) {
             "empty step $step"
@@ -237,7 +243,9 @@ internal class NumericIntegerIterator<NI, I>(
         )
     }
 
+    /** 是否有下一个元素 / Whether there is a next element */
     override fun hasNext() = impl.hasNext()
+    /** 获取下一个元素 / Get the next element */
     override fun next(): NI = ctor(impl.next())
 }
 
@@ -341,6 +349,7 @@ class NumericUIntegerRange<NI, I>(
         }
     }
 
+    /** 创建迭代器 / Create iterator */
     override fun iterator(): Iterator<NI> {
         return if (validStep) {
             NumericIntegerIterator(
@@ -355,6 +364,7 @@ class NumericUIntegerRange<NI, I>(
         }
     }
 
+    /** 判断是否包含指定值 / Check if contains the specified value */
     override fun contains(value: NI): Boolean {
         val actualValue = converter(value)
         return validStep && if (step > constants.zero) {
@@ -364,6 +374,7 @@ class NumericUIntegerRange<NI, I>(
         }
     }
 
+    /** 判断是否为空 / Check if empty */
     override fun isEmpty(): Boolean {
         return !validStep || if (step > constants.zero) {
             first > last
@@ -372,6 +383,7 @@ class NumericUIntegerRange<NI, I>(
         }
     }
 
+    /** 转换为字符串 / Convert to string */
     override fun toString(): String {
         return if (!validStep) {
             "empty step $step"
@@ -383,10 +395,12 @@ class NumericUIntegerRange<NI, I>(
     }
 }
 
+/** 验证整数步长是否有效 / Validate integer step is valid */
 private fun <I> isValidIntegerStep(step: I): Boolean where I : Integer<I> {
     return step != step.constants.zero && step != step.constants.minimum
 }
 
+/** 构建无效整数步长错误消息 / Build invalid integer step error message */
 private fun <I> invalidIntegerStepMessage(step: I): String where I : Integer<I> {
     return if (step == step.constants.zero) {
         "步长不能为零。 / Step must be non-zero."

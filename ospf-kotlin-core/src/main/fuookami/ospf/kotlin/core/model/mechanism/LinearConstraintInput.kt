@@ -17,6 +17,14 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 从异常中提取失败消息，若无消息则回退到操作描述。
+ * Extract failure message from throwable, falling back to the operation description if absent.
+ *
+ * @param error 捕获的异常 / The caught throwable
+ * @param operation 当异常无消息时使用的操作描述 / Operation description used when the exception has no message
+ * @return 错误消息字符串 / The error message string
+ */
 private fun flattenFailureMessage(error: Throwable, operation: String): String {
     return error.message ?: operation
 }

@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 class CylinderShapeContractTest {
+    /** 断言失败消息包含关键词 / Assert failure message contains keyword */
     private fun assertFailedMessage(
         result: Try,
         vararg expectedMessages: String
@@ -112,6 +113,7 @@ class CylinderShapeContractTest {
     }
 
     @Test
+    /** 验证生成的放置拒绝未验证的水平圆柱 / Verify generated placement rejects unverified horizontal cylinder */
     fun verifiedGeneratedPlacementShouldRejectUnverifiedHorizontalCylinderCandidate() {
         assertTrue(requireVerifiedGeneratedCylinderCandidate(
             shape = cylinderShape(Axis3.Y),
@@ -138,6 +140,7 @@ class CylinderShapeContractTest {
     }
 
     @Test
+    /** 验证垂直候选路径拒绝水平圆柱轴 / Verify vertical candidate path rejects horizontal cylinder axis */
     fun verticalCandidatePathShouldRejectHorizontalCylinderAxis() {
         assertTrue(requireVerticalCylinderAxis(
             shape = cylinderShape(Axis3.Y),
@@ -157,6 +160,7 @@ class CylinderShapeContractTest {
     }
 
     @Test
+    /** 验证轴感知候选路径接受水平圆柱轴 / Verify axis-aware candidate path accepts horizontal cylinder axis */
     fun axisAwareCandidatePathShouldAcceptHorizontalCylinderAxis() {
         assertTrue(requireAxisAwareCylinderCandidate(
             shape = cylinderShape(Axis3.X),
@@ -169,6 +173,7 @@ class CylinderShapeContractTest {
     }
 
     @Test
+    /** 验证支撑路径拒绝水平圆柱轴 / Verify support path rejects horizontal cylinder axis */
     fun supportPathShouldRejectHorizontalCylinderAxis() {
         val result = requireUprightVerticalCylinderSupport(
             shape = cylinderShape(Axis3.Z),
@@ -184,6 +189,7 @@ class CylinderShapeContractTest {
     }
 
     @Test
+    /** 验证仅立方体路径使用共享能力消息 / Verify cuboid-only path uses shared capability message */
     fun cuboidOnlyPathShouldUseSharedCapabilityMessage() {
         val result = requireNoCylinderItemsForCuboidOnlyPath(
             items = listOf(cylinderItem(Axis3.Y)),

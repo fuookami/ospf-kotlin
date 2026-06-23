@@ -7,10 +7,10 @@
  */
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * MyBatis 标量 SQL 片段
@@ -75,6 +75,13 @@ class MybatisScalarTranslator(
         }
     }
 
+    /**
+     * 翻译一元标量表达式为参数化 SQL 片段
+     * Translate unary scalar expression to parameterized SQL fragment
+     *
+     * @param expr 一元标量表达式 / Unary scalar expression
+     * @return 参数化 SQL 片段 / Parameterized SQL fragment
+     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<MybatisScalarSql?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
@@ -84,6 +91,13 @@ class MybatisScalarTranslator(
         }
     }
 
+    /**
+     * 翻译二元标量表达式为参数化 SQL 片段
+     * Translate binary scalar expression to parameterized SQL fragment
+     *
+     * @param expr 二元标量表达式 / Binary scalar expression
+     * @return 参数化 SQL 片段 / Parameterized SQL fragment
+     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<MybatisScalarSql?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value?.shifted(left.params.size) ?: return Ok(null)
@@ -102,6 +116,13 @@ class MybatisScalarTranslator(
         ))
     }
 
+    /**
+     * 翻译标量函数调用为参数化 SQL 函数片段
+     * Translate scalar function call to parameterized SQL function fragment
+     *
+     * @param expr 标量函数表达式 / Scalar function expression
+     * @return 参数化 SQL 函数片段 / Parameterized SQL function fragment
+     */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<MybatisScalarSql?> {
         val arguments = mutableListOf<MybatisScalarSql>()
         var paramOffset = 0
@@ -129,6 +150,16 @@ class MybatisScalarTranslator(
         }
     }
 
+    /**
+     * 生成标准 SQL 函数的参数化片段
+     * Generate parameterized fragment for standard SQL function
+     *
+     * @param logicalName 逻辑函数名（用于错误信息） / Logical function name (for error messages)
+     * @param sqlName SQL 函数名 / SQL function name
+     * @param arguments 已翻译的参数列表 / Translated argument list
+     * @param expected 期望参数数量 / Expected argument count
+     * @return 参数化 SQL 函数片段 / Parameterized SQL function fragment
+     */
     private fun translateSqlFunction(
         logicalName: String,
         sqlName: String,

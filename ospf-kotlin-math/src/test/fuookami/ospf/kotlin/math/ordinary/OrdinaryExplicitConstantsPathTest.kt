@@ -3,8 +3,8 @@ package fuookami.ospf.kotlin.math.ordinary
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
+import fuookami.ospf.kotlin.math.algebra.number.*
 
 class OrdinaryExplicitConstantsPathTest {
     companion object {
@@ -72,6 +72,7 @@ class OrdinaryExplicitConstantsPathTest {
     }
 
     @Test
+    /** 验证禁用回退时具态路径失败 / Verify reified paths fail when fallback disabled */
     fun reifiedPathsShouldFailWhenFallbackDisabled() {
         assertTrue(factorize(UInt64(12)).failed)
         assertTrue(defactorize(listOf(UInt64.two to 2, UInt64.three to 1)).failed)

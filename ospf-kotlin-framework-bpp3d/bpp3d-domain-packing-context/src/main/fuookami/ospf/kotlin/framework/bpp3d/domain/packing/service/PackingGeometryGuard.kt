@@ -5,11 +5,11 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.Axis3
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackedBin
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -103,6 +103,17 @@ private fun hasHorizontalCylinderSupportCoverage(
     )
 }
 
+/**
+ * 校验水平放置的圆柱体是否获得足够的下方支撑覆盖。无支撑时返回失败。
+ * Validate that a horizontally placed cylinder has sufficient support coverage from below. Returns failure when unsupported.
+ *
+ * @param geometry 待校验的几何体 / geometry to validate
+ * @param index 该几何体在列表中的索引 / index of this geometry in the list
+ * @param geometries 箱内所有几何体列表 / list of all geometries in the bin
+ * @param binName 箱子名称，用于错误信息 / bin name, used in error messages
+ * @param source 调用来源标识 / caller source identifier
+ * @return 校验结果，支撑不足时失败 / validation result, fails when support is insufficient
+ */
 private fun requireHorizontalCylinderSupport(
     geometry: PackingGeometry,
     index: Int,
@@ -218,6 +229,14 @@ private fun PackingGeometry.overlaps(rhs: PackingGeometry): Boolean {
     }
 }
 
+/**
+ * 校验已装箱物品的几何约束：形状不超出箱体边界、水平圆柱体有足够支撑、物品之间无重叠。
+ * Validate geometric constraints of packed items: shapes do not exceed bin boundaries, horizontal cylinders have sufficient support, and no overlaps between items.
+ *
+ * @param bin 已装箱的箱子 / packed bin to validate
+ * @param source 调用来源标识 / caller source identifier
+ * @return 校验结果，几何约束违反时失败 / validation result, fails when geometric constraints are violated
+ */
 internal fun requirePackedBinShapeGeometry(
     bin: PackedBin,
     source: String

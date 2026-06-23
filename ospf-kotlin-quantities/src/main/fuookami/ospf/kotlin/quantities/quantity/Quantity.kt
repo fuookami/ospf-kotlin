@@ -17,12 +17,12 @@
 package fuookami.ospf.kotlin.quantities.quantity
 
 import java.math.*
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 物理量类
@@ -126,6 +126,7 @@ private fun <V, T> Quantity<V>.convertKnownValueType(
     return (this as Quantity<T>).convert(unit) as Quantity<V>?
 }
 
+/** 构建物理量运算失败消息 / Build quantity operation failure message */
 private fun quantityOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
     return if (lhs.quantity != rhs.quantity) {
         "物理量量纲不匹配，无法执行$operation：期望 ${lhs.quantity.dimensionSymbol()}，实际 ${rhs.quantity.dimensionSymbol()}。 / " +
@@ -137,6 +138,7 @@ private fun quantityOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit
     }
 }
 
+/** 物理量二元安全运算 / Quantity binary safe operation */
 private fun <V> Quantity<V>.quantityBinarySafe(
     other: Quantity<V>,
     operation: String,
@@ -149,6 +151,7 @@ private fun <V> Quantity<V>.quantityBinarySafe(
 private val affineFlt64Tolerance = Flt64(1e-10)
 private val affineFltXTolerance = FltX("1e-12")
 
+/** 将值转换为标准单位值 / Convert value to standard unit value */
 private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
     return when (val rule = conversionRule) {
         is UnitConversionRule.Linear -> value * (rule.scale.value ?: return null)
@@ -156,6 +159,7 @@ private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
     }
 }
 
+/** 转换线性差值为标准单位 / Convert linear difference value to standard unit */
 private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: PhysicalUnit): FltX? {
     if (quantity != unit.quantity) return null
     val sourceScale = scale.value ?: return null
@@ -217,16 +221,19 @@ private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
     }
 }
 
+/** 构建仿射运算失败消息（单参数）/ Build affine operation failure message (single param) */
 private fun quantityAffineOperationFailureMessage(unit: PhysicalUnit, operation: String): String {
     return "仿射单位不支持此物理量$operation：$unit。请使用线性差值单位。 / " +
             "Affine unit is not supported for quantity $operation: $unit. Use a linear difference unit instead."
 }
 
+/** 构建仿射运算失败消息（双参数）/ Build affine operation failure message (dual param) */
 private fun quantityAffineOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
     return "仿射单位不支持此物理量$operation：$lhs 与 $rhs。请使用线性差值单位。 / " +
             "Affine units are not supported for quantity $operation: $lhs and $rhs. Use linear difference units instead."
 }
 
+/** 物理量一元安全运算 / Quantity unary safe operation */
 private fun <V> quantityUnarySafe(
     unit: PhysicalUnit,
     operation: String,
@@ -236,6 +243,7 @@ private fun <V> quantityUnarySafe(
         ?: Failed(ErrorCode.IllegalArgument, quantityAffineOperationFailureMessage(unit, operation))
 }
 
+/** 物理量维度二元安全运算 / Quantity dimension binary safe operation */
 private fun <V> quantityDimensionBinarySafe(
     lhs: PhysicalUnit,
     rhs: PhysicalUnit,
@@ -274,6 +282,7 @@ private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<
     }
 }
 
+/** Flt64 仿射感知减法 / Flt64 affine-aware subtraction */
 private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
@@ -293,6 +302,7 @@ private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quant
     }
 }
 
+/** FltX 仿射感知减法 / FltX affine-aware subtraction */
 private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
@@ -312,6 +322,7 @@ private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity
     }
 }
 
+/** 物理量线性二元运算（返回 null）/ Quantity linear binary operation (returns null) */
 private fun <V> Quantity<V>.linearQuantityBinaryOrNull(
     other: Quantity<V>,
     convert: Quantity<V>.(PhysicalUnit) -> Quantity<V>?,

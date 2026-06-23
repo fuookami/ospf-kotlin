@@ -10,11 +10,11 @@ package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.error.ExErr
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
 import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 
 @DisplayName("Boolean Parser Tests / 布尔表达式解析器测试")
 class BooleanParserTest {

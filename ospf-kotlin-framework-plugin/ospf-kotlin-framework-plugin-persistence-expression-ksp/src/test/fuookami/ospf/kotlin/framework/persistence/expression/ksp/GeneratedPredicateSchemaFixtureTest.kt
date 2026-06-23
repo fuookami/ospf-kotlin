@@ -20,6 +20,10 @@ import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 @OptIn(ExperimentalCompilerApi::class)
 @DisplayName("Generated Predicate Schema Fixture Tests / 生成谓词 Schema Fixture 测试")
 class GeneratedPredicateSchemaFixtureTest {
+    /**
+     * 测试用用户实体
+     * Test user entity
+     */
     data class User(
         val id: Long,
         val status: String,
@@ -27,6 +31,10 @@ class GeneratedPredicateSchemaFixtureTest {
         val deletedAt: String?
     )
 
+    /**
+     * 测试用用户谓词 schema
+     * Test user predicate schema
+     */
     object Users : PredicateSchema<User>() {
         val id = field(User::id)
         val status = field(User::status)

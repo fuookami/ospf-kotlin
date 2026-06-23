@@ -5,9 +5,9 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 选择策略接口，定义从种群中选择个体的行为。

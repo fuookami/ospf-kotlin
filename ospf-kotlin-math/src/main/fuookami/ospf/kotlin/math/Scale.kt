@@ -7,12 +7,12 @@
  */
 package fuookami.ospf.kotlin.math
 
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.algebra.number.*
 
 private typealias ScaleBase = Either<FltX, RtnX>
 
@@ -167,6 +167,7 @@ data class Scale(
     val value: FltX?
         get() = valueOrNull
 
+    /** 安全获取缩放值 / Safely get scale value */
     fun valueSafe(): Ret<FltX> {
         return valueOrNull?.let { Ok(it) }
             ?: Failed(ErrorCode.IllegalArgument, "缩放因子值未定义。 / Scale value is undefined.")

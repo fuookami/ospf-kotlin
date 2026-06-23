@@ -20,10 +20,10 @@ import org.ktorm.schema.IntSqlType
 import org.ktorm.schema.LongSqlType
 import org.ktorm.schema.SqlType
 import org.ktorm.schema.VarcharSqlType
+import fuookami.ospf.kotlin.framework.persistence.expression.*
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.expression.*
-import fuookami.ospf.kotlin.framework.persistence.expression.*
 
 /**
  * Ktorm 标量表达式翻译器
@@ -58,6 +58,13 @@ class KtormScalarTranslator(
         }
     }
 
+    /**
+     * 翻译常量值为 Ktorm 参数表达式
+     * Translate constant value to Ktorm argument expression
+     *
+     * @param value 常量值 / Constant value
+     * @return Ktorm 参数表达式 / Ktorm argument expression
+     */
     private fun translateConstant(value: Any?): Ret<KtormScalarExpression<*>?> {
         if (value == null) {
             return unsupported("Null scalar constants are not supported in predicates")
@@ -67,6 +74,13 @@ class KtormScalarTranslator(
         return Ok(ArgumentExpression(value, sqlType))
     }
 
+    /**
+     * 翻译一元标量表达式为 Ktorm 一元表达式
+     * Translate unary scalar expression to Ktorm unary expression
+     *
+     * @param expr 一元标量表达式 / Unary scalar expression
+     * @return Ktorm 一元表达式 / Ktorm unary expression
+     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<KtormScalarExpression<*>?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         val type = when (expr.operator) {
@@ -79,6 +93,13 @@ class KtormScalarTranslator(
         return Ok(UnaryExpression(type, operand, sqlType))
     }
 
+    /**
+     * 翻译二元标量表达式为 Ktorm 二元表达式
+     * Translate binary scalar expression to Ktorm binary expression
+     *
+     * @param expr 二元标量表达式 / Binary scalar expression
+     * @return Ktorm 二元表达式 / Ktorm binary expression
+     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<KtormScalarExpression<*>?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value ?: return Ok(null)
@@ -95,6 +116,13 @@ class KtormScalarTranslator(
         return Ok(BinaryExpression(type, left, right, sqlType))
     }
 
+    /**
+     * 翻译标量函数调用为 Ktorm 函数表达式
+     * Translate scalar function call to Ktorm function expression
+     *
+     * @param expr 标量函数表达式 / Scalar function expression
+     * @return Ktorm 函数表达式 / Ktorm function expression
+     */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<KtormScalarExpression<*>?> {
         val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
@@ -140,6 +168,13 @@ class KtormScalarTranslator(
         }
     }
 
+    /**
+     * 根据 Kotlin 值类型推断对应的 SQL 类型
+     * Infer corresponding SQL type from Kotlin value type
+     *
+     * @param value Kotlin 值 / Kotlin value
+     * @return 对应的 Ktorm SQL 类型 / Corresponding Ktorm SQL type
+     */
     private fun inferSqlType(value: Any): SqlType<*> {
         return when (value) {
             is Int -> IntSqlType

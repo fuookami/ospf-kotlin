@@ -4,15 +4,22 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 private fun scalar(value: Number): FltX = FltX(value.toDouble())
 private fun scalar(value: ULong): FltX = FltX(value.toDouble())
 
+/**
+ * 将 [Try] 的失败分支转换为 [Ret] 类型，成功分支返回 null。
+ * Converts the failure branch of [Try] to [Ret], returning null for the success branch.
+ *
+ * @return 成功时返回 null（由调用方继续处理），失败时返回对应的 [Failed] 或 [Fatal] /
+ *         null on success (caller continues processing), [Failed] or [Fatal] on failure
+ */
 private fun <T> Try.failureAsRet(): Ret<T>? {
     return when (this) {
         is Ok -> null
@@ -103,6 +110,7 @@ data object ItemMerger {
         return config
     }
 
+    /** 合并物品 / Merge items */
     suspend fun merge(
         items: List<Item>,
         binType: BinType<FltX>,
@@ -126,6 +134,13 @@ data object ItemMerger {
         )
     }
 
+    /**
+     * 合并物品，处理圆柱约束。
+     * Merge items, handling cylinder constraints.
+     *
+     * @param items 待合并的物品列表 / Items to merge
+     * @return 合并结果 / Merge result
+     */
     suspend fun merge(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -214,6 +229,13 @@ data object ItemMerger {
         return Ok(mergedItems.toList())
     }
 
+    /**
+     * 合并堆叠物品。
+     * Merge piled items.
+     *
+     * @param items 待合并的物品列表 / Items to merge
+     * @return 合并结果 / Merge result
+     */
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -698,6 +720,14 @@ data object ItemMerger {
         }
     }
 
+    /**
+     * 将放置列表展开为货物放置列表，处理嵌套容器。
+     * Flatten placement list to item placements, handling nested containers.
+     *
+     * @param placements 放置列表 / placement list
+     * @param offset 位置偏移量 / position offset
+     * @return 货物放置列表 / item placement list
+     */
     @JvmName("dumpPlacements")
     fun dump(
         placements: List<QuantityPlacement3<*, FltX>>,

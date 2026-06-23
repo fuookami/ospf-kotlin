@@ -7,9 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 
 /**
  * 三维轴置换为纯几何概念；apply/mapAxis 可被桥接层复用。

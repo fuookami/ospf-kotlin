@@ -3,10 +3,10 @@ package fuookami.ospf.kotlin.math.functional
 import kotlin.test.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.operator.withPrecision
+import fuookami.ospf.kotlin.utils.functional.*
 
 class CollectionConstantPathTest {
     companion object {
@@ -78,6 +78,7 @@ class CollectionConstantPathTest {
     }
 
     @Test
+    /** 验证禁用回退时具态默认路径失败 / Verify reified default paths fail when fallback disabled */
     fun reifiedDefaultPathsShouldFailWhenFallbackDisabled() {
         val numbers = listOf(Int64.one, Int64.two, Int64.three)
         val map: Map<String, Int64> = mapOf("a" to Int64.one, "b" to Int64.two)

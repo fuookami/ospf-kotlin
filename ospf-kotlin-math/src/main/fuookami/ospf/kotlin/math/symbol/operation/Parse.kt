@@ -10,17 +10,17 @@
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.parse.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.serde.*
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.math.symbol.*
-import fuookami.ospf.kotlin.math.symbol.parse.*
-import fuookami.ospf.kotlin.math.symbol.serde.*
-import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 // ============================================================================
 // Internal Flt64 polynomial term representation for direct parsing
@@ -53,12 +53,14 @@ private class DirectPolynomialParser(
 ) {
     private var position: Int = 0
 
+    /** 解析多项式 / Parse polynomial */
     fun parsePolynomial(): ParseResult<ParsedPolynomial> {
         return parseExpression().andThen { result ->
             expect(PolynomialTokenType.End).map { result }
         }
     }
 
+    /** 解析不等式 / Parse inequality */
     fun parseInequality(): ParseResult<ParsedInequality> {
         return parseExpression().andThen { lhs ->
             val comparisonToken = current()

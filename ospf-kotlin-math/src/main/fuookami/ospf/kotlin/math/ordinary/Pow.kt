@@ -27,12 +27,12 @@
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 /** 归一化 FltX 精度，非 FltX 类型保持不变 / Normalize FltX scale; non-FltX types remain unchanged */
 @Suppress("UNCHECKED_CAST")

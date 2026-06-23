@@ -4,8 +4,8 @@ import kotlin.test.*
 import kotlinx.serialization.json.Json
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.CompanionConstantProviderResolver
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ValueRangeExplicitConstantsPathTest {
     companion object {
@@ -64,6 +64,7 @@ class ValueRangeExplicitConstantsPathTest {
     }
 
     @Test
+    /** 验证禁用回退时具态构造器失败 / Verify reified constructors fail when fallback disabled */
     fun reifiedConstructorsShouldFailWhenFallbackDisabled() {
         assertTrue(ValueRange<Flt64>().failed)
         assertTrue(ValueRange(Flt64.one).failed)

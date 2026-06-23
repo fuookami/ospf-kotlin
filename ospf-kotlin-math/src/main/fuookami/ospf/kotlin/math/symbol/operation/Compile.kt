@@ -1,11 +1,11 @@
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * Flt64 编译快捷函数

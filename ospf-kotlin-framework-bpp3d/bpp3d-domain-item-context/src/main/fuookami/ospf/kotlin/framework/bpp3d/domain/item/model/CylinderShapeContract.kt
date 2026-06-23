@@ -4,10 +4,10 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -353,6 +353,13 @@ private fun continuousRadiusVariableName(
     return "cylinder_radius_${sourceToken}_${keyToken}_${axis.name}"
 }
 
+/**
+ * 将直径量安全转换为半径界（除以2），返回结果或错误。
+ * Safely convert a diameter quantity to a radius bound (divide by 2), returning result or error.
+ *
+ * @param radiusUnitSource 目标单位参考量（可选） / target unit reference quantity (optional)
+ * @return 成功时返回半径量，单位不兼容时返回错误 / returns the radius quantity on success, or error when units are incompatible
+ */
 private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
     radiusUnitSource: Quantity<FltX>?
 ): Ret<Quantity<FltX>> {

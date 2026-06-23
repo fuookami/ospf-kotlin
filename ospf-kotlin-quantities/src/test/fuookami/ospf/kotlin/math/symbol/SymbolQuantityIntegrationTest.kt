@@ -3,16 +3,16 @@ package fuookami.ospf.kotlin.math.symbol
 import java.util.concurrent.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.quantities.orFail
-import fuookami.ospf.kotlin.quantities.valueOrFail
-import fuookami.ospf.kotlin.quantities.unit.*
-import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.orFail
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.valueOrFail
+import fuookami.ospf.kotlin.utils.functional.*
 
 class SymbolQuantityIntegrationTest {
     private val x = object : Symbol {

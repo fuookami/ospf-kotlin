@@ -2,13 +2,13 @@
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Order
-import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.Scale
+import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.UnitConversionRule
-import fuookami.ospf.kotlin.quantities.quantity.*
-import fuookami.ospf.kotlin.quantities.dimension.*
+import fuookami.ospf.kotlin.utils.functional.Order
 
 class QuantityTest {
     @Test

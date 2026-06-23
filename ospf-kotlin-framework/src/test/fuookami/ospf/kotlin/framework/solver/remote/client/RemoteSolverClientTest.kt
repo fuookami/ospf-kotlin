@@ -2,16 +2,13 @@
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Duration
-import kotlin.time.Instant
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Instant
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
+import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.solver.*
@@ -19,7 +16,14 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig as CoreSolverConfig
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 import fuookami.ospf.kotlin.framework.solver.remote.port.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 远程求解器客户端测试。
+ * Remote solver client tests.
+ */
 class RemoteSolverClientTest {
     private val json = Json {
         ignoreUnknownKeys = true
@@ -113,6 +117,7 @@ class RemoteSolverClientTest {
         assertEquals(snapshotRef, (result as Ok).value.checkpointRef)
     }
 
+    /** 验证超过最大轮次时求解失败并停止 / Verify solve fails and stops when max rounds exceeded */
     @Test
     fun solveFailsAndStopsWhenMaxRoundsExceeded() {
         val port = RecordingExecutionPort(

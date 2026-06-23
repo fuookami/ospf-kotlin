@@ -15,8 +15,8 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
-import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 // ============================================================================
 // UInt64 extensions for AbstractMultiArray

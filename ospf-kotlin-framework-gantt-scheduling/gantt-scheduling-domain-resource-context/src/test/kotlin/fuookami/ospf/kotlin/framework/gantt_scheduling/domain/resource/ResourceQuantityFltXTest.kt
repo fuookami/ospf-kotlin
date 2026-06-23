@@ -8,6 +8,20 @@ import kotlin.time.Duration.Companion.hours
 import kotlin.time.DurationUnit
 import kotlin.time.Instant
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResource
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResourceTimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResource
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZeroOrNull
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResource
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResourceTimeSlot
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -15,20 +29,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResource
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResource
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResource
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ConnectionResourceTimeSlot
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZeroOrNull
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolverValue
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
 /**
  * 验证资源模块的数值领域路径支持 FltX。

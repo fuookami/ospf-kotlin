@@ -31,18 +31,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 class GurobiColumnGenerationTest {
     private object CargoAttr : fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttribute
 
+    /** 按选择器求和 Int 值 / Sum Int values by selector */
     private fun <T> Iterable<T>.sumOfInt(selector: (T) -> Int): Int {
         return fold(0) { acc, item -> acc + selector(item) }
     }
 
+    /** 解包 Ret 值，失败时抛出异常 / Unwrap Ret value, throw on failure */
     private fun <T> Ret<T>.orFail(message: String): T {
         return value ?: fail(failureMessage()?.let { "$message: $it" } ?: message)
     }
 
+    /** 解包 Ret 值为非法参数异常 / Unwrap Ret value as illegal argument exception */
     private fun <T> Ret<T>.orIllegalArgument(message: String): T {
         return value ?: throw IllegalArgumentException(failureMessage()?.let { "$message: $it" } ?: message)
     }
 
+    /** 获取失败消息 / Get failure message */
     private fun <T> Ret<T>.failureMessage(): String? {
         return when (this) {
             is Failed -> message
@@ -51,10 +55,12 @@ class GurobiColumnGenerationTest {
         }
     }
 
+    /** 按选择器求和 Long 值 / Sum Long values by selector */
     private fun <T> Iterable<T>.sumOfLong(selector: (T) -> Long): Long {
         return fold(0L) { acc, item -> acc + selector(item) }
     }
 
+    /** 创建默认包装属性 / Create default package attribute */
     private fun packageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
         return PackageAttribute(
             packageType = type,
@@ -65,6 +71,7 @@ class GurobiColumnGenerationTest {
         )
     }
 
+    /** 创建测试用长方体货物 / Create test cuboid item */
     private fun item(
         id: String,
         material: Material<FltX>,
@@ -94,6 +101,7 @@ class GurobiColumnGenerationTest {
         )
     }
 
+    /** 创建测试用水平圆柱货物 / Create test horizontal cylinder item */
     private fun horizontalCylinderItem(
         id: String,
         material: Material<FltX>,

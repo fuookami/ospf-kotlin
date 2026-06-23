@@ -3,9 +3,9 @@ package fuookami.ospf.kotlin.core.error
 import java.time.Duration
 import kotlin.test.*
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.core.solver.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.solver.*
 
 class CoreErrorTest {
     @Test
@@ -27,6 +27,7 @@ class CoreErrorTest {
     // ========================================================================
 
     @Test
+    /** 验证 SolverNotFoundError 包含正确的错误码和消息 / Verify SolverNotFoundError has correct code and message */
     fun solverNotFoundErrorShouldHaveCorrectCodeAndMessage() {
         val error = SolverNotFoundError("gurobi")
         assertEquals(ErrorCode.SolverNotFound, error.code)
@@ -35,6 +36,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证无 solver 名称时 SolverNotFoundError 正常工作 / Verify SolverNotFoundError works without solver name */
     fun solverNotFoundErrorShouldWorkWithoutSolverName() {
         val error = SolverNotFoundError()
         assertEquals(ErrorCode.SolverNotFound, error.code)
@@ -43,12 +45,14 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 SolverNotFoundError 可通过 when 断言 / Verify SolverNotFoundError is assertable via when */
     fun solverNotFoundErrorShouldBeAssertableViaWhen() {
         val error: Error<*> = SolverNotFoundError()
         assertTrue(error is SolverNotFoundError)
     }
 
     @Test
+    /** 验证 SolverEnvironmentLostError 包含正确的错误码和消息 / Verify SolverEnvironmentLostError has correct code and message */
     fun solverEnvironmentLostErrorShouldHaveCorrectCodeAndMessage() {
         val error = SolverEnvironmentLostError("GRB license expired")
         assertEquals(ErrorCode.OREngineEnvironmentLost, error.code)
@@ -57,6 +61,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证无详情时 SolverEnvironmentLostError 正常工作 / Verify SolverEnvironmentLostError works without detail */
     fun solverEnvironmentLostErrorShouldWorkWithoutDetail() {
         val error = SolverEnvironmentLostError()
         assertEquals(ErrorCode.OREngineEnvironmentLost, error.code)
@@ -65,6 +70,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 SolverSolvingError 包含正确的错误码和消息 / Verify SolverSolvingError has correct code and message */
     fun solverSolvingErrorShouldHaveCorrectCodeAndMessage() {
         val error = SolverSolvingError("Numerical instability")
         assertEquals(ErrorCode.OREngineSolvingException, error.code)
@@ -73,6 +79,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 SolverModelingError 包含正确的错误码和消息 / Verify SolverModelingError has correct code and message */
     fun solverModelingErrorShouldHaveCorrectCodeAndMessage() {
         val error = SolverModelingError("Invalid constraint")
         assertEquals(ErrorCode.OREngineModelingException, error.code)
@@ -81,6 +88,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 SolverTerminatedError 包含正确的错误码 / Verify SolverTerminatedError has correct code */
     fun solverTerminatedErrorShouldHaveCorrectCode() {
         val error = SolverTerminatedError()
         assertEquals(ErrorCode.OREngineTerminated, error.code)
@@ -88,6 +96,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 SolverTimeoutError 包含正确的错误码和时长 / Verify SolverTimeoutError has correct code and duration */
     fun solverTimeoutErrorShouldHaveCorrectCodeAndDuration() {
         val duration = Duration.ofSeconds(30)
         val error = SolverError.Timeout(duration)
@@ -103,6 +112,7 @@ class CoreErrorTest {
     // ========================================================================
 
     @Test
+    /** 验证 solverNotFound 工厂方法返回命名错误 / Verify solverNotFound factory returns named error */
     fun solverNotFoundFactoryShouldReturnNamedError() {
         val result = solverNotFound("cplex")
         assertTrue(result is Failed)
@@ -112,6 +122,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 solverEnvironmentLost 工厂方法返回命名错误 / Verify solverEnvironmentLost factory returns named error */
     fun solverEnvironmentLostFactoryShouldReturnNamedError() {
         val result = solverEnvironmentLost("Connection timeout")
         assertTrue(result is Failed)
@@ -121,6 +132,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 solverSolvingException 工厂方法返回命名错误 / Verify solverSolvingException factory returns named error */
     fun solverSolvingExceptionFactoryShouldReturnNamedError() {
         val result = solverSolvingException("MIP gap not reached")
         assertTrue(result is Failed)
@@ -130,6 +142,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 solverModelingException 工厂方法返回命名错误 / Verify solverModelingException factory returns named error */
     fun solverModelingExceptionFactoryShouldReturnNamedError() {
         val result = solverModelingException("Duplicate variable")
         assertTrue(result is Failed)
@@ -139,6 +152,7 @@ class CoreErrorTest {
     }
 
     @Test
+    /** 验证 solverTerminated 工厂方法返回命名错误 / Verify solverTerminated factory returns named error */
     fun solverTerminatedFactoryShouldReturnNamedError() {
         val result = solverTerminated()
         assertTrue(result is Failed)

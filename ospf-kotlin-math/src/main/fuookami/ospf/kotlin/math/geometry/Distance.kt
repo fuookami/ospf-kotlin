@@ -7,8 +7,8 @@
  */
 package fuookami.ospf.kotlin.math.geometry
 
-import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.utils.functional.sumOf
 
 /**
  * 将距离计算结果转换为目标数值类型

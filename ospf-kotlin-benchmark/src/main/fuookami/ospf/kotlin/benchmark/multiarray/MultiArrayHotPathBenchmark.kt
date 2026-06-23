@@ -1,14 +1,6 @@
 package fuookami.ospf.kotlin.benchmark.multiarray
 
-import fuookami.ospf.kotlin.multiarray.AccessOrder
-import fuookami.ospf.kotlin.multiarray.BlockMultiArray
-import fuookami.ospf.kotlin.multiarray.MultiArray
-import fuookami.ospf.kotlin.multiarray.MutableMultiArray
-import fuookami.ospf.kotlin.multiarray.Shape3
-import fuookami.ospf.kotlin.multiarray.StorageOrder
-import fuookami.ospf.kotlin.multiarray.fromList
-import fuookami.ospf.kotlin.multiarray.flatten
-import fuookami.ospf.kotlin.multiarray.vectorUnchecked
+import java.util.concurrent.TimeUnit
 import org.openjdk.jmh.annotations.Benchmark
 import org.openjdk.jmh.annotations.BenchmarkMode
 import org.openjdk.jmh.annotations.Mode
@@ -17,7 +9,15 @@ import org.openjdk.jmh.annotations.Param
 import org.openjdk.jmh.annotations.Scope
 import org.openjdk.jmh.annotations.Setup
 import org.openjdk.jmh.annotations.State
-import java.util.concurrent.TimeUnit
+import fuookami.ospf.kotlin.multiarray.AccessOrder
+import fuookami.ospf.kotlin.multiarray.BlockMultiArray
+import fuookami.ospf.kotlin.multiarray.flatten
+import fuookami.ospf.kotlin.multiarray.fromList
+import fuookami.ospf.kotlin.multiarray.MultiArray
+import fuookami.ospf.kotlin.multiarray.MutableMultiArray
+import fuookami.ospf.kotlin.multiarray.Shape3
+import fuookami.ospf.kotlin.multiarray.StorageOrder
+import fuookami.ospf.kotlin.multiarray.vectorUnchecked
 
 /**
  * multiarray 热点路径基准

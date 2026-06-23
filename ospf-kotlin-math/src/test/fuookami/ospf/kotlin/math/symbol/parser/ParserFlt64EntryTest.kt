@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.math.symbol.parser
 
 import kotlin.test.*
 import org.junit.jupiter.api.Test
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
 
 class ParserFlt64EntryTest {
     @Test

@@ -1,13 +1,13 @@
 /** 任务步骤冲突约束 / Task step conflict constraint */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 任务步骤冲突约束 / Task step conflict constraint
@@ -58,6 +58,7 @@ class TaskStepConflictConstraint<
         return ok
     }
 
+    /** 获取影子价格提取器，此约束不支持提取 / Get shadow price extractor, extraction not supported by this constraint */
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A>? {
         return null
     }

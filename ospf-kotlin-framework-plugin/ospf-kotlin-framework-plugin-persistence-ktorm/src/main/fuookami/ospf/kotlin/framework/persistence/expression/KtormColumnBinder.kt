@@ -36,6 +36,13 @@ class KtormColumnBinder<T : Table<*>>(
     val table: T,
     private val columnMapping: Map<String, String> = emptyMap()
 ) : ColumnBinder<ColumnDeclaring<*>> {
+    /**
+     * 解析属性路径为 Ktorm 列声明
+     * Resolve property path to Ktorm column declaring
+     *
+     * @param path 属性路径 / Property path
+     * @return 对应的 Ktorm 列声明，未找到时返回 null / Corresponding Ktorm column declaring, or null if not found
+     */
     override fun resolve(path: String): ColumnDeclaring<*>? {
         val backendName = columnMapping[path] ?: path
         return table.columns.find { it.name == backendName } as? ColumnDeclaring<*>

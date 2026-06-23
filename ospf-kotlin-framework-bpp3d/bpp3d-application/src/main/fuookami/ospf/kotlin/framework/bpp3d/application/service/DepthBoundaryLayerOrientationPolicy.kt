@@ -26,6 +26,7 @@ data class DepthBoundaryLayerOrientationPolicy(
     val firstLayerAllowedCuboidOrientations: Set<Orientation>? = null,
     val lastLayerAllowedCuboidOrientations: Set<Orientation>? = null
 ) {
+    /** 是否启用深度边界层方向约束 / Whether depth boundary layer orientation constraints are enabled */
     val enabled: Boolean
         get() = firstLayerAllowedCylinderAxes != null
                 || lastLayerAllowedCylinderAxes != null
@@ -51,6 +52,7 @@ data class DepthBoundaryLayerOrientationPolicy(
         )
     }
 
+    /** 确保层方向约束满足 / Ensure layer orientation constraint is satisfied */
     internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>): Try {
         if (!enabled) {
             return ok
@@ -160,7 +162,10 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 }
 
+/** 深度边界层侧别 / Depth boundary layer side */
 private enum class DepthBoundaryLayerSide(val label: String) {
+    /** 第一层 / First layer */
     First("first"),
+    /** 最后一层 / Last layer */
     Last("last")
 }

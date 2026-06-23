@@ -24,6 +24,7 @@ class GanttSchedulingCapabilityError(
     code = ErrorCode.IllegalArgument,
     message = if (capability != null) "Capability not supported: $capability" else "Capability not supported."
 ) {
+    /** 工厂方法 / Factory methods */
     companion object {
         /**
          * 创建能力不支持错误

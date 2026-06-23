@@ -4,6 +4,10 @@
  */
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import java.io.FileWriter
+import java.nio.file.Path
+import kotlin.io.path.isDirectory
+import kotlinx.coroutines.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
@@ -14,10 +18,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import java.io.FileWriter
-import java.nio.file.Path
-import kotlin.io.path.isDirectory
-import kotlinx.coroutines.*
 
 /**
  * MetaModel 导出支持。

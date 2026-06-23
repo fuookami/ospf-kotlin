@@ -1,10 +1,10 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.error.*
 import java.util.*
-import kotlin.time.Duration
 import kotlin.random.Random
+import kotlin.time.Duration
+import fuookami.ospf.kotlin.utils.error.*
 
 /**
  * 集合扩展函数

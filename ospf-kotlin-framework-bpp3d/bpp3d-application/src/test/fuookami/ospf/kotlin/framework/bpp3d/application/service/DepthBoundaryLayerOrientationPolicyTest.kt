@@ -25,6 +25,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
         typeCode = "BIN-DEPTH-POLICY"
     )
 
+    /** 断言策略失败 / Assert policy failed */
     private fun assertPolicyFailed(block: () -> Try): String {
         val result = block()
         assertTrue(result is Failed)
