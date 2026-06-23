@@ -552,5 +552,13 @@ class EinsumTest {
 
         val unsupportedError = EinsumError.UnsupportedOperation("test operation")
         assertTrue(unsupportedError.message!!.contains("test operation"))
+
+        val indexOOBError = EinsumError.IndexOutOfBounds(5, 3)
+        assertTrue(indexOOBError.message!!.contains("5"))
+        assertTrue(indexOOBError.message!!.contains("3"))
+
+        val indexListLenError = EinsumError.IndexListLengthMismatch(4, 2, "test")
+        assertTrue(indexListLenError.message!!.contains("4"))
+        assertTrue(indexListLenError.message!!.contains("2"))
     }
 }
