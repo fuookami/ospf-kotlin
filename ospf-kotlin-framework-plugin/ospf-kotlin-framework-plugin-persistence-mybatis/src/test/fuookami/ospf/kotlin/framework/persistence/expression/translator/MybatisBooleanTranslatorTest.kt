@@ -10,6 +10,8 @@ package fuookami.ospf.kotlin.framework.persistence.expression.translator
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
@@ -320,6 +322,52 @@ class MybatisBooleanTranslatorTest {
 
             val result = failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
             assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("fail fast detail should contain correct fields / FailFast detail 应包含正确字段")
+        fun failFastDetailShouldContainCorrectFields() {
+            val failFastTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.FailFast
+            )
+
+            val result = failFastTranslator.translate(QueryWrapper(), BooleanCustom("x"))
+            assertTrue(result.failed)
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+            val exErr = error as ExErr<*, UnsupportedPredicateDetail>
+            val detail = exErr.value
+
+            assertTrue(detail.expressionType.contains("Custom"))
+            assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
+            assertEquals("MyBatis", detail.backendName)
+        }
+
+        @Test
+        @DisplayName("client filter detail should contain correct fields / ClientFilter detail 应包含正确字段")
+        fun clientFilterDetailShouldContainCorrectFields() {
+            val clientFilterTranslator = MybatisBooleanTranslator<TestEntity>(
+                resolver,
+                UnsupportedPredicatePolicy.ClientFilter
+            )
+
+            val result = clientFilterTranslator.translate(QueryWrapper(), BooleanCustom("x"))
+            assertTrue(result.failed)
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+            val exErr = error as ExErr<*, UnsupportedPredicateDetail>
+            val detail = exErr.value
+
+            assertTrue(detail.expressionType.contains("Custom"))
+            assertEquals(UnsupportedPredicatePolicy.ClientFilter, detail.policy)
+            assertEquals("MyBatis", detail.backendName)
         }
 
         @Test

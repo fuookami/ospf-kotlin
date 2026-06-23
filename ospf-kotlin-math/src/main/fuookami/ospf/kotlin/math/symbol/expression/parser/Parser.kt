@@ -28,14 +28,17 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
 
 /**
  * 布尔表达式解析器
  * Boolean Expression Parser
  *
  * @property tokens 词法单元列表 / List of tokens
+ * @property input 原始输入字符串（可选，用于错误报告）/ Original input string (optional, for error reporting)
  */
-class Parser(private val tokens: List<Token>) {
+class Parser(private val tokens: List<Token>, private val input: String? = null) {
     private var position = 0
 
     /**
@@ -68,8 +71,18 @@ class Parser(private val tokens: List<Token>) {
     // ========== 解析方法 / Parse Methods ==========
 
     /** 构建解析失败结果 / Build a parse failure result */
-    private fun <T> parseFailed(message: String, position: Int = -1): Ret<T> {
-        return Failed(ErrorCode.IllegalArgument, "$message at position $position")
+    private fun <T> parseFailed(message: String, position: Int = 0): Ret<T> {
+        val issue = ParseIssue(
+            type = ParseIssueType.Syntax,
+            message = message,
+            input = input,
+            position = position
+        )
+        return Failed(
+            code = ErrorCode.IllegalArgument,
+            message = "$message at position $position",
+            value = issue
+        )
     }
 
     /**
@@ -475,7 +488,7 @@ class Parser(private val tokens: List<Token>) {
 fun parseBooleanExpression(input: String): Ret<BooleanExpression> {
     val lexer = Lexer(input)
     val tokens = lexer.tokenize()
-    val parser = Parser(tokens)
+    val parser = Parser(tokens, input)
     return parser.parse()
 }
 

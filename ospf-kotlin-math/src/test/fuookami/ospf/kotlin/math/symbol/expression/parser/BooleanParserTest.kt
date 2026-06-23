@@ -10,7 +10,11 @@ package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
 
 @DisplayName("Boolean Parser Tests / 布尔表达式解析器测试")
 class BooleanParserTest {
@@ -290,6 +294,64 @@ class BooleanParserTest {
         @DisplayName("Unknown token should fail / 未知字符应失败")
         fun testUnknownTokenThrows() {
             assertTrue(parseBooleanExpression("age @ 18").failed)
+        }
+
+        @Test
+        @DisplayName("Empty expression detail should contain ParseIssue / 空表达式 detail 应包含 ParseIssue")
+        fun testEmptyExpressionDetail() {
+            val result = parseBooleanExpression("")
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+
+            val exErr = error as ExErr<*, ParseIssue>
+            val issue = exErr.value
+
+            assertEquals(ParseIssueType.Syntax, issue.type)
+            assertEquals("", issue.input)
+            assertEquals(0, issue.position)
+            assertNotNull(issue.message)
+        }
+
+        @Test
+        @DisplayName("Invalid expression detail should contain ParseIssue with position / 无效表达式 detail 应包含带位置的 ParseIssue")
+        fun testInvalidExpressionDetail() {
+            val result = parseBooleanExpression("age @ 18")
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+
+            val exErr = error as ExErr<*, ParseIssue>
+            val issue = exErr.value
+
+            assertEquals(ParseIssueType.Syntax, issue.type)
+            assertEquals("age @ 18", issue.input)
+            assertNotNull(issue.position)
+            assertTrue(issue.position!! >= 0)
+            assertNotNull(issue.message)
+        }
+
+        @Test
+        @DisplayName("Incomplete expression detail should contain ParseIssue / 不完整表达式 detail 应包含 ParseIssue")
+        fun testIncompleteExpressionDetail() {
+            val result = parseBooleanExpression("age >")
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+
+            val exErr = error as ExErr<*, ParseIssue>
+            val issue = exErr.value
+
+            assertEquals(ParseIssueType.Syntax, issue.type)
+            assertEquals("age >", issue.input)
+            assertNotNull(issue.position)
+            assertNotNull(issue.message)
         }
     }
 }

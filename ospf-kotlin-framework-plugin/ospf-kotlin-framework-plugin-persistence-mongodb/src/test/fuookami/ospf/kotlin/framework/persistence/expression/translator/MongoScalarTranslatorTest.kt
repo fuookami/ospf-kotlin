@@ -10,7 +10,10 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicateDetail
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
 @DisplayName("MongoScalarTranslator Tests / MongoDB 标量翻译器测试")
@@ -53,6 +56,26 @@ class MongoScalarTranslatorTest {
         assertTrue(unresolved.ok)
         assertNull(unresolved.value)
         assertTrue(failed.failed)
+    }
+
+    @Test
+    @DisplayName("fail fast detail should contain correct fields / FailFast detail 应包含正确字段")
+    fun failFastDetailShouldContainCorrectFields() {
+        val failFastTranslator = MongoScalarTranslator(resolver, UnsupportedPredicatePolicy.FailFast)
+        val result = failFastTranslator.translate(ScalarCustom<Int>("x"))
+
+        assertTrue(result.failed)
+        assertTrue(result is Failed<*, *, *>)
+
+        val failed = result as Failed<*, *, *>
+        val error = failed.error
+        assertTrue(error is ExErr<*, *>)
+        val exErr = error as ExErr<*, UnsupportedPredicateDetail>
+        val detail = exErr.value
+
+        assertEquals("ScalarExpression", detail.expressionType)
+        assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
+        assertEquals("MongoDB", detail.backendName)
     }
 
     @Test

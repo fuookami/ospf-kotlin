@@ -23,7 +23,30 @@ class GanttSchedulingCapabilityError(
 ) : Err<ErrorCode>(
     code = ErrorCode.IllegalArgument,
     message = if (capability != null) "Capability not supported: $capability" else "Capability not supported."
-)
+) {
+    companion object {
+        /**
+         * 创建能力不支持错误
+         * Create capability not supported error
+         *
+         * @param capability 不支持的能力 / The unsupported capability
+         * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
+         */
+        fun of(capability: String): GanttSchedulingCapabilityError {
+            return GanttSchedulingCapabilityError(capability)
+        }
+
+        /**
+         * 创建通用能力不支持错误
+         * Create generic capability not supported error
+         *
+         * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
+         */
+        fun unsupported(): GanttSchedulingCapabilityError {
+            return GanttSchedulingCapabilityError()
+        }
+    }
+}
 
 /**
  * Gantt Scheduling 生命周期错误

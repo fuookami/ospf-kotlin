@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingValidationError
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
 /** 材料接口 / Material interface */
@@ -193,7 +194,7 @@ private fun <V : RealNumber<V>> AbstractTaskBunch<*, *, *, V>.quantityZero(): Re
     cost.costSum?.value?.let {
         return Ok(it.constants.zero)
     }
-    return Failed(ErrorCode.IllegalArgument, "production task bunch must contain at least one quantity or cost value to resolve zero.")
+    return Failed(GanttSchedulingValidationError("production task bunch must contain at least one quantity or cost value to resolve zero."))
 }
 
 private fun <V : RealNumber<V>> List<V>.sumOrZero(zero: V): V {

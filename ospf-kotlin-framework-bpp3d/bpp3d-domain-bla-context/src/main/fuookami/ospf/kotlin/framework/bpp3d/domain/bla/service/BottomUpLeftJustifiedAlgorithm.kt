@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dValidationError
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 private fun compareWithPosition(
@@ -433,7 +434,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
 
                 else -> {
-                    return Failed(ErrorCode.IllegalArgument, "Invalid unit type: ${unit.javaClass}")
+                    return Failed(Bpp3dValidationError("Invalid unit type: ${unit.javaClass}"))
                 }
             }
         }

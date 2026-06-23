@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.error
 
+import java.time.Duration
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.utils.error.*
@@ -84,6 +85,16 @@ class CoreErrorTest {
         val error = SolverTerminatedError()
         assertEquals(ErrorCode.OREngineTerminated, error.code)
         assertEquals("Solver terminated.", error.message)
+    }
+
+    @Test
+    fun solverTimeoutErrorShouldHaveCorrectCodeAndDuration() {
+        val duration = Duration.ofSeconds(30)
+        val error = SolverError.Timeout(duration)
+        assertEquals(ErrorCode.OREngineTerminated, error.errorCode)
+        assertEquals(duration, error.duration)
+        assertTrue(error.message.contains("30"))
+        assertTrue(error.message.contains("PT30S"))
     }
 
     // ========================================================================

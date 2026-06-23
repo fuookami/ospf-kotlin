@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.core.error
 
+import java.time.Duration
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
@@ -282,11 +283,11 @@ sealed class SolverError(
     /**
      * 求解器超时错误 / Solver timeout error
      *
-     * @property detail 超时的描述 / Description of the timeout
+     * @property duration 超时时长 / Duration of the timeout
      */
-    data class Timeout(val detail: String) : SolverError(
+    data class Timeout(val duration: Duration) : SolverError(
         ErrorCode.OREngineTerminated,
-        "Solver timeout: $detail"
+        "Solver timeout after $duration"
     )
     /**
      * 许可证错误 / License error

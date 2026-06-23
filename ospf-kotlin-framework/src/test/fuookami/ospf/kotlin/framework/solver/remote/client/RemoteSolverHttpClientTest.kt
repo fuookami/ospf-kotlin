@@ -8,6 +8,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -195,6 +196,45 @@ class RemoteSolverHttpClientTest {
         assertTrue(error.message?.contains("payloadRef is required") == true)
         assertTrue(error.message?.contains("trace-error") == true)
         assertTrue(error.message?.contains("status=400") == true)
+    }
+
+    @Test
+    fun errorEnvelopeShouldContainDetailInExErrValue() {
+        val http = RecordingHttpHandler(
+            RemoteSolverHttpResponse(
+                statusCode = 500,
+                body =
+                """
+                {
+                  "code": "INTERNAL_ERROR",
+                  "message": "Solver execution failed",
+                  "traceId": "trace-detail",
+                  "data": null
+                }
+                """.trimIndent()
+            )
+        )
+        val client = RemoteSolverHttpClient(
+            baseUrl = "http://localhost",
+            transport = http
+        )
+
+        val result = client.submit(RemoteTaskSubmitRequest(payloadRef = ObjectPath.of("payloads/1")))
+
+        assertTrue(result is Failed<*, *, *>)
+        val failed = result as Failed<*, *, *>
+        assertEquals(ErrorCode.ApplicationError, failed.code)
+
+        val error = failed.error
+        assertTrue(error is ExErr<*, *>)
+        val exErr = error as ExErr<*, RemoteSolverFailureDetail>
+        val detail = exErr.value
+
+        assertEquals(RemoteSolverErrorCode.INTERNAL_ERROR, detail.code)
+        assertEquals("Solver execution failed", detail.message)
+        assertEquals(500, detail.httpStatus)
+        assertTrue(detail.metadata.containsKey("traceId"))
+        assertEquals("trace-detail", detail.metadata["traceId"])
     }
 
     @Test

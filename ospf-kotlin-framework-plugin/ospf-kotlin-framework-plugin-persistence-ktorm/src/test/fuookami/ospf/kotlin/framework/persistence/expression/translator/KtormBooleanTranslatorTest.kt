@@ -19,9 +19,12 @@ import org.ktorm.expression.UnaryExpressionType
 import org.ktorm.schema.Table
 import org.ktorm.schema.int
 import org.ktorm.schema.varchar
+import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicateDetail
 import fuookami.ospf.kotlin.framework.persistence.expression.UnsupportedPredicatePolicy
 
 @DisplayName("KtormBooleanTranslator Tests / Ktorm 布尔翻译器测试")
@@ -225,6 +228,29 @@ class KtormBooleanTranslatorTest {
 
             val result = failFastTranslator.translate(BooleanCustom("x"))
             assertTrue(result.failed)
+        }
+
+        @Test
+        @DisplayName("fail fast detail should contain correct fields / FailFast detail 应包含正确字段")
+        fun failFastDetailShouldContainCorrectFields() {
+            val failFastTranslator = KtormBooleanTranslator(
+                resolver,
+                unsupportedPredicatePolicy = UnsupportedPredicatePolicy.FailFast
+            )
+            val result = failFastTranslator.translate(BooleanCustom("x"))
+
+            assertTrue(result.failed)
+            assertTrue(result is Failed<*, *, *>)
+
+            val failed = result as Failed<*, *, *>
+            val error = failed.error
+            assertTrue(error is ExErr<*, *>)
+            val exErr = error as ExErr<*, UnsupportedPredicateDetail>
+            val detail = exErr.value
+
+            assertTrue(detail.expressionType.contains("Custom"))
+            assertEquals(UnsupportedPredicatePolicy.FailFast, detail.policy)
+            assertEquals("Ktorm", detail.backendName)
         }
     }
 

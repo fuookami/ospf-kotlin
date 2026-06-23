@@ -2,13 +2,14 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.framework.csp1d.application.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model.LengthAssignmentModelingConfig
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dLifecycleError
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dSolvingError
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConfig
@@ -327,10 +328,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
                 appliedWarmStartUsageCount = warmStart.adapterResult?.appliedUsageCount ?: Int64.zero,
                 message = error.message ?: "Recovery solve failed"
             )
-            return Failed(
-                ErrorCode.ApplicationError,
-                trace.message ?: "Recovery solve failed"
-            )
+            return Failed(Csp1dSolvingError(trace.message ?: "Recovery solve failed"))
         }
         val status = if (csp1dRequiresFallback(warmStart.status)) {
             Csp1dRecoveryStatus.RetriedWithoutWarmStart

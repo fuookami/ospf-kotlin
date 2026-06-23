@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.error.Csp1dCapabilityError
 
 /**
  * 转换 solver 值到领域数值类型 / Convert solver value to domain numeric type
@@ -17,6 +18,6 @@ fun <V : RealNumber<V>> convertSolverValue(sample: V, value: Flt64): Ret<V> {
     return when (sample) {
         is Flt64 -> Ok(value as V)
         is FltX -> Ok(value.toFltX() as V)
-        else -> Failed(Err(ErrorCode.ApplicationError, "Unsupported RealNumber type: ${sample::class}"))
+        else -> Failed(Csp1dCapabilityError("RealNumber type: ${sample::class}"))
     }
 }
