@@ -305,5 +305,51 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>demo4-gurobi-cg</id>
+            <dependencies>
+                <dependency>
+                    <groupId>gurobi</groupId>
+                    <artifactId>gurobi</artifactId>
+                    <version>1.0.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-demo4-gurobi-cg-test-source</id>
+                                <phase>generate-test-sources</phase>
+                                <goals>
+                                    <goal>add-test-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>src/gurobi-test</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/Demo4BranchAndPriceE2ETest.*</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

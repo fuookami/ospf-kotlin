@@ -5,19 +5,22 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.servi
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.Parameter
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
  * 包含容量、取消和变更约束的乘客管线列表生成器。Generator for the passenger pipeline list including capacity, cancel, and change constraints.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 乘客域聚合。Passenger domain aggregation.
+ * @property parameter 列生成主模型系数参数。Column generation master model coefficient parameters.
  */
 class PipelineListGenerator(
-    private val aggregation: Aggregation
+    private val aggregation: Aggregation,
+    private val parameter: Parameter = Parameter()
 ) {
     /**
-     * Creates and returns the pipeline list with all passenger constraints and objectives.
- *
+     * 创建并返回包含所有乘客约束和目标的管线列表。Creates and returns the pipeline list with all passenger constraints and objectives.
+     *
      * @return 返回结果。
      */
     operator fun invoke(): Ret<CGPipelineList> {
@@ -52,7 +55,8 @@ class PipelineListGenerator(
                 passengers = aggregation.passengers,
                 cancel = aggregation.cancel,
                 coefficient = { _ ->
-                    TODO("not implemented yet")
+                    // Source: Parameter.passengerCancelCoeff — ported from fsra-proof passengerCancel.
+                    parameter.passengerCancelCoeff
                 }
             )
         )
@@ -62,7 +66,8 @@ class PipelineListGenerator(
                 passengers = aggregation.passengers,
                 change = aggregation.change,
                 coefficient = { _, _ ->
-                    TODO("not implemented yet")
+                    // Source: Parameter.passengerClassChangeCoeff — ported from fsra-proof passengerClassChangeBase.
+                    parameter.passengerClassChangeCoeff
                 }
             )
         )
@@ -71,8 +76,9 @@ class PipelineListGenerator(
             PassengerFlightChangeMinimization(
                 passengers = aggregation.passengers,
                 change = aggregation.change,
-                coefficient = { _, _ , _->
-                    TODO("not implemented yet")
+                coefficient = { _, _, _ ->
+                    // Source: Parameter.passengerFlightChangeCoeff — default 1.0 (uniform weight for flight change).
+                    parameter.passengerFlightChangeCoeff
                 }
             )
         )
