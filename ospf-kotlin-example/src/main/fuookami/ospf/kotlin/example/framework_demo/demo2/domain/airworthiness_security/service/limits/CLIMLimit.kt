@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 /**
  * 约束 CG 指数裕度（CLIM）在最大允许边界内。Constrains the CG index margin (CLIM) to be within the maximum allowed bounds.
  *
- * @property private val torque 参数。
- * @property private val maxCLIM 参数。
+ * @property torque 参数。
+ * @property maxCLIM 参数。
  */
 class CLIMLimit(
     private val torque: Torque,

@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 计算每个位置货物项的绝对优先级系数。Computes absolute priority coefficients for cargo items at each position.
  *
- * @property private val coefficient 参数。
+ * @property coefficient 参数。
  */
 class AbsoluteOrder(
     private val coefficient: HashMap<CargoPriority, (Position) -> Flt64>

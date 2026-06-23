@@ -26,7 +26,12 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 分配优化：将产品分配给公司以最小化总成本。Assignment optimization: assign products to companies minimizing total cost. * * * @see     https://fuookami.github.io/ospf/examples/example2.html */
+/**
+ * 分配优化：将产品分配给公司以最小化总成本。
+ * Assignment optimization: assign products to companies minimizing total cost.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example2.html
+ */
 data object Demo2 {
     /** 待分配的产品。A product to be assigned. */
     class Product : AutoIndexed(Product::class)
@@ -34,7 +39,7 @@ data object Demo2 {
     /**
      * 具有每产品成本映射的公司。A company with cost per product mapping.
      *
-     * @property cost 参数。
+     * @property cost 各产品成本映射 / Cost per product mapping
      */
     data class Company(
         val cost: Map<Product, Flt64>
@@ -95,7 +100,7 @@ data object Demo2 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -117,7 +122,7 @@ data object Demo2 {
     /**
      * Initializes binary decision variables for company-product assignments.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = BinVariable2("x", Shape2(companies.size, products.size))
@@ -133,7 +138,7 @@ data object Demo2 {
     /**
      * Creates cost symbol and assignment intermediate symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -169,7 +174,7 @@ data object Demo2 {
     /**
      * Sets the objective to minimize total assignment cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
@@ -179,7 +184,7 @@ data object Demo2 {
     /**
      * Adds constraints: each company assigns at most one product, each product assigned exactly once.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (c in companies) {
@@ -194,7 +199,7 @@ data object Demo2 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -217,7 +222,7 @@ data object Demo2 {
     /**
      * Extracts the assigned company-product pairs from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Pair<Company, Product>>()

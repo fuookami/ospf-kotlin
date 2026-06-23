@@ -105,7 +105,7 @@ data object Demo3 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -127,7 +127,7 @@ data object Demo3 {
     /**
      * Initializes unsigned integer variables for material quantities.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(materials.size))
@@ -141,7 +141,7 @@ data object Demo3 {
     /**
      * Creates cost and per-product yield expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -167,7 +167,7 @@ data object Demo3 {
     /**
      * Sets the objective to minimize material cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
@@ -177,7 +177,7 @@ data object Demo3 {
     /**
      * Adds yield equality constraints for each product.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (p in products) {
@@ -190,7 +190,7 @@ data object Demo3 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -213,7 +213,7 @@ data object Demo3 {
     /**
      * Extracts the material quantities from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, UInt64>()

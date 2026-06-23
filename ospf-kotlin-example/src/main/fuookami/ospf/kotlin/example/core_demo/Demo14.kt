@@ -41,7 +41,7 @@ data object Demo14 {
     /**
      * 具有存储容量的生产节点。A production node with storage capacity.
      *
-     * @property storage 参数。
+     * @property storage 存储容量 / Storage capacity
      */
     class Product(
         override val name: String,
@@ -51,7 +51,7 @@ data object Demo14 {
     /**
      * 具有需求量的销售节点。A sales node with demand quantity.
      *
-     * @property demand 参数。
+     * @property demand 需求量 / Demand quantity
      */
     class Sale(
         override val name: String,
@@ -123,7 +123,7 @@ data object Demo14 {
      * 顺序运行所有子流程以构建、求解和分析模型。
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -146,7 +146,7 @@ data object Demo14 {
      * 初始化连接节点间的流量变量。
      * Initializes flow variables between connected nodes.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
@@ -171,7 +171,7 @@ data object Demo14 {
      * 创建成本、流出和流入表达式符号。
      * Creates cost, outgoing flow, and incoming flow expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -219,7 +219,7 @@ data object Demo14 {
      * 设置目标为最小化总运输成本。
      * Sets the objective to minimize total shipping cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
@@ -231,7 +231,7 @@ data object Demo14 {
      * 添加生产、需求和转运平衡约束。
      * Adds production, demand, and transshipment balance constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (node in nodes.filterIsInstance<Product>()) {
@@ -266,7 +266,7 @@ data object Demo14 {
      * 使用 SCIP 求解器求解线性模型。
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -291,7 +291,7 @@ data object Demo14 {
      * 从解中提取节点间的流量。
      * Extracts the flow quantities between nodes from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()

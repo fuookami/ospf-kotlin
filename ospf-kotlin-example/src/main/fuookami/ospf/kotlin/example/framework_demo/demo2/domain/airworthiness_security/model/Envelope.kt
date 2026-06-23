@@ -96,10 +96,10 @@ interface AbstractEnvelope {
 /**
  * 具有定义最小/最大指数边界的左右两侧的标准 CG 包络线。Standard CG envelope with left and right sides defining min/max index bounds.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property lhsSide 参数。
  * @property rhsSide 参数。
- * @property private val totalWeight 参数。
+ * @property totalWeight 参数。
  */
 class Envelope(
     private val aircraftModel: AircraftModel,
@@ -182,7 +182,7 @@ class Envelope(
 /**
  * 具有基于运行时条件切换的条件边的 CG 包络线。CG envelope with conditional sides that switch based on a runtime condition.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property lhsSide1 参数。
  * @property rhsSide1 参数。
  * @property lhsSide2 参数。

@@ -61,7 +61,7 @@ operator fun DeckLocation.contains(location: PositionLocation): Boolean {
 /**
  * 具有纵向和横向臂测量的货物位置坐标系。Coordinate system for a cargo position with longitudinal and lateral arm measurements.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property frontArm 参数。
  * @property backArm 参数。
  * @property leftArm 参数。
@@ -135,7 +135,7 @@ class PositionCoordinate(
 /**
  * 货物位置的物理尺寸和面积。Physical dimensions and area of a cargo position.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property length 参数。
  * @property width 参数。
  * @property volume 参数。

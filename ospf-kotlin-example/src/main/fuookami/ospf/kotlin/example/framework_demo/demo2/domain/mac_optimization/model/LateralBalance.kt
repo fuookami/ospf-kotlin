@@ -19,8 +19,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 /**
  * 宽体飞机扭矩优化的横向平衡松弛变量。Lateral balance slack variable for wide-body aircraft torque optimization.
  *
- * @property private val aircraftModel 参数。
- * @property private val torque 参数。
+ * @property aircraftModel 参数。
+ * @property torque 参数。
  */
 class LateralBalance(
     private val aircraftModel: AircraftModel,

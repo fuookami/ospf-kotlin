@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 跨所有服务的每个节点聚合入度、出度和流出的中间符号。Intermediate symbols for aggregated in-degree, out-degree, and out-flow at each node across all services.
  *
- * @property private val nodes 参数。
- * @property private val services 参数。
- * @property private val serviceBandwidth 参数。
+ * @property nodes 节点列表 / Node list
+ * @property services 服务列表 / Service list
+ * @property serviceBandwidth 服务带宽模型 / Service bandwidth model
  */
 class NodeBandwidth(
     private val nodes: List<Node>,

@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.core.variable.*
 /**
  * 跟踪列生成公式的乘客取消变量。Tracks passenger cancellation variables for the column generation formulation.
  *
- * @property private val passengers 参数。
+ * @property passengers 参数。
  */
 class PassengerCancel(
     private val passengers: List<FlightPassenger>

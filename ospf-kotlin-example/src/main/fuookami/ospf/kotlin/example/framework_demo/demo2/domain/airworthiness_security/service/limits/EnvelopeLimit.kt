@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 /**
  * 约束 CG 指数在每个飞行阶段的包络线最小/最大边界内。Constrains the CG index to stay within the envelope min/max bounds for each flight phase.
  *
- * @property private val torque 参数。
- * @property private val envelopes 参数。
+ * @property torque 参数。
+ * @property envelopes 参数。
  */
 class EnvelopeLimit(
     private val torque: Torque,

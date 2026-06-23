@@ -29,10 +29,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /**
  * 强制乘客航班变更中转时间可行性约束的管线。Pipeline enforcing transfer time feasibility constraints for passenger flight changes.
  *
- * @property private val timeWindow 参数。
- * @property private val passengers 参数。
- * @property private val time 参数。
- * @property private val change 参数。
+ * @property timeWindow 参数。
+ * @property passengers 参数。
+ * @property time 参数。
+ * @property change 参数。
  */
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow<*>,

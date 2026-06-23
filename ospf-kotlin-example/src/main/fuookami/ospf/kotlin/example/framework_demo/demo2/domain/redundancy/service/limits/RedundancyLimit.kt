@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model
 /**
  * 最小化按系数加权的冗余松弛。Minimizes the redundancy slack weighted by a coefficient.
  *
- * @property private val redundancy 参数。
- * @property private val coefficient 参数。
+ * @property redundancy 参数。
+ * @property coefficient 参数。
  */
 class RedundancyLimit(
     private val redundancy: Redundancy,

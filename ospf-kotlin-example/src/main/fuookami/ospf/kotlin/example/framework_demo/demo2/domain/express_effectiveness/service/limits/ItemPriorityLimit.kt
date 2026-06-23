@@ -17,11 +17,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 通过基于绝对顺序将项目匹配到位置来最大化总优先级分数。Maximizes the total priority score by matching items to positions based on absolute order.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val unloading 参数。
- * @property private val stowage 参数。
- * @property private val coefficient 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property unloading 参数。
+ * @property stowage 参数。
+ * @property coefficient 参数。
  */
 class ItemPriorityLimit(
     private val items: List<Item>,

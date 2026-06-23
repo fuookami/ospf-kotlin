@@ -14,9 +14,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 跟踪列生成公式的乘客舱位和航班变更变量。Tracks passenger class and flight change variables for the column generation formulation.
  *
- * @property private val flights 参数。
- * @property private val passengers 参数。
- * @property private val withFlightChange 参数。
+ * @property flights 参数。
+ * @property passengers 参数。
+ * @property withFlightChange 参数。
  */
 class PassengerChange(
     private val flights: List<FlightTask>,

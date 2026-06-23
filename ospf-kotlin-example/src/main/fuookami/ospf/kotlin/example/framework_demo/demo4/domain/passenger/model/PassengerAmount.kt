@@ -19,10 +19,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * Tracks passenger amount expressions per flight and class,
  * accounting for cancellations and class/flight changes.
  *
-  * @property private val flights 参数。
-  * @property private val passengers 参数。
-  * @property private val cancel 参数。
-  * @property private val change 参数。
+  * @property flights 参数。
+  * @property passengers 参数。
+  * @property cancel 参数。
+  * @property change 参数。
  */
 class PassengerAmount(
     private val flights: List<FlightTask>,

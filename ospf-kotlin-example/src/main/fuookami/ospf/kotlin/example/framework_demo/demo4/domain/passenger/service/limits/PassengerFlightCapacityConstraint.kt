@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 强制每航班每舱位乘客数量不超过飞机容量的管线。Pipeline enforcing that passenger amounts per flight and class do not exceed aircraft capacity.
  *
- * @property private val flights 参数。
- * @property private val amount 参数。
- * @property private val capacity 参数。
+ * @property flights 参数。
+ * @property amount 参数。
+ * @property capacity 参数。
  */
 class PassengerFlightCapacityConstraint(
     private val flights: List<FlightTask>,

@@ -14,10 +14,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 生成用于模型构建的带宽约束和成本目标的管线列表。Generates the pipeline list of bandwidth constraints and cost objective for model construction.
  *
- * @property private val aggregation 参数。
- * @property private val graph 参数。
- * @property private val services 参数。
- * @property private val assignment 参数。
+ * @property aggregation 参数。
+ * @property graph 参数。
+ * @property services 参数。
+ * @property assignment 参数。
  */
 class PipelineListGenerator(
     private val aggregation: Aggregation,

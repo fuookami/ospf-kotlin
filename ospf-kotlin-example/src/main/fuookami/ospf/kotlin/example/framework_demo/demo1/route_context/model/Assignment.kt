@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.core.variable.*
 /**
  * 用于将服务分配到网络中节点的决策变量和中间符号。Decision variables and intermediate symbols for assigning services to nodes in the network.
  *
- * @property private val nodes 参数。
- * @property private val services 参数。
+ * @property nodes 参数。
+ * @property services 参数。
  */
 class Assignment(
     private val nodes: List<Node>,

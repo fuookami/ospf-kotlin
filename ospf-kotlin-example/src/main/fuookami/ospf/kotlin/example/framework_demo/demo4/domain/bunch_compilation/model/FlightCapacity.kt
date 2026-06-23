@@ -19,8 +19,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * Models flight capacity expressions tracking passenger and cargo capacity
  * across flight task bunches for the column generation formulation.
  *
-  * @property private val tasks 参数。
-  * @property private val compilation 参数。
+  * @property tasks 参数。
+  * @property compilation 参数。
   * @property withPassenger 参数。
   * @property withCargo 参数。
  */

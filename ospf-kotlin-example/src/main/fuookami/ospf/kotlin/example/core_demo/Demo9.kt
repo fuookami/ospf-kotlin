@@ -26,13 +26,18 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 设施选址：找到最小化到定居点总曼哈顿距离的点。Facility location: find the point minimizing total Manhattan distance to settlements. * * * @see     https://fuookami.github.io/ospf/examples/example9.html */
+/**
+ * 设施选址：找到最小化到定居点总曼哈顿距离的点。
+ * Facility location: find the point minimizing total Manhattan distance to settlements.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example9.html
+ */
 data object Demo9 {
     /**
      * 具有 x 和 y 坐标的定居点。A settlement with x and y coordinates.
      *
-     * @property x 参数。
-     * @property y 参数。
+     * @property x X 坐标 / X coordinate
+     * @property y Y 坐标 / Y coordinate
      */
     data class Settlement(
         val x: Flt64,
@@ -68,7 +73,7 @@ data object Demo9 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -90,7 +95,7 @@ data object Demo9 {
     /**
      * Initializes integer decision variables for the facility position.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = IntVar("x")
@@ -103,7 +108,7 @@ data object Demo9 {
     /**
      * Creates absolute distance symbols for x and y axes, then sums them.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         dx = LinearIntermediateSymbols1<Flt64>("dx", Shape1(settlements.size)) { i, _ ->
@@ -139,7 +144,7 @@ data object Demo9 {
     /**
      * Sets the objective to minimize total Manhattan distance.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(sum(distance[_a]))
@@ -149,7 +154,7 @@ data object Demo9 {
     /**
      * No additional constraints needed.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         return ok
@@ -158,7 +163,7 @@ data object Demo9 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -181,7 +186,7 @@ data object Demo9 {
     /**
      * Extracts the optimal facility position from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val position = ArrayList<Flt64>()

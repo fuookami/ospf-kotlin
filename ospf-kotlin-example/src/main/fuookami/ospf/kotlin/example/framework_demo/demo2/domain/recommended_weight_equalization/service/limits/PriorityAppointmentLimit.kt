@@ -17,11 +17,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 约束项目只能放置在匹配其优先级预约的位置。Constrains items to only be placed at positions matching their priority appointment.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val appointment 参数。
- * @property private val priorityAppointment 参数。
- * @property private val stowage 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property appointment 参数。
+ * @property priorityAppointment 参数。
+ * @property stowage 参数。
  */
 class PriorityAppointmentLimit(
     private val items: List<Item>,

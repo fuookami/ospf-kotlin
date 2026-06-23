@@ -26,12 +26,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 运输问题：最小化从仓库到商店的运输成本。Transportation problem: minimize shipping cost from warehouses to stores. * * * @see     https://fuookami.github.io/ospf/examples/example7.html */
+/**
+ * 运输问题：最小化从仓库到商店的运输成本。
+ * Transportation problem: minimize shipping cost from warehouses to stores.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example7.html
+ */
 data object Demo7 {
     /**
      * 具有需求量的商店。A store with a demand quantity.
      *
-     * @property demand 参数。
+     * @property demand 需求量 / Demand quantity
      */
     data class Store(
         val demand: Flt64
@@ -40,8 +45,8 @@ data object Demo7 {
     /**
      * 具有仓储容量和每商店运输成本的仓库。A warehouse with stowage capacity and shipping cost per store.
      *
-     * @property stowage 参数。
-     * @property cost 参数。
+     * @property stowage 仓储容量 / Stowage capacity
+     * @property cost 各商店运输成本 / Shipping cost per store
      */
     data class Warehouse(
         val stowage: Flt64,
@@ -101,7 +106,7 @@ data object Demo7 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -123,7 +128,7 @@ data object Demo7 {
     /**
      * Initializes unsigned integer variables for warehouse-store shipments.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(warehouses.size, stores.size))
@@ -139,7 +144,7 @@ data object Demo7 {
     /**
      * Creates cost, shipment, and purchase expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -181,7 +186,7 @@ data object Demo7 {
     /**
      * Sets the objective to minimize total shipping cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
@@ -191,7 +196,7 @@ data object Demo7 {
     /**
      * Adds warehouse stowage and store demand constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (w in warehouses) {
@@ -213,7 +218,7 @@ data object Demo7 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -236,7 +241,7 @@ data object Demo7 {
     /**
      * Extracts the shipment quantities per store and warehouse from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val solution = stores.associateWith { warehouses.associateWith { Flt64.zero }.toMutableMap() }

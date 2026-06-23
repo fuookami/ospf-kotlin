@@ -19,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 最小化乘客取消加权和的管线。Pipeline minimizing the weighted sum of passenger cancellations.
  *
- * @property private val passengers 参数。
- * @property private val cancel 参数。
- * @property private val coefficient 参数。
+ * @property passengers 参数。
+ * @property cancel 参数。
+ * @property coefficient 参数。
  */
 class PassengerCancelMinimization(
     private val passengers: List<FlightPassenger>,

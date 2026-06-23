@@ -19,12 +19,12 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 计算每个飞行阶段的纵向扭矩、横向扭矩、CLIM 和指数。Computes longitudinal torque, lateral torque, CLIM, and index for each flight phase.
  *
- * @property private val aircraftModel 参数。
- * @property private val fuselage 参数。
- * @property private val fuel 参数。
- * @property private val formula 参数。
- * @property private val positions 参数。
- * @property private val load 参数。
+ * @property aircraftModel 参数。
+ * @property fuselage 参数。
+ * @property fuel 参数。
+ * @property formula 参数。
+ * @property positions 参数。
+ * @property load 参数。
  */
 class Torque(
     private val aircraftModel: AircraftModel,

@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * and their associated slack variables for the column generation formulation.
  *
   * @property links 参数。
-  * @property private val compilation 参数。
+  * @property compilation 参数。
  */
 class FlightLink(
     val links: List<Link>,

@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.Fligh
 /**
  * 表示阻止航班任务修改的约束的锁定模型。Lock model representing constraints that prevent flight task modifications.
  *
- * @property private val lockedTasks 参数。
+ * @property lockedTasks 参数。
  */
 class Lock(
     private val lockedTasks: Map<FlightTask, Instant> = emptyMap()

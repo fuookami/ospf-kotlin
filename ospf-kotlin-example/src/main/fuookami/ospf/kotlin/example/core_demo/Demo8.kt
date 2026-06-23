@@ -26,12 +26,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 生产规划：在设备工时约束下最大化利润。Production planning: maximize profit subject to equipment man-hour constraints. * * * @see     https://fuookami.github.io/ospf/examples/example8.html */
+/**
+ * 生产规划：在设备工时约束下最大化利润。
+ * Production planning: maximize profit subject to equipment man-hour constraints.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example8.html
+ */
 data object Demo8 {
     /**
      * 具有利润值的产品。A product with a profit value.
      *
-     * @property profit 参数。
+     * @property profit 利润值 / Profit value
      */
     data class Product(
         val profit: Flt64
@@ -40,8 +45,8 @@ data object Demo8 {
     /**
      * 具有数量和每产品工时的设备类型。An equipment type with amount and man-hours per product.
      *
-     * @property amount 参数。
-     * @property manHours 参数。
+     * @property amount 设备数量 / Equipment amount
+     * @property manHours 各产品工时 / Man-hours per product
      */
     data class Equipment(
         val amount: UInt64,
@@ -109,7 +114,7 @@ data object Demo8 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -131,7 +136,7 @@ data object Demo8 {
     /**
      * Initializes unsigned integer variables for product quantities.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
@@ -145,7 +150,7 @@ data object Demo8 {
     /**
      * Creates profit and man-hour expression symbols per equipment.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         profit = LinearExpressionSymbol(
@@ -174,7 +179,7 @@ data object Demo8 {
     /**
      * Sets the objective to maximize total profit.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit, "profit")
@@ -184,7 +189,7 @@ data object Demo8 {
     /**
      * Adds equipment man-hour capacity constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (e in equipments) {
@@ -199,7 +204,7 @@ data object Demo8 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -222,7 +227,7 @@ data object Demo8 {
     /**
      * Extracts the product quantities from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()

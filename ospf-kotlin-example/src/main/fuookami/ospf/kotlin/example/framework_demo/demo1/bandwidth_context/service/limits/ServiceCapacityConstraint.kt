@@ -17,10 +17,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 约束每个普通节点的流出到服务容量（当服务被分配时）。Constrains the out-flow at each normal node to the service capacity when the service is assigned.
  *
- * @property private val nodes 参数。
- * @property private val services 参数。
- * @property private val assignment 参数。
- * @property private val serviceBandwidth 参数。
+ * @property nodes 参数。
+ * @property services 参数。
+ * @property assignment 参数。
+ * @property serviceBandwidth 参数。
  */
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,

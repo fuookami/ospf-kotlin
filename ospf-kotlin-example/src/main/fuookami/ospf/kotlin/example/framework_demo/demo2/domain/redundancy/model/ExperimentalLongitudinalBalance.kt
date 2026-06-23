@@ -19,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 用于分析主甲板扭矩分布的实验纵向平衡模型。Experimental longitudinal balance model for analyzing main-deck torque distribution.
  *
- * @property private val aircraftModel 参数。
- * @property private val positions 参数。
- * @property private val load 参数。
- * @property private val payload 参数。
- * @property private val redundancy 参数。
+ * @property aircraftModel 参数。
+ * @property positions 参数。
+ * @property load 参数。
+ * @property payload 参数。
+ * @property redundancy 参数。
  */
 class ExperimentalLongitudinalBalance(
     private val aircraftModel: AircraftModel,

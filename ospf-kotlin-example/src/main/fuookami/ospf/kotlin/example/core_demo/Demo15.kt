@@ -26,12 +26,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 多工厂分销：在替代约束下最小化从制造商到配送中心的物流成本。Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution. * * * @see     https://fuookami.github.io/ospf/examples/example15.html */
+/**
+ * 多工厂分销：在替代约束下最小化从制造商到配送中心的物流成本。
+ * Multi-plant distribution: minimize logistics cost from manufacturers to distribution centers with substitution.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example15.html
+ */
 data object Demo15 {
     /**
      * 汽车型号类型。A car model type.
      *
-     * @property name 参数。
+     * @property name 汽车型号名称 / Car model name
      */
     data class CarModel(
         val name: String
@@ -40,9 +45,9 @@ data object Demo15 {
     /**
      * 两个汽车型号之间的替代规则（具有最大替代率）。A substitution rule between two car models with maximum substitution rate.
      *
-     * @property c1 参数。
-     * @property c2 参数。
-     * @property maximum 参数。
+     * @property c1 第一个汽车型号 / First car model
+     * @property c2 第二个汽车型号 / Second car model
+     * @property maximum 最大替代率 / Maximum substitution rate
      */
     data class Replacement(
         val c1: CarModel,
@@ -53,9 +58,9 @@ data object Demo15 {
     /**
      * 具有替代规则和每型号需求的配送中心。A distribution center with substitution rules and demand per car model.
      *
-     * @property name 参数。
-     * @property replacements 参数。
-     * @property demands 参数。
+     * @property name 配送中心名称 / Distribution center name
+     * @property replacements 替代规则列表 / Substitution rules list
+     * @property demands 各型号需求量 / Demand per car model
      */
     data class DistributionCenter(
         val name: String,
@@ -66,9 +71,9 @@ data object Demo15 {
     /**
      * 具有生产能力和每中心物流成本的制造商。A manufacturer with production capacity and logistics cost per center.
      *
-     * @property name 参数。
-     * @property productivity 参数。
-     * @property logisticsCost 参数。
+     * @property name 制造商名称 / Manufacturer name
+     * @property productivity 各型号生产能力 / Production capacity per car model
+     * @property logisticsCost 各中心物流成本 / Logistics cost per center
      */
     data class Manufacturer(
         val name: String,
@@ -165,7 +170,7 @@ data object Demo15 {
     /**
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -187,7 +192,7 @@ data object Demo15 {
     /**
      * Initializes shipment and substitution rate variables.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable3("x", Shape3(manufacturers.size, distributionCenters.size, carModels.size))
@@ -222,7 +227,7 @@ data object Demo15 {
     /**
      * Creates receive, adjusted demand, transport, and cost expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         receive = LinearIntermediateSymbols2<Flt64>(
@@ -307,7 +312,7 @@ data object Demo15 {
     /**
      * Sets the objective to minimize total logistics cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
@@ -318,7 +323,7 @@ data object Demo15 {
     /**
      * Adds demand satisfaction and production capacity constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (d in distributionCenters) {
@@ -349,7 +354,7 @@ data object Demo15 {
     /**
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -373,7 +378,7 @@ data object Demo15 {
     /**
      * Extracts shipment and substitution data from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Manufacturer, MutableMap<Pair<DistributionCenter, CarModel>, UInt64>> = HashMap()

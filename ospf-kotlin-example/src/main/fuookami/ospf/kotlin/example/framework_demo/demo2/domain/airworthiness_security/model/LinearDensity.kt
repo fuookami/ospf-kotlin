@@ -20,11 +20,11 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 计算每个货物位置的线性密度（单位长度重量）并将其注册到模型。Computes linear density (weight per unit length) for each cargo position and registers it with the model.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property limitsZones 参数。
  * @property limitLines 参数。
- * @property private val positions 参数。
- * @property private val load 参数。
+ * @property positions 参数。
+ * @property load 参数。
  */
 class LinearDensity(
     private val aircraftModel: AircraftModel,

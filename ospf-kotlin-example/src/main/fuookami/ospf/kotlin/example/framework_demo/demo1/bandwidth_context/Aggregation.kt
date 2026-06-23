@@ -11,9 +11,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 /**
  * 聚合边、服务和节点带宽模型，并将其注册到优化模型。Aggregates edge, service, and node bandwidth models and registers them with the optimization model.
  *
- * @property edgeBandwidth 参数。
- * @property serviceBandwidth 参数。
- * @property nodeBandwidth 参数。
+ * @property edgeBandwidth 边带宽模型 / Edge bandwidth model
+ * @property serviceBandwidth 服务带宽模型 / Service bandwidth model
+ * @property nodeBandwidth 节点带宽模型 / Node bandwidth model
  */
 class Aggregation(
     val edgeBandwidth: EdgeBandwidth,

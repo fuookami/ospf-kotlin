@@ -16,10 +16,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 确保必须发货的货物恰好分配到一个位置。Ensures must-ship cargos are assigned to exactly one position.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val stowage 参数。
- * @property private val mustShipIndices 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property stowage 参数。
+ * @property mustShipIndices 参数。
  */
 class MustShipLimit(
     private val items: List<Item>,

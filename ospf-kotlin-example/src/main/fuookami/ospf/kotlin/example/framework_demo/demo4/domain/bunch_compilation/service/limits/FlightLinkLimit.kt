@@ -30,8 +30,8 @@ private data class FlightLinkShadowPriceKey(
 /**
  * 实现列生成航班链接约束和最小化的管线。Pipeline implementing flight link constraints and minimization for column generation.
  *
- * @property private val flightLink 参数。
- * @property private val coefficient 参数。
+ * @property flightLink 参数。
+ * @property coefficient 参数。
  */
 class FlightLinkLimit(
     private val flightLink: FlightLink,

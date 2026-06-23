@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 确保每个客户端节点至少接收其所需的带宽需求。Ensures each client node receives at least its required bandwidth demand.
  *
- * @property private val nodes 参数。
- * @property private val nodeBandwidth 参数。
+ * @property nodes 参数。
+ * @property nodeBandwidth 参数。
  */
 class DemandConstraint(
     private val nodes: List<Node>,

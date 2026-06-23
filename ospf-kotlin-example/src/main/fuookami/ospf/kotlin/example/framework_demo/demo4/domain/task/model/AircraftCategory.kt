@@ -16,7 +16,7 @@ sealed class AircraftCapacity {
     /**
      * 将每个舱位映射到座位数的乘客容量。Passenger capacity mapping each class to a seat count.
      *
-     * @property private val capacity 参数。
+     * @property capacity 参数。
      */
     class Passenger(
         private val capacity: Map<PassengerClass, UInt64>

@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * @property compilation 编译信息。
   * @property aircrafts 参数。
   * @property originBunches 参数。
-  * @property private val compilation 参数。
+  * @property compilation 参数。
  */
 class FleetBalance(
     aircrafts: List<Aircraft>,

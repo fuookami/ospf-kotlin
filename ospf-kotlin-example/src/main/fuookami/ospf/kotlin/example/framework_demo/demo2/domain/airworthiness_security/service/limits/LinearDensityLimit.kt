@@ -20,9 +20,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每条限制线的线性密度到最大允许值。Constrains linear density per limit line to the maximum allowed value.
  *
- * @property private val aircraftModel 参数。
- * @property private val linearDensity 参数。
- * @property private val positions 参数。
+ * @property aircraftModel 参数。
+ * @property linearDensity 参数。
+ * @property positions 参数。
  */
 class LinearDensityLimit(
     private val aircraftModel: AircraftModel,

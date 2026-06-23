@@ -17,10 +17,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 最小化位置对之间的项目对的优先级反转。Minimizes priority reversals between item pairs across position pairs.
  *
- * @property private val orderedItems 参数。
- * @property private val orderedPositions 参数。
- * @property private val unloading 参数。
- * @property private val coefficient 参数。
+ * @property orderedItems 参数。
+ * @property orderedPositions 参数。
+ * @property unloading 参数。
+ * @property coefficient 参数。
  */
 class ItemPriorityReverseLimit(
     private val orderedItems: List<ItemPair>,

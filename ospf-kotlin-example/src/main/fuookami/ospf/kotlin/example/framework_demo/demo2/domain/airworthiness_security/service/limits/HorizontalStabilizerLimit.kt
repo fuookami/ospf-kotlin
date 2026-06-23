@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 约束水平安定面配平在最小/最大边界内（在推荐模式下使用警告限制）。Constrains horizontal stabilizer trim within min/max bounds, using warning limits in recommendation mode.
  *
- * @property private val horizontalStabilizers 参数。
- * @property private val stowageMode 参数。
+ * @property horizontalStabilizers 参数。
+ * @property stowageMode 参数。
  */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,

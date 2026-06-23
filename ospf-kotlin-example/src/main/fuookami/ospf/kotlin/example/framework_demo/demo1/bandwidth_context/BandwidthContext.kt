@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Nod
 /**
  * 管理带宽分配上下文，从路由图构建带宽模型并分析解。Manages bandwidth allocation context, building bandwidth models from the route graph and analyzing solutions.
  *
- * @property private val routeContext 参数。
+ * @property routeContext 路由上下文 / Route context
  */
 class BandwidthContext(
     private val routeContext: RouteContext

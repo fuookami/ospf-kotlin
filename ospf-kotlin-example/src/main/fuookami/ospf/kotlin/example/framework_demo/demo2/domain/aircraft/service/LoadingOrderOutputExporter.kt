@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 /**
  * 将计算的装载顺序导出为响应 DTO。Exports the computed loading order as a response DTO.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 参数。
  */
 data class LoadingOrderOutputExporter(
     private val aggregation: Aggregation

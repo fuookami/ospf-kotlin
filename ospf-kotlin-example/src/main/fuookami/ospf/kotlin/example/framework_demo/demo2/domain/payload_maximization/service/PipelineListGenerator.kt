@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 生成用于模型构建的载荷最大化目标管线。Generates the pipeline of payload maximization objective for model construction.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 参数。
  */
 data class PipelineListGenerator(
     private val aggregation: Aggregation

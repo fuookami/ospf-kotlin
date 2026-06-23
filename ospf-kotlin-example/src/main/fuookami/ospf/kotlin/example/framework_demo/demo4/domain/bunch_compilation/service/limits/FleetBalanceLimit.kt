@@ -30,8 +30,8 @@ private data class FleetBalanceShadowPriceKey(
 /**
  * 实现列生成车队平衡约束和最小化的管线。Pipeline implementing fleet balance constraints and minimization for column generation.
  *
- * @property private val fleetBalance 参数。
- * @property private val coefficient 参数。
+ * @property fleetBalance 参数。
+ * @property coefficient 参数。
  */
 class FleetBalanceLimit(
     private val fleetBalance: FleetBalance,
