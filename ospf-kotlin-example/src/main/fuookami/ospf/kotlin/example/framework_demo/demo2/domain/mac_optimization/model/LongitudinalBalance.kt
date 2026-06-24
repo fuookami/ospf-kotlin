@@ -16,9 +16,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 跨装载模式的 MAC 范围优化的纵向平衡松弛变量。Longitudinal balance slack variables for MAC range optimization across stowage modes.
  *
- * @property private val aircraftModel 参数。
- * @property private val macRange 参数。
- * @property private val torque 参数。
+ * @property aircraftModel 参数。
+ * @property macRange 参数。
+ * @property torque 参数。
  */
 class LongitudinalBalance(
     private val aircraftModel: AircraftModel,

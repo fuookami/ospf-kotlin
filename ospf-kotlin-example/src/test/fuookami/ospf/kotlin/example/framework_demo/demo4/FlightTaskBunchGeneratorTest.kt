@@ -12,8 +12,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for FlightTaskBunchGenerator configuration and construction.
+ * 航班任务束生成器的配置和构造测试 / Tests for FlightTaskBunchGenerator configuration and construction.
  *
+ * 注意：使用实际 Aircraft/FlightTask 对象和影子价格映射的完整集成测试需要领域模型初始化。这些测试验证生成器可以使用正确的配置进行构造 /
  * Note: Full integration tests with actual Aircraft/FlightTask objects and
  * shadow price maps require domain model initialization. These tests verify
  * the generator can be constructed with proper configuration.

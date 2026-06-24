@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * Tests for ValueRange subcomponents: Bound, Interval, ValueWrapper
+ * 值域子组件测试：边界、区间、值包装器 / Tests for ValueRange subcomponents: Bound, Interval, ValueWrapper
  */
 class ValueRangeComponentTest {
 

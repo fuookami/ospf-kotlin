@@ -16,7 +16,7 @@ sealed class AircraftCapacity {
     /**
      * 将每个舱位映射到座位数的乘客容量。Passenger capacity mapping each class to a seat count.
      *
-     * @property private val capacity 参数。
+     * @property capacity 参数。
      */
     class Passenger(
         private val capacity: Map<PassengerClass, UInt64>
@@ -26,7 +26,7 @@ sealed class AircraftCapacity {
         operator fun get(cls: PassengerClass) = capacity[cls] ?: UInt64.zero
 
         /**
-         * Checks whether the aircraft can carry the given payload per class.
+         * 检查飞机是否能承载给定舱位的有效载荷。/ Checks whether the aircraft can carry the given payload per class.
  *
          * @param payload 参数。
          */
@@ -46,7 +46,7 @@ sealed class AircraftCapacity {
         override val category get() = AircraftCategory.Cargo
 
         /**
-         * Checks whether the aircraft can carry the given payload weight.
+         * 检查飞机是否能承载给定重量的有效载荷。/ Checks whether the aircraft can carry the given payload weight.
  *
          * @param payload 参数。
          */

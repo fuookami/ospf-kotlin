@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 最小化所有普通边的总带宽成本。Minimizes the total bandwidth cost across all normal edges.
  *
- * @property private val edges 参数。
- * @property private val edgeBandwidth 参数。
+ * @property edges 参数。
+ * @property edgeBandwidth 参数。
  */
 class BandwidthCostObjective(
     private val edges: List<Edge>,

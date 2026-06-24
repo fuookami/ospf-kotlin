@@ -26,12 +26,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。Vehicle routing: minimize distribution distance from centers to dealers with truck capacity. * * * @see     https://fuookami.github.io/ospf/examples/example13.html */
+/**
+ * 车辆路径问题：在卡车容量约束下最小化从配送中心到经销商的配送距离。
+ * Vehicle routing: minimize distribution distance from centers to dealers with truck capacity.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example13.html
+ */
 data object Demo13 {
     /**
      * 具有需求量的经销商。A dealer with a demand quantity.
      *
-     * @property demand 参数。
+     * @property demand 需求量 / Demand quantity
      */
     data class Dealer(
         val demand: UInt64
@@ -40,8 +45,8 @@ data object Demo13 {
     /**
      * 具有供应和到经销商距离的配送中心。A distribution center with supply and distances to dealers.
      *
-     * @property supply 参数。
-     * @property distance 参数。
+     * @property supply 供应量 / Supply quantity
+     * @property distance 到各经销商距离 / Distance to dealers
      */
     data class DistributionCenter(
         val supply: UInt64,
@@ -108,9 +113,10 @@ data object Demo13 {
     )
 
     /**
+     * 按顺序运行所有子过程以构建、求解和分析模型。
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -130,9 +136,10 @@ data object Demo13 {
     }
 
     /**
+     * 初始化发货量和卡车数量变量。
      * Initializes shipment and truck count variables.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(dealers.size, distributionCenters.size))
@@ -145,9 +152,10 @@ data object Demo13 {
     }
 
     /**
+     * 创建运输、接收和成本表达式符号。
      * Creates transport, receive, and cost expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         trans = LinearIntermediateSymbols1<Flt64>(
@@ -189,9 +197,10 @@ data object Demo13 {
     }
 
     /**
+     * 设置目标函数以最小化总配送距离。
      * Sets the objective to minimize total distribution distance.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
@@ -200,9 +209,10 @@ data object Demo13 {
     }
 
     /**
+     * 添加供应、需求和卡车容量约束。
      * Adds supply, demand, and truck capacity constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (distributionCenter in distributionCenters) {
@@ -232,9 +242,10 @@ data object Demo13 {
     }
 
     /**
+     * 使用 SCIP 求解器求解线性模型。
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -256,9 +267,10 @@ data object Demo13 {
     }
 
     /**
+     * 从解中提取每个配送中心和经销商的发货量。
      * Extracts the shipment quantities per distribution center and dealer.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<DistributionCenter, MutableMap<Dealer, UInt64>> = hashMapOf()

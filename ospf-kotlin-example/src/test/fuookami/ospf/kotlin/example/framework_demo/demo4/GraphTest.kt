@@ -10,7 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for Graph structure and node/edge operations.
+ * 图结构及节点/边操作测试 / Tests for Graph structure and node/edge operations.
  */
 class GraphTest {
 

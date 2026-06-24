@@ -1,4 +1,17 @@
 /**
+ * 爱因斯坦求和记号测试
+ *
+ * 测试内容：
+ * - 索引标签和索引列表
+ * - 矩阵乘法 matmul
+ * - 点积 dot
+ * - 迹 trace
+ * - 外积 outer
+ * - 转置 transpose
+ * - 张量缩并 contract
+ * - 字符串记号 einsum
+ * - DSL API
+ *
  * Einstein notation tests
  *
  * Test contents:
@@ -21,6 +34,10 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.multiarray.*
 
 /**
+ * 爱因斯坦求和记号测试
+ *
+ * 与 Rust 实现对齐：ospf-rust-multiarray/src/einsum/tests.rs
+ *
  * Einstein notation tests
  *
  * Aligned with Rust implementation: ospf-rust-multiarray/src/einsum/tests.rs

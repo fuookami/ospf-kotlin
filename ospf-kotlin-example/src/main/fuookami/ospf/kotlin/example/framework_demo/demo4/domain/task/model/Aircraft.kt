@@ -36,7 +36,7 @@ data class Aircraft(
         val values by pool::values
 
         /**
-         * Retrieves an [Aircraft] by register number from the pool.
+         * 从池中按注册号检索飞机。Retrieves an [Aircraft] by register number from the pool.
  *
          * @param regNo 参数。
          * @return 返回结果。
@@ -51,7 +51,7 @@ data class Aircraft(
     }
 
     /**
-     * Returns the passenger capacity for the given class, or zero if not a passenger aircraft.
+     * 返回给定舱位的乘客容量，如果不是客机则返回零。Returns the passenger capacity for the given class, or zero if not a passenger aircraft.
  *
      * @param cls 参数。
      * @return 返回结果。
@@ -105,7 +105,7 @@ class AircraftUsability(
     val flightCyclePeriods: List<FlightCyclePeriod> = emptyList()
 ) : ExecutorInitialUsability<FlightTask, Aircraft, FlightTaskAssignment>(lastTask, enabledTime) {
     /**
-     * Returns the number of flight cycle periods exceeded for the given time and flight hour.
+     * 返回给定时间和飞行小时超出的飞行周期数。Returns the number of flight cycle periods exceeded for the given time and flight hour.
  *
      * @param time 参数。
      * @param flightHour 参数。
@@ -118,7 +118,7 @@ class AircraftUsability(
     }
 
     /**
-     * Returns the number of flight cycle periods exceeded for the given time and flight cycle.
+     * 返回给定时间和飞行循环超出的飞行周期数。Returns the number of flight cycle periods exceeded for the given time and flight cycle.
  *
      * @param time 参数。
      * @param flightCycle 参数。
@@ -131,7 +131,7 @@ class AircraftUsability(
     }
 
     /**
-     * Returns the total excess flight hours across all periods.
+     * 返回所有周期的总超出飞行小时数。Returns the total excess flight hours across all periods.
  *
      * @param time 参数。
      * @param flightHour 参数。
@@ -149,7 +149,7 @@ class AircraftUsability(
     }
 
     /**
-     * Returns the total excess flight cycles across all periods.
+     * 返回所有周期的总超出飞行循环数。Returns the total excess flight cycles across all periods.
  *
      * @param time 参数。
      * @param flightCycle 参数。

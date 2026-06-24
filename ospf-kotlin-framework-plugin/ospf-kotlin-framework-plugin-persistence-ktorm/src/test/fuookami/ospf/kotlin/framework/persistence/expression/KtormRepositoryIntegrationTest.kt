@@ -256,7 +256,6 @@ class KtormRepositoryIntegrationTest {
 
     /**
      * 端到端验证：predicate DSL + ktormResolver + repository 协同工作
-     /** 端到端谓词与 Ktorm 解析器集成测试 / End-to-end predicate with Ktorm resolver integration test */
      * End-to-end verification: predicate DSL + ktormResolver + repository work together
      */
     @Test
@@ -325,7 +324,6 @@ class KtormRepositoryIntegrationTest {
      * 创建 snake_case 列名的内存 SQLite 测试数据库
      * Create in-memory SQLite test database with snake_case column names
      *
-     /** Snake 用户仓储 / Snake user repository */
      * @return 测试数据库实例 / Test database instance
      */
     private fun createSnakeDatabase(): Database {

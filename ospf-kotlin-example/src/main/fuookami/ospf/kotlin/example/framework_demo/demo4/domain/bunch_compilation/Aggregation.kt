@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * Aggregation for bunch compilation combining task time, flow, fleet balance,
+ * 束编译聚合，组合任务时间、流、机队平衡、航班连接和航班容量约束用于列生成过程。/ Aggregation for bunch compilation combining task time, flow, fleet balance,
  * flight link, and flight capacity constraints for the column generation process.
  *
   * @property timeWindow 参数。
@@ -81,7 +81,7 @@ class Aggregation(
     )
 
     /**
-     * Registers all sub-aggregation components with the model.
+     * 向模型注册所有子聚合组件。/ Registers all sub-aggregation components with the model.
  *
      * @param model 参数。
      * @return 返回结果。
@@ -165,7 +165,7 @@ class Aggregation(
     }
 
     /**
-     * Adds columns for new bunches to all sub-aggregation components.
+     * 向所有子聚合组件添加新束的列。/ Adds columns for new bunches to all sub-aggregation components.
  *
      * @param iteration 参数。
      * @param newBunches 参数。

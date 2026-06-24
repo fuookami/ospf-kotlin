@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 跨服务的每边带宽分配的决策变量和中间符号。Decision variables and intermediate symbols for per-edge bandwidth allocation across services.
  *
- * @property private val edges 参数。
- * @property private val services 参数。
+ * @property edges 边列表 / Edge list
+ * @property services 服务列表 / Service list
  */
 class EdgeBandwidth(
     private val edges: List<Edge>,

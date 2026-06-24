@@ -32,7 +32,12 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes. * * * @see     https://fuookami.github.io/ospf/examples/example17.html */
+/**
+ * 带时间窗的车辆路径问题：最小化车队访问需求节点的固定和旅行成本。
+ * Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example17.html
+ */
 data object Demo17 {
     /** VRPTW 网络中的节点（具有位置、时间窗和可选需求）。A node in the VRPTW network with position, time window, and optional demand. */
     sealed interface Node : Indexed {
@@ -74,7 +79,7 @@ data object Demo17 {
     /**
      * 具有需求和服务时长的客户节点。A customer node with demand and service duration.
      *
-     * @property serviceTime 参数。
+     * @property serviceTime 服务时长 / Service duration
      */
     data class DemandNode(
         override val position: GeometryPoint<Dim2, Flt64>,
@@ -86,8 +91,8 @@ data object Demo17 {
     /**
      * 具有货物容量和固定使用成本的车辆。A vehicle with cargo capacity and fixed usage cost.
      *
-     * @property capacity 参数。
-     * @property fixedUsedCost 参数。
+     * @property capacity 货物容量 / Cargo capacity
+     * @property fixedUsedCost 固定使用成本 / Fixed usage cost
      */
     data class Vehicle(
         val capacity: UInt64,
@@ -235,9 +240,10 @@ data object Demo17 {
     )
 
     /**
+     * 按顺序运行所有子过程以构建、求解和分析模型。
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -257,9 +263,10 @@ data object Demo17 {
     }
 
     /**
+     * 初始化二进制路径变量和连续服务时间变量。
      * Initializes binary route variables and continuous service-time variables.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = BinVariable3(
@@ -296,9 +303,10 @@ data object Demo17 {
     }
 
     /**
+     * 创建起点、终点、流量、服务和容量表达式符号。
      * Creates origin, destination, flow, service, and capacity expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         origin = LinearIntermediateSymbols1<Flt64>(
@@ -405,9 +413,10 @@ data object Demo17 {
     }
 
     /**
+     * 设置目标函数以最小化固定车辆成本和旅行成本。
      * Sets the objective to minimize fixed vehicle cost and travel cost.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(
@@ -428,9 +437,10 @@ data object Demo17 {
     }
 
     /**
+     * 添加流量平衡、服务、时间窗和容量约束。
      * Adds flow balance, service, time-window, and capacity constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         for (v in vehicles) {
@@ -510,9 +520,10 @@ data object Demo17 {
     }
 
     /**
+     * 使用 SCIP 求解器求解线性模型，时间限制为 5 分钟。
      * Solves the linear model using the SCIP solver with a 5-minute time limit.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver(config = SolverConfig(time = 300.seconds))
@@ -534,9 +545,10 @@ data object Demo17 {
     }
 
     /**
+     * 从解中提取路径和服务时间。
      * Extracts routes and service times from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val route: MutableMap<Vehicle, MutableList<Pair<Node, Node>>> = HashMap()

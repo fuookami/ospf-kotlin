@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 /**
  * 最小化按每个安定面键加权的水平安定面警告松弛。Minimizes horizontal stabilizer warning slack weighted by a coefficient per stabilizer key.
  *
- * @property private val horizontalStabilizers 参数。
- * @property private val coefficient 参数。
+ * @property horizontalStabilizers 参数。
+ * @property coefficient 参数。
  */
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,

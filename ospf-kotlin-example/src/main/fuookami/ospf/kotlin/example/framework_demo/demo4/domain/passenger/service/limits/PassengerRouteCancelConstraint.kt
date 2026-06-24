@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 强制取消沿乘客路线传播的管线。Pipeline enforcing that cancellation propagates along passenger routes.
  *
- * @property private val passengers 参数。
- * @property private val cancel 参数。
+ * @property passengers 参数。
+ * @property cancel 参数。
  */
 class PassengerRouteCancelConstraint(
     private val passengers: List<FlightPassenger>,
@@ -24,7 +24,7 @@ class PassengerRouteCancelConstraint(
     override val name: String = "passenger_route_cancel_constraint"
 ) : CGPipeline {
     /**
-     * Adds route cancel constraints ensuring previous legs cancel before subsequent ones.
+     * 添加路线取消约束，确保前序航段在后续航段之前取消。Adds route cancel constraints ensuring previous legs cancel before subsequent ones.
  *
      * @param model 参数。
      * @return 返回结果。

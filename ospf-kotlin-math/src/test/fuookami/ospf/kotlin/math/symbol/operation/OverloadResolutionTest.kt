@@ -9,6 +9,9 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
+ * 编译级测试：验证当通用数学层算子和 Flt64 专用适配算子同时在作用域中时，
+ * Kotlin 重载解析不会发生回归。
+ *
  * Compile-level tests: verify Kotlin overload resolution does not regress
  * when both generic math-layer operators and Flt64-specific adapter operators
  * are in scope simultaneously.

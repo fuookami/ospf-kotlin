@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * Tests for SubObject constructors using FlattenData
+ * 使用 FlattenData 的子对象构造函数测试 / Tests for SubObject constructors using FlattenData
  */
 class SubObjectTest {
 

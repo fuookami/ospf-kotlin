@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 基于装载模式和参数生成快递效能约束的管线。Generates the pipeline of express effectiveness constraints based on stowage mode and parameters.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 参数。
  */
 data class PipelineListGenerator(
     private val aggregation: Aggregation

@@ -20,7 +20,7 @@ enum class FlightType {
 
     companion object {
         /**
-         * Determines the flight type from departure and arrival airports.
+         * 根据出发和到达机场确定航班类型。Determines the flight type from departure and arrival airports.
  *
          * @param dep 参数。
          * @param arr 参数。
@@ -31,7 +31,7 @@ enum class FlightType {
         }
 
         /**
-         * Determines the flight type from departure and arrival airport types.
+         * 根据出发和到达机场类型确定航班类型。Determines the flight type from departure and arrival airport types.
  *
          * @param dep 参数。
          * @param arr 参数。
@@ -97,7 +97,7 @@ class FlightLegPlan(
     override val time: TimeRange? get() = actualTime ?: estimatedTime ?: super.time
 
     /**
-     * Checks whether this flight leg is eligible for recovery (no actual time or out time).
+     * 检查此航段是否有资格进行恢复（无实际时间或推出时间）。Checks whether this flight leg is eligible for recovery (no actual time or out time).
  *
      * @return 返回结果。
      */
@@ -120,7 +120,7 @@ class FlightLeg internal constructor(
 ) : FlightTask(FlightLegTaskType, origin) {
     companion object {
         /**
-         * Creates a [FlightLeg] from a plan.
+         * 从计划创建 [FlightLeg]。Creates a [FlightLeg] from a plan.
  *
          * @param plan 参数。
          * @return 返回结果。
@@ -130,7 +130,7 @@ class FlightLeg internal constructor(
         }
 
         /**
-         * Creates a recovered [FlightLeg] applying the given recovery policy.
+         * 创建应用给定恢复策略的已恢复 [FlightLeg]。Creates a recovered [FlightLeg] applying the given recovery policy.
  *
          * @param origin 参数。
          * @param recoveryPolicy 参数。

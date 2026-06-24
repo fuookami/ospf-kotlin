@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 生成用于模型构建的冗余约束管线。Generates the pipeline of redundancy constraints for model construction.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 参数。
  */
 class PipelineListGenerator(
     private val aggregation: Aggregation

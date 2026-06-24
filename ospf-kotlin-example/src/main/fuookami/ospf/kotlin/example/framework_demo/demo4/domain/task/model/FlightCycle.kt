@@ -78,7 +78,7 @@ data class FlightCyclePeriod(
     val remainingFlightCycle: FlightCycle?
 ) {
     /**
-     * Checks whether the given flight hour is within the remaining limit.
+     * 检查给定飞行小时是否在剩余限制内。Checks whether the given flight hour is within the remaining limit.
  *
      * @param flightHour 参数。
      * @return 返回结果。
@@ -88,7 +88,7 @@ data class FlightCyclePeriod(
     }
 
     /**
-     * Checks whether the given flight cycle is within the remaining limit.
+     * 检查给定飞行循环是否在剩余限制内。Checks whether the given flight cycle is within the remaining limit.
  *
      * @param flightCycle 参数。
      * @return 返回结果。
@@ -98,7 +98,7 @@ data class FlightCyclePeriod(
     }
 
     /**
-     * Returns the excess flight hours beyond the remaining limit.
+     * 返回超出剩余限制的飞行小时数。Returns the excess flight hours beyond the remaining limit.
  *
      * @param flightHour 参数。
      * @return 返回结果。
@@ -112,7 +112,7 @@ data class FlightCyclePeriod(
     }
 
     /**
-     * Returns the excess flight cycles beyond the remaining limit.
+     * 返回超出剩余限制的飞行循环数。Returns the excess flight cycles beyond the remaining limit.
  *
      * @param flightCycle 参数。
      * @return 返回结果。

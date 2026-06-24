@@ -25,7 +25,12 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 最大流问题：在容量网络中找到从源到汇的最大流。Maximum flow problem: find the maximum flow from source to sink in a capacitated network. * * * @see     https://fuookami.github.io/ospf/examples/example11.html */
+/**
+ * 最大流问题：在容量网络中找到从源到汇的最大流。
+ * Maximum flow problem: find the maximum flow from source to sink in a capacitated network.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example11.html
+ */
 data object Demo11 {
     /** 流网络中的节点。A node in the flow network. */
     sealed class Node : AutoIndexed(Node::class)
@@ -95,9 +100,9 @@ data object Demo11 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -117,9 +122,9 @@ data object Demo11 {
     }
 
     /**
-     * Initializes edge flow variables and the total flow variable.
+     * 初始化边流变量和总流变量。/ Initializes edge flow variables and the total flow variable.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
@@ -141,9 +146,9 @@ data object Demo11 {
     }
 
     /**
-     * Creates flow-in and flow-out expression symbols for each node.
+     * 为每个节点创建流入和流出表达式符号。/ Creates flow-in and flow-out expression symbols for each node.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         flowIn = LinearIntermediateSymbols1<Flt64>(
@@ -170,9 +175,9 @@ data object Demo11 {
     }
 
     /**
-     * Sets the objective to maximize total flow.
+     * 设置目标函数以最大化总流量。/ Sets the objective to maximize total flow.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.maximize(flow, "flow")
@@ -180,9 +185,9 @@ data object Demo11 {
     }
 
     /**
-     * Adds flow conservation constraints for source, sink, and intermediate nodes.
+     * 为源节点、汇节点和中间节点添加流量守恒约束。/ Adds flow conservation constraints for source, sink, and intermediate nodes.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         val rootNode = nodes.first { it is RootNode }
@@ -209,9 +214,9 @@ data object Demo11 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -232,9 +237,9 @@ data object Demo11 {
     }
 
     /**
-     * Extracts the edge flows from the solution.
+     * 从解中提取边流量。/ Extracts the edge flows from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val flow: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()

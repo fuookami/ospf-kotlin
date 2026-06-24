@@ -13,14 +13,16 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 包含编译约束和限制的列生成管线列表生成器。Generator for the column generation pipeline list including compilation constraints and limits.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 编译聚合。Compilation aggregation.
+ * @property parameter 列生成主模型系数参数。Column generation master model coefficient parameters.
  */
 class PipelineListGenerator(
-    private val aggregation: Aggregation
+    private val aggregation: Aggregation,
+    private val parameter: Parameter = Parameter()
 ) {
     /**
-     * Creates and returns the pipeline list with all compilation constraints and limits.
- *
+     * 创建并返回包含所有编译约束和限制的管线列表。Creates and returns the pipeline list with all compilation constraints and limits.
+     *
      * @return 返回结果。
      */
     operator fun invoke(): Ret<CGPipelineList> {
@@ -50,8 +52,9 @@ class PipelineListGenerator(
             ExecutorLeisureMinimization(
                 executors = aggregation.recoveryNeededAircrafts,
                 compilation = aggregation.compilation,
-                coefficient = { aircraft: Aircraft ->
-                    TODO("not implemented yet")
+                coefficient = { _: Aircraft ->
+                    // Source: Parameter.executorLeisureCoeff — ported from fsra-proof aircraftLeisure.
+                    parameter.executorLeisureCoeff
                 }
             )
         )
@@ -60,8 +63,9 @@ class PipelineListGenerator(
             TaskCancelMinimization(
                 tasks = aggregation.recoveryNeededFlightTasks,
                 compilation = aggregation.compilation,
-                coefficient = { task: FlightTask ->
-                    TODO("not implemented yet")
+                coefficient = { _: FlightTask ->
+                    // Source: Parameter.taskCancelCoeff — ported from fsra-proof flightCancel.
+                    parameter.taskCancelCoeff
                 }
             )
         )
@@ -69,8 +73,9 @@ class PipelineListGenerator(
         pipelines.add(
             FleetBalanceLimit(
                 fleetBalance = aggregation.fleetBalance,
-                coefficient = { airport: Airport, aircraftMinorType: AircraftMinorType ->
-                    TODO("not implemented yet")
+                coefficient = { airport: Airport, _: AircraftMinorType ->
+                    // Source: Parameter.fleetBalanceBaseSlack / fleetBalanceSlack — ported from fsra-proof FleetBalanceLimit.
+                    if (airport.base) parameter.fleetBalanceBaseSlack else parameter.fleetBalanceSlack
                 }
             )
         )
@@ -79,7 +84,8 @@ class PipelineListGenerator(
             FlightLinkLimit(
                 flightLink = aggregation.flightLink,
                 coefficient = { link: Link ->
-                    TODO("not implemented yet")
+                    // Source: Link.splitCost domain field — ported from fsra-proof FlightLinkLimit.
+                    link.splitCost.toFlt64()
                 }
             )
         )

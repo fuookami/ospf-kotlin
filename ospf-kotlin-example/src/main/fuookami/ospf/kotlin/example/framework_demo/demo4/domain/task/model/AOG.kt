@@ -36,7 +36,7 @@ class AOGPlan(
         private const val prefix = "a"
 
         /**
-         * Creates an [AOGPlan] with stable status for the given aircraft, time, and airport.
+         * 创建具有稳定状态的 [AOGPlan]。Creates an [AOGPlan] with stable status for the given aircraft, time, and airport.
  *
          * @param aircraft 参数。
          * @param scheduledTime 参数。
@@ -88,14 +88,14 @@ class AOG internal constructor(
 ) : FlightTask(AOGFlightTask, origin) {
     companion object {
         /**
-         * Creates an [AOG] from a plan.
+         * 从计划创建 [AOG]。Creates an [AOG] from a plan.
  *
          * @param plan 参数。
          */
         operator fun invoke(plan: AOGPlan) = AOG(plan)
 
         /**
-         * Creates a recovered [AOG] applying the given recovery policy.
+         * 创建应用给定恢复策略的已恢复 [AOG]。Creates a recovered [AOG] applying the given recovery policy.
  *
          * @param origin 参数。
          * @param recoveryPolicy 参数。

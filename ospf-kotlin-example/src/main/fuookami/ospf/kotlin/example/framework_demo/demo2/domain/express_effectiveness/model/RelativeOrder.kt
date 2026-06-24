@@ -25,11 +25,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /**
  * 计算快递效能中位置对之间的项目对的相对优先级反转。Computes relative priority reversal between item pairs across position pairs for express effectiveness.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
+ * @property items 参数。
+ * @property positions 参数。
  * @property internal val orderedItems 参数。
  * @property internal val orderedPositions 参数。
- * @property private val stowage 参数。
+ * @property stowage 参数。
  */
 class RelativeOrder(
     private val items: List<Item>,

@@ -20,10 +20,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 将平均气动弦（MAC）百分比计算为线性中间符号。Computes the Mean Aerodynamic Chord (MAC) percentage as a linear intermediate symbol.
  *
- * @property private val aircraftModel 参数。
- * @property private val formula 参数。
- * @property private val totalWeight 参数。
- * @property private val torque 参数。
+ * @property aircraftModel 参数。
+ * @property formula 参数。
+ * @property totalWeight 参数。
+ * @property torque 参数。
  */
 class MAC(
     private val aircraftModel: AircraftModel,

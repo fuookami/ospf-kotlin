@@ -22,9 +22,9 @@ data class Configuration(
 /**
  * 为批次生成生成路线图。Generates route graphs for bunch generation.
  *
- * @property private val reverse 参数。
- * @property private val configuration 参数。
- * @property private val feasibilityJudger 参数。
+ * @property reverse 参数。
+ * @property configuration 参数。
+ * @property feasibilityJudger 参数。
  */
 class RouteGraphGenerator(
     private val reverse: FlightTaskReverse,
@@ -32,7 +32,7 @@ class RouteGraphGenerator(
     private val feasibilityJudger: (Aircraft, FlightTask?, FlightTask) -> Boolean,
 ) {
     /**
-     * Generates a route graph for the given aircraft.
+     * 为给定飞机生成路线图。Generates a route graph for the given aircraft.
  *
      * @param aircraft 参数。
      * @param aircraftUsability 参数。

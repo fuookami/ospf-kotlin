@@ -6,13 +6,16 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Application-level Benders decomposition tests.
+ * 应用层 Benders 分解测试 / Application-level Benders decomposition tests.
  *
+ * 这些测试验证应用层的 Benders 求解路径行为，与 Rust 版本的 domain.rs 测试套件对齐 /
  * These tests verify the Benders solve path behavior at the application level,
  * aligning with the Rust version's test suite in domain.rs.
  *
+ * 注意：需要实际 Gurobi 求解器的测试（例如 full_load_prefers_benders_without_fallback）未包含在此处，因为它们需要授权的求解器安装 /
  * Note: Tests that require an actual Gurobi solver (e.g., full_load_prefers_benders_without_fallback)
  * are not included here as they need a licensed solver installation.
+ * 这些测试侧重于配置、诊断和回退行为 /
  * These tests focus on configuration, diagnostics, and fallback behavior.
  */
 class BendersApplicationTest {

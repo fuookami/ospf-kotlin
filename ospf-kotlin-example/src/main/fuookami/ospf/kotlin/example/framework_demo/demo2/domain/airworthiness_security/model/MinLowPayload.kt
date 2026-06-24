@@ -21,9 +21,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 从零燃油重量点插值的最小低甲板载荷约束。Minimum low-deck payload constraint interpolated from zero-fuel weight points.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property points 参数。
- * @property private val totalWeight 参数。
+ * @property totalWeight 参数。
  */
 class MinLowPayload(
     private val aircraftModel: AircraftModel,

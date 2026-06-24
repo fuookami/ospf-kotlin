@@ -17,10 +17,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 使用大 M 公式确保更高优先级的货物获得更好的位置。Ensures higher priority cargos get better (lower index) positions using big-M formulation.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val stowage 参数。
- * @property private val bigM 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property stowage 参数。
+ * @property bigM 参数。
  */
 class PriorityOrderLimit(
     private val items: List<Item>,

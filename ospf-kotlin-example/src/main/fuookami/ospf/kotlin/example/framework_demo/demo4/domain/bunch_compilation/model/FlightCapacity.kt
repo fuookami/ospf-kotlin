@@ -16,11 +16,11 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * Models flight capacity expressions tracking passenger and cargo capacity
+ * 航班容量表达式模型，跟踪航班任务束中的旅客和货物容量用于列生成公式。/ Models flight capacity expressions tracking passenger and cargo capacity
  * across flight task bunches for the column generation formulation.
  *
-  * @property private val tasks 参数。
-  * @property private val compilation 参数。
+  * @property tasks 参数。
+  * @property compilation 参数。
   * @property withPassenger 参数。
   * @property withCargo 参数。
  */
@@ -34,7 +34,7 @@ class FlightCapacity(
     lateinit var cargo: Map<FlightTask, LinearExpressionSymbol<Flt64>>
 
     /**
-     * Registers passenger and cargo capacity symbols with the model.
+     * 向模型注册旅客和货物容量符号。/ Registers passenger and cargo capacity symbols with the model.
  *
      * @param model 参数。
      * @return 返回结果。
@@ -96,7 +96,7 @@ class FlightCapacity(
     }
 
     /**
-     * Adds columns for new bunches to the capacity expressions.
+     * 向容量表达式添加新束的列。/ Adds columns for new bunches to the capacity expressions.
  *
      * @param iteration 参数。
      * @param bunches 参数。

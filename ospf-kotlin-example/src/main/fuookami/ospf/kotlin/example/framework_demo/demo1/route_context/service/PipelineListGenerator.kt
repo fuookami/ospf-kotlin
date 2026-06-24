@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.l
 /**
  * 生成用于模型构建的路线约束和目标的管线列表。Generates the pipeline list of route constraints and objectives for model construction.
  *
- * @property private val aggregation 参数。
+ * @property aggregation 参数。
  */
 class PipelineListGenerator(
     private val aggregation: Aggregation

@@ -22,7 +22,7 @@ enum class PassengerClass: Indexed {
 
     companion object {
         /**
-         * Converts an infrastructure [fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.PassengerClass] to this enum.
+         * 将基础设施层的 PassengerClass 转换为此枚举。/ Converts an infrastructure [fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.PassengerClass] to this enum.
  *
          * @param cls 参数。
          * @return 返回结果。

@@ -8,7 +8,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for FlightTaskFeasibilityJudger configuration.
+ * 航班任务可行性判定器的配置测试 / Tests for FlightTaskFeasibilityJudger configuration.
  */
 class FlightTaskFeasibilityJudgerTest {
 

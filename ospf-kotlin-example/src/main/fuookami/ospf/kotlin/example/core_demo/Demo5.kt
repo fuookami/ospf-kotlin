@@ -26,13 +26,18 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 0-1 背包问题：在重量限制下最大化货物价值。0-1 knapsack: maximize cargo value subject to a weight limit. * * * @see     https://fuookami.github.io/ospf/examples/example5.html */
+/**
+ * 0-1 背包问题：在重量限制下最大化货物价值。
+ * 0-1 knapsack: maximize cargo value subject to a weight limit.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example5.html
+ */
 data object Demo5 {
     /**
      * 具有重量和价值的货物项。A cargo item with weight and value.
      *
-     * @property weight 参数。
-     * @property value 参数。
+     * @property weight 重量 / Weight
+     * @property value 价值 / Value
      */
     data class Cargo(
         val weight: UInt64,
@@ -64,9 +69,9 @@ data object Demo5 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -86,9 +91,9 @@ data object Demo5 {
     }
 
     /**
-     * Initializes binary decision variables for cargo selection.
+     * 初始化货物选择的二元决策变量。/ Initializes binary decision variables for cargo selection.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(cargos.size))
@@ -100,9 +105,9 @@ data object Demo5 {
     }
 
     /**
-     * Creates cargo value and weight expression symbols.
+     * 创建货物价值和重量表达式符号。/ Creates cargo value and weight expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         cargoValue = LinearExpressionSymbol(
@@ -120,9 +125,9 @@ data object Demo5 {
     }
 
     /**
-     * Sets the objective to maximize total cargo value.
+     * 设置目标函数以最大化总货物价值。/ Sets the objective to maximize total cargo value.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.maximize(cargoValue, "value")
@@ -130,9 +135,9 @@ data object Demo5 {
     }
 
     /**
-     * Adds weight capacity constraint.
+     * 添加重量容量约束。/ Adds weight capacity constraint.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
@@ -143,9 +148,9 @@ data object Demo5 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -166,9 +171,9 @@ data object Demo5 {
     }
 
     /**
-     * Extracts the selected cargo items from the solution.
+     * 从解中提取选中的货物项。/ Extracts the selected cargo items from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val ret = HashSet<Cargo>()

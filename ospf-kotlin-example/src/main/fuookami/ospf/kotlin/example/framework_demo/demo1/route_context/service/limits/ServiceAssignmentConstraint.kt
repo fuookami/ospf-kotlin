@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Ser
 /**
  * 约束每个服务最多分配一个节点。Constrains each service to be assigned to at most one node.
  *
- * @property private val services 参数。
- * @property private val assignment 参数。
+ * @property services 参数。
+ * @property assignment 参数。
  */
 class ServiceAssignmentConstraint(
     private val services: List<Service>,

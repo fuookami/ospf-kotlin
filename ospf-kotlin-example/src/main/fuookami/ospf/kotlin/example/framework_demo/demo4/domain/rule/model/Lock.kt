@@ -8,14 +8,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.Fligh
 /**
  * 表示阻止航班任务修改的约束的锁定模型。Lock model representing constraints that prevent flight task modifications.
  *
- * @property private val lockedTasks 参数。
+ * @property lockedTasks 参数。
  */
 class Lock(
     private val lockedTasks: Map<FlightTask, Instant> = emptyMap()
 ) {
     /**
-     * Returns the locked time for the given flight task, or null if not locked.
- *
+     * 返回给定航班任务的锁定时间，如果未锁定则返回 null。Returns the locked time for the given flight task, or null if not locked.
+     *
      * @param flightTask 参数。
      * @return 返回结果。
      */

@@ -18,46 +18,50 @@ import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
+ * 创建表示常量 Flt64 值的 [LinearPolynomial]。
  * Creates a [LinearPolynomial] representing a constant Flt64 value.
  *
- * @param value 参数。
- * @return 返回结果。
+ * @param value 常量值 / Constant value
+ * @return 线性多项式 / Linear polynomial
  */
 internal fun flt64Constant(value: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), value)
 }
 
 /**
+ * 创建表示系数为 1 的单变量项的 [LinearPolynomial]。
  * Creates a [LinearPolynomial] representing a single variable term with coefficient one.
  *
- * @param symbol 参数。
- * @return 返回结果。
+ * @param symbol 符号变量 / Symbol variable
+ * @return 线性多项式 / Linear polynomial
  */
 internal fun flt64Linear(symbol: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, symbol)), Flt64.zero)
 }
 
 /**
+ * 通过将 [AbstractVariableItem] 转换为 [Symbol] 来创建 [LinearPolynomial]。
  * Creates a [LinearPolynomial] from an [AbstractVariableItem] by casting it to [Symbol].
  *
- * @param variable 参数。
- * @return 返回结果。
+ * @param variable 变量项 / Variable item
+ * @return 线性多项式 / Linear polynomial
  */
 internal fun flt64Linear(variable: AbstractVariableItem<*, *>): LinearPolynomial<Flt64> {
     return flt64Linear(variable as Symbol)
 }
 
 /**
+ * 创建基于阈值的松弛函数适配器，用于惩罚约束违反。
  * Creates a threshold-based slack function adapter for penalizing constraint violations.
  *
- * @param x 参数。
- * @param threshold 参数。
- * @param type 参数。
- * @param withNegative 参数。
- * @param withPositive 参数。
- * @param constraint 参数。
- * @param name 参数。
- * @return 返回结果。
+ * @param x 输入表达式 / Input expression
+ * @param threshold 阈值 / Threshold value
+ * @param type 变量类型 / Variable type kind
+ * @param withNegative 是否包含负偏差 / Whether to include negative deviation
+ * @param withPositive 是否包含正偏差 / Whether to include positive deviation
+ * @param constraint 是否作为约束 / Whether to use as constraint
+ * @param name 函数名称 / Function name
+ * @return 线性函数符号适配器 / Linear function symbol adapter
  */
 internal fun exampleThresholdSlack(
     x: ToLinearPolynomial<Flt64>,
@@ -85,14 +89,15 @@ internal fun exampleThresholdSlack(
 }
 
 /**
+ * 创建绝对差值松弛函数适配器，用于惩罚两个表达式之间的偏差。
  * Creates an absolute-difference slack function adapter for penalizing deviations between two expressions.
  *
- * @param x 参数。
- * @param y 参数。
- * @param type 参数。
- * @param constraint 参数。
- * @param name 参数。
- * @return 返回结果。
+ * @param x 第一个表达式 / First expression
+ * @param y 第二个表达式 / Second expression
+ * @param type 变量类型 / Variable type kind
+ * @param constraint 是否作为约束 / Whether to use as constraint
+ * @param name 函数名称 / Function name
+ * @return 线性函数符号适配器 / Linear function symbol adapter
  */
 internal fun exampleAbsoluteSlack(
     x: ToLinearPolynomial<Flt64>,
@@ -118,14 +123,15 @@ internal fun exampleAbsoluteSlack(
 }
 
 /**
+ * 将 [LinearMetaModel] 转储为机制模型，然后使用给定的求解器求解。
  * Dumps a [LinearMetaModel] into a mechanism model, then solves it with the given solver.
  *
- * @param solver 参数。
- * @param metaModel 参数。
- * @param registrationStatusCallBack 参数。
- * @param dumpingStatusCallBack 参数。
- * @param solvingStatusCallBack 参数。
- * @return 返回结果。
+ * @param solver 线性求解器 / Linear solver
+ * @param metaModel 线性元模型 / Linear meta model
+ * @param registrationStatusCallBack 注册状态回调 / Registration status callback
+ * @param dumpingStatusCallBack 转储状态回调 / Dumping status callback
+ * @param solvingStatusCallBack 求解状态回调 / Solving status callback
+ * @return 求解结果 / Solver result
  */
 internal suspend fun solveLinearMetaModel(
     solver: AbstractLinearSolver,

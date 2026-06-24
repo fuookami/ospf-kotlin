@@ -29,9 +29,9 @@ fun Node.maxOutDegree(): UInt64 {
 /**
  * 约束总节点流出到节点容量（当节点被分配时）。Constrains total node out-flow to the node's capacity when the node is assigned.
  *
- * @property private val nodes 参数。
- * @property private val assignment 参数。
- * @property private val nodeBandwidth 参数。
+ * @property nodes 参数。
+ * @property assignment 参数。
+ * @property nodeBandwidth 参数。
  */
 class TransferNodeBandwidthConstraint(
     private val nodes: ArrayList<Node>,

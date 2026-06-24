@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 /**
  * 约束每个普通节点最多分配一个服务。Constrains each normal node to be assigned to at most one service.
  *
- * @property private val nodes 参数。
- * @property private val assignment 参数。
+ * @property nodes 参数。
+ * @property assignment 参数。
  */
 class NodeAssignmentConstraint(
     private val nodes: List<Node>,

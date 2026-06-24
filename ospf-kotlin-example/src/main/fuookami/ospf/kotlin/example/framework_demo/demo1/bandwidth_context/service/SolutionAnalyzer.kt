@@ -16,10 +16,10 @@ private typealias EdgeSolution = HashMap<Service, ArrayList<Pair<Edge, UInt64>>>
 /**
  * 使用 DFS 通过跟踪分配和带宽变量从求解模型中提取服务路径。Extracts service paths from the solved model by tracing assignment and bandwidth variables using DFS.
  *
- * @property private val graph 参数。
- * @property private val services 参数。
- * @property private val assignment 参数。
- * @property private val aggregation 参数。
+ * @property graph 参数。
+ * @property services 参数。
+ * @property assignment 参数。
+ * @property aggregation 参数。
  */
 class SolutionAnalyzer(
     private val graph: Graph,

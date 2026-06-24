@@ -26,13 +26,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /**
  * 计算主甲板上的冗余（备用容量）并注册松弛变量用于优化。Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization.
  *
- * @property private val aircraftModel 参数。
- * @property private val flight 参数。
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val stowage 参数。
- * @property private val load 参数。
- * @property private val payload 参数。
+ * @property aircraftModel 参数。
+ * @property flight 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property stowage 参数。
+ * @property load 参数。
+ * @property payload 参数。
  */
 class Redundancy(
     private val aircraftModel: AircraftModel,

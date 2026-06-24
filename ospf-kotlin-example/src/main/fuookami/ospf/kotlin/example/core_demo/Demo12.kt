@@ -28,15 +28,20 @@ private val flt64Converter = object : IntoValue<Flt64> {
     override fun fromValue(value: Flt64) = value
 }
 
-/** * 投资组合：在风险和资金分配约束下最大化收益。Investment portfolio: maximize yield subject to risk and fund allocation constraints. * * * @see     https://fuookami.github.io/ospf/examples/example12.html */
+/**
+ * 投资组合：在风险和资金分配约束下最大化收益。
+ * Investment portfolio: maximize yield subject to risk and fund allocation constraints.
+ *
+ * @see https://fuookami.github.io/ospf/examples/example12.html
+ */
 data object Demo12 {
     /**
      * 具有收益、风险、保费和最低保费的投资产品。An investment product with yield, risk, premium, and minimum premium.
      *
-     * @property yield 参数。
-     * @property risk 参数。
-     * @property premium 参数。
-     * @property minPremium 参数。
+     * @property yield 收益率 / Yield rate
+     * @property risk 风险系数 / Risk coefficient
+     * @property premium 保费 / Premium
+     * @property minPremium 最低保费 / Minimum premium
      */
     data class Product(
         val yield: Flt64,
@@ -74,9 +79,10 @@ data object Demo12 {
     )
 
     /**
+     * 按顺序运行所有子过程以构建、求解和分析模型。
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -96,9 +102,10 @@ data object Demo12 {
     }
 
     /**
+     * 初始化产品投资金额的无符号整数变量。
      * Initializes unsigned integer variables for product investment amounts.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
@@ -107,9 +114,10 @@ data object Demo12 {
     }
 
     /**
+     * 创建分配、保费、风险和收益表达式符号。
      * Creates assignment, premium, risk, and yield expression symbols.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initSymbol(): Try {
         assignment = LinearIntermediateSymbols1<Flt64>(
@@ -162,9 +170,10 @@ data object Demo12 {
     }
 
     /**
+     * 设置目标函数以最大化总收益。
      * Sets the objective to maximize total yield.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initObject(): Try {
         metaModel.maximize(yield, "yield")
@@ -172,9 +181,10 @@ data object Demo12 {
     }
 
     /**
+     * 添加资金分配和风险限制约束。
      * Adds fund allocation and risk limit constraints.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(
@@ -191,9 +201,10 @@ data object Demo12 {
     }
 
     /**
+     * 使用 SCIP 求解器求解线性模型。
      * Solves the linear model using the SCIP solver.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -214,9 +225,10 @@ data object Demo12 {
     }
 
     /**
+     * 从解中提取每个产品的投资金额。
      * Extracts the investment amounts per product from the solution.
      *
-     * @return 返回结果。
+     * @return 操作结果 / Operation result
      */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()

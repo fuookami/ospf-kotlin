@@ -66,7 +66,7 @@ class Graph(
     val edges: MutableMap<Node, MutableSet<Edge>> = HashMap()
 ) {
     /**
-     * Adds a node to the graph.
+     * 向图中添加节点。Adds a node to the graph.
  *
      * @param node 参数。
      */
@@ -75,7 +75,7 @@ class Graph(
     }
 
     /**
-     * Adds a directed edge from one node to another.
+     * 添加从一个节点到另一个节点的有向边。Adds a directed edge from one node to another.
  *
      * @param from 参数。
      * @param to 参数。
@@ -88,7 +88,7 @@ class Graph(
     }
 
     /**
-     * Gets a node by its index.
+     * 根据索引获取节点。Gets a node by its index.
  *
      * @param index 参数。
      * @return 返回结果。
@@ -98,7 +98,7 @@ class Graph(
     }
 
     /**
-     * Gets all outgoing edges from a node.
+     * 获取节点的所有出边。Gets all outgoing edges from a node.
  *
      * @param node 参数。
      * @return 返回结果。
@@ -108,7 +108,7 @@ class Graph(
     }
 
     /**
-     * Checks if there is a directed edge from one node to another.
+     * 检查两个节点之间是否存在有向边。Checks if there is a directed edge from one node to another.
  *
      * @param from 参数。
      * @param to 参数。

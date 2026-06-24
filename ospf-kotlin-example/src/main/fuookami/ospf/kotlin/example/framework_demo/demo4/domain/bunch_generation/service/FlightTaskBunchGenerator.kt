@@ -183,14 +183,14 @@ private typealias LabelMap = MutableMap<Node, MutableList<Label>>
 /**
  * 使用标号设置算法生成航班任务束。Generates flight task bunches using Label Setting algorithm.
  *
- * @property private val aircraft 参数。
- * @property private val aircraftUsability 参数。
- * @property private val graph 参数。
- * @property private val connectionTimeCalculator 参数。
- * @property private val minimumDepartureTimeCalculator 参数。
- * @property private val costCalculator 参数。
- * @property private val totalCostCalculator 参数。
- * @property private val configuration 参数。
+ * @property aircraft 参数。
+ * @property aircraftUsability 参数。
+ * @property graph 参数。
+ * @property connectionTimeCalculator 参数。
+ * @property minimumDepartureTimeCalculator 参数。
+ * @property costCalculator 参数。
+ * @property totalCostCalculator 参数。
+ * @property configuration 参数。
  */
 class FlightTaskBunchGenerator(
     private val aircraft: Aircraft,
@@ -245,7 +245,7 @@ class FlightTaskBunchGenerator(
     private val nodes = if (!configuration.withOrderChange) { sortNodes(graph) } else { emptyList() }
 
     /**
-     * Generates bunches for the given iteration and shadow price map.
+     * 为给定的迭代和影子价格映射生成束。Generates bunches for the given iteration and shadow price map.
  *
      * @param iteration 参数。
      * @param shadowPriceMap 参数。

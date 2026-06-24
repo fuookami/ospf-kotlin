@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for FlightTaskReverse logic.
+ * 航班任务逆向逻辑测试 / Tests for FlightTaskReverse logic.
  *
+ * 注意：这些测试验证数据结构和查询逻辑。使用实际 FlightTask 对象的完整集成测试需要领域模型初始化 /
  * Note: These tests verify the data structure and query logic.
  * Full integration tests with actual FlightTask objects require domain model initialization.
  */

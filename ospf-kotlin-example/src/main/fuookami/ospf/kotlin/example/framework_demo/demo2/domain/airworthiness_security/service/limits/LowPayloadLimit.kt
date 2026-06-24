@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 约束低甲板载荷以满足最低要求值。Constrains the low-deck payload to meet the minimum required value.
  *
- * @property private val payload 参数。
- * @property private val minLowPayload 参数。
+ * @property payload 参数。
+ * @property minLowPayload 参数。
  */
 class LowPayloadLimit(
     private val payload: Payload,

@@ -17,11 +17,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 /**
  * 约束项目排序使得有序项目对不能放置在反向位置对中。Constrains item ordering so that ordered item pairs cannot be placed in reverse position pairs.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val orderedItems 参数。
- * @property private val orderedPositions 参数。
- * @property private val stowage 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property orderedItems 参数。
+ * @property orderedPositions 参数。
+ * @property stowage 参数。
  */
 class ItemOrderLimit(
     private val items: List<Item>,

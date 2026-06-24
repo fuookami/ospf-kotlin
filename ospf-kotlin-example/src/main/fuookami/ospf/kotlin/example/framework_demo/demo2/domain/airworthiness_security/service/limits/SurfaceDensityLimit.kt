@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个限制区的表面密度到最大允许值。Constrains surface density per limit zone to the maximum allowed value.
  *
- * @property private val surfaceDensity 参数。
- * @property private val positions 参数。
+ * @property surfaceDensity 参数。
+ * @property positions 参数。
  */
 class SurfaceDensityLimit(
     private val surfaceDensity: SurfaceDensity,

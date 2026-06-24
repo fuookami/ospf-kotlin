@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model
 /**
  * 最小化按系数加权的实验纵向平衡松弛。Minimizes the experimental longitudinal balance slack weighted by a coefficient.
  *
- * @property private val aircraftModel 参数。
- * @property private val longitudinalBalance 参数。
- * @property private val coefficient 参数。
+ * @property aircraftModel 参数。
+ * @property longitudinalBalance 参数。
+ * @property coefficient 参数。
  */
 class ExperimentalLongitudinalBalanceLimit(
     private val aircraftModel: AircraftModel,

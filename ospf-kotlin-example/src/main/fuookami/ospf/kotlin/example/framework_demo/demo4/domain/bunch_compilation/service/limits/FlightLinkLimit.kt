@@ -30,8 +30,8 @@ private data class FlightLinkShadowPriceKey(
 /**
  * 实现列生成航班链接约束和最小化的管线。Pipeline implementing flight link constraints and minimization for column generation.
  *
- * @property private val flightLink 参数。
- * @property private val coefficient 参数。
+ * @property flightLink 参数。
+ * @property coefficient 参数。
  */
 class FlightLinkLimit(
     private val flightLink: FlightLink,
@@ -39,7 +39,7 @@ class FlightLinkLimit(
     override val name: String = "flight_link_limit"
 ) : CGPipeline {
     /**
-     * Adds flight link constraints and minimization objective to the model.
+     * 向模型添加航班连接约束和最小化目标。/ Adds flight link constraints and minimization objective to the model.
  *
      * @param model 参数。
      * @return 返回结果。
@@ -87,7 +87,7 @@ class FlightLinkLimit(
     }
 
     /**
-     * Returns the shadow price extractor for flight link constraints.
+     * 返回航班连接约束的影子价格提取器。/ Returns the shadow price extractor for flight link constraints.
  *
      * @return 返回结果。
      */
@@ -117,7 +117,7 @@ class FlightLinkLimit(
     }
 
     /**
-     * Refreshes the shadow price map with dual values from the solved model.
+     * 用求解模型的对偶值刷新影子价格映射。/ Refreshes the shadow price map with dual values from the solved model.
  *
      * @param shadowPriceMap 参数。
      * @param model 参数。

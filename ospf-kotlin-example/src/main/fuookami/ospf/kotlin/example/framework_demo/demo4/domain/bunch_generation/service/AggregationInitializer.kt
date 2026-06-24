@@ -24,7 +24,7 @@ class AggregationInitializer {
     }
 
     /**
-     * Initializes the aggregation for bunch generation.
+     * 初始化批次生成的聚合。Initializes the aggregation for bunch generation.
  *
      * @param aircrafts 参数。
      * @param aircraftUsability 参数。

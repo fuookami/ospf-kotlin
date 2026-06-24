@@ -16,11 +16,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 确保每个来源的至少一个货物被分配到早期位置。Ensures at least one cargo from each source is assigned to an early position.
  *
- * @property private val items 参数。
- * @property private val positions 参数。
- * @property private val stowage 参数。
- * @property private val cargosBySource 参数。
- * @property private val earlyEnd 参数。
+ * @property items 参数。
+ * @property positions 参数。
+ * @property stowage 参数。
+ * @property cargosBySource 参数。
+ * @property earlyEnd 参数。
  */
 class SourceEarlyLimit(
     private val items: List<Item>,

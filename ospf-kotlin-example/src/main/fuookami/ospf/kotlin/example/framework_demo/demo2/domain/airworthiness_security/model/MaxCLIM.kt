@@ -20,9 +20,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 从起飞重量点插值的最大中心线指数裕度约束。Maximum CentrLine Index Margin constraint interpolated from takeoff weight points.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property points 参数。
- * @property private val totalWeight 参数。
+ * @property totalWeight 参数。
  */
 class MaxCLIM(
     private val aircraftModel: AircraftModel,

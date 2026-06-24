@@ -43,7 +43,7 @@ class Aggregation(
     }
 
     /**
-     * Checks whether the aircraft is enabled for the given recovery policy and task.
+     * 检查飞机是否对给定的恢复策略和任务启用。Checks whether the aircraft is enabled for the given recovery policy and task.
  *
      * @param aircraft 参数。
      * @param recoveryPolicy 参数。

@@ -19,10 +19,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个限制区内左右位置之间的不对称线性密度。Constrains unsymmetrical linear density between left and right positions within each limit zone.
  *
- * @property private val aircraftModel 参数。
- * @property private val maxUnsymmetricalLinearDensity 参数。
- * @property private val linearDensity 参数。
- * @property private val positions 参数。
+ * @property aircraftModel 参数。
+ * @property maxUnsymmetricalLinearDensity 参数。
+ * @property linearDensity 参数。
+ * @property positions 参数。
  */
 class UnsymmetricalLinearDensityLimit(
     private val aircraftModel: AircraftModel,

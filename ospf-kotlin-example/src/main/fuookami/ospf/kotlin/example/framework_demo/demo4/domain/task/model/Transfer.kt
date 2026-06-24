@@ -32,7 +32,7 @@ class TransferPlan internal constructor(
         )
 
         /**
-         * Creates a [TransferPlan] with the given parameters, adjusting status for single-aircraft sets.
+         * 使用给定参数创建 [TransferPlan]，为单飞机集调整状态。Creates a [TransferPlan] with the given parameters, adjusting status for single-aircraft sets.
  *
          * @param dep 参数。
          * @param arr 参数。
@@ -84,7 +84,7 @@ class TransferPlan internal constructor(
     }
 
     /**
-     * Checks whether the given aircraft is enabled for this transfer plan.
+     * 检查给定飞机是否对此中转计划启用。Checks whether the given aircraft is enabled for this transfer plan.
  *
      * @param aircraft 参数。
      * @return 返回结果。
@@ -108,7 +108,7 @@ class Transfer internal constructor(
 ) : FlightTask(TransferFlightTask, origin) {
     companion object {
         /**
-         * Creates a [Transfer] from a plan (identity constructor).
+         * 从计划创建 [Transfer]（恒等构造函数）。Creates a [Transfer] from a plan (identity constructor).
  *
          * @param plan 参数。
          * @return 返回结果。
@@ -118,7 +118,7 @@ class Transfer internal constructor(
         }
 
         /**
-         * Creates a recovered [Transfer] applying the given recovery policy.
+         * 创建应用给定恢复策略的已恢复 [Transfer]。Creates a recovered [Transfer] applying the given recovery policy.
  *
          * @param origin 参数。
          * @param recoveryPolicy 参数。

@@ -19,9 +19,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束位置之间的载荷重量以均衡推荐重量分布。Constrains load weights between positions to equalize recommended weight distribution.
  *
- * @property private val aircraftModel 参数。
- * @property private val positions 参数。
- * @property private val load 参数。
+ * @property aircraftModel 参数。
+ * @property positions 参数。
+ * @property load 参数。
  */
 class RecommendedWeightEqualizationLimit(
     private val aircraftModel: AircraftModel,

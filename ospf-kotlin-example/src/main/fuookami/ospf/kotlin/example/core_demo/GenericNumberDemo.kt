@@ -64,10 +64,10 @@ data object GenericNumberDemo {
     /**
      * 线性模型构建摘要（包括约束数量和目标系数）。Summary of a linear model build, including constraint count and objective coefficients.
      *
-     * @property success 参数。
-     * @property constraintCount 参数。
-     * @property objectiveCategory 参数。
-     * @property objectiveCoefficients 参数。
+     * @property success 是否构建成功 / Whether the build succeeded
+     * @property constraintCount 约束数量 / Constraint count
+     * @property objectiveCategory 目标类型 / Objective category
+     * @property objectiveCoefficients 目标系数 / Objective coefficients
      */
     data class LinearBuildSummary(
         val success: Boolean,
@@ -79,10 +79,10 @@ data object GenericNumberDemo {
     /**
      * 二次模型构建摘要（包括约束数量和目标系数）。Summary of a quadratic model build, including constraint count and objective coefficients.
      *
-     * @property success 参数。
-     * @property constraintCount 参数。
-     * @property objectiveCategory 参数。
-     * @property objectiveCoefficients 参数。
+     * @property success 是否构建成功 / Whether the build succeeded
+     * @property constraintCount 约束数量 / Constraint count
+     * @property objectiveCategory 目标类型 / Objective category
+     * @property objectiveCoefficients 目标系数 / Objective coefficients
      */
     data class QuadraticBuildSummary(
         val success: Boolean,
@@ -94,9 +94,9 @@ data object GenericNumberDemo {
     /**
      * 给定数值类型的线性和二次构建组合摘要。Combined linear and quadratic build summary for a given numeric type.
      *
-     * @property numberType 参数。
-     * @property linear 参数。
-     * @property quadratic 参数。
+     * @property numberType 数值类型名称 / Numeric type name
+     * @property linear 线性构建摘要 / Linear build summary
+     * @property quadratic 二次构建摘要 / Quadratic build summary
      */
     data class GenericNumberBuildSummary(
         val numberType: String,
@@ -105,9 +105,9 @@ data object GenericNumberDemo {
     )
 
     /**
-     * Runs linear and quadratic build-and-dump for all predefined numeric types.
+     * 对所有预定义数值类型运行线性和二次构建转储。/ Runs linear and quadratic build-and-dump for all predefined numeric types.
      *
-     * @return 返回结果。
+     * @return 构建摘要列表 / List of build summaries
      */
     fun runBuildAndDump(): List<GenericNumberBuildSummary> {
         return runBlocking {

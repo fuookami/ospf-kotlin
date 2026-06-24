@@ -30,8 +30,8 @@ private data class FleetBalanceShadowPriceKey(
 /**
  * 实现列生成车队平衡约束和最小化的管线。Pipeline implementing fleet balance constraints and minimization for column generation.
  *
- * @property private val fleetBalance 参数。
- * @property private val coefficient 参数。
+ * @property fleetBalance 参数。
+ * @property coefficient 参数。
  */
 class FleetBalanceLimit(
     private val fleetBalance: FleetBalance,
@@ -39,7 +39,7 @@ class FleetBalanceLimit(
     override val name: String = "fleet_balance_limit"
 ) : CGPipeline {
     /**
-     * Adds fleet balance constraints and minimization objective to the model.
+     * 向模型添加机队平衡约束和最小化目标。/ Adds fleet balance constraints and minimization objective to the model.
  *
      * @param model 参数。
      * @return 返回结果。
@@ -89,7 +89,7 @@ class FleetBalanceLimit(
     }
 
     /**
-     * Returns the shadow price extractor for fleet balance constraints.
+     * 返回机队平衡约束的影子价格提取器。/ Returns the shadow price extractor for fleet balance constraints.
  *
      * @return 返回结果。
      */
@@ -115,7 +115,7 @@ class FleetBalanceLimit(
     }
 
     /**
-     * Refreshes the shadow price map with dual values from the solved model.
+     * 用求解模型的对偶值刷新影子价格映射。/ Refreshes the shadow price map with dual values from the solved model.
  *
      * @param shadowPriceMap 参数。
      * @param model 参数。

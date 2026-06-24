@@ -20,10 +20,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 计算每个货物位置的表面密度（单位面积重量）并将其注册到模型。Computes surface density (weight per unit area) for each cargo position and registers it with the model.
  *
- * @property private val aircraftModel 参数。
+ * @property aircraftModel 参数。
  * @property limitsZones 参数。
- * @property private val positions 参数。
- * @property private val load 参数。
+ * @property positions 参数。
+ * @property load 参数。
  */
 class SurfaceDensity(
     private val aircraftModel: AircraftModel,

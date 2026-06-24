@@ -1,5 +1,5 @@
 /**
- * Placement Test.
+ * 放置测试。
  * Placement Test.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure

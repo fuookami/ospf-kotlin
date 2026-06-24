@@ -16,13 +16,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * Tracks passenger amount expressions per flight and class,
+ * 跟踪每个航班和舱位的乘客数量表达式，考虑取消和舱位/航班变更。Tracks passenger amount expressions per flight and class,
  * accounting for cancellations and class/flight changes.
  *
-  * @property private val flights 参数。
-  * @property private val passengers 参数。
-  * @property private val cancel 参数。
-  * @property private val change 参数。
+  * @property flights 参数。
+  * @property passengers 参数。
+  * @property cancel 参数。
+  * @property change 参数。
  */
 class PassengerAmount(
     private val flights: List<FlightTask>,
@@ -33,7 +33,7 @@ class PassengerAmount(
     lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbol<Flt64>>>
 
     /**
-     * Registers passenger amount expressions with the model.
+     * 将乘客数量表达式注册到模型中。Registers passenger amount expressions with the model.
  *
      * @param model 参数。
      * @return 返回结果。
