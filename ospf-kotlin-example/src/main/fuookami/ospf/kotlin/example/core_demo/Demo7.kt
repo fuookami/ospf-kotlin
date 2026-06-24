@@ -104,7 +104,7 @@ data object Demo7 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -126,7 +126,7 @@ data object Demo7 {
     }
 
     /**
-     * Initializes unsigned integer variables for warehouse-store shipments.
+     * 初始化仓库-商店发货量的无符号整数变量。/ Initializes unsigned integer variables for warehouse-store shipments.
      *
      * @return 操作结果 / Operation result
      */
@@ -142,7 +142,7 @@ data object Demo7 {
     }
 
     /**
-     * Creates cost, shipment, and purchase expression symbols.
+     * 创建成本、发货量和采购量表达式符号。/ Creates cost, shipment, and purchase expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -184,7 +184,7 @@ data object Demo7 {
     }
 
     /**
-     * Sets the objective to minimize total shipping cost.
+     * 设置目标函数以最小化总运输成本。/ Sets the objective to minimize total shipping cost.
      *
      * @return 操作结果 / Operation result
      */
@@ -194,7 +194,7 @@ data object Demo7 {
     }
 
     /**
-     * Adds warehouse stowage and store demand constraints.
+     * 添加仓库装载量和商店需求约束。/ Adds warehouse stowage and store demand constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -216,7 +216,7 @@ data object Demo7 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -239,7 +239,7 @@ data object Demo7 {
     }
 
     /**
-     * Extracts the shipment quantities per store and warehouse from the solution.
+     * 从解中提取每个商店和仓库的发货数量。/ Extracts the shipment quantities per store and warehouse from the solution.
      *
      * @return 操作结果 / Operation result
      */

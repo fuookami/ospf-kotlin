@@ -92,7 +92,7 @@ data object Demo4 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -114,7 +114,7 @@ data object Demo4 {
     }
 
     /**
-     * Initializes real-valued decision variables for product quantities.
+     * 初始化产品数量的实值决策变量。/ Initializes real-valued decision variables for product quantities.
      *
      * @return 操作结果 / Operation result
      */
@@ -128,7 +128,7 @@ data object Demo4 {
     }
 
     /**
-     * Creates profit and material usage expression symbols.
+     * 创建利润和物料使用表达式符号。/ Creates profit and material usage expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -152,7 +152,7 @@ data object Demo4 {
     }
 
     /**
-     * Sets the objective to maximize profit.
+     * 设置目标函数以最大化利润。/ Sets the objective to maximize profit.
      *
      * @return 操作结果 / Operation result
      */
@@ -162,7 +162,7 @@ data object Demo4 {
     }
 
     /**
-     * Adds material availability and production difference constraints.
+     * 添加物料可用性和生产差异约束。/ Adds material availability and production difference constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -188,7 +188,7 @@ data object Demo4 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -211,7 +211,7 @@ data object Demo4 {
     }
 
     /**
-     * Extracts the product quantities from the solution.
+     * 从解中提取产品数量。/ Extracts the product quantities from the solution.
      *
      * @return 操作结果 / Operation result
      */

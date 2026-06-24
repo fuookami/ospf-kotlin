@@ -53,7 +53,7 @@ class MaintenancePlan internal constructor(
         private const val prefix = "m"
 
         /**
-         * Creates a [MaintenancePlan] with appropriate status based on category and expiration.
+         * 根据类别和过期时间创建具有适当状态的 [MaintenancePlan]。Creates a [MaintenancePlan] with appropriate status based on category and expiration.
  *
          * @param aircraft 参数。
          * @param scheduledTime 参数。
@@ -138,7 +138,7 @@ class Maintenance internal constructor(
 ) : FlightTask(MaintenanceFlightTask, origin) {
     companion object {
         /**
-         * Creates a [Maintenance] from a plan.
+         * 从计划创建 [Maintenance]。Creates a [Maintenance] from a plan.
  *
          * @param plan 参数。
          * @return 返回结果。
@@ -148,7 +148,7 @@ class Maintenance internal constructor(
         }
 
         /**
-         * Creates a recovered [Maintenance] applying the given recovery policy.
+         * 创建应用给定恢复策略的已恢复 [Maintenance]。Creates a recovered [Maintenance] applying the given recovery policy.
  *
          * @param origin 参数。
          * @param recoveryPolicy 参数。

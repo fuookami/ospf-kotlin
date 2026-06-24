@@ -10,9 +10,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for Operator type aliases (RuleChecker, ConnectionTimeCalculator, etc.).
+ * 算子类型别名（RuleChecker、ConnectionTimeCalculator 等）的测试 / Tests for Operator type aliases (RuleChecker, ConnectionTimeCalculator, etc.).
  *
- * These tests verify that the type aliases can be used as function references.
+ * 这些测试验证类型别名可以作为函数引用使用 / These tests verify that the type aliases can be used as function references.
  */
 class OperatorTest {
 

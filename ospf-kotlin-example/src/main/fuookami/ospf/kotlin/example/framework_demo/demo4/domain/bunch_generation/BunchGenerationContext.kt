@@ -23,7 +23,7 @@ class BunchGenerationContext {
     val initialFlightBunches get() = aggregation.initialFlightBunches
 
     /**
-     * Initializes the bunch generation context.
+     * 初始化批次生成上下文。Initializes the bunch generation context.
  *
      * @param aircrafts 参数。
      * @param aircraftUsability 参数。
@@ -102,7 +102,7 @@ class BunchGenerationContext {
     }
 
     /**
-     * Generates flight task bunches for the given aircrafts and shadow price map.
+     * 为给定的飞机和影子价格映射生成航班任务束。Generates flight task bunches for the given aircrafts and shadow price map.
  *
      * @param aircrafts 参数。
      * @param iteration 参数。

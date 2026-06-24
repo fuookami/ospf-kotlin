@@ -20,7 +20,7 @@ data class AircraftType(
         val values by pool::values
 
         /**
-         * Retrieves or creates an [AircraftType] by code.
+         * 按代码检索或创建 [AircraftType]。Retrieves or creates an [AircraftType] by code.
  *
          * @param code 参数。
          * @return 返回结果。
@@ -82,7 +82,7 @@ data class AircraftMinorType(
         val values by pool::values
 
         /**
-         * Retrieves an [AircraftMinorType] by code from the pool.
+         * 从池中按代码检索飞机子机型。Retrieves an [AircraftMinorType] by code from the pool.
  *
          * @param code 参数。
          * @return 返回结果。

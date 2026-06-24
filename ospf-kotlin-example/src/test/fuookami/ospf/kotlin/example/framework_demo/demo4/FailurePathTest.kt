@@ -9,8 +9,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for failure paths in the demo4 B&P pipeline.
+ * demo4 B&P 管线中的失败路径测试 / Tests for failure paths in the demo4 B&P pipeline.
  *
+ * 验证配置和参数对象产生有效默认值，并覆盖错误处理路径。完整的集成失败测试（无初始列、定价不可行）需要领域对象构建，通过 e2e 测试进行验证 /
  * Verifies that configuration and parameter objects produce valid defaults
  * and that error handling paths are covered. Full integration failure tests
  * (no initial columns, pricing infeasible) require domain object construction

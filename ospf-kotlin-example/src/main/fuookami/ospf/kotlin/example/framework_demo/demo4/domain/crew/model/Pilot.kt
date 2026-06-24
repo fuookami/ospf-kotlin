@@ -21,7 +21,7 @@ data class Pilot(
         val values by pool::values
 
         /**
-         * Retrieves a [Pilot] by pilot code from the pool.
+         * 通过飞行员代码从池中获取飞行员。Retrieves a [Pilot] by pilot code from the pool.
  *
          * @param code 参数。
          * @return 返回结果。
@@ -31,7 +31,7 @@ data class Pilot(
         }
 
         /**
-         * Retrieves a [Pilot] by worker number from the pool.
+         * 通过工号从池中获取飞行员。Retrieves a [Pilot] by worker number from the pool.
  *
          * @param workerNo 参数。
          * @return 返回结果。

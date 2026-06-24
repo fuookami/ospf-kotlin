@@ -11,8 +11,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for InitialFlightTaskBunchGenerator configuration.
+ * 初始航班任务束生成器的配置测试 / Tests for InitialFlightTaskBunchGenerator configuration.
  *
+ * 注意：使用实际 Aircraft/FlightTask 对象的完整集成测试需要领域模型初始化。这些测试验证生成器可以被构造 /
  * Note: Full integration tests with actual Aircraft/FlightTask objects require
  * domain model initialization. These tests verify the generator can be constructed.
  */

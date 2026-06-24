@@ -168,7 +168,7 @@ data object Demo15 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -190,7 +190,7 @@ data object Demo15 {
     }
 
     /**
-     * Initializes shipment and substitution rate variables.
+     * 初始化发货量和替代率变量。/ Initializes shipment and substitution rate variables.
      *
      * @return 操作结果 / Operation result
      */
@@ -225,7 +225,7 @@ data object Demo15 {
     }
 
     /**
-     * Creates receive, adjusted demand, transport, and cost expression symbols.
+     * 创建接收量、调整后需求、运输量和成本表达式符号。/ Creates receive, adjusted demand, transport, and cost expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -310,7 +310,7 @@ data object Demo15 {
     }
 
     /**
-     * Sets the objective to minimize total logistics cost.
+     * 设置目标函数以最小化总物流成本。/ Sets the objective to minimize total logistics cost.
      *
      * @return 操作结果 / Operation result
      */
@@ -321,7 +321,7 @@ data object Demo15 {
     }
 
     /**
-     * Adds demand satisfaction and production capacity constraints.
+     * 添加需求满足和生产能力约束。/ Adds demand satisfaction and production capacity constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -352,7 +352,7 @@ data object Demo15 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -376,7 +376,7 @@ data object Demo15 {
     }
 
     /**
-     * Extracts shipment and substitution data from the solution.
+     * 从解中提取发货和替代数据。/ Extracts shipment and substitution data from the solution.
      *
      * @return 操作结果 / Operation result
      */

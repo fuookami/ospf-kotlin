@@ -26,7 +26,7 @@ sealed class AircraftCapacity {
         operator fun get(cls: PassengerClass) = capacity[cls] ?: UInt64.zero
 
         /**
-         * Checks whether the aircraft can carry the given payload per class.
+         * 检查飞机是否能承载给定舱位的有效载荷。/ Checks whether the aircraft can carry the given payload per class.
  *
          * @param payload 参数。
          */
@@ -46,7 +46,7 @@ sealed class AircraftCapacity {
         override val category get() = AircraftCategory.Cargo
 
         /**
-         * Checks whether the aircraft can carry the given payload weight.
+         * 检查飞机是否能承载给定重量的有效载荷。/ Checks whether the aircraft can carry the given payload weight.
  *
          * @param payload 参数。
          */

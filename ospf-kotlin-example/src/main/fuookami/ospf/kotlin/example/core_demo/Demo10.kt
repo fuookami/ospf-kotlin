@@ -99,7 +99,7 @@ data object Demo10 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -121,7 +121,7 @@ data object Demo10 {
     }
 
     /**
-     * Initializes binary route variables and integer subtour elimination variables.
+     * 初始化二元路线变量和整数子环消除变量。/ Initializes binary route variables and integer subtour elimination variables.
      *
      * @return 操作结果 / Operation result
      */
@@ -153,7 +153,7 @@ data object Demo10 {
     }
 
     /**
-     * Creates distance, departure, and arrival expression symbols.
+     * 创建距离、出发和到达表达式符号。/ Creates distance, departure, and arrival expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -191,7 +191,7 @@ data object Demo10 {
     }
 
     /**
-     * Sets the objective to minimize total travel distance.
+     * 设置目标函数以最小化总旅行距离。/ Sets the objective to minimize total travel distance.
      *
      * @return 操作结果 / Operation result
      */
@@ -201,7 +201,7 @@ data object Demo10 {
     }
 
     /**
-     * Adds arrival/departure and subtour elimination (MTZ) constraints.
+     * 添加到达/出发和子环消除（MTZ）约束。/ Adds arrival/departure and subtour elimination (MTZ) constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -241,7 +241,7 @@ data object Demo10 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -264,7 +264,7 @@ data object Demo10 {
     }
 
     /**
-     * Extracts the optimal route as a city-to-city mapping from the solution.
+     * 从解中提取最优路线作为城市到城市的映射。/ Extracts the optimal route as a city-to-city mapping from the solution.
      *
      * @return 操作结果 / Operation result
      */

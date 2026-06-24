@@ -100,7 +100,7 @@ data object Demo11 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -122,7 +122,7 @@ data object Demo11 {
     }
 
     /**
-     * Initializes edge flow variables and the total flow variable.
+     * 初始化边流变量和总流变量。/ Initializes edge flow variables and the total flow variable.
      *
      * @return 操作结果 / Operation result
      */
@@ -146,7 +146,7 @@ data object Demo11 {
     }
 
     /**
-     * Creates flow-in and flow-out expression symbols for each node.
+     * 为每个节点创建流入和流出表达式符号。/ Creates flow-in and flow-out expression symbols for each node.
      *
      * @return 操作结果 / Operation result
      */
@@ -175,7 +175,7 @@ data object Demo11 {
     }
 
     /**
-     * Sets the objective to maximize total flow.
+     * 设置目标函数以最大化总流量。/ Sets the objective to maximize total flow.
      *
      * @return 操作结果 / Operation result
      */
@@ -185,7 +185,7 @@ data object Demo11 {
     }
 
     /**
-     * Adds flow conservation constraints for source, sink, and intermediate nodes.
+     * 为源节点、汇节点和中间节点添加流量守恒约束。/ Adds flow conservation constraints for source, sink, and intermediate nodes.
      *
      * @return 操作结果 / Operation result
      */
@@ -214,7 +214,7 @@ data object Demo11 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -237,7 +237,7 @@ data object Demo11 {
     }
 
     /**
-     * Extracts the edge flows from the solution.
+     * 从解中提取边流量。/ Extracts the edge flows from the solution.
      *
      * @return 操作结果 / Operation result
      */

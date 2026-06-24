@@ -34,7 +34,7 @@ data class PilotRank(
         val values by pool::values
 
         /**
-         * Retrieves a [PilotRank] by class from the pool.
+         * 通过类别从池中获取飞行员职级。Retrieves a [PilotRank] by class from the pool.
  *
          * @param cls 参数。
          * @return 返回结果。
@@ -44,7 +44,7 @@ data class PilotRank(
         }
 
         /**
-         * Retrieves a [PilotRank] by rank number from the pool.
+         * 通过职级编号从池中获取飞行员职级。Retrieves a [PilotRank] by rank number from the pool.
  *
          * @param no 参数。
          * @return 返回结果。

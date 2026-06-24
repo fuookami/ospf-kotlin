@@ -33,8 +33,9 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /** 演示基于 PSO 的启发式优化在通过 [LinearMetaModel] 构建的线性模型上的应用。Demonstrates PSO-based heuristic optimization on a linear model built via [LinearMetaModel]. */
 class Demo2 {
     /**
+     * 构建最大化 x + y 的线性模型（受边界约束），然后用 PSO 求解。
      * Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO.
- *
+     *
      * @return 返回结果。
      */
     operator fun invoke(): Try {

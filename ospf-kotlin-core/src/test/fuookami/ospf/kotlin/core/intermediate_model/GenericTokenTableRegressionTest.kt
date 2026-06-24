@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
+ * P3-2 回归测试：验证泛型 TokenTable、Cell、TokenCacheContexts 在 V 显式参数化时能正确编译和运行。
  * P3-2 regression: verify generic TokenTable, Cell, TokenCacheContexts
  * compile and function correctly when V is explicitly parameterized.
  */

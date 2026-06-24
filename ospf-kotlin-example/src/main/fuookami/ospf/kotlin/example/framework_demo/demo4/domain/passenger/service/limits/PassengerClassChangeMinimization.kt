@@ -30,7 +30,7 @@ class PassengerClassChangeMinimization(
     override val name: String = "passenger_class_change_minimization"
 ) : CGPipeline {
     /**
-     * Adds the passenger class change minimization objective to the model.
+     * 向模型添加乘客舱位变更最小化目标。Adds the passenger class change minimization objective to the model.
  *
      * @param model 参数。
      * @return 返回结果。

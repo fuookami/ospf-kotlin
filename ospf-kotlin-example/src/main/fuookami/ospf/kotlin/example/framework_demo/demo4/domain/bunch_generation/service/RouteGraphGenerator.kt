@@ -32,7 +32,7 @@ class RouteGraphGenerator(
     private val feasibilityJudger: (Aircraft, FlightTask?, FlightTask) -> Boolean,
 ) {
     /**
-     * Generates a route graph for the given aircraft.
+     * 为给定飞机生成路线图。Generates a route graph for the given aircraft.
  *
      * @param aircraft 参数。
      * @param aircraftUsability 参数。

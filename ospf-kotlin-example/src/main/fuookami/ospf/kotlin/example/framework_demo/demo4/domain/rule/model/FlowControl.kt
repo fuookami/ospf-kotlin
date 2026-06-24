@@ -18,8 +18,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 /** 评估航班任务是否匹配流量控制标准的条件接口。Condition interface for evaluating whether a flight task matches flow control criteria. */
 interface AbstractFlowControlCondition {
     /**
-     * Evaluates whether the given task matches this condition.
- *
+     * 评估给定任务是否匹配此条件。Evaluates whether the given task matches this condition.
+     *
      * @param task 参数。
      * @return 返回结果。
      */
@@ -36,8 +36,8 @@ data class FlowControlCondition(
     val aircraftMinorTypes: Set<AircraftMinorType> = emptySet()
 ) {
     /**
-     * Evaluates whether the given task matches this condition.
- *
+     * 评估给定任务是否匹配此条件。Evaluates whether the given task matches this condition.
+     *
      * @param task 参数。
      * @return 返回结果。
      */
@@ -173,8 +173,8 @@ data class FlowControlCapacity(
 ) {
     companion object {
         /**
-         * Creates a closed (zero capacity) flow control for the given time range.
- *
+         * 为给定时间范围创建关闭（零容量）的流量控制。Creates a closed (zero capacity) flow control for the given time range.
+         *
          * @param time 参数。
          */
         fun close(time: TimeRange) = FlowControlCapacity(UInt64.zero, time.duration)

@@ -22,7 +22,7 @@ class PassengerCancel(
     lateinit var passengerCancel: UIntVariable1
 
     /**
-     * Registers cancellation variables with the model.
+     * 将取消变量注册到模型中。Registers cancellation variables with the model.
  *
      * @param model 参数。
      * @return 返回结果。

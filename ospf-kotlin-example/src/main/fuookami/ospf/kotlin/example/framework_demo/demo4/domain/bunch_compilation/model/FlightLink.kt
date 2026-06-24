@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * Models flight link expressions tracking connections between consecutive flight tasks
+ * 航班连接表达式模型，跟踪连续航班任务之间的连接及其关联的松弛变量用于列生成公式。/ Models flight link expressions tracking connections between consecutive flight tasks
  * and their associated slack variables for the column generation formulation.
  *
   * @property links 参数。
@@ -42,7 +42,7 @@ class FlightLink(
     lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * Registers link and slack symbols with the model.
+     * 向模型注册连接和松弛符号。/ Registers link and slack symbols with the model.
  *
      * @param model 参数。
      * @return 返回结果。
@@ -107,7 +107,7 @@ class FlightLink(
     }
 
     /**
-     * Adds columns for new bunches to the link expressions.
+     * 向连接表达式添加新束的列。/ Adds columns for new bunches to the link expressions.
  *
      * @param iteration 参数。
      * @param bunches 参数。

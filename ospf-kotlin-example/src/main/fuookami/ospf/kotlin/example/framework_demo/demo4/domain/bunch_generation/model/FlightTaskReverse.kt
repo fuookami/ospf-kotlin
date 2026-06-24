@@ -34,7 +34,7 @@ class FlightTaskReverse private constructor(
         val criticalSize = UInt64(200UL)
 
         /**
-         * Creates a FlightTaskReverse from a list of task pairs.
+         * 从任务对列表创建 FlightTaskReverse。Creates a FlightTaskReverse from a list of task pairs.
  *
          * @param pairs 参数。
          * @param originBunches 参数。
@@ -81,7 +81,7 @@ class FlightTaskReverse private constructor(
         }
 
         /**
-         * Checks if two tasks can be reversed.
+         * 检查两个任务是否可以反转。Checks if two tasks can be reversed.
  *
          * @param prevFlightTask 参数。
          * @param succFlightTask 参数。
@@ -141,7 +141,7 @@ class FlightTaskReverse private constructor(
         }
 
         /**
-         * Checks if two tasks are symmetrical (can be reversed in both directions).
+         * 检查两个任务是否对称（可以在两个方向上反转）。Checks if two tasks are symmetrical (can be reversed in both directions).
  *
          * @param prevFlightTask 参数。
          * @param succFlightTask 参数。
@@ -173,7 +173,7 @@ class FlightTaskReverse private constructor(
     }
 
     /**
-     * Checks if a pair of tasks can be reversed.
+     * 检查一对任务是否可以反转。Checks if a pair of tasks can be reversed.
  *
      * @param prevFlightTask 参数。
      * @param succFlightTask 参数。
@@ -184,7 +184,7 @@ class FlightTaskReverse private constructor(
     }
 
     /**
-     * Checks if a pair of tasks are symmetrical.
+     * 检查一对任务是否对称。Checks if a pair of tasks are symmetrical.
  *
      * @param prevFlightTask 参数。
      * @param succFlightTask 参数。
@@ -195,7 +195,7 @@ class FlightTaskReverse private constructor(
     }
 
     /**
-     * Finds all reversible pairs where the given task is the predecessor.
+     * 查找给定任务作为前序任务的所有可反转对。Finds all reversible pairs where the given task is the predecessor.
  *
      * @param flightTask 参数。
      * @return 返回结果。
@@ -205,7 +205,7 @@ class FlightTaskReverse private constructor(
     }
 
     /**
-     * Finds all reversible pairs where the given task is the successor.
+     * 查找给定任务作为后续任务的所有可反转对。Finds all reversible pairs where the given task is the successor.
  *
      * @param flightTask 参数。
      * @return 返回结果。

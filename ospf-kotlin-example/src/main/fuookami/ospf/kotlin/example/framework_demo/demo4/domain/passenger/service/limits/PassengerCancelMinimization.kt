@@ -30,7 +30,7 @@ class PassengerCancelMinimization(
     override val name: String = "passenger_cancel_minimization"
 ) : CGPipeline {
     /**
-     * Adds the passenger cancel minimization objective to the model.
+     * 向模型添加乘客取消最小化目标。Adds the passenger cancel minimization objective to the model.
  *
      * @param model 参数。
      * @return 返回结果。

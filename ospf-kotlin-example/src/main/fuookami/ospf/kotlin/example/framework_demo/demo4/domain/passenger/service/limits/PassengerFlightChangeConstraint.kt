@@ -44,7 +44,7 @@ class PassengerFlightChangeConstraint(
     private val solverTimeWindow = timeWindow.toFlt64Boundary()
 
     /**
-     * Adds flight change feasibility constraints using if-functions for transfer time checks.
+     * 使用if函数添加航班变更可行性约束以进行中转时间检查。Adds flight change feasibility constraints using if-functions for transfer time checks.
  *
      * @param model 参数。
      * @return 返回结果。

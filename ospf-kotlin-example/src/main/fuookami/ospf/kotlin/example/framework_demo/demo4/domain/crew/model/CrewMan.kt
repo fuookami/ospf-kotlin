@@ -27,7 +27,7 @@ data class CrewMan(
         val values by pool::values
 
         /**
-         * Retrieves a [CrewMan] by worker number from the pool.
+         * 通过工号从池中获取机组成员。Retrieves a [CrewMan] by worker number from the pool.
  *
          * @param workerNo 参数。
          * @return 返回结果。

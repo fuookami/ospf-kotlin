@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for BunchGenerationConfiguration defaults and customization.
+ * 束生成配置的默认值和自定义测试 / Tests for BunchGenerationConfiguration defaults and customization.
  */
 class BunchGenerationConfigurationTest {
 

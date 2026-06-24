@@ -112,7 +112,7 @@ data object Demo8 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -134,7 +134,7 @@ data object Demo8 {
     }
 
     /**
-     * Initializes unsigned integer variables for product quantities.
+     * 初始化产品数量的无符号整数变量。/ Initializes unsigned integer variables for product quantities.
      *
      * @return 操作结果 / Operation result
      */
@@ -148,7 +148,7 @@ data object Demo8 {
     }
 
     /**
-     * Creates profit and man-hour expression symbols per equipment.
+     * 为每台设备创建利润和工时表达式符号。/ Creates profit and man-hour expression symbols per equipment.
      *
      * @return 操作结果 / Operation result
      */
@@ -177,7 +177,7 @@ data object Demo8 {
     }
 
     /**
-     * Sets the objective to maximize total profit.
+     * 设置目标函数以最大化总利润。/ Sets the objective to maximize total profit.
      *
      * @return 操作结果 / Operation result
      */
@@ -187,7 +187,7 @@ data object Demo8 {
     }
 
     /**
-     * Adds equipment man-hour capacity constraints.
+     * 添加设备工时容量约束。/ Adds equipment man-hour capacity constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -202,7 +202,7 @@ data object Demo8 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -225,7 +225,7 @@ data object Demo8 {
     }
 
     /**
-     * Extracts the product quantities from the solution.
+     * 从解中提取产品数量。/ Extracts the product quantities from the solution.
      *
      * @return 操作结果 / Operation result
      */

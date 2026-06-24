@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
+ * 创建表示常量 Flt64 值的 [LinearPolynomial]。
  * Creates a [LinearPolynomial] representing a constant Flt64 value.
  *
  * @param value 常量值 / Constant value
@@ -28,6 +29,7 @@ internal fun flt64Constant(value: Flt64): LinearPolynomial<Flt64> {
 }
 
 /**
+ * 创建表示系数为 1 的单变量项的 [LinearPolynomial]。
  * Creates a [LinearPolynomial] representing a single variable term with coefficient one.
  *
  * @param symbol 符号变量 / Symbol variable
@@ -38,6 +40,7 @@ internal fun flt64Linear(symbol: Symbol): LinearPolynomial<Flt64> {
 }
 
 /**
+ * 通过将 [AbstractVariableItem] 转换为 [Symbol] 来创建 [LinearPolynomial]。
  * Creates a [LinearPolynomial] from an [AbstractVariableItem] by casting it to [Symbol].
  *
  * @param variable 变量项 / Variable item
@@ -48,6 +51,7 @@ internal fun flt64Linear(variable: AbstractVariableItem<*, *>): LinearPolynomial
 }
 
 /**
+ * 创建基于阈值的松弛函数适配器，用于惩罚约束违反。
  * Creates a threshold-based slack function adapter for penalizing constraint violations.
  *
  * @param x 输入表达式 / Input expression
@@ -85,6 +89,7 @@ internal fun exampleThresholdSlack(
 }
 
 /**
+ * 创建绝对差值松弛函数适配器，用于惩罚两个表达式之间的偏差。
  * Creates an absolute-difference slack function adapter for penalizing deviations between two expressions.
  *
  * @param x 第一个表达式 / First expression
@@ -118,6 +123,7 @@ internal fun exampleAbsoluteSlack(
 }
 
 /**
+ * 将 [LinearMetaModel] 转储为机制模型，然后使用给定的求解器求解。
  * Dumps a [LinearMetaModel] into a mechanism model, then solves it with the given solver.
  *
  * @param solver 线性求解器 / Linear solver

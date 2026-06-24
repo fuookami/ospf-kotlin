@@ -130,7 +130,7 @@ class PowerVectorKey private constructor(
         }
 
         /**
-         * Compute hash for two IntArrays.
+         * 计算两个 IntArray 的哈希值 / Compute hash for two IntArrays.
          */
         private fun computeSparseHash(indices: IntArray, powers: IntArray): Int {
             var h = 1

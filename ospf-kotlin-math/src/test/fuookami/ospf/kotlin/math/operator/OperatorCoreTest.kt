@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
 /**
- * Operator core path tests: Abs, Ord, Tolerance, Reciprocal, Pow, Log, Precision
+ * 算子核心路径测试：Abs、Ord、Tolerance、Reciprocal、Pow、Log、Precision / Operator core path tests: Abs, Ord, Tolerance, Reciprocal, Pow, Log, Precision
  */
 class OperatorCoreTest {
 

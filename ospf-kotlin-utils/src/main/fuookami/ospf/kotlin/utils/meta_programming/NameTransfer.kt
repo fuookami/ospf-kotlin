@@ -99,11 +99,12 @@ private class NameTransferImpl(
 }
 
 /**
- * build a name transfer with given frontend and backend naming system
+ * 使用给定的前端和后端命名系统构建名称转换器
+ * Build a name transfer with given frontend and backend naming system
  *
- * @param frontend      frontend naming system
- * @param backend       backend naming system
- * @return              name transfer for given frontend and backend naming system
+ * @param frontend      前端命名系统 / Frontend naming system
+ * @param backend       后端命名系统 / Backend naming system
+ * @return              给定前端和后端命名系统的名称转换器 / Name transfer for given frontend and backend naming system
  */
 private fun nameTransferOf(
     frontend: NamingSystem,
@@ -113,7 +114,7 @@ private fun nameTransferOf(
 }
 
 /**
- * name transfers set
+ * 名称转换器集合 / Name transfers set
  */
 private val transfers = mapOf(
     nameTransferOf(NamingSystem.SnakeCase, NamingSystem.UpperSnakeCase),

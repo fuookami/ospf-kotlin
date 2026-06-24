@@ -46,7 +46,7 @@ class Aggregation(
     )
 
     /**
-     * Registers cancel, change, and amount components with the model.
+     * 将取消、变更和数量组件注册到模型中。Registers cancel, change, and amount components with the model.
  *
      * @param model 参数。
      * @return 返回结果。

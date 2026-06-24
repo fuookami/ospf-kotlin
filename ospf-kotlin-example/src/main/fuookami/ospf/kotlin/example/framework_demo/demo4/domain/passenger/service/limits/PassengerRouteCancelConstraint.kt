@@ -24,7 +24,7 @@ class PassengerRouteCancelConstraint(
     override val name: String = "passenger_route_cancel_constraint"
 ) : CGPipeline {
     /**
-     * Adds route cancel constraints ensuring previous legs cancel before subsequent ones.
+     * 添加路线取消约束，确保前序航段在后续航段之前取消。Adds route cancel constraints ensuring previous legs cancel before subsequent ones.
  *
      * @param model 参数。
      * @return 返回结果。

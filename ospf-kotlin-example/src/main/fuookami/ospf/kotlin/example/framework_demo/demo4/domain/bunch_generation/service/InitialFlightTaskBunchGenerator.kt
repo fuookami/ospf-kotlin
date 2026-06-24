@@ -32,7 +32,7 @@ class InitialFlightTaskBunchGenerator(
     }
 
     /**
-     * Generates an initial bunch for the given aircraft.
+     * 为给定飞机生成初始束。Generates an initial bunch for the given aircraft.
  *
      * @param aircraft 参数。
      * @param aircraftUsability 参数。
@@ -51,7 +51,7 @@ class InitialFlightTaskBunchGenerator(
     }
 
     /**
-     * Generates an empty bunch with only locked tasks.
+     * 生成仅包含锁定任务的空束。Generates an empty bunch with only locked tasks.
  *
      * @param aircraft 参数。
      * @param aircraftUsability 参数。

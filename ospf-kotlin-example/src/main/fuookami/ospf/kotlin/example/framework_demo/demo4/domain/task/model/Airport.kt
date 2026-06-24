@@ -37,7 +37,7 @@ data class Airport(
         val values by pool::values
 
         /**
-         * Retrieves an [Airport] by ICAO code from the pool.
+         * 通过 ICAO 代码从池中获取机场。/ Retrieves an [Airport] by ICAO code from the pool.
  *
          * @param icao 参数。
          * @return 返回结果。

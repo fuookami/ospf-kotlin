@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 
 /**
- * Unit tests for FlattenUtility functions
+ * 展平工具函数的单元测试 / Unit tests for FlattenUtility functions
  */
 class FlattenUtilityTest {
 

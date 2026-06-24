@@ -69,7 +69,7 @@ class FlightTaskBunch(
     )
 
     /**
-     * Checks whether this bunch contains the given task.
+     * 检查此任务束是否包含给定任务。Checks whether this bunch contains the given task.
  *
      * @param task 参数。
      * @return 返回结果。
@@ -79,7 +79,7 @@ class FlightTaskBunch(
     }
 
     /**
-     * Checks whether this bunch contains two consecutive tasks.
+     * 检查此任务束是否包含两个连续任务。Checks whether this bunch contains two consecutive tasks.
  *
      * @param prevFlightTask 参数。
      * @param succFlightTask 参数。
@@ -96,7 +96,7 @@ class FlightTaskBunch(
     }
 
     /**
-     * Returns the recovered version of the given origin task within this bunch.
+     * 返回此任务束中给定原始任务的恢复版本。Returns the recovered version of the given origin task within this bunch.
  *
      * @param originTask 参数。
      * @return 返回结果。
@@ -112,7 +112,7 @@ class FlightTaskBunch(
     }
 
     /**
-     * Checks whether any task in this bunch arrives at the airport within the time window.
+     * 检查此任务束中是否有任务在时间窗口内到达机场。Checks whether any task in this bunch arrives at the airport within the time window.
  *
      * @param airport 参数。
      * @param timeWindow 参数。
@@ -135,7 +135,7 @@ class FlightTaskBunch(
     }
 
     /**
-     * Checks whether any task in this bunch departs from the airport within the time window.
+     * 检查此任务束中是否有任务在时间窗口内从机场出发。Checks whether any task in this bunch departs from the airport within the time window.
  *
      * @param airport 参数。
      * @param timeWindow 参数。
@@ -158,7 +158,7 @@ class FlightTaskBunch(
     }
 
     /**
-     * Checks whether the aircraft is located at the airport within the time window.
+     * 检查飞机是否在时间窗口内位于机场。Checks whether the aircraft is located at the airport within the time window.
  *
      * @param airport 参数。
      * @param timeWindow 参数。

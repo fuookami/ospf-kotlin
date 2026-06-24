@@ -8,8 +8,9 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Tests for FreeAircraftSelector and FreeAircraftSelectorConfiguration.
+ * 空闲航空器选择器及其配置的测试 / Tests for FreeAircraftSelector and FreeAircraftSelectorConfiguration.
  *
+ * 验证配置默认值、自定义值和构造。使用 ShadowPriceMap 和领域对象的完整集成测试需要求解器基础设施，由第 4 阶段的 e2e 测试覆盖 /
  * Verifies configuration defaults, custom values, and construction.
  * Full integration tests with ShadowPriceMap and domain objects require
  * solver infrastructure and are covered by the e2e test in phase 4.

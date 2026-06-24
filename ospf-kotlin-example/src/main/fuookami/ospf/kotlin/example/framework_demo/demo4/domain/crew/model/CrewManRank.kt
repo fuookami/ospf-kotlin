@@ -31,7 +31,7 @@ data class CrewManRank(
         val values by pool::values
 
         /**
-         * Retrieves a [CrewManRank] by class from the pool.
+         * 通过类别从池中获取机组人员职级。Retrieves a [CrewManRank] by class from the pool.
  *
          * @param cls 参数。
          * @return 返回结果。
@@ -41,7 +41,7 @@ data class CrewManRank(
         }
 
         /**
-         * Retrieves a [CrewManRank] by rank number from the pool.
+         * 通过职级编号从池中获取机组人员职级。Retrieves a [CrewManRank] by rank number from the pool.
  *
          * @param no 参数。
          * @return 返回结果。

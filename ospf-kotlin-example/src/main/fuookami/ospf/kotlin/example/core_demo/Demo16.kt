@@ -82,7 +82,7 @@ data object Demo16 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -104,7 +104,7 @@ data object Demo16 {
     }
 
     /**
-     * Initializes production allocation variables between periods.
+     * 初始化期间间的生产分配变量。/ Initializes production allocation variables between periods.
      *
      * @return 操作结果 / Operation result
      */
@@ -116,7 +116,7 @@ data object Demo16 {
     }
 
     /**
-     * Creates production, supply, delay delivery, storage, and production cost symbols.
+     * 创建生产、供应、延迟交付、库存和生产成本符号。/ Creates production, supply, delay delivery, storage, and production cost symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -183,7 +183,7 @@ data object Demo16 {
     }
 
     /**
-     * Sets the objective to minimize total cost (production + storage + delay).
+     * 设置目标函数以最小化总成本（生产 + 库存 + 延迟）。/ Sets the objective to minimize total cost (production + storage + delay).
      *
      * @return 操作结果 / Operation result
      */
@@ -197,7 +197,7 @@ data object Demo16 {
     }
 
     /**
-     * Adds demand satisfaction and productivity capacity constraints.
+     * 添加需求满足和生产力约束。/ Adds demand satisfaction and productivity capacity constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -220,7 +220,7 @@ data object Demo16 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -244,7 +244,7 @@ data object Demo16 {
     }
 
     /**
-     * Extracts the production allocation matrix from the solution.
+     * 从解中提取生产分配矩阵。/ Extracts the production allocation matrix from the solution.
      *
      * @return 操作结果 / Operation result
      */

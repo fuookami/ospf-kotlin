@@ -70,7 +70,7 @@ data object Demo6 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -92,7 +92,7 @@ data object Demo6 {
     }
 
     /**
-     * Initializes unsigned integer decision variables for cargo quantities.
+     * 初始化货物数量的无符号整数决策变量。/ Initializes unsigned integer decision variables for cargo quantities.
      *
      * @return 操作结果 / Operation result
      */
@@ -106,7 +106,7 @@ data object Demo6 {
     }
 
     /**
-     * Creates cargo value and weight expression symbols.
+     * 创建货物价值和重量表达式符号。/ Creates cargo value and weight expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -127,7 +127,7 @@ data object Demo6 {
     }
 
     /**
-     * Sets the objective to maximize total cargo value.
+     * 设置目标函数以最大化总货物价值。/ Sets the objective to maximize total cargo value.
      *
      * @return 操作结果 / Operation result
      */
@@ -137,7 +137,7 @@ data object Demo6 {
     }
 
     /**
-     * Adds per-item amount limits and weight capacity constraint.
+     * 添加每项数量限制和重量容量约束。/ Adds per-item amount limits and weight capacity constraint.
      *
      * @return 操作结果 / Operation result
      */
@@ -154,7 +154,7 @@ data object Demo6 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -177,7 +177,7 @@ data object Demo6 {
     }
 
     /**
-     * Extracts the cargo quantities from the solution.
+     * 从解中提取货物数量。/ Extracts the cargo quantities from the solution.
      *
      * @return 操作结果 / Operation result
      */

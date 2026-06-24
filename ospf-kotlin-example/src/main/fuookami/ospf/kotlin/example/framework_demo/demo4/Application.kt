@@ -337,12 +337,13 @@ private class Demo4Consumption(material: AbstractMaterial) : Consumption {
 }
 
 /**
+ * 创建给定名称和值的一维常量 [LinearExpressionSymbol] 数组。
  * Creates a 1D array of constant [LinearExpressionSymbol] with the given name and value.
  *
- * @param name 参数。
- * @param value 参数。
- * @param size 参数。
- * @return 返回结果。
+ * @param name 名称 / Name
+ * @param value 值 / Value
+ * @param size 大小 / Size
+ * @return 线性中间符号一维数组 / 1D linear intermediate symbols
  */
 private fun constantSymbols(
     name: String,

@@ -38,7 +38,7 @@ class PassengerChange(
     lateinit var passengerFlightChange: Map<FlightPassenger, Map<FlightTask, Map<PassengerClass, UIntVar>>>
 
     /**
-     * Registers class change and optionally flight change variables with the model.
+     * 将舱位变更及可选的航班变更变量注册到模型中。Registers class change and optionally flight change variables with the model.
  *
      * @param model 参数。
      * @return 返回结果。

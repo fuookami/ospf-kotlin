@@ -27,7 +27,7 @@ class PassengerFlightCapacityConstraint(
     override val name: String = "passenger_flight_capacity_constraint"
 ) : CGPipeline {
     /**
-     * Adds passenger flight capacity constraints to the model.
+     * 向模型添加乘客航班容量约束。Adds passenger flight capacity constraints to the model.
  *
      * @param model 参数。
      * @return 返回结果。

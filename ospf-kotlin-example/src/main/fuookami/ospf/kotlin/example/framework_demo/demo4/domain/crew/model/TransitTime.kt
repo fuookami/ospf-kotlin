@@ -13,7 +13,7 @@ enum class TransitTimeScene {
 
     companion object {
         /**
-         * Determines the transit time scene for the given consecutive flight tasks.
+         * 判定给定连续航班任务的中转时间场景。Determines the transit time scene for the given consecutive flight tasks.
  *
          * @param prevTask 参数。
          * @param nextTask 参数。

@@ -105,7 +105,7 @@ data object GenericNumberDemo {
     )
 
     /**
-     * Runs linear and quadratic build-and-dump for all predefined numeric types.
+     * 对所有预定义数值类型运行线性和二次构建转储。/ Runs linear and quadratic build-and-dump for all predefined numeric types.
      *
      * @return 构建摘要列表 / List of build summaries
      */

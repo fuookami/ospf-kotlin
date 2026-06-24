@@ -103,7 +103,7 @@ data object Demo3 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -125,7 +125,7 @@ data object Demo3 {
     }
 
     /**
-     * Initializes unsigned integer variables for material quantities.
+     * 初始化物料数量的无符号整数变量。/ Initializes unsigned integer variables for material quantities.
      *
      * @return 操作结果 / Operation result
      */
@@ -139,7 +139,7 @@ data object Demo3 {
     }
 
     /**
-     * Creates cost and per-product yield expression symbols.
+     * 创建成本和每产品产出表达式符号。/ Creates cost and per-product yield expression symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -165,7 +165,7 @@ data object Demo3 {
     }
 
     /**
-     * Sets the objective to minimize material cost.
+     * 设置目标函数以最小化物料成本。/ Sets the objective to minimize material cost.
      *
      * @return 操作结果 / Operation result
      */
@@ -175,7 +175,7 @@ data object Demo3 {
     }
 
     /**
-     * Adds yield equality constraints for each product.
+     * 为每个产品添加产出等式约束。/ Adds yield equality constraints for each product.
      *
      * @return 操作结果 / Operation result
      */
@@ -188,7 +188,7 @@ data object Demo3 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -211,7 +211,7 @@ data object Demo3 {
     }
 
     /**
-     * Extracts the material quantities from the solution.
+     * 从解中提取物料数量。/ Extracts the material quantities from the solution.
      *
      * @return 操作结果 / Operation result
      */

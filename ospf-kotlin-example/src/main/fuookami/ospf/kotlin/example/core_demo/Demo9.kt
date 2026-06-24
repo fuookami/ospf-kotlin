@@ -71,7 +71,7 @@ data object Demo9 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -93,7 +93,7 @@ data object Demo9 {
     }
 
     /**
-     * Initializes integer decision variables for the facility position.
+     * 初始化设施位置的整数决策变量。/ Initializes integer decision variables for the facility position.
      *
      * @return 操作结果 / Operation result
      */
@@ -106,7 +106,7 @@ data object Demo9 {
     }
 
     /**
-     * Creates absolute distance symbols for x and y axes, then sums them.
+     * 创建 x 轴和 y 轴的绝对距离符号，然后求和。/ Creates absolute distance symbols for x and y axes, then sums them.
      *
      * @return 操作结果 / Operation result
      */
@@ -142,7 +142,7 @@ data object Demo9 {
     }
 
     /**
-     * Sets the objective to minimize total Manhattan distance.
+     * 设置目标函数以最小化总曼哈顿距离。/ Sets the objective to minimize total Manhattan distance.
      *
      * @return 操作结果 / Operation result
      */
@@ -152,7 +152,7 @@ data object Demo9 {
     }
 
     /**
-     * No additional constraints needed.
+     * 无需额外约束。/ No additional constraints needed.
      *
      * @return 操作结果 / Operation result
      */
@@ -161,7 +161,7 @@ data object Demo9 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -184,7 +184,7 @@ data object Demo9 {
     }
 
     /**
-     * Extracts the optimal facility position from the solution.
+     * 从解中提取最优设施位置。/ Extracts the optimal facility position from the solution.
      *
      * @return 操作结果 / Operation result
      */

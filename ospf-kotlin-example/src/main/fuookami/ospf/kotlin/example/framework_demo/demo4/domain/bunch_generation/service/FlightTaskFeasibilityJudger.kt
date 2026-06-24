@@ -27,7 +27,7 @@ class FlightTaskFeasibilityJudger(
     )
 
     /**
-     * Checks if the given flight task is feasible for the aircraft.
+     * 检查给定航班任务对飞机是否可行。Checks if the given flight task is feasible for the aircraft.
  *
      * @param aircraft 参数。
      * @param prevFlightTask 参数。

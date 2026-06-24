@@ -24,11 +24,14 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
+ * 使用实时 Gurobi 求解器的 demo4 分支定价端到端测试。
  * End-to-end test for demo4 Branch-and-Price with live Gurobi solver.
  *
+ * 验证 B&P 算法可以使用最小场景构建，并且错误处理能产生类型化/有说明的错误（而非 TODO/NPE）。
  * Verifies that the B&P algorithm can be constructed with a minimal scenario
  * and that error handling produces typed/explained errors (not TODOs/NPEs).
  *
+ * 此测试在 `demo4-gurobi-cg` 配置下受控，仅在使用 -Pdemo4-gurobi-cg 显式选择时运行。
  * This test is gated under the `demo4-gurobi-cg` profile and only runs
  * when explicitly selected with -Pdemo4-gurobi-cg.
  */

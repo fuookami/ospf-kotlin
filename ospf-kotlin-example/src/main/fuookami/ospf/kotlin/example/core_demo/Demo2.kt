@@ -98,7 +98,7 @@ data object Demo2 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -120,7 +120,7 @@ data object Demo2 {
     }
 
     /**
-     * Initializes binary decision variables for company-product assignments.
+     * 初始化公司-产品分配的二元决策变量。/ Initializes binary decision variables for company-product assignments.
      *
      * @return 操作结果 / Operation result
      */
@@ -136,7 +136,7 @@ data object Demo2 {
     }
 
     /**
-     * Creates cost symbol and assignment intermediate symbols.
+     * 创建成本符号和分配中间符号。/ Creates cost symbol and assignment intermediate symbols.
      *
      * @return 操作结果 / Operation result
      */
@@ -172,7 +172,7 @@ data object Demo2 {
     }
 
     /**
-     * Sets the objective to minimize total assignment cost.
+     * 设置目标函数以最小化总分配成本。/ Sets the objective to minimize total assignment cost.
      *
      * @return 操作结果 / Operation result
      */
@@ -182,7 +182,7 @@ data object Demo2 {
     }
 
     /**
-     * Adds constraints: each company assigns at most one product, each product assigned exactly once.
+     * 添加约束：每家公司最多分配一个产品，每个产品恰好分配一次。/ Adds constraints: each company assigns at most one product, each product assigned exactly once.
      *
      * @return 操作结果 / Operation result
      */
@@ -197,7 +197,7 @@ data object Demo2 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -220,7 +220,7 @@ data object Demo2 {
     }
 
     /**
-     * Extracts the assigned company-product pairs from the solution.
+     * 从解中提取分配的公司-产品对。/ Extracts the assigned company-product pairs from the solution.
      *
      * @return 操作结果 / Operation result
      */

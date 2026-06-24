@@ -73,7 +73,7 @@ data object Demo1 {
     )
 
     /**
-     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
      */
@@ -95,7 +95,7 @@ data object Demo1 {
     }
 
     /**
-     * Initializes binary decision variables for each company.
+     * 为每家公司初始化二元决策变量。/ Initializes binary decision variables for each company.
      *
      * @return 操作结果 / Operation result
      */
@@ -109,7 +109,7 @@ data object Demo1 {
     }
 
     /**
-     * Creates linear expression symbols for capital, liability, and profit.
+     * 创建资本、负债和利润的线性表达式符号。/ Creates linear expression symbols for capital, liability, and profit.
      *
      * @return 操作结果 / Operation result
      */
@@ -135,7 +135,7 @@ data object Demo1 {
     }
 
     /**
-     * Sets the objective to maximize total profit.
+     * 设置目标函数以最大化总利润。/ Sets the objective to maximize total profit.
      *
      * @return 操作结果 / Operation result
      */
@@ -145,7 +145,7 @@ data object Demo1 {
     }
 
     /**
-     * Adds capital lower bound and liability upper bound constraints.
+     * 添加资本下界和负债上界约束。/ Adds capital lower bound and liability upper bound constraints.
      *
      * @return 操作结果 / Operation result
      */
@@ -156,7 +156,7 @@ data object Demo1 {
     }
 
     /**
-     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
      */
@@ -179,7 +179,7 @@ data object Demo1 {
     }
 
     /**
-     * Extracts the selected companies from the solution.
+     * 从解中提取选中的公司。/ Extracts the selected companies from the solution.
      *
      * @return 操作结果 / Operation result
      */

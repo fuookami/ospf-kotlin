@@ -47,7 +47,7 @@ class Passenger(
     val transfer get() = route.size > 2
 
     /**
-     * Checks whether this passenger is on the given flight task.
+     * 检查此乘客是否在给定的航班任务上。Checks whether this passenger is on the given flight task.
  *
      * @param task 参数。
      * @return 返回结果。
@@ -57,7 +57,7 @@ class Passenger(
     }
 
     /**
-     * Returns the passenger class for the given flight task, or null if not on that flight.
+     * 返回给定航班任务的乘客舱位，如果不在该航班上则返回null。Returns the passenger class for the given flight task, or null if not on that flight.
  *
      * @param task 参数。
      * @return 返回结果。

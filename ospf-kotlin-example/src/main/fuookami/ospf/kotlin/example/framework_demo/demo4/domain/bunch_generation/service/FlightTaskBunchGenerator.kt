@@ -245,7 +245,7 @@ class FlightTaskBunchGenerator(
     private val nodes = if (!configuration.withOrderChange) { sortNodes(graph) } else { emptyList() }
 
     /**
-     * Generates bunches for the given iteration and shadow price map.
+     * 为给定的迭代和影子价格映射生成束。Generates bunches for the given iteration and shadow price map.
  *
      * @param iteration 参数。
      * @param shadowPriceMap 参数。

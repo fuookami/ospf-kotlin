@@ -130,8 +130,8 @@ class LinkMap(
     val rightMapper by lazy { links.groupBy { it.succTask } }
 
     /**
-     * Returns all links where the given task is the predecessor.
- *
+     * 返回给定任务作为前驱的所有链接。Returns all links where the given task is the predecessor.
+     *
      * @param task 参数。
      * @return 返回结果。
      */
@@ -140,8 +140,8 @@ class LinkMap(
     }
 
     /**
-     * Returns all links where the given task is the successor.
- *
+     * 返回给定任务作为后继的所有链接。Returns all links where the given task is the successor.
+     *
      * @param task 参数。
      * @return 返回结果。
      */

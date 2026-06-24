@@ -20,24 +20,24 @@ sealed interface Restriction {
     val type: RestrictionType
 
     /**
-     * Checks whether this restriction is related to the given aircraft.
- *
+     * 检查此限制是否与给定飞机相关。Checks whether this restriction is related to the given aircraft.
+     *
      * @param aircraft 参数。
      * @return 返回结果。
      */
     fun related(aircraft: Aircraft): Boolean
 
     /**
-     * Checks this restriction against a flight task.
- *
+     * 针对航班任务检查此限制。Checks this restriction against a flight task.
+     *
      * @param task 参数。
      * @return 返回结果。
      */
     fun check(task: FlightTask): RestrictionCheckingResult
 
     /**
-     * Checks this restriction against a flight task with a specific aircraft.
- *
+     * 针对指定飞机的航班任务检查此限制。Checks this restriction against a flight task with a specific aircraft.
+     *
      * @param task 参数。
      * @param aircraft 参数。
      * @return 返回结果。
@@ -45,8 +45,8 @@ sealed interface Restriction {
     fun check(task: FlightTask, aircraft: Aircraft): RestrictionCheckingResult
 
     /**
-     * Checks this restriction against a flight task with a recovery policy.
- *
+     * 针对具有恢复策略的航班任务检查此限制。Checks this restriction against a flight task with a recovery policy.
+     *
      * @param task 参数。
      * @param recoveryPolicy 参数。
      * @return 返回结果。
