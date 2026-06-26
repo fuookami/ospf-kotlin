@@ -615,6 +615,56 @@ fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
 fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<ErrorCode>>(error)
 
 /**
+ * 创建致命的 Ret<T> 结果（单个错误）
+ *
+ * Creates a fatal Ret<T> result with a single error.
+ * 解决 K2 编译器无法从 Fatal(error) 推断 T 的问题。
+ *
+ * @param T 值的类型 / The type of the value (never used)
+ * @param error 错误 / The error
+ * @return 致命结果 / The fatal result
+ */
+fun <T> fatal(error: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(listOf(error))
+
+/**
+ * 创建致命的 Ret<T> 结果（多个错误）
+ *
+ * Creates a fatal Ret<T> result with multiple errors.
+ * 解决 K2 编译器无法从 Fatal(errors) 推断 T 的问题。
+ *
+ * @param T 值的类型 / The type of the value (never used)
+ * @param errors 错误列表 / The errors
+ * @return 致命结果 / The fatal result
+ */
+fun <T> fatal(vararg errors: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(errors.toList())
+
+/**
+ * 创建带警告的 ExRet<T> 结果（单个警告）
+ *
+ * Creates an ExRet<T> result with a value and a single warning.
+ * 解决 K2 编译器无法从 Warn(value, error) 推断类型参数的问题。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param value 成功值 / The success value
+ * @param warning 警告 / The warning
+ * @return 带警告的结果 / The warned result
+ */
+fun <T> warn(value: T, warning: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, listOf(warning))
+
+/**
+ * 创建带警告的 ExRet<T> 结果（多个警告）
+ *
+ * Creates an ExRet<T> result with a value and multiple warnings.
+ * 解决 K2 编译器无法从 Warn(value, errors) 推断类型参数的问题。
+ *
+ * @param T 值的类型 / The type of the value
+ * @param value 成功值 / The success value
+ * @param warnings 警告列表 / The warnings
+ * @return 带警告的结果 / The warned result
+ */
+fun <T> warn(value: T, vararg warnings: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, warnings.toList())
+
+/**
  * 顺序执行多个操作块
  *
  * Executes multiple operation blocks sequentially, returning the first failure or Ok.
