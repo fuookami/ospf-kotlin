@@ -104,6 +104,19 @@ val assignments = UpdateAssignments.set(User::status, "inactive")
 
 `prop(User::status)` and schema `field(User::status)` both preserve the Kotlin property name as the AST path.
 
+If a business file imports another `eq` extension and the infix form becomes ambiguous, use the named framework entry point:
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.and
+import fuookami.ospf.kotlin.framework.persistence.expression.eq
+import fuookami.ospf.kotlin.framework.persistence.expression.ge
+
+val where = and {
+    eq(User::status, "active")
+    ge(User::age, 18)
+}
+```
+
 ### String Path Entry
 
 String paths remain the public fallback API. They are useful for dynamic fields, configuration-driven queries, and cross-language scenarios:
@@ -238,6 +251,22 @@ val deleted = repository.delete(where)
 ```
 
 The default policy is `UnsupportedPredicatePolicy.AlwaysFalse`: predicates that cannot be pushed down return empty results or false conditions instead of degrading to unfiltered queries. `FailFast` and `ClientFilter` report failures at the translator layer; current repository methods return empty results or `0` at the non-Result API boundary so unsupported predicates never become full scans.
+
+## Field Filter Extraction
+
+Lightweight repositories or in-memory indexes can recover simple field filters from predicates:
+
+```kotlin
+val filters = where.fieldFilters()
+```
+
+Standard extraction entry points:
+
+- `eqFilters()`: accepts equality comparisons connected by AND only.
+- `eqOrInFilters()`: accepts equality comparisons and non-negated IN expressions connected by AND.
+- `fieldFilters()`: accepts equality, IN, `gt`, `ge`, `lt`, `le`, and null checks connected by AND.
+
+These helpers only parse simple field-reference-to-constant conditions. They return `null` for OR, NOT, function expressions, column-column comparisons, not-in, or empty IN expressions so an unsupported predicate is never mistaken for a filtered query.
 
 ## Strong-Typed Column Binding
 

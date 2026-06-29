@@ -104,6 +104,19 @@ val assignments = UpdateAssignments.set(User::status, "inactive")
 
 `prop(User::status)` 与 schema 中的 `field(User::status)` 一样，都会保留 Kotlin 属性名作为 AST path。
 
+如果业务文件同时导入其它 `eq` 扩展导致 infix 写法冲突，可以使用 framework 提供的命名式入口：
+
+```kotlin
+import fuookami.ospf.kotlin.framework.persistence.expression.and
+import fuookami.ospf.kotlin.framework.persistence.expression.eq
+import fuookami.ospf.kotlin.framework.persistence.expression.ge
+
+val where = and {
+    eq(User::status, "active")
+    ge(User::age, 18)
+}
+```
+
 ### 字符串 path 入口
 
 字符串 path 仍是公共 fallback API，适合动态字段、配置化查询或跨语言场景：
@@ -238,6 +251,22 @@ val deleted = repository.delete(where)
 ```
 
 默认策略是 `UnsupportedPredicatePolicy.AlwaysFalse`：无法下推的谓词返回空结果或恒假条件，不会退化为未过滤查询。`FailFast` 与 `ClientFilter` 会在 translator 层返回失败；当前 repository 方法是非 Result API 边界，因此会返回空结果或 `0`，确保不支持谓词不会变成全表扫描。
+
+## 字段过滤提取
+
+轻量仓储或内存索引实现可以把简单谓词还原为字段过滤条件：
+
+```kotlin
+val filters = where.fieldFilters()
+```
+
+标准提取入口包括：
+
+- `eqFilters()`：仅接受 AND 连接的等值比较。
+- `eqOrInFilters()`：接受 AND 连接的等值比较和非否定 IN。
+- `fieldFilters()`：接受 AND 连接的等值、IN、`gt`、`ge`、`lt`、`le` 和空值检查。
+
+这些入口只解析字段引用与常量之间的简单条件；遇到 OR、NOT、函数表达式、列列比较、not-in 或空 IN 时返回 `null`，避免把不支持谓词误当成已过滤查询。
 
 ## 强类型列绑定
 
