@@ -675,12 +675,15 @@ private val aircraftContext = AircraftContext()
 
 子域本身是无状态的可复用组件——同一个 `MacContext` 在 FullLoad、WeightRecommendation、Predistribution 三个应用中都被使用，但它不需要知道谁在编排它。
 
-### 7.5 中间值的多态实现：根据输入产生不同的中间值和约束
+### 7.5 中间值的多态实现：同一语义，不同变量实现
 
-同一个 Context 的 `register()` 方法接收一个 `StowageMode` 参数，根据不同的模式产生不同的中间值和约束——这是中间值层面的多态。
+同一个 Context 的 `register()` 方法接收一个 `StowageMode` 参数，根据不同的模式产生不同的中间值和约束，这是中间值层面的多态。更准确地说，它包含两层变化：
+
+1. **注册集合变化**：不同 `StowageMode` 会注册不同的中间值、变量、约束和目标。
+2. **同名中间值的实现变化**：同一个中间值语义保持不变，但底层可以由不同决策变量、常量或派生中间值实现。
 
 ```kotlin
-// StowageMode — 通过枚举属性控制中间值和约束的生成
+// StowageMode - 通过枚举属性控制中间值和约束的生成 / Controls generated symbols and constraints.
 enum class StowageMode {
     Predistribution,
     FullLoad,
@@ -696,7 +699,133 @@ enum class StowageMode {
 }
 ```
 
-Context 的 `register()` 方法根据 `StowageMode` 的属性决定注册哪些中间值和约束：
+例如，`Payload.estimatePayload` 对外始终表示“预计载荷”。使用者只依赖这个语义，不需要知道它的公式来自哪里：
+
+```kotlin
+class Payload(
+    private val aircraftModel: AircraftModel,
+    private val items: List<Item>,
+    private val positions: List<Position>,
+    private val load: Load,
+    private val plannedPayload: Quantity<Flt64>,
+    private val computedPayload: Quantity<Flt64>?
+) {
+    lateinit var estimatePayload: QuantityLinearIntermediateSymbol<Flt64>
+
+    fun register(
+        stowageMode: StowageMode,
+        model: AbstractLinearMetaModel<Flt64>
+    ): Try {
+        if (!::estimatePayload.isInitialized) {
+            estimatePayload = Quantity(
+                when (stowageMode) {
+                    StowageMode.FullLoad -> {
+                        // 全配载：预计载荷由货物集合直接给出 / Full load: derived from all cargo items.
+                        LinearExpressionSymbol(
+                            LinearPolynomial(
+                                items.fold(Flt64.zero) { acc, item ->
+                                    acc + item.weight.to(aircraftModel.weightUnit)!!.value
+                                }
+                            ),
+                            name = "estimate_payload"
+                        )
+                    }
+
+                    StowageMode.Predistribution -> {
+                        // 预配载：预计载荷使用既有计划或计算结果 / Predistribution: uses planned or computed payload.
+                        LinearExpressionSymbol(
+                            (computedPayload ?: plannedPayload).to(aircraftModel.weightUnit)!!.value,
+                            name = "estimate_payload"
+                        )
+                    }
+
+                    StowageMode.WeightRecommendation -> {
+                        // 建议打板：预计载荷来自各舱位推荐载重变量的聚合 / Recommendation: sums recommended-position weights.
+                        LinearExpressionSymbol(
+                            sum(positions.indices.map { j ->
+                                load.estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value
+                            }),
+                            name = "estimate_payload"
+                        )
+                    }
+                },
+                aircraftModel.weightUnit
+            )
+        }
+
+        return model.add(estimatePayload)
+    }
+}
+```
+
+再往下一层看，`load.estimateLoadWeight[j]` 本身也可以保持同一个中间值名称和语义，但在不同模式下由不同决策变量实现。下面是抽象后的示意代码：
+
+```kotlin
+class Load(
+    private val aircraftModel: AircraftModel,
+    private val items: List<Item>,
+    private val positions: List<Position>,
+    private val stowage: Stowage
+) {
+    lateinit var y: QuantityURealVariable1     // 预配载重量变量 / Predistribution weight variable.
+    lateinit var z: QuantityUIntVariable1      // 建议重量变量 / Recommendation weight variable.
+    lateinit var estimateLoadWeight: QuantityLinearIntermediateSymbols1<Flt64>
+
+    fun register(
+        stowageMode: StowageMode,
+        model: AbstractLinearMetaModel<Flt64>
+    ): Try {
+        if (!::estimateLoadWeight.isInitialized) {
+            estimateLoadWeight = QuantityLinearIntermediateSymbols1(
+                name = "load_weight",
+                shape = Shape1(positions.size)
+            ) { j, _ ->
+                QuantityLinearIntermediateSymbol(
+                    LinearExpressionSymbol(
+                        loadWeightPolynomial(
+                            stowageMode = stowageMode,
+                            positionIndex = j
+                        ),
+                        name = "load_weight_${positions[j]}"
+                    ),
+                    aircraftModel.weightUnit
+                )
+            }
+        }
+
+        return model.add(estimateLoadWeight)
+    }
+
+    private fun loadWeightPolynomial(
+        stowageMode: StowageMode,
+        positionIndex: Int
+    ): LinearPolynomial<Flt64> {
+        return when (stowageMode) {
+            StowageMode.FullLoad -> {
+                // 全配载：由货物-舱位装载决策 x/u 派生 / Full load: derived from assignment decisions x/u.
+                sum(items.mapIndexed { itemIndex, item ->
+                    item.weight.to(aircraftModel.weightUnit)!!.value *
+                        stowage.stowage[itemIndex, positionIndex]
+                })
+            }
+
+            StowageMode.Predistribution -> {
+                // 预配载：由预配重量决策 y[j] 实现 / Predistribution: implemented by y[j].
+                LinearPolynomial(y[positionIndex].to(aircraftModel.weightUnit)!!.value)
+            }
+
+            StowageMode.WeightRecommendation -> {
+                // 建议打板：由推荐重量决策 z[j] 实现 / Recommendation: implemented by z[j].
+                LinearPolynomial(z[positionIndex].to(aircraftModel.weightUnit)!!.value)
+            }
+        }
+    }
+}
+```
+
+因此，`AirworthinessSecurity`、`MAC`、`PayloadMaximization` 等下游子域可以始终引用 `payload.estimatePayload` 或 `load.estimateLoadWeight[j]`。它们不需要知道当前模式下这个中间值到底是常量、装载决策 `x/u` 的线性组合、预配重量变量 `y[j]`，还是推荐重量变量 `z[j]`。
+
+Context 的 `register()` 方法再根据 `StowageMode` 的属性决定注册哪些中间值和约束：
 
 ```kotlin
 // StowageContext.register() — 同一个接口，根据 stowageMode 产生不同的模型
@@ -733,14 +862,15 @@ macContext.register(stowageMode = StowageMode.WeightRecommendation, model = mode
 
 | OOP 概念 | 中间值多态对应 |
 |---------|-------------|
-| 接口（Interface） | `Context.register(stowageMode, model)` 方法签名 |
-| 实现类 | `StowageMode` 的不同枚举值 |
-| 多态调用 | Application 层选择 `StowageMode`，Context 根据模式生成不同的中间值和约束 |
+| 接口（Interface） | 稳定的中间值语义，如 `payload.estimatePayload`、`load.estimateLoadWeight[j]` |
+| 实现类 | `StowageMode` 下对应的公式、决策变量集合和注册路径 |
+| 多态调用 | 下游子域引用同一个中间值，Context 根据模式绑定不同实现 |
 | 策略模式 | `StowageMode` 的属性（`withMacOptimization`、`withSoftSecurity` 等）控制行为分支 |
 
 这种设计使得：
 - **同一个 Context 可以服务于不同的业务场景**，无需为每个场景创建子类
-- **中间值的实现细节对使用者透明**——Application 层只需要选择模式，不需要知道模式内部生成了哪些中间变量和约束
+- **同一个中间值语义可以有不同实现**——例如同一个预计载荷可以由常量、装载决策、预配重量变量或推荐重量变量计算得到
+- **中间值的实现细节对使用者透明**——Application 层只需要选择模式，不需要知道模式内部生成了哪些中间变量、变量来源和约束
 - **新增模式的入口较稳定，但不是完全对修改关闭**——新增 `StowageMode` 枚举值可以复用同一注册入口，但仍可能需要扩展枚举属性、`when` / 策略分支或 `PipelineListGenerator` 的组合逻辑
 
 ### 7.6 共享变量与 Benders 切割
@@ -1264,7 +1394,7 @@ application → 编排所有子域
 | **子域组合** | 不适用 | 通过中间值实现跨域组合，使用者无需了解中间值的内部实现 |
 | **约束管理** | 副作用（addConstr） | 一等公民（Pipeline 对象），可命名、可组合、可延迟执行 |
 | **多应用场景** | 每个场景独立实现 | 同一套子域积木，不同 Application 编排不同子域组合 |
-| **中间值多态** | 不适用 | 同一 Context 根据 StowageMode 等参数产生不同的中间值和约束 |
+| **中间值多态** | 不适用 | 同一 Context 根据 StowageMode 等参数为同一中间值语义绑定不同公式、变量集合、约束和目标 |
 | **求解器绑定** | 直接 import | 可通过运行时抽象收敛到基础设施层 |
 | **解分析** | 手动遍历原始数值 | 领域对象化返回 |
 | **Benders 分解** | 需手动实现，solver SDK 原生变量无法跨 model | 通过选择性注册、共享领域对象和固定变量映射支持 |
@@ -1280,4 +1410,4 @@ application → 编排所有子域
 
 ## 12. 一句话总结
 
-solver SDK 原生模式通常以具体 model 为建模中心，变量、表达式和约束围绕单一求解器对象展开；DDD 框架模式则把变量和中间值提升为领域对象，model 主要承担注册、编译和求解载体的职责。中间值机制使得子域之间可以实现"关注点分离"——一个子域维护的运算结果通过中间值暴露给其他子域，使用者只关注语义，不关注实现。而中间值的多态实现（同一 Context 根据 `StowageMode` 等参数产生不同的中间值和约束）使得同一个子域可以服务于不同的业务场景，无需为每个场景创建子类。这种独立生命周期、中间值组合和中间值多态的三重机制，使得 Benders 分解和列生成（Branch-and-Price / Dantzig-Wolfe）等复杂分解算法可以沿着既有子域边界扩展。同一个架构骨架——数据子域 → pricing 子域 → master 约束 → Application 编排 ——在甘特排程、三维装箱、一维下料等不同领域中重复出现，说明 DDD 模式不仅是代码组织方式，也是一套适合运筹优化领域沉淀复用能力的架构语言。这是从"用 solver API 写数学公式"到"用领域语言描述业务规则"的范式跃迁。
+solver SDK 原生模式通常以具体 model 为建模中心，变量、表达式和约束围绕单一求解器对象展开；DDD 框架模式则把变量和中间值提升为领域对象，model 主要承担注册、编译和求解载体的职责。中间值机制使得子域之间可以实现"关注点分离"——一个子域维护的运算结果通过中间值暴露给其他子域，使用者只关注语义，不关注实现。而中间值的多态实现（同一 Context 根据 `StowageMode` 等参数，为同一中间值语义绑定不同公式、决策变量集合、约束和目标）使得同一个子域可以服务于不同的业务场景，无需为每个场景创建子类。这种独立生命周期、中间值组合和中间值多态的三重机制，使得 Benders 分解和列生成（Branch-and-Price / Dantzig-Wolfe）等复杂分解算法可以沿着既有子域边界扩展。同一个架构骨架——数据子域 → pricing 子域 → master 约束 → Application 编排 ——在甘特排程、三维装箱、一维下料等不同领域中重复出现，说明 DDD 模式不仅是代码组织方式，也是一套适合运筹优化领域沉淀复用能力的架构语言。这是从"用 solver API 写数学公式"到"用领域语言描述业务规则"的范式跃迁。
