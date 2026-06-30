@@ -203,7 +203,15 @@ class Bound<T>(
      *
      * @return Flt64 类型的新边界
      */
-    fun toFlt64(): Bound<Flt64> = Bound(ValueWrapper(value.toFlt64()).value!!, interval)
+    fun toFlt64(): Bound<Flt64> {
+        return Bound(
+            ValueWrapper(
+                value = value.toFlt64(),
+                constants = Flt64
+            ).value!!,
+            interval
+        )
+    }
 
     /**
      * 获取字符串表礌

@@ -78,6 +78,48 @@ private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<L
     return Result.success(Pair(expanded, totalConstant))
 }
 
+private fun <T> mergeLinearMonomial(
+    merged: MutableMap<VariableItemKey, LinearMonomial<T>>,
+    mono: LinearMonomial<*>,
+    coefficient: T,
+    side: String
+): Result<Unit> where T : Ring<T> {
+    val variable = mono.symbol as? AbstractVariableItem<*, *>
+        ?: return Result.failure(
+            IllegalArgumentException("Cannot flatten $side monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
+        )
+    val key = variable.key
+    val existing = merged[key]
+    merged[key] = if (existing != null) {
+        LinearMonomial(existing.coefficient + coefficient, existing.symbol)
+    } else {
+        LinearMonomial(coefficient, mono.symbol)
+    }
+    return Result.success(Unit)
+}
+
+private fun <T> mergeQuadraticMonomial(
+    merged: MutableMap<QuadraticMonomialKey, QuadraticMonomial<T>>,
+    key: QuadraticMonomialKey,
+    mono: QuadraticMonomial<*>,
+    coefficient: T
+) where T : Ring<T> {
+    val existing = merged[key]
+    merged[key] = if (existing != null) {
+        QuadraticMonomial(
+            coefficient = existing.coefficient + coefficient,
+            symbol1 = existing.symbol1,
+            symbol2 = existing.symbol2
+        )
+    } else {
+        QuadraticMonomial(
+            coefficient = coefficient,
+            symbol1 = mono.symbol1,
+            symbol2 = mono.symbol2
+        )
+    }
+}
+
 // ========== Converter-based flatten: V-generic inequality -> V-generic flatten data ==========
 
 /**
@@ -97,25 +139,20 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlatten
     val merged = HashMap<VariableItemKey, LinearMonomial<V>>()
 
     for (mono in lhsExpanded) {
-        val variable = mono.symbol as? AbstractVariableItem<*, *>
-            ?: return Result.failure(
-                IllegalArgumentException("Cannot flatten lhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
-            )
-        val key = variable.key
-        merged[key] = LinearMonomial(mono.coefficient, mono.symbol)
+        mergeLinearMonomial(
+            merged = merged,
+            mono = mono,
+            coefficient = mono.coefficient,
+            side = "lhs"
+        ).getOrElse { return Result.failure(it) }
     }
     for (mono in rhsExpanded) {
-        val variable = mono.symbol as? AbstractVariableItem<*, *>
-            ?: return Result.failure(
-                IllegalArgumentException("Cannot flatten rhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
-            )
-        val key = variable.key
-        val existing = merged[key]
-        merged[key] = if (existing != null) {
-            LinearMonomial(existing.coefficient - mono.coefficient, existing.symbol)
-        } else {
-            LinearMonomial(-mono.coefficient, mono.symbol)
-        }
+        mergeLinearMonomial(
+            merged = merged,
+            mono = mono,
+            coefficient = -mono.coefficient,
+            side = "rhs"
+        ).getOrElse { return Result.failure(it) }
     }
 
     return Result.success(LinearFlattenData<V>(
@@ -136,28 +173,21 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
 
     for (mono in lhs.monomials) {
         val key = QuadraticMonomialKey.from(mono)
-        merged[key] = QuadraticMonomial(
-            coefficient = mono.coefficient,
-            symbol1 = mono.symbol1,
-            symbol2 = mono.symbol2
+        mergeQuadraticMonomial(
+            merged = merged,
+            key = key,
+            mono = mono,
+            coefficient = mono.coefficient
         )
     }
     for (mono in rhs.monomials) {
         val key = QuadraticMonomialKey.from(mono)
-        val existing = merged[key]
-        merged[key] = if (existing != null) {
-            QuadraticMonomial(
-                coefficient = existing.coefficient - mono.coefficient,
-                symbol1 = existing.symbol1,
-                symbol2 = existing.symbol2
-            )
-        } else {
-            QuadraticMonomial(
-                coefficient = -mono.coefficient,
-                symbol1 = mono.symbol1,
-                symbol2 = mono.symbol2
-            )
-        }
+        mergeQuadraticMonomial(
+            merged = merged,
+            key = key,
+            mono = mono,
+            coefficient = -mono.coefficient
+        )
     }
 
     return QuadraticFlattenData<V>(
@@ -184,27 +214,22 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
     val merged = HashMap<VariableItemKey, LinearMonomial<Flt64>>()
 
     for (mono in lhsExpanded) {
-        val variable = mono.symbol as? AbstractVariableItem<*, *>
-            ?: return Result.failure(
-                IllegalArgumentException("Cannot flatten lhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
-            )
-        val key = variable.key
         val flt64Coeff = converter.fromValue(mono.coefficient)
-        merged[key] = LinearMonomial(flt64Coeff, mono.symbol)
+        mergeLinearMonomial(
+            merged = merged,
+            mono = mono,
+            coefficient = flt64Coeff,
+            side = "lhs"
+        ).getOrElse { return Result.failure(it) }
     }
     for (mono in rhsExpanded) {
-        val variable = mono.symbol as? AbstractVariableItem<*, *>
-            ?: return Result.failure(
-                IllegalArgumentException("Cannot flatten rhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
-            )
-        val key = variable.key
         val flt64Coeff = converter.fromValue(mono.coefficient)
-        val existing = merged[key]
-        merged[key] = if (existing != null) {
-            LinearMonomial(existing.coefficient - flt64Coeff, existing.symbol)
-        } else {
-            LinearMonomial(-flt64Coeff, mono.symbol)
-        }
+        mergeLinearMonomial(
+            merged = merged,
+            mono = mono,
+            coefficient = -flt64Coeff,
+            side = "rhs"
+        ).getOrElse { return Result.failure(it) }
     }
 
     return Result.success(LinearFlattenData<Flt64>(
@@ -226,29 +251,22 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
     for (mono in lhs.monomials) {
         val key = QuadraticMonomialKey.from(mono, converter)
         val flt64Coeff = converter.fromValue(mono.coefficient)
-        merged[key] = QuadraticMonomial(
-            coefficient = flt64Coeff,
-            symbol1 = mono.symbol1,
-            symbol2 = mono.symbol2
+        mergeQuadraticMonomial(
+            merged = merged,
+            key = key,
+            mono = mono,
+            coefficient = flt64Coeff
         )
     }
     for (mono in rhs.monomials) {
         val key = QuadraticMonomialKey.from(mono, converter)
         val flt64Coeff = converter.fromValue(mono.coefficient)
-        val existing = merged[key]
-        merged[key] = if (existing != null) {
-            QuadraticMonomial(
-                coefficient = existing.coefficient - flt64Coeff,
-                symbol1 = existing.symbol1,
-                symbol2 = existing.symbol2
-            )
-        } else {
-            QuadraticMonomial(
-                coefficient = -flt64Coeff,
-                symbol1 = mono.symbol1,
-                symbol2 = mono.symbol2
-            )
-        }
+        mergeQuadraticMonomial(
+            merged = merged,
+            key = key,
+            mono = mono,
+            coefficient = -flt64Coeff
+        )
     }
 
     return QuadraticFlattenData<Flt64>(

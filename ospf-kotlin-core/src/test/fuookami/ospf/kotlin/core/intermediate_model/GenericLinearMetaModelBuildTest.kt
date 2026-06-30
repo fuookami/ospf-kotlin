@@ -24,6 +24,14 @@ class GenericLinearMetaModelBuildTest {
         buildLinear(GenericNumberCases.rtnX)
     }
 
+    @Test
+    fun repeatedLinearTermsShouldBeMergedBeforeMechanismAndTriadDump() {
+        buildRepeatedLinearTerms(GenericNumberCases.flt64)
+        buildRepeatedLinearTerms(GenericNumberCases.rtn64)
+        buildRepeatedLinearTerms(GenericNumberCases.fltX)
+        buildRepeatedLinearTerms(GenericNumberCases.rtnX)
+    }
+
     private fun <V> buildLinear(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_linear_x")
@@ -132,6 +140,98 @@ class GenericLinearMetaModelBuildTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: dump mechanism model should succeed")
             assertMechanismModel(numberCase, mechanismResult.value)
             assertTriadModel(numberCase, mechanismResult.value, mapOf(y to Flt64.two))
+        } finally {
+            model.close()
+        }
+    }
+
+    private fun <V> buildRepeatedLinearTerms(numberCase: GenericNumberCase<V>)
+            where V : RealNumber<V>, V : NumberField<V> {
+        val x = RealVar("${numberCase.name.lowercase()}_repeat_x")
+        val y = RealVar("${numberCase.name.lowercase()}_repeat_y")
+
+        val model = LinearMetaModel<V>(
+            name = "generic-linear-repeat-${numberCase.name.lowercase()}",
+            objectCategory = ObjectCategory.Minimum,
+            converter = numberCase.converter
+        )
+
+        try {
+            assertTrue(model.add(listOf(x, y)) is Ok, "${numberCase.name}: add repeated-term variables should succeed")
+
+            val relation = LinearInequality(
+                lhs = LinearPolynomial(
+                    monomials = listOf(
+                        LinearMonomial(numberCase.one, x),
+                        LinearMonomial(numberCase.two, x),
+                        LinearMonomial(-numberCase.one, y)
+                    ),
+                    constant = numberCase.zero
+                ),
+                rhs = LinearPolynomial(emptyList(), numberCase.zero),
+                comparison = Comparison.LE
+            )
+            assertTrue(
+                model.addConstraint(relation = relation, name = "repeat_terms") is Ok,
+                "${numberCase.name}: add repeated-term constraint should succeed"
+            )
+            assertTrue(
+                model.addObject(
+                    category = ObjectCategory.Minimum,
+                    flattenData = LinearFlattenData(
+                        monomials = emptyList<LinearMonomial<V>>(),
+                        constant = numberCase.zero
+                    ),
+                    name = "obj_zero"
+                ) is Ok,
+                "${numberCase.name}: add zero objective should succeed"
+            )
+
+            val mechanismResult = runBlocking {
+                LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok, "${numberCase.name}: dump repeated-term mechanism model should succeed")
+            val mechanismModel = mechanismResult.value
+            val mechanismConstraint = assertNotNull(
+                mechanismModel.constraints.singleOrNull { it.name == "repeat_terms" },
+                "${numberCase.name}: missing repeated-term mechanism constraint"
+            )
+            assertEquals(2, mechanismConstraint.lhs.size, "${numberCase.name}: repeated terms should merge before mechanism cells")
+            assertLinearCoefficients(
+                numberCase = numberCase,
+                constraint = mechanismConstraint,
+                expected = mapOf(
+                    x.name to Flt64(3.0),
+                    y.name to -Flt64.one
+                )
+            )
+
+            val flt64ModelResult = convertMechanismModelToFlt64(mechanismModel)
+            assertTrue(flt64ModelResult is Ok, "${numberCase.name}: repeated-term mechanism -> Flt64 conversion should succeed")
+            val flt64Model = flt64ModelResult.value as? LinearMechanismModel<Flt64>
+            assertNotNull(flt64Model, "${numberCase.name}: repeated-term converted model should be linear mechanism model")
+            val triadModel = runBlocking {
+                LinearTriadModel.invoke(
+                    model = flt64Model,
+                    concurrent = false
+                )
+            }
+
+            assertEquals(1, triadModel.constraints.size, "${numberCase.name}: triad repeated-term constraint count mismatch")
+            val rowIndex = assertNotNull(
+                triadModel.constraints.names.withIndex().associate { it.value to it.index }["repeat_terms"],
+                "${numberCase.name}: missing repeated-term triad row"
+            )
+            assertEquals(2, triadModel.constraints.lhs[rowIndex].size, "${numberCase.name}: repeated terms should merge before triad cells")
+            val indexToName = triadModel.variables.associate { it.index to it.name }
+            assertEquals(
+                mapOf(
+                    x.name to Flt64(3.0),
+                    y.name to -Flt64.one
+                ),
+                linearRowCoefficients(triadModel, rowIndex, indexToName),
+                "${numberCase.name}: triad repeated-term coefficients mismatch"
+            )
         } finally {
             model.close()
         }

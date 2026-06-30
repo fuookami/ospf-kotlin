@@ -1,15 +1,18 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import kotlin.test.*
-import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
+import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.variable.*
 
 class MathInequalityFlattenTest {
 
@@ -89,6 +92,164 @@ class MathInequalityFlattenTest {
         val mono = flattenData.monomials.first()
         assertTrue(mono.coefficient eq Flt64(2.0), "Coefficient should be 3.0 - 1.0 = 2.0")
         assertTrue(flattenData.constant eq Flt64(-5.0), "Constant should be 0 - 5 = -5.0")
+    }
+
+    @Test
+    fun repeatedLhsVariableShouldAccumulateCoefficients() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+
+        val lhs = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.one, x),
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(-Flt64.one, y)
+            ),
+            constant = Flt64.zero
+        )
+        val rhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val inequality = LinearInequality(lhs, rhs, Comparison.LE)
+
+        val result = inequality.toLinearFlattenData()
+        assertTrue(result.isSuccess)
+
+        assertLinearFlattenCoefficients(
+            flattenData = result.getOrThrow(),
+            expected = mapOf(
+                x to Flt64(3.0),
+                y to -Flt64.one
+            )
+        )
+    }
+
+    @Test
+    fun repeatedLhsVariableFromExpandedSymbolShouldAccumulateCoefficients() {
+        val a = RealVar("a")
+        val x = RealVar("x")
+        val b = RealVar("b")
+
+        val sum = LinearExpressionSymbol<Flt64>(
+            _utilsPolynomial = MutableLinearPolynomial(
+                monomials = listOf(
+                    LinearMonomial(Flt64.one, a),
+                    LinearMonomial(Flt64.one, x),
+                    LinearMonomial(Flt64.one, b)
+                ),
+                constant = Flt64.zero
+            ),
+            name = "sum"
+        )
+        val lhs = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.one, x),
+                LinearMonomial(Flt64(-0.7), sum)
+            ),
+            constant = Flt64.zero
+        )
+        val rhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val inequality = LinearInequality(lhs, rhs, Comparison.LE)
+
+        val result = inequality.toLinearFlattenData()
+        assertTrue(result.isSuccess)
+
+        assertLinearFlattenCoefficients(
+            flattenData = result.getOrThrow(),
+            expected = mapOf(
+                a to Flt64(-0.7),
+                x to Flt64(0.3),
+                b to Flt64(-0.7)
+            )
+        )
+    }
+
+    @Test
+    fun repeatedRhsVariableShouldSubtractEveryCoefficient() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+
+        val lhs = LinearPolynomial(listOf(LinearMonomial(Flt64(5.0), x)), Flt64.zero)
+        val rhs = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64.one, x),
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(3.0), y)
+            ),
+            constant = Flt64.zero
+        )
+        val inequality = LinearInequality(lhs, rhs, Comparison.LE)
+
+        val result = inequality.toLinearFlattenData()
+        assertTrue(result.isSuccess)
+
+        assertLinearFlattenCoefficients(
+            flattenData = result.getOrThrow(),
+            expected = mapOf(
+                x to Flt64(2.0),
+                y to Flt64(-3.0)
+            )
+        )
+    }
+
+    @Test
+    fun repeatedLhsVariableShouldAccumulateInFlt64FlattenPath() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+        val converter = IntoValue.fromConverter(FltX)
+
+        val lhs = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(converter.one, x),
+                LinearMonomial(converter.intoValue(Flt64(2.0)), x),
+                LinearMonomial(-converter.one, y)
+            ),
+            constant = converter.zero
+        )
+        val rhs = LinearPolynomial(emptyList<LinearMonomial<FltX>>(), converter.zero)
+        val inequality = LinearInequality(lhs, rhs, Comparison.LE)
+
+        val result = inequality.toLinearFlattenDataFlt64(converter)
+        assertTrue(result.isSuccess)
+
+        assertLinearFlattenCoefficients(
+            flattenData = result.getOrThrow(),
+            expected = mapOf(
+                x to Flt64(3.0),
+                y to -Flt64.one
+            )
+        )
+    }
+
+    @Test
+    fun repeatedQuadraticMonomialShouldAccumulateCoefficients() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+
+        val lhs = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial.quadratic(Flt64.one, x, y),
+                QuadraticMonomial.quadratic(Flt64(2.0), y, x),
+                QuadraticMonomial.linear(Flt64(5.0), x)
+            ),
+            constant = Flt64.zero
+        )
+        val rhs = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial.quadratic(Flt64(0.5), x, y),
+                QuadraticMonomial.linear(Flt64.one, x)
+            ),
+            constant = Flt64.zero
+        )
+        val inequality = QuadraticInequalityOf(lhs, rhs, Comparison.LE)
+
+        val flattenData = inequality.toQuadraticFlattenData()
+
+        assertEquals(2, flattenData.monomials.size, "Repeated quadratic monomials should be merged")
+        val xyMono = flattenData.monomials.single {
+            (it.symbol1 == x && it.symbol2 == y) || (it.symbol1 == y && it.symbol2 == x)
+        }
+        assertTrue(xyMono.coefficient eq Flt64(2.5), "x*y coefficient should be 1.0 + 2.0 - 0.5 = 2.5")
+        val xMono = flattenData.monomials.single { it.symbol1 == x && it.symbol2 == null }
+        assertTrue(xMono.coefficient eq Flt64(4.0), "x coefficient should be 5.0 - 1.0 = 4.0")
     }
 
     @Test
@@ -241,5 +402,27 @@ class MathInequalityFlattenTest {
             "Failure should be IllegalArgumentException, not ClassCastException; got ${exception?.let { it::class.simpleName }}")
         assertTrue(exception?.message?.contains("unsupported_sym") == true,
             "Error message should reference the symbol name")
+    }
+
+    private fun assertLinearFlattenCoefficients(
+        flattenData: LinearFlattenData<Flt64>,
+        expected: Map<AbstractVariableItem<*, *>, Flt64>
+    ) {
+        assertEquals(expected.size, flattenData.monomials.size, "Repeated linear monomials should be merged")
+        val actual = HashMap<AbstractVariableItem<*, *>, Flt64>()
+        for (mono in flattenData.monomials) {
+            val variable = mono.symbol as? AbstractVariableItem<*, *>
+                ?: fail("Flattened monomial should use variable symbol: ${mono.symbol.name}")
+            actual[variable] = mono.coefficient
+        }
+        assertEquals(expected.keys, actual.keys)
+        for ((variable, coefficient) in expected) {
+            val actualCoefficient = actual[variable]
+            assertNotNull(actualCoefficient, "Missing coefficient for ${variable.name}")
+            assertTrue(
+                actualCoefficient eq coefficient,
+                "Coefficient for ${variable.name} should be $coefficient but was $actualCoefficient"
+            )
+        }
     }
 }

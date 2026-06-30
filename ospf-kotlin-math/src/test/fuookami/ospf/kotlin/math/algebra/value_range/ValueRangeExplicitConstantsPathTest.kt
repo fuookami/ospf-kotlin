@@ -90,6 +90,32 @@ class ValueRangeExplicitConstantsPathTest {
     }
 
     @Test
+    fun boundToFlt64ShouldWorkWithoutReflectionFallback() {
+        System.clearProperty(CompanionConstantProviderResolver.reflectionFallbackEnabledProperty)
+
+        val bound = Bound(
+            value = ValueWrapper(Flt64(200.0), Flt64).value!!,
+            interval = Interval.Closed
+        )
+
+        val converted = bound.toFlt64()
+
+        assertEquals(Flt64(200.0), converted.value.unwrap())
+        assertEquals(Interval.Closed, converted.interval)
+    }
+
+    @Test
+    fun infiniteBoundToFlt64ShouldKeepInfinityAndOpenIntervalWithoutReflectionFallback() {
+        System.clearProperty(CompanionConstantProviderResolver.reflectionFallbackEnabledProperty)
+
+        val upper = Bound(ValueWrapper.Infinity(Flt64), Interval.Closed)
+        val converted = upper.toFlt64()
+
+        assertTrue(converted.value.isInfinity)
+        assertEquals(Interval.Open, converted.interval)
+    }
+
+    @Test
     fun negativeInfinityCopyAndCloneShouldPreserveSign() {
         val negInf = ValueWrapper(NegativeInfinity, Flt64)
         assertTrue(negInf is ValueWrapper.NegativeInfinity)
