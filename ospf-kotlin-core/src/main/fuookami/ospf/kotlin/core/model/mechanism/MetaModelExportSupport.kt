@@ -8,16 +8,19 @@ import java.io.FileWriter
 import java.nio.file.Path
 import kotlin.io.path.isDirectory
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.utils.error.*
-import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * MetaModel 导出支持。
@@ -26,14 +29,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 说明：将模型导出为文本化诊断格式（当前为 `.opm`），用于问题定位与回归对比。
  * Note: exports models to text-oriented diagnostic format (currently `.opm`) for troubleshooting and regression comparison.
  */
-/** 将 Flt64 线性多项式转换为原始字符串表示 / Convert a Flt64 linear polynomial to raw string representation */
-private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
-    return if (monomials.isEmpty()) {
-        "$constant"
-    } else if (constant neq Flt64.zero) {
-        "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }} + $constant"
-    } else {
-        monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }
+/** 将符号转换为 OPM 表达式文本 / Convert a symbol to OPM expression text */
+private fun symbolToOpmString(symbol: Symbol, unfold: UInt64): String {
+    return when {
+        symbol is IntermediateSymbol<*> && unfold neq UInt64.zero -> symbol.toRawString(unfold - UInt64.one)
+        else -> symbol.displayName ?: symbol.name
     }
 }
 
@@ -44,6 +44,115 @@ private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): Linear
         monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
         converter.fromValue(constant)
     )
+}
+
+/** 将 Flt64 线性单项式转换为 OPM 表达式文本 / Convert a Flt64 linear monomial to OPM expression text */
+private fun LinearMonomial<Flt64>.toOpmString(unfold: UInt64): String {
+    val symbolText = symbolToOpmString(symbol, unfold)
+    return when {
+        coefficient eq Flt64.one -> symbolText
+        coefficient eq -Flt64.one -> "-$symbolText"
+        else -> "$coefficient * $symbolText"
+    }
+}
+
+/** 将 Flt64 二次单项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic monomial to OPM expression text */
+private fun QuadraticMonomial<Flt64>.toOpmString(unfold: UInt64): String {
+    val symbol1Text = symbolToOpmString(symbol1, unfold)
+    val termText = if (symbol2 != null) {
+        val symbol2Text = symbolToOpmString(symbol2!!, unfold)
+        if (symbol1 == symbol2) {
+            "$symbol1Text^2"
+        } else {
+            "$symbol1Text * $symbol2Text"
+        }
+    } else {
+        symbol1Text
+    }
+    return when {
+        coefficient eq Flt64.one -> termText
+        coefficient eq -Flt64.one -> "-$termText"
+        else -> "$coefficient * $termText"
+    }
+}
+
+/** 合并 OPM 表达式文本中的项 / Join terms in an OPM expression text */
+private fun termsToOpmString(terms: List<String>, constant: Flt64): String {
+    val allTerms = terms.toMutableList()
+    if (constant neq Flt64.zero) {
+        allTerms.add(constant.toString())
+    }
+    return allTerms.ifEmpty { listOf(Flt64.zero.toString()) }
+        .mapIndexed { index, term ->
+            when {
+                index == 0 -> term
+                term.startsWith("-") -> " - ${term.removePrefix("-")}"
+                else -> " + $term"
+            }
+        }
+        .joinToString("")
+}
+
+/** 将 Flt64 线性多项式转换为 OPM 表达式文本 / Convert a Flt64 linear polynomial to OPM expression text */
+private fun LinearPolynomial<Flt64>.toOpmString(unfold: UInt64 = UInt64.zero): String {
+    return termsToOpmString(
+        terms = monomials.filter { it.coefficient neq Flt64.zero }.map { it.toOpmString(unfold) },
+        constant = constant
+    )
+}
+
+/** 将 Flt64 二次多项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic polynomial to OPM expression text */
+private fun QuadraticPolynomial<Flt64>.toOpmString(unfold: UInt64 = UInt64.zero): String {
+    return termsToOpmString(
+        terms = monomials.filter { it.coefficient neq Flt64.zero }.map { it.toOpmString(unfold) },
+        constant = constant
+    )
+}
+
+/** 将泛型二次多项式转换为 Flt64 类型 / Convert a generic quadratic polynomial to Flt64 type */
+private fun <V> QuadraticPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): QuadraticPolynomial<Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    return QuadraticPolynomial(
+        monomials.map {
+            QuadraticMonomial(
+                coefficient = converter.fromValue(it.coefficient),
+                symbol1 = it.symbol1,
+                symbol2 = it.symbol2
+            )
+        },
+        converter.fromValue(constant)
+    )
+}
+
+/** 将比较运算符转换为 OPM 文本 / Convert a comparison operator to OPM text */
+private fun Comparison.toOpmString(): String {
+    return symbol
+}
+
+/** 将约束名转换为 OPM 前缀 / Convert a constraint name to OPM prefix */
+private fun constraintNamePrefix(name: String, displayName: String?): String {
+    val text = displayName?.takeIf { it.isNotBlank() } ?: name.takeIf { it.isNotBlank() }
+    return if (text != null) {
+        "$text: "
+    } else {
+        ""
+    }
+}
+
+/** 将线性约束转换为 OPM 文本 / Convert a linear constraint to OPM text */
+private fun <V> LinearInequalityConstraint<V>.toOpmString(unfold: UInt64): String
+        where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = inequality.lhs.toFlt64Poly(converter).toOpmString(unfold)
+    val rhs = inequality.rhs.toFlt64Poly(converter).toOpmString(unfold)
+    return "${constraintNamePrefix(name, displayName)}$lhs ${sign.toOpmString()} $rhs"
+}
+
+/** 将二次约束转换为 OPM 文本 / Convert a quadratic constraint to OPM text */
+private fun <V> QuadraticInequalityConstraint<V>.toOpmString(unfold: UInt64): String
+        where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = inequality.lhs.toFlt64Poly(converter).toOpmString(unfold)
+    val rhs = inequality.rhs.toFlt64Poly(converter).toOpmString(unfold)
+    return "${constraintNamePrefix(name, displayName)}$lhs ${sign.toOpmString()} $rhs"
 }
 
 /**
@@ -144,13 +253,33 @@ private suspend fun <V> exportMetaModelOpm(
 
         writer.append("Objectives:\n")
         for (obj in metaModel.subObjects) {
-            writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toFlt64Poly(metaModel.converter).toRawString(unfold)} \n")
+            writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toFlt64Poly(metaModel.converter).toOpmString(unfold)} \n")
         }
         writer.append("\n")
 
         writer.append("Subject to:\n")
-        for (constraint in metaModel.constraints) {
-            writer.append("$constraint\n")
+        when (metaModel) {
+            is LinearMetaModel<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                val linearMetaModel = metaModel as LinearMetaModel<V>
+                for (constraint in linearMetaModel.relationConstraints) {
+                    writer.append("${constraint.toOpmString(unfold)}\n")
+                }
+            }
+
+            is QuadraticMetaModel<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                val quadraticMetaModel = metaModel as QuadraticMetaModel<V>
+                for (constraint in quadraticMetaModel.relationConstraints) {
+                    writer.append("${constraint.toOpmString(unfold)}\n")
+                }
+            }
+
+            else -> {
+                for (constraint in metaModel.constraints) {
+                    writer.append("$constraint\n")
+                }
+            }
         }
         writer.append("\n")
 
