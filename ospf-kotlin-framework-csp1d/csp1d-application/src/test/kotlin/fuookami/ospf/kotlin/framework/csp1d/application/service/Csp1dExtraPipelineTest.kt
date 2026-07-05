@@ -163,7 +163,7 @@ class Csp1dExtraPipelineTest {
             model: AbstractLinearMetaModel<Flt64>
         ): Ret<List<CuttingPlan<V>>> {
             addColumnsCount += 1
-            addedPlanIds.addAll(newPlans.map { it.id })
+            addedPlanIds.addAll(newPlans.map { it.id.toString() })
             return Ok(newPlans)
         }
     }
@@ -745,7 +745,7 @@ class Csp1dExtraPipelineTest {
 
     private fun testMaterial(id: String): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -759,7 +759,7 @@ class Csp1dExtraPipelineTest {
 
     private fun testProduct(id: String): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64(150.0), Meter))
         )
@@ -772,7 +772,7 @@ class Csp1dExtraPipelineTest {
         contributionValue: Flt64
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 class ConstraintsTest {
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
-            id = id,
+            id = ProductIdImpl(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64(0.5), Meter))
         )
@@ -18,7 +18,7 @@ class ConstraintsTest {
 
     private fun material(id: String = "m"): Material<Flt64> {
         return Material(
-            id = id,
+            id = MaterialIdImpl(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -105,7 +105,7 @@ class ConstraintsTest {
     @Test
     fun maxOverProduceLengthConstraintSatisfied() {
         val p = Product(
-            id = "p",
+            id = ProductIdImpl("p"),
             name = "product-p",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             length = Quantity(Flt64(1.5), Meter)
@@ -118,7 +118,7 @@ class ConstraintsTest {
     @Test
     fun maxOverProduceLengthConstraintViolated() {
         val p = Product(
-            id = "p",
+            id = ProductIdImpl("p"),
             name = "product-p",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             length = Quantity(Flt64(3.0), Meter)

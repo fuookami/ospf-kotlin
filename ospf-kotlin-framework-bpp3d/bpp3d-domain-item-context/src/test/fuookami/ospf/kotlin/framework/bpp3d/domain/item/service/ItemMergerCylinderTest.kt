@@ -34,7 +34,7 @@ class ItemMergerCylinderTest {
         val radius = FltX(0.5) * Meter
         val diameter = assertNotNull(radius + radius)
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = diameter,
             height = FltX(1.0) * Meter,

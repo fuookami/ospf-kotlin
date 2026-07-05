@@ -1067,7 +1067,13 @@ data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: V
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调
+     * Sets the callback for the V7 branch
+     *
+     * @param callBack T7 值的处理函数 / The handler function for T7 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if7(callBack: (T7) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack7 = callBack
         return this
@@ -1292,49 +1298,97 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
     private lateinit var callBack7: (T7) -> Ret
     private lateinit var callBack8: (T8) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调
+     * Sets the callback for the V1 branch
+     *
+     * @param callBack T1 值的处理函数 / The handler function for T1 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if1(callBack: (T1) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调
+     * Sets the callback for the V2 branch
+     *
+     * @param callBack T2 值的处理函数 / The handler function for T2 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if2(callBack: (T2) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调
+     * Sets the callback for the V3 branch
+     *
+     * @param callBack T3 值的处理函数 / The handler function for T3 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if3(callBack: (T3) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调
+     * Sets the callback for the V4 branch
+     *
+     * @param callBack T4 值的处理函数 / The handler function for T4 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if4(callBack: (T4) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调
+     * Sets the callback for the V5 branch
+     *
+     * @param callBack T5 值的处理函数 / The handler function for T5 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if5(callBack: (T5) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调
+     * Sets the callback for the V6 branch
+     *
+     * @param callBack T6 值的处理函数 / The handler function for T6 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if6(callBack: (T6) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调
+     * Sets the callback for the V7 branch
+     *
+     * @param callBack T7 值的处理函数 / The handler function for T7 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if7(callBack: (T7) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调
+     * Sets the callback for the V8 branch
+     *
+     * @param callBack T8 值的处理函数 / The handler function for T8 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if8(callBack: (T8) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack8 = callBack
         return this
@@ -1584,55 +1638,109 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
     private lateinit var callBack8: (T8) -> Ret
     private lateinit var callBack9: (T9) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调
+     * Sets the callback for the V1 branch
+     *
+     * @param callBack T1 值的处理函数 / The handler function for T1 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if1(callBack: (T1) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调
+     * Sets the callback for the V2 branch
+     *
+     * @param callBack T2 值的处理函数 / The handler function for T2 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if2(callBack: (T2) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调
+     * Sets the callback for the V3 branch
+     *
+     * @param callBack T3 值的处理函数 / The handler function for T3 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if3(callBack: (T3) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调
+     * Sets the callback for the V4 branch
+     *
+     * @param callBack T4 值的处理函数 / The handler function for T4 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if4(callBack: (T4) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调
+     * Sets the callback for the V5 branch
+     *
+     * @param callBack T5 值的处理函数 / The handler function for T5 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if5(callBack: (T5) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调
+     * Sets the callback for the V6 branch
+     *
+     * @param callBack T6 值的处理函数 / The handler function for T6 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if6(callBack: (T6) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调
+     * Sets the callback for the V7 branch
+     *
+     * @param callBack T7 值的处理函数 / The handler function for T7 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if7(callBack: (T7) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调
+     * Sets the callback for the V8 branch
+     *
+     * @param callBack T8 值的处理函数 / The handler function for T8 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if8(callBack: (T8) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调
+     * Sets the callback for the V9 branch
+     *
+     * @param callBack T9 值的处理函数 / The handler function for T9 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if9(callBack: (T9) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack9 = callBack
         return this
@@ -1936,61 +2044,121 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
     private lateinit var callBack9: (T9) -> Ret
     private lateinit var callBack10: (T10) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调
+     * Sets the callback for the V1 branch
+     *
+     * @param callBack T1 值的处理函数 / The handler function for T1 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if1(callBack: (T1) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调
+     * Sets the callback for the V2 branch
+     *
+     * @param callBack T2 值的处理函数 / The handler function for T2 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if2(callBack: (T2) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调
+     * Sets the callback for the V3 branch
+     *
+     * @param callBack T3 值的处理函数 / The handler function for T3 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if3(callBack: (T3) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调
+     * Sets the callback for the V4 branch
+     *
+     * @param callBack T4 值的处理函数 / The handler function for T4 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if4(callBack: (T4) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调
+     * Sets the callback for the V5 branch
+     *
+     * @param callBack T5 值的处理函数 / The handler function for T5 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if5(callBack: (T5) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调
+     * Sets the callback for the V6 branch
+     *
+     * @param callBack T6 值的处理函数 / The handler function for T6 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if6(callBack: (T6) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调
+     * Sets the callback for the V7 branch
+     *
+     * @param callBack T7 值的处理函数 / The handler function for T7 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if7(callBack: (T7) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调
+     * Sets the callback for the V8 branch
+     *
+     * @param callBack T8 值的处理函数 / The handler function for T8 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if8(callBack: (T8) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调
+     * Sets the callback for the V9 branch
+     *
+     * @param callBack T9 值的处理函数 / The handler function for T9 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if9(callBack: (T9) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调
+     * Sets the callback for the V10 branch
+     *
+     * @param callBack T10 值的处理函数 / The handler function for T10 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if10(callBack: (T10) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack10 = callBack
         return this
@@ -2322,67 +2490,133 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
     private lateinit var callBack10: (T10) -> Ret
     private lateinit var callBack11: (T11) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调
+     * Sets the callback for the V1 branch
+     *
+     * @param callBack T1 值的处理函数 / The handler function for T1 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if1(callBack: (T1) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调
+     * Sets the callback for the V2 branch
+     *
+     * @param callBack T2 值的处理函数 / The handler function for T2 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if2(callBack: (T2) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调
+     * Sets the callback for the V3 branch
+     *
+     * @param callBack T3 值的处理函数 / The handler function for T3 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if3(callBack: (T3) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调
+     * Sets the callback for the V4 branch
+     *
+     * @param callBack T4 值的处理函数 / The handler function for T4 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if4(callBack: (T4) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调
+     * Sets the callback for the V5 branch
+     *
+     * @param callBack T5 值的处理函数 / The handler function for T5 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if5(callBack: (T5) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调
+     * Sets the callback for the V6 branch
+     *
+     * @param callBack T6 值的处理函数 / The handler function for T6 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if6(callBack: (T6) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调
+     * Sets the callback for the V7 branch
+     *
+     * @param callBack T7 值的处理函数 / The handler function for T7 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if7(callBack: (T7) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调
+     * Sets the callback for the V8 branch
+     *
+     * @param callBack T8 值的处理函数 / The handler function for T8 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if8(callBack: (T8) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调
+     * Sets the callback for the V9 branch
+     *
+     * @param callBack T9 值的处理函数 / The handler function for T9 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if9(callBack: (T9) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调
+     * Sets the callback for the V10 branch
+     *
+     * @param callBack T10 值的处理函数 / The handler function for T10 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if10(callBack: (T10) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调
+     * Sets the callback for the V11 branch
+     *
+     * @param callBack T11 值的处理函数 / The handler function for T11 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if11(callBack: (T11) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack11 = callBack
         return this
@@ -6027,6 +6261,9 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  * 用于 Variant18 值流式模式匹配的匹配器类。
  */
 data class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     private val value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -6724,6 +6961,9 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  * 用于 Variant19 值流式模式匹配的匹配器类。
  */
 data class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     private val value: Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -7457,6 +7697,9 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  * 用于 Variant20 值流式模式匹配的匹配器类。
  */
 data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     private val value: Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -7685,28 +7928,55 @@ data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     }
 }
 
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
 class Variant(val value: Any, val clazz: KClass<*>) {
     companion object {
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
         inline fun <reified T : Any> make(value: T) = Variant(value, T::class)
     }
 
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     inline fun <reified T : Any> isA() = clazz == T::class
 
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     inline fun <reified T : Any> get() = if (isA<T>()) {
         value as T
     } else {
         null
     }
 
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
     inline fun <reified T : Any, Ret> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
+        /**
+         * 获取被包装的值 / Get the wrapped value
+         */
         val ret = VariantMatcher<Ret>(this)
         return ret.ifIs(callBack)
     }
 }
 
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
 class VariantMatcher<Ret>(private val value: Variant) {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val callBacks: MutableMap<KClass<*>, (Any) -> Ret> = hashMapOf()
 
+/**
+ * Variant 操作 / Variant operation
+ */
     inline fun <reified T : Any> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
         callBacks[T::class] = { value: Any -> callBack(value as T) }
         return this
@@ -7716,21 +7986,36 @@ class VariantMatcher<Ret>(private val value: Variant) {
     operator fun invoke() = callBacks[value.clazz]?.let { it -> it(value.value) }
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, Ret> match(value: Variant2<T1, T2>, callBack1: (T1) -> Ret, callBack2: (T2) -> Ret): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher = value.if1(callBack1).if2(callBack2)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, Ret> match(
     value: Variant3<T1, T2, T3>,
     callBack1: (T1) -> Ret,
     callBack2: (T2) -> Ret,
     callBack3: (T3) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, Ret> match(
     value: Variant4<T1, T2, T3, T4>,
     callBack1: (T1) -> Ret,
@@ -7738,10 +8023,16 @@ fun <T1, T2, T3, T4, Ret> match(
     callBack3: (T3) -> Ret,
     callBack4: (T4) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, Ret> match(
     value: Variant5<T1, T2, T3, T4, T5>,
     callBack1: (T1) -> Ret,
@@ -7750,10 +8041,16 @@ fun <T1, T2, T3, T4, T5, Ret> match(
     callBack4: (T4) -> Ret,
     callBack5: (T5) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, Ret> match(
     value: Variant6<T1, T2, T3, T4, T5, T6>,
     callBack1: (T1) -> Ret,
@@ -7763,10 +8060,16 @@ fun <T1, T2, T3, T4, T5, T6, Ret> match(
     callBack5: (T5) -> Ret,
     callBack6: (T6) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
     value: Variant7<T1, T2, T3, T4, T5, T6, T7>,
     callBack1: (T1) -> Ret,
@@ -7777,11 +8080,17 @@ fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
     callBack6: (T6) -> Ret,
     callBack7: (T7) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
     value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>,
     callBack1: (T1) -> Ret,
@@ -7793,12 +8102,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
     callBack7: (T7) -> Ret,
     callBack8: (T8) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
     value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>,
     callBack1: (T1) -> Ret,
@@ -7811,12 +8126,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
     callBack8: (T8) -> Ret,
     callBack9: (T9) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
     value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>,
     callBack1: (T1) -> Ret,
@@ -7830,12 +8151,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
     callBack9: (T9) -> Ret,
     callBack10: (T10) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
     value: Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>,
     callBack1: (T1) -> Ret,
@@ -7850,12 +8177,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
     callBack10: (T10) -> Ret,
     callBack11: (T11) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
     value: Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>,
     callBack1: (T1) -> Ret,
@@ -7871,12 +8204,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
     callBack11: (T11) -> Ret,
     callBack12: (T12) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
     value: Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>,
     callBack1: (T1) -> Ret,
@@ -7893,12 +8232,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
     callBack12: (T12) -> Ret,
     callBack13: (T13) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     value: Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>,
     callBack1: (T1) -> Ret,
@@ -7916,6 +8261,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     callBack13: (T13) -> Ret,
     callBack14: (T14) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -7923,6 +8271,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> match(
     value: Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>,
     callBack1: (T1) -> Ret,
@@ -7941,6 +8292,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> matc
     callBack14: (T14) -> Ret,
     callBack15: (T15) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -7948,6 +8302,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> matc
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> match(
     value: Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>,
     callBack1: (T1) -> Ret,
@@ -7967,6 +8324,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>
     callBack15: (T15) -> Ret,
     callBack16: (T16) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -7974,6 +8334,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> match(
     value: Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>,
     callBack1: (T1) -> Ret,
@@ -7994,6 +8357,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack16: (T16) -> Ret,
     callBack17: (T17) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8001,6 +8367,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> match(
     value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>,
     callBack1: (T1) -> Ret,
@@ -8022,6 +8391,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack17: (T17) -> Ret,
     callBack18: (T18) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8029,6 +8401,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> match(
     value: Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>,
     callBack1: (T1) -> Ret,
@@ -8051,6 +8426,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack18: (T18) -> Ret,
     callBack19: (T19) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8058,6 +8436,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     return matcher()
 }
 
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> match(
     value: Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>,
     callBack1: (T1) -> Ret,
@@ -8081,6 +8462,9 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack19: (T19) -> Ret,
     callBack20: (T20) -> Ret
 ): Ret {
+    /**
+     * 获取被包装的值 / Get the wrapped value
+     */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8090,12 +8474,18 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
 }
 
 @JvmName("Variant2Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>> Variant2<T1, T2>.copy(): Variant2<T1, T2> = when (this) {
     is Variant2.V1 -> Variant2.V1(this.value.copy())
     is Variant2.V2 -> Variant2.V2(this.value.copy())
 }
 
 @JvmName("Variant3Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>> Variant3<T1, T2, T3>.copy(): Variant3<T1, T2, T3> =
     when (this) {
         is Variant3.V1 -> Variant3.V1(this.value.copy())
@@ -8104,6 +8494,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>> Variant3<T1, T2, T
     }
 
 @JvmName("Variant4Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>> Variant4<T1, T2, T3, T4>.copy(): Variant4<T1, T2, T3, T4> =
     when (this) {
         is Variant4.V1 -> Variant4.V1(this.value.copy())
@@ -8113,6 +8506,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>>
     }
 
 @JvmName("Variant5Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>> Variant5<T1, T2, T3, T4, T5>.copy(): Variant5<T1, T2, T3, T4, T5> =
     when (this) {
         is Variant5.V1 -> Variant5.V1(this.value.copy())
@@ -8123,6 +8519,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant6Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>> Variant6<T1, T2, T3, T4, T5, T6>.copy(): Variant6<T1, T2, T3, T4, T5, T6> =
     when (this) {
         is Variant6.V1 -> Variant6.V1(this.value.copy())
@@ -8134,6 +8533,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant7Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>> Variant7<T1, T2, T3, T4, T5, T6, T7>.copy(): Variant7<T1, T2, T3, T4, T5, T6, T7> =
     when (this) {
         is Variant7.V1 -> Variant7.V1(this.value.copy())
@@ -8146,6 +8548,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant8Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>> Variant8<T1, T2, T3, T4, T5, T6, T7, T8>.copy(): Variant8<T1, T2, T3, T4, T5, T6, T7, T8> =
     when (this) {
         is Variant8.V1 -> Variant8.V1(this.value.copy())
@@ -8159,6 +8564,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant9Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>> Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>.copy(): Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> =
     when (this) {
         is Variant9.V1 -> Variant9.V1(this.value.copy())
@@ -8173,6 +8581,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant10Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>> Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.copy(): Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> =
     when (this) {
         is Variant10.V1 -> Variant10.V1(this.value.copy())
@@ -8188,6 +8599,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant11Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>> Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.copy(): Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> =
     when (this) {
         is Variant11.V1 -> Variant11.V1(this.value.copy())
@@ -8204,6 +8618,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant12Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>> Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.copy(): Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> =
     when (this) {
         is Variant12.V1 -> Variant12.V1(this.value.copy())
@@ -8221,6 +8638,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant13Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>> Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.copy(): Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> =
     when (this) {
         is Variant13.V1 -> Variant13.V1(this.value.copy())
@@ -8239,6 +8659,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant14Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>> Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.copy(): Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> =
     when (this) {
         is Variant14.V1 -> Variant14.V1(this.value.copy())
@@ -8258,6 +8681,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant15Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>> Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.copy(): Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> =
     when (this) {
         is Variant15.V1 -> Variant15.V1(this.value.copy())
@@ -8278,6 +8704,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant16Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>> Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.copy(): Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> =
     when (this) {
         is Variant16.V1 -> Variant16.V1(this.value.copy())
@@ -8299,6 +8728,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant17Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>> Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>.copy(): Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> =
     when (this) {
         is Variant17.V1 -> Variant17.V1(this.value.copy())
@@ -8321,6 +8753,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant18Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>> Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>.copy(): Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> =
     when (this) {
         is Variant18.V1 -> Variant18.V1(this.value.copy())
@@ -8344,6 +8779,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant19Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>, T19 : Copyable<T19>> Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>.copy(): Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> =
     when (this) {
         is Variant19.V1 -> Variant19.V1(this.value.copy())
@@ -8368,6 +8806,9 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant20Copy")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>, T19 : Copyable<T19>, T20 : Copyable<T20>> Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>.copy(): Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> =
     when (this) {
         is Variant20.V1 -> Variant20.V1(this.value.copy())
@@ -8393,12 +8834,18 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant2Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>> Variant2<T1, T2>.move(): Variant2<T1, T2> = when (this) {
     is Variant2.V1 -> Variant2.V1(this.value.move())
     is Variant2.V2 -> Variant2.V2(this.value.move())
 }
 
 @JvmName("Variant3Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>> Variant3<T1, T2, T3>.move(): Variant3<T1, T2, T3> =
     when (this) {
         is Variant3.V1 -> Variant3.V1(this.value.move())
@@ -8407,6 +8854,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>> Variant3<T1, T2, T3>.
     }
 
 @JvmName("Variant4Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>> Variant4<T1, T2, T3, T4>.move(): Variant4<T1, T2, T3, T4> =
     when (this) {
         is Variant4.V1 -> Variant4.V1(this.value.move())
@@ -8416,6 +8866,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>> Var
     }
 
 @JvmName("Variant5Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>> Variant5<T1, T2, T3, T4, T5>.move(): Variant5<T1, T2, T3, T4, T5> =
     when (this) {
         is Variant5.V1 -> Variant5.V1(this.value.move())
@@ -8426,6 +8879,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant6Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>> Variant6<T1, T2, T3, T4, T5, T6>.move(): Variant6<T1, T2, T3, T4, T5, T6> =
     when (this) {
         is Variant6.V1 -> Variant6.V1(this.value.move())
@@ -8437,6 +8893,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant7Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>> Variant7<T1, T2, T3, T4, T5, T6, T7>.move(): Variant7<T1, T2, T3, T4, T5, T6, T7> =
     when (this) {
         is Variant7.V1 -> Variant7.V1(this.value.move())
@@ -8449,6 +8908,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant8Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>> Variant8<T1, T2, T3, T4, T5, T6, T7, T8>.move(): Variant8<T1, T2, T3, T4, T5, T6, T7, T8> =
     when (this) {
         is Variant8.V1 -> Variant8.V1(this.value.move())
@@ -8462,6 +8924,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant9Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>> Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>.move(): Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> =
     when (this) {
         is Variant9.V1 -> Variant9.V1(this.value.move())
@@ -8476,6 +8941,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant10Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>> Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.move(): Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> =
     when (this) {
         is Variant10.V1 -> Variant10.V1(this.value.move())
@@ -8491,6 +8959,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant11Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>> Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.move(): Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> =
     when (this) {
         is Variant11.V1 -> Variant11.V1(this.value.move())
@@ -8507,6 +8978,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant12Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>> Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.move(): Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> =
     when (this) {
         is Variant12.V1 -> Variant12.V1(this.value.move())
@@ -8524,6 +8998,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant13Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>> Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.move(): Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> =
     when (this) {
         is Variant13.V1 -> Variant13.V1(this.value.move())
@@ -8542,6 +9019,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant14Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>> Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.move(): Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> =
     when (this) {
         is Variant14.V1 -> Variant14.V1(this.value.move())
@@ -8561,6 +9041,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant15Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>> Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.move(): Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> =
     when (this) {
         is Variant15.V1 -> Variant15.V1(this.value.move())
@@ -8581,6 +9064,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant16Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>> Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.move(): Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> =
     when (this) {
         is Variant16.V1 -> Variant16.V1(this.value.move())
@@ -8602,6 +9088,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant17Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>> Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>.move(): Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> =
     when (this) {
         is Variant17.V1 -> Variant17.V1(this.value.move())
@@ -8624,6 +9113,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant18Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>> Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>.move(): Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> =
     when (this) {
         is Variant18.V1 -> Variant18.V1(this.value.move())
@@ -8647,6 +9139,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant19Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>, T19 : Movable<T19>> Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>.move(): Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> =
     when (this) {
         is Variant19.V1 -> Variant19.V1(this.value.move())
@@ -8671,6 +9166,9 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant20Move")
+/**
+ * Variant 操作 / Variant operation
+ */
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>, T19 : Movable<T19>, T20 : Movable<T20>> Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>.move(): Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> =
     when (this) {
         is Variant20.V1 -> Variant20.V1(this.value.move())

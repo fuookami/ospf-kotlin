@@ -555,7 +555,16 @@ private fun evaluateFlattenDataFromTokenList(
     return result
 }
 
-/** 使用求解结果和符号列表评估 Flt64 线性扁平化数据 / Evaluate Flt64 linear flatten data with results and token list */
+/**
+ * 使用求解结果和符号列表评估 Flt64 线性扁平化数据。
+ * Evaluate Flt64 linear flatten data with results and token list.
+ *
+ * @param data 线性扁平化数据 / The linear flatten data
+ * @param results 求解结果列表 / The solution result list
+ * @param tokenList 符号列表 / The token list
+ * @param zeroIfNone 是否将缺失值视为零 / Whether to treat missing values as zero
+ * @return 评估后的 Flt64 值，如果无法计算返回 null / The evaluated Flt64 value, or null if unavailable
+ */
 private fun evaluateFlattenDataWithResultsFromTokenList(
     data: LinearFlattenData<Flt64>,
     results: List<Flt64>,

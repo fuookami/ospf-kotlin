@@ -130,7 +130,14 @@ suspend fun computeIIS(
     }
 }
 
-/** 获取与松弛变量关联的约束索引列表 / Get constraint indices related to slack variables */
+/**
+ * 获取与松弛变量关联的约束索引列表。
+ * Get constraint indices related to slack variables.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param slackVariables 松弛变量集合 / Set of slack variables
+ * @return 关联的约束索引列表 / List of related constraint indices
+ */
 private fun getRelatedConstraints(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -161,7 +168,15 @@ private data class RelatedVariable(
     val upperBound: Flt64?
 )
 
-/** 标记变量的边界信息 / Mark variable bound information */
+/**
+ * 标记变量的边界信息。
+ * Mark variable bound information.
+ *
+ * @param marks 标记映射 / Marks map
+ * @param index 变量索引 / Variable index
+ * @param lowerBound 下界标记 / Lower bound mark
+ * @param upperBound 上界标记 / Upper bound mark
+ */
 private fun markVariable(
     marks: MutableMap<Int, Pair<Boolean, Boolean>>,
     index: Int,
@@ -174,7 +189,15 @@ private fun markVariable(
     marks[index] = newLowerBound to newUpperBound
 }
 
-/** 获取与过滤变量和约束关联的变量列表 / Get variables related to filter variables and constraints */
+/**
+ * 获取与过滤变量和约束关联的变量列表。
+ * Get variables related to filter variables and constraints.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param filter 过滤变量集合 / Set of filter variables
+ * @param relatedConstraints 关联约束索引列表 / List of related constraint indices
+ * @return 关联变量列表 / List of related variables
+ */
 private fun getRelatedVariables(
     model: QuadraticTetradModelView,
     filter: Set<Variable>,
@@ -220,7 +243,15 @@ private fun getRelatedVariables(
         }
 }
 
-/** 按行索引过滤约束并重映射变量索引 / Filter constraints by row index and remap variable indices */
+/**
+ * 按行索引过滤约束并重映射变量索引。
+ * Filter constraints by row index and remap variable indices.
+ *
+ * @param constraints 二次约束批处理 / Quadratic constraint batch
+ * @param rows 行索引列表 / List of row indices
+ * @param oldToNewVariableIndexMap 旧索引到新索引的映射 / Map from old to new variable index
+ * @return 过滤后的二次约束批处理 / Filtered quadratic constraint batch
+ */
 private fun filterConstraintByRowIndex(
     constraints: QuadraticConstraintBatch,
     rows: List<Int>,
@@ -261,7 +292,14 @@ private fun filterConstraintByRowIndex(
     )
 }
 
-/** 从弹性过滤结果构建 IIS 模型 / Build IIS model from elastic filter result */
+/**
+ * 从弹性过滤结果构建 IIS 模型。
+ * Build IIS model from elastic filter result.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param elasticFilter 弹性过滤结果映射 / Elastic filter result map
+ * @return IIS 二次四元模型 / IIS quadratic tetrad model
+ */
 private fun dump(
     model: QuadraticTetradModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -269,7 +307,14 @@ private fun dump(
     return dump(model, elasticFilter.keys)
 }
 
-/** 从松弛变量集合构建 IIS 模型 / Build IIS model from slack variable set */
+/**
+ * 从松弛变量集合构建 IIS 模型。
+ * Build IIS model from slack variable set.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @param slackVariables 松弛变量集合 / Set of slack variables
+ * @return IIS 二次四元模型 / IIS quadratic tetrad model
+ */
 private fun dump(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -341,7 +386,15 @@ private fun dump(
     )
 }
 
-/** 执行弹性过滤以识别不可行组件 / Perform elastic filtering to identify infeasible components */
+/**
+ * 执行弹性过滤以识别不可行组件。
+ * Perform elastic filtering to identify infeasible components.
+ *
+ * @param elasticModel 弹性二次四元模型视图 / Elastic quadratic tetrad model view
+ * @param solver 二次求解器 / Quadratic solver
+ * @param config IIS 配置 / IIS configuration
+ * @return 是否找到不可行组件及松弛变量映射 / Whether infeasible components were found and the mapping of relaxed variables
+ */
 private suspend fun performElasticFiltering(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -425,7 +478,16 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
-/** 松弛满足条件的特定组件 / Relax specific components satisfying the condition */
+/**
+ * 松弛满足条件的特定组件。
+ * Relax specific components satisfying the condition.
+ *
+ * @param elasticModel 弹性二次四元模型视图 / Elastic quadratic tetrad model view
+ * @param solver 二次求解器 / Quadratic solver
+ * @param tolerance 松弛容差 / Slack tolerance
+ * @param relaxCondition 判断变量是否应松弛的条件 / Condition to determine whether a variable should be relaxed
+ * @return 是否找到可行解及松弛变量映射 / Whether a feasible solution was found and the mapping of relaxed variables
+ */
 private suspend fun relaxSpecificComponents(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -470,7 +532,18 @@ private suspend fun relaxSpecificComponents(
     return Ok(true to relaxedComponents)
 }
 
-/** 执行删除过滤以精简不可行组件 / Perform deletion filtering to refine infeasible components */
+/**
+ * 执行删除过滤以精简不可行组件。
+ * Perform deletion filtering to refine infeasible components.
+ *
+ * @param elasticModel 弹性二次四元模型视图 / Elastic quadratic tetrad model view
+ * @param solver 二次求解器 / Quadratic solver
+ * @param startTime 开始时间 / Start time
+ * @param boundAmount 边界数量 / Bound amount
+ * @param constraintAmount 约束数量 / Constraint amount
+ * @param config IIS 配置 / IIS configuration
+ * @return 活跃的松弛变量集合 / Set of active relaxed components
+ */
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: QuadraticTetradModelView,
@@ -545,7 +618,13 @@ private suspend fun performDeletionFiltering(
     return Ok(activeRelaxedComponents)
 }
 
-/** 创建二次模型的快照副本 / Create a snapshot copy of the quadratic model */
+/**
+ * 创建二次模型的快照副本。
+ * Create a snapshot copy of the quadratic model.
+ *
+ * @param model 二次四元模型视图 / Quadratic tetrad model view
+ * @return 二次模型快照 / Snapshot of the quadratic model
+ */
 private fun snapshotQuadraticModel(model: QuadraticTetradModelView): QuadraticTetradModel {
     return if (model is QuadraticTetradModel) {
         model.copy()

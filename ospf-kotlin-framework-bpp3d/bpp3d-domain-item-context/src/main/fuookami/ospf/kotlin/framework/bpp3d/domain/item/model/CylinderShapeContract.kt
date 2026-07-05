@@ -154,6 +154,7 @@ fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String 
  * @param shape 装箱形状 / packing shape
  * @param verifiedAxisAwareCandidate 是否为已验证轴向感知候选 / whether it is a verified axis-aware candidate
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireVerifiedGeneratedCylinderCandidate(
     shape: PackingShape3<FltX>,
@@ -334,6 +335,13 @@ fun continuousCylinderRadiusOptimizationGapReport(
 
 private val ContinuousRadiusVariableTokenRegex = Regex("[^A-Za-z0-9]+")
 
+/**
+ * 将字符串转为连续半径变量 token。
+ * Convert a string to a continuous-radius variable token.
+ *
+ * @param fallback 空字符串时的回退值 / fallback value when string is empty
+ * @return 连续半径变量 token / continuous-radius variable token
+ */
 private fun String.continuousRadiusVariableToken(fallback: String): String {
     val token = trim()
         .replace(ContinuousRadiusVariableTokenRegex, "_")
@@ -341,6 +349,15 @@ private fun String.continuousRadiusVariableToken(fallback: String): String {
     return token.ifEmpty { fallback }
 }
 
+/**
+ * 构建连续半径变量名。
+ * Build a continuous-radius variable name.
+ *
+ * @param source 调用来源 / call source
+ * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 连续半径变量名 / continuous-radius variable name
+ */
 private fun continuousRadiusVariableName(
     source: String,
     radiusWeightFunctionKey: String?,
@@ -369,6 +386,12 @@ private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
     return Ok(Quantity(FltX(converted.value.toDouble() / 2.0), targetUnit))
 }
 
+/**
+ * 将半径量转为文本表示。
+ * Convert a radius quantity to text representation.
+ *
+ * @return 半径文本表示 / radius text representation
+ */
 private fun Quantity<FltX>.radiusValueText(): String {
     return "${value.toDouble()} ${unit.symbol}"
 }
@@ -654,6 +677,10 @@ data class PWLRadiusSelectionMetadata(
     /**
      * 计算真实圆柱体积（使用 solver 选择的半径）。
      * Compute actual cylinder volume using solver-selected radius.
+     *
+     * @param height 圆柱高度 / cylinder height
+     * @param pi 圆周率 / pi
+     * @return 真实圆柱体积 / actual cylinder volume
      */
     fun actualVolume(height: FltX, pi: FltX): FltX {
         return pi * actualRadiusSquared * height
@@ -662,6 +689,10 @@ data class PWLRadiusSelectionMetadata(
     /**
      * 计算 PWL 近似体积（使用 q ≈ r²）。
      * Compute PWL approximate volume using q ≈ r².
+     *
+     * @param height 圆柱高度 / cylinder height
+     * @param pi 圆周率 / pi
+     * @return PWL 近似体积 / PWL approximate volume
      */
     fun pwlVolume(height: FltX, pi: FltX): FltX {
         return pi * solverRadiusSquared * height
@@ -814,6 +845,7 @@ fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
  *
  * @param spec 包装形状规格 / package shape spec
  * @param source 调用来源 / call source
+ * @return 成功或错误信息 / success or error information
  */
 fun requireConcreteCylinderRadiusProductionMetadata(
     spec: PackageShapeSpec,
@@ -839,6 +871,7 @@ fun requireConcreteCylinderRadiusProductionMetadata(
  *
  * @param shape 装箱形状 / packing shape
  * @param source 调用来源 / call source
+ * @return 成功或错误信息 / success or error information
  */
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
@@ -856,6 +889,7 @@ fun requireVerticalCylinderAxis(
  *
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
@@ -876,6 +910,7 @@ fun requireVerticalCylinderAxis(
  *
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireAxisAwareCylinderCandidate(
     shape: PackingShape3<FltX>,
@@ -898,6 +933,7 @@ fun requireAxisAwareCylinderCandidate(
  * @param shape 装箱形状 / packing shape
  * @param orientation 物品朝向 / item orientation
  * @param source 调用来源 / call source
+ * @return 成功或错误信息 / success or error information
  */
 fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
@@ -917,6 +953,7 @@ fun requireUprightVerticalCylinderSupport(
  * @param shape 装箱形状 / packing shape
  * @param orientation 物品朝向 / item orientation
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
@@ -939,6 +976,7 @@ fun requireUprightVerticalCylinderSupport(
  *
  * @param item 物品 / item
  * @param source 调用来源 / call source
+ * @return 成功或错误信息 / success or error information
  */
 fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try {
     val shape = item.packingShape
@@ -966,6 +1004,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try 
  *
  * @param item 物品 / item
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabilityPath): Try {
     require(path == CylinderCapabilityPath.SimpleBlockCandidate) {
@@ -984,6 +1023,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabil
  * @param items 待检查物品 / items to check
  * @param source 调用来源 / call source
  * @param pathPredicate 路径谓词描述 / path predicate description
+ * @return 成功或错误信息 / success or error information
  */
 fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,
@@ -1008,6 +1048,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
  *
  * @param items 待检查物品 / items to check
  * @param path 能力路径 / capability path
+ * @return 成功或错误信息 / success or error information
  */
 fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,

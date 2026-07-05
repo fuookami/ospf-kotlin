@@ -10,6 +10,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 
+/**
+ * 将通用数量值转换为 FltX 类型的数量值。
+ * Convert a generic quantity value to a FltX-typed quantity value.
+ *
+ * @param value 要转换的数量值 / the quantity value to convert
+ * @return 转换后的 FltX 类型数量值 / the converted FltX-typed quantity value
+ */
 @Suppress("UNCHECKED_CAST")
 private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
     return when (value.value) {
@@ -50,7 +57,7 @@ fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
     materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
 ): Item {
     return ActualItem(
-        id = "program-candidate-$id-$sequence",
+        id = itemIdOf("program-candidate-$id-$sequence"),
         name = itemName,
         width = programQuantityToFltX(program.width),
         height = programQuantityToFltX(program.height),

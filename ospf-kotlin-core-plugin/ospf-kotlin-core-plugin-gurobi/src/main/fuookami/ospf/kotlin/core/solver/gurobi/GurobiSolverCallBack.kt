@@ -29,7 +29,13 @@ enum class Point {
     AfterFailure
 }
 
-/** Gurobi 线性求解器回调管理器 / Gurobi linear solver callback manager */
+/**
+ * Gurobi 线性求解器回调管理器 / Gurobi linear solver callback manager
+ *
+ * @property nativeCallback Gurobi 原生回调函数 / Gurobi native callback function
+ * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
+ * @property map 回调时机到回调函数列表的映射 / mapping from callback point to callback function list
+ */
 class GurobiLinearSolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
@@ -163,7 +169,13 @@ class GurobiLinearSolverCallBack(
     }
 }
 
-/** Gurobi 二次求解器回调管理器 / Gurobi quadratic solver callback manager */
+/**
+ * Gurobi 二次求解器回调管理器 / Gurobi quadratic solver callback manager
+ *
+ * @property nativeCallback Gurobi 原生回调函数 / Gurobi native callback function
+ * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
+ * @property map 回调时机到回调函数列表的映射 / mapping from callback point to callback function list
+ */
 class GurobiQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,

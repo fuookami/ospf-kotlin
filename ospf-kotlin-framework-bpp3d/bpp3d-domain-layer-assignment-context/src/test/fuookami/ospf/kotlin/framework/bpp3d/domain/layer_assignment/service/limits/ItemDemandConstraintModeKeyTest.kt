@@ -43,7 +43,7 @@ class ItemDemandConstraintModeKeyTest {
         materialAmount: UInt64 = UInt64(2)
     ): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(
@@ -67,7 +67,7 @@ class ItemDemandConstraintModeKeyTest {
         materialAmount: UInt64 = UInt64(3)
     ): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = Package.innerPackage(
                 shape = PackageShape(

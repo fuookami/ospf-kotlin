@@ -93,6 +93,10 @@ typealias KafkaMessageRecord = ConsumerRecord<String, String>
  * Wraps Kafka producer and consumers, providing message sending and subscription functionality.
  *
  * @property config Kafka 配置 / Kafka configuration
+ * @property producer Kafka 生产者实例 / Kafka producer instance
+ * @property topicConsumer 主题消费者实例 / Topic consumer instance
+ * @property topicProcessor 主题消息处理器映射 / Topic message processor mapping
+ * @property patternConsumers 模式匹配消费者列表 / Pattern-matching consumer list
  */
 data class KafkaClient(
     val config: KafkaConfig

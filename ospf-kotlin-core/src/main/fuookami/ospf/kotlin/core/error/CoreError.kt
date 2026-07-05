@@ -16,7 +16,10 @@ interface StructuredCoreError {
     val errorCode: ErrorCode
     val message: String
 
-    /** 将此错误转换为通用 Error 对象 / Convert this error to a generic Error object */
+    /**
+     * 将此错误转换为通用 Error 对象 / Convert this error to a generic Error object
+     * @return 包含错误码和消息的 Error 实例 / An Error instance containing the error code and message
+     */
     fun toError(): Error<ErrorCode> {
         return Err(errorCode, message)
     }
@@ -300,11 +303,17 @@ sealed class SolverError(
     )
 }
 
-/** 将变量错误转换为核心错误 / Convert a variable error to a core error */
+/** 将变量错误转换为核心错误 / Convert a variable error to a core error
+ * @return 包装了此变量错误的 CoreError.Variable 实例 / A CoreError.Variable instance wrapping this variable error
+ */
 fun VariableError.asCoreError(): CoreError = CoreError.Variable(this)
-/** 将模型错误转换为核心错误 / Convert a model error to a core error */
+/** 将模型错误转换为核心错误 / Convert a model error to a core error
+ * @return 包装了此模型错误的 CoreError.Model 实例 / A CoreError.Model instance wrapping this model error
+ */
 fun ModelError.asCoreError(): CoreError = CoreError.Model(this)
-/** 将求解器错误转换为核心错误 / Convert a solver error to a core error */
+/** 将求解器错误转换为核心错误 / Convert a solver error to a core error
+ * @return 包装了此求解器错误的 CoreError.Solver 实例 / A CoreError.Solver instance wrapping this solver error
+ */
 fun SolverError.asCoreError(): CoreError = CoreError.Solver(this)
 
 // ============================================================================

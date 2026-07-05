@@ -25,6 +25,13 @@ data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Di
     }
 }
 
+/**
+ * Arnold 猫映射生成器
+ * Arnold's Cat Map generator
+ *
+ * @property map Arnold 猫映射实例 / Arnold's Cat Map instance
+ * @property _x 当前状态点 / Current state point
+ */
 data class ArnoldsCatMapGenerator(
     val map: ArnoldsCatMap<Flt64> = ArnoldsCatMap(),
     private var _x: Point<Dim2, Flt64> = point2(

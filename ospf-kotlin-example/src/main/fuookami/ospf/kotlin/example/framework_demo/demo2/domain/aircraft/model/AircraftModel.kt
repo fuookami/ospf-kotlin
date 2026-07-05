@@ -33,9 +33,9 @@ enum class AircraftType {
 /**
  * 飞机模型（具有类型分类、物理单位定义和重力转换）。Aircraft model with type classification, physical unit definitions, and gravity conversion.
  *
- * @property type 参数。
- * @property model 参数。
- * @property minorModel 参数。
+ * @property type 飞机类型。
+ * @property model 飞机型号名称。
+ * @property minorModel 飞机子型号。
  */
 data class AircraftModel(
     val type: AircraftType?,
@@ -69,6 +69,12 @@ data class AircraftModel(
     val fuelVolumeUnit = Liter
     val fuelDensityUnit = weightUnit / fuelVolumeUnit
 
+    /**
+     * 根据重量计算重力值。Calculate gravity force from weight.
+     *
+     * @param weight 重量值。
+     * @return 重力值。
+     */
     fun gravity(weight: Quantity<Flt64>): Quantity<Flt64> {
         val forcePerWeight = Flt64.one * (forceUnit / weightUnit)
         return (weight * forcePerWeight)!!

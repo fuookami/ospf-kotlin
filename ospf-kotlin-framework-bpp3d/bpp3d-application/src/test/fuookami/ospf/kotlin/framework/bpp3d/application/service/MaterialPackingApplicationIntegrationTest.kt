@@ -90,7 +90,7 @@ class MaterialPackingApplicationIntegrationTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -110,7 +110,7 @@ class MaterialPackingApplicationIntegrationTest {
             capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-SEED"
+            typeCode = binTypeIdOf("BIN-SEED")
         )
         return BinLayer(
             iteration = fuookami.ospf.kotlin.math.algebra.number.Int64.zero,

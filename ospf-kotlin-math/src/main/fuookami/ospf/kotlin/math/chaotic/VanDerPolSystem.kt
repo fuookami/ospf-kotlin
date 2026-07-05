@@ -34,6 +34,10 @@ data class VanDerPolSystem<V : FloatingNumber<V>>(val a: V, val h: V) : Extracto
     }
 }
 
+/**
+ * 范德波尔系统生成器
+ * Van der Pol System Generator
+ */
 data class VanDerPolSystemGenerator(
     val attractor: VanDerPolSystem<Flt64> = VanDerPolSystem(),
     private var _x: Point<Dim2, Flt64> = point2(

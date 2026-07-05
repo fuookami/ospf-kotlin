@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialId
 import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregation
 
 /**
@@ -29,7 +30,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregatio
 class WasteAggregation<V : RealNumber<V>>(
     override val cuttingPlans: List<CuttingPlan<V>>,
     val trimWidthPenalty: V? = null,
-    val materialCostPenalty: Map<String, V> = emptyMap(),
+    val materialCostPenalty: Map<MaterialId, V> = emptyMap(),
     val overProductionAreaPenalty: V? = null,
     val restMaterialPenalty: V? = null
 ) : Csp1dAggregation<V> {

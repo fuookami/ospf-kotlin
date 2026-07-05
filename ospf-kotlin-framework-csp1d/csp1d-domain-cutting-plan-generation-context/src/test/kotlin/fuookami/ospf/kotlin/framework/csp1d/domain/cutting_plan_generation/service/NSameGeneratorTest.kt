@@ -16,7 +16,7 @@ class NSameGeneratorTest {
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = widths
         )
@@ -24,7 +24,7 @@ class NSameGeneratorTest {
 
     private fun material(id: String = "m", upperBound: Double = 2.0, lowerBound: Double = 0.5): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -57,7 +57,7 @@ class NSameGeneratorTest {
         // Should have at least one plan with the single product
         val plan = plans.first()
         assertEquals(1, plan.slices.size)
-        assertTrue(plan.slices[0].production.id == "p1")
+        assertTrue(plan.slices[0].production.id == productIdOf("p1"))
     }
 
     @Test
@@ -105,8 +105,8 @@ class NSameGeneratorTest {
         // Should have plans for both products
         assertTrue(plans.size >= 2)
         val productIds = plans.map { it.slices.first().production.id }.toSet()
-        assertTrue(productIds.contains("p1"))
-        assertTrue(productIds.contains("p2"))
+        assertTrue(productIds.contains(productIdOf("p1")))
+        assertTrue(productIds.contains(productIdOf("p2")))
     }
 
     @Test
@@ -156,9 +156,9 @@ class NSameGeneratorTest {
     @Test
     fun machineWidthRangeShouldFilterInfeasibleMaterial() {
         val p = product("p-machine", listOf(Quantity(Flt64(0.8), Meter)))
-        val m = material(id = "m-machine", upperBound = 2.0).copy(machineId = "machine-small")
+        val m = material(id = "m-machine", upperBound = 2.0).copy(machineId = machineIdOf("machine-small"))
         val machine = Machine(
-            id = "machine-small",
+            id = machineIdOf("machine-small"),
             name = "small machine",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -273,7 +273,7 @@ class NSameGeneratorTest {
     @Test
     fun dynamicLengthWeightContributionShouldUseMaterialLengthInGeneration() {
         val p = Product.dynamicLengthOf(
-            id = "p-dynamic-weight",
+            id = productIdOf("p-dynamic-weight"),
             name = "product-p-dynamic-weight",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             unitWeight = Quantity(Flt64(1.0), Kilogram)

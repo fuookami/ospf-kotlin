@@ -10,6 +10,12 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
 
+/**
+ * Block 的基类，表示由多个物品放置单元组成的块。
+ * Base class for Block, representing a block composed of multiple item placement units.
+ *
+ * @property units 物品放置单元列表 / List of item placement units
+ */
 sealed class Block(
     // inherited from Container3<Block>
     final override val units: List<QuantityPlacement3<Item, FltX>>,
@@ -36,12 +42,25 @@ sealed class Block(
     }
 }
 
+/**
+ * 通用块，无特殊约束的 Block 实现。
+ * Common block, a Block implementation with no special constraints.
+ */
 class CommonBlock(
     units: List<QuantityPlacement3<Item, FltX>>
 ) : Block(units) {
     override fun copy() = CommonBlock(units.map { it.copy() })
 }
 
+/**
+ * 简单块，所有放置单元属于同一个物品。
+ * Simple block where all placement units belong to the same item.
+ *
+ * @property item 物品 / Item
+ * @property itemView 物品视图 / Item view
+ * @property itemOrientation 物品方向 / Item orientation
+ * @property layer 层数 / Number of layers
+ */
 class SimpleBlock(
     units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
@@ -67,6 +86,17 @@ class SimpleBlock(
     }
 }
 
+/**
+ * 空心方框块，由两种方向（原始和旋转）的物品放置单元组成。
+ * Hollow square block, composed of item placement units in two orientations (original and rotated).
+ *
+ * @property item 物品 / Item
+ * @property itemView 物品视图 / Item view
+ * @property itemOrientation 物品方向 / Item orientation
+ * @property itemRotationView 旋转后的物品视图 / Rotated item view
+ * @property itemRotatedOrientation 旋转后的物品方向 / Rotated item orientation
+ * @property layer 层数 / Number of layers
+ */
 class HollowSquareBlock(
     units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
@@ -122,10 +152,31 @@ class HollowSquareBlock(
     }
 }
 
+/**
+ * 堆叠块，由多个物品视图沿 Y 轴堆叠而成。
+ * Pile block, composed of multiple item views stacked along the Y axis.
+ *
+ * @property itemViews 物品视图列表 / List of item views
+ * @property bottomItem 底部物品 / Bottom item
+ * @property bottomItemView 底部物品视图 / Bottom item view
+ * @property bottomItemOrientation 底部物品方向 / Bottom item orientation
+ * @property topItem 顶部物品 / Top item
+ * @property topItemView 顶部物品视图 / Top item view
+ * @property topItemOrientation 顶部物品方向 / Top item orientation
+ * @property bottomLayer 底部层数 / Bottom layer count
+ * @property topLayer 顶部层数 / Top layer count
+ */
 class Pile(
     val itemViews: List<ItemView>
 ) : Block(dump(itemViews)) {
     companion object {
+        /**
+         * 将物品视图列表转储为放置单元列表。
+         * Dump the list of item views into a list of placement units.
+         *
+         * @param items 物品视图列表 / List of item views
+         * @return 放置单元列表 / List of placement units
+         */
         private fun dump(items: List<ItemView>): List<QuantityPlacement3<Item, FltX>> {
             val units = ArrayList<QuantityPlacement3<Item, FltX>>()
             var y = FltX.zero * items.first().height.unit
@@ -145,6 +196,14 @@ class Pile(
             return units
         }
 
+        /**
+         * 计算物品在底部物品上的层数信息。
+         * Calculate the layer information for an item on bottom items.
+         *
+         * @param item 物品 / Item
+         * @param bottomItems 底部物品列表 / List of bottom items
+         * @return 层数和高度 / Layer count and height
+         */
         fun layer(
             item: Item,
             bottomItems: List<Item>,
@@ -152,6 +211,14 @@ class Pile(
             return layer(item.view(), bottomItems.map { ItemView(it) })
         }
 
+        /**
+         * 计算物品视图在底部物品视图上的层数信息。
+         * Calculate the layer information for an item view on bottom item views.
+         *
+         * @param item 物品视图 / Item view
+         * @param bottomItems 底部物品视图列表 / List of bottom item views
+         * @return 层数和高度 / Layer count and height
+         */
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
@@ -207,11 +274,32 @@ class Pile(
     override fun copy() = Pile(itemViews.map { it.copy() })
 }
 
+/**
+ * 分层块，由多个 SimpleBlock 沿 Y 轴堆叠而成。
+ * Layered block, composed of multiple SimpleBlocks stacked along the Y axis.
+ *
+ * @property blocks 简单块列表 / List of simple blocks
+ * @property bottomItem 底部物品 / Bottom item
+ * @property bottomItemView 底部物品视图 / Bottom item view
+ * @property bottomItemOrientation 底部物品方向 / Bottom item orientation
+ * @property topItem 顶部物品 / Top item
+ * @property topItemView 顶部物品视图 / Top item view
+ * @property topItemOrientation 顶部物品方向 / Top item orientation
+ * @property bottomLayer 底部层数 / Bottom layer count
+ * @property topLayer 顶部层数 / Top layer count
+ */
 class LayeredBlock(
     // inherited from Container3<Block>
     val blocks: List<SimpleBlock>
 ) : Block(dump(blocks)) {
     companion object {
+        /**
+         * 将 SimpleBlock 列表转储为放置单元列表。
+         * Dump the list of SimpleBlocks into a list of placement units.
+         *
+         * @param blocks 简单块列表 / List of simple blocks
+         * @return 放置单元列表 / List of placement units
+         */
         private fun dump(blocks: List<SimpleBlock>): List<QuantityPlacement3<Item, FltX>> {
             var y = FltX.zero * blocks.first().height.unit
             val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
@@ -253,11 +341,24 @@ class LayeredBlock(
     override fun copy() = LayeredBlock(blocks.map { it.copy() })
 }
 
+/**
+ * 复杂块，由多个子块通过三维空间放置组合而成。
+ * Complex block, composed of multiple sub-blocks placed in 3D space.
+ *
+ * @property blocks 子块放置列表 / List of sub-block placements
+ */
 class ComplexBlock(
     // inherited from Container3<Block>
     val blocks: List<QuantityPlacement3<Block, FltX>>
 ) : Block(dump(blocks)) {
     companion object {
+        /**
+         * 将 Block 放置列表转储为物品放置单元列表。
+         * Dump the list of Block placements into a list of item placement units.
+         *
+         * @param blocks 块放置列表 / List of block placements
+         * @return 物品放置单元列表 / List of item placement units
+         */
         private fun dump(blocks: List<QuantityPlacement3<Block, FltX>>): List<QuantityPlacement3<Item, FltX>> {
             val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
             for (block in blocks) {

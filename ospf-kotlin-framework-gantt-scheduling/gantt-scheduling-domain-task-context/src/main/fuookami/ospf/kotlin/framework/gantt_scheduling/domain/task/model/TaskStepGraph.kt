@@ -36,7 +36,7 @@ abstract class TaskStep<
         out S : AbstractTaskStepPlan<S, T, E>,
         out E : Executor
         >(
-    val id: String,
+    open val id: TaskStepId,
     val name: String,
     val enabledExecutors: Set<E>,
     val status: Set<TaskStatus>
@@ -108,7 +108,7 @@ open class TaskStepGraph<
         out S : AbstractTaskStepPlan<S, T, E>,
         out E : Executor
         >(
-    val id: String,
+    open val id: TaskStepGraphId,
     val name: String,
     val steps: List<TaskStep<T, S, E>>,
     val startSteps: Pair<List<TaskStep<T, S, E>>, StepRelation>,
@@ -149,7 +149,7 @@ data class TaskStepGraphBuilder<
         out S : AbstractTaskStepPlan<S, T, E>,
         out E : Executor
         >(
-    var id: String? = null,
+    var id: TaskStepGraphId? = null,
     var name: String? = null,
     val steps: MutableList<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>> = ArrayList(),
     var startSteps: Pair<List<TaskStep<@UnsafeVariance T, @UnsafeVariance S, @UnsafeVariance E>>, StepRelation>? = null,

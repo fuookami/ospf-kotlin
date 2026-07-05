@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @param V 数值类型 / Numeric value type
  */
 open class Costar<V : RealNumber<V>>(
-    override val id: String,
+    override val id: CostarId,
     val name: String,
     override val width: List<Quantity<V>>,
     override val length: Quantity<V>? = null,

@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 
 /**
  * 产能调度聚合类
@@ -48,7 +49,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      * 按执行器分组的动作
      * Actions grouped by executor
      */
-    val actionsByExecutor: Map<String, List<A>> = actions.groupBy { it.executor.id }
+    val actionsByExecutor: Map<ExecutorId, List<A>> = actions.groupBy { it.executor.id }
 
     /**
      * 时隙数量
@@ -78,7 +79,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      * @param executorId Executor identifier / 执行器标识
      * @return List of actions for the executor / 该执行器的动作列表
      */
-    fun actionsForExecutor(executorId: String): List<A> {
+    fun actionsForExecutor(executorId: ExecutorId): List<A> {
         return actionsByExecutor[executorId] ?: emptyList()
     }
 

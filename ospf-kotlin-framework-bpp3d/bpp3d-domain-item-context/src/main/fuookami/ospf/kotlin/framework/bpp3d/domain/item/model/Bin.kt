@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
-class BinType<V : FloatingNumber<V>>(
+open class BinType<V : FloatingNumber<V>>(
     // inherited from Container3Shape
     override val width: Quantity<V>,
     override val height: Quantity<V>,
@@ -22,7 +22,7 @@ class BinType<V : FloatingNumber<V>>(
     val capacity: Quantity<V>,
     val longitudinalBalance: V?,
     val lateralBalance: V?,
-    val typeCode: String,
+    open val typeCode: BinTypeId,
     val isMain: Boolean = false,
     val extraCheckRule: ((BinType<V>, List<QuantityPlacement3<BinLayer, FltX>>) -> Boolean)? = null
 ) : Container3Geometry<V> {
@@ -33,7 +33,7 @@ class BinType<V : FloatingNumber<V>>(
         capacity: Quantity<V>? = null,
         longitudinalBalance: V? = null,
         lateralBalance: V? = null,
-        typeCode: String? = null,
+        typeCode: BinTypeId? = null,
         isMain: Boolean? = null,
         extraCheckRule: ((BinType<V>, List<QuantityPlacement3<BinLayer, FltX>>) -> Boolean)? = null
     ): BinType<V> {
@@ -217,6 +217,13 @@ class Bin<T, V> internal constructor(
     val capacity by type::capacity
 
     override fun copy() = Bin(type, units.map { it.copy() }, batchNo)
+    /**
+     * 创建带新批次号的副本。
+     * Create a copy with a new batch number.
+     *
+     * @param newBatchNo 新批次号 / new batch number
+     * @return 副本 / a copy
+     */
     fun copy(newBatchNo: BatchNo) = Bin(type, units.map { it.copy() }, newBatchNo)
 }
 
@@ -287,6 +294,12 @@ fun <V : FloatingNumber<V>> List<Bin<*, V>>.group(): Map<BinType<V>, UInt64> {
     return this.groupBy { it.type }.mapValues { UInt64(it.value.size) }
 }
 
+/**
+ * 将装箱列表展开为货物映射。
+ * Unpack a list of bins into an item map.
+ *
+ * @return 货物与数量的映射 / item-to-quantity map
+ */
 fun List<Bin<*, FltX>>.unpack(): Map<Item, UInt64> {
     val items = HashSet<Item>()
     for (bin in this) {
@@ -297,6 +310,13 @@ fun List<Bin<*, FltX>>.unpack(): Map<Item, UInt64> {
     }
 }
 
+/**
+ * 比较两个装箱集合的装载效率。
+ * Compare loading efficiency of two bin collections.
+ *
+ * @param rhs 右侧装箱集合 / the right-hand side bin collection
+ * @return 比较结果 / comparison result
+ */
 infix fun Collection<Bin<*, FltX>>.ord(rhs: Collection<Bin<*, FltX>>): Order {
     return when (val result = this.size ord rhs.size) {
         Order.Equal -> {
@@ -329,6 +349,12 @@ infix fun Collection<Bin<*, FltX>>.ord(rhs: Collection<Bin<*, FltX>>): Order {
     }
 }
 
+/**
+ * 将箱层装箱展开为货物装箱。
+ * Dump a layer bin into an item bin.
+ *
+ * @return 货物装箱 / item bin
+ */
 fun Bin<BinLayer, FltX>.dump(): Bin<Item, FltX> {
     return itemBinOf(
         shape = this.type,

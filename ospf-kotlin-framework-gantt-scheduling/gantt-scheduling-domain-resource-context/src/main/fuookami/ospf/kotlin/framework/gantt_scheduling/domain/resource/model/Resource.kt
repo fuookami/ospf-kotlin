@@ -149,7 +149,7 @@ open class ResourceCapacity<V>(
  * @property initialQuantityValue 初始数量裸值 / Initial quantity raw value
  */
 abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapacity<V>, V : RealNumber<V>, V : NumberField<V> {
-    abstract val id: String
+    abstract val id: ResourceId
     abstract val name: String
     abstract val capacities: List<C>
 
@@ -368,6 +368,15 @@ interface ResourceUsage<
     }
 }
 
+/**
+ * 从线性中间符号求解资源数量物理量 / Solve resource quantity from a linear intermediate symbol
+ *
+ * @param V 目标数值类型 / Target numeric type
+ * @param model 元模型 / Meta model
+ * @param adapter solver 数值适配器 / Solver value adapter
+ * @param unit 数量单位 / Quantity unit
+ * @return 资源数量物理量，求解失败时返回 null / Resource quantity, or null if evaluation fails
+ */
 private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantityOf(
     model: MetaModel<Flt64>,
     adapter: SchedulingSolverValueAdapter<V>,

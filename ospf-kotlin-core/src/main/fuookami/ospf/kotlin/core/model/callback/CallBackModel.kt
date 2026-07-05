@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param V 数值类型 / The numeric type
  */
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
+    /** 三路比较器 / The three-way comparator */
     val comparator: ThreeWayComparator<V>
 
     /**
@@ -148,7 +149,14 @@ class CallBackModel<V> internal constructor(
     private val _converter: IntoValue<V>
 ) : CallBackModelInterface<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        /** 根据优化方向创建目标比较器 / Create an objective comparator based on the optimization direction */
+        /**
+         * 根据优化方向创建目标比较器。
+         * Create an objective comparator based on the optimization direction.
+         *
+         * @param category 优化方向 / The optimization direction
+         * @param converter 值转换器 / The value converter
+         * @return 部分比较器 / The partial comparator
+         */
         private fun <V> dumpObjectiveComparator(
             category: ObjectCategory,
             converter: IntoValue<V>

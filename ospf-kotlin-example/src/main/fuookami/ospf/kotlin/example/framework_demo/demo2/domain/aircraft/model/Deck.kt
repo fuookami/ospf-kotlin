@@ -21,6 +21,13 @@ data class Deck(
     val positions: List<Position>,
     val doorUbieties: Map<HatchDoor, List<DoorUbiety>>
 ) {
+    /**
+     * 获取指定位置在所有舱门下的邻近信息。
+     * Get the door ubieties for a given position across all doors.
+     *
+     * @param position 要查询的位置 / The position to query
+     * @return 该位置对应的所有舱门邻近信息 / All door ubieties for the given position
+     */
     fun ubieties(position: Position): List<DoorUbiety> {
         return doorUbieties.values.mapNotNull { ubieties ->
             ubieties.find { it.position == position }

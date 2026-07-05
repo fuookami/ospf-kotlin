@@ -112,6 +112,12 @@ open class SymbolCombineBenchmark {
         return mutable.monomials.size
     }
 
+    /**
+     * 可变二次多项式累加后合并基准
+     * Benchmark for mutable quadratic polynomial accumulate-then-combine
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun mutableQuadraticAccumulateAndCombine(): Int {
         val mutable = MutableQuadraticPolynomial<Flt64>(constant = Flt64.zero)

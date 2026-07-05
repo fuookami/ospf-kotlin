@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.domain.length_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
 
 /**
  * 长度分配建模配置，供 application 层消费 / Length assignment modeling configuration for application layer
@@ -18,11 +19,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
  * @property batchMinPenalty 批次最小化惩罚权重（动态长度产品）/ Batch minimization penalty weight for dynamic-length products
  */
 data class LengthAssignmentModelingConfig<V : RealNumber<V>>(
-    val dynamicProductIds: Set<String> = emptySet(),
-    val assignedLengthLowerBound: Map<String, V> = emptyMap(),
-    val assignedLengthUpperBound: Map<String, V> = emptyMap(),
-    val overLengthPenalty: Map<String, V> = emptyMap(),
-    val overLengthUpperBound: Map<String, V> = emptyMap(),
+    val dynamicProductIds: Set<ProductId> = emptySet(),
+    val assignedLengthLowerBound: Map<ProductId, V> = emptyMap(),
+    val assignedLengthUpperBound: Map<ProductId, V> = emptyMap(),
+    val overLengthPenalty: Map<ProductId, V> = emptyMap(),
+    val overLengthUpperBound: Map<ProductId, V> = emptyMap(),
     val totalLengthPenalty: V? = null,
     val batchMinPenalty: V? = null
 )
@@ -47,7 +48,7 @@ data class LengthAssignmentModelingResult<V : RealNumber<V>>(
  * @property assignedLength 分配的卷长值 / Assigned length value
  */
 data class ModeledAssignedLength<V : RealNumber<V>>(
-    val productId: String,
+    val productId: ProductId,
     val assignedLength: V
 )
 
@@ -59,6 +60,6 @@ data class ModeledAssignedLength<V : RealNumber<V>>(
  * @property overLength 超长值 / Over-length value
  */
 data class ModeledOverLength<V : RealNumber<V>>(
-    val productId: String,
+    val productId: ProductId,
     val overLength: V
 )

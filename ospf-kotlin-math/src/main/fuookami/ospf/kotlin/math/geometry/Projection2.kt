@@ -91,6 +91,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
         return permutation.apply(this)
     }
 
-    /** 在原点处创建包围盒 / Create a bounding box at the origin */
+    /** 在原点处创建包围盒 / Create a bounding box at the origin
+     * @return 原点处的包围盒 / The bounding box at the origin */
     fun atOrigin(): Box2<V> = Box2.atOrigin(this)
 }

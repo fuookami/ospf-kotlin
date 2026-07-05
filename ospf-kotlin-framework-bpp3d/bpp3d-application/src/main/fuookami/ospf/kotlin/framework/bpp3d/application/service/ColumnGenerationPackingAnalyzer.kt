@@ -36,6 +36,9 @@ data class ColumnGenerationPackingSnapshot(
 /**
  * 需求模式标签。
  * Demand mode tag.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 模式对应的标签字符串 / tag string corresponding to the mode
  */
 private fun demandModeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
@@ -64,7 +67,7 @@ private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
         capacity = FltX.maximum * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
-        typeCode = "QUANTITY-KNOWN-COORDINATE-${index + 1}"
+        typeCode = binTypeIdOf("QUANTITY-KNOWN-COORDINATE-${index + 1}")
     )
 }
 

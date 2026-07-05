@@ -23,18 +23,23 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.*
 
 /**
+ * 集中的求解器边界类型转换。
  * Centralized solver-boundary type casts.
  *
  * 运行时所有求解器边界实例都使用 V=Flt64；这里把星投影引用转换回 Flt64，以便调用泛型方法。
+ * 转换由于 JVM 类型擦除是安全的但未检查的。
+ *
  * At runtime, all solver-boundary instances use V=Flt64. These casts convert
  * star-projected (V=*) references back to Flt64 so that generic methods can be called.
  * The casts are safe but unchecked due to JVM type erasure.
  *
+ * 本对象是框架中所有 UNCHECKED_CAST 抑制的唯一位置。请勿在其他地方添加 @Suppress("UNCHECKED_CAST")。
  * This object is the single location for all UNCHECKED_CAST suppressions
  * in the framework. Do not add @Suppress("UNCHECKED_CAST") elsewhere.
  */
 @Suppress("UNCHECKED_CAST")
 internal object SolverBoundaryCasts {
+    /** Flt64 恒等值转换器 / Flt64 identity value converter */
     private val solverValueConverter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero

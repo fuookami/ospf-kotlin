@@ -1006,7 +1006,12 @@ inline fun <K, V> Map<K, V>.toSortedMapWithPartialThreeWayComparator(
     return this.toSortedMap { lhs, rhs -> comparator(lhs, rhs)?.value ?: 0 }
 }
 
-/** 求持续时间总和 / Sum of durations */
+/**
+ * 求持续时间总和
+ * Sum of durations
+ *
+ * @return 持续时间总和 / Sum of durations
+ */
 fun Iterable<Duration>.sum(): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + duration }
 }

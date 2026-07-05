@@ -197,10 +197,24 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         tokens.remove(item)
     }
 
+    /**
+     * 添加中间符号到符号表。
+     * Add an intermediate symbol to the token table.
+     *
+     * @param symbol 中间符号 / The intermediate symbol
+     * @return 操作结果 / The operation result
+     */
     fun add(symbol: IntermediateSymbol<*>): Try {
         return tokens.add(symbol)
     }
 
+    /**
+     * 批量添加中间符号到符号表。
+     * Add multiple intermediate symbols to the token table.
+     *
+     * @param symbols 中间符号迭代器 / The intermediate symbols
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
     fun add(symbols: Iterable<IntermediateSymbol<*>>): Try {
@@ -346,13 +360,39 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         return ok
     }
 
+    /**
+     * 从符号表中移除中间符号。
+     * Remove an intermediate symbol from the token table.
+     *
+     * @param symbol 中间符号 / The intermediate symbol
+     */
     fun remove(symbol: IntermediateSymbol<*>) {
         tokens.remove(symbol)
     }
 
+    /**
+     * 注册约束组，后续添加的约束将归属该组。
+     * Register a constraint group; subsequently added constraints will belong to this group.
+     *
+     * @param group 约束组 / The constraint group
+     */
     fun registerConstraintGroup(group: MetaConstraintGroup)
+    /**
+     * 获取指定约束组在约束列表中的索引范围。
+     * Get the index range of the specified constraint group in the constraint list.
+     *
+     * @param group 约束组 / The constraint group
+     * @return 索引范围，若不存在则返回 null / The index range, or null if not found
+     */
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
+    /**
+     * 获取指定约束组的所有约束。
+     * Get all constraints of the specified constraint group.
+     *
+     * @param group 约束组 / The constraint group
+     * @return 约束列表 / The constraint list
+     */
     fun constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint> {
         return indicesOfConstraintGroup(group)?.let { indices ->
             indices.map { constraints[it] }
@@ -472,6 +512,19 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
  * @param V 数值类型 / The number type
  */
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 使用变量添加约束。
+     * Add a constraint using a variable.
+     *
+     * @param constraint   变量 / The variable
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintVariableWithGroup")
     fun addConstraint(
@@ -497,6 +550,19 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         )
     }
 
+    /**
+     * 使用线性多项式添加约束。
+     * Add a constraint using a linear polynomial.
+     *
+     * @param constraint   线性多项式 / The linear polynomial
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintLinearPolynomialWithGroup")
     fun addConstraint(
@@ -520,6 +586,19 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         )
     }
 
+    /**
+     * 使用线性中间符号添加约束。
+     * Add a constraint using a linear intermediate symbol.
+     *
+     * @param constraint   线性中间符号 / The linear intermediate symbol
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     fun addConstraint(
         constraint: LinearIntermediateSymbol<V>,
         group: MetaConstraintGroup?,
@@ -546,9 +625,18 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     /**
      * 使用数学 LinearInequality 添加约束
      * Add constraint using math LinearInequality
+     *
+     * @param relation     线性不等式 / The linear inequality
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param priority     约束优先级 / The constraint priority
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
      */
     fun addConstraint(
-        relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -558,6 +646,18 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         withRangeSet: Boolean? = false
     ): Try
 
+    /**
+     * 使用变量迭代器添加分区约束。
+     * Add a partition constraint using an iterable of variables.
+     *
+     * @param variables   变量迭代器 / The variables
+     * @param group       约束组 / The constraint group
+     * @param lazy        是否为惰性约束 / Whether this is a lazy constraint
+     * @param name        约束名称 / The constraint name
+     * @param displayName 约束显示名称 / The constraint display name
+     * @param args        附加参数 / Additional arguments
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -581,10 +681,21 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         )
     }
 
+    /**
+     * 使用线性中间符号迭代器添加分区约束。
+     * Add a partition constraint using an iterable of linear intermediate symbols.
+     *
+     * @param symbols     线性中间符号迭代器 / The linear intermediate symbols
+     * @param group       约束组 / The constraint group
+     * @param lazy        是否为惰性约束 / Whether this is a lazy constraint
+     * @param name        约束名称 / The constraint name
+     * @param displayName 约束显示名称 / The constraint display name
+     * @param args        附加参数 / Additional arguments
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
-        symbols: Iterable<LinearIntermediateSymbol<V>>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -604,6 +715,18 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         )
     }
 
+    /**
+     * 使用线性多项式添加分区约束。
+     * Add a partition constraint using a linear polynomial.
+     *
+     * @param polynomial  线性多项式 / The linear polynomial
+     * @param group       约束组 / The constraint group
+     * @param lazy        是否为惰性约束 / Whether this is a lazy constraint
+     * @param name        约束名称 / The constraint name
+     * @param displayName 约束显示名称 / The constraint display name
+     * @param args        附加参数 / Additional arguments
+     * @return 操作结果 / The operation result
+     */
     fun partition(
         polynomial: LinearPolynomial<V>,
         group: MetaConstraintGroup?,
@@ -634,6 +757,19 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
  * @param V 数值类型 / The number type
  */
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    /**
+     * 使用二次多项式添加约束。
+     * Add a constraint using a quadratic polynomial.
+     *
+     * @param constraint   二次多项式 / The quadratic polynomial
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     fun addConstraint(
         constraint: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,
@@ -655,6 +791,19 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         )
     }
 
+    /**
+     * 使用二次中间符号添加约束。
+     * Add a constraint using a quadratic intermediate symbol.
+     *
+     * @param constraint   二次中间符号 / The quadratic intermediate symbol
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
+     */
     fun addConstraint(
         constraint: QuadraticIntermediateSymbol<V>,
         group: MetaConstraintGroup?,
@@ -680,9 +829,18 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     /**
      * 使用数学 QuadraticInequality 添加约束
      * Add constraint using math QuadraticInequality
+     *
+     * @param relation     二次不等式 / The quadratic inequality
+     * @param group        约束组 / The constraint group
+     * @param lazy         是否为惰性约束 / Whether this is a lazy constraint
+     * @param name         约束名称 / The constraint name
+     * @param displayName  约束显示名称 / The constraint display name
+     * @param args         附加参数 / Additional arguments
+     * @param priority     约束优先级 / The constraint priority
+     * @param withRangeSet 是否包含范围集 / Whether to include range set
+     * @return 操作结果 / The operation result
      */
     fun addConstraint(
-        relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -692,10 +850,21 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         withRangeSet: Boolean? = null
     ): Try
 
+    /**
+     * 使用二次中间符号迭代器添加分区约束。
+     * Add a partition constraint using an iterable of quadratic intermediate symbols.
+     *
+     * @param symbols     二次中间符号迭代器 / The quadratic intermediate symbols
+     * @param group       约束组 / The constraint group
+     * @param lazy        是否为惰性约束 / Whether this is a lazy constraint
+     * @param name        约束名称 / The constraint name
+     * @param displayName 约束显示名称 / The constraint display name
+     * @param args        附加参数 / Additional arguments
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
-        symbols: Iterable<QuadraticIntermediateSymbol<V>>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -715,6 +884,18 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         )
     }
 
+    /**
+     * 使用二次多项式添加分区约束。
+     * Add a partition constraint using a quadratic polynomial.
+     *
+     * @param polynomial  二次多项式 / The quadratic polynomial
+     * @param group       约束组 / The constraint group
+     * @param lazy        是否为惰性约束 / Whether this is a lazy constraint
+     * @param name        约束名称 / The constraint name
+     * @param displayName 约束显示名称 / The constraint display name
+     * @param args        附加参数 / Additional arguments
+     * @return 操作结果 / The operation result
+     */
     fun partition(
         polynomial: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,

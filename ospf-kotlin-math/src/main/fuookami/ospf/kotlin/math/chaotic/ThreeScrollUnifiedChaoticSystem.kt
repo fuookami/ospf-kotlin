@@ -50,6 +50,12 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1Attractor<V : FloatingNumber<V>>
     }
 }
 
+/**
+ * 三涡卷统一混沌系统 TSUCS1 吸引子生成器
+ * Three-Scroll Unified Chaotic System TSUCS1 attractor generator
+ *
+ * @property attractor TSUCS1 吸引子实例 / TSUCS1 attractor instance
+ */
 data class ThreeScrollUnifiedChaoticSystemTsucs1AttractorGenerator(
     val attractor: ThreeScrollUnifiedChaoticSystemTsucs1Attractor<Flt64> = ThreeScrollUnifiedChaoticSystemTsucs1Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(
@@ -111,6 +117,12 @@ data class ThreeScrollUnifiedChaoticSystemTsucs2Attractor<V : FloatingNumber<V>>
     }
 }
 
+/**
+ * 三涡卷统一混沌系统 TSUCS2 吸引子生成器
+ * Three-Scroll Unified Chaotic System TSUCS2 attractor generator
+ *
+ * @property attractor TSUCS2 吸引子实例 / TSUCS2 attractor instance
+ */
 data class ThreeScrollUnifiedChaoticSystemTsucs2AttractorGenerator(
     val attractor: ThreeScrollUnifiedChaoticSystemTsucs2Attractor<Flt64> = ThreeScrollUnifiedChaoticSystemTsucs2Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -22,6 +22,11 @@ import java.util.concurrent.TimeUnit
 /**
  * core 热点路径基准
  * Core hot path benchmark
+ *
+ * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
+ * @property linearFlattenData 线性展平数据列表 / list of linear flatten data blocks
+ * @property quadraticFlattenData 二次展平数据列表 / list of quadratic flatten data blocks
+ * @property sparseMatrix 稀疏矩阵 / sparse matrix for transpose benchmark
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -34,6 +39,10 @@ open class CoreHotPathBenchmark {
     private lateinit var quadraticFlattenData: List<QuadraticFlattenData<Flt64>>
     private lateinit var sparseMatrix: SparseMatrix<Flt64>
 
+    /**
+     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的线性/二次展平数据和稀疏矩阵。
+     * Initializes benchmark data, generating linear/quadratic flatten data and sparse matrix of varying sizes based on the [dataset] parameter.
+     */
     @Setup
     fun setup() {
         val variableCount = when (dataset) {
@@ -104,6 +113,8 @@ open class CoreHotPathBenchmark {
     /**
      * 对应 P19 flatten merge 单趟累积热点。
      * Maps to the P19 flatten merge one-pass accumulation hot path.
+     *
+     * @return 合并后不同一次项的数量加常数标记 / count of distinct linear terms after merging plus a constant marker
      */
     @Benchmark
     fun mergeLinearFlattenDataLikeP19(): Int {
@@ -122,6 +133,8 @@ open class CoreHotPathBenchmark {
     /**
      * 对应 P19 quadratic flatten merge 聚合热点。
      * Maps to the P19 quadratic flatten merge aggregation hot path.
+     *
+     * @return 合并后不同二次项的数量 / number of distinct quadratic terms after merging
      */
     @Benchmark
     fun mergeQuadraticFlattenDataLikeP19(): Int {
@@ -144,12 +157,22 @@ open class CoreHotPathBenchmark {
     /**
      * 对应 P19 SparseMatrix.transpose 单趟 maxCol + 填充热点。
      * Maps to the P19 SparseMatrix.transpose one-pass maxCol + fill hot path.
+     *
+     * @return 转置后矩阵的行数 / number of rows of the transposed matrix
      */
     @Benchmark
     fun sparseMatrixTranspose(): Int {
         return sparseMatrix.transpose().numRows()
     }
 
+    /**
+     * 比较两个符号的键顺序，先按名称字典序，再按身份哈希码。
+     * Compares the key order of two symbols: first by name lexicographically, then by identity hash code.
+     *
+     * @param lhs 左侧符号 / left-hand side symbol
+     * @param rhs 右侧符号 / right-hand side symbol
+     * @return 比较结果：负数表示 lhs 小于 rhs，零表示相等，正数表示 lhs 大于 rhs / comparison result: negative if lhs < rhs, zero if equal, positive if lhs > rhs
+     */
     private fun compareSymbolKey(lhs: Symbol, rhs: Symbol): Int {
         val id = lhs.name.compareTo(rhs.name)
         return if (id != 0) id else System.identityHashCode(lhs).compareTo(System.identityHashCode(rhs))

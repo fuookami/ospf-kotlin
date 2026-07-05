@@ -44,6 +44,12 @@ data class DadrasAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 达德拉斯吸引子生成器
+ * Dadras Attractor Generator
+ *
+ * @property attractor 达德拉斯吸引子实例 / Dadras attractor instance
+ */
 data class DadrasAttractorGenerator(
     val attractor: DadrasAttractor<Flt64> = DadrasAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -42,6 +42,9 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
      *
      * 安全不变量：V 实现 FloatingNumber<V>，且三角函数运算返回与输入同一数值族的实例。
      * Safety invariant: V implements FloatingNumber<V>, and trigonometric operations return values from the same numeric family as the input.
+     *
+     * @param value 三角函数运算的结果值 / The result value from trigonometric operation
+     * @return 转换后的类型 V / The cast value of type V
      */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {

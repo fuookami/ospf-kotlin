@@ -14,10 +14,23 @@ class LoadingOrderCalculator(
     private val maxBlockDepth: Quantity<FltX>?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
+    /**
+     * 解析放置的装箱形状。
+     * Resolve the packing shape of a placement.
+     * @param placement the placement to resolve
+     * @return the resolved packing shape
+     */
     private fun resolvePackingShape(placement: QuantityPlacement3<*, FltX>): PackingShape3<FltX> {
         return placement.resolvedPackingShape()
     }
 
+    /**
+     * 判断两个放置的底部投影（footprint）是否有重叠区域。
+     * Determine whether the bottom footprints of two placements overlap.
+     * @param lhs the left-hand side placement
+     * @param rhs the right-hand side placement
+     * @return true if the footprints overlap
+     */
     private fun bottomFootprintOverlapped(lhs: QuantityPlacement3<*, FltX>, rhs: QuantityPlacement3<*, FltX>): Boolean {
         val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
         val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
@@ -25,6 +38,15 @@ class LoadingOrderCalculator(
         return (overlapArea gr (FltX.zero * overlapArea.unit)) == true
     }
 
+    /**
+     * 判断两个放置在一维轴向上的投影是否有重叠区间。
+     * Determine whether two placements have overlapping intervals along a one-dimensional axis.
+     * @param lhsStart the start coordinate of the left-hand side
+     * @param lhsEnd the end coordinate of the left-hand side
+     * @param rhsStart the start coordinate of the right-hand side
+     * @param rhsEnd the end coordinate of the right-hand side
+     * @return true if the intervals overlap
+     */
     private fun axisOverlapped(
         lhsStart: Quantity<FltX>,
         lhsEnd: Quantity<FltX>,
@@ -45,6 +67,14 @@ class LoadingOrderCalculator(
         return (overlap gr (FltX.zero * overlap.unit)) == true
     }
 
+    /**
+     * 判断两个放置是否在指定投影平面上重叠。
+     * Determine whether two placements overlap on the specified projective plane.
+     * @param lhs the left-hand side placement
+     * @param rhs the right-hand side placement
+     * @param plane the projective plane to check overlap on
+     * @return true if the placements overlap on the given plane
+     */
     private fun overlappedAt(
         lhs: QuantityPlacement3<*, FltX>,
         rhs: QuantityPlacement3<*, FltX>,
@@ -130,6 +160,12 @@ class LoadingOrderCalculator(
         return dump(ret)
     }
 
+    /**
+     * 将旧放置列表合并为块序列（按宽度-深度、高度-深度、宽度-高度三个方向依次尝试合并）。
+     * Merge the old placement list into a block sequence by attempting merge along width-depth, height-depth, and width-height directions.
+     * @param oldPlacements the original placements to merge
+     * @return the merged placements
+     */
     private fun merge(oldPlacements: List<QuantityPlacement3<*, FltX>>): List<QuantityPlacement3<*, FltX>> {
         return merge(
             merge(
@@ -161,6 +197,9 @@ class LoadingOrderCalculator(
      * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型体系的绑定。
      * Uses Any parameter instead of the infrastructure wildcard cuboid type: when-dispatch is runtime type checking,
      * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility type hierarchy.
+     * @param lhs the left-hand side unit
+     * @param rhs the right-hand side unit
+     * @return true if the two units are the same type
      */
     private fun isSameType(lhs: Any, rhs: Any): Boolean {
         return if (lhs is Item && rhs is Item) {
@@ -176,6 +215,14 @@ class LoadingOrderCalculator(
         }
     }
 
+    /**
+     * 合并可合并的放置，支持深度检查以限制块深度。
+     * Merge mergeable placements, with optional depth checking to constrain block depth.
+     * @param oldPlacements the original placements to merge
+     * @param checkDepth whether to check the depth constraint
+     * @param predicate the merge predicate
+     * @return the merged placements
+     */
     private fun merge(
         oldPlacements: List<QuantityPlacement3<*, FltX>>,
         checkDepth: Boolean = false,
@@ -235,6 +282,13 @@ class LoadingOrderCalculator(
         return newPlacements
     }
 
+    /**
+     * 将一组可合并的放置合并为一个公共块。
+     * Merge a group of mergeable placements into a common block.
+     * @param thisPlacement the reference placement
+     * @param thisPlacements the other placements to merge into the block
+     * @return the merged common block
+     */
     private fun mergeToBlock(
         thisPlacement: QuantityPlacement3<*, FltX>,
         thisPlacements: MutableList<QuantityPlacement3<*, FltX>>
@@ -272,6 +326,12 @@ class LoadingOrderCalculator(
         return CommonBlock(items)
     }
 
+    /**
+     * 构建向前依赖矩阵，记录每个放置之前必须装载的其它放置索引。
+     * Build a forward dependency matrix recording the indices of other placements that must be loaded before each placement.
+     * @param placements the list of placements
+     * @return a matrix where matrix[i] contains indices of placements that precede placement i
+     */
     private fun tidyForwardMatrix(placements: List<QuantityPlacement3<*, FltX>>): List<List<Int>> {
         val forwardMatrix = placements.map { _ -> ArrayList<Int>() }
         for (i in placements.indices) {
@@ -284,6 +344,13 @@ class LoadingOrderCalculator(
         return forwardMatrix
     }
 
+    /**
+     * 判断 lhs 是否应该在 rhs 之前装载（基于底面、侧面和正面三个投影平面的叠放关系）。
+     * Determine whether lhs should be loaded before rhs based on overlapping in bottom, side, and front projective planes.
+     * @param lhs the left-hand side placement
+     * @param rhs the right-hand side placement
+     * @return true if lhs should precede rhs
+     */
     private fun forward(lhs: QuantityPlacement3<*, FltX>, rhs: QuantityPlacement3<*, FltX>): Boolean {
         val planes = listOf(Bottom, Side, Front)
         for (plane in planes) {
@@ -305,6 +372,12 @@ class LoadingOrderCalculator(
             plane.distance(lhs.position) leq plane.distance(rhs.position)
         }
     }
+    /**
+     * 将合并后的放置序列展平为单个物品级别的放置列表。
+     * Flatten the merged placement sequence into a list of individual item-level placements.
+     * @param placements the merged placements with sequence numbers
+     * @return the flattened item-level placements with sequence numbers
+     */
     private fun dump(placements: List<Pair<QuantityPlacement3<*, FltX>, UInt64>>): List<Pair<QuantityPlacement3<Item, FltX>, UInt64>> {
         val ret = ArrayList<Pair<QuantityPlacement3<Item, FltX>, UInt64>>()
         for ((placement, sequence) in placements) {

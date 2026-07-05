@@ -22,7 +22,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
         capacity = FltX(100.0) * Kilogram,
         longitudinalBalance = null,
         lateralBalance = null,
-        typeCode = "BIN-DEPTH-POLICY"
+        typeCode = binTypeIdOf("BIN-DEPTH-POLICY")
     )
 
     /** 断言策略失败 / Assert policy failed */
@@ -314,7 +314,7 @@ class DepthBoundaryLayerOrientationPolicyTest {
         shapeSpec: PackageShapeSpec? = null
     ): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = FltX.one * Meter,
             height = FltX.one * Meter,

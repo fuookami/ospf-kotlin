@@ -185,6 +185,13 @@ class KtormScalarTranslator(
         }
     }
 
+    /**
+     * 处理不支持的标量表达式情况
+     * Handle unsupported scalar expression cases
+     *
+     * @param reason 不支持的原因 / Reason why the expression is unsupported
+     * @return 根据策略返回失败或 null / Returns failure or null depending on the policy
+     */
     private fun unsupported(reason: String): Ret<KtormScalarExpression<*>?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

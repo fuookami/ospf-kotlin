@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionActionIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.CapacityActionProduce
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Material
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
@@ -26,8 +27,20 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.toSolve
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.TaskId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+
+@JvmInline
+private value class TestExecutorId(val value: String) : ExecutorId {
+    override fun toString(): String = value
+}
+
+@JvmInline
+private value class TestTaskId(val value: String) : TaskId {
+    override fun toString(): String = value
+}
 
 /**
  * 补充覆盖 FltX 数值路径与 solver 转换边界。
@@ -194,7 +207,7 @@ class ProduceQuantityFltXTest {
     fun productionTaskQuantityShouldSupportFltX() {
         val task = object : ProductionTask<Executor, AssignmentPolicy<Executor>, Material, Material, FltX> {
             override val index = 0
-            override val id = "produce-quantity-task"
+            override val id = TestTaskId("produce-quantity-task")
             override val name = "Produce Quantity Task"
             override val produceQuantityByProduct = mapOf<Material, Quantity<FltX>>(
                 productA to Quantity(FltX("6.25"), NoneUnit)
@@ -221,7 +234,7 @@ class ProduceQuantityFltXTest {
     fun productionTaskQuantityMapsShouldSupportFltX() {
         val task = object : ProductionTask<Executor, AssignmentPolicy<Executor>, Material, Material, FltX> {
             override val index = 1
-            override val id = "produce-quantity-map-task"
+            override val id = TestTaskId("produce-quantity-map-task")
             override val name = "Produce Quantity Map Task"
             override val produceQuantityByProduct = mapOf<Material, Quantity<FltX>>(
                 productA to Quantity(FltX("8.25"), NoneUnit)
@@ -246,9 +259,9 @@ class ProduceQuantityFltXTest {
 
     @Test
     fun capacityColumnProduceAndConsumptionShouldSupportFltX() {
-        val executor = Executor("executor-1", "Executor 1")
+        val executor = Executor(TestExecutorId("executor-1"), "Executor 1")
         val action = object : ProductionAction, CapacityActionProduce<Material, Material, FltX> {
-            override val id = "action-1"
+            override val id = ProductionActionIdImpl("action-1")
             override val name = "Action 1"
             override val executor = executor
             override val discrete = true

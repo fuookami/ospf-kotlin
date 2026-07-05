@@ -45,6 +45,12 @@ data class YuWangAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
     }
 }
 
+/**
+ * Yu-Wang 吸引子生成器
+ * Yu-Wang Attractor Generator
+ *
+ * @property attractor Yu-Wang 吸引子实例 / Yu-Wang attractor instance
+ */
 data class YuWangAttractorGenerator(
     val attractor: YuWangAttractor<Flt64> = YuWangAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

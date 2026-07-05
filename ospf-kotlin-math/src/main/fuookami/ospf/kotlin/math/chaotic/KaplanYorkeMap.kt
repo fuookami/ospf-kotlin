@@ -12,6 +12,9 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
+ * Kaplan-Yorke 映射
+ * Kaplan-Yorke Map
+ *
  * @property a 系统参数 a / System parameter a
  * @property fourPi 常量 4*pi / Constant 4*pi
  */
@@ -30,6 +33,13 @@ data class KaplanYorkeMap<V : FloatingNumber<V>>(val a: V, val fourPi: V) : Extr
     }
 }
 
+/**
+ * Kaplan-Yorke 映射生成器
+ * Kaplan-Yorke Map Generator
+ *
+ * @property map Kaplan-Yorke 映射实例 / Kaplan-Yorke Map instance
+ * @property _x 当前状态点（包含 x 和 y 坐标）/ Current state point (containing x and y coordinates)
+ */
 data class KaplanYorkeMapGenerator(
     val map: KaplanYorkeMap<Flt64> = KaplanYorkeMap(),
     private var _x: Point<Dim2, Flt64> = point2(
@@ -39,6 +49,7 @@ data class KaplanYorkeMapGenerator(
         ), Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point<Dim2, Flt64>> {
+    /** 当前状态点的只读视图 / Read-only view of the current state point */
     val x by ::_x;
     override operator fun invoke(): Point<Dim2, Flt64> {
         val x = _x.copy(); _x = map(x); return x

@@ -49,6 +49,13 @@ data class DequanLiAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Dequan Li 吸引子生成器
+ * Dequan Li Attractor Generator
+ *
+ * @property attractor Dequan Li 吸引子实例 / Dequan Li Attractor instance
+ * @property _x 初始状态向量 / Initial state vector
+ */
 data class DequanLiAttractorGenerator(
     val attractor: DequanLiAttractor<Flt64> = DequanLiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

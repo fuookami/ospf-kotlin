@@ -18,12 +18,12 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property availableBatches 可用批次数，主问题按物料方案使用量求和建模 / Available batches modeled by material plan usage sum in master problem
  */
 data class Material<V : RealNumber<V>>(
-    override val id: String,
+    override val id: MaterialId,
     val name: String,
     val widthRange: WidthRange<V>,
     override val length: Quantity<V>? = null,
     override val unitWeight: Quantity<V>? = null,
-    val machineId: String? = null,
+    val machineId: MachineId? = null,
     val availableBatches: UInt64 = UInt64.maximum
 ) : Production<V>, ManualIndexed() {
     override val width: List<Quantity<V>> by lazy {

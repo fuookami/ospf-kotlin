@@ -12,7 +12,7 @@ class Csp1dDomainPolicyTest {
 
     private fun material(id: String = "m", upperBound: Double = 2.0, lowerBound: Double = 0.5): Material<Flt64> {
         return Material(
-            id = id,
+            id = MaterialIdImpl(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -25,7 +25,7 @@ class Csp1dDomainPolicyTest {
     }
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
-        return Product(id = id, name = "product-$id", width = widths)
+        return Product(id = ProductIdImpl(id), name = "product-$id", width = widths)
     }
 
     // endregion
@@ -170,7 +170,7 @@ class Csp1dDomainPolicyTest {
         val overWidth = Quantity(Flt64(3.0), Meter)
 
         val plan = CuttingPlan(
-            id = "test-plan",
+            id = CuttingPlanIdImpl("test-plan"),
             material = m,
             slices = listOf(CuttingPlanSlice(production = p, width = overWidth)),
             demandContributions = emptyList()
@@ -194,7 +194,7 @@ class Csp1dDomainPolicyTest {
         val p = product("p1", listOf(Quantity(Flt64(1.0), Meter)))
 
         val plan = CuttingPlan(
-            id = "test-plan",
+            id = CuttingPlanIdImpl("test-plan"),
             material = m2, // different material
             slices = listOf(CuttingPlanSlice(production = p, width = Quantity(Flt64(1.0), Meter))),
             demandContributions = emptyList()

@@ -9,6 +9,12 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
 
+/**
+ * 获取影子价格的单位符号 / Get unit symbol for shadow price
+ *
+ * @param unit 物理单位 / Physical unit
+ * @return 单位符号字符串 / Unit symbol string
+ */
 private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
     return unit.symbol ?: unit.name ?: unit.toString()
 }
@@ -307,7 +313,7 @@ data class Csp1dPricingObjectiveConfig<V : RealNumber<V>>(
     val planUsagePenalty: V? = null,
     val trimWidthPenalty: V? = null,
     val restMaterialPenalty: V? = null,
-    val materialCostPenalty: Map<String, V> = emptyMap()
+    val materialCostPenalty: Map<MaterialId, V> = emptyMap()
 )
 
 /**
@@ -369,7 +375,7 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
                     }
                 } ?: continue
                 val plan = CuttingPlan(
-                    id = "init-${material.id}-${demand.product.id}-${plans.size}",
+                    id = CuttingPlanIdImpl("init-${material.id}-${demand.product.id}-${plans.size}"),
                     material = material,
                     slices = listOf(
                         CuttingPlanSlice(
@@ -449,7 +455,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
                 }
             } ?: continue
             val plan = CuttingPlan(
-                id = "pricing-${material.id}-${demand.product.id}-${pricedPlans.size}",
+                id = CuttingPlanIdImpl("pricing-${material.id}-${demand.product.id}-${pricedPlans.size}"),
                 material = material,
                 slices = listOf(
                     CuttingPlanSlice(
@@ -489,6 +495,12 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
         return pricedPlans
     }
 
+    /**
+     * 判断值是否为正 / Check if the value is positive
+     *
+     * @param value 要检查的值 / Value to check
+     * @return 如果大于零返回 true / true if greater than zero
+     */
     private fun isPositive(value: V): Boolean {
         return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
@@ -582,6 +594,10 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      *
      * benefit = Σ(contribution_ij * shadow_price_i) + Σ(material_usage_m * shadow_price_m)
      * When benefit > 1, it is equivalent to reduced_cost < 0.
+     *
+     * @param plan 切割方案 / Cutting plan
+     * @param shadowPrices 影子价格映射 / Shadow price map
+     * @return 对偶收益值 / Dual benefit value
      */
     private fun computeDualBenefit(plan: CuttingPlan<V>, shadowPrices: ShadowPriceMap<V>): V {
         var benefit = plan.material.widthRange.upperBound.value.constants.zero
@@ -620,6 +636,12 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         return benefit
     }
 
+    /**
+     * 判断值是否为正 / Check if the value is positive
+     *
+     * @param value 要检查的值 / Value to check
+     * @return 如果大于零返回 true / true if greater than zero
+     */
     private fun isPositive(value: V): Boolean {
         return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
@@ -627,6 +649,16 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 计算切割方案的目标函数成本 / Compute objective cost of a cutting plan
+     *
+     * 基础成本为 1（表示方案使用一次），加上各项可配置惩罚。
+     * Base cost is 1 (representing one plan usage), plus configurable penalties.
+     *
+     * @param plan 切割方案 / Cutting plan
+     * @param objectiveConfig 定价目标配置 / Pricing objective config
+     * @return 目标成本值 / Objective cost value
+     */
     private fun computeObjectiveCost(
         plan: CuttingPlan<V>,
         objectiveConfig: Csp1dPricingObjectiveConfig<V>
@@ -664,6 +696,16 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         return cost
     }
 
+    /**
+     * 判断候选方案是否能改善主问题目标 / Check if a candidate can improve the master problem objective
+     *
+     * 先检查自定义 judges 列表，如果所有 judges 都返回 null 则使用默认逻辑：benefit > objectiveCost。
+     * Custom judges are checked first; if all return null, falls back to default: benefit > objectiveCost.
+     *
+     * @param candidate 定价候选 / Priced candidate
+     * @param judges 自定义判断器列表 / Custom judge list
+     * @return 如果可以改善返回 true / true if the candidate is improving
+     */
     private fun isImproving(
         candidate: PricedCandidate<V>,
         judges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList()
@@ -680,6 +722,14 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 按分数排序的比较器 / Comparator for sorting by score
+     *
+     * 分数 = benefit + 对方 objectiveCost，越大越优先。
+     * Score = benefit + opponent's objectiveCost; higher score takes priority.
+     *
+     * @return 排序比较器 / Sort comparator
+     */
     private fun compareByScore(): Comparator<PricedCandidate<V>> {
         return Comparator { left, right ->
             val leftScoreSide = left.benefit + right.objectiveCost
@@ -692,6 +742,14 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 定价候选内部数据类 / Internal data class for a priced candidate
+     *
+     * @param V 数值类型 / Numeric value type
+     * @property plan 切割方案 / Cutting plan
+     * @property benefit 对偶收益 / Dual benefit
+     * @property objectiveCost 目标成本 / Objective cost
+     */
     private data class PricedCandidate<V : RealNumber<V>>(
         val plan: CuttingPlan<V>,
         val benefit: V,

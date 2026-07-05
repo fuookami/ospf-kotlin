@@ -82,7 +82,7 @@ class LayerGenerationQuantityContractTest {
             materials = emptyMap()
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = pack.width,
             height = pack.height,
@@ -117,7 +117,7 @@ class LayerGenerationQuantityContractTest {
             materials = emptyMap()
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = pack.width,
             height = pack.height,
@@ -183,7 +183,7 @@ class LayerGenerationQuantityContractTest {
             materials = mapOf(material to UInt64(2))
         )
         val item = QuantityItem(
-            id = "item-lg",
+            id = itemIdOf("item-lg"),
             name = "item-lg",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -229,7 +229,7 @@ class LayerGenerationQuantityContractTest {
             materials = mapOf(material to UInt64.one)
         )
         val item = QuantityItem(
-            id = "item-req",
+            id = itemIdOf("item-req"),
             name = "item-req",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -260,7 +260,7 @@ class LayerGenerationQuantityContractTest {
         )
 
         assertEquals(1, request.items.size)
-        assertEquals("item-req", (request.items.first() as ActualItem).id)
+        assertEquals(itemIdOf("item-req"), (request.items.first() as ActualItem).id)
         assertEquals(1, request.existingLayers.size)
         assertEquals(1, request.existingLayers.first().units.size)
     }
@@ -297,7 +297,7 @@ class LayerGenerationQuantityContractTest {
             materials = mapOf(material to UInt64.one)
         )
         val item = QuantityItem(
-            id = "item-lg2",
+            id = itemIdOf("item-lg2"),
             name = "item-lg2",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -357,7 +357,7 @@ class LayerGenerationQuantityContractTest {
         )
 
         val lowItem = QuantityItem(
-            id = "item-low",
+            id = itemIdOf("item-low"),
             name = "item-low",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(materialLow to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -365,7 +365,7 @@ class LayerGenerationQuantityContractTest {
             packageAttribute = defaultPackageAttribute()
         ).toModel()
         val highItem = QuantityItem(
-            id = "item-high",
+            id = itemIdOf("item-high"),
             name = "item-high",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(materialHigh to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -439,7 +439,7 @@ class LayerGenerationQuantityContractTest {
             )
         )
         val item = ActualItem(
-            id = "item-weight-only-program",
+            id = itemIdOf("item-weight-only-program"),
             name = "item-weight-only-program",
             width = program.width,
             height = program.height,
@@ -503,7 +503,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-block",
+            id = itemIdOf("item-block"),
             name = "item-block",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -517,7 +517,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-BLOCK"
+            typeCode = binTypeIdOf("BIN-LG-BLOCK")
         )
 
         val generated = BlockLayerGenerator<FltX>().generate(
@@ -550,7 +550,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-block-gen",
+            id = itemIdOf("item-block-gen"),
             name = "item-block-gen",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -564,7 +564,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-BLOCK-GEN"
+            typeCode = binTypeIdOf("BIN-LG-BLOCK-GEN")
         )
 
         val generated = BlockLayerGenerator<FltX>().generateFromQuantity(
@@ -595,7 +595,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-pattern",
+            id = itemIdOf("item-pattern"),
             name = "item-pattern",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -609,7 +609,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-PATTERN"
+            typeCode = binTypeIdOf("BIN-LG-PATTERN")
         )
 
         val generated = PatternLayerGenerator<FltX>().generate(
@@ -642,7 +642,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-pile",
+            id = itemIdOf("item-pile"),
             name = "item-pile",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -656,7 +656,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-PILE"
+            typeCode = binTypeIdOf("BIN-LG-PILE")
         )
 
         val generated = PileLayerGenerator<FltX>().generate(
@@ -682,7 +682,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-PILE-HORIZONTAL-CYLINDER"
+            typeCode = binTypeIdOf("BIN-LG-PILE-HORIZONTAL-CYLINDER")
         )
 
         for (axis in listOf(Axis3.X, Axis3.Z)) {
@@ -752,7 +752,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-BLOCK-LOADING-HORIZONTAL-CYLINDER"
+            typeCode = binTypeIdOf("BIN-LG-BLOCK-LOADING-HORIZONTAL-CYLINDER")
         )
 
         for ((source, generator) in generators) {
@@ -793,7 +793,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-circle",
+            id = itemIdOf("item-circle"),
             name = "item-circle",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -807,7 +807,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -842,7 +842,7 @@ class LayerGenerationQuantityContractTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-circle-tie",
+            id = itemIdOf("item-circle-tie"),
             name = "item-circle-tie",
             pack = QuantityPackage.innerPackage(shape = shape, materials = mapOf(material to UInt64.one)),
             enabledOrientations = listOf(Orientation.Upright),
@@ -856,7 +856,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-TIE"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-TIE")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -885,7 +885,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-AXIS-X"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-AXIS-X")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -944,7 +944,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-AXIS-Z"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-AXIS-Z")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1010,7 +1010,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1087,7 +1087,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-MULTI-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1173,7 +1173,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HETEROGENEOUS-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-HETEROGENEOUS-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1203,8 +1203,8 @@ class LayerGenerationQuantityContractTest {
         val supportIds = supportPlacements.map { placement -> (placement.view.unit as ActualItem).id }.toSet()
         assertEquals(
             setOf(
-                "item-circle-horizontal-stack-heterogeneous-support-a",
-                "item-circle-horizontal-stack-heterogeneous-support-b"
+                itemIdOf("item-circle-horizontal-stack-heterogeneous-support-a"),
+                itemIdOf("item-circle-horizontal-stack-heterogeneous-support-b")
             ),
             supportIds
         )
@@ -1259,7 +1259,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-PARTIAL-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-PARTIAL-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1300,7 +1300,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-Z-STACK")
         )
         val singleGenerated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
@@ -1334,7 +1334,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-MULTI-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-Z-MULTI-STACK")
         )
         val multiGenerated = CirclePackingLayerGenerator<FltX>().generate(
             Bpp3dLayerGenerationRequest(
@@ -1401,7 +1401,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-CYLINDER-BOTTOM-STACK"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-CYLINDER-BOTTOM-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1442,7 +1442,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-HANGING")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1482,7 +1482,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-MULTI-HANGING"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-MULTI-HANGING")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1562,7 +1562,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-Z-HANGING"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-Z-HANGING")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1602,7 +1602,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-HANGING-PARTIAL"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-HANGING-PARTIAL")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1638,7 +1638,7 @@ class LayerGenerationQuantityContractTest {
             materials = emptyMap()
         )
         val item = ActualItem(
-            id = "item-circle-continuous-radius-key",
+            id = itemIdOf("item-circle-continuous-radius-key"),
             name = "item-circle-continuous-radius-key",
             width = pack.width,
             height = pack.height,
@@ -1662,7 +1662,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-CONTINUOUS-RADIUS-KEY")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1709,7 +1709,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-AXIS-Y"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-AXIS-Y")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1747,7 +1747,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-GEOMETRY"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-GEOMETRY")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1788,7 +1788,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-MIXED"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-MIXED")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1820,7 +1820,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-BOUNDARY"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-BOUNDARY")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1855,7 +1855,7 @@ class LayerGenerationQuantityContractTest {
             materials = emptyMap()
         )
         val item = ActualItem(
-            id = "item-circle-dynamic-radius",
+            id = itemIdOf("item-circle-dynamic-radius"),
             name = "item-circle-dynamic-radius",
             width = pack.width,
             height = pack.height,
@@ -1879,7 +1879,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-DYNAMIC-RADIUS"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-DYNAMIC-RADIUS")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -1948,7 +1948,7 @@ class LayerGenerationQuantityContractTest {
             materials = emptyMap()
         )
         val item = ActualItem(
-            id = "item-circle-horizontal-dynamic-radius",
+            id = itemIdOf("item-circle-horizontal-dynamic-radius"),
             name = "item-circle-horizontal-dynamic-radius",
             width = pack.width,
             height = pack.height,
@@ -1972,7 +1972,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-HORIZONTAL-DYNAMIC-RADIUS")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -2034,7 +2034,7 @@ class LayerGenerationQuantityContractTest {
             capacity = FltX(10.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LG-CIRCLE-OVERSIZED"
+            typeCode = binTypeIdOf("BIN-LG-CIRCLE-OVERSIZED")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(

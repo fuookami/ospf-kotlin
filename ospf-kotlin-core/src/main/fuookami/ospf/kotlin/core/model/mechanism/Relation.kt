@@ -28,10 +28,14 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
     /** 转换为可空 ConstraintRelation 枚举 / Convert to nullable ConstraintRelation enum */
     val constraintRelationOrNull: ConstraintRelation? get() = ConstraintRelation.ofOrNull(sign)
 
-    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid */
+    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid
+     * @return 包含 ConstraintRelation 的 Ret，或失败信息 / Ret containing ConstraintRelation, or failure
+     */
     fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
-    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
+    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE)
+     * @return 归一化后的线性约束关系 / The normalized linear constraint relation
+     */
     fun normalize(): LinearRelation<V>
 }
 
@@ -52,10 +56,14 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
     /** 转换为可空 ConstraintRelation 枚举 / Convert to nullable ConstraintRelation enum */
     val constraintRelationOrNull: ConstraintRelation? get() = ConstraintRelation.ofOrNull(sign)
 
-    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid */
+    /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid
+     * @return 包含 ConstraintRelation 的 Ret，或失败信息 / Ret containing ConstraintRelation, or failure
+     */
     fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
-    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE) */
+    /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE)
+     * @return 归一化后的二次约束关系 / The normalized quadratic constraint relation
+     */
     fun normalize(): QuadraticRelation<V>
 }
 

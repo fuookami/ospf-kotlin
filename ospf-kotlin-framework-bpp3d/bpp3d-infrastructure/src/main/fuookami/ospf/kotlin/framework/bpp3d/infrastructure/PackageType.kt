@@ -1,49 +1,12 @@
 /**
- * 包装类型基础设施。
- * Package type infrastructure.
+ * 定义包裹类型（包装箱/托盘），作为 BPP3D 基础设施层的类型标记接口。
+ * Defines package types (box/pallet) as a type-marking interface in the BPP3D infrastructure layer.
  */
+@file:JvmName("PackageType")
+
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-enum class PackageClassification {
-    Outer,
-    Inner
-}
+sealed interface PackageType
 
-enum class PackageCategory {
-    HardBox,
-    Pallet,
-    SoftBox,
-    Filler
-}
-
-enum class PackageType {
-    DutyCorrugatedBoardPedal {
-        override val category = PackageCategory.HardBox
-    },
-
-    WoodenContainer {
-        override val category = PackageCategory.HardBox
-    },
-
-    HoneycombBox {
-        override val category = PackageCategory.HardBox
-    },
-
-    Pallet {
-        override val category = PackageCategory.Pallet
-    },
-
-    CartonPallet {
-        override val category = PackageCategory.Pallet
-    },
-
-    CartonContainer {
-        override val category = PackageCategory.SoftBox
-    },
-
-    PackingFoam {
-        override val category = PackageCategory.Filler
-    };
-
-    abstract val category: PackageCategory
-}
+object PackageTypeBox : PackageType
+object PackageTypePallet : PackageType

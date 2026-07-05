@@ -62,7 +62,15 @@ interface NumericInteger<Self, I>
     /** 立方根 / Cube root */
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
-    /** 以指定基数计算对数 / Calculate logarithm with specified base */
+    /**
+     * 以指定基数计算对数
+     * Calculate logarithm with specified base
+     *
+     * @param base 对数基数
+     *             The logarithm base
+     * @return 对数结果
+     *         The logarithm result
+     */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
@@ -71,7 +79,15 @@ interface NumericInteger<Self, I>
         else -> toFltX().log(base.toFltX())
     }
 
-    /** 计算浮点数次幂 / Calculate floating-point power */
+    /**
+     * 计算浮点数次幂
+     * Calculate floating-point power
+     *
+     * @param index 指数
+     *              The exponent
+     * @return 幂运算结果
+     *         The power result
+     */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)

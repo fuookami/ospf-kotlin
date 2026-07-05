@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @property demandContributions 需求贡献结构键 / Demand contribution structural keys
  */
 data class CuttingPlanCanonicalKey(
-    val materialId: String,
-    val machineId: String?,
+    val materialId: MaterialId,
+    val machineId: MachineId?,
     val capacityConsumption: String?,
     val slices: List<CuttingPlanSliceCanonicalKey>,
     val demandContributions: List<CuttingPlanDemandContributionCanonicalKey>
@@ -32,7 +32,7 @@ data class CuttingPlanCanonicalKey(
      * this constructor wraps the string into a CuttingPlanCanonicalKey for dedup set membership.
      */
     constructor(customKey: String) : this(
-        materialId = customKey,
+        materialId = CustomKeyMaterialId(customKey),
         machineId = null,
         capacityConsumption = null,
         slices = emptyList(),
@@ -50,7 +50,7 @@ data class CuttingPlanCanonicalKey(
  */
 data class CuttingPlanSliceCanonicalKey(
     val productionType: String,
-    val productionId: String,
+    val productionId: ProductionId?,
     val width: String,
     val amount: UInt64
 )
@@ -63,7 +63,7 @@ data class CuttingPlanSliceCanonicalKey(
  * @property quantityValue 需求贡献值 / Demand contribution value
  */
 data class CuttingPlanDemandContributionCanonicalKey(
-    val productId: String,
+    val productId: ProductId,
     val unit: String,
     val quantityValue: String
 )
@@ -101,21 +101,29 @@ fun <V : RealNumber<V>> Iterable<CuttingPlan<V>>.distinctByCanonicalKey(): List<
 
 private data class SliceGroupKey(
     val productionType: String,
-    val productionId: String,
+    val productionId: ProductionId?,
     val width: String
 )
 
 private data class DemandContributionGroupKey(
-    val productId: String,
+    val productId: ProductId,
     val unit: String
 )
+
+/**
+ * 自定义字符串 canonical key 的 MaterialId 哨兵实现 /
+ * MaterialId sentinel for degenerate canonical keys built from custom string keys
+ */
+private data class CustomKeyMaterialId(val value: String) : MaterialId {
+    override fun toString(): String = value
+}
 
 private fun <V : RealNumber<V>> List<CuttingPlanSlice<V>>.canonicalSliceKeys(): List<CuttingPlanSliceCanonicalKey> {
     val grouped = LinkedHashMap<SliceGroupKey, UInt64>()
     for (slice in this) {
         val key = SliceGroupKey(
             productionType = slice.production.canonicalProductionType(),
-            productionId = slice.production.id ?: "",
+            productionId = slice.production.id,
             width = slice.width.canonicalQuantityKey()
         )
         grouped[key] = grouped[key]?.let { it + slice.amount } ?: slice.amount
@@ -129,7 +137,7 @@ private fun <V : RealNumber<V>> List<CuttingPlanSlice<V>>.canonicalSliceKeys(): 
         )
     }.sortedWith(
         compareBy<CuttingPlanSliceCanonicalKey> { it.productionType }
-            .thenBy { it.productionId }
+            .thenBy { it.productionId?.toString() }
             .thenBy { it.width }
             .thenBy { it.amount.toString() }
     )
@@ -152,7 +160,7 @@ private fun <V : RealNumber<V>> List<CuttingPlanDemandContribution<V>>.canonical
             quantityValue = value.toString()
         )
     }.sortedWith(
-        compareBy<CuttingPlanDemandContributionCanonicalKey> { it.productId }
+        compareBy<CuttingPlanDemandContributionCanonicalKey> { it.productId.toString() }
             .thenBy { it.unit }
             .thenBy { it.quantityValue }
     )
@@ -166,6 +174,11 @@ private fun PhysicalUnit.canonicalUnitKey(): String {
     return symbol ?: name ?: toString()
 }
 
+/**
+ * 生成产出的规范类型键 / Generate canonical production type key
+ *
+ * @return 产出类型的字符串标识 / String identifier for production type
+ */
 private fun <V : RealNumber<V>> Production<V>.canonicalProductionType(): String {
     return when (this) {
         is Product<*> -> "product"

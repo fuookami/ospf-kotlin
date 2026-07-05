@@ -42,6 +42,13 @@ data class GenesioTesiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V
     }
 }
 
+/**
+ * Genesio-Tesi 吸引子生成器
+ * Genesio-Tesi Attractor Generator
+ *
+ * @property attractor Genesio-Tesi 吸引子实例 / Genesio-Tesi attractor instance
+ * @property _x 当前三维状态点 / Current 3D state point
+ */
 data class GenesioTesiAttractorGenerator(
     val attractor: GenesioTesiAttractor<Flt64> = GenesioTesiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

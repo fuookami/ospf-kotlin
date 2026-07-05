@@ -431,6 +431,17 @@ data object ItemMerger {
         return Ok(Pair(mergedItems, restItems.flatMap { it.value }))
     }
 
+    /**
+     * 合并图案方块。
+     * Merge pattern blocks.
+     *
+     * @param items 待合并的物品列表 / Items to merge
+     * @param space 容器空间 / Container space
+     * @param patterns 可用图案列表 / Available patterns
+     * @param restWeight 剩余重量约束 / Remaining weight constraint
+     * @param patternConfig 图案配置 / Pattern configuration
+     * @return 合并后的通用方块列表与剩余物品列表 / Merged common blocks and remaining items
+     */
     suspend fun mergePatternBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -503,6 +514,16 @@ data object ItemMerger {
         return Ok(Pair(mergedItems, restItems))
     }
 
+    /**
+     * 合并空心方块。
+     * Merge hollow square blocks.
+     *
+     * @param items 待合并的物品列表 / Items to merge
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量约束 / Remaining weight constraint
+     * @param config 合并配置 / Merge configuration
+     * @return 合并后的空心方块列表与剩余物品列表 / Merged hollow square blocks and remaining items
+     */
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -526,6 +547,16 @@ data object ItemMerger {
         }
     }
 
+    /**
+     * 合并空心方块的 Map 重载。
+     * Map overload for merging hollow square blocks.
+     *
+     * @param items 物品数量映射 / Item amount map
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量约束 / Remaining weight constraint
+     * @param config 合并配置 / Merge configuration
+     * @return 合并后的空心方块列表与剩余物品映射 / Merged hollow square blocks and remaining item map
+     */
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
@@ -709,6 +740,9 @@ data object ItemMerger {
      * 仅支持长方体（Cuboid-only）：圆柱在此路径被显式拒绝。
      * Flatten merged results to Item list.
      * Cuboid-only: cylinders are explicitly rejected in this path.
+     *
+     * @param units 合并单元列表 / The merge units to flatten
+     * @return 展开后的物品列表 / The flattened item list
      */
     @JvmName("dumpItems")
     fun dump(units: List<ItemMergeUnit>): List<Item> {

@@ -46,6 +46,12 @@ data class BoualiAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Bouali 吸引子生成器
+ * Bouali Attractor Generator
+ *
+ * @property attractor Bouali 吸引子实例 / Bouali attractor instance
+ */
 data class BoualiAttractorGenerator(
     val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -39,7 +39,19 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * 重量推荐应用程序入口
+ * Entry point for the weight recommendation application
+ */
 class WeightRecommendationApplication {
+    /**
+     * Benders 分解的模型容器
+     * Container for Benders decomposition models
+     * @property masterModel Benders 主问题模型 / Master problem model
+     * @property subModel Benders 子问题模型 / Sub problem model
+     * @property objectVariable 目标变量 / Object variable
+     * @property fixedVariables 固定变量映射 / Fixed variables map
+     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,
@@ -48,6 +60,10 @@ class WeightRecommendationApplication {
     )
 }
 
+/**
+ * 重量推荐算法实现
+ * Implementation of the weight recommendation algorithm
+ */
 private class WeightRecommendationAlgorithmImpl {
     lateinit var aircraftContext: AircraftContext
     lateinit var stowageContext: StowageContext
@@ -190,6 +206,12 @@ private class WeightRecommendationAlgorithmImpl {
         return output
     }
 
+    /**
+     * 初始化所有领域上下文
+     * Initialize all domain contexts
+     * @param request 请求 DTO / Request DTO
+     * @return 初始化结果 / Initialization result
+     */
     private fun init(request: RequestDTO): Try {
         when (val result = aircraftContext.init(
             input = request
@@ -288,6 +310,15 @@ private class WeightRecommendationAlgorithmImpl {
         return ok
     }
     
+    /**
+     * 使用 MILP 直接求解
+     * Solve directly using MILP
+     * @param id 请求 ID / Request ID
+     * @param parameter 求解参数 / Solving parameter
+     * @param startTime 开始时间 / Start time
+     * @param runningHeartBeatCallBack 运行心跳回调 / Running heartbeat callback
+     * @return 求解结果，包含配载方案 / Result containing the stowage solution
+     */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
@@ -414,6 +445,13 @@ private class WeightRecommendationAlgorithmImpl {
         return Ok<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution, ErrorCode, Error<ErrorCode>>(solution)
     }
 
+    /**
+     * 注册所有领域上下文的约束与变量到模型中
+     * Register constraints and variables from all domain contexts into the model
+     * @param parameter 求解参数 / Solving parameter
+     * @param model 线性元模型 / Linear meta model
+     * @return 注册结果 / Registration result
+     */
     private fun register(
         parameter: Parameter,
         model: AbstractLinearMetaModel<Flt64>
@@ -497,6 +535,13 @@ private class WeightRecommendationAlgorithmImpl {
         return ok
     }
     
+    /**
+     * 使用 Benders 分解算法求解
+     * Solve using Benders decomposition algorithm
+     * @param request 请求 DTO / Request DTO
+     * @param notes 求解备注列表 / Solving notes list
+     * @return 求解结果，包含配载方案 / Result containing the stowage solution
+     */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
@@ -602,6 +647,11 @@ private class WeightRecommendationAlgorithmImpl {
         }
     }
 
+    /**
+     * 构建 Benders 分解的主问题与子问题模型
+     * Build master and sub problem models for Benders decomposition
+     * @return Benders 模型容器 / Benders models container
+     */
     private fun buildBendersModels(): BendersModels {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_weight_recommendation_master",
@@ -641,6 +691,14 @@ private class WeightRecommendationAlgorithmImpl {
             fixedVariables = fixedVariables
         )
     }
+    /**
+     * Benders 分解的模型容器
+     * Container for Benders decomposition models
+     * @property masterModel Benders 主问题模型 / Master problem model
+     * @property subModel Benders 子问题模型 / Sub problem model
+     * @property objectVariable 目标变量 / Object variable
+     * @property fixedVariables 固定变量映射 / Fixed variables map
+     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,

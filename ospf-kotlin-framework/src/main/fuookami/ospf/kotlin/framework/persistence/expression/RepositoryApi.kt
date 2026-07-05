@@ -2,7 +2,7 @@
  * 仓储 API
  * Repository API
  *
- * 提供基于表达式的统一查询和更新接口�?
+ * 提供基于表达式的统一查询和更新接口。
  * Provides unified query and update interface based on expressions.
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
@@ -10,10 +10,10 @@ package fuookami.ospf.kotlin.framework.persistence.expression
 import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 
 /**
- * 表达式仓储接�?
+ * 表达式仓储接口
  * Expression Repository Interface
  *
- * 定义基于 BooleanExpression 的查询和更新接口�?
+ * 定义基于 BooleanExpression 的查询和更新接口。
  * Defines query and update interfaces based on BooleanExpression.
  *
  * @param E 实体类型 / Entity type

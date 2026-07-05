@@ -36,7 +36,7 @@ class ColumnGenerationQuantityShapeSpecEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-shape-spec",
+            id = itemIdOf("item-shape-spec"),
             name = "item-shape-spec",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(

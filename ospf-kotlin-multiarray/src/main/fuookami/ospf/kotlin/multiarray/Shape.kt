@@ -173,12 +173,18 @@ interface Shape {
     /**
      * 将向量索引转换为线性索引
      * Convert vector index to linear index
+     *
+     * @param vector 向量索引 / Vector index
+     * @return 线性索引结果 / Linear index result
      */
     fun index(vector: IntArray): Ret<Int>
 
     /**
      * 安全转换向量索引
      * Safely converts vector index to linear index
+     *
+     * @param vector 向量索引 / Vector index
+     * @return 线性索引结果 / Linear index result
      */
     fun indexSafe(vector: IntArray): Ret<Int> {
         return index(vector)
@@ -187,6 +193,9 @@ interface Shape {
     /**
      * 尝试转换向量索引
      * Tries to convert vector index to linear index
+     *
+     * @param vector 向量索引 / Vector index
+     * @return 线性索引，如果越界则返回 null / Linear index, or null if out of bounds
      */
     fun indexOrNull(vector: IntArray): Int? {
         return index(vector).value
@@ -195,12 +204,18 @@ interface Shape {
     /**
      * 将线性索引转换为向量索引
      * Convert linear index to vector index
+     *
+     * @param index 线性索引 / Linear index
+     * @return 向量索引结果 / Vector index result
      */
     fun vector(index: Int): Ret<IntArray>
 
     /**
      * 安全转换线性索引
      * Safely converts linear index to vector index
+     *
+     * @param index 线性索引 / Linear index
+     * @return 向量索引结果 / Vector index result
      */
     fun vectorSafe(index: Int): Ret<IntArray> {
         return vector(index)
@@ -209,6 +224,9 @@ interface Shape {
     /**
      * 尝试转换线性索引
      * Tries to convert linear index to vector index
+     *
+     * @param index 线性索引 / Linear index
+     * @return 向量索引，如果越界则返回 null / Vector index, or null if out of bounds
      */
     fun vectorOrNull(index: Int): IntArray? {
         return vector(index).value
@@ -217,6 +235,8 @@ interface Shape {
     /**
      * 检查是否为空
      * Check if empty
+     *
+     * @return 如果元素总数为零则返回 true / True if total number of elements is zero
      */
     fun isEmpty(): Boolean = size == 0
 
@@ -245,6 +265,9 @@ interface Shape {
     /**
      * 获取指定维度的步长
      * Get the stride for the specified dimension
+     *
+     * @param dimension 维度索引 / Dimension index
+     * @return 步长结果 / Stride result
      */
     fun offset(dimension: Int): Ret<Int> {
         return offsetSafe(dimension)
@@ -253,6 +276,9 @@ interface Shape {
     /**
      * 安全获取指定维度的步长
      * Safely gets the stride for the specified dimension
+     *
+     * @param dimension 维度索引 / Dimension index
+     * @return 步长结果 / Stride result
      */
     fun offsetSafe(dimension: Int): Ret<Int> {
         if (dimension >= this.dimension || dimension < 0) {
@@ -267,6 +293,9 @@ interface Shape {
     /**
      * 尝试获取指定维度的步长
      * Tries to get the stride for the specified dimension
+     *
+     * @param dimension 维度索引 / Dimension index
+     * @return 步长，如果维度越界则返回 null / Stride, or null if dimension is out of bounds
      */
     fun offsetOrNull(dimension: Int): Int? {
         return offsetSafe(dimension).value
@@ -300,12 +329,17 @@ interface Shape {
     /**
      * 创建零向量
      * Create zero vector
+     *
+     * @return 各维度均为零的向量 / Vector with all dimensions set to zero
      */
     fun zero(): IntArray = IntArray(dimension)
 
     /**
      * 将虚拟索引转换为迭代器向量
      * Convert dummy vector to iterator vector
+     *
+     * @param dummyVector 虚拟向量 / Dummy vector
+     * @return 迭代器向量 / Iterator vector
      */
     fun dummyToIteratorVector(dummyVector: DummyVector): IteratorVector {
         return dummyVector.mapIndexed { i, dummy -> dummy.iteratorOf(this, i) }
@@ -314,6 +348,9 @@ interface Shape {
     /**
      * 将虚拟向量转换为映射向量
      * Convert dummy vector to map vector
+     *
+     * @param dummyVector 虚拟向量 / Dummy vector
+     * @return 映射向量 / Map vector
      */
     fun dummyToMapVector(dummyVector: DummyVector): MapVector {
         return dummyVector.mapIndexed { index, dummy ->
@@ -324,6 +361,9 @@ interface Shape {
     /**
      * 将映射向量转换为迭代器向量
      * Convert map vector to iterator vector
+     *
+     * @param mapVector 映射向量 / Map vector
+     * @return 迭代器向量 / Iterator vector
      */
     fun mapToIteratorVector(mapVector: MapVector): IteratorVector {
         return mapVector.mapIndexed { i, mapIndex ->
@@ -340,6 +380,9 @@ interface Shape {
     /**
      * 从任意类型数组创建虚拟向量
      * Create dummy vector from any type array
+     *
+     * @param v 虚拟索引参数 / Dummy index arguments
+     * @return 虚拟向量结果 / Dummy vector result
      */
     fun dummyVector(vararg v: Any): Ret<DummyVector> {
         return dummyVectorSafe(*v)
@@ -348,6 +391,9 @@ interface Shape {
     /**
      * 安全创建虚拟向量
      * Safely creates dummy vector
+     *
+     * @param v 虚拟索引参数 / Dummy index arguments
+     * @return 虚拟向量结果 / Dummy vector result
      */
     fun dummyVectorSafe(vararg v: Any): Ret<DummyVector> {
         if (v.size != dimension) {
@@ -393,6 +439,9 @@ interface Shape {
     /**
      * 尝试创建虚拟向量
      * Tries to create dummy vector
+     *
+     * @param v 虚拟索引参数 / Dummy index arguments
+     * @return 虚拟向量，如果创建失败则返回 null / Dummy vector, or null if creation failed
      */
     fun dummyVectorOrNull(vararg v: Any): DummyVector? {
         return dummyVectorSafe(*v).value
@@ -491,6 +540,9 @@ fun Shape.dummyVectorUnchecked(vararg v: Any): DummyVector {
 /**
  * 一维形状
  * One-dimensional shape
+ *
+ * @property d1 第一维度长度 / Length of the first dimension
+ * @property storageOrder 存储顺序 / Storage order
  */
 @ConsistentCopyVisibility
 data class Shape1 private constructor(
@@ -602,6 +654,10 @@ data class Shape1 private constructor(
 /**
  * 二维形状
  * Two-dimensional shape
+ *
+ * @property d1 第一维度长度 / Length of the first dimension
+ * @property d2 第二维度长度 / Length of the second dimension
+ * @property storageOrder 存储顺序 / Storage order
  */
 @ConsistentCopyVisibility
 data class Shape2 private constructor(
@@ -742,6 +798,11 @@ data class Shape2 private constructor(
 /**
  * 三维形状
  * Three-dimensional shape
+ *
+ * @property d1 第一维度长度 / Length of the first dimension
+ * @property d2 第二维度长度 / Length of the second dimension
+ * @property d3 第三维度长度 / Length of the third dimension
+ * @property storageOrder 存储顺序 / Storage order
  */
 @ConsistentCopyVisibility
 data class Shape3 private constructor(
@@ -902,6 +963,12 @@ data class Shape3 private constructor(
 /**
  * 四维形状
  * Four-dimensional shape
+ *
+ * @property d1 第一维度长度 / Length of the first dimension
+ * @property d2 第二维度长度 / Length of the second dimension
+ * @property d3 第三维度长度 / Length of the third dimension
+ * @property d4 第四维度长度 / Length of the fourth dimension
+ * @property storageOrder 存储顺序 / Storage order
  */
 @ConsistentCopyVisibility
 data class Shape4 private constructor(
@@ -1087,6 +1154,13 @@ data class DynShape private constructor(
     override val storageOrder: StorageOrder
 ) : Shape {
     companion object {
+        /**
+         * 计算总元素数
+         * Calculate total number of elements
+         *
+         * @param shape 各维度长度的数组 / Array of dimension lengths
+         * @return 所有维度长度的乘积 / Product of all dimension lengths
+         */
         @JvmStatic
         private fun calculateTotalSize(shape: IntArray): Int {
             var ret = 1

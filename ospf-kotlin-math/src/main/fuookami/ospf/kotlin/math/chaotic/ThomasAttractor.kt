@@ -36,6 +36,12 @@ data class ThomasAttractor<V : FloatingNumber<V>>(val beta: V, val h: V) : Extra
     }
 }
 
+/**
+ * 托马斯吸引子生成器
+ * Thomas Attractor Generator
+ *
+ * @property attractor 托马斯吸引子实例 / Thomas attractor instance
+ */
 data class ThomasAttractorGenerator(
     val attractor: ThomasAttractor<Flt64> = ThomasAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(
@@ -47,6 +53,10 @@ data class ThomasAttractorGenerator(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point<Dim3, Flt64>> {
+    /**
+     * 当前点坐标
+     * Current point coordinates
+     */
     val x by ::_x;
     override operator fun invoke(): Point<Dim3, Flt64> {
         val x = _x.copy(); _x = attractor(x); return x

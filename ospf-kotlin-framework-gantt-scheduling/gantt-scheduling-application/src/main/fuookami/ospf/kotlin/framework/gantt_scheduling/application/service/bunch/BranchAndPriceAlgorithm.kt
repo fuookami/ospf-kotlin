@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.SolverRunId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
 
 /**
@@ -136,7 +137,7 @@ class BranchAndPriceAlgorithm<
      * @return 任务束解 / Bunch solution
      */
     suspend operator fun invoke(
-        id: String,
+        id: SolverRunId,
         heartBeatCallBack: ((kotlin.time.Instant, Duration, Flt64) -> Try)? = null
     ): Ret<BunchSolution<B, V, T, E, A>> {
         var maximumReducedCost1 = Flt64(50.0)
@@ -144,7 +145,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: BunchSolution<B, V, T, E, A>
-        return LinearMetaModel<Flt64>(id, converter = schedulingSolverValueAdapter).use { model ->
+        return LinearMetaModel<Flt64>(id.value, converter = schedulingSolverValueAdapter).use { model ->
             try {
 
                 var iteration = Iteration<T, E, A, V>()
@@ -161,7 +162,7 @@ class BranchAndPriceAlgorithm<
                 }
 
                 // solve ip with initial column / 使用初始列求解 IP
-                val ipRet = when (val result = solver.solveMILP("${id}_$iteration", model)) {
+                val ipRet = when (val result = solver.solveMILP("${id.value}_$iteration", model)) {
                     is Ok -> {
                         model.setSolution(result.value.solution)
                         result.value
@@ -471,7 +472,7 @@ class BranchAndPriceAlgorithm<
 
                     this.fixedBunches.clear()
                     this.fixedBunches.addAll(fixedBunches)
-                    val thisIpRet = when (val result = solver.solveMILP("${id}_${iteration}_ip", model)) {
+                    val thisIpRet = when (val result = solver.solveMILP("${id.value}_${iteration}_ip", model)) {
                         is Ok -> {
                             model.setSolution(result.value.solution)
                             result.value
@@ -505,7 +506,7 @@ class BranchAndPriceAlgorithm<
                             }
                         }
                     }
-                    heartBeat(id, iteration.optimalRate)
+                    heartBeat(iteration.optimalRate)
 
                     flush(iteration.iteration)
                     iteration.halveStep()
@@ -532,10 +533,9 @@ class BranchAndPriceAlgorithm<
     /**
      * 记录算法心跳，最优率是无量纲内部标量 / Record algorithm heartbeat with dimensionless internal optimal-rate scalar
      *
-     * @param id 标识符 / Identifier
      * @param optimalRate 无量纲最优率标量 / Dimensionless optimal-rate scalar
      */
-    private fun heartBeat(id: String, optimalRate: Flt64) {
+    private fun heartBeat(optimalRate: Flt64) {
         logger.info {
             "Heart beat, current optimal rate: ${
                 String.format(
@@ -605,12 +605,12 @@ class BranchAndPriceAlgorithm<
     }
 
     private suspend fun solveRMP(
-        id: String,
+        id: SolverRunId,
         iteration: Iteration<T, E, A, V>,
         model: LinearMetaModel<Flt64>,
         withKeeping: Boolean
     ): Ret<Map> {
-        val lpRet = when (val result = solver.solveLP("${id}_${iteration}_lp", model)) {
+        val lpRet = when (val result = solver.solveLP("${id.value}_${iteration}_lp", model)) {
             is Ok -> {
                 model.setSolution(result.value.solution)
                 result.value
@@ -658,7 +658,7 @@ class BranchAndPriceAlgorithm<
     }
 
     private suspend fun solveSP(
-        id: String,
+        id: SolverRunId,
         iteration: Iteration<T, E, A, V>,
         executors: List<E>,
         shadowPriceMap: Map
@@ -680,7 +680,7 @@ class BranchAndPriceAlgorithm<
         subProblemSolvingTimes += UInt64.one
         subProblemSolvingTime = Clock.System.now() - beginTime
         iteration.refreshLowerBound(newBunches) { policy.reducedCost(shadowPriceMap, it) }
-        heartBeat(id, iteration.optimalRate)
+        heartBeat(iteration.optimalRate)
         return Ok(newBunches)
     }
 

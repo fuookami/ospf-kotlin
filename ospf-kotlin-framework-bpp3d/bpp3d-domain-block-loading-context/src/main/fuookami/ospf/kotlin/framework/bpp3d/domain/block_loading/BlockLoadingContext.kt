@@ -4,5 +4,6 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading
 
+/** 块装载上下文 / Block loading context */
 class BlockLoadingContext {
 }

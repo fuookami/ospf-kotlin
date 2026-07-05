@@ -53,6 +53,8 @@ data class HenonMap<V : FloatingNumber<V>>(
 /**
  * 埃农映射生成器
  * Henon Map Generator
+ * @property henonMap 埃农映射实例 / Henon map instance
+ * @property _x 当前状态点 / Current state point
  */
 data class HenonMapGenerator(
     val henonMap: HenonMap<Flt64> = HenonMap(),
@@ -77,6 +79,10 @@ data class HenonMapGenerator(
         }
     }
 
+    /**
+     * 当前状态点。
+     * The current state point.
+     */
     val x by ::_x
 
     override operator fun invoke(): Point<Dim2, Flt64> {

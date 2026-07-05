@@ -59,9 +59,12 @@ data class Produce<V : RealNumber<V>>(
 
 /**
  * 需求贡献聚合键（产品ID + 单位），确保同产品不同单位贡献不混算 / Contribution aggregation key (product ID + unit) ensuring same-product different-unit contributions are not mixed
+ *
+ * @property productId 产品标识 / Product identifier
+ * @property unit 物理单位 / Physical unit
  */
 data class ContributionKey(
-    val productId: String,
+    val productId: ProductId,
     val unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 )
 

@@ -16,12 +16,27 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
-// 求解器边界转换：在星投影函数符号上注册约束。 / Solver-boundary conversion: register constraints on star-projected function symbols.
-// 委托给 SolverBoundaryCasts，集中唯一的 UNCHECKED_CAST 位置。 / Delegates to SolverBoundaryCasts as the single UNCHECKED_CAST location.
+/**
+ * 在星投影线性函数符号上注册约束（不安全转换）。
+ * Register constraints on a star-projected linear function symbol (unchecked cast).
+ *
+ * 委托给 SolverBoundaryCasts，集中唯一的 UNCHECKED_CAST 位置。
+ * Delegates to SolverBoundaryCasts as the single UNCHECKED_CAST location.
+ *
+ * @param model 目标线性机制模型 / target linear mechanism model
+ * @return 注册结果 / registration result
+ */
 internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsLinearStar(this, model)
 }
 
+/**
+ * 在星投影二次函数符号上注册约束（不安全转换）。
+ * Register constraints on a star-projected quadratic function symbol (unchecked cast).
+ *
+ * @param model 目标二次机制模型 / target quadratic mechanism model
+ * @return 注册结果 / registration result
+ */
 internal fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractQuadraticMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }

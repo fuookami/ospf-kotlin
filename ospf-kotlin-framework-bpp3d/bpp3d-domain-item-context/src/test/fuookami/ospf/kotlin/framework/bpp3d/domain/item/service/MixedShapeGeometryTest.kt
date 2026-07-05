@@ -39,7 +39,7 @@ class MixedShapeGeometryTest {
         attribute: PackageAttribute = packageAttribute()
     ): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = FltX(width) * Meter,
             height = FltX(height) * Meter,
@@ -62,7 +62,7 @@ class MixedShapeGeometryTest {
         val length = FltX(heightValue) * Meter
         val diameter = assertNotNull(radius + radius)
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = when (axis) {
                 Axis3.X -> length

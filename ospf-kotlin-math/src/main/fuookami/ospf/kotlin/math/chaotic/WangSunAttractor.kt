@@ -49,6 +49,10 @@ data class WangSunAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Wang-Sun 吸引子生成器
+ * Wang-Sun Attractor Generator
+ */
 data class WangSunAttractorGenerator(
     val attractor: WangSunAttractor<Flt64> = WangSunAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

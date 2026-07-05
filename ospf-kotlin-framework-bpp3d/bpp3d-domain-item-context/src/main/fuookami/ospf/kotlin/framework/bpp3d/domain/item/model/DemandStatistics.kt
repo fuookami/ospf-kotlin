@@ -48,6 +48,9 @@ fun Bpp3dDemandMode.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
 /**
  * BPP3D 需求键，标识需求针对的货物或物料。
  * BPP3D demand key, identifying the item or material targeted by the demand.
+ *
+ * @property item 货物实例 / item instance
+ * @property material 物料键 / material key
  */
 sealed interface Bpp3dDemandKey {
     /** 货物需求键 / Item demand key */
@@ -112,7 +115,14 @@ sealed interface Bpp3dDemandValue {
     data class Weight(val value: Quantity<FltX>) : Bpp3dDemandValue
 }
 
-/** 合并需求值 / Merge demand value */
+/**
+ * 合并需求值。
+ * Merge demand values.
+ *
+ * @param lhs 左侧需求值 / left-hand side demand value
+ * @param rhs 右侧需求值 / right-hand side demand value
+ * @return 合并后的需求值或错误 / merged demand value or error
+ */
 private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Ret<Bpp3dDemandValue> {
     return when {
         lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> ok(Bpp3dDemandValue.Amount(lhs.value + rhs.value))
@@ -136,13 +146,23 @@ private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3d
     }
 }
 
+/**
+ * 合并需求到可变映射中。
+ * Merge a demand entry into a mutable map.
+ *
+ * @param key 需求键 / demand key
+ * @param value 需求值 / demand value
+ */
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
-    key: Bpp3dDemandKey,
-    value: Bpp3dDemandValue
-) {
     this[key] = this[key]?.let { mergeDemandValue(it, value).value!! } ?: value
 }
 
+/**
+ * 合并一组需求到可变映射中。
+ * Merge a collection of demands into a mutable map.
+ *
+ * @param values 需求键值对映射 / mapping of demand key-value pairs
+ */
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
     values: Map<Bpp3dDemandKey, Bpp3dDemandValue>
 ) {
@@ -151,6 +171,13 @@ private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
     }
 }
 
+/**
+ * 按倍数缩放需求映射。
+ * Scale a demand map by a multiplier.
+ *
+ * @param multiplier 缩放倍数 / scaling multiplier
+ * @return 缩放后的需求映射 / scaled demand map
+ */
 private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
     multiplier: UInt64
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
@@ -160,6 +187,14 @@ private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
     return mapValues { (_, value) -> scaleDemandValue(value, multiplier) }
 }
 
+/**
+ * 统计任意单位在指定需求模式下的需求分布。
+ * Calculate demand distribution of an arbitrary unit under the specified demand mode.
+ *
+ * @param unit 货物、容器或投影等单元 / unit such as item, container or projection
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 private fun statisticsOf(
     unit: Any,
     mode: Bpp3dDemandMode
@@ -229,12 +264,24 @@ fun Item.statistics(
     return statistics(mode).scale(amount)
 }
 
-/** 统计货物视图的需求分布 / Calculate demand distribution of an item view */
+/**
+ * 统计货物视图的需求分布。
+ * Calculate demand distribution of an item view.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun ItemView.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return unit.statistics(mode)
 }
 
-/** 统计二维放置的需求分布 / Calculate demand distribution of a 2D placement */
+/**
+ * 统计二维放置的需求分布。
+ * Calculate demand distribution of a 2D placement.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun QuantityPlacement2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in toPlacement3()) {
@@ -243,12 +290,24 @@ fun QuantityPlacement2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dD
     return counter
 }
 
-/** 统计三维放置的需求分布 / Calculate demand distribution of a 3D placement */
+/**
+ * 统计三维放置的需求分布。
+ * Calculate demand distribution of a 3D placement.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun QuantityPlacement3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return statisticsOf(unit, mode)
 }
 
-/** 统计投影的需求分布 / Calculate demand distribution of a projection */
+/**
+ * 统计投影的需求分布。
+ * Calculate demand distribution of a projection.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun Projection<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (this) {
         is PlaneProjection<*, FltX, *> -> statisticsOf(unit, mode)
@@ -263,7 +322,13 @@ fun Projection<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey
     }
 }
 
-/** 统计二维容器的需求分布 / Calculate demand distribution of a 2D container */
+/**
+ * 统计二维容器的需求分布。
+ * Calculate demand distribution of a 2D container.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun Container2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
@@ -272,7 +337,13 @@ fun Container2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey
     return counter
 }
 
-/** 统计三维容器的需求分布 / Calculate demand distribution of a 3D container */
+/**
+ * 统计三维容器的需求分布。
+ * Calculate demand distribution of a 3D container.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun Container3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
@@ -281,12 +352,24 @@ fun Container3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, B
     return counter
 }
 
-/** 统计货物容器的需求分布 / Calculate demand distribution of an item container */
+/**
+ * 统计货物容器的需求分布。
+ * Calculate demand distribution of an item container.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun ItemContainer<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return (this as Container3<*, FltX>).statistics(mode)
 }
 
-/** 统计三维放置集合的需求分布 / Calculate demand distribution of a collection of 3D placements */
+/**
+ * 统计三维放置集合的需求分布。
+ * Calculate demand distribution of a collection of 3D placements.
+ *
+ * @param mode 需求模式 / demand mode
+ * @return 需求键到需求值的映射 / mapping from demand key to demand value
+ */
 fun Iterable<QuantityPlacement3<*, FltX>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in this) {

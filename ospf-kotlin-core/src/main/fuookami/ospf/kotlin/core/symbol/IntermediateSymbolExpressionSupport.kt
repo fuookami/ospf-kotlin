@@ -742,6 +742,12 @@ class LinearExpressionSymbol<V>(
         category = Linear,
         prefix = "__linear_expression_flatten_cache__"
     )
+    /**
+     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
+     * Retrieve the bound token table from dependencies and cast to Flt64 view.
+     *
+     * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
+     */
     private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies
@@ -1552,6 +1558,12 @@ class QuadraticExpressionSymbol<V>(
         category = Quadratic,
         prefix = "__quadratic_expression_flatten_cache__"
     )
+    /**
+     * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
+     * Retrieve the bound token table from dependencies and cast to Flt64 view.
+     *
+     * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
+     */
     private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies

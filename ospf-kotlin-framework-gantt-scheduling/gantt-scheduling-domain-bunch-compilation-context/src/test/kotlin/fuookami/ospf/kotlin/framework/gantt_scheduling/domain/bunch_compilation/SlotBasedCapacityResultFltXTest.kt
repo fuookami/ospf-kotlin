@@ -20,11 +20,13 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.convertTo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionActionIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractPlannedTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -36,9 +38,9 @@ private val stubTimeRange = TimeRange(
 )
 
 private object StubAction : ProductionAction {
-    override val id = "stub"
+    override val id = ProductionActionIdImpl("stub")
     override val name = "stub"
-    override val executor = Executor("e1", "executor-1")
+    override val executor = Executor(TestExecutorId("e1"), "executor-1")
     override val discrete = false
     override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V =
         throw UnsupportedOperationException("stub")

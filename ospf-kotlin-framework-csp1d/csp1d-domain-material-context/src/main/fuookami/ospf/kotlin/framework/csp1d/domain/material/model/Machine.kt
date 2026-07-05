@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property capacity 业务产能上限，仅与同单位方案产能消耗一起建模 / Business capacity upper bound modeled only with same-unit plan consumption
  */
 data class Machine<V : RealNumber<V>>(
-    val id: String,
+    val id: MachineId,
     val name: String,
     val maxBatchCount: UInt64? = null,
     val maxSwitchCount: UInt64? = null,

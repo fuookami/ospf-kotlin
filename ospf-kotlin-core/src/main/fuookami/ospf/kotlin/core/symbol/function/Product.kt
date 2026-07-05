@@ -219,7 +219,15 @@ class ProductFunction<V>(
         return value
     }
 
-    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
+    /**
+     * 使用 Flt64 值预计算求解器结果。
+     * Pre-compute solver result with Flt64 values.
+     *
+     * @param values 符号到 Flt64 值的映射，可为 null / symbol-to-Flt64 value map, or null
+     * @param tokenTable token 表 / the token table
+     * @param converter 值类型转换器 / value type converter
+     * @return 预计算结果或 null / pre-computed result or null
+     */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         val leftValue = if (targetValues.isNullOrEmpty()) {
@@ -240,6 +248,8 @@ class ProductFunction<V>(
     /**
      * 将 left * right 展开为 V 类型二次多项式。
      * Expand left * right into a V-generic quadratic polynomial.
+     *
+     * @return 展开后的二次多项式 / the expanded quadratic polynomial
      */
     private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {
         val leftC = left
@@ -310,12 +320,30 @@ class ProductFunction<V>(
         val rightValue = evaluateLinearFromValues(right, values, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
-    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
+    /**
+     * 使用 Flt64 结果列表进行求解器求值。
+     * Evaluate solver with Flt64 results list.
+     *
+     * @param results Flt64 结果值列表 / list of Flt64 result values
+     * @param tokenTable token 表 / the token table
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 求值结果或 null / evaluation result or null
+     */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
-    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
+    /**
+     * 使用 Flt64 值映射进行求解器求值。
+     * Evaluate solver with Flt64 value map.
+     *
+     * @param values 符号到 Flt64 值的映射 / symbol-to-Flt64 value map
+     * @param tokenTable 可选的 token 表 / optional token table
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
+     * @return 求值结果或 null / evaluation result or null
+     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)

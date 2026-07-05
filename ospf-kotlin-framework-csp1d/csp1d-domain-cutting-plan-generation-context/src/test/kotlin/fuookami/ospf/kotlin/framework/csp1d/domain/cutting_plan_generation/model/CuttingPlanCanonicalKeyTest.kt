@@ -13,7 +13,7 @@ class CuttingPlanCanonicalKeyTest {
 
     private fun product(id: String, width: Double): Product<Flt64> {
         return Product(
-            id = id,
+            id = ProductIdImpl(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64(width), Meter))
         )
@@ -21,7 +21,7 @@ class CuttingPlanCanonicalKeyTest {
 
     private fun material(id: String = "m"): Material<Flt64> {
         return Material(
-            id = id,
+            id = MaterialIdImpl(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -43,7 +43,7 @@ class CuttingPlanCanonicalKeyTest {
         val demand2 = ProductDemand.roll(p2, Quantity(Flt64(1.0), RollCountUnit))
 
         val first = CuttingPlan(
-            id = "first",
+            id = CuttingPlanIdImpl("first"),
             material = m,
             slices = listOf(
                 CuttingPlanSlice(
@@ -75,7 +75,7 @@ class CuttingPlanCanonicalKeyTest {
             arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
         val second = CuttingPlan(
-            id = "second",
+            id = CuttingPlanIdImpl("second"),
             material = m,
             slices = listOf(
                 CuttingPlanSlice(
@@ -161,7 +161,7 @@ class CuttingPlanCanonicalKeyTest {
         demand: ProductDemand<Flt64>
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = CuttingPlanIdImpl(id),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(

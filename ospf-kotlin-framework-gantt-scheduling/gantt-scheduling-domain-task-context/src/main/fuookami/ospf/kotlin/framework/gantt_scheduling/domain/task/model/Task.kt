@@ -52,7 +52,7 @@ open class TaskType(
  * @property type 任务类型 / The task type
  */
 open class TaskKey(
-    val id: String,
+    val id: TaskId,
     val type: TaskType
 ) {
     override fun hashCode(): Int {
@@ -141,8 +141,8 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
 
     val assignmentPolicy: A? get() = null
 
-    val id: String
-    val actualId: String get() = id
+    val id: TaskId
+    val actualId: TaskId get() = id
     val name: String
     val displayName: String get() = name
 
@@ -299,7 +299,7 @@ interface AbstractTask<out E : Executor, out A : AssignmentPolicy<E>> : Indexed,
  * @property assignmentPolicy 分配策略 / The assignment policy
  */
 open class AbstractUnplannedTask<out E : Executor, out A : AssignmentPolicy<E>>(
-    override val id: String,
+    override val id: TaskId,
     override val name: String,
     override val assignmentPolicy: A
 ) : AbstractTask<E, A>, ManualIndexed() {
@@ -369,7 +369,7 @@ open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, ou
         assignmentPolicy = assignmentPolicy
     )
 
-    override val id: String get() = plan.id
+    override val id: TaskId get() = plan.id
     override val name: String get() = plan.name
 
     final override val status: Set<TaskStatus> get() = plan.status

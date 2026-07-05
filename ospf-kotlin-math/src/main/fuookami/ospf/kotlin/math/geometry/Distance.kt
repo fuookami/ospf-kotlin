@@ -68,7 +68,7 @@ sealed interface Distance {
      * 闵可夫斯基距离，曼哈顿和欧几里得距离的推广，p=1 为曼哈顿，p=2 为欧几里得。
      * Minkowski distance: generalization of Manhattan and Euclidean; p=1 is Manhattan, p=2 is Euclidean.
      *
-     * @param p 距离阶数 / The order of the distance metric
+     * @property p 距离阶数 / The order of the distance metric
      */
     class Minkowski(val p: Int) : Distance {
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {

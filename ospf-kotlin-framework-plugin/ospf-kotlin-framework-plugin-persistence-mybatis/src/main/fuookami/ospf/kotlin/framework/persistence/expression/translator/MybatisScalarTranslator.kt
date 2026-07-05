@@ -176,6 +176,13 @@ class MybatisScalarTranslator(
         ))
     }
 
+    /**
+     * 根据不支持谓词策略处理不支持的表达式
+     * Handle unsupported expression based on unsupported predicate policy
+     *
+     * @param reason 不支持的原因 / Reason for being unsupported
+     * @return 根据策略返回失败或 null / Returns failure or null based on policy
+     */
     private fun unsupported(reason: String): Ret<MybatisScalarSql?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

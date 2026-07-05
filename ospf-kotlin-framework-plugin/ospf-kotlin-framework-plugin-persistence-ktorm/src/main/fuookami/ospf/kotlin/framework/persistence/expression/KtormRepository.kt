@@ -150,6 +150,9 @@ abstract class KtormRepository<E : Any>(
      *
      * 子类需要实现此方法以进行实体映射。
      * Subclasses must implement this method for entity mapping.
+     *
+     * @param row 查询结果行 / Query result row
+     * @return 映射后的实体，若无法映射则返回 null / Mapped entity, or null if mapping fails
      */
     protected abstract fun mapToEntity(row: QueryRowSet): E?
 

@@ -89,7 +89,11 @@ abstract class GurobiSolver : AutoCloseable {
         }
     }
 
-    /** 执行 Gurobi 11 求解 / Execute Gurobi 11 solving */
+    /**
+     * 执行 Gurobi 11 求解 / Execute Gurobi 11 solving
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun solve(): Try {
         return try {
             grbModel.optimize()
@@ -102,7 +106,11 @@ abstract class GurobiSolver : AutoCloseable {
         }
     }
 
-    /** 分析 Gurobi 11 求解状态 / Analyze Gurobi 11 solving status */
+    /**
+     * 分析 Gurobi 11 求解状态 / Analyze Gurobi 11 solving status
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {

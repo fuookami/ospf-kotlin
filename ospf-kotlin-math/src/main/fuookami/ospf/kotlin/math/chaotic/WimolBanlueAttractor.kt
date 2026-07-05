@@ -37,6 +37,10 @@ data class WimolBanlueAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
     }
 }
 
+/**
+ * Wimol-Banlue 吸引子生成器
+ * Wimol-Banlue Attractor Generator
+ */
 data class WimolBanlueAttractorGenerator(
     val attractor: WimolBanlueAttractor<Flt64> = WimolBanlueAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

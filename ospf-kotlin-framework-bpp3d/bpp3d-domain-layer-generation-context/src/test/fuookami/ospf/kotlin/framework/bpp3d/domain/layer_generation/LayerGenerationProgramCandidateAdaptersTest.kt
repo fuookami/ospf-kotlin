@@ -57,7 +57,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
             materialCatalog = mapOf(material.key to material)
         ) as ActualItem
 
-        assertEquals("program-candidate-candidate-a-7", item.id)
+        assertEquals(itemIdOf("program-candidate-candidate-a-7"), item.id)
         assertEquals("candidate-item-a", item.name)
         assertEquals(Orientation.Upright, item.enabledOrientations.first())
         assertEquals(UInt64(3), item.materialAmounts[material.key])
@@ -140,8 +140,8 @@ class LayerGenerationProgramCandidateAdaptersTest {
         assertEquals(2, itemDemands.size)
         assertEquals(UInt64(2), itemDemands[0].second)
         assertEquals(UInt64(5), itemDemands[1].second)
-        assertEquals("program-candidate-candidate-first-1", (itemDemands[0].first as ActualItem).id)
-        assertEquals("program-candidate-candidate-second-2", (itemDemands[1].first as ActualItem).id)
+        assertEquals(itemIdOf("program-candidate-candidate-first-1"), (itemDemands[0].first as ActualItem).id)
+        assertEquals(itemIdOf("program-candidate-candidate-second-2"), (itemDemands[1].first as ActualItem).id)
         assertTrue(itemDemands.all { (item, _) -> item is ActualItem })
     }
 
@@ -173,7 +173,7 @@ class LayerGenerationProgramCandidateAdaptersTest {
         assertEquals(2, request.items.size)
         assertTrue(request.items.all { it is ActualItem })
         val first = request.items.first() as ActualItem
-        assertEquals("program-candidate-candidate-request-1", first.id)
+        assertEquals(itemIdOf("program-candidate-candidate-request-1"), first.id)
         assertEquals(UInt64(3), first.materialAmounts[material.key])
     }
 

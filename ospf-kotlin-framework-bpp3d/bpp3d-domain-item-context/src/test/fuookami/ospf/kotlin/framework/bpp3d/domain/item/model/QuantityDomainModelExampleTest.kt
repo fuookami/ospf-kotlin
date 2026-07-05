@@ -45,7 +45,7 @@ class QuantityDomainModelExampleTest {
             materials = mapOf(material to UInt64(2))
         )
         val item: QuantityItem<FltX> = QuantityItem(
-            id = "FltX-item",
+            id = itemIdOf("FltX-item"),
             name = "FltX-item",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -88,7 +88,7 @@ class QuantityDomainModelExampleTest {
             materials = mapOf(material to UInt64(2))
         )
         val item: QuantityItem<FltX> = QuantityItem(
-            id = "fltx-item",
+            id = itemIdOf("fltx-item"),
             name = "fltx-item",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),

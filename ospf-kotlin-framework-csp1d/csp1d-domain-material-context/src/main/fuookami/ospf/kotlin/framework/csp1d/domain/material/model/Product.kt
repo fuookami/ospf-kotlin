@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
  * @property dynamicLength 是否动态长度 / Whether length is dynamic
  */
 open class Product<V : RealNumber<V>>(
-    override val id: String,
+    override val id: ProductId,
     val name: String,
     override val width: List<Quantity<V>>,
     override val length: Quantity<V>? = null,
@@ -41,7 +41,7 @@ open class Product<V : RealNumber<V>>(
          * @return 产品实例 / Product instance
          */
         operator fun <V : RealNumber<V>> invoke(
-            id: String,
+            id: ProductId,
             name: String,
             width: List<Quantity<V>>,
             length: Quantity<V>? = null,
@@ -70,7 +70,7 @@ open class Product<V : RealNumber<V>>(
          * @return 动态长度产品实例 / Dynamic-length product instance
          */
         fun <V : RealNumber<V>> dynamicLengthOf(
-            id: String,
+            id: ProductId,
             name: String,
             width: List<Quantity<V>>,
             unitWeight: Quantity<V>? = null
@@ -98,7 +98,7 @@ open class Product<V : RealNumber<V>>(
          * @return FltX 产品实例 / FltX product instance
          */
         fun legacy(
-            id: String,
+            id: ProductId,
             name: String,
             width: List<Flt64>,
             length: FltX? = null,

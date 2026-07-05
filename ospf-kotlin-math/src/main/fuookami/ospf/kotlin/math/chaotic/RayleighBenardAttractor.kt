@@ -42,6 +42,13 @@ data class RayleighBenardAttractor<V : FloatingNumber<V>>(val alpha: V, val beta
     }
 }
 
+/**
+ * Rayleigh-Benard 吸引子生成器
+ * Rayleigh-Benard Attractor Generator
+ *
+ * @property attractor 吸引子实例 / Attractor instance
+ * @property x 当前状态向量 / Current state vector
+ */
 data class RayleighBenardAttractorGenerator(
     val attractor: RayleighBenardAttractor<Flt64> = RayleighBenardAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

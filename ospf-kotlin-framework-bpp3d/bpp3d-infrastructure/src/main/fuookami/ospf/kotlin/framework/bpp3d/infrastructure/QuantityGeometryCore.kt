@@ -206,46 +206,116 @@ infix fun Quantity<FltX>.leq(rhs: Quantity<FltX>): Boolean = this.quantityLeq(rh
 /** 判断量纲值是否大于等于另一个量纲值 / Check if quantity is greater than or equal to another quantity */
 infix fun Quantity<FltX>.geq(rhs: Quantity<FltX>): Boolean = this.quantityGeq(rhs) ?: false
 
-/** 判断量纲值是否小于另一个量纲值 / Check if quantity is less than another quantity */
+/**
+ * 判断量纲值是否小于另一个量纲值 / Check if quantity is less than another quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否小于 / whether it is less
+ */
 infix fun Quantity<FltX>.ls(rhs: Quantity<FltX>): Boolean = this.quantityLs(rhs) ?: false
 
-/** 判断量纲值是否大于另一个量纲值 / Check if quantity is greater than another quantity */
+/**
+ * 判断量纲值是否大于另一个量纲值 / Check if quantity is greater than another quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否大于 / whether it is greater
+ */
 infix fun Quantity<FltX>.gr(rhs: Quantity<FltX>): Boolean = this.quantityGr(rhs) ?: false
 
-/** 判断量纲值是否等于标量值 / Check if quantity equals a scalar value */
+/**
+ * 判断量纲值是否等于标量值 / Check if quantity equals a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否相等 / whether they are equal
+ */
 infix fun Quantity<FltX>.eq(rhs: FltX): Boolean = this.value == rhs
 
-/** 判断量纲值是否不等于标量值 / Check if quantity does not equal a scalar value */
+/**
+ * 判断量纲值是否不等于标量值 / Check if quantity does not equal a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否不等 / whether they are not equal
+ */
 infix fun Quantity<FltX>.neq(rhs: FltX): Boolean = this.value != rhs
 
-/** 判断量纲值是否小于等于标量值 / Check if quantity is less than or equal to a scalar value */
+/**
+ * 判断量纲值是否小于等于标量值 / Check if quantity is less than or equal to a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否小于等于 / whether it is less than or equal
+ */
 infix fun Quantity<FltX>.leq(rhs: FltX): Boolean = this.value <= rhs
 
-/** 判断量纲值是否大于等于标量值 / Check if quantity is greater than or equal to a scalar value */
+/**
+ * 判断量纲值是否大于等于标量值 / Check if quantity is greater than or equal to a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否大于等于 / whether it is greater than or equal
+ */
 infix fun Quantity<FltX>.geq(rhs: FltX): Boolean = this.value >= rhs
 
-/** 判断量纲值是否小于标量值 / Check if quantity is less than a scalar value */
+/**
+ * 判断量纲值是否小于标量值 / Check if quantity is less than a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否小于 / whether it is less
+ */
 infix fun Quantity<FltX>.ls(rhs: FltX): Boolean = this.value < rhs
 
-/** 判断量纲值是否大于标量值 / Check if quantity is greater than a scalar value */
+/**
+ * 判断量纲值是否大于标量值 / Check if quantity is greater than a scalar value
+ *
+ * @param rhs 右侧标量值 / right-hand scalar value
+ * @return 是否大于 / whether it is greater
+ */
 infix fun Quantity<FltX>.gr(rhs: FltX): Boolean = this.value > rhs
 
-/** 判断标量值是否等于量纲值 / Check if scalar value equals a quantity */
+/**
+ * 判断标量值是否等于量纲值 / Check if scalar value equals a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否相等 / whether they are equal
+ */
 infix fun FltX.eq(rhs: Quantity<FltX>): Boolean = this == rhs.value
 
-/** 判断标量值是否不等于量纲值 / Check if scalar value does not equal a quantity */
+/**
+ * 判断标量值是否不等于量纲值 / Check if scalar value does not equal a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否不等 / whether they are not equal
+ */
 infix fun FltX.neq(rhs: Quantity<FltX>): Boolean = this != rhs.value
 
-/** 判断标量值是否小于等于量纲值 / Check if scalar value is less than or equal to a quantity */
+/**
+ * 判断标量值是否小于等于量纲值 / Check if scalar value is less than or equal to a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否小于等于 / whether it is less than or equal
+ */
 infix fun FltX.leq(rhs: Quantity<FltX>): Boolean = this <= rhs.value
 
-/** 判断标量值是否大于等于量纲值 / Check if scalar value is greater than or equal to a quantity */
+/**
+ * 判断标量值是否大于等于量纲值 / Check if scalar value is greater than or equal to a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否大于等于 / whether it is greater than or equal
+ */
 infix fun FltX.geq(rhs: Quantity<FltX>): Boolean = this >= rhs.value
 
-/** 判断标量值是否小于量纲值 / Check if scalar value is less than a quantity */
+/**
+ * 判断标量值是否小于量纲值 / Check if scalar value is less than a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否小于 / whether it is less
+ */
 infix fun FltX.ls(rhs: Quantity<FltX>): Boolean = this < rhs.value
 
-/** 判断标量值是否大于量纲值 / Check if scalar value is greater than a quantity */
+/**
+ * 判断标量值是否大于量纲值 / Check if scalar value is greater than a quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否大于 / whether it is greater
+ */
 infix fun FltX.gr(rhs: Quantity<FltX>): Boolean = this > rhs.value
 
 /** 加法运算 / Addition */
@@ -305,22 +375,46 @@ operator fun FltX.rem(rhs: Quantity<FltX>): Quantity<FltX> {
     return (this % rhs.value) * rhs.unit
 }
 
-/** 向下取整 / Floor */
+/**
+ * 向下取整 / Floor
+ *
+ * @return 向下取整后的标量值 / floored scalar value
+ */
 fun Quantity<FltX>.floor(): FltX = this.quantityFloor().value
 
-/** 向上取整 / Ceil */
+/**
+ * 向上取整 / Ceil
+ *
+ * @return 向上取整后的标量值 / ceiled scalar value
+ */
 fun Quantity<FltX>.ceil(): FltX = this.quantityCeil().value
 
-/** 四舍五入 / Round */
+/**
+ * 四舍五入 / Round
+ *
+ * @return 四舍五入后的标量值 / rounded scalar value
+ */
 fun Quantity<FltX>.round(): FltX = this.quantityRound().value
 
-/** 转换为 Double 值 / Convert to Double value */
+/**
+ * 转换为 Double 值 / Convert to Double value
+ *
+ * @return Double 值 / Double value
+ */
 fun Quantity<FltX>.toDouble(): Double = this.value.toDouble()
 
-/** 提取标量值 / Extract scalar value */
+/**
+ * 提取标量值 / Extract scalar value
+ *
+ * @return 标量值 / scalar value
+ */
 fun Quantity<FltX>.toScalarValue(): FltX = this.value
 
-/** 取绝对值 / Absolute value */
+/**
+ * 取绝对值 / Absolute value
+ *
+ * @return 绝对值结果 / absolute value result
+ */
 fun Quantity<FltX>.abs(): Quantity<FltX> {
     return if (this.value >= FltX.zero) {
         this
@@ -555,12 +649,22 @@ data class QuantityPoint2<V : FloatingNumber<V>>(
         )
     }
 
-    /** 比较二维点的排序，若不可比较则返回 Equal / Compare ordering of 2D points, returns Equal if incomparable */
+    /**
+     * 比较二维点的排序，若不可比较则返回 Equal / Compare ordering of 2D points, returns Equal if incomparable
+     *
+     * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
+     * @return 排序结果 / ordering result
+     */
     infix fun ord(rhs: QuantityPoint2<V>): Order {
         return ordSafe(rhs).value ?: Order.Equal
     }
 
-    /** 安全比较二维点，若不可比较则返回失败 / Safely compare 2D points, returning failure if incomparable */
+    /**
+     * 安全比较二维点，若不可比较则返回失败 / Safely compare 2D points, returning failure if incomparable
+     *
+     * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
+     * @return 比较结果或失败 / order result or failure
+     */
     infix fun ordSafe(rhs: QuantityPoint2<V>): Ret<Order> {
         val yOrder = when (val result = quantityOrdSafe(y, rhs.y, "y")) {
             is Ok -> result.value
@@ -605,12 +709,22 @@ data class QuantityPoint3<V : FloatingNumber<V>>(
         )
     }
 
-    /** 比较三维点的排序，若不可比较则返回 Equal / Compare ordering of 3D points, returns Equal if incomparable */
+    /**
+     * 比较三维点的排序，若不可比较则返回 Equal / Compare ordering of 3D points, returns Equal if incomparable
+     *
+     * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
+     * @return 排序结果 / ordering result
+     */
     infix fun ord(rhs: QuantityPoint3<V>): Order {
         return ordSafe(rhs).value ?: Order.Equal
     }
 
-    /** 安全比较三维点，若不可比较则返回失败 / Safely compare 3D points, returning failure if incomparable */
+    /**
+     * 安全比较三维点，若不可比较则返回失败 / Safely compare 3D points, returning failure if incomparable
+     *
+     * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
+     * @return 比较结果或失败 / order result or failure
+     */
     infix fun ordSafe(rhs: QuantityPoint3<V>): Ret<Order> {
         val zOrder = when (val result = quantityOrdSafe(z, rhs.z, "z")) {
             is Ok -> result.value
@@ -929,12 +1043,22 @@ operator fun QuantityPoint2<FltX>.minus(rhs: QuantityPoint2<FltX>): QuantityVect
     )
 }
 
-/** 判断两个二维量纲点是否相等 / Check if two 2D quantity points are equal */
+/**
+ * 判断两个二维量纲点是否相等 / Check if two 2D quantity points are equal
+ *
+ * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
+ * @return 是否相等 / whether they are equal
+ */
 infix fun QuantityPoint2<FltX>.eq(rhs: QuantityPoint2<FltX>): Boolean {
     return this.x eq rhs.x && this.y eq rhs.y
 }
 
-/** 判断两个二维量纲点是否不等 / Check if two 2D quantity points are not equal */
+/**
+ * 判断两个二维量纲点是否不等 / Check if two 2D quantity points are not equal
+ *
+ * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
+ * @return 是否不等 / whether they are not equal
+ */
 infix fun QuantityPoint2<FltX>.neq(rhs: QuantityPoint2<FltX>): Boolean = !(this eq rhs)
 
 /** 二维量纲点加上几何向量偏移 / Add geometric vector offset to 2D quantity point */
@@ -963,12 +1087,22 @@ operator fun QuantityPoint3<FltX>.minus(rhs: QuantityPoint3<FltX>): QuantityVect
     )
 }
 
-/** 判断两个三维量纲点是否相等 / Check if two 3D quantity points are equal */
+/**
+ * 判断两个三维量纲点是否相等 / Check if two 3D quantity points are equal
+ *
+ * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
+ * @return 是否相等 / whether they are equal
+ */
 infix fun QuantityPoint3<FltX>.eq(rhs: QuantityPoint3<FltX>): Boolean {
     return this.x eq rhs.x && this.y eq rhs.y && this.z eq rhs.z
 }
 
-/** 判断两个三维量纲点是否不等 / Check if two 3D quantity points are not equal */
+/**
+ * 判断两个三维量纲点是否不等 / Check if two 3D quantity points are not equal
+ *
+ * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
+ * @return 是否不等 / whether they are not equal
+ */
 infix fun QuantityPoint3<FltX>.neq(rhs: QuantityPoint3<FltX>): Boolean = !(this eq rhs)
 
 /** 三维量纲点加上几何向量偏移 / Add geometric vector offset to 3D quantity point */

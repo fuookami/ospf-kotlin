@@ -33,9 +33,9 @@ data class CuttingPlanSlice<V : RealNumber<V>>(
  * @property capacityConsumption 单次方案使用的设备产能消耗，必须与设备产能同单位才进入主问题约束 / Machine capacity consumed by one plan usage, modeled only when unit matches machine capacity
  */
 data class CuttingPlan<V : RealNumber<V>>(
-    val id: String,
+    val id: CuttingPlanId,
     val material: Material<V>,
-    val machineId: String? = material.machineId,
+    val machineId: MachineId? = material.machineId,
     val slices: List<CuttingPlanSlice<V>>,
     val demandContributions: List<CuttingPlanDemandContribution<V>> = emptyList(),
     val arithmetic: QuantityArithmetic<V>? = null,

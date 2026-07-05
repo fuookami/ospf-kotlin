@@ -35,7 +35,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
     val plans: MutableList<CuttingPlan<V>> = ArrayList()
 
     /** 已注册的方案 ID 集合 / Registered plan ID set */
-    private val registeredIds: MutableSet<String> = HashSet()
+    private val registeredIds: MutableSet<CuttingPlanId> = HashSet()
 
     /** 已注册的方案 canonical key 集合 / Registered plan canonical key set */
     private val registeredKeys: MutableSet<CuttingPlanCanonicalKey> = HashSet()

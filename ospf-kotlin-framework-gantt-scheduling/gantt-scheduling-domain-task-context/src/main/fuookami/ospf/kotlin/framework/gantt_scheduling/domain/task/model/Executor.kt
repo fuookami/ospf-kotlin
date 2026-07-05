@@ -36,11 +36,11 @@ open class ExecutorInitialUsability<
  * @property name 执行者名称 / The executor name
  */
 open class Executor(
-    val id: String,
-    val name: String
+    open val id: ExecutorId,
+    open val name: String
 ) : ManualIndexed() {
     /** 实际ID / The actual ID */
-    open val actualId: String by ::id
+    open val actualId: ExecutorId by ::id
     /** 显示名称 / The display name */
     open val displayName: String by ::name
 }

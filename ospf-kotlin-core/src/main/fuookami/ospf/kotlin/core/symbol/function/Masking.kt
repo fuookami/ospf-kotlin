@@ -260,7 +260,12 @@ class MaskingWithPolyMaskFunction<V>(
 
     override fun flush(force: Boolean) {}
 
-    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values. */
+    /** 使用 Flt64 值预计算求解器结果。 / Pre-compute solver result with Flt64 values.
+     * @param values Flt64 值映射，可为 null / Flt64 value map, may be null
+     * @param tokenTable 令牌表 / token table
+     * @param converter 值类型转换器 / value type converter
+     * @return 预计算的求解器结果，或 null / pre-computed solver result, or null
+     */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -274,11 +279,25 @@ class MaskingWithPolyMaskFunction<V>(
     override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), converter.zero)
     override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), converter.zero)
 
-    /** 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null). */
+    /** 使用 Flt64 token 列表求值（始终返回 null）。 / Evaluate with Flt64 token list (always returns null).
+     * @param tokenList Flt64 令牌列表 / Flt64 token list
+     * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
+     * @return 始终返回 null / always returns null
+     */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null). */
+    /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
+     * @param results Flt64 结果列表 / Flt64 results list
+     * @param tokenList Flt64 令牌列表 / Flt64 token list
+     * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
+     * @return 始终返回 null / always returns null
+     */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    /** 使用 Flt64 值映射求值。 / Evaluate with Flt64 value map. */
+    /** 使用 Flt64 值映射求值。 / Evaluate with Flt64 value map.
+     * @param values Flt64 值映射 / Flt64 value map
+     * @param tokenList Flt64 令牌列表 / Flt64 token list
+     * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
+     * @return 求值结果，或 null / evaluation result, or null
+     */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter))?.let { converter.fromValue(it) }
     }
@@ -317,18 +336,32 @@ class MaskingWithPolyMaskFunction<V>(
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate().evaluate(values)
     }
-    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list. */
+    /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
+     * @param results Flt64 结果列表 / Flt64 results list
+     * @param tokenTable 令牌表 / token table
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
+     * @return 求值结果，或 null / evaluation result, or null
+     */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
-    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map. */
+    /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
+     * @param values Flt64 值映射 / Flt64 value map
+     * @param tokenTable 令牌表 / token table
+     * @param converter 值类型转换器 / value type converter
+     * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
+     * @return 求值结果，或 null / evaluation result, or null
+     */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val v = delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
     }
 
-    /** 委托给自身作为 MathFunctionSymbol。 / Delegate to self as MathFunctionSymbol. */
+    /** 委托给自身作为 MathFunctionSymbol。 / Delegate to self as MathFunctionSymbol.
+     * @return 自身作为 MathFunctionSymbol 实例 / self as a MathFunctionSymbol instance
+     */
     private fun delegate(): MathFunctionSymbol<V> = this
 
     override fun evaluate(values: Map<Symbol, V>): V? {

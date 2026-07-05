@@ -52,6 +52,10 @@ data class FourWingAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 四翼吸引子生成器
+ * Four-Wing Attractor Generator
+ */
 data class FourWingAttractorGenerator(
     val attractor: FourWingAttractor<Flt64> = FourWingAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

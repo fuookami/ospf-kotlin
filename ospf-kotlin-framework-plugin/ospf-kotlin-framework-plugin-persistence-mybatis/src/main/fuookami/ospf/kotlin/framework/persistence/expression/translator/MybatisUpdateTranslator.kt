@@ -51,11 +51,27 @@ class MybatisUpdateTranslator<T : Any>(
         return wrapper.set(column, MybatisValueConverter.convert(item.value))
     }
 
+    /**
+     * 应用 NULL 赋值到 Wrapper
+     * Apply NULL assignment to wrapper
+     *
+     * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
+     * @param item NULL 赋值项 / NULL assignment item
+     * @return 应用赋值后的 UpdateWrapper / UpdateWrapper with null assignment applied
+     */
     private fun applySetNull(wrapper: UpdateWrapper<T>, item: SetNull): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
         return wrapper.set(column, null)
     }
 
+    /**
+     * 应用表达式赋值到 Wrapper
+     * Apply expression assignment to wrapper
+     *
+     * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
+     * @param item 表达式赋值项 / Expression assignment item
+     * @return 应用赋值后的 UpdateWrapper / UpdateWrapper with assignment applied
+     */
     private fun applySetFromExpression(wrapper: UpdateWrapper<T>, item: SetFromExpression): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
 

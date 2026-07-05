@@ -851,6 +851,12 @@ sealed class MutableTokenTable<V>(
     fun validateNoCycles(): Boolean {
         val visited = mutableSetOf<IntermediateSymbol<*>>()
         val onStack = mutableSetOf<IntermediateSymbol<*>>()
+        /**
+         * 深度优先搜索检测环 / DFS to detect cycles
+         *
+         * @param symbol 当前访问的符号 / Currently visited symbol
+         * @return 是否无环 / Whether acyclic
+         */
         fun dfs(symbol: IntermediateSymbol<*>): Boolean {
             if (symbol in onStack) return false
             if (symbol in visited) return true

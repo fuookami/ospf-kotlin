@@ -905,7 +905,7 @@ class Csp1dColumnGenerationRealSolverTest {
 
         assertNotNull(milpResult, "MILP result should not be null")
         val usage = milpResult.produce.cuttingPlans.firstOrNull {
-            it.plan.id == "plan_machine_capacity_real"
+            it.plan.id == cuttingPlanIdOf("plan_machine_capacity_real")
         }
         assertNotNull(usage, "Capacity-constrained plan should be selected")
         assertEquals(UInt64.one, usage.amount, "Capacity 120 and consumption 80 should allow one integer batch")
@@ -1160,11 +1160,11 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun shadowPriceKeyDistinguishesDifferentUnits() {
         val rollKey = ProductDemandShadowPriceKey(
-            productId = "p_multi_unit",
+            productId = productIdOf("p_multi_unit"),
             unitSymbol = RollCountUnit.symbol ?: RollCountUnit.name ?: RollCountUnit.toString()
         )
         val sheetKey = ProductDemandShadowPriceKey(
-            productId = "p_multi_unit",
+            productId = productIdOf("p_multi_unit"),
             unitSymbol = SheetCountUnit.symbol ?: SheetCountUnit.name ?: SheetCountUnit.toString()
         )
 
@@ -1216,7 +1216,7 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun milpWithMixedDynamicAndFixedLengthShouldSatisfyAllDemands() = runBlocking {
         val dynamicProduct = Product(
-            id = "p-dynamic",
+            id = productIdOf("p-dynamic"),
             name = "product-p-dynamic",
             width = listOf(Quantity(Flt64(0.8), Meter)),
             maxOverProduceLength = Quantity(Flt64(2.0), Meter),
@@ -1412,7 +1412,7 @@ class Csp1dColumnGenerationRealSolverTest {
         val wasteConfig = WasteMinimizationConfig<Flt64>(
             trimWidthPenalty = Flt64(2.0),
             restMaterialPenalty = Flt64(0.5),
-            materialCostPenalty = mapOf("m-waste-real" to Flt64(5.0))
+            materialCostPenalty = mapOf(materialIdOf("m-waste-real") to Flt64(5.0))
         )
         val input = ProduceInput(
             cuttingPlans = listOf(
@@ -1552,7 +1552,7 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun milpWithLengthConfigShouldProduceCorrectLengthResultOnRealSolver() = runBlocking {
         val dynamicProduct = Product(
-            id = "p-length-real",
+            id = productIdOf("p-length-real"),
             name = "product-p-length-real",
             width = listOf(Quantity(Flt64(0.8), Meter)),
             maxOverProduceLength = Quantity(Flt64(2.0), Meter),
@@ -1680,7 +1680,7 @@ class Csp1dColumnGenerationRealSolverTest {
         val material = material(id = "m-cg-waste", lowerWidth = 0.5, upperWidth = 1.5)
         val wasteConfig = WasteMinimizationConfig<Flt64>(
             trimWidthPenalty = Flt64(2.0),
-            materialCostPenalty = mapOf("m-cg-waste" to Flt64(5.0))
+            materialCostPenalty = mapOf(materialIdOf("m-cg-waste") to Flt64(5.0))
         )
         val problem = Csp1dProblem<Flt64>(
             products = listOf(p1, p2),
@@ -1743,7 +1743,7 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun columnGenerationWithLengthConfigShouldProduceCorrectLengthResultOnRealSolver() = runBlocking {
         val dynamicProduct = Product(
-            id = "p-cg-length-dynamic",
+            id = productIdOf("p-cg-length-dynamic"),
             name = "product-p-cg-length-dynamic",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             maxOverProduceLength = Quantity(Flt64(3.0), Meter),
@@ -2022,7 +2022,7 @@ class Csp1dColumnGenerationRealSolverTest {
         val m2 = material(id = "m-wide", lowerWidth = 0.5, upperWidth = 1.5)
         val wasteConfig = WasteMinimizationConfig<Flt64>(
             trimWidthPenalty = Flt64(2.0),
-            materialCostPenalty = mapOf("m-narrow" to Flt64(3.0), "m-wide" to Flt64(5.0))
+            materialCostPenalty = mapOf(materialIdOf("m-narrow") to Flt64(3.0), materialIdOf("m-wide") to Flt64(5.0))
         )
         val input = ProduceInput(
             cuttingPlans = listOf(
@@ -2155,7 +2155,7 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun columnGenerationWithMixedLengthProductsShouldDistinguishDynamicAndFixedOnRealSolver() = runBlocking {
         val dynamicProduct = Product(
-            id = "p-dynamic-cg",
+            id = productIdOf("p-dynamic-cg"),
             name = "product-p-dynamic-cg",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             maxOverProduceLength = Quantity(Flt64(2.0), Meter),
@@ -2234,7 +2234,7 @@ class Csp1dColumnGenerationRealSolverTest {
     @Test
     fun milpWithLengthConfigWeightDemandShouldProduceCorrectResultOnRealSolver() = runBlocking {
         val dynamicProduct = Product(
-            id = "p-length-weight",
+            id = productIdOf("p-length-weight"),
             name = "product-p-length-weight",
             width = listOf(Quantity(Flt64(0.4), Meter)),
             maxOverProduceLength = Quantity(Flt64(2.0), Meter),
@@ -2288,11 +2288,11 @@ class Csp1dColumnGenerationRealSolverTest {
         product: Product<Flt64>,
         material: Material<Flt64>,
         rollContribution: Flt64,
-        machineId: String? = material.machineId,
+        machineId: MachineId? = material.machineId,
         capacityConsumption: Double? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material,
             machineId = machineId,
             slices = listOf(
@@ -2322,7 +2322,7 @@ class Csp1dColumnGenerationRealSolverTest {
         weightContribution: Flt64
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -2350,7 +2350,7 @@ class Csp1dColumnGenerationRealSolverTest {
         sheetContribution: Flt64
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -2373,7 +2373,7 @@ class Csp1dColumnGenerationRealSolverTest {
         width: Double
     ): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
@@ -2389,13 +2389,13 @@ class Csp1dColumnGenerationRealSolverTest {
         length: Double? = null
     ): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = widthRange(
                 lower = lowerWidth,
                 upper = upperWidth
             ),
-            machineId = machineId,
+            machineId = machineId?.let { machineIdOf(it) },
             length = length?.let { Quantity(Flt64(it), Meter) }
         )
     }
@@ -2406,7 +2406,7 @@ class Csp1dColumnGenerationRealSolverTest {
         maxBatchCount: UInt64? = null
     ): Machine<Flt64> {
         return Machine(
-            id = id,
+            id = machineIdOf(id),
             name = "machine-$id",
             maxBatchCount = maxBatchCount,
             capacity = Quantity(Flt64(capacity), Kilogram)

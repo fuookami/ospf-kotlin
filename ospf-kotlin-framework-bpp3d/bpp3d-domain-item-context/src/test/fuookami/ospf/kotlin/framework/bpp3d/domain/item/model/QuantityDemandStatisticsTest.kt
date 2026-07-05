@@ -44,7 +44,7 @@ class QuantityDemandStatisticsTest {
             weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-64",
+            id = itemIdOf("item-64"),
             name = "item-64",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -99,7 +99,7 @@ class QuantityDemandStatisticsTest {
             weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-x",
+            id = itemIdOf("item-x"),
             name = "item-x",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(

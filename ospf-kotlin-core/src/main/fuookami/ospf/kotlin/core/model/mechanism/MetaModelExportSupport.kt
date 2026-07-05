@@ -29,7 +29,12 @@ import fuookami.ospf.kotlin.core.token.*
  * 说明：将模型导出为文本化诊断格式（当前为 `.opm`），用于问题定位与回归对比。
  * Note: exports models to text-oriented diagnostic format (currently `.opm`) for troubleshooting and regression comparison.
  */
-/** 将符号转换为 OPM 表达式文本 / Convert a symbol to OPM expression text */
+/**
+ * 将符号转换为 OPM 表达式文本 / Convert a symbol to OPM expression text
+ * @param symbol 符号 / Symbol
+ * @param unfold 展开层数 / Unfold depth
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun symbolToOpmString(symbol: Symbol, unfold: UInt64): String {
     return when {
         symbol is IntermediateSymbol<*> && unfold neq UInt64.zero -> symbol.toRawString(unfold - UInt64.one)
@@ -46,7 +51,11 @@ private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): Linear
     )
 }
 
-/** 将 Flt64 线性单项式转换为 OPM 表达式文本 / Convert a Flt64 linear monomial to OPM expression text */
+/**
+ * 将 Flt64 线性单项式转换为 OPM 表达式文本 / Convert a Flt64 linear monomial to OPM expression text
+ * @param unfold 展开层数 / Unfold depth
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun LinearMonomial<Flt64>.toOpmString(unfold: UInt64): String {
     val symbolText = symbolToOpmString(symbol, unfold)
     return when {
@@ -56,7 +65,11 @@ private fun LinearMonomial<Flt64>.toOpmString(unfold: UInt64): String {
     }
 }
 
-/** 将 Flt64 二次单项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic monomial to OPM expression text */
+/**
+ * 将 Flt64 二次单项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic monomial to OPM expression text
+ * @param unfold 展开层数 / Unfold depth
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun QuadraticMonomial<Flt64>.toOpmString(unfold: UInt64): String {
     val symbol1Text = symbolToOpmString(symbol1, unfold)
     val termText = if (symbol2 != null) {
@@ -76,7 +89,12 @@ private fun QuadraticMonomial<Flt64>.toOpmString(unfold: UInt64): String {
     }
 }
 
-/** 合并 OPM 表达式文本中的项 / Join terms in an OPM expression text */
+/**
+ * 合并 OPM 表达式文本中的项 / Join terms in an OPM expression text
+ * @param terms 项列表 / List of terms
+ * @param constant 常数项 / Constant term
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun termsToOpmString(terms: List<String>, constant: Flt64): String {
     val allTerms = terms.toMutableList()
     if (constant neq Flt64.zero) {
@@ -93,7 +111,11 @@ private fun termsToOpmString(terms: List<String>, constant: Flt64): String {
         .joinToString("")
 }
 
-/** 将 Flt64 线性多项式转换为 OPM 表达式文本 / Convert a Flt64 linear polynomial to OPM expression text */
+/**
+ * 将 Flt64 线性多项式转换为 OPM 表达式文本 / Convert a Flt64 linear polynomial to OPM expression text
+ * @param unfold 展开层数 / Unfold depth
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun LinearPolynomial<Flt64>.toOpmString(unfold: UInt64 = UInt64.zero): String {
     return termsToOpmString(
         terms = monomials.filter { it.coefficient neq Flt64.zero }.map { it.toOpmString(unfold) },
@@ -101,7 +123,11 @@ private fun LinearPolynomial<Flt64>.toOpmString(unfold: UInt64 = UInt64.zero): S
     )
 }
 
-/** 将 Flt64 二次多项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic polynomial to OPM expression text */
+/**
+ * 将 Flt64 二次多项式转换为 OPM 表达式文本 / Convert a Flt64 quadratic polynomial to OPM expression text
+ * @param unfold 展开层数 / Unfold depth
+ * @return OPM 表达式文本 / OPM expression text
+ */
 private fun QuadraticPolynomial<Flt64>.toOpmString(unfold: UInt64 = UInt64.zero): String {
     return termsToOpmString(
         terms = monomials.filter { it.coefficient neq Flt64.zero }.map { it.toOpmString(unfold) },
@@ -124,12 +150,20 @@ private fun <V> QuadraticPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): Qua
     )
 }
 
-/** 将比较运算符转换为 OPM 文本 / Convert a comparison operator to OPM text */
+/**
+ * 将比较运算符转换为 OPM 文本 / Convert a comparison operator to OPM text
+ * @return OPM 文本 / OPM text
+ */
 private fun Comparison.toOpmString(): String {
     return symbol
 }
 
-/** 将约束名转换为 OPM 前缀 / Convert a constraint name to OPM prefix */
+/**
+ * 将约束名转换为 OPM 前缀 / Convert a constraint name to OPM prefix
+ * @param name 约束名称 / Constraint name
+ * @param displayName 约束显示名称 / Constraint display name
+ * @return OPM 前缀文本 / OPM prefix text
+ */
 private fun constraintNamePrefix(name: String, displayName: String?): String {
     val text = displayName?.takeIf { it.isNotBlank() } ?: name.takeIf { it.isNotBlank() }
     return if (text != null) {

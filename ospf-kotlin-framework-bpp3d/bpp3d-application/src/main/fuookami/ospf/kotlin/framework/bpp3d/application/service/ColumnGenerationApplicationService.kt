@@ -418,6 +418,14 @@ class ColumnGenerationApplicationService(
         )
     }
 
+    /**
+     * 合并货物需求列表，相同货物的数量累加。
+     * Merge item demand lists, accumulating amounts for identical items.
+     *
+     * @param base 基础货物需求列表 / base item demand list
+     * @param extra 额外货物需求列表 / extra item demand list
+     * @return 合并后的货物需求列表 / merged item demand list
+     */
     private fun mergeItemDemands(
         base: List<Pair<Item, UInt64>>,
         extra: List<Pair<Item, UInt64>>
@@ -432,6 +440,13 @@ class ColumnGenerationApplicationService(
         return merged.toList()
     }
 
+    /**
+     * 构建程序物料目录，合并物料数量需求、物料重量需求和程序物料目录中的物料。
+     * Build program material catalog by merging materials from amount demands, weight demands, and program catalog.
+     *
+     * @param request 列生成应用请求 / column generation application request
+     * @return 物料键到物料的映射 / mapping from material key to material
+     */
     private fun buildProgramMaterialCatalog(
         request: ColumnGenerationApplicationRequest
     ): Map<MaterialKey, Material<FltX>> {
@@ -448,6 +463,13 @@ class ColumnGenerationApplicationService(
         return catalog
     }
 
+    /**
+     * 解析执行器配置，合并请求中的深度边界层轴向/朝向策略。
+     * Resolve executor config, merging the depth boundary layer orientation policy from the request.
+     *
+     * @param request 列生成应用请求 / column generation application request
+     * @return 合并后的执行器配置 / resolved executor config
+     */
     private fun resolveExecutorConfig(
         request: ColumnGenerationApplicationRequest
     ): ColumnGenerationStandardExecutorConfig {

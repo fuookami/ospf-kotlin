@@ -34,7 +34,7 @@ class QuantityDemandReducedCostTest {
             weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-rc-model-g64",
+            id = itemIdOf("item-rc-model-g64"),
             name = "item-rc-model-g64",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -72,7 +72,7 @@ class QuantityDemandReducedCostTest {
             weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-rc-model-gx",
+            id = itemIdOf("item-rc-model-gx"),
             name = "item-rc-model-gx",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -121,7 +121,7 @@ class QuantityDemandReducedCostTest {
             weight = FltX(0.5) * Kilogram
         )
         val item = QuantityItem(
-            id = "item-rc-model-map",
+            id = itemIdOf("item-rc-model-map"),
             name = "item-rc-model-map",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(

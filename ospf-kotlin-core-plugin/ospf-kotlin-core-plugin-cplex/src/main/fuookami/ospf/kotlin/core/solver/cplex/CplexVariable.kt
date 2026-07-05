@@ -1,52 +1,97 @@
-/** CPLEX 变量类型映射 / CPLEX variable type mapping */
+@file:Suppress("MemberVisibilityCanBePrivate")
+
 package fuookami.ospf.kotlin.core.solver.cplex
 
-import ilog.concert.IloNumVarType
-import fuookami.ospf.kotlin.core.variable.*
+import ilog.concert.*
+import ilog.cplex.*
+import fuookami.ospf.kotlin.core.model.*
 
-/** CPLEX 变量类型枚举，将内部变量类型映射为 CPLEX 变量类型 / CPLEX variable type enum, maps internal variable types to CPLEX variable types */
-enum class CplexVariable {
-    /** 二进制变量 / Binary variable */
-    Binary {
-        override fun toCplexVar(): IloNumVarType = IloNumVarType.Bool
-    },
-    /** 整数变量 / Integer variable */
-    Integer {
-        override fun toCplexVar(): IloNumVarType = IloNumVarType.Int
-    },
-    /** 连续变量 / Continuous variable */
-    Continuous {
-        override fun toCplexVar(): IloNumVarType = IloNumVarType.Float
-    };
+/** CPLEX 变量的包装类型 / Wrapper type for CPLEX variable */
+data class Variable(
+    /** CPLEX 数值变量的引用 / Reference to the CPLEX numeric variable */
+    val reference: IloNumVar,
+    /** 变量委托 / Variable delegate */
+    val delegate: VariableDelegate
+)
 
-    companion object {
-        /**
-         * 从内部变量类型创建 CPLEX 变量类型 / Create CPLEX variable type from internal variable type
-         *
-         * @param type 内部变量类型 / internal variable type
-         * @return CPLEX 变量类型 / CPLEX variable type
-         */
-        operator fun invoke(type: VariableType<*>): CplexVariable {
-            return when (type) {
-                is fuookami.ospf.kotlin.core.variable.Binary -> {
-                    Binary
-                }
+/**
+ * CPLEX 变量的委托类型，提供变量名称获取功能 / Delegate type for CPLEX variable, providing variable name retrieval.
+ * @property variable CPLEX 数值变量 / The CPLEX numeric variable
+ */
+class VariableDelegate(private val variable: IloNumVar) {
+    /**
+     * 获取变量名称 / Get the variable name.
+     * @return 变量的名称字符串 / The name of the variable
+     */
+    fun name(): String {
+        return variable.name
+    }
+}
 
-                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer, is UInteger -> {
-                    Integer
-                }
+/**
+ * 将 [IloNumVar] 转换为 [Variable] / Convert [IloNumVar] to [Variable].
+ * @param model 当前 CPLEX 模型实例 / The current CPLEX model instance
+ * @param sign 约束符号，用于确定变量下界 / The constraint sign, used to determine the variable lower bound
+ * @return 转换后的 [Variable] 实例 / The converted [Variable] instance
+ */
+fun IloNumVar.toVariable(model: IloCplex, sign: ConstraintSign? = null): Variable {
+    return Variable(
+        reference = this,
+        delegate = VariableDelegate(this)
+    )
+}
 
-                is Percentage, is fuookami.ospf.kotlin.core.variable.Continuous, is UContinuous -> {
-                    Continuous
-                }
-            }
-        }
+/**
+ * 将 [IloNumVar] 转换为 [IloNumVarRef] / Convert [IloNumVar] to [IloNumVarRef].
+ * @param model 当前 CPLEX 模型实例 / The current CPLEX model instance
+ * @return 转换后的 [IloNumVarRef] 实例 / The converted [IloNumVarRef] instance
+ */
+fun IloNumVar.toNumVarRef(model: IloCplex): IloNumVar {
+    return model.numVar(model.columnArray(this))
+}
+
+/**
+ * 获取所有变量的取值 / Get the values of all variables.
+ * @return 所有变量的取值数组 / The array of all variable values
+ */
+val IloCplex.values: DoubleArray
+    get() {
+        val values = this.getValues()
+        return values
     }
 
-    /**
-     * 转换为 CPLEX 变量类型 / Convert to CPLEX variable type
-     *
-     * @return CPLEX 变量类型 / CPLEX variable type
-     */
-    abstract fun toCplexVar(): IloNumVarType
+/**
+ * 获取指定变量的取值 / Get the value of a specific variable.
+ * @param variable 目标变量 / The target variable
+ * @return 变量的取值 / The value of the variable
+ */
+fun IloCplex.values(variable: IloNumVar): Double {
+    return this.getValue(variable)
+}
+
+/**
+ * 获取指定变量的缩减成本 / Get the reduced cost of a specific variable.
+ * @param variable 目标变量 / The target variable
+ * @return 变量的缩减成本 / The reduced cost of the variable
+ */
+fun IloCplex.reducedCost(variable: IloNumVar): Double {
+    return this.getReducedCost(variable)
+}
+
+/**
+ * 获取所有变量的缩减成本 / Get the reduced costs of all variables.
+ * @return 所有变量的缩减成本数组 / The array of all variable reduced costs
+ */
+fun IloCplex.reducedCosts(): DoubleArray {
+    val values = this.getReducedCosts()
+    return values
+}
+
+/**
+ * 获取指定变量的缩减成本（`reducedCost` 的简写） / Get the reduced cost of a specific variable (shorthand for [reducedCost]).
+ * @param variable 目标变量 / The target variable
+ * @return 变量的缩减成本 / The reduced cost of the variable
+ */
+fun IloCplex.rc(variable: IloNumVar): Double {
+    return this.getReducedCost(variable)
 }

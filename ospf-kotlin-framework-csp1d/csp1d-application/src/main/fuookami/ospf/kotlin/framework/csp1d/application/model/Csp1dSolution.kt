@@ -101,7 +101,7 @@ object Csp1dKpiKeys {
      * @param materialId 物料 ID / Material id
      * @return KPI key / KPI key
      */
-    fun materialUsageBatchCount(materialId: String): String {
+    fun materialUsageBatchCount(materialId: MaterialId): String {
         return "materialUsage.$materialId.batchCount"
     }
 
@@ -111,7 +111,7 @@ object Csp1dKpiKeys {
      * @param machineId 设备 ID / Machine id
      * @return KPI key / KPI key
      */
-    fun machineCapacityUsed(machineId: String): String {
+    fun machineCapacityUsed(machineId: MachineId): String {
         return "machineCapacityUsed.$machineId"
     }
 
@@ -122,7 +122,7 @@ object Csp1dKpiKeys {
      * @param unitSymbol 需求单位符号 / Demand unit symbol
      * @return KPI key / KPI key
      */
-    fun underProduction(productId: String, unitSymbol: String): String {
+    fun underProduction(productId: ProductId, unitSymbol: String): String {
         return "underProduction.$productId.$unitSymbol"
     }
 
@@ -133,7 +133,7 @@ object Csp1dKpiKeys {
      * @param unitSymbol 需求单位符号 / Demand unit symbol
      * @return KPI key / KPI key
      */
-    fun overProduction(productId: String, unitSymbol: String): String {
+    fun overProduction(productId: ProductId, unitSymbol: String): String {
         return "overProduction.$productId.$unitSymbol"
     }
 
@@ -143,7 +143,7 @@ object Csp1dKpiKeys {
      * @param materialId 物料 ID / Material id
      * @return KPI key / KPI key
      */
-    fun materialCost(materialId: String): String {
+    fun materialCost(materialId: MaterialId): String {
         return "materialCost.$materialId"
     }
 
@@ -153,7 +153,7 @@ object Csp1dKpiKeys {
      * @param productId 产品 ID / Product id
      * @return KPI key / KPI key
      */
-    fun assignedLength(productId: String): String {
+    fun assignedLength(productId: ProductId): String {
         return "assignedLength.$productId"
     }
 
@@ -163,7 +163,7 @@ object Csp1dKpiKeys {
      * @param productId 产品 ID / Product id
      * @return KPI key / KPI key
      */
-    fun overLength(productId: String): String {
+    fun overLength(productId: ProductId): String {
         return "overLength.$productId"
     }
 }
@@ -318,14 +318,14 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
         return RenderCuttingPlanDTO(
             group = listOf(
                 plan.material.name,
-                plan.machineId ?: "unassigned-machine"
+                plan.machineId?.toString() ?: "unassigned-machine"
             ),
             productions = productions,
             width = plan.usedWidth?.toFltX()?.value ?: FltX.zero,
             standardWidth = plan.material.widthRange.upperBound.toFltX().value,
             amount = amount,
             info = mapOf(
-                "planId" to plan.id
+                "planId" to plan.id.toString()
             )
         )
     }

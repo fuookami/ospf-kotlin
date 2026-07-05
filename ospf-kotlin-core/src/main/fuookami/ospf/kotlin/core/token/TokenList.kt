@@ -161,7 +161,11 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 class TokenList<T : RealNumber<T>>(
     val list: Map<VariableItemKey, Token<T>>
 ) : AbstractTokenList<T>() {
-    /** 从可变 token 列表构造不可变副本 / Constructs an immutable copy from a mutable token list */
+    /**
+     * 从可变 token 列表构造不可变副本 / Constructs an immutable copy from a mutable token list
+     *
+     * @param tokens 源可变 token 列表 / Source mutable token list
+     */
     constructor(tokens: MutableTokenList<T>) : this(tokens.list.toMap())
 
     init {

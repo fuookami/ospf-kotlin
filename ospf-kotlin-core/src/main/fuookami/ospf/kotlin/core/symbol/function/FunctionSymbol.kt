@@ -136,19 +136,6 @@ internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V
 }
 
 /**
- * 将 [MathFunctionSymbol]<V> 包装为同时实现 [LinearIntermediateSymbol]<V> 的适配器。
- * Adapter that wraps a [MathFunctionSymbol]<V> to also implement
- * [LinearIntermediateSymbol]<V>. This allows function symbols to be stored in
- * `LinearIntermediateSymbols1/2` containers used throughout the framework.
- * 这允许函数符号存储在框架中使用的 `LinearIntermediateSymbols1/2` 容器中。
- *
- * 所有 [LinearIntermediateSymbol] 成员都有合理的默认值，因为函数符号通过
- * [MathFunctionSymbol.register] 而非传统的 prepare/flatten 管道生成约束。
- * All [LinearIntermediateSymbol] members have sensible defaults since function
- * symbols generate constraints via [MathFunctionSymbol.register] rather than
- * through the traditional prepare/flatten pipeline.
- */
-/**
  * 线性函数符号适配器 / Linear function symbol adapter
  *
  * 将 [MathFunctionSymbol] 包装为 [LinearIntermediateSymbol]，使函数符号可以
@@ -280,6 +267,12 @@ class LinearFunctionSymbolAdapter<V>(
      *
      * @return 结果线性多项式 / result linear polynomial
      */
+    /**
+     * 获取委托的结果多项式，若不存在则返回零多项式。
+     * Get the delegate's result polynomial, or a zero polynomial if unavailable.
+     *
+     * @return 结果线性多项式 / result linear polynomial
+     */
     @Suppress("UNCHECKED_CAST")
     private fun resultPolynomialOrZero(): LinearPolynomial<V> {
         // 安全不变量：本模块内 HasResultPolynomial 的实现与 delegate 使用相同的 V 类型参数。
@@ -391,7 +384,13 @@ class LinearFunctionSymbolAdapter<V>(
 
 // ---- Converter-based helpers (safe, no unchecked casts) ----
 
-/** 使用提供的转换器将 LinearPolynomial<V> 转换为 LinearPolynomial<Flt64>。 / Convert LinearPolynomial<V> to LinearPolynomial<Flt64> using the provided converter. */
+/**
+ * 使用提供的转换器将 LinearPolynomial<V> 转换为 LinearPolynomial<Flt64>。
+ * Convert LinearPolynomial<V> to LinearPolynomial<Flt64> using the provided converter.
+ *
+ * @param converter 值类型转换器 / value type converter
+ * @return 转换后的 Flt64 类型线性多项式 / the converted Flt64-type linear polynomial
+ */
 internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
@@ -399,7 +398,13 @@ internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): Linea
     )
 }
 
-/** 使用提供的转换器将 QuadraticPolynomial<V> 转换为 QuadraticPolynomial<Flt64>。 / Convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> using the provided converter. */
+/**
+ * 使用提供的转换器将 QuadraticPolynomial<V> 转换为 QuadraticPolynomial<Flt64>。
+ * Convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> using the provided converter.
+ *
+ * @param converter 值类型转换器 / value type converter
+ * @return 转换后的 Flt64 类型二次多项式 / the converted Flt64-type quadratic polynomial
+ */
 internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
@@ -407,7 +412,13 @@ internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValu
     )
 }
 
-/** 使用提供的转换器将 QuadraticPolynomial<Flt64> 转换为 QuadraticPolynomial<V>。 / Convert QuadraticPolynomial<Flt64> to QuadraticPolynomial<V> using the provided converter. */
+/**
+ * 使用提供的转换器将 QuadraticPolynomial<Flt64> 转换为 QuadraticPolynomial<V>。
+ * Convert QuadraticPolynomial<Flt64> to QuadraticPolynomial<V> using the provided converter.
+ *
+ * @param converter 值类型转换器 / value type converter
+ * @return 转换后的 V 类型二次多项式 / the converted V-type quadratic polynomial
+ */
 internal fun <V> QuadraticPolynomial<Flt64>.asVQuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },

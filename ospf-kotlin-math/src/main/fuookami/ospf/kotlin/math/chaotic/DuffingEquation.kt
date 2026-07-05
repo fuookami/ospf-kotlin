@@ -52,6 +52,12 @@ data class DuffingEquation<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 达芬方程生成器
+ * Duffing Equation generator
+ *
+ * @property attractor 达芬方程吸引子 / Duffing equation attractor
+ */
 data class DuffingEquationGenerator(
     val attractor: DuffingEquation<Flt64> = DuffingEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

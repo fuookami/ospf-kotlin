@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Con
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceQuantityZeroOrNull
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.StorageResourceTimeSlot
@@ -160,7 +161,7 @@ class ResourceQuantityFltXTest {
             quantityRangeValue = Quantity(range, NoneUnit)
         )
         val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
-            id = "quantity-exec",
+            id = ResourceIdImpl("quantity-exec"),
             name = "Quantity Exec",
             capacities = listOf(cap),
             initialQuantityValue = FltX("12.5")
@@ -189,7 +190,7 @@ class ResourceQuantityFltXTest {
             interval = 2.hours
         )
         val resource = object : StorageResource<ResourceCapacity<FltX>, FltX>(
-            id = "test-storage",
+            id = ResourceIdImpl("test-storage"),
             name = "Test Storage",
             capacities = listOf(cap),
             initialQuantityValue = FltX.zero
@@ -236,7 +237,7 @@ class ResourceQuantityFltXTest {
             interval = 1.hours
         )
         val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
-            id = "test-exec",
+            id = ResourceIdImpl("test-exec"),
             name = "Test Exec",
             capacities = listOf(cap),
             initialQuantityValue = FltX.zero
@@ -269,7 +270,7 @@ class ResourceQuantityFltXTest {
             interval = 1.hours
         )
         val resource = object : ConnectionResource<ResourceCapacity<FltX>, FltX>(
-            id = "test-conn",
+            id = ResourceIdImpl("test-conn"),
             name = "Test Conn",
             capacities = listOf(cap),
             initialQuantityValue = FltX.zero

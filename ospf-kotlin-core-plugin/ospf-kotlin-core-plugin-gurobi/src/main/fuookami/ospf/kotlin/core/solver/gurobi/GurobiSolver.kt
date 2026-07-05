@@ -92,7 +92,7 @@ abstract class GurobiSolver : AutoCloseable {
     /**
      * 执行 Gurobi 求解 / Execute Gurobi solving
      *
-     * @return 操作结果 / Operation result
+     * @return 操作结果 / operation result
      */
     protected suspend fun solve(): Try {
         return try {
@@ -108,7 +108,7 @@ abstract class GurobiSolver : AutoCloseable {
     /**
      * 分析 Gurobi 求解状态 / Analyze Gurobi solving status
      *
-     * @return 操作结果 / Operation result
+     * @return 操作结果 / operation result
      */
     protected suspend fun analyzeStatus(): Try {
         return try {

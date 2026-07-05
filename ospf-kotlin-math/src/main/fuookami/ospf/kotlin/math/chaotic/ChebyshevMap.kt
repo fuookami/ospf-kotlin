@@ -43,6 +43,9 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
      *
      * 安全不变量：V 实现 FloatingNumber<V>，cos 返回值与输入保持同一运行时数值类型。
      * Safety invariant: V implements FloatingNumber<V>, and cos keeps the same runtime numeric type as input.
+     *
+     * @param value cos 运算的结果值 / The result value from cos operation
+     * @return 转换后的类型 V / The cast value of type V
      */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {
@@ -55,6 +58,9 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
      *
      * 安全不变量：acos 在定义域内返回与输入同一数值族；定义域外保持 null。
      * Safety invariant: acos returns the same numeric family as input in-domain; out-of-domain remains null.
+     *
+     * @param value acos 运算的结果值 / The result value from acos operation
+     * @return 转换后的可空类型 V，定义域外返回 null / The cast nullable type V, or null if out of domain
      */
     @Suppress("UNCHECKED_CAST")
     private fun castNullableToNumber(value: Any?): V? {

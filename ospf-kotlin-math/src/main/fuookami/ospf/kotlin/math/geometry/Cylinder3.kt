@@ -119,7 +119,12 @@ data class Cylinder3<V : FloatingNumber<V>>(
      */
     fun permute(permutation: AxisPermutation3): Ret<Cylinder3<V>> = permutation.apply(this)
 
-    /** 在原点处创建包围盒 / Create a bounding box at the origin */
+    /**
+     * 在原点处创建包围盒
+     * Create a bounding box at the origin
+     *
+     * @return 原点处的包围盒 / The bounding box at the origin
+     */
     fun boundingBoxAtOrigin(): Box3<V> = Box3.atOrigin(boundingCuboid)
 
     /**

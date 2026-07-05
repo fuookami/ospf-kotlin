@@ -38,6 +38,10 @@ data class IkedaMap<V : FloatingNumber<V>>(val u: V, val t0: V, val t1: V) : Ext
     }
 }
 
+/**
+ * 池田映射生成器
+ * Ikeda Map Generator
+ */
 data class IkedaMapGenerator(
     val map: IkedaMap<Flt64> = IkedaMap(),
     private var _x: Point<Dim2, Flt64> = point2(

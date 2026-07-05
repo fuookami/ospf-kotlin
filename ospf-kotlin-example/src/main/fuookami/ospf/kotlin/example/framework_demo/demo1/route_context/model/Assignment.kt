@@ -26,6 +26,12 @@ class Assignment(
     lateinit var nodeAssignment: LinearIntermediateSymbols1<Flt64>
     lateinit var serviceAssignment: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 将决策变量和中间符号注册到线性元模型中。Register the decision variables and intermediate symbols into the linear meta model.
+     *
+     * @param model 线性元模型 / the linear meta model
+     * @return 注册结果 / the registration result
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))

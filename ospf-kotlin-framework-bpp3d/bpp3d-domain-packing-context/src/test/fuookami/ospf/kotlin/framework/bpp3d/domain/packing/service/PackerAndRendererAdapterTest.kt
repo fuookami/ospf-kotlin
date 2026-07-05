@@ -67,7 +67,7 @@ class PackerAndRendererAdapterTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             width = width,
@@ -110,7 +110,7 @@ class PackerAndRendererAdapterTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             width = when (axis) {
@@ -163,7 +163,7 @@ class PackerAndRendererAdapterTest {
             capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-A"
+            typeCode = binTypeIdOf("BIN-A")
         )
     }
 

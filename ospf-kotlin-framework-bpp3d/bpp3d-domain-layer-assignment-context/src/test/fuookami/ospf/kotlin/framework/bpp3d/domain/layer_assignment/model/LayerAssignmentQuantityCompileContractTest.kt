@@ -54,7 +54,7 @@ class LayerAssignmentQuantityCompileContractTest {
             materials = mapOf(material to UInt64(2))
         )
         val item = QuantityItem(
-            id = "item-1",
+            id = itemIdOf("item-1"),
             name = "item-1",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),

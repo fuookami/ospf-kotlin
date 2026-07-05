@@ -30,7 +30,7 @@ interface Csp1dDomainCalculationContext<V : RealNumber<V>> {
     val material: Material<V> get() = plan.material
 
     /** 方案所属设备 ID / Plan machine ID */
-    val machineId: String? get() = plan.machineId
+    val machineId: MachineId? get() = plan.machineId
 
     /** 方案切片列表 / Plan slices */
     val slices: List<CuttingPlanSlice<V>> get() = plan.slices
@@ -45,7 +45,7 @@ interface Csp1dDomainCalculationContext<V : RealNumber<V>> {
     fun toDomainValue(value: Flt64): V
 
     /** 计算指定产品的需求贡献量 / Compute demand contribution for specified product */
-    fun contributionFor(productId: String): Flt64?
+    fun contributionFor(productId: ProductId): Flt64?
 }
 
 /**
@@ -65,7 +65,7 @@ data class SimpleDomainCalculationContext<V : RealNumber<V>>(
 ) : Csp1dDomainCalculationContext<V> {
     override fun toDomainValue(value: Flt64): V = domainValueConverter(value)
 
-    override fun contributionFor(productId: String): Flt64? {
+    override fun contributionFor(productId: ProductId): Flt64? {
         return plan.demandContributions.find { it.product.id == productId }?.quantity?.value?.toFlt64()
     }
 }
@@ -202,7 +202,7 @@ fun <V : RealNumber<V>> widthFeasibilityCheckFromPolicies(
         // Use isWidthFeasible from policies that declared width override to replace original canCut
         val ctx = SimpleDomainCalculationContext(
             plan = CuttingPlan(
-                id = "width-check-${material.id}-${product.id}",
+                id = CuttingPlanIdImpl("width-check-${material.id}-${product.id}"),
                 material = material,
                 slices = listOf(CuttingPlanSlice(production = product, width = productWidth)),
                 demandContributions = emptyList()

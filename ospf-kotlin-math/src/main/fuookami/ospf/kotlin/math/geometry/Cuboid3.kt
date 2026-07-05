@@ -28,7 +28,12 @@ data class Cuboid3<V : FloatingNumber<V>>(
     /** 体积 / Volume */
     val volume: V get() = width * height * depth
 
-    /** 在原点处创建包围盒 / Create a bounding box at the origin */
+    /**
+     * 在原点处创建包围盒
+     * Create a bounding box at the origin
+     *
+     * @return 原点处的包围盒 / The bounding box at the origin
+     */
     fun atOrigin(): Box3<V> = Box3.atOrigin(this)
 
     /**

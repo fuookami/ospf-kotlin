@@ -46,6 +46,12 @@ data class NewtonLeipnikAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Newton-Leipnik 吸引子生成器
+ * Newton-Leipnik Attractor Generator
+ *
+ * @property attractor Newton-Leipnik 吸引子实例 / Newton-Leipnik attractor instance
+ */
 data class NewtonLeipnikAttractorGenerator(
     val attractor: NewtonLeipnikAttractor<Flt64> = NewtonLeipnikAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

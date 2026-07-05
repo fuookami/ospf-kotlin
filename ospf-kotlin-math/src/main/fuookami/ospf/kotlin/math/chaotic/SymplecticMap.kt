@@ -32,6 +32,12 @@ data class SymplecticMap<V : FloatingNumber<V>>(val h: V) : Extractor<Point<Dim2
     }
 }
 
+/**
+ * 辛映射生成器
+ * Symplectic Map Generator
+ *
+ * @property map 辛映射实例 / Symplectic map instance
+ */
 data class SymplecticMapGenerator(
     val map: SymplecticMap<Flt64> = SymplecticMap(),
     private var _x: Point<Dim2, Flt64> = point2(

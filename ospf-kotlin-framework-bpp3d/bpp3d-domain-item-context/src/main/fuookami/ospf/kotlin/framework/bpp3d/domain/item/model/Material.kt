@@ -17,7 +17,7 @@ enum class MaterialType {
 }
 
 open class MaterialKey(
-    val no: MaterialNo,
+    open val no: MaterialNo,
     val type: MaterialType,
     val manufacturer: String? = null,
     val supplier: String? = null,
@@ -49,7 +49,7 @@ private fun <V : FloatingNumber<V>> defaultMaterialWeight(): Quantity<V> {
 }
 
 open class Material<V : FloatingNumber<V>>(
-    val no: MaterialNo,
+    open val no: MaterialNo,
     val type: MaterialType,
     val cargo: AbstractCargoAttribute,
     val name: String,

@@ -64,6 +64,11 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
     /**
      * 使用数学 LinearInequality 添加约束
      * Add constraint using math LinearInequality
+     *
+     * @param relation 线性不等式 / Linear inequality
+     * @param name 约束名称 / Constraint name
+     * @param from 来源中间符号及其惰性标记 / Origin intermediate symbol and its lazy flag
+     * @return 添加结果 / Result of adding the constraint
      */
     fun addConstraint(
         relation: LinearInequality<V>,
@@ -71,6 +76,15 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
         from: Pair<IntermediateSymbol<out V>, Boolean>? = null,
     ): Try
 
+    /**
+     * 使用数学 LinearInequality 添加约束（简化来源参数）
+     * Add constraint using math LinearInequality (simplified from parameter)
+     *
+     * @param relation 线性不等式 / Linear inequality
+     * @param name 约束名称 / Constraint name
+     * @param from 来源中间符号 / Origin intermediate symbol
+     * @return 添加结果 / Result of adding the constraint
+     */
     fun addConstraint(
         relation: LinearInequality<V>,
         name: String? = null,
@@ -97,6 +111,11 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
     /**
      * 使用数学 QuadraticInequality 添加约束
      * Add constraint using math QuadraticInequality
+     *
+     * @param relation 二次不等式 / Quadratic inequality
+     * @param name 约束名称 / Constraint name
+     * @param from 来源中间符号及其惰性标记 / Origin intermediate symbol and its lazy flag
+     * @return 添加结果 / Result of adding the constraint
      */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
@@ -104,6 +123,15 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
         from: Pair<IntermediateSymbol<out V>, Boolean>? = null
     ): Try
 
+    /**
+     * 使用数学 QuadraticInequality 添加约束（简化来源参数）
+     * Add constraint using math QuadraticInequality (simplified from parameter)
+     *
+     * @param relation 二次不等式 / Quadratic inequality
+     * @param name 约束名称 / Constraint name
+     * @param from 来源中间符号 / Origin intermediate symbol
+     * @return 添加结果 / Result of adding the constraint
+     */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         name: String? = null,
@@ -128,6 +156,16 @@ interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber
     override val objectFunction: SingleObject<SubObject<V>>
 }
 
+/**
+ * 校验按 ID 查找对偶值的映射 / Validate dual-by-id mapping
+ *
+ * 检测重复约束名称和不匹配的对偶值名称，并记录警告日志。
+ * Detects duplicate constraint names and unmatched dual value names, logging warnings.
+ *
+ * @param constraints 约束列表 / Constraint list
+ * @param dualById 按约束名称索引的对偶值映射 / Dual value mapping indexed by constraint name
+ * @param log 日志记录器 / Logger instance
+ */
 private fun validateDualById(
     constraints: List<Constraint<*, *>>,
     dualById: Map<String, *>,
@@ -547,6 +585,15 @@ class LinearMechanismModel<V>(
         )
     }
 
+    /**
+     * 将线性不等式 cut 转换为 Flt64 类型 / Convert a linear inequality cut to Flt64 type
+     *
+     * 将线性不等式中的系数从 V 类型转换为 Flt64 类型。
+     * Converts the coefficients of a linear inequality from type V to Flt64.
+     *
+     * @param cut 待转换的线性不等式 / The linear inequality to convert
+     * @return Flt64 类型的线性不等式 / The linear inequality with Flt64 coefficients
+     */
     private fun toFlt64LinearCut(cut: LinearInequality<V>): LinearInequality<Flt64> {
         return LinearInequality(
             lhs = LinearPolynomial(
@@ -563,6 +610,17 @@ class LinearMechanismModel<V>(
         ).normalize()
     }
 
+    /**
+     * 按约束名称生成最优性 cut / Generate optimality cut by constraint name
+     *
+     * 根据 by-id 映射中的对偶值查找对应约束并委托给 [generateOptimalCut]。
+     * Looks up constraints by name from the by-id dual mapping and delegates to [generateOptimalCut].
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolutionById 按约束名称索引的对偶解 / Dual solution indexed by constraint name
+     * @return 线性不等式列表 / List of linear inequalities representing the cut
+     */
     internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -581,6 +639,16 @@ class LinearMechanismModel<V>(
         return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
+    /**
+     * 按约束名称生成可行性 cut / Generate feasibility cut by constraint name
+     *
+     * 根据 by-id 映射中的 Farkas 对偶值查找对应约束并委托给 [generateFeasibleCut]。
+     * Looks up constraints by name from the by-id Farkas dual mapping and delegates to [generateFeasibleCut].
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolutionById 按约束名称索引的 Farkas 对偶解 / Farkas dual solution indexed by constraint name
+     * @return 线性不等式列表 / List of linear inequalities representing the cut
+     */
     internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>
@@ -1078,6 +1146,15 @@ class QuadraticMechanismModel<V>(
         )
     }
 
+    /**
+     * 将割平面转换为 Flt64 类型 / Convert a cut to Flt64 type
+     *
+     * 将线性或二次不等式割平面中的系数从 V 类型转换为 Flt64 类型。
+     * Converts the coefficients of a linear or quadratic inequality cut from type V to Flt64.
+     *
+     * @param cut 待转换的割平面（线性或二次不等式）/ The cut to convert (linear or quadratic inequality)
+     * @return Flt64 类型的割平面 / The cut with Flt64 coefficients
+     */
     private fun toFlt64Cut(cut: Any): Any {
         val linearCut = SolverBoundaryCasts.linearInequalityAs<V>(cut)
         if (linearCut != null) {
@@ -1117,6 +1194,17 @@ class QuadraticMechanismModel<V>(
         return cut
     }
 
+    /**
+     * 按约束名称生成最优性 cut / Generate optimality cut by constraint name
+     *
+     * 根据 by-id 映射中的对偶值查找对应约束并委托给 [generateOptimalCut]。
+     * Looks up constraints by name from the by-id dual mapping and delegates to [generateOptimalCut].
+     *
+     * @param objectVariable 目标变量（theta）/ The objective variable (theta) to project onto
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param dualSolutionById 按约束名称索引的对偶解 / Dual solution indexed by constraint name
+     * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
+     */
     internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1135,6 +1223,16 @@ class QuadraticMechanismModel<V>(
         return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
+    /**
+     * 按约束名称生成可行性 cut / Generate feasibility cut by constraint name
+     *
+     * 根据 by-id 映射中的 Farkas 对偶值查找对应约束并委托给 [generateFeasibleCut]。
+     * Looks up constraints by name from the by-id Farkas dual mapping and delegates to [generateFeasibleCut].
+     *
+     * @param fixedVariables 子问题中固定的变量及其值 / Variables fixed in the sub-problem and their values
+     * @param farkasDualSolutionById 按约束名称索引的 Farkas 对偶解 / Farkas dual solution indexed by constraint name
+     * @return 割平面列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
+     */
     internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>

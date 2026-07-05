@@ -120,6 +120,10 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     val used = BooleanArray(input.size)
     val path = ArrayList<T>(choose)
 
+    /**
+     * 深度优先搜索生成排列
+     * Depth-first search for permutation generation
+     */
     suspend fun SequenceScope<List<T>>.dfs() {
         if (path.size == choose) {
             yield(path.toList())

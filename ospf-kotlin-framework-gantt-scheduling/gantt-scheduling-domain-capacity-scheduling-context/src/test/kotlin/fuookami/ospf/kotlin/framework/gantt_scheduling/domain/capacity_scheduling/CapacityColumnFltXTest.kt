@@ -13,14 +13,16 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionActionIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
-private val testExecutor = Executor("e1", "Machine-A")
+private val testExecutor = Executor(TestExecutorId("e1"), "Machine-A")
 
 private object TestAction : ProductionAction {
-    override val id = "action-1"
+    override val id = ProductionActionIdImpl("action-1")
     override val name = "Drilling"
     override val executor = testExecutor
     override val discrete = true
@@ -33,7 +35,7 @@ private object TestAction : ProductionAction {
 }
 
 private object TestAction2 : ProductionAction {
-    override val id = "action-2"
+    override val id = ProductionActionIdImpl("action-2")
     override val name = "Milling"
     override val executor = testExecutor
     override val discrete = false

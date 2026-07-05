@@ -13,9 +13,24 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 物料装箱器，用于将物料需求装箱到包装方案中。
+ * Material packer for packing material demands into packaging programs.
+ *
+ * @param solverExecutor 物料装箱求解器执行器 / the material packing solver executor
+ */
 class MaterialPacker(
     private val solverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
 ) {
+    /**
+     * 包装槽位，表示一个候选方案在当前槽位的包装实例。
+     * Package slot representing a packaging instance of a candidate program in the current slot.
+     *
+     * @property candidateIndex 候选方案索引 / the candidate program index
+     * @property pack 包装实例 / the package instance
+     * @property assigned 已分配的物料及其数量 / the assigned materials and their amounts
+     * @property pending 是否待定 / whether the slot is pending
+     */
     private data class PackageSlot(
         val candidateIndex: Int,
         val pack: Package<*>,
@@ -23,12 +38,27 @@ class MaterialPacker(
         val pending: Boolean
     )
 
+    /**
+     * 槽位签名，用于对相同配置的槽位进行分组。
+     * Slot signature for grouping slots with the same configuration.
+     *
+     * @property candidateIndex 候选方案索引 / the candidate program index
+     * @property pending 是否待定 / whether the slot is pending
+     * @property materials 物料及其分配数量列表 / the list of materials and their assigned amounts
+     */
     private data class SlotSignature(
         val candidateIndex: Int,
         val pending: Boolean,
         val materials: List<Pair<MaterialKey, UInt64>>
     )
 
+    /**
+     * 将装箱数量转换为 FltX 标量类型。
+     * Convert a packing quantity to the FltX scalar type.
+     *
+     * @param value 待转换的数量 / the quantity to convert
+     * @return 转换后的 FltX 数量 / the converted FltX quantity
+     */
     @Suppress("UNCHECKED_CAST")
     private fun packQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
         return when (value.value) {
@@ -267,7 +297,7 @@ class MaterialPacker(
             val itemId = "${candidate.id}-$sequence"
             val pack = sameSlots.first().pack
             val item = ActualItem(
-                id = itemId,
+                id = fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.itemIdOf(itemId),
                 name = "${candidate.itemName}-$sequence",
                 pack = pack,
                 width = packQuantityToFltX(pack.width),
@@ -314,6 +344,13 @@ class MaterialPacker(
         )
     }
 
+    /**
+     * 将 Long 值转换为 UInt64，负值返回零。
+     * Convert a Long value to UInt64, returning zero for negative values.
+     *
+     * @param value 待转换的长整型值 / the long value to convert
+     * @return 转换后的 UInt64 值 / the converted UInt64 value
+     */
     private fun toUInt64(value: Long): UInt64 {
         return if (value <= 0L) {
             UInt64.zero

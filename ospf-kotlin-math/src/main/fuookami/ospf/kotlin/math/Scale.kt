@@ -14,6 +14,10 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
+/**
+ * 缩放底数类型（FltX 或 RtnX 的 Either）
+ * Scale base type (Either of FltX or RtnX)
+ */
 private typealias ScaleBase = Either<FltX, RtnX>
 
 /**
@@ -134,7 +138,12 @@ data class Scale(
             return Scale(listOf(base to FltX(index.toLong())))
         }
 
-        /** 按底数值升序排列缩放因子列表 / Sort scale factor list by base value ascending */
+        /**
+         * 按底数值升序排列缩放因子列表
+         * Sort scale factor list by base value ascending
+         *
+         * @return 排序后的缩放因子列表 / Sorted scale factor list
+         */
         private fun List<Pair<ScaleBase, FltX>>.sort(): List<Pair<ScaleBase, FltX>> {
             return sortedBy {
                 when (val base = it.first) {
@@ -144,7 +153,12 @@ data class Scale(
             }
         }
 
-        /** 过滤指数为零的项并排序 / Filter out zero-exponent entries and sort */
+        /**
+         * 过滤指数为零的项并排序
+         * Filter out zero-exponent entries and sort
+         *
+         * @return 过滤并排序后的缩放因子列表 / Filtered and sorted scale factor list
+         */
         private fun List<Pair<ScaleBase, FltX>>.tidy(): List<Pair<ScaleBase, FltX>> {
             return this
                 .filter { it.second neq FltX.zero }
@@ -152,6 +166,10 @@ data class Scale(
         }
     }
 
+    /**
+     * 懒加载计算缩放值（对所有底数的指数幂累乘），计算失败返回 null
+     * Lazily compute the scale value (accumulate base^exponent for all bases), returning null on failure
+     */
     val valueOrNull: FltX? by lazy {
         var acc = FltX.one
         for (scale in scales) {
@@ -164,10 +182,19 @@ data class Scale(
         acc.stripTrailingZeros()
     }
 
+    /**
+     * 获取缩放值（可为 null）
+     * Get the scale value (nullable)
+     */
     val value: FltX?
         get() = valueOrNull
 
-    /** 安全获取缩放值 / Safely get scale value */
+    /**
+     * 安全获取缩放值
+     * Safely get scale value
+     *
+     * @return 缩放因子值结果 / Result of the scale factor value
+     */
     fun valueSafe(): Ret<FltX> {
         return valueOrNull?.let { Ok(it) }
             ?: Failed(ErrorCode.IllegalArgument, "缩放因子值未定义。 / Scale value is undefined.")
@@ -247,11 +274,24 @@ data class Scale(
         val merged = scales.toMutableList()
         val indexBuckets = HashMap<String, MutableList<Int>>(merged.size + other.scales.size)
 
+        /**
+         * 将底数索引添加到桶中
+         * Add base index to the bucket
+         *
+         * @param index 要索引的位置 / The index to add
+         */
         fun indexBase(index: Int) {
             val key = merged[index].first.cacheKey()
             indexBuckets.getOrPut(key) { mutableListOf() }.add(index)
         }
 
+        /**
+         * 查找已存在的匹配底数索引
+         * Find the index of an existing matching base
+         *
+         * @param base 要查找的底数 / The base to find
+         * @return 匹配的索引，未找到返回 -1 / The matching index, or -1 if not found
+         */
         fun findExistingIndex(base: ScaleBase): Int {
             val key = base.cacheKey()
             indexBuckets[key]?.forEach { idx ->

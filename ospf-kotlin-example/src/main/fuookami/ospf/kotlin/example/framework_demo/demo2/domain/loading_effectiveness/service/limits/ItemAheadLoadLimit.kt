@@ -23,11 +23,11 @@ class ItemAheadLoadLimit(
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     companion object {
         private val predicates = listOf(
-            // �ѵ�����
+            // 已站坪的
             { item: Item -> item.order?.hardstand != null },
-            // �ѳ���
+            // 已上车
             { item: Item -> item.order?.hardstand != null || item.order?.carBoard != null },
-            // �Ѹ���
+            // 已复重
             { item: Item -> item.order?.hardstand != null || item.order?.carBoard != null || item.order?.reweighed != null },
         )
     }

@@ -29,7 +29,12 @@ enum class Point {
     AfterFailure
 }
 
-/** CPLEX 求解器回调管理器 / CPLEX solver callback manager */
+/**
+ * CPLEX 求解器回调管理器 / CPLEX solver callback manager
+ *
+ * @property nativeCallback CPLEX 原生回调函数 / CPLEX native callback function
+ * @property map 回调时机到回调函数列表的映射 / mapping from callback point to callback function list
+ */
 class CplexSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)

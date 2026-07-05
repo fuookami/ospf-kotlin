@@ -32,7 +32,13 @@ enum class ConstraintRelation {
     };
 
     companion object {
-        /** 从比较运算创建约束关系，NE 返回 null / Create a constraint relation from a comparison; NE returns null */
+        /**
+         * 从比较运算创建约束关系，NE 返回 null。
+         * Create a constraint relation from a comparison; NE returns null.
+         *
+         * @param comparison 比较运算枚举值 / The comparison enumeration value
+         * @return 对应的约束关系，NE 时返回 null / The corresponding constraint relation, or null for NE
+         */
         fun ofOrNull(comparison: Comparison): ConstraintRelation? = when (comparison) {
             Comparison.LT -> LessEqual
             Comparison.LE -> LessEqual
@@ -42,7 +48,13 @@ enum class ConstraintRelation {
             Comparison.GE -> GreaterEqual
         }
 
-        /** 从比较运算创建约束关系，NE 返回失败 / Create a constraint relation from a comparison; NE returns failure */
+        /**
+         * 从比较运算创建约束关系，NE 返回失败。
+         * Create a constraint relation from a comparison; NE returns failure.
+         *
+         * @param comparison 比较运算枚举值 / The comparison enumeration value
+         * @return 成功时返回对应的约束关系，NE 时返回失败 / The corresponding constraint relation on success, or a failure for NE
+         */
         fun ofSafe(comparison: Comparison): Ret<ConstraintRelation> {
             return ofOrNull(comparison)
                 ?.let { ok(it) }

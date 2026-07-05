@@ -92,7 +92,7 @@ class Csp1dCgLifecycleTest {
 
     private fun product(id: String, width: Double): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64(width), Meter))
         )
@@ -105,7 +105,7 @@ class Csp1dCgLifecycleTest {
         machineId: String? = null
     ): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -114,13 +114,13 @@ class Csp1dCgLifecycleTest {
                 ),
                 step = Quantity(Flt64(0.1), Meter)
             ),
-            machineId = machineId
+            machineId = machineId?.let { machineIdOf(it) }
         )
     }
 
     private fun machine(id: String, capacity: Double): Machine<Flt64> {
         return Machine(
-            id = id,
+            id = machineIdOf(id),
             name = "machine-$id",
             capacity = Quantity(Flt64(capacity), Kilogram)
         )
@@ -133,7 +133,7 @@ class Csp1dCgLifecycleTest {
         machineId: String? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = "plan-${product.id}-${material.id}",
+            id = cuttingPlanIdOf("plan-${product.id}-${material.id}"),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -148,7 +148,7 @@ class Csp1dCgLifecycleTest {
                     quantity = Quantity(rollContribution, RollCountUnit)
                 )
             ),
-            machineId = machineId
+            machineId = machineId?.let { machineIdOf(it) }
         )
     }
 
@@ -880,7 +880,7 @@ class Csp1dCgLifecycleTest {
         // 验证 key 内容指向对应产品 / Verify key content points to the product
         val demandArgs = demandConstraints.mapNotNull { it.args as? ProductDemandShadowPriceKey }
         assertTrue(
-            demandArgs.any { it.productId == "p-cg" },
+            demandArgs.any { it.productId == productIdOf("p-cg") },
             "Demand shadow price key should reference product p-cg"
         )
     }
@@ -996,7 +996,7 @@ class Csp1dCgLifecycleTest {
 
         // 用 mock shadow price map 验证 extractor / Verify extractor with a mock shadow price map
         val mockMap = Csp1dDefaultShadowPriceMap()
-        val priceKey = MaterialUsageShadowPriceKey("m-ext")
+        val priceKey = MaterialUsageShadowPriceKey(materialIdOf("m-ext"))
         mockMap.put(fuookami.ospf.kotlin.framework.model.ShadowPrice(priceKey, Flt64(5.0)))
         // 直接验证 extractor 计算，避免测试依赖通用 sumOf 的伴生对象 fallback。
         // Verify extractor directly to avoid relying on broad sumOf companion fallback in tests.
@@ -1050,7 +1050,7 @@ class Csp1dCgLifecycleTest {
         }
         assertNotNull(yieldConstraint, "Yield bound constraint should carry a shadow price key")
         val key = yieldConstraint.args as YieldOverProductionBoundShadowPriceKey
-        assertEquals("p-yield", key.productId)
+        assertEquals(productIdOf("p-yield"), key.productId)
         assertEquals(RollCountUnit.symbol ?: RollCountUnit.toString(), key.unitSymbol)
 
         val frameworkMap = Csp1dDefaultShadowPriceMap()

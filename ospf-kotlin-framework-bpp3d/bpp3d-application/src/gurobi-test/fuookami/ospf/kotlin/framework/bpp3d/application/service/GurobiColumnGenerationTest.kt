@@ -92,7 +92,7 @@ class GurobiColumnGenerationTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -147,7 +147,7 @@ class GurobiColumnGenerationTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),

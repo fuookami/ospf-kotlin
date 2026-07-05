@@ -57,7 +57,7 @@ class DemandStatisticsTest {
     @Test
     fun actualItemWithoutPackageHasEmptyMaterialStatistics() {
         val item = ActualItem(
-            id = "item-0",
+            id = itemIdOf("item-0"),
             name = "item-0",
             width = FltX(1.0) * Meter,
             height = FltX(1.0) * Meter,
@@ -96,7 +96,7 @@ class DemandStatisticsTest {
             )
         )
         val item = ActualItem(
-            id = "item-1",
+            id = itemIdOf("item-1"),
             name = "item-1",
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -135,7 +135,7 @@ class DemandStatisticsTest {
         )
 
         val item1 = ActualItem(
-            id = "item-1",
+            id = itemIdOf("item-1"),
             name = "item-1",
             pack = Package.innerPackage(
                 shape = packageShape(),
@@ -149,7 +149,7 @@ class DemandStatisticsTest {
             packageAttribute = defaultPackageAttribute()
         )
         val item2 = ActualItem(
-            id = "item-2",
+            id = itemIdOf("item-2"),
             name = "item-2",
             pack = Package.innerPackage(
                 shape = packageShape(),
@@ -271,7 +271,7 @@ class DemandStatisticsTest {
             weight = FltX(2.0) * Kilogram
         )
         val cylinderItem = ActualItem(
-            id = "cyl-item-1",
+            id = itemIdOf("cyl-item-1"),
             name = "cyl-item-1",
             pack = Package.innerPackage(
                 shape = cylinderPackageShape(),

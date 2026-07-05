@@ -11,17 +11,46 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
+/**
+ * 转换为 FltX 量纲。
+ * Convert to FltX quantity.
+ * @return FltX 量纲。
+ */
 private fun <V : FloatingNumber<V>> Quantity<V>.toFltXQuantity(): Quantity<FltX> {
     return Quantity(FltX(this.value.toString().toDouble()), this.unit)
 }
 
+/**
+ * 不安全地转换为 FltX 量纲。
+ * Unsafely convert to FltX quantity.
+ * @return FltX 量纲。
+ */
 private fun Quantity<*>.toFltXQuantityUnsafe(): Quantity<FltX> {
     return Quantity(FltX(this.value.toString().toDouble()), this.unit)
 }
 
+/**
+ * 量纲包裹形状规格。
+ * Quantity package shape specification.
+ */
 sealed interface QuantityPackageShapeSpec {
+    /** 长方体。 / Cuboid. */
     data object Cuboid : QuantityPackageShapeSpec
 
+    /**
+     * 竖直圆柱体。
+     * Vertical cylinder.
+     * @property radius 半径。
+     * @property axis 轴线方向。
+     * @property radiusCandidates 半径候选值。
+     * @property radiusMin 半径最小值。
+     * @property radiusMax 半径最大值。
+     * @property radiusWeightFunctionKey 半径权重函数键。
+     * @property radiusStep 半径步长。
+     * @property diameterMin 直径最小值。
+     * @property diameterMax 直径最大值。
+     * @property diameterStep 直径步长。
+     */
     data class VerticalCylinder<V : FloatingNumber<V>>(
         val radius: Quantity<V>,
         val axis: Axis3 = Axis3.Y,
@@ -36,6 +65,11 @@ sealed interface QuantityPackageShapeSpec {
     ) : QuantityPackageShapeSpec
 }
 
+/**
+ * 转换为领域模型。
+ * Convert to the domain model.
+ * @return 包裹形状规格模型。
+ */
 private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
     return when (this) {
         QuantityPackageShapeSpec.Cuboid -> PackageShapeSpec.Cuboid
@@ -56,6 +90,18 @@ private fun QuantityPackageShapeSpec.toModel(): PackageShapeSpec {
     }
 }
 
+/**
+ * 量纲材料。
+ * Quantity material.
+ * @property no 材料编号。
+ * @property type 材料类型。
+ * @property cargo 货物属性。
+ * @property name 名称。
+ * @property manufacturer 制造商。
+ * @property supplier 供应商。
+ * @property warehouse 仓库。
+ * @property weight 重量。
+ */
 data class QuantityMaterial<V : FloatingNumber<V>>(
     val no: MaterialNo,
     val type: MaterialType,
@@ -66,6 +112,11 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
     val warehouse: String? = null,
     val weight: Quantity<V>
 ) {
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @return 材料模型。
+     */
     fun toModel(): Material<FltX> {
         return Material(
             no = no,
@@ -80,6 +131,16 @@ data class QuantityMaterial<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 量纲包裹形状。
+ * Quantity package shape.
+ * @property width 宽度。
+ * @property height 高度。
+ * @property depth 深度。
+ * @property weight 重量。
+ * @property packageType 包裹类型。
+ * @property shapeSpec 形状规格。
+ */
 data class QuantityPackageShape<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val height: Quantity<V>,
@@ -90,6 +151,11 @@ data class QuantityPackageShape<V : FloatingNumber<V>>(
 ) {
     val volume: Quantity<V> = width * height * depth
 
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @return 包裹形状模型。
+     */
     fun toModel(): PackageShape<FltX> {
         return PackageShape(
             width = width.toFltXQuantity(),
@@ -102,6 +168,17 @@ data class QuantityPackageShape<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 量纲包裹。
+ * Quantity package.
+ * @property code 包裹编码。
+ * @property pattern 包裹模式。
+ * @property shape 包裹形状。
+ * @property packages 子包裹列表。
+ * @property materials 材料映射。
+ * @property amount 数量。
+ * @property pending 是否待定。
+ */
 data class QuantityPackage<V : FloatingNumber<V>>(
     val code: PackageCode? = null,
     val pattern: PackagePattern? = null,
@@ -112,6 +189,17 @@ data class QuantityPackage<V : FloatingNumber<V>>(
     val pending: Boolean = false,
 ) {
     companion object {
+        /**
+         * 创建外层包裹。
+         * Create an outer package.
+         * @param code 包裹编码。
+         * @param pattern 包裹模式。
+         * @param shape 包裹形状。
+         * @param packages 子包裹列表。
+         * @param amount 数量。
+         * @param pending 是否待定。
+         * @return 外层包裹。
+         */
         fun <V : FloatingNumber<V>> outerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
@@ -137,6 +225,17 @@ data class QuantityPackage<V : FloatingNumber<V>>(
             )
         }
 
+        /**
+         * 创建内层包裹。
+         * Create an inner package.
+         * @param code 包裹编码。
+         * @param pattern 包裹模式。
+         * @param shape 包裹形状。
+         * @param materials 材料映射。
+         * @param amount 数量。
+         * @param pending 是否待定。
+         * @return 内层包裹。
+         */
         fun <V : FloatingNumber<V>> innerPackage(
             code: PackageCode? = null,
             pattern: PackagePattern? = null,
@@ -163,6 +262,12 @@ data class QuantityPackage<V : FloatingNumber<V>>(
     val packageType by shape::packageType
     val volume by shape::volume
 
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @param materialCache 材料缓存，用于避免重复创建。
+     * @return 包裹模型。
+     */
     fun toModel(
         materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap()
     ): Package<FltX> {
@@ -191,8 +296,22 @@ data class QuantityPackage<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 量纲物品。
+ * Quantity item.
+ * @property packageCode 包裹编码。
+ * @property pack 包裹。
+ * @property width 宽度。
+ * @property height 高度。
+ * @property depth 深度。
+ * @property weight 重量。
+ * @property enabledOrientations 允许的朝向。
+ * @property batchNo 批号。
+ * @property warehouse 仓库。
+ * @property packageAttribute 包裹属性。
+ */
 data class QuantityItem<V : FloatingNumber<V>>(
-    val id: String,
+    val id: ItemId,
     val name: String,
     val packageCode: PackageCode? = null,
     val pack: QuantityPackage<V>? = null,
@@ -206,7 +325,7 @@ data class QuantityItem<V : FloatingNumber<V>>(
     val packageAttribute: PackageAttribute,
 ) {
     constructor(
-        id: String,
+        id: ItemId,
         name: String,
         pack: QuantityPackage<V>,
         enabledOrientations: List<Orientation>,
@@ -228,6 +347,13 @@ data class QuantityItem<V : FloatingNumber<V>>(
         packageAttribute = packageAttribute
     )
 
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @param materialCache 材料缓存，用于避免重复创建。
+     * @param itemCache 物品缓存，用于避免重复创建。
+     * @return 实际物品模型。
+     */
     fun toModel(
         materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
@@ -252,6 +378,15 @@ data class QuantityItem<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 量纲物品放置。
+ * Quantity item placement.
+ * @property item 物品。
+ * @property x X 坐标。
+ * @property y Y 坐标。
+ * @property z Z 坐标。
+ * @property orientation 朝向。
+ */
 data class QuantityItemPlacement<V : FloatingNumber<V>>(
     val item: QuantityItem<V>,
     val x: Quantity<V>,
@@ -259,6 +394,13 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
     val z: Quantity<V>,
     val orientation: Orientation = Orientation.Upright
 ) {
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @param materialCache 材料缓存，用于避免重复创建。
+     * @param itemCache 物品缓存，用于避免重复创建。
+     * @return 物品放置模型。
+     */
     fun toModel(
         materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()
@@ -276,6 +418,10 @@ data class QuantityItemPlacement<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * 量纲箱子层。
+ * Quantity bin layer.
+ */
 data class QuantityBinLayer<V : FloatingNumber<V>>(
     val iteration: Int64,
     val from: KClass<*>,
@@ -284,6 +430,13 @@ data class QuantityBinLayer<V : FloatingNumber<V>>(
     val depth: Quantity<V>,
     val units: List<QuantityItemPlacement<V>>
 ) {
+    /**
+     * 转换为领域模型。
+     * Convert to the domain model.
+     * @param materialCache 材料缓存，用于避免重复创建。
+     * @param itemCache 物品缓存，用于避免重复创建。
+     * @return 箱子层模型。
+     */
     fun toModel(
         materialCache: MutableMap<QuantityMaterial<V>, Material<FltX>> = LinkedHashMap(),
         itemCache: MutableMap<QuantityItem<V>, ActualItem> = LinkedHashMap()

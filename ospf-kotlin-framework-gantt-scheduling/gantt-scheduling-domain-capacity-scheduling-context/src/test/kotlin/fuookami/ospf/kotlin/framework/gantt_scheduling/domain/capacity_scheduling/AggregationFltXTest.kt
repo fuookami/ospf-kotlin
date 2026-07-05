@@ -15,15 +15,22 @@ import fuookami.ospf.kotlin.quantities.unit.NoneUnit
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ExecutorCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionActionIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 
-private val fltXTestExecutor = Executor("e-fltx", "FltX-Machine")
+@JvmInline
+internal value class TestExecutorId(val value: String) : ExecutorId {
+    override fun toString(): String = value
+}
+
+private val fltXTestExecutor = Executor(TestExecutorId("e-fltx"), "FltX-Machine")
 
 private object FltXTestAction : ProductionAction {
-    override val id = "fltX-action-1"
+    override val id = ProductionActionIdImpl("fltX-action-1")
     override val name = "FltX-Drilling"
     override val executor = fltXTestExecutor
     override val discrete = false
@@ -36,7 +43,7 @@ private object FltXTestAction : ProductionAction {
 }
 
 private object FltXTestAction2 : ProductionAction {
-    override val id = "fltX-action-2"
+    override val id = ProductionActionIdImpl("fltX-action-2")
     override val name = "FltX-Milling"
     override val executor = fltXTestExecutor
     override val discrete = false

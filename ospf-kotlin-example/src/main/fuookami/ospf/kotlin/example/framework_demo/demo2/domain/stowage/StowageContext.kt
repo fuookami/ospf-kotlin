@@ -1,159 +1,62 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.AircraftContext
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
-import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
+import fuookami.ospf.kotlin.utils.math.*
 
-internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
-
-class StowageContext {
-    lateinit var aggregation: Aggregation
-
-    fun init(
-        aircraftContext: AircraftContext,
-        input: RequestDTO
-    ): Try {
-        when (val result = AggregationInitializer(
-            aircraftAggregation = aircraftContext.aggregation,
-            input = input
-        )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                aggregation = result.value!!
-            }
-
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Failed(result.error)
-            }
-
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        return ok
+/** 堆存上下文，封装贝位、列、排、箱位的尺寸与索引映射 / Stowage context, encapsulating dimensions and index mappings for bays, columns, rows, and slots */
+data class StowageContext(
+    /** 贝位列表 / List of bays */
+    val bays: List<Bay>,
+    /** 贝位范围 / Bay boundary range */
+    val bayBound: BayBound,
+    /** 列数 / Number of columns */
+    val columnSize: UInt64,
+    /** 排数 / Number of rows */
+    val rowSize: UInt64,
+    /** 箱位数 / Number of slots */
+    val slotSize: UInt64,
+) {
+    /**
+     * 根据一维索引获取贝位 / Get bay by one-dimensional index
+     * @param index 一维索引 / One-dimensional index
+     * @return 对应的贝位 / The corresponding bay
+     */
+    fun bay(index: Index1D): Bay {
+        return bays[index.toUInt64().toInt()]
     }
 
-    fun register(
-        stowageMode: StowageMode,
-        model: AbstractLinearMetaModel<Flt64>
-    ): Try {
-        when (val result = aggregation.register(
-            stowageMode = stowageMode,
-            model = model
-        )) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Failed(result.error)
-            }
-
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        val generator = PipelineListGenerator(aggregation)
-        val pipelines = when (val result = generator.invoke(stowageMode)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                result.value!!
-            }
-
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Failed(result.error)
-            }
-
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        for (pipeline in pipelines) {
-            when (val result = pipeline(model)) {
-                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-
-                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-
-        return ok
+    /**
+     * 根据二维索引获取列 / Get column by two-dimensional index
+     * @param index 二维索引 / Two-dimensional index
+     * @return 对应的列 / The corresponding column
+     */
+    fun column(index: Index2D): Column {
+        return Column(
+            index = index,
+            bay = bay(index[0]),
+        )
     }
 
-    fun registerForBendersMP(
-        model: AbstractLinearMetaModel<Flt64>
-    ): Try {
-        when (val result = aggregation.registerForBendersMP(model)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
-        }
-        return ok
+    /**
+     * 根据二维索引获取排 / Get row by two-dimensional index
+     * @param index 二维索引 / Two-dimensional index
+     * @return 对应的排 / The corresponding row
+     */
+    fun row(index: Index2D): Row {
+        return Row(
+            index = index,
+            bay = bay(index[0]),
+        )
     }
 
-    fun registerForBendersSP(
-        model: AbstractLinearMetaModel<Flt64>,
-        solution: List<Flt64>
-    ): Try {
-        when (val result = aggregation.registerForBendersSP(model, solution)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
-        }
-        return ok
-    }
-
-    fun flushForBendersSP(
-        model: AbstractLinearMetaModel<Flt64>,
-        solution: List<Flt64>
-    ): Try {
-        when (val result = aggregation.registerForBendersSP(model, solution)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
-        }
-        return ok
-    }
-
-    fun analyze(
-        solution: List<Flt64>,
-        model: AbstractLinearMetaModel<Flt64>
-    ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val analyzer = SolutionAnalyzer(aggregation)
-        val stowageSolution = when (val result = analyzer(solution, model)) {
-            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                result.value!!
-            }
-
-            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Failed(result.error)
-            }
-
-            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        return Ok(stowageSolution)
-    }
-
-    fun analyze(
-        solution: fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution,
-        input: RequestDTO
-    ): Ret<ResponseDTO> {
-        TODO("not implemented yet")
+    /**
+     * 根据二维索引获取箱位 / Get slot by two-dimensional index
+     * @param index 二维索引 / Two-dimensional index
+     * @return 对应的箱位 / The corresponding slot
+     */
+    fun slot(index: Index2D): Slot {
+        return Slot(
+            index = index,
+            bay = bay(index[0]),
+        )
     }
 }

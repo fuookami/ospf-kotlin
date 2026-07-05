@@ -13,12 +13,12 @@ class CostarFillerTest {
     private val arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
 
     private fun product(id: String, width: Quantity<Flt64>): Product<Flt64> {
-        return Product(id = id, name = "product-$id", width = listOf(width))
+        return Product(id = ProductIdImpl(id), name = "product-$id", width = listOf(width))
     }
 
     private fun material(): Material<Flt64> {
         return Material(
-            id = "m1",
+            id = MaterialIdImpl("m1"),
             name = "material-m1",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -33,7 +33,7 @@ class CostarFillerTest {
 
     private fun cuttingPlan(slices: List<CuttingPlanSlice<Flt64>>): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = "cp1",
+            id = CuttingPlanIdImpl("cp1"),
             material = material(),
             slices = slices,
             demandContributions = emptyList(),
@@ -59,7 +59,7 @@ class CostarFillerTest {
     fun singleCostarFillsRemainingWidth() {
         val p = product("p1", Quantity(Flt64(1.0), Meter))
         val costar = Costar(
-            id = "c1",
+            id = CostarIdImpl("c1"),
             name = "costar-1",
             width = listOf(Quantity(Flt64(0.5), Meter))
         )
@@ -75,7 +75,7 @@ class CostarFillerTest {
         assertTrue(filledPlans.isNotEmpty(), "Should have plans with costar slices")
 
         val filled = filledPlans.first()
-        val costarSlices = filled.slices.filter { it.production.id == "c1" }
+        val costarSlices = filled.slices.filter { it.production.id == costarIdOf("c1") }
         assertTrue(costarSlices.isNotEmpty(), "Should have costar slice")
     }
 
@@ -83,12 +83,12 @@ class CostarFillerTest {
     fun multipleCostarsCombination() {
         val p = product("p1", Quantity(Flt64(1.0), Meter))
         val costar1 = Costar(
-            id = "c1",
+            id = CostarIdImpl("c1"),
             name = "costar-1",
             width = listOf(Quantity(Flt64(0.3), Meter))
         )
         val costar2 = Costar(
-            id = "c2",
+            id = CostarIdImpl("c2"),
             name = "costar-2",
             width = listOf(Quantity(Flt64(0.5), Meter))
         )
@@ -109,7 +109,7 @@ class CostarFillerTest {
     fun costarSlicesShouldNotChangeDemandContributions() {
         val p = product("p-demand", Quantity(Flt64(1.0), Meter))
         val costar = Costar(
-            id = "c-demand",
+            id = CostarIdImpl("c-demand"),
             name = "costar-demand",
             width = listOf(Quantity(Flt64(0.5), Meter))
         )
@@ -118,7 +118,7 @@ class CostarFillerTest {
             quantity = Quantity(Flt64.one, RollCountUnit)
         )
         val plan = CuttingPlan(
-            id = "cp-demand",
+            id = CuttingPlanIdImpl("cp-demand"),
             material = material(),
             slices = listOf(
                 CuttingPlanSlice(

@@ -27,7 +27,13 @@ enum class Point {
     AfterFailure
 }
 
-/** Hexaly 求解器回调管理器 / Hexaly solver callback manager */
+/**
+ * Hexaly 求解器回调管理器 / Hexaly solver callback manager
+ *
+ * @property nativeCallback 原生回调函数 / Native callback function
+ * @property creatingEnvironmentFunction 创建环境函数 / Creating environment function
+ * @property map 回调时机到回调函数列表的映射 / Mapping from callback point to callback function list
+ */
 class HexalySolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,

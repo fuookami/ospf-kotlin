@@ -55,7 +55,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageType = PackageType.CartonContainer
         )
         val item = QuantityItem(
-            id = "item-analyzer-quantity",
+            id = itemIdOf("item-analyzer-quantity"),
             name = "item-analyzer-quantity",
             pack = QuantityPackage.innerPackage(
                 shape = shape,
@@ -87,7 +87,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ANALYZER-GENERIC"
+            typeCode = binTypeIdOf("BIN-ANALYZER-GENERIC")
         )
         val analyzer = ColumnGenerationPackingAnalyzer()
 
@@ -130,7 +130,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-X"
+            typeCode = binTypeIdOf("BIN-ADAPTER-GENERATED-CYLINDER-X")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -165,7 +165,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val support = QuantityItem(
-            id = "item-adapter-cylinder-stack-support",
+            id = itemIdOf("item-adapter-cylinder-stack-support"),
             name = "item-adapter-cylinder-stack-support",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -182,7 +182,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val cylinder = QuantityItem(
-            id = "item-adapter-cylinder-stack-cylinder",
+            id = itemIdOf("item-adapter-cylinder-stack-cylinder"),
             name = "item-adapter-cylinder-stack-cylinder",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -209,7 +209,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-STACK"
+            typeCode = binTypeIdOf("BIN-ADAPTER-GENERATED-CYLINDER-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -244,7 +244,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val support = QuantityItem(
-            id = "item-adapter-cylinder-multi-stack-support",
+            id = itemIdOf("item-adapter-cylinder-multi-stack-support"),
             name = "item-adapter-cylinder-multi-stack-support",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -261,7 +261,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val cylinder = QuantityItem(
-            id = "item-adapter-cylinder-multi-stack-cylinder",
+            id = itemIdOf("item-adapter-cylinder-multi-stack-cylinder"),
             name = "item-adapter-cylinder-multi-stack-cylinder",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -288,7 +288,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-STACK"
+            typeCode = binTypeIdOf("BIN-ADAPTER-GENERATED-CYLINDER-MULTI-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -329,7 +329,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val support = QuantityItem(
-            id = "item-adapter-cylinder-multi-hanging-support-$axis",
+            id = itemIdOf("item-adapter-cylinder-multi-hanging-support-$axis"),
             name = "item-adapter-cylinder-multi-hanging-support-$axis",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -346,7 +346,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val cylinder = QuantityItem(
-            id = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
+            id = itemIdOf("item-adapter-cylinder-multi-hanging-cylinder-$axis"),
             name = "item-adapter-cylinder-multi-hanging-cylinder-$axis",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -373,7 +373,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-MULTI-HANGING-$axis"
+            typeCode = binTypeIdOf("BIN-ADAPTER-GENERATED-CYLINDER-MULTI-HANGING-$axis")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -414,7 +414,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             weight = FltX(0.2) * Kilogram
         )
         val supportA = QuantityItem(
-            id = "item-adapter-cylinder-heterogeneous-stack-support-a",
+            id = itemIdOf("item-adapter-cylinder-heterogeneous-stack-support-a"),
             name = "item-adapter-cylinder-heterogeneous-stack-support-a",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -431,7 +431,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val supportB = QuantityItem(
-            id = "item-adapter-cylinder-heterogeneous-stack-support-b",
+            id = itemIdOf("item-adapter-cylinder-heterogeneous-stack-support-b"),
             name = "item-adapter-cylinder-heterogeneous-stack-support-b",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -448,7 +448,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             packageAttribute = packageAttribute()
         ).toModel()
         val cylinder = QuantityItem(
-            id = "item-adapter-cylinder-heterogeneous-stack-cylinder",
+            id = itemIdOf("item-adapter-cylinder-heterogeneous-stack-cylinder"),
             name = "item-adapter-cylinder-heterogeneous-stack-cylinder",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -475,7 +475,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ADAPTER-GENERATED-CYLINDER-HETEROGENEOUS-STACK"
+            typeCode = binTypeIdOf("BIN-ADAPTER-GENERATED-CYLINDER-HETEROGENEOUS-STACK")
         )
 
         val generated = CirclePackingLayerGenerator<FltX>().generate(
@@ -529,7 +529,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ANALYZER-CYLINDER-Z"
+            typeCode = binTypeIdOf("BIN-ANALYZER-CYLINDER-Z")
         )
         val explicitBin = layerBinOf(
             shape = bin,
@@ -633,7 +633,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-ANALYZER-CYLINDER-Z-POLICY"
+            typeCode = binTypeIdOf("BIN-ANALYZER-CYLINDER-Z-POLICY")
         )
         val explicitBin = layerBinOf(
             shape = bin,
@@ -687,7 +687,7 @@ class ColumnGenerationPackingAnalyzerQuantityEntryPointTest {
                 )
             )
             QuantityItem(
-                id = "item-adapter-cylinder-$axis",
+                id = itemIdOf("item-adapter-cylinder-$axis"),
                 name = "item-adapter-cylinder-$axis",
                 pack = QuantityPackage.innerPackage(
                     shape = shape,

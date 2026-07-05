@@ -48,14 +48,17 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 抽象多维数组基类
  * Abstract multi-dimensional array base class
  *
- * @param T 元素类型
- * @param S 形状类型
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @property shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
  */
 sealed class AbstractMultiArray<out T : Any, S : Shape>(
     val shape: S,
     ctor: ((Int, IntArray) -> @UnsafeVariance T)? = null
 ) : Collection<T> {
 
+    /** 内部元素存储列表 / Internal element storage list */
     internal lateinit var list: MutableList<@UnsafeVariance T>
 
     init {
@@ -87,6 +90,8 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     /**
      * 初始化数组
      * Initialize the array
+     *
+     * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
      */
     protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
         if (!::list.isInitialized) {
@@ -205,8 +210,8 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      * 创建视图
      * Create a view
      *
-     * @param dummyVector 虚拟向量
-     * @return 多维数组视图
+     * @param dummyVector 虚拟向量 / Dummy vector
+     * @return 多维数组视图 / Multi-dimensional array view
      */
     fun view(dummyVector: DummyVector): MultiArrayView<T, S> {
         return MultiArrayView(this, dummyVector)
@@ -216,7 +221,7 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
      * 获取枚举迭代器
      * Get enumerate iterator
      *
-     * @return 枚举迭代器，产生 (线性索引, 向量坐标, 元素引用) 三元组
+     * @return 枚举迭代器，产生 (线性索引, 向量坐标, 元素引用) 三元组 / Enumerate iterator yielding (linear index, vector coordinates, element reference) triples
      */
     fun enumerate(): Sequence<Triple<Int, IntArray, T>> = sequence {
         for (i in 0 until shape.size) {
@@ -229,8 +234,10 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
  * 不可变多维数组
  * Immutable multi-dimensional array
  *
- * @param T 元素类型
- * @param S 形状类型
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @param shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
  */
 open class MultiArray<out T : Any, S : Shape>(
     shape: S,
@@ -389,8 +396,10 @@ open class MultiArray<out T : Any, S : Shape>(
  * 可变多维数组
  * Mutable multi-dimensional array
  *
- * @param T 元素类型
- * @param S 形状类型
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @param shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
  */
 open class MutableMultiArray<T : Any, S : Shape>(
     shape: S,
@@ -585,16 +594,24 @@ open class MutableMultiArray<T : Any, S : Shape>(
 
 /** 不可变多维数组类型别名 / Immutable multi-dimensional array type aliases */
 typealias MultiArray1<T> = MultiArray<T, Shape1>
+/** 二维不可变多维数组类型别名 / 2D immutable multi-dimensional array type alias */
 typealias MultiArray2<T> = MultiArray<T, Shape2>
+/** 三维不可变多维数组类型别名 / 3D immutable multi-dimensional array type alias */
 typealias MultiArray3<T> = MultiArray<T, Shape3>
+/** 四维不可变多维数组类型别名 / 4D immutable multi-dimensional array type alias */
 typealias MultiArray4<T> = MultiArray<T, Shape4>
+/** 动态维度不可变多维数组类型别名 / Dynamic dimension immutable multi-dimensional array type alias */
 typealias DynMultiArray<T> = MultiArray<T, DynShape>
 
 /** 可变多维数组类型别名 / Mutable multi-dimensional array type aliases */
 typealias MutableMultiArray1<T> = MutableMultiArray<T, Shape1>
+/** 二维可变多维数组类型别名 / 2D mutable multi-dimensional array type alias */
 typealias MutableMultiArray2<T> = MutableMultiArray<T, Shape2>
+/** 三维可变多维数组类型别名 / 3D mutable multi-dimensional array type alias */
 typealias MutableMultiArray3<T> = MutableMultiArray<T, Shape3>
+/** 四维可变多维数组类型别名 / 4D mutable multi-dimensional array type alias */
 typealias MutableMultiArray4<T> = MutableMultiArray<T, Shape4>
+/** 动态维度可变多维数组类型别名 / Dynamic dimension mutable multi-dimensional array type alias */
 typealias DynMutableMultiArray<T> = MutableMultiArray<T, DynShape>
 
 /**

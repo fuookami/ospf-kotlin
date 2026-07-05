@@ -52,7 +52,13 @@ data class DepthBoundaryLayerOrientationPolicy(
         )
     }
 
-    /** 确保层方向约束满足 / Ensure layer orientation constraint is satisfied */
+    /**
+     * 确保层方向约束满足。
+     * Ensure layer orientation constraints are satisfied.
+     *
+     * @param bins 待校验的容器列表 / list of bins to validate
+     * @return 校验结果 / validation result
+     */
     internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>): Try {
         if (!enabled) {
             return ok
@@ -84,6 +90,15 @@ data class DepthBoundaryLayerOrientationPolicy(
         return ok
     }
 
+    /**
+     * 校验指定边界层是否满足方向约束。
+     * Validate whether the specified boundary layer satisfies orientation constraints.
+     *
+     * @param binIndex 容器索引 / bin index
+     * @param side 边界层侧别 / boundary layer side
+     * @param placement 层放置信息 / layer placement info
+     * @return 校验结果 / validation result
+     */
     private fun ensureBoundaryLayerSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
@@ -117,6 +132,18 @@ data class DepthBoundaryLayerOrientationPolicy(
         return ok
     }
 
+    /**
+     * 校验单个边界层单元是否满足方向约束。
+     * Validate whether a single boundary layer unit satisfies orientation constraints.
+     *
+     * @param binIndex 容器索引 / bin index
+     * @param side 边界层侧别 / boundary layer side
+     * @param layerPlacement 层放置信息 / layer placement info
+     * @param unitPlacement 单元放置信息 / unit placement info
+     * @param allowedCylinderAxes 允许的圆柱轴向集合 / allowed cylinder axes set
+     * @param allowedCuboidOrientations 允许的长方体朝向集合 / allowed cuboid orientations set
+     * @return 校验结果 / validation result
+     */
     private fun ensureBoundaryUnitSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
@@ -149,11 +176,24 @@ data class DepthBoundaryLayerOrientationPolicy(
         return ok
     }
 
+    /**
+     * 获取边界单元的描述字符串，优先使用实际物品 ID。
+     * Get a description string for the boundary unit, preferring the actual item ID.
+     *
+     * @return 边界单元的描述字符串 / description string of the boundary unit
+     */
     private fun Any.describeBoundaryUnit(): String {
-        return (this as? ActualItem)?.id ?: toString()
+        return (this as? ActualItem)?.id?.toString() ?: toString()
     }
 
     private companion object {
+        /**
+         * 校验集合非空约束，null 或非空均合法。
+         * Validate that the set is either null or non-empty.
+         *
+         * @param values 待校验的集合 / the set to validate
+         * @param fieldName 字段名称，用于错误信息 / field name used in error message
+         */
         private fun requireNonEmpty(values: Set<*>?, fieldName: String) {
             require(values == null || values.isNotEmpty()) {
                 "Depth boundary layer orientation policy $fieldName must be null or non-empty."
@@ -162,7 +202,9 @@ data class DepthBoundaryLayerOrientationPolicy(
     }
 }
 
-/** 深度边界层侧别 / Depth boundary layer side */
+/** 深度边界层侧别 / Depth boundary layer side
+ * @property label 侧别的显示标签 / display label of the side
+ */
 private enum class DepthBoundaryLayerSide(val label: String) {
     /** 第一层 / First layer */
     First("first"),

@@ -539,7 +539,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加目标（最大化线性多项式）/ Add objective (maximize LinearPolynomial) */
+    /**
+     * 添加目标（最大化线性多项式）。
+     * Add objective (maximize LinearPolynomial).
+     *
+     * @param polynomial  线性多项式 / The linear polynomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         polynomial: LinearPolynomial<V>,
         name: String? = null,
@@ -553,7 +561,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加目标（最小化线性单项式）/ Add objective (minimize LinearMonomial) */
+    /**
+     * 添加目标（最小化线性单项式）。
+     * Add objective (minimize LinearMonomial).
+     *
+     * @param monomial    线性单项式 / The linear monomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         monomial: LinearMonomial<V>,
         name: String? = null,
@@ -567,7 +583,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加目标（最大化线性单项式）/ Add objective (maximize LinearMonomial) */
+    /**
+     * 添加目标（最大化线性单项式）。
+     * Add objective (maximize LinearMonomial).
+     *
+     * @param monomial    线性单项式 / The linear monomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         monomial: LinearMonomial<V>,
         name: String? = null,
@@ -583,7 +607,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
 
     // ========== Unified entry points ==========
 
-    /** 添加目标（最小化线性中间符号）/ Add objective (minimize LinearIntermediateSymbol) */
+    /**
+     * 添加目标（最小化线性中间符号）。
+     * Add objective (minimize LinearIntermediateSymbol).
+     *
+     * @param symbol      线性中间符号 / The linear intermediate symbol
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         symbol: LinearIntermediateSymbol<V>,
         name: String? = null,
@@ -598,7 +630,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加目标（最大化线性中间符号）/ Add objective (maximize LinearIntermediateSymbol) */
+    /**
+     * 添加目标（最大化线性中间符号）。
+     * Add objective (maximize LinearIntermediateSymbol).
+     *
+     * @param symbol      线性中间符号 / The linear intermediate symbol
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         symbol: LinearIntermediateSymbol<V>,
         name: String? = null,
@@ -689,7 +729,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
 
     // ========== math.symbol type overloads for Quadratic ==========
 
-    /** 添加目标（最小化二次多项式）/ Add objective (minimize QuadraticPolynomial) */
+    /**
+     * 添加目标（最小化二次多项式）。
+     * Add objective (minimize QuadraticPolynomial).
+     *
+     * @param polynomial  二次多项式 / The quadratic polynomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         polynomial: QuadraticPolynomial<V>,
         name: String? = null,
@@ -703,7 +751,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加目标（最大化二次多项式）/ Add objective (maximize QuadraticPolynomial) */
+    /**
+     * 添加目标（最大化二次多项式）。
+     * Add objective (maximize QuadraticPolynomial).
+     *
+     * @param polynomial  二次多项式 / The quadratic polynomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         polynomial: QuadraticPolynomial<V>,
         name: String? = null,
@@ -717,7 +773,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加目标（最小化二次单项式）/ Add objective (minimize QuadraticMonomial) */
+    /**
+     * 添加目标（最小化二次单项式）。
+     * Add objective (minimize QuadraticMonomial).
+     *
+     * @param monomial    二次单项式 / The quadratic monomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         monomial: QuadraticMonomial<V>,
         name: String? = null,
@@ -731,7 +795,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加目标（最大化二次单项式）/ Add objective (maximize QuadraticMonomial) */
+    /**
+     * 添加目标（最大化二次单项式）。
+     * Add objective (maximize QuadraticMonomial).
+     *
+     * @param monomial    二次单项式 / The quadratic monomial
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         monomial: QuadraticMonomial<V>,
         name: String? = null,
@@ -747,7 +819,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
 
     // ========== Unified entry points ==========
 
-    /** 添加目标（最小化二次中间符号）/ Add objective (minimize QuadraticIntermediateSymbol) */
+    /**
+     * 添加目标（最小化二次中间符号）。
+     * Add objective (minimize QuadraticIntermediateSymbol).
+     *
+     * @param symbol      二次中间符号 / The quadratic intermediate symbol
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun minimize(
         symbol: QuadraticIntermediateSymbol<V>,
         name: String? = null,
@@ -762,7 +842,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加目标（最大化二次中间符号）/ Add objective (maximize QuadraticIntermediateSymbol) */
+    /**
+     * 添加目标（最大化二次中间符号）。
+     * Add objective (maximize QuadraticIntermediateSymbol).
+     *
+     * @param symbol      二次中间符号 / The quadratic intermediate symbol
+     * @param name        目标名称（可为 null） / The objective name (nullable)
+     * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     fun maximize(
         symbol: QuadraticIntermediateSymbol<V>,
         name: String? = null,
@@ -779,7 +867,17 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
 
     // ========== addConstraint convenience overloads ==========
 
-    /** 添加约束（基于二次单项式）/ Add constraint (by QuadraticMonomial) */
+    /**
+     * 添加约束（基于二次单项式）。
+     * Add constraint (by QuadraticMonomial).
+     *
+     * @param constraint  二次单项式 / The quadratic monomial
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticMonomial")
     fun addConstraint(
@@ -800,7 +898,17 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加约束（基于二次多项式）/ Add constraint (by QuadraticPolynomial) */
+    /**
+     * 添加约束（基于二次多项式）。
+     * Add constraint (by QuadraticPolynomial).
+     *
+     * @param constraint  二次多项式 / The quadratic polynomial
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticPolynomial")
     fun addConstraint(
@@ -820,7 +928,17 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加约束（基于二次中间符号）/ Add constraint (by QuadraticIntermediateSymbol) */
+    /**
+     * 添加约束（基于二次中间符号）。
+     * Add constraint (by QuadraticIntermediateSymbol).
+     *
+     * @param constraint  二次中间符号 / The quadratic intermediate symbol
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticSymbol")
     fun addConstraint(
@@ -843,7 +961,16 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
 
     // ========== partition overloads ==========
 
-    /** 分区约束（基于二次中间符号）/ Partition constraint (by QuadraticIntermediateSymbol) */
+    /**
+     * 分区约束（基于二次中间符号）。
+     * Partition constraint (by QuadraticIntermediateSymbol).
+     *
+     * @param symbols     二次中间符号集合 / The quadratic intermediate symbols
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
@@ -863,7 +990,16 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 分区约束（基于二次单项式）/ Partition constraint (by QuadraticMonomial) */
+    /**
+     * 分区约束（基于二次单项式）。
+     * Partition constraint (by QuadraticMonomial).
+     *
+     * @param monomials   二次单项式集合 / The quadratic monomials
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticMonomials")
     fun partition(
@@ -880,7 +1016,16 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 分区约束（基于二次多项式）/ Partition constraint (by QuadraticPolynomial) */
+    /**
+     * 分区约束（基于二次多项式）。
+     * Partition constraint (by QuadraticPolynomial).
+     *
+     * @param polynomial  二次多项式 / The quadratic polynomial
+     * @param lazy        是否延迟求值 / Whether lazy evaluation
+     * @param name        约束名称（可为 null） / The constraint name (nullable)
+     * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
+     * @return 操作结果 / The operation result
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticPolynomial")
     fun partition(

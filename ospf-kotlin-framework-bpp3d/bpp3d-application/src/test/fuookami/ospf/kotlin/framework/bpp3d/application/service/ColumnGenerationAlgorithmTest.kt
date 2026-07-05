@@ -68,7 +68,7 @@ class ColumnGenerationAlgorithmTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -96,7 +96,7 @@ class ColumnGenerationAlgorithmTest {
             materials = mapOf(material to UInt64.one)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -135,7 +135,7 @@ class ColumnGenerationAlgorithmTest {
             capacity = FltX(100.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = typeCode
+            typeCode = binTypeIdOf(typeCode)
         )
         val placements = items.mapIndexed { index, item ->
             item.toItemPlacement(
@@ -196,7 +196,7 @@ class ColumnGenerationAlgorithmTest {
             weight = FltX.one * Kilogram
         )
         val quantityItem = QuantityItem(
-            id = "item-alg-g",
+            id = itemIdOf("item-alg-g"),
             name = "item-alg-g",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -1111,7 +1111,7 @@ class ColumnGenerationAlgorithmTest {
             weight = FltX.one * Kilogram
         )
         val quantityItem = QuantityItem(
-            id = "item-q",
+            id = itemIdOf("item-q"),
             name = "item-q",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -1180,7 +1180,7 @@ class ColumnGenerationAlgorithmTest {
             weight = FltX.one * Kilogram
         )
         val quantityItem = QuantityItem(
-            id = "item-qg",
+            id = itemIdOf("item-qg"),
             name = "item-qg",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -1251,7 +1251,7 @@ class ColumnGenerationAlgorithmTest {
             weight = FltX(0.5) * Kilogram
         )
         val quantityItem = QuantityItem(
-            id = "item-rq",
+            id = itemIdOf("item-rq"),
             name = "item-rq",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(
@@ -1292,7 +1292,7 @@ class ColumnGenerationAlgorithmTest {
         )
 
         assertEquals(1, request.itemDemands.size)
-        assertEquals("item-rq", (request.itemDemands.first().first as ActualItem).id)
+        assertEquals(itemIdOf("item-rq"), (request.itemDemands.first().first as ActualItem).id)
         assertEquals(UInt64(3), request.itemDemands.first().second)
         assertEquals(1, request.materialAmountDemands.size)
         assertEquals(UInt64(6), request.materialAmountDemands.first().second)
@@ -1313,7 +1313,7 @@ class ColumnGenerationAlgorithmTest {
             weight = FltX.one * Kilogram
         )
         val quantityItem = QuantityItem(
-            id = "item-sq",
+            id = itemIdOf("item-sq"),
             name = "item-sq",
             pack = QuantityPackage.innerPackage(
                 shape = QuantityPackageShape(

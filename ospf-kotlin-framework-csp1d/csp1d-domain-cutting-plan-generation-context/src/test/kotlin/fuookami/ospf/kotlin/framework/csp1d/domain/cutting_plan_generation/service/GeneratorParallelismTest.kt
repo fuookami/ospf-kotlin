@@ -130,7 +130,7 @@ class GeneratorParallelismTest {
         width: Double
     ): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
@@ -143,7 +143,7 @@ class GeneratorParallelismTest {
         upperBound: Double
     ): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(

@@ -28,6 +28,16 @@ private fun infraVector3(
     return Vector(x, y, z)
 }
 
+/**
+ * 空间模型，表示容器中的一个可放置区域。
+ * Space model, representing a placeable region within a container.
+ * @property parentShape 父空间形状，默认为当前形状
+ * @property parentShape the parent space shape, defaults to the current shape
+ * @property block 放置在该空间中的箱子，为空表示空闲空间
+ * @property block the block placed in this space, null indicates free space
+ * @property forwardLink 前向关联，指向分割后的下一个空间
+ * @property forwardLink the forward link to the next space after splitting
+ */
 data class Space(
     val position: Point<Dim3, FltX>,
     val shape: AbstractContainer3Shape,
@@ -83,6 +93,10 @@ data class Space(
     val maxY get() = y + height
     val maxZ get() = z + depth
 
+    /**
+     * 当前空间放置箱子后产生的关联空间列表。
+     * The list of linked spaces generated after placing a block in the current space.
+     */
     val links: List<Pair<ProjectivePlane, Space>>
         get() {
             return if (block != null) {
@@ -147,6 +161,10 @@ data class Space(
             }
         }
 
+    /**
+     * 获取底部方向关联的空间列表。
+     * Get the list of spaces linked in the bottom direction.
+     */
     val bottomSpaces: List<Space>
         get() {
             val spaces = ArrayList<Space>()
@@ -163,6 +181,14 @@ data class Space(
             return spaces
         }
 
+    /**
+     * 将箱子放入该空间。
+     * Put a block into this space.
+     * @param block 要放入的箱子
+     * @param block the block to put
+     * @return 放置后的新空间，如果无法放置则返回 null
+     * @return the new space after placement, or null if placement is not possible
+     */
     fun put(block: Block): Space? {
         val thisBottomSpaces = bottomSpaces
 
@@ -269,6 +295,12 @@ data class Space(
         )
     }
 
+    /**
+     * 转储空间中的物品列表。
+     * Dump the items in the space.
+     * @return 物品放置列表，如果空间为空则返回空列表
+     * @return the list of item placements, or an empty list if the space is empty
+     */
     fun dump(): List<QuantityPlacement3<Item, FltX>> {
         return block?.dump() ?: emptyList()
     }

@@ -287,6 +287,12 @@ sealed class ConcurrentMutableTokenTable<V>(
         synchronized(lock) {
             val visited = mutableSetOf<IntermediateSymbol<*>>()
             val onStack = mutableSetOf<IntermediateSymbol<*>>()
+            /**
+             * 深度优先搜索检测环 / Depth-first search to detect cycles
+             *
+             * @param symbol 待检测的符号 / Symbol to check
+             * @return 无环返回 true，有环返回 false / True if acyclic, false if cycle detected
+             */
             fun dfs(symbol: IntermediateSymbol<*>): Boolean {
                 if (symbol in onStack) return false
                 if (symbol in visited) return true

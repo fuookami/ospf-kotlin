@@ -37,6 +37,12 @@ data class GaussMap<V : FloatingNumber<V>>(
     }
 
     companion object {
+        /**
+         * 创建一个高斯映射 / Create a Gauss map
+         *
+         * @param mu 混沌参数 / Chaos parameter
+         * @return 高斯映射实例 / A Gauss map instance
+         */
         operator fun invoke(
             mu: Flt64 = Random.nextFlt64(Flt64.one, Flt64.ten)
         ): GaussMap<Flt64> {
@@ -46,14 +52,23 @@ data class GaussMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 高斯映射生成噌
+ * 高斯映射生成器
  * Gauss Map Generator
+ *
+ * @property gaussMap 高斯映射实例 / Gauss map instance
  */
 data class GaussMapGenerator(
     val gaussMap: GaussMap<Flt64> = GaussMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
+        /**
+         * 创建一个高斯映射生成器 / Create a Gauss map generator
+         *
+         * @param mu 混沌参数 / Chaos parameter
+         * @param x 初始值 / Initial value
+         * @return 高斯映射生成器 / A Gauss map generator
+         */
         operator fun invoke(
             mu: Flt64,
             x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

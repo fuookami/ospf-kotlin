@@ -57,7 +57,7 @@ class CylinderShapeContractTest {
         val radius = FltX(0.5) * Meter
         val diameter = assertNotNull(radius + radius)
         return ActualItem(
-            id = "cylinder-$axis",
+            id = itemIdOf("cylinder-$axis"),
             name = "cylinder-$axis",
             width = diameter,
             height = FltX(1.0) * Meter,

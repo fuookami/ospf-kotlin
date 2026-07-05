@@ -13,12 +13,28 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
+/** 飞行器聚合类型别名。 */
 typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
+/** 配载聚合类型别名。 */
 typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
 
+/**
+ * 装车有效性上下文，管理装车有效性的初始化、注册与 Benders 分解流程。
+ * Loading effectiveness context, managing initialization, registration, and Benders decomposition flow.
+ */
 class LoadingEffectivenessContext {
+    /** 装车有效性聚合。 */
     lateinit var aggregation: Aggregation
 
+    /**
+     * 初始化装车有效性上下文。
+     * Initialize the loading effectiveness context.
+     *
+     * @param aircraftContext 飞行器上下文
+     * @param stowageContext 配载上下文
+     * @param input 请求 DTO
+     * @return 操作结果
+     */
     fun init(
         aircraftContext: AircraftContext,
         stowageContext: StowageContext,
@@ -47,6 +63,15 @@ class LoadingEffectivenessContext {
         return ok
     }
 
+    /**
+     * 注册装车有效性约束与流水线到模型中。
+     * Register loading effectiveness constraints and pipelines into the model.
+     *
+     * @param stowageMode 装载模式
+     * @param parameter 参数配置
+     * @param model 线性元模型
+     * @return 操作结果
+     */
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
@@ -102,6 +127,13 @@ class LoadingEffectivenessContext {
         return ok
     }
 
+    /**
+     * 注册 Benders 主问题的装车有效性约束。
+     * Register loading effectiveness constraints for the Benders master problem.
+     *
+     * @param model 线性元模型
+     * @return 操作结果
+     */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -113,6 +145,13 @@ class LoadingEffectivenessContext {
         )
     }
 
+    /**
+     * 注册 Benders 子问题的装车有效性（空实现，装车有效性不贡献给子问题）。
+     * Register loading effectiveness for the Benders sub problem (no-op, loading effectiveness does not contribute to the sub problem).
+     *
+     * @param model 线性元模型
+     * @return 操作结果
+     */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -120,6 +159,14 @@ class LoadingEffectivenessContext {
         return ok
     }
 
+    /**
+     * 刷新 Benders 子问题的装车有效性（空实现）。
+     * Flush loading effectiveness for Benders sub problem (no-op).
+     *
+     * @param model 线性元模型
+     * @param solution 解向量
+     * @return 操作结果
+     */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

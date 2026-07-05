@@ -89,6 +89,7 @@ data class SqliteConfig(
     val maxIdle: Int = 10,
     val maxOpenPreparedStatements: Int = 100
 ) {
+    /** 客户端键 / Client key */
     val key get() = SqliteClientKey(name = name)
 }
 

@@ -248,6 +248,9 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
      *
      * Checks if this value is less than another.
      * 检查此值是否小于另一个值。
+     *
+     * @param rhs 要比较的值 / The value to compare with
+     * @return 如果小于则为 true / true if this value is less than the other
      */
     infix fun ls(rhs: Self): Boolean {
         return this < rhs
@@ -258,6 +261,9 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
      *
      * Checks if this value is less than or equal to another.
      * 检查此值是否小于等于另一个值。
+     *
+     * @param rhs 要比较的值 / The value to compare with
+     * @return 如果小于等于则为 true / true if this value is less than or equal to the other
      */
     infix fun leq(rhs: Self): Boolean {
         return this <= rhs
@@ -268,6 +274,9 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
      *
      * Checks if this value is greater than another.
      * 检查此值是否大于另一个值。
+     *
+     * @param rhs 要比较的值 / The value to compare with
+     * @return 如果大于则为 true / true if this value is greater than the other
      */
     infix fun gr(rhs: Self): Boolean {
         return this > rhs
@@ -278,6 +287,9 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
      *
      * Checks if this value is greater than or equal to another.
      * 检查此值是否大于等于另一个值。
+     *
+     * @param rhs 要比较的值 / The value to compare with
+     * @return 如果大于等于则为 true / true if this value is greater than or equal to the other
      */
     infix fun geq(rhs: Self): Boolean {
         return this >= rhs

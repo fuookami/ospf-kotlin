@@ -116,6 +116,17 @@ private fun <V> Quantity<V>.tryConvertByValueType(unit: PhysicalUnit): Quantity<
     }
 }
 
+/**
+ * 转换已知值类型的物理量
+ * Convert quantity with known value type
+ *
+ * 内部方法，通过类型擦除转换调用具体的类型化转换函数。
+ * Internal method that delegates to typed conversion function via type erasure.
+ *
+ * @param unit 目标单位 / Target unit
+ * @param convert 类型化转换函数 / Typed conversion function
+ * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
+ */
 @Suppress("UNCHECKED_CAST")
 private fun <V, T> Quantity<V>.convertKnownValueType(
     unit: PhysicalUnit,
@@ -126,7 +137,15 @@ private fun <V, T> Quantity<V>.convertKnownValueType(
     return (this as Quantity<T>).convert(unit) as Quantity<V>?
 }
 
-/** 构建物理量运算失败消息 / Build quantity operation failure message */
+/**
+ * 构建物理量运算失败消息
+ * Build quantity operation failure message
+ *
+ * @param lhs 左操作数单位 / Left operand unit
+ * @param rhs 右操作数单位 / Right operand unit
+ * @param operation 操作名称 / Operation name
+ * @return 失败消息字符串 / Failure message string
+ */
 private fun quantityOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
     return if (lhs.quantity != rhs.quantity) {
         "物理量量纲不匹配，无法执行$operation：期望 ${lhs.quantity.dimensionSymbol()}，实际 ${rhs.quantity.dimensionSymbol()}。 / " +
@@ -151,7 +170,13 @@ private fun <V> Quantity<V>.quantityBinarySafe(
 private val affineFlt64Tolerance = Flt64(1e-10)
 private val affineFltXTolerance = FltX("1e-12")
 
-/** 将值转换为标准单位值 / Convert value to standard unit value */
+/**
+ * 将值转换为标准单位值
+ * Convert value to standard unit value
+ *
+ * @param value 要转换的值 / Value to convert
+ * @return 标准单位值，或 null 如果无法转换 / Standard unit value, or null if conversion failed
+ */
 private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
     return when (val rule = conversionRule) {
         is UnitConversionRule.Linear -> value * (rule.scale.value ?: return null)
@@ -159,7 +184,14 @@ private fun PhysicalUnit.toStandardValue(value: FltX): FltX? {
     }
 }
 
-/** 转换线性差值为标准单位 / Convert linear difference value to standard unit */
+/**
+ * 转换线性差值为标准单位
+ * Convert linear difference value to standard unit
+ *
+ * @param value 要转换的值 / Value to convert
+ * @param unit 目标单位 / Target unit
+ * @return 转换后的值，或 null 如果无法转换 / Converted value, or null if conversion failed
+ */
 private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: PhysicalUnit): FltX? {
     if (quantity != unit.quantity) return null
     val sourceScale = scale.value ?: return null
@@ -167,6 +199,12 @@ private fun PhysicalUnit.convertLinearDifferenceValue(value: FltX, unit: Physica
     return value * sourceScale / targetScale
 }
 
+/**
+ * 获取仿射单位的线性差值单位
+ * Get the linear difference unit of an affine unit
+ *
+ * @return 线性差值单位 / Linear difference unit
+ */
 private fun PhysicalUnit.linearDifferenceUnit(): PhysicalUnit {
     if (!isAffine) return this
     return AnonymousPhysicalUnit(
@@ -178,6 +216,14 @@ private fun PhysicalUnit.linearDifferenceUnit(): PhysicalUnit {
     )
 }
 
+/**
+ * 比较两个 Flt64 值的仿射序关系
+ * Compare affine order relation of two Flt64 values
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 序关系 / Order relation
+ */
 private fun affineOrder(lhs: Flt64, rhs: Flt64): Order {
     val diff = lhs - rhs
     return if (diff.abs() <= affineFlt64Tolerance) {
@@ -189,6 +235,14 @@ private fun affineOrder(lhs: Flt64, rhs: Flt64): Order {
     }
 }
 
+/**
+ * 比较两个 FltX 值的仿射序关系
+ * Compare affine order relation of two FltX values
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 序关系 / Order relation
+ */
 private fun affineOrder(lhs: FltX, rhs: FltX): Order {
     val diff = lhs - rhs
     return if (diff.abs() <= affineFltXTolerance) {
@@ -200,6 +254,14 @@ private fun affineOrder(lhs: FltX, rhs: FltX): Order {
     }
 }
 
+/**
+ * 比较两个仿射物理量的序关系
+ * Compare order relation of two affine quantities
+ *
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 序关系，或 null 如果无法比较 / Order relation, or null if incomparable
+ */
 private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
     if (lhs.unit.quantity != rhs.unit.quantity) return null
     if (!lhs.unit.isAffine && !rhs.unit.isAffine) return null
@@ -221,13 +283,28 @@ private fun affineOrderOf(lhs: Quantity<*>, rhs: Quantity<*>): Order? {
     }
 }
 
-/** 构建仿射运算失败消息（单参数）/ Build affine operation failure message (single param) */
+/**
+ * 构建仿射运算失败消息（单参数）
+ * Build affine operation failure message (single param)
+ *
+ * @param unit 物理单位 / Physical unit
+ * @param operation 操作名称 / Operation name
+ * @return 失败消息字符串 / Failure message string
+ */
 private fun quantityAffineOperationFailureMessage(unit: PhysicalUnit, operation: String): String {
     return "仿射单位不支持此物理量$operation：$unit。请使用线性差值单位。 / " +
             "Affine unit is not supported for quantity $operation: $unit. Use a linear difference unit instead."
 }
 
-/** 构建仿射运算失败消息（双参数）/ Build affine operation failure message (dual param) */
+/**
+ * 构建仿射运算失败消息（双参数）
+ * Build affine operation failure message (dual param)
+ *
+ * @param lhs 左操作数单位 / Left operand unit
+ * @param rhs 右操作数单位 / Right operand unit
+ * @param operation 操作名称 / Operation name
+ * @return 失败消息字符串 / Failure message string
+ */
 private fun quantityAffineOperationFailureMessage(lhs: PhysicalUnit, rhs: PhysicalUnit, operation: String): String {
     return "仿射单位不支持此物理量$operation：$lhs 与 $rhs。请使用线性差值单位。 / " +
             "Affine units are not supported for quantity $operation: $lhs and $rhs. Use linear difference units instead."
@@ -254,6 +331,13 @@ private fun <V> quantityDimensionBinarySafe(
         ?: Failed(ErrorCode.IllegalArgument, quantityAffineOperationFailureMessage(lhs, rhs, operation))
 }
 
+/**
+ * Flt64 仿射感知加法
+ * Flt64 affine-aware addition
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，或 null 如果无法执行仿射加法 / Sum quantity, or null if affine addition failed
+ */
 private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
@@ -268,6 +352,13 @@ private fun Quantity<Flt64>.plusAffineAwareFlt64(other: Quantity<Flt64>): Quanti
     }
 }
 
+/**
+ * FltX 仿射感知加法
+ * FltX affine-aware addition
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相加后的物理量，或 null 如果无法执行仿射加法 / Sum quantity, or null if affine addition failed
+ */
 private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
@@ -282,7 +373,13 @@ private fun Quantity<FltX>.plusAffineAwareFltX(other: Quantity<FltX>): Quantity<
     }
 }
 
-/** Flt64 仿射感知减法 / Flt64 affine-aware subtraction */
+/**
+ * Flt64 仿射感知减法
+ * Flt64 affine-aware subtraction
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，或 null 如果无法执行仿射减法 / Difference quantity, or null if affine subtraction failed
+ */
 private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quantity<Flt64>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null
@@ -302,7 +399,13 @@ private fun Quantity<Flt64>.minusAffineAwareFlt64(other: Quantity<Flt64>): Quant
     }
 }
 
-/** FltX 仿射感知减法 / FltX affine-aware subtraction */
+/**
+ * FltX 仿射感知减法
+ * FltX affine-aware subtraction
+ *
+ * @param other 另一个物理量 / Another quantity
+ * @return 相减后的物理量，或 null 如果无法执行仿射减法 / Difference quantity, or null if affine subtraction failed
+ */
 private fun Quantity<FltX>.minusAffineAwareFltX(other: Quantity<FltX>): Quantity<FltX>? {
     if (this.unit.quantity != other.unit.quantity) return null
     if (!this.unit.isAffine && !other.unit.isAffine) return null

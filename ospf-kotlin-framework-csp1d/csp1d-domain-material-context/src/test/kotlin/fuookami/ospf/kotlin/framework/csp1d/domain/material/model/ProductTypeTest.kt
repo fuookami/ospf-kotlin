@@ -10,7 +10,7 @@ class ProductTypeTest {
     @Test
     fun productFlt64ShouldCompileAndInferWeight() {
         val product = Product(
-            id = "p64",
+            id = ProductIdImpl("p64"),
             name = "P64",
             width = listOf(
                 Quantity(Flt64(1.0), Meter),
@@ -28,7 +28,7 @@ class ProductTypeTest {
     @Test
     fun productFltXShouldCompileAndInferWeight() {
         val product = Product(
-            id = "px",
+            id = ProductIdImpl("px"),
             name = "PX",
             width = listOf(
                 Quantity(FltX("0.9"), Meter),

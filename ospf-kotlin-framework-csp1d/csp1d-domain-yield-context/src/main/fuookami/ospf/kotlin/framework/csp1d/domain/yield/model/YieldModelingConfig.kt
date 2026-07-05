@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.yield.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemandShadowPriceKey
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
 
 /**
  * yield 建模配置，供 application 层消费 / Yield modeling configuration for application layer
@@ -41,7 +42,7 @@ data class YieldModelingResult<V : RealNumber<V>>(
  * @property amount 欠产量 / Under-production amount
  */
 data class ModeledUnderProduction<V : RealNumber<V>>(
-    val productId: String,
+    val productId: ProductId,
     val unitSymbol: String,
     val amount: V
 )
@@ -58,7 +59,7 @@ data class ModeledUnderProduction<V : RealNumber<V>>(
  * @property amount 超产量 / Over-production amount
  */
 data class ModeledOverProduction<V : RealNumber<V>>(
-    val productId: String,
+    val productId: ProductId,
     val unitSymbol: String,
     val amount: V
 )

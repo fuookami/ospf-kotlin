@@ -33,6 +33,12 @@ data class NoseHooverAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
     }
 }
 
+/**
+ * Nose-Hoover 吸引子生成器
+ * Nose-Hoover Attractor Generator
+ *
+ * @property attractor Nose-Hoover 吸引子实例 / Nose-Hoover attractor instance
+ */
 data class NoseHooverAttractorGenerator(
     val attractor: NoseHooverAttractor<Flt64> = NoseHooverAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

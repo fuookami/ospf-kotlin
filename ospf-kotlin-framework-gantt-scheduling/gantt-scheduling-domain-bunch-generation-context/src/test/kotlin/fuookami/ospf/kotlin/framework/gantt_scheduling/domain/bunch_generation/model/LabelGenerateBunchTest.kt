@@ -17,14 +17,26 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.CostItem
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorInitialUsability
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ImmutableCost
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.TaskId
 
 private typealias TestTask = AbstractUnplannedTask<Executor, AssignmentPolicy<Executor>>
 
+@JvmInline
+private value class TestExecutorId(val value: String) : ExecutorId {
+    override fun toString(): String = value
+}
+
+@JvmInline
+private value class TestTaskId(val value: String) : TaskId {
+    override fun toString(): String = value
+}
+
 class LabelGenerateBunchTest {
     private val executor = Executor(
-        id = "executor-1",
+        id = TestExecutorId("executor-1"),
         name = "executor-1"
     )
     private val start = Instant.parse("2024-01-01T08:00:00Z")
@@ -32,11 +44,11 @@ class LabelGenerateBunchTest {
     @Test
     fun labelShouldGenerateBunchFromTraceTasksWithSolverValue() {
         val first = task(
-            id = "task-1",
+            id = TestTaskId("task-1"),
             start = start
         )
         val second = task(
-            id = "task-2",
+            id = TestTaskId("task-2"),
             start = start + 1.hours
         )
         val endLabel = solverEndLabel(first, second)
@@ -65,11 +77,11 @@ class LabelGenerateBunchTest {
     @Test
     fun genericLabelShouldGenerateBunchFromTraceTasksWithFltX() {
         val first = task(
-            id = "task-1",
+            id = TestTaskId("task-1"),
             start = start
         )
         val second = task(
-            id = "task-2",
+            id = TestTaskId("task-2"),
             start = start + 1.hours
         )
         val endLabel = fltXEndLabel(first, second)
@@ -93,10 +105,10 @@ class LabelGenerateBunchTest {
         assertTrue(bunch.cost.costSum!!.value eq FltX("10.0"))
     }
 
-    private fun task(id: String, start: Instant): TestTask {
+    private fun task(id: TaskId, start: Instant): TestTask {
         return AbstractUnplannedTask(
             id = id,
-            name = id,
+            name = id.toString(),
             assignmentPolicy = AssignmentPolicy(
                 executor = executor,
                 time = TimeRange(

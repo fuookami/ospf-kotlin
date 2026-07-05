@@ -52,6 +52,15 @@ data class TinkerbellMap<V : FloatingNumber<V>>(
     }
 
     companion object {
+        /**
+         * 创建一个默认参数的丁克贝尔映射 / Create a Tinkerbell map with default parameters.
+         *
+         * @param a 系统参数 a / System parameter a
+         * @param b 系统参数 b / System parameter b
+         * @param c 系统参数 c / System parameter c
+         * @param d 系统参数 d / System parameter d
+         * @return 一个新的丁克贝尔映射 / A new Tinkerbell map
+         */
         operator fun invoke(
             a: Flt64 = Flt64(0.9),
             b: Flt64 = Flt64(-0.6013),
@@ -66,6 +75,9 @@ data class TinkerbellMap<V : FloatingNumber<V>>(
 /**
  * 丁克贝尔映射生成器
  * Tinkerbell Map Generator
+ *
+ * @property tinkerbellMap 用于生成的丁克贝尔映射实例 / The Tinkerbell map instance used for generation
+ * @property _x 当前状态点 / The current state point
  */
 data class TinkerbellMapGenerator(
     val tinkerbellMap: TinkerbellMap<Flt64> = TinkerbellMap(),
@@ -75,6 +87,16 @@ data class TinkerbellMapGenerator(
     )
 ) : Generator<Point<Dim2, Flt64>> {
     companion object {
+        /**
+         * 创建一个 Tinkerbell 映射生成器 / Create a Tinkerbell map generator.
+         *
+         * @param a 系统参数 a / System parameter a
+         * @param b 系统参数 b / System parameter b
+         * @param c 系统参数 c / System parameter c
+         * @param d 系统参数 d / System parameter d
+         * @param x 初始状态点 / Initial state point
+         * @return 一个新的 Tinkerbell 映射生成器 / A new Tinkerbell map generator
+         */
         operator fun invoke(
             a: Flt64,
             b: Flt64,
@@ -92,6 +114,7 @@ data class TinkerbellMapGenerator(
         }
     }
 
+    /** 当前状态点 / Current state point */
     val x by ::_x
 
     override operator fun invoke(): Point<Dim2, Flt64> {

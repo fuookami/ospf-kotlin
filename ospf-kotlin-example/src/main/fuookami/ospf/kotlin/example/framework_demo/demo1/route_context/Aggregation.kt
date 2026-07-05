@@ -20,6 +20,12 @@ class Aggregation(
     val services: List<Service>,
     val assignment: Assignment
 ) {
+    /**
+     * 将分配变量注册到模型中。Registers the assignment variables with the model.
+     *
+     * @param model 线性元模型实例。
+     * @return 操作结果。
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf assignment.register(model) }

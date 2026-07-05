@@ -20,6 +20,13 @@ class Aggregation(
     val serviceBandwidth: ServiceBandwidth,
     val nodeBandwidth: NodeBandwidth
 ) {
+    /**
+     * 将边带宽、服务带宽和节点带宽模型注册到优化模型。
+     * Registers edge bandwidth, service bandwidth, and node bandwidth models to the optimization model.
+     *
+     * @param model 优化模型 / Optimization model
+     * @return 注册结果 / Registration result
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf edgeBandwidth.register(model) },

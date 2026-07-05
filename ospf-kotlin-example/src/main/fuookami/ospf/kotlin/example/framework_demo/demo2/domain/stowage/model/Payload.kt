@@ -32,6 +32,14 @@ class Payload(
     lateinit var lowActualPayload: QuantityLinearIntermediateSymbol<Flt64>
     lateinit var actualPayload: QuantityLinearIntermediateSymbol<Flt64>
 
+    /**
+     * 向模型注册业载相关中间符号。
+     * Register payload-related intermediate symbols into the model.
+     *
+     * @param stowageMode 装载模式 / stowage mode
+     * @param model 线性元模型 / linear meta model
+     * @return 成功或失败 / success or failure
+     */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -40,7 +48,7 @@ class Payload(
             mainEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ҵ�ص���װ��������֮��
+                        // 全装载模式下，主舱的装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -91,7 +99,7 @@ class Payload(
             lowEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ҵ�ص���װ��������֮��
+                        // 全装载模式下，下舱的装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -142,7 +150,7 @@ class Payload(
             estimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ҵ�ص���װ��������֮��
+                        // 全装载模式下，总舱的装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -153,7 +161,7 @@ class Payload(
                     }
 
                     StowageMode.Predistribution -> {
-                        // Ԥ����ģʽ�£�ҵ�ص���Ԥ��ҵ��
+                        // 预分配模式下，总舱为预估业载
                         LinearExpressionSymbol(
                             (computedPayload ?: plannedPayload).to(aircraftModel.weightUnit)!!.value,
                             name = "estimate_payload"
@@ -190,7 +198,7 @@ class Payload(
             mainActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ʵ���ص���װ��������֮��
+                        // 全装载模式下，主舱的实际装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -241,7 +249,7 @@ class Payload(
             lowActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ʵ���ص���װ��������֮��
+                        // 全装载模式下，下舱的实际装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -292,7 +300,7 @@ class Payload(
             actualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // ȫ����ģʽ�£�ʵ���ص���װ��������֮��
+                        // 全装载模式下，总舱的实际装载重量之和
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->

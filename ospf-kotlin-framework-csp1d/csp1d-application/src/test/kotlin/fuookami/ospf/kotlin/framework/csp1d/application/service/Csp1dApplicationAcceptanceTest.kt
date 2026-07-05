@@ -222,7 +222,7 @@ class Csp1dApplicationAcceptanceTest {
 
         assertTrue(solution.produce.cuttingPlans.isNotEmpty())
         assertTrue(solution.produce.unmetDemands.isEmpty())
-        assertEquals("p-roll", solution.produce.cuttingPlans.first().plan.demandContributions.first().product.id)
+        assertEquals(productIdOf("p-roll"), solution.produce.cuttingPlans.first().plan.demandContributions.first().product.id)
     }
 
     /**
@@ -306,7 +306,7 @@ class Csp1dApplicationAcceptanceTest {
             machines = listOf(machine),
             costars = listOf(
                 Costar(
-                    id = "c-side",
+                    id = costarIdOf("c-side"),
                     name = "side-coproduct",
                     width = listOf(
                         Quantity(Flt64(0.2), Meter)
@@ -675,7 +675,7 @@ class Csp1dApplicationAcceptanceTest {
             rollContribution = Flt64.one
         )
         val pricingGenerator = Csp1dPricingGenerator<Flt64> {
-            listOf(initialPlan.copy(id = "pricing-duplicate"))
+            listOf(initialPlan.copy(id = cuttingPlanIdOf("pricing-duplicate")))
         }
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
@@ -762,7 +762,7 @@ class Csp1dApplicationAcceptanceTest {
             initialGenerator = Csp1dInitialCuttingPlanGenerator<Flt64> {
                 listOf(
                     firstPlan,
-                    firstPlan.copy(id = "initial-duplicate"),
+                    firstPlan.copy(id = cuttingPlanIdOf("initial-duplicate")),
                     secondPlan
                 )
             },
@@ -880,7 +880,7 @@ class Csp1dApplicationAcceptanceTest {
         assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.InitialGenerationLengthBoundPrunedEntries])
         assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.InitialGenerationMaterialWidthIndexCacheHits])
         assertEquals("0", result.solution.kpi.details[Csp1dKpiKeys.InitialGenerationMaterialSliceTemplateCacheHits])
-        assertEquals("2", result.solution.kpi.details[Csp1dKpiKeys.materialUsageBatchCount("m-cg-config")])
+        assertEquals("2", result.solution.kpi.details[Csp1dKpiKeys.materialUsageBatchCount(materialIdOf("m-cg-config"))])
         assertEquals("1", result.solution.render.kpi[Csp1dKpiKeys.ColumnGenerationIterationCount])
     }
 
@@ -1083,7 +1083,7 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "warm-start-plan")
+        ).copy(id = cuttingPlanIdOf("warm-start-plan"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1198,7 +1198,7 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "native-warm-start-plan")
+        ).copy(id = cuttingPlanIdOf("native-warm-start-plan"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1280,7 +1280,7 @@ class Csp1dApplicationAcceptanceTest {
             rollContribution = Flt64.one,
             machineId = machine.id,
             capacityConsumption = 80.0
-        ).copy(id = "enhanced-warm-start-plan")
+        ).copy(id = cuttingPlanIdOf("enhanced-warm-start-plan"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1391,7 +1391,7 @@ class Csp1dApplicationAcceptanceTest {
             product = rollProduct,
             material = rollMaterial,
             rollContribution = Flt64(2.0)
-        ).copy(id = "warm-start-roll-plan")
+        ).copy(id = cuttingPlanIdOf("warm-start-roll-plan"))
         val sheetPlan = sheetCuttingPlan(
             id = "warm-start-sheet-plan",
             product = sheetProduct,
@@ -1402,7 +1402,7 @@ class Csp1dApplicationAcceptanceTest {
             product = staleProduct,
             material = staleMaterial,
             rollContribution = Flt64.one
-        ).copy(id = "warm-start-stale-plan")
+        ).copy(id = cuttingPlanIdOf("warm-start-stale-plan"))
         val previousProblem = Csp1dProblem<Flt64>(
             products = listOf(rollProduct, sheetProduct, staleProduct),
             materials = listOf(rollMaterial, sheetMaterial, staleMaterial),
@@ -1499,12 +1499,12 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "cg-native-warm-single")
+        ).copy(id = cuttingPlanIdOf("cg-native-warm-single"))
         val packedPlan = simpleCuttingPlan(
             product = product,
             material = material,
             rollContribution = Flt64(3.0)
-        ).copy(id = "cg-native-warm-packed")
+        ).copy(id = cuttingPlanIdOf("cg-native-warm-packed"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1577,12 +1577,12 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "cg-recovery-single")
+        ).copy(id = cuttingPlanIdOf("cg-recovery-single"))
         val packedPlan = simpleCuttingPlan(
             product = product,
             material = material,
             rollContribution = Flt64(3.0)
-        ).copy(id = "cg-recovery-packed")
+        ).copy(id = cuttingPlanIdOf("cg-recovery-packed"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1651,7 +1651,7 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "cg-recovery-round-plan")
+        ).copy(id = cuttingPlanIdOf("cg-recovery-round-plan"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -1734,7 +1734,7 @@ class Csp1dApplicationAcceptanceTest {
             product = product,
             material = material,
             rollContribution = Flt64.one
-        ).copy(id = "cg-recovery-partial-plan")
+        ).copy(id = cuttingPlanIdOf("cg-recovery-partial-plan"))
         val problem = Csp1dProblem<Flt64>(
             products = listOf(product),
             materials = listOf(material),
@@ -2174,7 +2174,7 @@ class Csp1dApplicationAcceptanceTest {
         widths: List<Double>
     ): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = widths.map { Quantity(Flt64(it), Meter) }
         )
@@ -2186,7 +2186,7 @@ class Csp1dApplicationAcceptanceTest {
         maxOverProduceLength: Double? = null
     ): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
@@ -2204,13 +2204,13 @@ class Csp1dApplicationAcceptanceTest {
         length: Double? = null
     ): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = widthRange(
                 lower = lowerWidth,
                 upper = upperWidth
             ),
-            machineId = machineId,
+            machineId = machineId?.let { machineIdOf(it) },
             length = length?.let { Quantity(Flt64(it), Meter) }
         )
     }
@@ -2221,7 +2221,7 @@ class Csp1dApplicationAcceptanceTest {
         maxBatchCount: UInt64? = null
     ): Machine<Flt64> {
         return Machine(
-            id = id,
+            id = machineIdOf(id),
             name = "machine-$id",
             maxBatchCount = maxBatchCount,
             capacity = Quantity(Flt64(capacity), Kilogram)
@@ -2318,11 +2318,11 @@ class Csp1dApplicationAcceptanceTest {
     @Test
     fun yieldConfigDistinguishesDifferentDemandUnits() {
         val rollKey = ProductDemandShadowPriceKey(
-            productId = "p-multi",
+            productId = productIdOf("p-multi"),
             unitSymbol = RollCountUnit.symbol ?: RollCountUnit.name ?: RollCountUnit.toString()
         )
         val sheetKey = ProductDemandShadowPriceKey(
-            productId = "p-multi",
+            productId = productIdOf("p-multi"),
             unitSymbol = SheetCountUnit.symbol ?: SheetCountUnit.name ?: SheetCountUnit.toString()
         )
 
@@ -2733,7 +2733,7 @@ class Csp1dApplicationAcceptanceTest {
         )
 
         val wasteConfig = WasteMinimizationConfig<Flt64>(
-            materialCostPenalty = mapOf("m-cost" to Flt64(5.0))
+            materialCostPenalty = mapOf(materialIdOf("m-cost") to Flt64(5.0))
         )
 
         val input = ProduceInput(
@@ -2755,7 +2755,7 @@ class Csp1dApplicationAcceptanceTest {
         ))
         assertNotNull(milpResult.wasteResult, "Waste result should not be null when wasteConfig is provided")
         assertTrue(milpResult.wasteResult!!.materialCosts.isNotEmpty(), "Material costs should not be empty when materialCostPenalty is provided")
-        assertEquals("m-cost", milpResult.wasteResult!!.materialCosts.first().materialId)
+        assertEquals(materialIdOf("m-cost"), milpResult.wasteResult!!.materialCosts.first().materialId)
         assertEquals(Flt64(5.0), milpResult.wasteResult!!.materialCosts.first().cost)
     }
 
@@ -3109,11 +3109,11 @@ class Csp1dApplicationAcceptanceTest {
         product: Product<Flt64>,
         material: Material<Flt64>,
         rollContribution: Flt64,
-        machineId: String? = null,
+        machineId: MachineId? = null,
         capacityConsumption: Double? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = "plan-${product.id}-${material.id}",
+            id = cuttingPlanIdOf("plan-${product.id}-${material.id}"),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -3140,7 +3140,7 @@ class Csp1dApplicationAcceptanceTest {
         sheetContribution: Flt64
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(

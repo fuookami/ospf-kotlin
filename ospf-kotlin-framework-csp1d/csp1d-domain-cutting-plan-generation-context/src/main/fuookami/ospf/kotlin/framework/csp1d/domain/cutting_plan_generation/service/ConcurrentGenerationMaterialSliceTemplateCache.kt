@@ -46,6 +46,8 @@ internal class ConcurrentGenerationMaterialSliceTemplateCache<V : RealNumber<V>>
         )
     }
 
+    /** 获取缓存命中总数 / Get the total number of cache hits */
     fun totalHits(): Int64 = hits.get()
+    /** 获取缓存未命中总数 / Get the total number of cache misses */
     fun totalMisses(): Int64 = misses.get()
 }

@@ -31,6 +31,10 @@ data class KickedRotator<V : FloatingNumber<V>>(val k: V) : Extractor<Point<Dim2
     }
 }
 
+/**
+ * 受击转子生成器
+ * Kicked Rotator Generator
+ */
 data class KickedRotatorGenerator(
     val map: KickedRotator<Flt64> = KickedRotator(),
     private var _x: Point<Dim2, Flt64> = point2(

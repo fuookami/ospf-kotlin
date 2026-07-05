@@ -45,6 +45,10 @@ data class HadleyAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Hadley 吸引子生成器
+ * Hadley Attractor Generator
+ */
 data class HadleyAttractorGenerator(
     val attractor: HadleyAttractor<Flt64> = HadleyAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

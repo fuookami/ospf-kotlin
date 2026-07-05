@@ -23,7 +23,7 @@ class LengthAssignmentContextTest {
         maxOverProduceLength: Quantity<Flt64>? = null
     ): Product<Flt64> {
         return Product.dynamicLengthOf(
-            id = id,
+            id = ProductIdImpl(id),
             name = "dynamic-$id",
             width = listOf(Quantity(Flt64(1.0), Meter)),
             unitWeight = null
@@ -106,7 +106,7 @@ class LengthAssignmentContextTest {
     fun skippedWhenNoMatchingDemand() {
         val p = dynamicProduct("dp4")
         val otherProduct = Product(
-            id = "other",
+            id = productIdOf("other"),
             name = "other",
             width = listOf(Quantity(Flt64(1.0), Meter))
         )

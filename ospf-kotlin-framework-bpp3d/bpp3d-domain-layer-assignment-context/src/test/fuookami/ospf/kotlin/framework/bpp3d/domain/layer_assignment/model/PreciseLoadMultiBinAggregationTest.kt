@@ -48,7 +48,7 @@ class PreciseLoadMultiBinAggregationTest {
             materials = mapOf(material to materialAmount)
         )
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             pack = pack,
             enabledOrientations = listOf(Orientation.Upright),
@@ -77,7 +77,7 @@ class PreciseLoadMultiBinAggregationTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LOAD-MULTI-BIN"
+            typeCode = binTypeIdOf("BIN-LOAD-MULTI-BIN")
         )
         val layer = BinLayer(
             iteration = Int64.zero,
@@ -184,7 +184,7 @@ class PreciseLoadMultiBinAggregationTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-LOAD-MIXED-DEMAND"
+            typeCode = binTypeIdOf("BIN-LOAD-MIXED-DEMAND")
         )
         val layerWithCuboid = BinLayer(
             iteration = Int64.zero,

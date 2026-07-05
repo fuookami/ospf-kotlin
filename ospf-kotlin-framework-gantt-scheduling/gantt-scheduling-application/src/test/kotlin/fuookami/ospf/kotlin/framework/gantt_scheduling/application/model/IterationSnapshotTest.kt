@@ -13,6 +13,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.TaskId
+
+@JvmInline
+private value class TestTaskId(val value: String) : TaskId {
+    override fun toString(): String = value
+}
 
 class IterationSnapshotTest {
     private val adapter = GenericSolverValueAdapter(FltX)
@@ -52,7 +58,7 @@ class IterationSnapshotTest {
 
 private data class SnapshotTask(
     override val index: Int = 0,
-    override val id: String = "task",
+    override val id: TaskId = TestTaskId("task"),
     override val name: String = "task",
     override val iteration: Int64 = Int64.zero
 ) : IterativeAbstractTask<Executor, AssignmentPolicy<Executor>> {
@@ -63,7 +69,7 @@ private data class SnapshotTask(
 
 private data class SnapshotPlainTask(
     override val index: Int = 0,
-    override val id: String = "task",
+    override val id: TaskId = TestTaskId("task"),
     override val name: String = "task"
 ) : AbstractTask<Executor, AssignmentPolicy<Executor>> {
     override fun partialEq(rhs: AbstractTask<Executor, AssignmentPolicy<Executor>>): Boolean? {

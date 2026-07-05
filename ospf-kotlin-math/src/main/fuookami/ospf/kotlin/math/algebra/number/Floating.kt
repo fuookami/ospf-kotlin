@@ -187,15 +187,45 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
 
     override fun toURtnX() = floatingToRational(value(), { UIntX(it) }, { UIntX(it) }, URtnX::invoke)
 
-    /** 向下取整 / Floor */
+    /**
+     * 向下取整
+     * Floor
+     *
+     * @return 向下取整后的值
+     *         The floored value
+     */
     fun floor(): Self
-    /** 向上取整 / Ceiling */
+    /**
+     * 向上取整
+     * Ceiling
+     *
+     * @return 向上取整后的值
+     *         The ceiled value
+     */
     fun ceil(): Self
-    /** 四舍五入 / Round half up */
+    /**
+     * 四舍五入
+     * Round half up
+     *
+     * @return 四舍五入后的值
+     *         The rounded value
+     */
     fun round(): Self
-    /** 截断小数部分 / Truncate fractional part */
+    /**
+     * 截断小数部分
+     * Truncate fractional part
+     *
+     * @return 截断后的值
+     *         The truncated value
+     */
     fun trunc(): Self
-    /** 银行家舍入（四舍六入五成双）/ Banker's rounding (round half to even) */
+    /**
+     * 银行家舍入（四舍六入五成双）
+     * Banker's rounding (round half to even)
+     *
+     * @return 银行家舍入后的值
+     *         The banker-rounded value
+     */
     fun bankerRound(): Self
 
     /**
@@ -1489,9 +1519,21 @@ value class FltX(internal val value: BigDecimal) :
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
-    /** 转换为工程计数法字符串 / Convert to engineering notation string */
+    /**
+     * 转换为工程计数法字符串
+     * Convert to engineering notation string
+     *
+     * @return 工程计数法字符串表示
+     *         The engineering notation string representation
+     */
     fun toEngineeringString(): String = value.stripTrailingZeros().toEngineeringString()
-    /** 转换为普通字符串（无科学计数法）/ Convert to plain string (no scientific notation) */
+    /**
+     * 转换为普通字符串（无科学计数法）
+     * Convert to plain string (no scientific notation)
+     *
+     * @return 普通字符串表示
+     *         The plain string representation
+     */
     fun toPlainString(): String = value.stripTrailingZeros().toPlainString()
 
     /**

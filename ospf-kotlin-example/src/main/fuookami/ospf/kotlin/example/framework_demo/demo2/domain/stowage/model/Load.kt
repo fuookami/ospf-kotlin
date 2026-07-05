@@ -129,7 +129,7 @@ class Load(
                 val position = positions[j]
                 Quantity(
                     if (position.status.predicateWeightNeeded) {
-                        // ��ҪԤ�������Ĳ�λ���������һ���� 1����������װ����һ���Ƕ�Ԫֵ��0 �� 1��
+                        // 需要预估重量的舱位，且仅有一个 1，即该舱位装载后是一个二元值（0 或 1）
                         assert(position.mla eq UInt64.one)
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
                             // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API

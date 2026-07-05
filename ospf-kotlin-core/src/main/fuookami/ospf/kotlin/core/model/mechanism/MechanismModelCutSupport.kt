@@ -26,7 +26,15 @@ private data class OrderedVariablePair(
     val second: AbstractVariableItem<*, *>
 ) {
     companion object {
-        fun of(
+        /**
+     * 根据变量标识符排序构造有序变量对。
+     * Construct an ordered variable pair by sorting on variable identifiers.
+     *
+     * @param lhs 左侧变量项 / Left-hand side variable item
+     * @param rhs 右侧变量项 / Right-hand side variable item
+     * @return 有序变量对 / Ordered variable pair
+     */
+    fun of(
             lhs: AbstractVariableItem<*, *>,
             rhs: AbstractVariableItem<*, *>
         ): OrderedVariablePair {

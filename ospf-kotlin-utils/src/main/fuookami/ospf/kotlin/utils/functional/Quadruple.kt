@@ -34,18 +34,19 @@ typealias Quadruple4<T> = Quadruple<T, T, T, T>
 
 /**
  * 四元组数据类
+ * Quadruple data class
  *
- * Represents a tuple of four values.
  * 表示包含四个值的元组。
+ * Represents a tuple of four values.
  *
  * @param A 第一个元素的类型 / The type of the first element
  * @param B 第二个元素的类型 / The type of the second element
  * @param C 第三个元素的类型 / The type of the third element
  * @param D 第四个元素的类型 / The type of the fourth element
- * @param first 第一个元素 / The first element
- * @param second 第二个元素 / The second element
- * @param third 第三个元素 / The third element
- * @param fourth 第四个元素 / The fourth element
+ * @property first 第一个元素 / The first element
+ * @property second 第二个元素 / The second element
+ * @property third 第三个元素 / The third element
+ * @property fourth 第四个元素 / The fourth element
  */
 @Serializable
 data class Quadruple<A, B, C, D>(

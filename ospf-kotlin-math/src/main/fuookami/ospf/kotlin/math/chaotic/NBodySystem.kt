@@ -81,6 +81,11 @@ data class NBodySystem(
         /**
          * 创建二维 N 体系统
          * Create a 2D N-body system
+         *
+         * @param m 各天体质量列表 / List of body masses
+         * @param G 万有引力常数 / Gravitational constant
+         * @param h 时间步长 / Time step size
+         * @return 二维 N 体系统实例 / 2D N-body system instance
          */
         fun plane(
             m: List<Flt64>,

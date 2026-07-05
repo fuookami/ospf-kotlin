@@ -203,6 +203,10 @@ data class PWLRadiusSquaredApproximation(
             }
         }
 
+        /**
+         * 根据策略生成断点。
+         * Generate breakpoints based on the chosen strategy.
+         */
         private fun generateBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -221,6 +225,10 @@ data class PWLRadiusSquaredApproximation(
             }
         }
 
+        /**
+         * 生成均匀分布断点。
+         * Generate uniformly distributed breakpoints.
+         */
         private fun generateUniformBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -325,6 +333,10 @@ data class PWLRadiusSquaredApproximation(
             return Pair(globalMaxRelError, segmentErrors)
         }
 
+        /**
+         * 计算所有段的最大相对误差和绝对误差。
+         * Compute maximum relative and absolute errors across all segments.
+         */
         private fun computeMaxErrors(
             breakpoints: List<FltX>,
             slopes: List<FltX>,
@@ -361,6 +373,9 @@ data class PWLRadiusSquaredApproximation(
      *
      * 对 r 在 [breakpoints.first, breakpoints.last] 范围内使用分段线性近似；
      * 超出范围时使用最近段外推。
+     *
+     * @param r 半径值 / radius value
+     * @return 近似 r² 的结果 / approximated r² value
      */
     fun evaluate(r: FltX): FltX {
         // Binary search for the correct segment
@@ -384,6 +399,9 @@ data class PWLRadiusSquaredApproximation(
     /**
      * 计算实际误差 |q - r²|。
      * Compute actual error |q - r²|.
+     *
+     * @param r 半径值 / radius value
+     * @return 实际误差 / actual error
      */
     fun actualError(r: FltX): FltX {
         val q = evaluate(r)
@@ -394,6 +412,9 @@ data class PWLRadiusSquaredApproximation(
     /**
      * 计算实际相对误差 |q - r²| / r²。
      * Compute actual relative error |q - r²| / r².
+     *
+     * @param r 半径值 / radius value
+     * @return 实际相对误差 / actual relative error
      */
     fun actualRelativeError(r: FltX): FltX {
         val absError = actualError(r)

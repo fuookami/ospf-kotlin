@@ -687,6 +687,14 @@ private fun circlePackingVolume(placements: List<QuantityPlacement3<Item, FltX>>
     return placements.map { placement -> placement.resolvedPackingShape().actualVolume.value.toDouble() }.sum()
 }
 
+/**
+ * Check if a support view can fully support a horizontal cylinder.
+ * 检查支撑视图是否能够完全支撑水平圆柱。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @return 是否能够完全支撑 / whether full support is possible
+ */
 private fun canFullySupportHorizontalCylinder(
     supportView: ItemView,
     cylinderView: ItemView
@@ -695,6 +703,15 @@ private fun canFullySupportHorizontalCylinder(
             && supportView.depth.value.toDouble() + 1e-7 >= cylinderView.depth.value.toDouble()
 }
 
+/**
+ * Generate single hanging support placements for a horizontal cylinder.
+ * 为水平圆柱生成单悬挂支撑放置方案。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 放置方案列表，如果无法支撑则返回 null / placement list, or null if unsupported
+ */
 private fun horizontalCylinderSingleHangingSupportPlacements(
     supportView: ItemView,
     cylinderView: ItemView,
@@ -747,6 +764,15 @@ private fun horizontalCylinderSingleHangingSupportPlacements(
     )
 }
 
+/**
+ * Calculate the number of repeated hanging supports needed for a horizontal cylinder.
+ * 计算水平圆柱所需的重复悬挂支撑数量。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 支撑数量，如果无法支撑则返回 null / support count, or null if unsupported
+ */
 private fun horizontalCylinderRepeatedHangingSupportCount(
     supportView: ItemView,
     cylinderView: ItemView,
@@ -787,6 +813,16 @@ private fun horizontalCylinderRepeatedHangingSupportCount(
     return count
 }
 
+/**
+ * Generate repeated hanging support placements for a horizontal cylinder with a given count.
+ * 为水平圆柱生成指定数量的重复悬挂支撑放置方案。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param supportCount 支撑物数量 / support count
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 放置方案列表 / placement list
+ */
 private fun horizontalCylinderRepeatedHangingSupportPlacements(
     supportView: ItemView,
     cylinderView: ItemView,
@@ -830,6 +866,15 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
     return placements
 }
 
+/**
+ * Generate repeated hanging support placements from a list of support views for a horizontal cylinder.
+ * 从支撑视图列表中为水平圆柱生成重复悬挂支撑放置方案。
+ *
+ * @param supportViews 支撑视图列表 / support view list
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 放置方案列表，如果无法支撑则返回 null / placement list, or null if unsupported
+ */
 private fun horizontalCylinderRepeatedHangingSupportPlacements(
     supportViews: List<ItemView>,
     cylinderView: ItemView,
@@ -923,6 +968,14 @@ private fun horizontalCylinderRepeatedHangingSupportPlacements(
     return null
 }
 
+/**
+ * Get the axis-span length of a view for horizontal cylinder support calculation.
+ * 获取水平圆柱支撑计算中视图的轴方向跨度长度。
+ *
+ * @param view 货物视图 / item view
+ * @param axis 轴向 / axis
+ * @return 轴方向跨度 / axis span length
+ */
 private fun horizontalCylinderSupportAxisSpan(
     view: ItemView,
     axis: Axis3
@@ -934,6 +987,14 @@ private fun horizontalCylinderSupportAxisSpan(
     }
 }
 
+/**
+ * Get the radial-span length of a view for horizontal cylinder support calculation.
+ * 获取水平圆柱支撑计算中视图的径向跨度长度。
+ *
+ * @param view 货物视图 / item view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 径向跨度 / radial span length
+ */
 private fun horizontalCylinderSupportRadialSpan(
     view: ItemView,
     axis: Axis3
@@ -945,6 +1006,15 @@ private fun horizontalCylinderSupportRadialSpan(
     }
 }
 
+/**
+ * Calculate the number of repeated supports needed for a horizontal cylinder.
+ * 计算水平圆柱所需的重复支撑数量。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 支撑数量，如果无法支撑则返回 null / support count, or null if unsupported
+ */
 private fun horizontalCylinderRepeatedSupportCount(
     supportView: ItemView,
     cylinderView: ItemView,
@@ -981,6 +1051,16 @@ private fun horizontalCylinderRepeatedSupportCount(
     return count
 }
 
+/**
+ * Generate repeated support placements for horizontal cylinder.
+ * 为水平圆柱生成重复支撑放置方案。
+ *
+ * @param supportView 支撑视图 / support view
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param supportCount 支撑物数量 / support count
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 放置方案列表 / placement list
+ */
 private fun horizontalCylinderRepeatedSupportPlacements(
     supportView: ItemView,
     cylinderView: ItemView,
@@ -1015,6 +1095,15 @@ private fun horizontalCylinderRepeatedSupportPlacements(
     return placements
 }
 
+/**
+ * Generate heterogeneous support placements for horizontal cylinder.
+ * 为水平圆柱生成异构支撑放置方案。
+ *
+ * @param supportViews 支撑视图列表 / support view list
+ * @param cylinderView 圆柱视图 / cylinder view
+ * @param axis 圆柱轴向 / cylinder axis
+ * @return 放置方案列表，如果无法支撑则返回 null / placement list, or null if unsupported
+ */
 private fun horizontalCylinderHeterogeneousSupportPlacements(
     supportViews: List<ItemView>,
     cylinderView: ItemView,
@@ -1099,6 +1188,14 @@ private fun horizontalCylinderHeterogeneousSupportPlacements(
     return null
 }
 
+/**
+ * Validate geometry validity for stacked circle packing layer.
+ * 验证圆密排堆叠层的几何合法性。
+ *
+ * @param binShape 容器形状 / bin container shape
+ * @param placements 放置物列表 / placement list
+ * @return 几何是否有效 / whether the geometry is valid
+ */
 private fun circlePackingStackedLayerIsGeometryValid(
     binShape: Container3Shape,
     placements: List<QuantityPlacement3<Item, FltX>>
@@ -1120,6 +1217,20 @@ private fun circlePackingStackedLayerIsGeometryValid(
     return true
 }
 
+/**
+ * Generate supported stack candidates for horizontal cylinder items.
+ * 为水平圆柱货物生成支撑堆叠候选层。
+ *
+ * @param sourceClass 源类 / source class
+ * @param iteration 迭代次数 / iteration number
+ * @param bin 目标箱型 / target bin type
+ * @param binShape 容器形状 / bin container shape
+ * @param items 所有货物列表 / all item list
+ * @param cylinderItem 圆柱货物 / cylinder item
+ * @param cylinderCandidate 圆柱候选 / cylinder candidate
+ * @param cylinderShape 圆柱形状 / cylinder shape
+ * @return 候选层列表 / candidate layer list
+ */
 private suspend fun horizontalCylinderSupportedStackCandidates(
     sourceClass: Class<*>,
     iteration: Int64,
@@ -1614,6 +1725,14 @@ private suspend fun <V> mapItemsToCirclePackingLayers(
     return rankByShadowScore(request, ranked)
 }
 
+/**
+ * Validate geometry for circle packing layer placements.
+ * 验证圆密排层中放置物的几何合法性。
+ *
+ * @param binShape 容器形状 / bin container shape
+ * @param placements 放置物列表 / placement list
+ * @return 几何是否有效 / whether the geometry is valid
+ */
 private fun circlePackingLayerIsGeometryValid(
     binShape: Container3Shape,
     placements: List<QuantityPlacement3<Item, FltX>>

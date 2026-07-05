@@ -46,6 +46,13 @@ data class ChuasCircuit<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val
     }
 }
 
+/**
+ * 蔡氏电路生成器
+ * Chua's Circuit generator
+ *
+ * @property attractor 蔡氏电路吸引子 / Chua's Circuit attractor
+ * @property x 当前状态点 / Current state point
+ */
 data class ChuasCircuitGenerator(
     val attractor: ChuasCircuit<Flt64> = ChuasCircuit(),
     private var _x: Point<Dim3, Flt64> = point3(

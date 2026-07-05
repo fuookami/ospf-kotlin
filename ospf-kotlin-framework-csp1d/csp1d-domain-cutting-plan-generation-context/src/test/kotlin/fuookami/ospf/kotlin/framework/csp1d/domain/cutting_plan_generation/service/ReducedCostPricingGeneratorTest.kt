@@ -14,7 +14,7 @@ class ReducedCostPricingGeneratorTest {
 
     private fun product(id: String, width: Double = 0.5): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64(width), Meter))
         )
@@ -22,7 +22,7 @@ class ReducedCostPricingGeneratorTest {
 
     private fun material(id: String = "m", upperBound: Double = 2.0): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -37,7 +37,7 @@ class ReducedCostPricingGeneratorTest {
 
     private fun machine(id: String = "mch"): Machine<Flt64> {
         return Machine(
-            id = id,
+            id = machineIdOf(id),
             name = "machine-$id",
             maxBatchCount = UInt64(10UL)
         )
@@ -164,7 +164,7 @@ class ReducedCostPricingGeneratorTest {
         val narrowDemand = ProductDemand.roll(narrowProduct, Quantity(Flt64.one, RollCountUnit))
         val wideDemand = ProductDemand.roll(wideProduct, Quantity(Flt64.one, RollCountUnit))
         val highTrimPlan = CuttingPlan(
-            id = "high-trim",
+            id = cuttingPlanIdOf("high-trim"),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -180,7 +180,7 @@ class ReducedCostPricingGeneratorTest {
             )
         )
         val lowTrimPlan = CuttingPlan(
-            id = "low-trim",
+            id = cuttingPlanIdOf("low-trim"),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -292,7 +292,7 @@ class ReducedCostPricingGeneratorTest {
             demands = listOf(demand)
         )
         val existingPlans = enumerator.generate(initialInput).mapIndexed { index, plan ->
-            plan.copy(id = "existing-canonical-$index")
+            plan.copy(id = cuttingPlanIdOf("existing-canonical-$index"))
         }
 
         val generationInput = CuttingPlanGenerationInput(
@@ -385,7 +385,7 @@ class ReducedCostPricingGeneratorTest {
         val m = material()
         val mch = machine(id = "mch-capacity")
         val plan = CuttingPlan(
-            id = "capacity-plan",
+            id = cuttingPlanIdOf("capacity-plan"),
             material = m,
             machineId = mch.id,
             slices = listOf(
@@ -433,11 +433,11 @@ class ReducedCostPricingGeneratorTest {
     fun shadowPriceKeyDistinguishesDifferentUnits() {
         val p = product("p1")
         val rollKey = ProductDemandShadowPriceKey(
-            productId = "p1",
+            productId = productIdOf("p1"),
             unitSymbol = unitSymbol(RollCountUnit)
         )
         val sheetKey = ProductDemandShadowPriceKey(
-            productId = "p1",
+            productId = productIdOf("p1"),
             unitSymbol = unitSymbol(SheetCountUnit)
         )
 
@@ -464,12 +464,12 @@ class ReducedCostPricingGeneratorTest {
     @Test
     fun shadowPriceKeyWorksWithUnderscoreInIds() {
         val rollKey = ProductDemandShadowPriceKey(
-            productId = "p_underscore_test",
+            productId = productIdOf("p_underscore_test"),
             unitSymbol = unitSymbol(RollCountUnit)
         )
-        val materialKey = MaterialUsageShadowPriceKey("m_underscore_test")
-        val machineBatchKey = MachineBatchShadowPriceKey("machine_test_1")
-        val machineKey = MachineCapacityShadowPriceKey("machine_test_1")
+        val materialKey = MaterialUsageShadowPriceKey(materialIdOf("m_underscore_test"))
+        val machineBatchKey = MachineBatchShadowPriceKey(machineIdOf("machine_test_1"))
+        val machineKey = MachineCapacityShadowPriceKey(machineIdOf("machine_test_1"))
 
         // 含下划线的 id 不影响 key 的生成和查询 / Underscores in ids don't affect key generation and lookup
         assertTrue(rollKey.name.contains("p_underscore_test"), "Product demand key should contain underscore id")
@@ -499,11 +499,11 @@ class ReducedCostPricingGeneratorTest {
     @Test
     fun shadowPriceKeyDistinguishesDifferentProductsWithSameUnit() {
         val key1 = ProductDemandShadowPriceKey(
-            productId = "p1",
+            productId = productIdOf("p1"),
             unitSymbol = unitSymbol(RollCountUnit)
         )
         val key2 = ProductDemandShadowPriceKey(
-            productId = "p2",
+            productId = productIdOf("p2"),
             unitSymbol = unitSymbol(RollCountUnit)
         )
 

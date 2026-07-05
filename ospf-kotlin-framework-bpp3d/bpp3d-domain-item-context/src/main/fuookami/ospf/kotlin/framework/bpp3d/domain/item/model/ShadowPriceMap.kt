@@ -7,6 +7,10 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
+/**
+ * BPP3D 影子价格参数。
+ * BPP3D shadow price arguments.
+ */
 open class BPP3DShadowPriceArguments(
     override val cuboid: Item
 ) : AbstractBPP3DShadowPriceArguments<FltX, Item>

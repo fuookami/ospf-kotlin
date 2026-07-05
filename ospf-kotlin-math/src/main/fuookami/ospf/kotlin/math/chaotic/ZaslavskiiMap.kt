@@ -44,6 +44,12 @@ data class ZaslavskiiMap<V : FloatingNumber<V>>(val epsilon: V, val upsilon: V, 
     }
 }
 
+/**
+ * Zaslavskii 映射生成器
+ * Zaslavskii Map Generator
+ *
+ * @property map Zaslavskii 映射实例 / Zaslavskii map instance
+ */
 data class ZaslavskiiMapGenerator(
     val map: ZaslavskiiMap<Flt64> = ZaslavskiiMap(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 class ProductDemandModelTest {
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
-            id = id,
+            id = ProductIdImpl(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64.one, Meter))
         )
@@ -69,7 +69,7 @@ class ProductDemandModelTest {
     @Test
     fun contributionBuilderShouldKeepRollDemandUnitForWeightedProduct() {
         val product = Product(
-            id = "weighted-roll",
+            id = ProductIdImpl("weighted-roll"),
             name = "weighted roll",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             length = Quantity(Flt64(10.0), Meter),
@@ -92,7 +92,7 @@ class ProductDemandModelTest {
     @Test
     fun contributionBuilderShouldDeriveWeightWhenDemandUsesWeightUnit() {
         val product = Product(
-            id = "weighted-demand",
+            id = ProductIdImpl("weighted-demand"),
             name = "weighted demand",
             width = listOf(Quantity(Flt64(0.5), Meter)),
             length = Quantity(Flt64(10.0), Meter),
@@ -115,7 +115,7 @@ class ProductDemandModelTest {
     @Test
     fun materialEnabledShouldCheckPlanMaterialAndMachineWidthRange() {
         val material = Material(
-            id = "m-enabled",
+            id = MaterialIdImpl("m-enabled"),
             name = "enabled material",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -124,10 +124,10 @@ class ProductDemandModelTest {
                 ),
                 step = Quantity(Flt64(0.1), Meter)
             ),
-            machineId = "machine-narrow"
+            machineId = MachineIdImpl("machine-narrow")
         )
         val plan = CuttingPlan(
-            id = "plan-enabled",
+            id = CuttingPlanIdImpl("plan-enabled"),
             material = material,
             slices = listOf(
                 CuttingPlanSlice(
@@ -138,7 +138,7 @@ class ProductDemandModelTest {
             arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
         )
         val incompatibleMachine = Machine(
-            id = "machine-narrow",
+            id = MachineIdImpl("machine-narrow"),
             name = "narrow machine",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -148,7 +148,7 @@ class ProductDemandModelTest {
                 step = Quantity(Flt64(0.1), Meter)
             )
         )
-        val otherMaterial = material.copy(id = "m-other")
+        val otherMaterial = material.copy(id = MaterialIdImpl("m-other"))
 
         assertFalse(material.enabled(plan, listOf(incompatibleMachine)))
         assertFalse(otherMaterial.enabled(plan))

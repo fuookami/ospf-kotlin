@@ -62,13 +62,13 @@ internal class GenerationWidthIndex<V : RealNumber<V>> private constructor(
     }
 
     private data class EntryKey(
-        val productId: String,
+        val productId: ProductId,
         val widthValue: String,
         val widthUnit: String
     )
 
     private data class DemandEntryKey(
-        val productId: String,
+        val productId: ProductId,
         val widthValue: String,
         val widthUnit: String,
         val demandUnit: String

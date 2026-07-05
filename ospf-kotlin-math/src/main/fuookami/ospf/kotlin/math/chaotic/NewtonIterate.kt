@@ -37,6 +37,13 @@ data class NewtonIterate<V : FloatingNumber<V>>(val three: V, val four: V, val t
     }
 }
 
+/**
+ * Newton 迭代生成器
+ * Newton Iterate Generator
+ *
+ * @property map Newton 迭代映射 / Newton iterate map
+ * @property _x 当前迭代点 / Current iteration point
+ */
 data class NewtonIterateGenerator(
     val map: NewtonIterate<Flt64> = NewtonIterate(),
     private var _x: Point<Dim2, Flt64> = point2(

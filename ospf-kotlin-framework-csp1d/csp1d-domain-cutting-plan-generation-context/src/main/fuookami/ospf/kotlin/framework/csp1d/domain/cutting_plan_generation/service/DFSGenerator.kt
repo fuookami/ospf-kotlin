@@ -29,6 +29,15 @@ class DFSGenerator<V : RealNumber<V>>(
     private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
+    /**
+     * 使用 [GenerationConstraints] 构建 DFS 生成器。
+     * Construct the DFS generator using [GenerationConstraints].
+     *
+     * @param constraints 生成约束 / generation constraints
+     * @param arithmetic 物理量算术策略 / quantity arithmetic strategy
+     * @param maxPlans 最大方案数（提前终止）/ max plans (early termination)
+     * @param timeout 超时限制 / timeout limit
+     */
     constructor(
         constraints: GenerationConstraints<V>,
         arithmetic: QuantityArithmetic<V>,
@@ -217,6 +226,19 @@ class DFSGenerator<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 执行深度优先搜索，枚举所有可行的切割方案组合。
+     * Execute depth-first search to enumerate all feasible cutting plan combinations.
+     *
+     * @param material 当前原料 / the current material
+     * @param widthIndex 宽度索引，包含所有产品宽度条目 / width index containing all product width entries
+     * @param machines 可用机器列表 / available machine list
+     * @param planIndex 方案 ID 生成器原子索引 / atomic index for plan ID generation
+     * @param collector 方案收集器 / plan collector
+     * @param quantityCache 数量缓存 / quantity cache
+     * @param templateRecorder 可选的切片模板记录器 / optional slice template recorder
+     * @param widthCheck 可选宽度可行性检查 / optional width feasibility check
+     */
     private fun dfsSearch(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -283,7 +305,7 @@ class DFSGenerator<V : RealNumber<V>>(
                         material = material,
                         slices = currentSlices,
                         widthIndex = widthIndex,
-                        planId = "dfs-${material.id}-${planIndex.getAndIncrement()}"
+                        planId = CuttingPlanIdImpl("dfs-${material.id}-${planIndex.getAndIncrement()}")
                     )
                     collector.record(
                         plan = plan,
@@ -336,6 +358,18 @@ class DFSGenerator<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 从缓存模板中发射方案，无需重复 DFS 搜索。
+     * Emit plans from cached slice templates without re-running DFS search.
+     *
+     * @param material 当前原料 / the current material
+     * @param widthIndex 宽度索引 / the width index
+     * @param machines 可用机器列表 / available machine list
+     * @param planIndex 方案 ID 生成器原子索引 / atomic index for plan ID generation
+     * @param collector 方案收集器 / plan collector
+     * @param templates 缓存的切片模板列表 / cached slice template list
+     * @param widthCheck 可选宽度可行性检查 / optional width feasibility check
+     */
     private fun emitTemplates(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -351,7 +385,7 @@ class DFSGenerator<V : RealNumber<V>>(
                 material = material,
                 slices = slices,
                 widthIndex = widthIndex,
-                planId = "dfs-${material.id}-${planIndex.getAndIncrement()}"
+                planId = CuttingPlanIdImpl("dfs-${material.id}-${planIndex.getAndIncrement()}")
             )
             collector.record(
                 plan = plan,
@@ -360,6 +394,16 @@ class DFSGenerator<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 检查当前切片组合是否满足剪枝约束。
+     * Check whether the current slice combination satisfies pruning constraints.
+     *
+     * @param slices 当前切片列表 / current slice list
+     * @param totalWidth 当前总宽度 / current total width
+     * @param upperBound 宽度上限 / width upper bound
+     * @param material 当前原料 / the current material
+     * @return 是否满足所有剪枝约束 / whether all pruning constraints are satisfied
+     */
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -371,6 +415,16 @@ class DFSGenerator<V : RealNumber<V>>(
         return pruningConstraints.all { it.isSatisfied(context) }
     }
 
+    /**
+     * 检查当前切片组合是否满足叶子节点约束。
+     * Check whether the current slice combination satisfies leaf constraints.
+     *
+     * @param slices 当前切片列表 / current slice list
+     * @param totalWidth 当前总宽度 / current total width
+     * @param upperBound 宽度上限 / width upper bound
+     * @param material 当前原料 / the current material
+     * @return 是否满足所有叶子节点约束 / whether all leaf constraints are satisfied
+     */
     private fun satisfiesLeafConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -382,11 +436,21 @@ class DFSGenerator<V : RealNumber<V>>(
         return leafConstraints.all { it.isSatisfied(context) }
     }
 
+    /**
+     * 根据切片列表构建切割方案。
+     * Build a cutting plan from the slice list.
+     *
+     * @param material 当前原料 / the current material
+     * @param slices 切片列表 / slice list
+     * @param widthIndex 宽度索引 / the width index
+     * @param planId 方案 ID / the plan ID
+     * @return 构建的切割方案 / the built cutting plan
+     */
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,
         widthIndex: GenerationWidthIndex<V>,
-        planId: String
+        planId: CuttingPlanId
     ): CuttingPlan<V> {
         val contributions = slices.mapNotNull { slice ->
             val product = slice.production as Product<V>

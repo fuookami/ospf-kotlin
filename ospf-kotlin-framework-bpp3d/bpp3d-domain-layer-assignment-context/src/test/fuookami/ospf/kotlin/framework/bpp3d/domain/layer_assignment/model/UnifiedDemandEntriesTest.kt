@@ -39,7 +39,7 @@ class UnifiedDemandEntriesTest {
 
     private fun item(id: String): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = FltX.one * Meter,
             height = FltX.one * Meter,

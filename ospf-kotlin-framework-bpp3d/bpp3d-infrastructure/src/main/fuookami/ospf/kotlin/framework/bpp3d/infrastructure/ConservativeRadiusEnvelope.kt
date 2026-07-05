@@ -1,152 +1,37 @@
-/**
- * 保守半径 envelope：使用 r_max 保守建模所有几何计算。
- * Conservative radius envelope: use r_max for all geometry calculations.
- */
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.utils.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.*
+
+/** 保守半径包络，用于计算三维装箱问题中物品与箱子之间的保守半径约束 / Conservative radius envelope for computing conservative radius constraints between items and boxes in 3D bin packing problems. */
+interface ConservativeRadiusEnvelope<Box : Box3D, Item : Item3D> : RadiusEnvelope<Box, Item> {
+    /**
+     * 计算物品相对于箱子的保守半径包络。
+     * Compute the conservative radius envelope of an item relative to a box.
+     * @param box 目标箱子 / the target box
+     * @param item 目标物品 / the target item
+     * @return 保守半径包络结果 / the conservative radius envelope result
+     */
+    fun conservativeRadiusEnvelope(
+        box: Box,
+        item: Item
+    ): Result<Pair<Flt, Flt>>
+}
 
 /**
- * 保守半径 envelope。
- * Conservative radius envelope.
- *
- * 使用 r_max 保守建模 placement footprint、bounding dimensions、支撑覆盖和碰撞安全边界。
- * Use r_max conservatively for placement footprint, bounding dimensions, support coverage and collision safety margins.
- *
- * @property rMin 半径下界 / radius lower bound
- * @property rMax 半径上界（envelope 半径）/ radius upper bound (envelope radius)
+ * 获取物品相对于箱子的保守半径。
+ * Get the conservative radius of an item relative to a box.
+ * @param box 目标箱子 / the target box
+ * @param item 目标物品 / the target item
+ * @param block 半径配置块 / the radius configuration block
+ * @return 保守半径结果 / the conservative radius result
  */
-data class ConservativeRadiusEnvelope(
-    val rMin: FltX,
-    val rMax: FltX
-) {
-    init {
-        require(rMin.toDouble() > 0.0) { "rMin must be positive" }
-        require(rMax.toDouble() >= rMin.toDouble()) { "rMax must be >= rMin" }
-    }
-
-    /** envelope 半径（保守使用 rMax）/ envelope radius (conservatively rMax) */
-    val envelopeRadius: FltX get() = rMax
-
-    /** envelope 直径（保守使用 2*rMax）/ envelope diameter (conservatively 2*rMax) */
-    val envelopeDiameter: FltX get() = rMax * FltX(2.0)
-
-    /**
-     * 保守 footprint 宽度。
-     * Conservative footprint width.
-     */
-    fun footprintWidth(axis: Axis3, cylinderHeight: FltX): FltX {
-        return when (axis) {
-            Axis3.X -> cylinderHeight
-            Axis3.Y, Axis3.Z -> envelopeDiameter
-        }
-    }
-
-    /**
-     * 保守 footprint 深度。
-     * Conservative footprint depth.
-     */
-    fun footprintDepth(axis: Axis3, cylinderHeight: FltX): FltX {
-        return when (axis) {
-            Axis3.Z -> cylinderHeight
-            Axis3.X, Axis3.Y -> envelopeDiameter
-        }
-    }
-
-    /**
-     * 保守 bounding 宽度。
-     * Conservative bounding width.
-     */
-    fun boundingWidth(axis: Axis3, cylinderHeight: FltX): FltX {
-        return footprintWidth(axis, cylinderHeight)
-    }
-
-    /**
-     * 保守 bounding 高度。
-     * Conservative bounding height.
-     */
-    fun boundingHeight(axis: Axis3, cylinderHeight: FltX): FltX {
-        return when (axis) {
-            Axis3.X, Axis3.Z -> envelopeDiameter
-            Axis3.Y -> cylinderHeight
-        }
-    }
-
-    /**
-     * 保守 bounding 深度。
-     * Conservative bounding depth.
-     */
-    fun boundingDepth(axis: Axis3, cylinderHeight: FltX): FltX {
-        return footprintDepth(axis, cylinderHeight)
-    }
-
-    /**
-     * 保守支撑覆盖半径。
-     * Conservative support coverage radius.
-     */
-    fun supportCoverageRadius(): FltX = rMax
-
-    /**
-     * 保守碰撞边界。
-     * Conservative collision margin.
-     */
-    fun collisionMargin(): FltX = envelopeDiameter
-
-    /**
-     * 使用真实半径计算真实 footprint 宽度。
-     * Compute real footprint width using actual radius.
-     */
-    fun realFootprintWidth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
-        return when (axis) {
-            Axis3.X -> cylinderHeight
-            Axis3.Y, Axis3.Z -> actualRadius * FltX(2.0)
-        }
-    }
-
-    /**
-     * 使用真实半径计算真实 footprint 深度。
-     * Compute real footprint depth using actual radius.
-     */
-    fun realFootprintDepth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
-        return when (axis) {
-            Axis3.Z -> cylinderHeight
-            Axis3.X, Axis3.Y -> actualRadius * FltX(2.0)
-        }
-    }
-
-    /**
-     * 使用真实半径计算真实 bounding 宽度。
-     * Compute real bounding width using actual radius.
-     */
-    fun realBoundingWidth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
-        return realFootprintWidth(axis, cylinderHeight, actualRadius)
-    }
-
-    /**
-     * 使用真实半径计算真实 bounding 高度。
-     * Compute real bounding height using actual radius.
-     */
-    fun realBoundingHeight(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
-        return when (axis) {
-            Axis3.X, Axis3.Z -> actualRadius * FltX(2.0)
-            Axis3.Y -> cylinderHeight
-        }
-    }
-
-    /**
-     * 使用真实半径计算真实 bounding 深度。
-     * Compute real bounding depth using actual radius.
-     */
-    fun realBoundingDepth(axis: Axis3, cylinderHeight: FltX, actualRadius: FltX): FltX {
-        return realFootprintDepth(axis, cylinderHeight, actualRadius)
-    }
-
-    /**
-     * 验证 solver-selected radius 是否在 [rMin, rMax] 范围内。
-     * Validate that solver-selected radius is within [rMin, rMax].
-     */
-    fun isRadiusValid(solverRadius: FltX): Boolean {
-        return solverRadius.toDouble() >= rMin.toDouble() && solverRadius.toDouble() <= rMax.toDouble()
-    }
+fun <Box, Item, R> ConservativeRadiusEnvelope<Box, Item>.conservativeRadius(
+    box: Box,
+    item: Item,
+    block: ConservativeRadiusEnvelope<Box, Item>.() -> R
+): Result<R> where Box : Box3D, Item : Item3D {
+    return this.conservativeRadius(box, item, block)
 }

@@ -44,6 +44,10 @@ data class Lorenz84Model<V : FloatingNumber<V>>(val a: V, val b: V, val f: V, va
     }
 }
 
+/**
+ * Lorenz 84 模型生成器
+ * Lorenz 84 Model Generator
+ */
 data class Lorenz84ModelGenerator(
     val attractor: Lorenz84Model<Flt64> = Lorenz84Model(),
     private var _x: Point<Dim3, Flt64> = point3(

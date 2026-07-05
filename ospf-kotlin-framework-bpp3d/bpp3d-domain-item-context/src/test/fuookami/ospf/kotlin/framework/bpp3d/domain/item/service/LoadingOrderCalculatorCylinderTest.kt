@@ -32,7 +32,7 @@ class LoadingOrderCalculatorCylinderTest {
         val radius = FltX(0.5) * Meter
         val diameter = assertNotNull(radius + radius)
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = diameter,
             height = FltX(1.0) * Meter,
@@ -52,7 +52,7 @@ class LoadingOrderCalculatorCylinderTest {
         val radius = FltX(0.5) * Meter
         val diameter = assertNotNull(radius + radius)
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = diameter,
             height = FltX(1.0) * Meter,
@@ -99,7 +99,7 @@ class LoadingOrderCalculatorCylinderTest {
             (placement.unit as ActualItem).id
         }
 
-        assertEquals(listOf("higher", "lower"), orderedIds)
+        assertEquals(listOf(itemIdOf("higher"), itemIdOf("lower")), orderedIds)
     }
 
     @Test
@@ -124,14 +124,14 @@ class LoadingOrderCalculatorCylinderTest {
             (placement.unit as ActualItem).id
         }
 
-        assertEquals(listOf("cyl-x"), orderedIds)
+        assertEquals(listOf(itemIdOf("cyl-x")), orderedIds)
     }
 
     @Test
     fun loadingOrderSideFrontShouldUseShapeAwareBoundingForVerticalCylinder() {
         val radius = FltX(0.5) * Meter
         val frontFirst = ActualItem(
-            id = "front-first",
+            id = itemIdOf("front-first"),
             name = "front-first",
             // inflate cuboid dimensions on purpose to ensure Side plane would overlap if old cuboid projection were used
             width = FltX(4.0) * Meter,
@@ -147,7 +147,7 @@ class LoadingOrderCalculatorCylinderTest {
             )
         )
         val sideCandidate = ActualItem(
-            id = "side-candidate",
+            id = itemIdOf("side-candidate"),
             name = "side-candidate",
             width = FltX(4.0) * Meter,
             height = FltX(1.0) * Meter,
@@ -190,7 +190,7 @@ class LoadingOrderCalculatorCylinderTest {
         }
 
         assertEquals(
-            listOf("side-candidate", "front-first"),
+            listOf(itemIdOf("side-candidate"), itemIdOf("front-first")),
             orderedIds
         )
     }

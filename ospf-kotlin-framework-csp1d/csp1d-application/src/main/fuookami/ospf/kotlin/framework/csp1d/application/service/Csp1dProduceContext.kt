@@ -199,7 +199,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<Produce<V>> {
         val selectedPlans = ArrayList<CuttingPlanUsage<V>>()
-        val materialUsageMap = LinkedHashMap<String, UInt64>()
+        val materialUsageMap = LinkedHashMap<MaterialId, UInt64>()
 
         for ((index, plan) in produce.cuttingPlans.withIndex()) {
             val doubleValue = model.tokens.find(produce[index]!!)?.doubleResult ?: continue
@@ -322,7 +322,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         // 计算物料成本 / Calculate material costs
         val materialCosts = ArrayList<ModeledMaterialCost<V>>()
         if (wasteAgg.materialCostPenalty.isNotEmpty()) {
-            val costByMaterial = HashMap<String, V>()
+            val costByMaterial = HashMap<MaterialId, V>()
             for ((index, plan) in produce.cuttingPlans.withIndex()) {
                 val batchCount = solutionAmount(model, index)
                 if (batchCount > UInt64.zero) {

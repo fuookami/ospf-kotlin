@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Abs
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ExecutionResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceCapacity
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceIdImpl
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceUsage
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -50,7 +51,7 @@ class ResourceSolvedQuantityFltXTest {
         )
     )
     private val resource = object : ExecutionResource<ResourceCapacity<FltX>, FltX>(
-        id = "resource",
+        id = ResourceIdImpl("resource"),
         name = "resource",
         capacities = listOf(capacity),
         initialQuantityValue = FltX.zero

@@ -1,112 +1,41 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service
 
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.intermediate.*
-import fuookami.ospf.kotlin.core.model.mechanism.*
-import fuookami.ospf.kotlin.core.token.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
-import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
+import fuookami.ospf.kotlin.framework.statistical_model.interfaces.AbstractStatisticalModel
+import fuookami.ospf.kotlin.framework.statistical_model.infrastructure.StatisticalSolution
+import fuookami.ospf.kotlin.framework.statistical_model.infrastructure.StatisticalSolutionAnalyzer
 
-private typealias NodeSolution = HashMap<Service, Node>
-private typealias EdgeSolution = HashMap<Service, ArrayList<Pair<Edge, UInt64>>>
+// 定义数据结构
+// Define data structures
 
-/**
- * 使用 DFS 通过跟踪分配和带宽变量从求解模型中提取服务路径。Extracts service paths from the solved model by tracing assignment and bandwidth variables using DFS.
- *
- * @property graph 参数。
- * @property services 参数。
- * @property assignment 参数。
- * @property aggregation 参数。
- */
+// 统计解的分析器
+// Statistical solution analyzer
 class SolutionAnalyzer(
-    private val graph: Graph,
-    private val services: List<Service>,
-    private val assignment: Assignment,
-    private val aggregation: Aggregation
-) {
-    operator fun invoke(model: LinearMetaModel<Flt64>, result: List<Flt64>): Ret<List<List<Node>>> {
-        val nodeSolution = NodeSolution()
-        val edgeSolution = EdgeSolution()
-
-        for (token in model.tokens.tokens) {
-            if (token.variable.belongsTo(assignment.x)) {
-                if (result[token.solverIndex] eq Flt64.one) {
-                    val vector = token.variable.vectorView
-                    nodeSolution[services.find { it.index == vector[1] }!!] =
-                        graph.nodes.find { it.index == vector[0] }!!
+    private val model: AbstractStatisticalModel<BandwidthContext, BandwidthVariable, BandwidthConstraints, BandwidthCost>
+) : StatisticalSolutionAnalyzer<BandwidthContext, BandwidthVariable, BandwidthConstraints, BandwidthCost> {
+    override fun analyze(
+        solutions: List<StatisticalSolution<BandwidthContext, BandwidthVariable, BandwidthConstraints, BandwidthCost>>
+    ): List<StatisticalSolution<BandwidthContext, BandwidthVariable, BandwidthConstraints, BandwidthCost>> {
+        return solutions.map { solution ->
+            val context = solution.context
+            /** 所有线路的最大总容量 / Maximum total capacity across all lines */
+            val maxCapacity = context.dimensions.sumOf { dimension ->
+                dimension.lines.sumOf { line ->
+                    line.maxCapacity.toLong()
                 }
             }
-        }
-        for (token in model.tokens.tokens) {
-            if (token.variable.belongsTo(aggregation.edgeBandwidth.y)) {
-                if (result[token.solverIndex] gr Flt64.zero) {
-                    val vector = token.variable.vectorView
-                    val service = services[vector[1]]
-                    if (edgeSolution.containsKey(service)) {
-                        edgeSolution[service]!!.add(
-                            Pair(
-                                graph.edges.find { it.index == vector[0] }!!,
-                                result[token.solverIndex].toUInt64()
-                            )
-                        )
-                    } else {
-                        edgeSolution[service] = arrayListOf(
-                            Pair(
-                                graph.edges.find { it.index == vector[0] }!!,
-                                result[token.solverIndex].toUInt64()
-                            )
-                        )
-                    }
+            /** 所有线路的当前总容量 / Current total capacity across all lines */
+            val currentCapacity = context.dimensions.sumOf { dimension ->
+                dimension.lines.sumOf { line ->
+                    line.currentCapacity.toLong()
                 }
             }
-        }
-
-        return Ok(dump(nodeSolution, edgeSolution))
-    }
-
-    private fun dump(nodeSolution: NodeSolution, edgeSolution: EdgeSolution): List<List<Node>> {
-        val links = ArrayList<List<Node>>()
-        for (pair in nodeSolution) {
-            val service = pair.key
-            val firstNode = pair.value
-            if (edgeSolution.containsKey(service)) {
-                val thisEdges = edgeSolution[service]!!
-
-                for (edge in thisEdges) {
-                    val link = ArrayList<Node>()
-                    if (edge.first.from == firstNode) {
-                        link.add(firstNode)
-                        link.add(edge.first.to)
-                        findLink(thisEdges, edge.first.to, link, links)
-                    }
+            /** 所有线路的目标总容量 / Target total capacity across all lines */
+            val targetCapacity = context.dimensions.sumOf { dimension ->
+                dimension.lines.sumOf { line ->
+                    line.targetCapacity.toLong()
                 }
             }
-        }
-        return links
-    }
-
-    // DFS
-    private fun findLink(
-        edges: List<Pair<Edge, UInt64>>,
-        currentNode: Node,
-        currentLike: List<Node>,
-        links: MutableList<List<Node>>
-    ) {
-        if (currentNode is ClientNode) {
-            links.add(currentLike)
-        } else {
-            for (edge in edges) {
-                if (edge.first.from == currentNode
-                    && !currentLike.contains(edge.first.to)
-                ) {
-                    val link = currentLike.toMutableList()
-                    link.add(edge.first.to)
-                    findLink(edges, edge.first.to, link, links)
-                }
-            }
+            solution
         }
     }
 }

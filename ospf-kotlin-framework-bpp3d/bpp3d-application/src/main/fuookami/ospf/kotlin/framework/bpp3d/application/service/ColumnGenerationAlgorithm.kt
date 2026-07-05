@@ -206,6 +206,7 @@ fun interface ColumnGenerationSolutionAnalyzer<V> {
      * Analyze current state.
      *
      * @param state 列生成状态 / column generation state
+     * @return 分析结果 / analysis result
      */
     suspend fun analyze(state: ColumnGenerationState<V>): Try
 }

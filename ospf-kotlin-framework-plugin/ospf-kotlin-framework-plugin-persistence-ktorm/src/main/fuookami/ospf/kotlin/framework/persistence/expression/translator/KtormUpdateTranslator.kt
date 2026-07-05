@@ -13,7 +13,13 @@ import org.ktorm.schema.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.framework.persistence.expression.*
 
-/** 设置动态解析列的值 / Set value for a dynamically resolved column */
+/**
+ * 设置动态解析列的值
+ * Set value for a dynamically resolved column
+ *
+ * @param column 列声明表达式 / Column declaring expression
+ * @param value 要设置的值 / Value to set
+ */
 @Suppress("UNCHECKED_CAST")
 private fun UpdateStatementBuilder.setDynamicValue(column: ColumnDeclaring<*>, value: Any?) {
     set(column as Column<Any>, value)

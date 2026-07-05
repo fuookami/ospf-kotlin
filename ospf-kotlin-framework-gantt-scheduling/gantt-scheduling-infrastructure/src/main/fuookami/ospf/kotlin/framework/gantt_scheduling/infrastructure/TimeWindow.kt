@@ -431,7 +431,11 @@ data class TimeWindow<V : RealNumber<V>>(
         }
     }
 
-    /** 上级时间窗口 / The upper-level time window */
+    /**
+     * 上级时间窗口 / The upper-level time window
+     *
+     * @return 上级时间窗口，若不受支持则返回错误 / The upper-level time window, or an error if not supported
+     */
     fun upper(): Ret<TimeWindow<V>> {
         val upperUnit = when (durationUnit) {
             DurationUnit.SECONDS -> DurationUnit.MINUTES
@@ -467,6 +471,9 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 按缩放比例创建上级时间窗口 / Create upper time window by scale
+     *
+     * @param scale 缩放比例 / Scale factor
+     * @return 上级时间窗口 / The upper-level time window
      */
     fun upperByScale(scale: UInt64): TimeWindow<V> {
         val scaleInterval = interval * scale.toInt().toDouble()

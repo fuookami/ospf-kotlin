@@ -28,6 +28,12 @@ class NodeBandwidth(
     lateinit var outDegree: LinearIntermediateSymbols1<Flt64>
     lateinit var outFlow: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册所有中间符号到模型。Register all intermediate symbols to the model.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(

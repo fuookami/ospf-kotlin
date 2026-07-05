@@ -388,7 +388,14 @@ abstract class LocalSelection : Selection {
     /** 随机数生成器 / Random number generator */
     protected abstract val randomGenerator: Generator<Flt64>
 
-    /** 获取邻域内的个体索引集合 / Get the set of individual indices within the neighborhood */
+    /**
+     * 获取邻域内的个体索引集合。
+     * Get the set of individual indices within the neighborhood.
+     *
+     * @param weights 权重列表 / Weight list
+     * @param amount 邻域大小 / Neighborhood size
+     * @return 邻域个体索引集合 / Set of neighbor individual indices
+     */
     protected abstract fun getNeighbours(weights: List<Flt64>, amount: UInt64): Set<UInt64>
 
     override fun invoke(

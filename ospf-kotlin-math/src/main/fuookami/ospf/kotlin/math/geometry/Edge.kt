@@ -36,6 +36,10 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         assert(from.size == to.size)
     }
 
+    /**
+     * 边的长度（欧几里得距离）
+     * The length of the edge (Euclidean distance)
+     */
     val length by lazy { from distance to }
 
     /**

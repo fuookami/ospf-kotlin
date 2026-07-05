@@ -37,8 +37,8 @@ enum class TaskStatus {
  * @param E 执行者类型 / The executor type
  */
 interface AbstractTaskPlan<out E : Executor> {
-    val id: String
-    val actualId: String get() = id
+    val id: TaskPlanId
+    val actualId: TaskPlanId get() = id
     val name: String
     val displayName: String get() = name
 
@@ -170,7 +170,7 @@ interface AbstractTaskPlan<out E : Executor> {
  * @property status 任务状态集合 / The set of task statuses
  */
 open class SingleStepTaskPlan<out E : Executor>(
-    override val id: String,
+    override val id: TaskPlanId,
     override val name: String,
     override val enabledExecutors: Set<E>,
     override val status: Set<TaskStatus>
@@ -209,7 +209,7 @@ open class TaskStepPlan<
     final override val step: TaskStep<T, TaskStepPlan<T, E>, E>,
     status: Set<TaskStatus> = parent.status
 ) : AbstractTaskStepPlan<TaskStepPlan<T, E>, T, E> {
-    override val id get() = "${parent.id}-${step.id}"
+    override val id: TaskStepPlanId get() = CompositeTaskStepPlanId(parent.id, step.id)
     override val name get() = "${parent.name}-${step.name}"
     override val enabledExecutors by step::enabledExecutors
     override val status by lazy { status + step.status }
@@ -227,7 +227,7 @@ interface AbstractMultiStepTask<
         out S : AbstractTaskStepPlan<S, Self, E>,
         out E : Executor
         > {
-    val id: String
+    val id: TaskId
     val name: String
     val stepGraph: TaskStepGraph<Self, S, E>
     val status: Set<TaskStatus>
@@ -247,7 +247,7 @@ interface AbstractMultiStepTask<
 open class MultiStepTask<
         out E : Executor
         >(
-    override val id: String,
+    override val id: TaskId,
     override val name: String,
     final override val stepGraph: TaskStepGraph<
             MultiStepTask<E>,

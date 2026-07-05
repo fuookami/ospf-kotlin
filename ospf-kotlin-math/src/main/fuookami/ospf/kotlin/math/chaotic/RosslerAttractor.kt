@@ -43,6 +43,13 @@ data class RosslerAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Rossler 吸引子生成器
+ * Rossler Attractor Generator
+ *
+ * @property attractor Rossler 吸引子实例 / Rossler attractor instance
+ * @property _x 当前状态向量（内部可变，通过 x 属性只读暴露） / Current state vector (mutable internally, exposed read-only via x property)
+ */
 data class RosslerAttractorGenerator(
     val attractor: RosslerAttractor<Flt64> = RosslerAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

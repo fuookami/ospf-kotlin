@@ -15,12 +15,12 @@ class DFSGeneratorTest {
     private val arithmetic = (DefaultQuantityArithmetic.resolveFor(Flt64.one) as Ok).value
 
     private fun product(id: String, widths: List<Quantity<Flt64>>): Product<Flt64> {
-        return Product(id = id, name = "product-$id", width = widths)
+        return Product(id = productIdOf(id), name = "product-$id", width = widths)
     }
 
     private fun material(id: String = "m", upperBound: Double = 2.0): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -136,7 +136,7 @@ class DFSGeneratorTest {
         assertTrue(plans.isNotEmpty())
         // Should have single-product plans
         for (plan in plans) {
-            assertTrue(plan.slices.all { it.production.id == "p1" })
+            assertTrue(plan.slices.all { it.production.id == productIdOf("p1") })
         }
     }
 

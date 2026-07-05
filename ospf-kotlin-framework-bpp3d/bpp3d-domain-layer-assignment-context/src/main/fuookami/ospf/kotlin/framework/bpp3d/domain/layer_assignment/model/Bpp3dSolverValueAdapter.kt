@@ -12,18 +12,24 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 /**
  * UInt64 转求解器 FltX。
  * Convert UInt64 to solver FltX.
+ *
+ * @return 求解器数值 / solver numeric value
  */
 private fun UInt64.toSolverNumber(): FltX = FltX(this.toULong().toDouble())
 
 /**
  * Quantity 提取求解器 FltX。
  * Extract solver FltX from Quantity.
+ *
+ * @return 求解器数值 / solver numeric value
  */
 private fun Quantity<FltX>.toSolverNumber(): FltX = this.value
 
 /**
  * UInt64 值域转求解器值域。
  * Convert UInt64 value range to solver value range.
+ *
+ * @return 求解器值域 / solver value range
  */
 private fun ValueRange<UInt64>.toSolverRange(): ValueRange<FltX> {
     val lower = this.lowerBound.value.unwrap().toSolverNumber()

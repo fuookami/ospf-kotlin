@@ -42,6 +42,16 @@ class CostarFiller<V : RealNumber<V>>(
         return if (results.isEmpty()) listOf(plan) else results
     }
 
+    /**
+     * 深度优先搜索填充配规 / Depth-first search to fill costars
+     *
+     * @param currentSlices 当前已填充的切片列表 / Currently filled slices
+     * @param remainingWidth 剩余宽度 / Remaining width
+     * @param costars 可用配规列表 / Available costars
+     * @param costarIndex 当前配规索引 / Current costar index
+     * @param plan 原始方案 / Original plan
+     * @param results 结果收集列表 / Result collection list
+     */
     private fun fillDFS(
         currentSlices: MutableList<CuttingPlanSlice<V>>,
         remainingWidth: Quantity<V>,
@@ -102,6 +112,13 @@ class CostarFiller<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 基于原始方案和切片列表构建新方案 / Build a new plan from the original plan and slices
+     *
+     * @param original 原始方案 / Original plan
+     * @param slices 切片列表 / List of slices
+     * @return 新构建的方案 / Newly built plan
+     */
     private fun buildPlan(
         original: CuttingPlan<V>,
         slices: List<CuttingPlanSlice<V>>
@@ -115,6 +132,13 @@ class CostarFiller<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 计算最大配规填充数量 / Compute the maximum number of costar slices that can fit
+     *
+     * @param costarWidth 配规宽度 / Costar width
+     * @param remainingWidth 剩余宽度 / Remaining width
+     * @return 最大填充数量 / Maximum fillable amount
+     */
     private fun computeMaxCostarAmount(costarWidth: Quantity<V>, remainingWidth: Quantity<V>): UInt64 {
         if (costarWidth.value partialOrd remainingWidth.value is Order.Greater) return UInt64.zero
         var count = UInt64.zero
@@ -126,6 +150,13 @@ class CostarFiller<V : RealNumber<V>>(
         return count
     }
 
+    /**
+     * 重复累加配规宽度 / Repeat and accumulate costar width
+     *
+     * @param width 配规宽度 / Costar width
+     * @param times 重复次数 / Number of times to repeat
+     * @return 累加后的总宽度 / Accumulated total width
+     */
     private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {

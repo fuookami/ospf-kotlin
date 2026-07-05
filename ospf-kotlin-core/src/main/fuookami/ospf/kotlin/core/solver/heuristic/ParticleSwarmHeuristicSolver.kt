@@ -177,10 +177,21 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         )
     }
 
-    /** 生成随机数 / Generate random number */
+    /**
+     * 生成随机数。
+     * Generate random number.
+     *
+     * @return 随机浮点值 / Random float value
+     */
     private fun random(): Flt64 = randomGenerator() ?: Flt64.zero
 
-    /** 将速度限制在最大范围内 / Clamp velocity within maximum range */
+    /**
+     * 将速度限制在最大范围内。
+     * Clamp velocity within maximum range.
+     *
+     * @param value 待限制的速度值 / The velocity value to clamp
+     * @return 限制后的速度值 / The clamped velocity value
+     */
     private fun clampVelocity(value: Flt64): Flt64 {
         return if (value gr maxVelocity) {
             maxVelocity
@@ -191,7 +202,13 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         }
     }
 
-    /** 将粒子转换为个体 / Convert particle to individual */
+    /**
+     * 将粒子转换为个体。
+     * Convert particle to individual.
+     *
+     * @param particle 待转换的粒子 / The particle to convert
+     * @return 包含适应度的解 / Solution with fitness
+     */
     private fun toIndividual(particle: Particle<ObjValue, V>): SolutionWithFitness<ObjValue, V> {
         return SolutionWithFitness(
             solution = particle.solution,
@@ -199,7 +216,14 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         )
     }
 
-    /** 评估解的适应度 / Evaluate solution fitness */
+    /**
+     * 评估解的适应度。
+     * Evaluate solution fitness.
+     *
+     * @param model    回调模型接口 / Callback model interface
+     * @param solution 待评估的解 / The solution to evaluate
+     * @return 适应度值，如果解不可行则返回 null / Fitness value, or null if the solution is infeasible
+     */
     private fun evaluateFitness(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
@@ -214,7 +238,14 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         }
     }
 
-    /** 构建粒子 / Build particle */
+    /**
+     * 构建粒子。
+     * Build particle.
+     *
+     * @param model    回调模型接口 / Callback model interface
+     * @param solution 解 / The solution
+     * @return 粒子对象，如果无法构建则返回 null / Particle object, or null if it cannot be built
+     */
     private fun buildParticle(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
@@ -227,7 +258,15 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         )
     }
 
-    /** 比较两个目标值的优劣 / Compare two objective values */
+    /**
+     * 比较两个目标值的优劣。
+     * Compare two objective values.
+     *
+     * @param model 回调模型接口 / Callback model interface
+     * @param lhs   左值 / Left-hand value
+     * @param rhs   右值 / Right-hand value
+     * @return 如果 lhs 优于 rhs 则为 true / true if lhs is better than rhs
+     */
     private fun better(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         lhs: ObjValue,
@@ -236,7 +275,14 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         return model.compareObjective(lhs, rhs) is Order.Less
     }
 
-    /** 按适应度排序粒子 / Sort particles by fitness */
+    /**
+     * 按适应度排序粒子。
+     * Sort particles by fitness.
+     *
+     * @param model     回调模型接口 / Callback model interface
+     * @param particles 待排序的粒子列表 / The list of particles to sort
+     * @return 排序后的粒子列表 / The sorted list of particles
+     */
     private fun sortedParticles(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         particles: List<Particle<ObjValue, V>>
@@ -250,7 +296,17 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
         }
     }
 
-    /** 更新粒子速度和位置 / Update particle velocity and position */
+    /**
+     * 更新粒子速度和位置。
+     * Update particle velocity and position.
+     *
+     * @param iteration    当前迭代信息 / Current iteration info
+     * @param particle     待更新的粒子 / The particle to update
+     * @param bestParticle 全局最优粒子 / The global best particle
+     * @param model        回调模型接口 / Callback model interface
+     * @param policy       启发式策略 / Heuristic policy
+     * @return 更新后的新粒子 / The updated new particle
+     */
     private fun accelerate(
         iteration: Iteration,
         particle: Particle<ObjValue, V>,

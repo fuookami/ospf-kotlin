@@ -82,10 +82,24 @@ class RouteContext {
         return ok
     }
 
+    /**
+     * 将路由相关决策变量与约束注册到模型中。
+     * Registers route-related decision variables and constraints into the model.
+     *
+     * @param model 线性元模型。
+     * @return 执行结果。
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
     }
 
+    /**
+     * 构建路由模型约束与流水线。
+     * Constructs route model constraints and pipelines.
+     *
+     * @param model 线性元模型。
+     * @return 执行结果。
+     */
     fun construct(model: LinearMetaModel<Flt64>): Try {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelinesRet = generator()) {

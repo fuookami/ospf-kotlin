@@ -431,6 +431,13 @@ class ColumnGenerationStandardExecutors(
         val continuousRadiusComponent: ContinuousRadiusModelComponent,
     )
 
+    /**
+     * 构建 RMP 所需的模型构件。
+     * Build the model artifacts required for RMP.
+     *
+     * @param state 列生成状态 / column generation state
+     * @return RMP 构件 / RMP artifacts
+     */
     private suspend fun buildRmpArtifacts(
         state: ColumnGenerationState<FltX>
     ): Ret<RmpArtifacts> {
@@ -519,6 +526,16 @@ class ColumnGenerationStandardExecutors(
         ))
     }
 
+    /**
+     * 从求解结果中收集选中的列。
+     * Collect selected columns from the solve result.
+     *
+     * @param model 线性元模型 / linear meta model
+     * @param columns 层列列表 / layer column list
+     * @param assignment 精确分配 / precise assignment
+     * @param binAmount 箱子数量 / bin amount
+     * @return 选中的层列列表 / selected layer column list
+     */
     private fun collectSelectedColumns(
         model: LinearMetaModel<FltX>,
         columns: List<BinLayer>,
@@ -538,6 +555,16 @@ class ColumnGenerationStandardExecutors(
         return selected
     }
 
+    /**
+     * 从求解结果中收集选中的箱子。
+     * Collect selected bins from the solve result.
+     *
+     * @param model 线性元模型 / linear meta model
+     * @param bins 候选箱子列表 / candidate bin list
+     * @param columns 层列列表 / layer column list
+     * @param assignment 精确分配 / precise assignment
+     * @return 选中的箱子列表 / selected bin list
+     */
     private fun collectSelectedBins(
         model: LinearMetaModel<FltX>,
         bins: List<Bin<BinLayer, FltX>>,
@@ -577,6 +604,13 @@ class ColumnGenerationStandardExecutors(
         return Ok(selected)
     }
 
+    /**
+     * 当未提供最终箱子时，从列中生成回退最终箱子。
+     * Generate fallback final bins from columns when no final bins are provided.
+     *
+     * @param columns 层列列表 / layer column list
+     * @return 回退最终箱子列表 / fallback final bin list
+     */
     private fun fallbackFinalBins(columns: List<BinLayer>): List<Bin<BinLayer, FltX>> {
         return columns.mapNotNull { layer ->
             val binShape = layer.bin ?: return@mapNotNull null
@@ -587,6 +621,14 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
+    /**
+     * 从模型中提取变量对应的令牌值。
+     * Extract the token value for a variable from the model.
+     *
+     * @param model 线性元模型 / linear meta model
+     * @param variable 抽象变量项 / abstract variable item
+     * @return 变量的 FltX 值 / FltX value of the variable
+     */
     private fun tokenValue(
         model: LinearMetaModel<FltX>,
         variable: AbstractVariableItem<*, *>
@@ -595,7 +637,13 @@ class ColumnGenerationStandardExecutors(
         return token.doubleResult?.let { FltX(it) } ?: FltX.zero
     }
 
-    /** 标准化标量解决方案 / Normalize scalar solution */
+    /**
+     * 标准化标量解决方案。
+     * Normalize scalar solution.
+     *
+     * @param values 原始解值列表 / raw solution value list
+     * @return 标准化后的 FltX 列表 / normalized FltX list
+     */
     private fun normalizeScalarSolution(values: List<*>): Ret<List<FltX>> {
         return ok(values.mapIndexed { index, value ->
             when (value) {
@@ -606,6 +654,13 @@ class ColumnGenerationStandardExecutors(
         })
     }
 
+    /**
+     * 创建新的线性元模型。
+     * Create a new linear meta model.
+     *
+     * @param name 模型名称 / model name
+     * @return 线性元模型 / linear meta model
+     */
     private fun newModel(name: String): LinearMetaModel<FltX> {
         return LinearMetaModel(
             name = name,

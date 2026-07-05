@@ -27,6 +27,12 @@ class EdgeBandwidth(
     lateinit var y: UIntVariable2
     lateinit var bandwidth: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * 注册决策变量和中间符号到模型中。Register decision variables and intermediate symbols into the model.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 注册结果 / Registration result
+     */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = UIntVariable2("y", Shape2(edges.size, services.size))

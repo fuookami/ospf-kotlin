@@ -103,13 +103,25 @@ private fun uIntegerPowByFloatingIndex(
 interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<Self> {
     /** 绝对值（返回自身）/ Absolute value (returns self) */
     override fun abs() = copy()
-    /** 可空倒数；仅对 1 有效 / Nullable reciprocal; only valid for 1 */
+    /**
+     * 可空倒数；仅对 1 有效
+     * Nullable reciprocal; only valid for 1
+     *
+     * @return 倒数值，仅对单位值返回自身副本，否则返回 null
+     *         The reciprocal value, returns a copy of itself for unit value, null otherwise
+     */
     fun reciprocalOrNull(): Self? = when (this) {
         constants.one -> constants.one.copy()
         else -> null
     }
 
-    /** 安全倒数；仅对 1 有效 / Safe reciprocal; only valid for 1 */
+    /**
+     * 安全倒数；仅对 1 有效
+     * Safe reciprocal; only valid for 1
+     *
+     * @return 安全倒数结果，对单位值返回 Ok，对非单位值返回 Failed
+     *         The safe reciprocal result, returns Ok for unit value, Failed for non-unit value
+     */
     fun reciprocalSafe(): Ret<Self> {
         return reciprocalOrNull()?.let { ok(it) }
             ?: Failed(

@@ -133,7 +133,10 @@ data class Box2Need<V : FloatingNumber<V>>(
         )
     }
 
-    /** 判断是否完全位于另一盒体内部 / Check whether this box is entirely inside another */
+    /** 判断是否完全位于另一盒体内部 / Check whether this box is entirely inside another
+     * @param sheet 外部盒体 / Outer box
+     * @return 是否完全位于内部 / Whether entirely inside
+     */
     fun inside(sheet: Box2Need<V>): Boolean {
         val minXOrd = quantityOrd(minX, sheet.minX, "sheet-minX").value!!
         val minYOrd = quantityOrd(minY, sheet.minY, "sheet-minY").value!!
@@ -159,7 +162,9 @@ data class PlannedRectangle2<V : FloatingNumber<V>>(
     /** 是否已旋转 / Whether rotated */
     val rotated: Boolean = false
 ) {
-    /** 转换为放置需求 / Convert to placement need */
+    /** 转换为放置需求 / Convert to placement need
+     * @return 放置需求 / Placement need
+     */
     fun toPlacement2Need(): Placement2Need<V> {
         val projection = if (rotated && item.allowRotate) {
             Projection2Need(
@@ -179,7 +184,9 @@ data class PlannedRectangle2<V : FloatingNumber<V>>(
         )
     }
 
-    /** 转换为盒体需求 / Convert to box need */
+    /** 转换为盒体需求 / Convert to box need
+     * @return 盒体需求 / Box need
+     */
     fun toBox2Need(): Box2Need<V> = toPlacement2Need().toBox2Need()
 }
 
@@ -195,7 +202,9 @@ data class PackingScene2<V : FloatingNumber<V>>(
     /** 板材面积 / Sheet area */
     val sheetArea: Quantity<V> get() = quantityProduct(sheet.width, sheet.height)
 
-    /** 获取板材对应的盒体需求 / Get box need for the sheet */
+    /** 获取板材对应的盒体需求 / Get box need for the sheet
+     * @return 板材对应的盒体需求 / Box need corresponding to the sheet
+     */
     fun sheetBox2Need(): Box2Need<V> {
         val zeroX = quantityZeroOf(sheet.width)
         val zeroY = quantityZeroOf(sheet.height)
@@ -207,13 +216,17 @@ data class PackingScene2<V : FloatingNumber<V>>(
         )
     }
 
-    /** 检查所有放置是否都在板材内 / Check whether all placements are inside the sheet */
+    /** 检查所有放置是否都在板材内 / Check whether all placements are inside the sheet
+     * @return 是否全部在板材内 / Whether all placements are inside the sheet
+     */
     fun allInsideSheet(): Boolean {
         val sheetBox = sheetBox2Need()
         return placements.all { it.toBox2Need().inside(sheetBox) }
     }
 
-    /** 计算已使用面积 / Compute used area */
+    /** 计算已使用面积 / Compute used area
+     * @return 已使用面积 / Used area
+     */
     fun usedArea(): Quantity<V> {
         var acc = quantityZeroOf(sheetArea)
         for (placement in placements) {
@@ -222,20 +235,25 @@ data class PackingScene2<V : FloatingNumber<V>>(
         return acc
     }
 
-    /** 计算剩余面积 / Compute remaining area */
+    /** 计算剩余面积 / Compute remaining area
+     * @return 剩余面积 / Remaining area
+     */
     fun remainingArea(): Quantity<V> {
         return quantityMinus(sheetArea, usedArea()).value!!
     }
 
-    /** 计算板材利用率 / Compute sheet utilization ratio */
-    /** 计算板材利用率 / Compute sheet utilization ratio */
+    /** 计算板材利用率 / Compute sheet utilization ratio
+     * @return 板材利用率，失败时返回错误 / Sheet utilization ratio, or error on failure
+     */
     fun utilization(): Ret<V> {
         val used = usedArea().convertTo(sheetArea.unit)
             ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert used area to sheet area unit.")
         return Ok(used.value / sheetArea.value)
     }
 
-    /** 获取所有重叠的物料对 / Get all overlapping item pairs */
+    /** 获取所有重叠的物料对 / Get all overlapping item pairs
+     * @return 重叠的物料标识对列表 / List of overlapping item identifier pairs
+     */
     fun overlappedPairs(): List<Pair<String, String>> {
         val result = ArrayList<Pair<String, String>>()
         for (i in placements.indices) {
@@ -252,7 +270,9 @@ data class PackingScene2<V : FloatingNumber<V>>(
         return result
     }
 
-    /** 获取非法重叠的物料对 / Get illegally overlapping item pairs */
+    /** 获取非法重叠的物料对 / Get illegally overlapping item pairs
+     * @return 非法重叠的物料标识对列表 / List of illegally overlapping item identifier pairs
+     */
     fun illegalOverlaps(): List<Pair<String, String>> {
         return overlappedPairs()
     }

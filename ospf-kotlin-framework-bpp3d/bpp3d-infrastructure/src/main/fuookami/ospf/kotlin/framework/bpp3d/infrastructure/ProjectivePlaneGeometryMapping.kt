@@ -1,66 +1,170 @@
-/**
- * 投影面几何桥接。
- * Projective plane geometry bridge.
- */
-package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
-
-import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.geometry.*
-import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2 as GeometryRectangle2
-import fuookami.ospf.kotlin.quantities.quantity.Quantity
-
-fun ProjectivePlane.toPlaneFrame3(): QuantityPlaneFrame3 {
-    return when (this) {
-        Bottom -> QuantityPlaneFrame3.ZX
-        Side -> QuantityPlaneFrame3.XY
-        Front -> QuantityPlaneFrame3.YZ
-    }
-}
-
-fun <V : FloatingNumber<V>> ProjectivePlane.distanceByGeometry(point: QuantityPoint3<V>): Quantity<V> {
-    return toPlaneFrame3().distance(point.toGeometryPoint3())
-}
-
-fun <V : FloatingNumber<V>> ProjectivePlane.point2ByGeometry(point: QuantityPoint3<V>): QuantityPoint2<V> {
-    return toPlaneFrame3().point2(point.toGeometryPoint3()).toDomainPoint2()
-}
-
-fun <V : FloatingNumber<V>> ProjectivePlane.point3ByGeometry(
-    point: QuantityPoint2<V>,
-    distance: Quantity<V>
-): QuantityPoint3<V> {
-    return toPlaneFrame3().point3(point.toGeometryPoint2(), distance).toDomainPoint3()
-}
-
-fun <V : FloatingNumber<V>> ProjectivePlane.vectorByGeometry(distance: Quantity<V>): QuantityVector3<V> {
-    return toPlaneFrame3().vector(distance).toDomainVector3()
-}
-
-fun ProjectivePlane.footprintByGeometry(cuboid: QuantityCuboid3<FltX>): GeometryRectangle2<FltX> {
-    return toPlaneFrame3().footprint(cuboid)
-}
-
-fun ProjectivePlane.footprintByGeometry(view: QuantityCuboid3View<FltX>): GeometryRectangle2<FltX> {
-    return footprintByGeometry(view.cuboid)
-}
-
-private fun <V : FloatingNumber<V>> QuantityPoint2<V>.toGeometryPoint2(): QuantityPlanePoint2<V> {
-    return QuantityPlanePoint2(x = x, y = y)
-}
-
-private fun <V : FloatingNumber<V>> QuantityPoint3<V>.toGeometryPoint3(): QuantityPlanePoint3<V> {
-    return QuantityPlanePoint3(x = x, y = y, z = z)
-}
-
-private fun <V : FloatingNumber<V>> QuantityPlanePoint2<V>.toDomainPoint2(): QuantityPoint2<V> {
-    return QuantityPoint2(x = x, y = y)
-}
-
-private fun <V : FloatingNumber<V>> QuantityPlanePoint3<V>.toDomainPoint3(): QuantityPoint3<V> {
-    return QuantityPoint3(x = x, y = y, z = z)
-}
-
-private fun <V : FloatingNumber<V>> QuantityPlaneVector3<V>.toDomainVector3(): QuantityVector3<V> {
-    return QuantityVector3(x = x, y = y, z = z)
-}
+/*
+
+ * Copyright (c) 2024-2025 Fuookami. All rights reserved.
+
+ */
+
+
+
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+
+
+
+import fuookami.ospf.kotlin.utils.math.*
+
+import fuookami.ospf.kotlin.utils.math.ordinary.*
+
+import fuookami.ospf.kotlin.utils.math.geometry.projectivePlane.*
+
+
+
+/** 射影平面上的几何映射 / Geometry mapping on projective plane */
+
+internal object ProjectivePlaneGeometryMapping {
+
+    /** 射影平面上的点 / Point on projective plane */
+
+    internal data class Point(
+
+        /** 在射影平面上的坐标 / Coordinates on projective plane */
+
+        val coordinate: ProjectivePlane
+
+    ) {
+
+        internal companion object {
+
+            /** 将原始坐标映射到射影平面 / Map original coordinates to projective plane */
+
+            internal fun map(original: GeometryMapping.Point): Point {
+
+                return Point(
+
+                    coordinate = ProjectivePlane(
+
+                        x = original.coordinate.x / original.coordinate.z,
+
+                        y = original.coordinate.y / original.coordinate.z
+
+                    )
+
+                )
+
+            }
+
+        }
+
+    }
+
+
+
+    /** 射影平面上的边 / Edge on projective plane */
+
+    internal data class Edge(
+
+        /** 边的起点 / Start point of the edge */
+
+        val start: Point,
+
+        /** 边的终点 / End point of the edge */
+
+        val end: Point
+
+    ) {
+
+        internal companion object {
+
+            /** 将原始边映射到射影平面 / Map original edge to projective plane */
+
+            internal fun map(original: GeometryMapping.Edge): Edge {
+
+                return Edge(
+
+                    start = Point.map(original.start),
+
+                    end = Point.map(original.end)
+
+                )
+
+            }
+
+        }
+
+    }
+
+
+
+    /** 射影平面上的面 / Face on projective plane */
+
+    internal data class Face(
+
+        /** 面的边列表 / List of edges of the face */
+
+        val edges: List<Edge>
+
+    ) {
+
+        internal companion object {
+
+            /** 将原始面映射到射影平面 / Map original face to projective plane */
+
+            internal fun map(original: GeometryMapping.Face): Face {
+
+                return Face(
+
+                    edges = original.edges.map { Edge.map(it) }
+
+                )
+
+            }
+
+        }
+
+    }
+
+
+
+    /** 射影平面上的多边形 / Polygon on projective plane */
+
+    internal data class Polygon(
+
+        /** 多边形的面列表 / List of faces of the polygon */
+
+        val faces: List<Face>
+
+    ) {
+
+        internal companion object {
+
+            /** 将原始多边形映射到射影平面 / Map original polygon to projective plane */
+
+            internal fun map(original: GeometryMapping.Polygon): Polygon {
+
+                return Polygon(
+
+                    faces = original.faces.map { Face.map(it) }
+
+                )
+
+            }
+
+        }
+
+    }
+
+
+
+    /** 将原始几何映射转换为射影平面几何映射 / Convert original geometry mapping to projective plane geometry mapping */
+
+    internal fun map(original: GeometryMapping): List<List<Polygon>> {
+
+        return original.map { row ->
+
+            row.map { Polygon.map(it) }
+
+        }
+
+    }
+
+}
+

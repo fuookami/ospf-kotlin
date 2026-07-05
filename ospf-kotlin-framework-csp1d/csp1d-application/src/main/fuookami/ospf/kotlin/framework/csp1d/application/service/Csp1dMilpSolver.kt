@@ -34,6 +34,13 @@ class Csp1dMilpSolver(
         val output: FeasibleSolverOutput<Flt64>
     )
 
+    /**
+     * LP 求解结果 / LP solution result
+     * @property shadowPrices 影子价格映射 / the shadow price map
+     * @property model LP 模型 / the LP model
+     * @property lpOutput LP 求解器输出 / the LP solver output
+     * @property frameworkShadowPriceMap 框架层影子价格映射 / the framework shadow price map
+     */
     data class LpResult<V : RealNumber<V>>(
         val shadowPrices: ShadowPriceMap<V>,
         val model: LinearMetaModel<Flt64>,

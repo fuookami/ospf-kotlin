@@ -24,6 +24,14 @@ data class PackageSolutionLikeMaterialItem(
     val quantity: PackageSolutionLikeQuantity
 )
 
+/**
+ * 包装解决方案节点，包含形状、物料项和子节点。
+ * Package solution like node, containing shape, material items and child nodes.
+ *
+ * @property shape 包装形状 / package shape
+ * @property materialItems 物料项列表 / list of material items
+ * @property children 子节点列表 / list of child nodes
+ */
 data class PackageSolutionLikeNode(
     val shape: PackageShape<FltX>,
     val materialItems: List<PackageSolutionLikeMaterialItem> = emptyList(),
@@ -45,6 +53,12 @@ private fun mergeMaterialValue(
     return mergePackingProgramMaterialValues(lhs, rhs)
 }
 
+/**
+ * 将包装解决方案数量转换为装箱程序物料值。
+ * Convert the package solution like quantity to a packing program material value.
+ *
+ * @return 装箱程序物料值 / packing program material value
+ */
 private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMaterialValue {
     return when (this) {
         is PackageSolutionLikeQuantity.Amount -> PackingProgramMaterialValue(amount = value)

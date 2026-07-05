@@ -223,7 +223,7 @@ class NSameGenerator<V : RealNumber<V>>(
                     ).value ?: continue
 
                     val plan = CuttingPlan(
-                        id = "nsame-${material.id}-${demand.product.id}-${planIndex.getAndIncrement()}",
+                        id = CuttingPlanIdImpl("nsame-${material.id}-${demand.product.id}-${planIndex.getAndIncrement()}"),
                         material = material,
                         slices = slices,
                         demandContributions = listOf(contribution),

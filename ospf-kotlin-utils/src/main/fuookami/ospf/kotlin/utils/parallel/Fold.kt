@@ -39,7 +39,6 @@ internal fun normalizeSegment(segment: Long): Int {
  * 更新分段计数器
  *
  * Update segment counter and yield when reaching segment size.
- * 更新分段计数器并在达到分段大小时 yield。
  *
  * @param counter 当前计数器值 / Current counter value
  * @param segmentSize 分段大小 / Segment size
@@ -60,7 +59,6 @@ internal suspend fun nextSegmentCounter(counter: Int, segmentSize: Int): Int {
  * 并行折叠集合元素（默认分段）
  *
  * Fold collection elements with default segment size (10).
- * 使用默认分段大小（10）折叠集合元素。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -78,7 +76,6 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
  * 并行折叠集合元素（指定分段）
  *
  * Fold collection elements with specified segment size.
- * 使用指定分段大小折叠集合元素。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -105,7 +102,6 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
  * 并行折叠集合元素（带错误处理，默认分段）
  *
  * Fold collection elements with default segment size (10) and error handling.
- * 使用默认分段大小（10）折叠集合元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -123,7 +119,6 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
  * 并行折叠集合元素（带错误收集，默认分段）
  *
  * Fold collection elements with default segment size (10) and error collection.
- * 使用默认分段大小（10）折叠集合元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -141,7 +136,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
  * 并行折叠集合元素（带错误处理，指定分段）
  *
  * Fold collection elements with specified segment size and error handling.
- * 使用指定分段大小折叠集合元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -172,7 +166,6 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
  * 并行折叠集合元素（带错误收集，指定分段）
  *
  * Fold collection elements with specified segment size and error collection.
- * 使用指定分段大小折叠集合元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -203,7 +196,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
  * 并行折叠集合元素（带索引，默认分段）
  *
  * Fold collection elements with index information and default segment size (10).
- * 使用默认分段大小（10）折叠集合元素，提供元素索引信息。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -221,7 +213,6 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
  * 并行折叠集合元素（带索引，指定分段）
  *
  * Fold collection elements with index information and specified segment size.
- * 使用指定分段大小折叠集合元素，提供元素索引信息。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -248,7 +239,6 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
  * 并行折叠集合元素（带索引，带错误处理，默认分段）
  *
  * Fold collection elements with index information, default segment size (10) and error handling.
- * 使用默认分段大小（10）折叠集合元素，提供元素索引信息，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -266,7 +256,6 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
  * 并行折叠集合元素（带索引，带错误收集，默认分段）
  *
  * Fold collection elements with index information, default segment size (10) and error collection.
- * 使用默认分段大小（10）折叠集合元素，提供元素索引信息，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -284,7 +273,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
  * 并行折叠集合元素（带索引，带错误处理，指定分段）
  *
  * Fold collection elements with index information, specified segment size and error handling.
- * 使用指定分段大小折叠集合元素，提供元素索引信息，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -315,7 +303,6 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
  * 并行折叠集合元素（带索引，带错误收集，指定分段）
  *
  * Fold collection elements with index information, specified segment size and error collection.
- * 使用指定分段大小折叠集合元素，提供元素索引信息，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -346,7 +333,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
  * 并行反向折叠集合元素（默认分段）
  *
  * Fold collection elements from right to left with default segment size (10).
- * 使用默认分段大小（10）从右向左折叠集合元素。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -364,7 +350,6 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
  * 并行反向折叠集合元素（指定分段）
  *
  * Fold collection elements from right to left with specified segment size.
- * 使用指定分段大小从右向左折叠集合元素。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -391,7 +376,6 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
  * 并行反向折叠集合元素（带错误处理，默认分段）
  *
  * Fold collection elements from right to left with default segment size (10) and error handling.
- * 使用默认分段大小（10）从右向左折叠集合元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -409,7 +393,6 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
  * 并行反向折叠集合元素（带错误收集，默认分段）
  *
  * Fold collection elements from right to left with default segment size (10) and error collection.
- * 使用默认分段大小（10）从右向左折叠集合元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -427,7 +410,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
  * 并行反向折叠集合元素（带错误处理，指定分段）
  *
  * Fold collection elements from right to left with specified segment size and error handling.
- * 使用指定分段大小从右向左折叠集合元素，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -458,7 +440,6 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
  * 并行反向折叠集合元素（带错误收集，指定分段）
  *
  * Fold collection elements from right to left with specified segment size and error collection.
- * 使用指定分段大小从右向左折叠集合元素，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -489,7 +470,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
  * 并行反向折叠集合元素（带索引，默认分段）
  *
  * Fold collection elements from right to left with index information and default segment size (10).
- * 使用默认分段大小（10）从右向左折叠集合元素，提供元素索引信息。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -507,7 +487,6 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
  * 并行反向折叠集合元素（带索引，指定分段）
  *
  * Fold collection elements from right to left with index information and specified segment size.
- * 使用指定分段大小从右向左折叠集合元素，提供元素索引信息。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -535,7 +514,6 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
  * 并行反向折叠集合元素（带索引，带错误处理，默认分段）
  *
  * Fold collection elements from right to left with index information, default segment size (10) and error handling.
- * 使用默认分段大小（10）从右向左折叠集合元素，提供元素索引信息，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -553,7 +531,6 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
  * 并行反向折叠集合元素（带索引，带错误收集，默认分段）
  *
  * Fold collection elements from right to left with index information, default segment size (10) and error collection.
- * 使用默认分段大小（10）从右向左折叠集合元素，提供元素索引信息，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param initial 初始值 / Initial value
@@ -571,7 +548,6 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
  * 并行反向折叠集合元素（带索引，带错误处理，指定分段）
  *
  * Fold collection elements from right to left with index information, specified segment size and error handling.
- * 使用指定分段大小从右向左折叠集合元素，提供元素索引信息，支持错误处理。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)
@@ -603,7 +579,6 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
  * 并行反向折叠集合元素（带索引，带错误收集，指定分段）
  *
  * Fold collection elements from right to left with index information, specified segment size and error collection.
- * 使用指定分段大小从右向左折叠集合元素，提供元素索引信息，收集所有错误。
  *
  * @param T 元素类型 / Element type
  * @param segment 分段大小（控制 yield 频率）/ Segment size (controls yield frequency)

@@ -51,6 +51,9 @@ data class CircleMap<V : FloatingImpl<V>>(
      *
      * 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
      * Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
+     *
+     * @param value sin 运算的结果值 / The result value of the sin operation
+     * @return 转换为类型 V 的数值 / The value cast to type V
      */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {
@@ -61,6 +64,8 @@ data class CircleMap<V : FloatingImpl<V>>(
 /**
  * 圆映射生成器
  * Circle Map Generator
+ *
+ * @property circleMap 圆映射实例 / Circle map instance
  */
 data class CircleMapGenerator(
     val circleMap: CircleMap<Flt64> = CircleMap(),

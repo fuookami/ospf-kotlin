@@ -555,6 +555,13 @@ class DepthFirstSearchAlgorithm(
         return true
     }
 
+    /**
+     * 合并相邻的空间。
+     * Merges adjacent spaces.
+     *
+     * @param spaces 待合并的空间列表
+     * @return 合并后的空间列表
+     */
     private fun merge(spaces: List<Space>): List<Space> {
         val mergedSpaces = spaces.sortedWith(compareBy { it.z.toDouble() }).withIndex().toMutableList()
         for ((i, space) in mergedSpaces.withIndex()) {

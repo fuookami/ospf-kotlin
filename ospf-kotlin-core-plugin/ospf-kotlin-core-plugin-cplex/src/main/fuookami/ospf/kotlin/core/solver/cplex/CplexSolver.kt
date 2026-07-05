@@ -29,7 +29,11 @@ abstract class CplexSolver : AutoCloseable {
         return ok
     }
 
-    /** 分析 CPLEX 求解状态 / Analyze CPLEX solving status */
+    /**
+     * 分析 CPLEX 求解状态 / Analyze CPLEX solving status
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {

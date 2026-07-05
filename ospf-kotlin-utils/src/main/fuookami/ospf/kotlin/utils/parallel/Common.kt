@@ -162,14 +162,32 @@ internal data class WorkerPoolResult<R>(
     val result: R
 )
 
+/**
+ * 安全转换 Worker Pool 结果
+ *
+ * Safely cast Worker Pool result value.
+ * 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
+ * Safety invariant: each result slot is fully written before read, and runtime type matches target R.
+ *
+ * @param R 目标类型 / Target type
+ * @param value 待转换值 / Value to cast
+ * @return 转换后的值 / Casted value
+ */
 @PublishedApi
 @Suppress("UNCHECKED_CAST")
 internal fun <R> castWorkerPoolResult(value: Any?): R {
-    // 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
-    // Safety invariant: each result slot is fully written before read, and runtime type matches target R.
     return value as R
 }
 
+/**
+ * 将 Worker Pool 结果数组转换为类型化列表
+ *
+ * Convert Worker Pool result array to typed list.
+ *
+ * @param R 结果类型 / Result type
+ * @param results 结果数组 / Result array
+ * @return 类型化结果列表 / Typed result list
+ */
 @PublishedApi
 internal fun <R> castWorkerPoolResultList(results: Array<Any?>): List<R> {
     return results.map { castWorkerPoolResult(it) }

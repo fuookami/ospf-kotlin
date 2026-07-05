@@ -345,6 +345,13 @@ private data class QuadraticMonomialKey(
             }
         }
 
+        /**
+         * 从 Flt64 类型的二次单项式创建合并键。
+         * Create a merging key from a Flt64 quadratic monomial.
+         *
+         * @param mono Flt64 类型的二次单项式 / the Flt64 quadratic monomial
+         * @return 用于合并的规范键 / the canonical key for merging
+         */
         @JvmName("fromFlt64")
         private fun from(mono: QuadraticMonomial<Flt64>): QuadraticMonomialKey {
             val id1 = System.identityHashCode(mono.symbol1)
@@ -365,6 +372,8 @@ private data class QuadraticMonomialKey(
  * 仅需要不等式一侧时使用。
  * Create [LinearFlattenData]<Flt64> directly from math [LinearPolynomial].
  * Used when only one side of the inequality is needed.
+ *
+ * @return 扁平化的线性数据 / the flattened linear data
  */
 internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
     return LinearFlattenData<Flt64>(
@@ -378,6 +387,8 @@ internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
  * 仅需要不等式一侧时使用。
  * Create [QuadraticFlattenData]<Flt64> directly from math [QuadraticPolynomial].
  * Used when only one side of the inequality is needed.
+ *
+ * @return 扁平化的二次数据 / the flattened quadratic data
  */
 internal fun QuadraticPolynomial<Flt64>.toFlattenData(): QuadraticFlattenData<Flt64> {
     return QuadraticFlattenData<Flt64>(

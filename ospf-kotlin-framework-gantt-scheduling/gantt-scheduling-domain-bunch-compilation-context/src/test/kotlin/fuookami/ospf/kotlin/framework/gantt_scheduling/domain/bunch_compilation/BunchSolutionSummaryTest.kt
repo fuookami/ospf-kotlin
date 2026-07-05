@@ -13,12 +13,24 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ExecutorInitialUsability
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.ImmutableCost
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.TaskId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 
+@JvmInline
+internal value class TestExecutorId(val value: String) : ExecutorId {
+    override fun toString(): String = value
+}
+
+@JvmInline
+internal value class TestTaskId(val value: String) : TaskId {
+    override fun toString(): String = value
+}
+
 class BunchSolutionSummaryTest {
-    private val executor = Executor("executor", "executor")
+    private val executor = Executor(TestExecutorId("executor"), "executor")
     private val time = TimeRange(
         start = Instant.parse("2026-06-07T00:00:00Z"),
         end = Instant.parse("2026-06-07T01:00:00Z")
@@ -33,8 +45,8 @@ class BunchSolutionSummaryTest {
                 enabledTime = time.start
             ),
             tasks = listOf(
-                SummaryTask(index = 0, id = "assigned-1", time = time),
-                SummaryTask(index = 1, id = "assigned-2", time = time)
+                SummaryTask(index = 0, id = TestTaskId("assigned-1"), time = time),
+                SummaryTask(index = 1, id = TestTaskId("assigned-2"), time = time)
             ),
             cost = ImmutableCost<FltX>(emptyList()),
             iteration = Int64.zero
@@ -42,7 +54,7 @@ class BunchSolutionSummaryTest {
         val solution = BunchSolution(
             bunches = listOf(bunch),
             canceledTasks = listOf(
-                SummaryTask(index = 2, id = "canceled-1", time = time)
+                SummaryTask(index = 2, id = TestTaskId("canceled-1"), time = time)
             )
         )
 
@@ -55,8 +67,8 @@ class BunchSolutionSummaryTest {
 
 private data class SummaryTask(
     override val index: Int,
-    override val id: String,
-    override val name: String = id,
+    override val id: TaskId,
+    override val name: String = id.toString(),
     override val time: TimeRange
 ) : AbstractTask<Executor, AssignmentPolicy<Executor>> {
     override val duration = 1.hours

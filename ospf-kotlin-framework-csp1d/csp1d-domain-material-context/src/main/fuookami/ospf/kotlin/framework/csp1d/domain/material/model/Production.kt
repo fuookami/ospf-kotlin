@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property unitWeight 单位重量 / Unit weight
  */
 interface Production<V : RealNumber<V>> {
-    val id: String?
+    val id: ProductionId?
     val width: List<Quantity<V>>
     val length: Quantity<V>?
     val unitWeight: Quantity<V>?

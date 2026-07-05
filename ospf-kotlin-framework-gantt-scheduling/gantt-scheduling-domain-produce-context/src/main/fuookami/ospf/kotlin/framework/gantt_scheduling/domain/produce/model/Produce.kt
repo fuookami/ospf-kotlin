@@ -35,6 +35,12 @@ interface Produce {
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
+    /**
+     * 注册生产变量到模型 / Register produce variables to the model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
+     */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 
     /**

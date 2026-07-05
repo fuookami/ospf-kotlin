@@ -22,7 +22,7 @@ class YieldContextTest {
 
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
-            id = id,
+            id = ProductIdImpl(id),
             name = "product-$id",
             width = listOf(Quantity(Flt64.one, Meter))
         )
@@ -30,7 +30,7 @@ class YieldContextTest {
 
     private fun material(id: String = "m"): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -48,7 +48,7 @@ class YieldContextTest {
         contributions: List<CuttingPlanDemandContribution<Flt64>>
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material(),
             slices = emptyList(),
             demandContributions = contributions,
@@ -183,9 +183,9 @@ class YieldContextTest {
 
     @Test
     fun demandAggregationKeyDistinguishesByUnit() {
-        val key1 = DemandAggregationKey<Flt64>("p1", Kilogram)
-        val key2 = DemandAggregationKey<Flt64>("p1", RollCountUnit)
-        val key3 = DemandAggregationKey<Flt64>("p1", Kilogram)
+        val key1 = DemandAggregationKey<Flt64>(productIdOf("p1"), Kilogram)
+        val key2 = DemandAggregationKey<Flt64>(productIdOf("p1"), RollCountUnit)
+        val key3 = DemandAggregationKey<Flt64>(productIdOf("p1"), Kilogram)
 
         assertTrue(key1 != key2)
         assertTrue(key1 == key3)

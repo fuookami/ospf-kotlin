@@ -46,6 +46,10 @@ data class FourScrollHyperChaoticAttractor<V : FloatingNumber<V>>(val a: V, val 
     }
 }
 
+/**
+ * 四涡卷超混沌吸引子生成器
+ * Four-Scroll Hyper-Chaotic Attractor Generator
+ */
 data class FourScrollHyperChaoticAttractorGenerator(
     val attractor: FourScrollHyperChaoticAttractor<Flt64> = FourScrollHyperChaoticAttractor(),
     private var _x: Point<Dim4, Flt64> = point4(

@@ -43,7 +43,7 @@ interface ProductionAction {
      * 动作唯一标识
      * Unique identifier for the action
      */
-    val id: String
+    val id: ProductionActionId
 
     /**
      * 动作名称

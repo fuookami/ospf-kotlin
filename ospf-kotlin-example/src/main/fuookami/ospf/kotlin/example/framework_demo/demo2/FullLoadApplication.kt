@@ -41,6 +41,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * 满舱装载算法入口，提供顶层调用接口
+ * Full-load stowage algorithm entry point, providing top-level invocation interface
+ */
 data object FullLoadAlgorithm {
     suspend operator fun invoke(
         request: RequestDTO,
@@ -53,6 +57,10 @@ data object FullLoadAlgorithm {
     }
 }
 
+/**
+ * 满舱装载算法实现类，管理各领域上下文并协调 MILP / Benders 分解求解流程
+ * Full-load stowage algorithm implementation, managing domain contexts and coordinating MILP / Benders decomposition solve flow
+ */
 private class FullLoadAlgorithmImpl {
     private val aircraftContext = AircraftContext()
     private val stowageContext = StowageContext()
@@ -200,6 +208,15 @@ private class FullLoadAlgorithmImpl {
         return output
     }
 
+    /**
+     * 初始化所有领域上下文（飞机、装载、MAC、适航安全、软安全、MAC 优化、快递效能、装载效能）
+     * Initialize all domain contexts (aircraft, stowage, MAC, airworthiness security, soft security, MAC optimization, express effectiveness, loading effectiveness)
+     *
+     * @param request 请求 DTO
+     * @param request Request DTO
+     * @return 初始化结果，成功返回 ok，失败返回对应错误
+     * @return Initialization result, ok on success or error on failure
+     */
     private fun init(
         request: RequestDTO
     ): Try {
@@ -333,6 +350,21 @@ private class FullLoadAlgorithmImpl {
         return ok
     }
 
+    /**
+     * 使用 MILP（混合整数线性规划）求解满舱装载问题
+     * Solve the full-load stowage problem using MILP (Mixed Integer Linear Programming)
+     *
+     * @param id 请求 ID
+     * @param id Request ID
+     * @param parameter 求解参数
+     * @param parameter Solve parameter
+     * @param startTime 求解开始时间
+     * @param startTime Solve start time
+     * @param runningHeartBeatCallBack 运行心跳回调，用于更新求解进度
+     * @param runningHeartBeatCallBack Running heartbeat callback for progress updates
+     * @return 求解结果，包含解决方案或错误信息
+     * @return Solve result containing solution or error info
+     */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
@@ -459,6 +491,17 @@ private class FullLoadAlgorithmImpl {
         return Ok<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution, ErrorCode, Error<ErrorCode>>(solution)
     }
 
+    /**
+     * 将各领域上下文注册到线性元模型中，构建完整优化模型
+     * Register all domain contexts into the linear meta-model to build the complete optimization model
+     *
+     * @param parameter 求解参数
+     * @param parameter Solve parameter
+     * @param model 线性元模型实例
+     * @param model Linear meta-model instance
+     * @return 注册结果，成功返回 ok，失败返回对应错误
+     * @return Registration result, ok on success or error on failure
+     */
     private fun register(
         parameter: Parameter,
         model: AbstractLinearMetaModel<Flt64>
@@ -575,6 +618,17 @@ private class FullLoadAlgorithmImpl {
         return ok
     }
 
+    /**
+     * 使用 Benders 分解算法求解满舱装载问题
+     * Solve the full-load stowage problem using Benders decomposition algorithm
+     *
+     * @param request 请求 DTO，包含求解参数和货物信息
+     * @param request Request DTO containing solve parameters and cargo info
+     * @param notes 诊断信息收集列表
+     * @param notes Diagnostic notes collection list
+     * @return 求解结果，包含解决方案或错误信息
+     * @return Solve result containing solution or error info
+     */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
@@ -681,6 +735,13 @@ private class FullLoadAlgorithmImpl {
         }
     }
 
+    /**
+     * 构建 Benders 分解的主问题和子问题模型
+     * Build master and sub problem models for Benders decomposition
+     *
+     * @return Benders 分解模型容器，包含主问题、子问题、目标变量和固定变量映射
+     * @return Benders decomposition model container with master, sub, objective variable and fixed variable mapping
+     */
     private fun buildBendersModels(): BendersModels {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_full_load_master",
@@ -724,6 +785,19 @@ private class FullLoadAlgorithmImpl {
         )
     }
 
+    /**
+     * Benders 分解模型容器
+     * Benders decomposition model container
+     *
+     * @property masterModel 主问题线性元模型
+     * @property masterModel Master problem linear meta-model
+     * @property subModel 子问题线性元模型
+     * @property subModel Sub problem linear meta-model
+     * @property objectVariable 目标变量（theta），用于割生成
+     * @property objectVariable Objective variable (theta) for cut generation
+     * @property fixedVariables 主子问题间固定变量映射
+     * @property fixedVariables Fixed variable mapping between master and sub problems
+     */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,

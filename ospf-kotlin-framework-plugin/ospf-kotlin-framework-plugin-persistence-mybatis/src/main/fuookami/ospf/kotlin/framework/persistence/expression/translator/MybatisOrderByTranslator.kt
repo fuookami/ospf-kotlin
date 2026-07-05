@@ -43,6 +43,14 @@ class MybatisOrderByTranslator<T : Any>(
         return result
     }
 
+    /**
+     * 应用单个排序项到 Wrapper
+     * Apply a single sort item to wrapper
+     *
+     * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
+     * @param item 排序项 / Sort item
+     * @return 应用排序后的 QueryWrapper / QueryWrapper with sort item applied
+     */
     private fun applyItem(wrapper: QueryWrapper<T>, item: SortItem): QueryWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
 

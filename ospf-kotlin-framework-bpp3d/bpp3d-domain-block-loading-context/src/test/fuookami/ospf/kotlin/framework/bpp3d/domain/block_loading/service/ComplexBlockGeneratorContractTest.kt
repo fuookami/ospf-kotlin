@@ -29,7 +29,7 @@ class ComplexBlockGeneratorContractTest {
 
     private fun item(id: String): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = FltX(1.0) * Meter,
             height = FltX(1.0) * Meter,

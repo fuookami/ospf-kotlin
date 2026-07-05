@@ -7,6 +7,9 @@ import fuookami.ospf.kotlin.quantities.quantity.partialOrd
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.model.*
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialId
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineId
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
 
 internal class GenerationCollector<V : RealNumber<V>>(
     private val maxPlans: Int64,
@@ -291,7 +294,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
                     quantityValue = it.quantity.value.toString()
                 )
             }.sortedWith(
-                compareBy<DemandContributionKey> { it.productId }
+                compareBy<DemandContributionKey> { it.productId.toString() }
                     .thenBy { it.unit }
                     .thenBy { it.quantityValue }
             )
@@ -302,7 +305,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
         return RelaxedDominanceKey(
             materialId = material.id,
             machineId = machineId,
-            productSet = demandContributions.map { it.product.id }.toSortedSet()
+            productSet = demandContributions.map { it.product.id }.toSet()
         )
     }
 
@@ -319,16 +322,16 @@ internal class GenerationCollector<V : RealNumber<V>>(
     }
 
     private data class DominanceKey(
-        val materialId: String,
-        val machineId: String?,
+        val materialId: MaterialId,
+        val machineId: MachineId?,
         val capacityConsumption: QuantityKey?,
         val demandContributions: List<DemandContributionKey>
     )
 
     private data class RelaxedDominanceKey(
-        val materialId: String,
-        val machineId: String?,
-        val productSet: Set<String>
+        val materialId: MaterialId,
+        val machineId: MachineId?,
+        val productSet: Set<ProductId>
     )
 
     private data class QuantityKey(
@@ -337,7 +340,7 @@ internal class GenerationCollector<V : RealNumber<V>>(
     )
 
     private data class DemandContributionKey(
-        val productId: String,
+        val productId: ProductId,
         val unit: String,
         val quantityValue: String
     )

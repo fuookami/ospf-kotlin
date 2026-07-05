@@ -290,7 +290,7 @@ class FullSumGenerator<V : RealNumber<V>>(
                         material = material,
                         slices = currentSlices,
                         widthIndex = widthIndex,
-                        planId = "fullsum-${material.id}-${planIndex.getAndIncrement()}"
+                        planId = CuttingPlanIdImpl("fullsum-${material.id}-${planIndex.getAndIncrement()}")
                     )
                     collector.record(
                         plan = plan,
@@ -368,7 +368,7 @@ class FullSumGenerator<V : RealNumber<V>>(
                 material = material,
                 slices = slices,
                 widthIndex = widthIndex,
-                planId = "fullsum-${material.id}-${planIndex.getAndIncrement()}"
+                planId = CuttingPlanIdImpl("fullsum-${material.id}-${planIndex.getAndIncrement()}")
             )
             collector.record(
                 plan = plan,
@@ -403,7 +403,7 @@ class FullSumGenerator<V : RealNumber<V>>(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,
         widthIndex: GenerationWidthIndex<V>,
-        planId: String
+        planId: CuttingPlanId
     ): CuttingPlan<V> {
         val contributions = slices.mapNotNull { slice ->
             val product = slice.production as Product<V>

@@ -147,7 +147,14 @@ suspend fun computeIIS(
     return Ok(dump(model, misConstraints, guardConstraints))
 }
 
-/** 获取与松弛变量关联的约束索引列表 / Get constraint indices related to slack variables */
+/**
+ * 获取与松弛变量关联的约束索引列表。
+ * Get constraint indices related to slack variables.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param slackVariables 松弛变量集合 / Slack variable set
+ * @return 关联的约束索引列表 / Related constraint index list
+ */
 private fun getRelatedConstraints(
     model: LinearTriadModelView,
     slackVariables: Set<Variable>
@@ -161,7 +168,15 @@ private fun getRelatedConstraints(
         }
 }
 
-/** 获取与过滤变量和约束关联的变量列表 / Get variables related to filter variables and constraints */
+/**
+ * 获取与过滤变量和约束关联的变量列表。
+ * Get variables related to filter variables and constraints.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param filter 过滤的松弛变量集合 / Filtered slack variable set
+ * @param relatedConstraints 关联的约束索引列表 / Related constraint index list
+ * @return 变量及其下界和上界的 triple 列表 / List of variable with its lower and upper bounds as triples
+ */
 private fun getRelatedVariables(
     model: LinearTriadModelView,
     filter: Set<Variable>,
@@ -198,7 +213,14 @@ private fun getRelatedVariables(
         }
 }
 
-/** 从弹性过滤结果构建线性 IIS 模型 / Build linear IIS model from elastic filter result */
+/**
+ * 从弹性过滤结果构建线性 IIS 模型。
+ * Build linear IIS model from elastic filter result.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param elasticFilter 弹性过滤结果，松弛变量到值的映射 / Elastic filter result, mapping of slack variables to values
+ * @return 构建的线性 IIS 模型 / Built linear IIS model
+ */
 private fun dump(
     model: LinearTriadModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -229,7 +251,15 @@ private fun dump(
     )
 }
 
-/** 从 MIS 和守卫约束构建线性 IIS 模型 / Build linear IIS model from MIS and guard constraints */
+/**
+ * 从 MIS 和守卫约束构建线性 IIS 模型。
+ * Build linear IIS model from MIS and guard constraints.
+ *
+ * @param model 线性三元模型视图 / Linear triad model view
+ * @param misConstraints 不可行子系统约束对应的松弛变量集合 / Slack variable set for MIS constraints
+ * @param guardConstraints 守卫约束对应的松弛变量集合 / Slack variable set for guard constraints
+ * @return 构建的线性 IIS 模型 / Built linear IIS model
+ */
 private fun dump(
     model: LinearTriadModelView,
     misConstraints: Set<Variable>,
@@ -266,7 +296,15 @@ private fun dump(
     )
 }
 
-/** 执行弹性过滤以识别不可行组件 / Perform elastic filtering to identify infeasible components */
+/**
+ * 执行弹性过滤以识别不可行组件。
+ * Perform elastic filtering to identify infeasible components.
+ *
+ * @param elasticModel 弹性线性三元模型视图 / Elastic linear triad model view
+ * @param solver 线性求解器 / Linear solver
+ * @param config IIS 配置 / IIS configuration
+ * @return 是否直接可行及松弛变量映射 / Whether directly feasible and slack variable mapping
+ */
 private suspend fun performElasticFiltering(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,
@@ -350,7 +388,18 @@ private suspend fun performElasticFiltering(
     return Ok(false to emptyMap())
 }
 
-/** 执行删除过滤以精简不可行组件 / Perform deletion filtering to refine infeasible components */
+/**
+ * 执行删除过滤以精简不可行组件。
+ * Perform deletion filtering to refine infeasible components.
+ *
+ * @param elasticModel 弹性线性三元模型视图 / Elastic linear triad model view
+ * @param solver 线性求解器 / Linear solver
+ * @param startTime 计算开始时间 / Computation start time
+ * @param boundAmount 变量界约束总数 / Total number of variable bound constraints
+ * @param constraintAmount 约束总数 / Total number of constraints
+ * @param config IIS 配置 / IIS configuration
+ * @return MIS 约束集合与守卫约束集合 / MIS constraint set and guard constraint set
+ */
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
@@ -425,7 +474,16 @@ private suspend fun performDeletionFiltering(
     return Ok(activeRelaxedComponents to emptySet())
 }
 
-/** 松弛满足条件的特定组件 / Relax specific components satisfying the condition */
+/**
+ * 松弛满足条件的特定组件。
+ * Relax specific components satisfying the condition.
+ *
+ * @param elasticModel 弹性线性三元模型视图 / Elastic linear triad model view
+ * @param solver 线性求解器 / Linear solver
+ * @param tolerance 松弛变量容差 / Slack variable tolerance
+ * @param relaxCondition 判断是否松弛的谓词 / Predicate to determine whether to relax
+ * @return 是否可行及松弛变量映射 / Whether feasible and slack variable mapping
+ */
 private suspend fun relaxSpecificComponents(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,

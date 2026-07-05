@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Abstrac
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.GenericSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.TaskId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
@@ -31,7 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 
 class TaskTimeQuantityFltXTest {
-    private val task = QuantityTask(index = 0, id = "task-0")
+    private val task = QuantityTask(index = 0, id = TestTaskId("task-0"))
     private val model = LinearMetaModel(
         name = "task-time-quantity-test",
         converter = schedulingSolverValueAdapter
@@ -162,8 +163,8 @@ class TaskTimeQuantityFltXTest {
 
 private data class QuantityTask(
     override val index: Int,
-    override val id: String,
-    override val name: String = id
+    override val id: TaskId,
+    override val name: String = id.toString()
 ) : AbstractTask<Executor, AssignmentPolicy<Executor>> {
     override fun partialEq(rhs: AbstractTask<Executor, AssignmentPolicy<Executor>>): Boolean? {
         return this === rhs

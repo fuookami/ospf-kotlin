@@ -16,6 +16,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dValidationError
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
+/**
+ * 比较两个二维坐标点的位置优先级。
+ * Compare the position priority of two 2D points.
+ *
+ * @param lhs 左侧坐标点
+ * @param rhs 右侧坐标点
+ * @param withManhattanDistance 是否优先按曼哈顿距离排序
+ * @return 比较结果
+ */
 private fun compareWithPosition(
     lhs: QuantityPoint2<FltX>,
     rhs: QuantityPoint2<FltX>,
@@ -77,6 +86,14 @@ fun <P : ProjectivePlane> compareWithShapeAndWeight(
     return Order.Equal
 }
 
+/**
+ * 自底向上左对齐算法，在二维投影平面上求解装箱问题。
+ * Bottom-up left-justified algorithm for solving bin packing on a 2D projection plane.
+ *
+ * @property space 容器的二维形状
+ * @property plane 投影平面
+ * @property config 算法配置
+ */
 class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private val space: Container2Shape<P>,
     private val plane: P,
@@ -90,6 +107,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         config = config
     )
 
+    /**
+     * 自底向上左对齐算法的配置。
+     * Configuration for the bottom-up left-justified algorithm.
+     *
+     * @property withDisplacementX 是否启用 X 轴方向的位移搜索
+     * @property withDisplacementY 是否启用 Y 轴方向的位移搜索
+     * @property comparator 投影的三路比较器，决定放置优先级
+     * @property positionComparator 位置的三路比较器，决定候选点优先级
+     */
     data class Config<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,
         val withDisplacementY: Boolean = true,
@@ -144,6 +170,14 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return ChannelGuard(promise)
     }
 
+    /**
+     * 执行自底向上左对齐算法的核心回溯逻辑。
+     * Core backtracking logic of the bottom-up left-justified algorithm.
+     *
+     * @param promise 用于发送找到的放置方案的通道
+     * @param placements 当前放置方案的可变列表
+     * @param projections 待放置的投影列表（已排序）
+     */
     private suspend fun bla(
         promise: Channel<List<QuantityPlacement2<*, FltX, P>?>>,
         placements: MutableList<QuantityPlacement2<*, FltX, P>?>,
@@ -197,11 +231,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 val thisFeasiblePoints = if (projections[i].view == projections[i - 1].view && lastFeasiblePoints.isNotEmpty() && placements[i - 1] != null) {
                     val lastPlacement = placements[i - 1]!!
                     // 要去除的点：
-                    // 1. 和上一个放置的物料在相同位置的�?
+                    // 1. 和上一个放置的物料在相同位置的点
                     // 2. 被上一个放置的物料包住的点
                     val lastAvailablePoints = lastFeasiblePoints.filter {
-                        it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的�?
-                                && lastPlacement.contains(it, withUpperBound = false).value != true                 // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面�?
+                        it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的点
+                                && lastPlacement.contains(it, withUpperBound = false).value != true                 // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面）
                     }
                     (lastAvailablePoints + feasiblePoints(
                         targetPlacements = listOf(lastPlacement),
@@ -235,6 +269,14 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
     }
 
+    /**
+     * 根据已放置的物料计算所有可行放置点（目标放置与固定放置相同）。
+     * Compute all feasible placement points where target and fixed placements are the same.
+     *
+     * @param placements 已放置的物料列表
+     * @param reverse 是否按逆序（从远到近）排列结果
+     * @return 可行放置点列表
+     */
     private suspend fun feasiblePoints(
         placements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
@@ -246,6 +288,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         )
     }
 
+    /**
+     * 根据已固定的放置计算所有可行放置点。
+     * Compute all feasible placement points based on fixed placements.
+     *
+     * @param targetPlacements 用于生成候选点的放置列表
+     * @param fixedPlacements 用于判断重叠和包含关系的已固定放置列表
+     * @param reverse 是否按逆序（从远到近）排列结果
+     * @return 可行放置点列表
+     */
     private suspend fun feasiblePoints(
         targetPlacements: List<QuantityPlacement2<*, FltX, P>?>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>,
@@ -300,6 +351,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
     }
 
+    /**
+     * 从候选点出发，沿 X 和 Y 轴方向递归搜索所有实际可行点。
+     * Recursively search all actual feasible points from a candidate point along X and Y axes.
+     *
+     * @param point 起始候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return 所有可达的实际可行点列表
+     */
     private fun actualFeasiblePoints(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -336,6 +396,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return points
     }
 
+    /**
+     * 沿 X 轴方向寻找实际可行点（向原点方向滑动）。
+     * Find the actual feasible point along the X axis (sliding toward the origin).
+     *
+     * @param point 当前候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return X 轴方向的实际可行点，若已在原点则返回 null
+     */
     private fun actualFeasiblePointOnX(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -366,6 +435,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
     }
 
+    /**
+     * 沿 Y 轴方向寻找实际可行点（向原点方向滑动）。
+     * Find the actual feasible point along the Y axis (sliding toward the origin).
+     *
+     * @param point 当前候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return Y 轴方向的实际可行点，若已在原点则返回 null
+     */
     private fun actualFeasiblePointOnY(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -395,6 +473,14 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             point2(x = point.x, y = maxY)
         }
     }
+    /**
+     * 检查放置是否可行（不越界、不重叠、满足堆叠约束）。
+     * Check whether a placement is feasible (within bounds, no overlap, satisfying stacking constraints).
+     *
+     * @param placement 待检查的放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return 可行则返回 Ok(true)，不可行返回 Ok(false)，出错返回 Failed/Fatal
+     */
     private suspend fun feasible(
         placement: QuantityPlacement2<*, FltX, P>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>

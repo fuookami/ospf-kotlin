@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @property unit 物理单位 / Physical unit
  */
 data class DemandAggregationKey<V : RealNumber<V>>(
-    val productId: String,
+    val productId: ProductId,
     val unit: PhysicalUnit
 )
 

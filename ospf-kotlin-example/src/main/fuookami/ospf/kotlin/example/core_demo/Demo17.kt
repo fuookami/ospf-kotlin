@@ -45,14 +45,32 @@ data object Demo17 {
         val position: GeometryPoint<Dim2, Flt64>
         val timeWindow: ValueRange<UInt64>
 
+        /**
+         * 计算到另一个节点的距离。
+         * Calculate the distance to another node.
+         * @param other 目标节点 / Target node
+         * @return 距离值 / Distance value
+         */
         fun distance(other: Node): Flt64 {
             return position.distance(other.position)
         }
 
+        /**
+         * 计算到达另一个节点的成本。
+         * Calculate the cost of reaching another node.
+         * @param other 目标节点 / Target node
+         * @return 移动成本 / Travel cost
+         */
         fun cost(other: Node): Flt64 {
             return distance(other)
         }
 
+        /**
+         * 计算到达另一个节点所需的时间。
+         * Calculate the time required to reach another node.
+         * @param other 目标节点 / Target node
+         * @return 所需时间 / Required time
+         */
         fun time(other: Node): Flt64 {
             return distance(other)
         }

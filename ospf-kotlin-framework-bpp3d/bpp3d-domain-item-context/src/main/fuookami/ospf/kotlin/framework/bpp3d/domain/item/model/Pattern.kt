@@ -1,6 +1,6 @@
 /**
- * 模式模型。
- * Pattern model.
+ * 模式模型，定义模式放置和生成的接口与公共逻辑。
+ * Pattern model, defining the interface and common logic for pattern placement and generation.
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
@@ -20,9 +20,15 @@ import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 
+/** 将数值转换为标量值 / Convert a number to a scalar value */
 private fun patternScalar(value: Number): FltX = FltX(value.toDouble())
+/** 将无符号长整数转换为标量值 / Convert an unsigned long integer to a scalar value */
 private fun patternScalar(value: ULong): FltX = FltX(value.toDouble())
 
+/**
+ * 模式项信息，包含项及其数量。
+ * Pattern item information, containing an item and its amount.
+ */
 private data class PatternItemInfo(
     val item: Item,
     var amount: UInt64,
@@ -30,11 +36,31 @@ private data class PatternItemInfo(
     override fun copy() = PatternItemInfo(item, amount)
 }
 
+/**
+ * 抽象模式模型，定义模式放置和生成的接口与公共逻辑。
+ * Abstract pattern model, defining the interface and common logic for pattern placement and generation.
+ */
 abstract class Pattern {
+    /**
+     * 模式步骤，定义每个放置位置的朝向和下一位置提取器。
+     * Pattern step, defining the orientation for each placement position and the next point extractor.
+     *
+     * @property lengthOrientation 长度方向 / Length orientation
+     * @property nextPointExtractor 下一位置提取函数 / Next point extraction function
+     */
     data class Step(
         val lengthOrientation: ProjectivePlane,
         val nextPointExtractor: ((projection: Projection<Item, FltX, Bottom>, placements: List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX>)?
     ) {
+        /**
+         * 生成放置项。
+         * Generate a placement.
+         *
+         * @param projection 投影 / Projection
+         * @param placements 已有放置列表 / Existing placements
+         * @param i 当前步骤索引 / Current step index
+         * @return 生成的放置 / The generated placement
+         */
         fun generatePlacement(
             projection: Projection<Item, FltX, Bottom>,
             placements: List<QuantityPlacement2<Item, FltX, Bottom>>,
@@ -51,6 +77,13 @@ abstract class Pattern {
             )
         }
 
+        /**
+         * 生成多堆叠投影。
+         * Generate a multi-pile projection.
+         *
+         * @param items 项列表 / List of items
+         * @return 多堆叠投影结果 / Multi-pile projection result
+         */
         fun generateMultiPileProjection(items: List<Item>): Result<MultiPileProjection<Item, FltX, Bottom>?, ErrorCode, Error<ErrorCode>> {
             var projection: MultiPileProjection<Item, FltX, Bottom>? = null
             val views = ArrayList<ItemView>()
@@ -78,6 +111,13 @@ abstract class Pattern {
             return Ok(projection)
         }
 
+        /**
+         * 获取项的图案视图。
+         * Get the pattern view of an item.
+         *
+         * @param item 项 / Item
+         * @return 视图结果 / View result
+         */
         fun getPatternView(item: Item): Result<ItemView?, ErrorCode, Error<ErrorCode>> {
             for (orientation in item.enabledOrientations) {
                 val view = item.view(orientation)
@@ -103,6 +143,13 @@ abstract class Pattern {
         }
     }
 
+    /**
+     * 图案配置。
+     * Pattern configuration.
+     *
+     * @property withPiling 最大堆叠层数 / Maximum number of piling layers
+     * @property withRemainder 是否允许剩余 / Whether to allow remainder
+     */
     data class Config(
         val withPiling: UInt64 = UInt64.maximum,
         val withRemainder: Boolean = false,
@@ -113,6 +160,14 @@ abstract class Pattern {
             }
         }
 
+        /**
+         * 创建新配置。
+         * Create a new configuration.
+         *
+         * @param withPiling 最大堆叠层数 / Maximum number of piling layers
+         * @param withRemainder 是否允许剩余 / Whether to allow remainder
+         * @return 新配置 / New configuration
+         */
         fun new(
             withPiling: UInt64? = null,
             withRemainder: Boolean? = null
@@ -123,6 +178,13 @@ abstract class Pattern {
             )
         }
 
+        /**
+         * 从构建器创建新配置。
+         * Create a new configuration from a builder.
+         *
+         * @param builder 配置构建器 / Configuration builder
+         * @return 新配置 / New configuration
+         */
         fun new(builder: ConfigBuilder): Config {
             return new(
                 withPiling = builder.withPiling,
@@ -131,6 +193,13 @@ abstract class Pattern {
         }
     }
 
+    /**
+     * 配置构建器。
+     * Configuration builder.
+     *
+     * @property withPiling 最大堆叠层数 / Maximum number of piling layers
+     * @property withRemainder 是否允许剩余 / Whether to allow remainder
+     */
     data class ConfigBuilder(
         var withPiling: UInt64? = null,
         var withRemainder: Boolean? = null
@@ -149,6 +218,13 @@ abstract class Pattern {
     }
 
     companion object {
+        /**
+         * 构建配置。
+         * Build a configuration.
+         *
+         * @param builder 配置构建器 lambda / Configuration builder lambda
+         * @return 配置构建器 / Configuration builder
+         */
         fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
             val config = ConfigBuilder()
             builder(config)
@@ -340,7 +416,22 @@ abstract class Pattern {
         }
     }
 
-        private fun generatePlanePlacements(
+    /**
+     * 生成平面放置（第一个重载，启动协程）。
+     * Generate plane placements (first overload, launching coroutines).
+     *
+     * @param originItems 原始项列表 / Original list of items
+     * @param itemsGroup 按高度分组的项 / Items grouped by height
+     * @param twoSumHeight 两层高度组合 / Two-sum height combinations
+     * @param threeSumHeight 三层高度组合 / Three-sum height combinations
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量 / Remaining weight
+     * @param patterns 模式步骤列表 / List of pattern steps
+     * @param config 配置 / Configuration
+     * @param scope 协程作用域 / Coroutine scope
+     * @return 通道保护器 / Channel guard
+     */
+    private fun generatePlanePlacements(
         originItems: List<PatternItemInfo>,
         itemsGroup: Map<FltX, List<PatternItemInfo>>,
         twoSumHeight: List<Pair<FltX, FltX>>,
@@ -376,17 +467,35 @@ abstract class Pattern {
         return ChannelGuard(promise)
     }
 
-        private suspend fun generatePlanePlacements(
-        originItems: List<PatternItemInfo>,
-        itemsGroup: Map<FltX, List<PatternItemInfo>>,
-        twoSumHeight: List<Pair<FltX, FltX>>,
-        threeSumHeight: List<Triple<FltX, FltX, FltX>>,
-        space: AbstractContainer3Shape,
-        restWeight: FltX,
-        pattern: List<Step>,
-        config: Config,
-        promise: Channel<Result<List<QuantityPlacement2<Item, FltX, Bottom>>, ErrorCode, Error<ErrorCode>>>,
-    ) {
+    /**
+     * 生成平面放置（第二个重载，实际执行逻辑）。
+     * Generate plane placements (second overload, actual execution logic).
+     *
+     * @param originItems 原始项列表 / Original list of items
+     * @param itemsGroup 按高度分组的项 / Items grouped by height
+     * @param twoSumHeight 两层高度组合 / Two-sum height combinations
+     * @param threeSumHeight 三层高度组合 / Three-sum height combinations
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量 / Remaining weight
+     * @param pattern 单个模式步骤列表 / Single pattern step list
+     * @param config 配置 / Configuration
+     * @param promise 结果通道 / Result channel
+     */
+    /**
+     * 生成平面放置（第二个重载，实际执行逻辑）。
+     * Generate plane placements (second overload, actual execution logic).
+     *
+     * @param originItems 原始项列表 / Original list of items
+     * @param itemsGroup 按高度分组的项 / Items grouped by height
+     * @param twoSumHeight 两层高度组合 / Two-sum height combinations
+     * @param threeSumHeight 三层高度组合 / Three-sum height combinations
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量 / Remaining weight
+     * @param pattern 单个模式步骤列表 / Single pattern step list
+     * @param config 配置 / Configuration
+     * @param promise 结果通道 / Result channel
+     */
+    private suspend fun generatePlanePlacements(
         val items = originItems.map { it.copy() }
         while (true) {
             var i = 0

@@ -87,7 +87,10 @@ data class FeasibleSolverOutput<V>(
     val possibleBestObjValueOrNull: V? = castSolverFlt64FallbackToValueOrNull(possibleBestObj, solution),
     val bestBoundValueOrNull: V? = bestBound?.let { castSolverFlt64FallbackToValueOrNull(it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput {
-    /** 获取目标值，缺失时返回失败 / Get objective value, returning failure when missing */
+    /**
+     * 获取目标值，缺失时返回失败 / Get objective value, returning failure when missing
+     * @return 目标值，缺失时返回失败 / Objective value, or failure when missing
+     */
     fun objValue(): Ret<V> {
         return objValueOrNull
             ?.let { ok(it) }
@@ -97,7 +100,10 @@ data class FeasibleSolverOutput<V>(
             )
     }
 
-    /** 获取可能的最优目标值，缺失时返回失败 / Get possible best objective value, returning failure when missing */
+    /**
+     * 获取可能的最优目标值，缺失时返回失败 / Get possible best objective value, returning failure when missing
+     * @return 可能的最优目标值，缺失时返回失败 / Possible best objective value, or failure when missing
+     */
     fun possibleBestObjValue(): Ret<V> {
         return possibleBestObjValueOrNull
             ?.let { ok(it) }
@@ -107,7 +113,10 @@ data class FeasibleSolverOutput<V>(
             )
     }
 
-    /** 获取最优界，缺失时返回失败 / Get best bound value, returning failure when missing */
+    /**
+     * 获取最优界，缺失时返回失败 / Get best bound value, returning failure when missing
+     * @return 最优界值，缺失时返回失败 / Best bound value, or failure when missing
+     */
     fun bestBoundValue(): Ret<V> {
         return bestBoundValueOrNull
             ?.let { ok(it) }

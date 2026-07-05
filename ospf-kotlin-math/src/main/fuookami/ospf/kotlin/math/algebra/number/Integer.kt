@@ -91,14 +91,26 @@ private fun integerPowByFloatingIndex(
  *             The concrete type implementing this interface
  */
 interface IntegerNumberImpl<Self : IntegerNumberImpl<Self>> : IntegerNumber<Self> {
-    /** 可空倒数；仅对 +/-1 有效 / Nullable reciprocal; only valid for +/-1 */
+    /**
+     * 可空倒数；仅对 +/-1 有效
+     * Nullable reciprocal; only valid for +/-1
+     *
+     * @return 倒数，仅当值为 +/-1 时返回自身副本，否则返回 null
+     *         The reciprocal, returns a copy of itself when value is +/-1, otherwise null
+     */
     fun reciprocalOrNull(): Self? = when (this) {
         constants.one -> constants.one.copy()
         -constants.one -> -constants.one
         else -> null
     }
 
-    /** 安全倒数；仅对 +/-1 有效 / Safe reciprocal; only valid for +/-1 */
+    /**
+     * 安全倒数；仅对 +/-1 有效
+     * Safe reciprocal; only valid for +/-1
+     *
+     * @return 成功时返回倒数，失败时返回错误信息
+     *         The reciprocal on success, or an error on failure
+     */
     fun reciprocalSafe(): Ret<Self> {
         return reciprocalOrNull()?.let { ok(it) }
             ?: Failed(

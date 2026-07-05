@@ -20,7 +20,7 @@ class WastingMinimizationContextTest {
 
     private fun material(): Material<Flt64> {
         return Material(
-            id = "m1",
+            id = MaterialIdImpl("m1"),
             name = "material-m1",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -39,7 +39,7 @@ class WastingMinimizationContextTest {
         restWidth: Quantity<Flt64>? = null
     ): CuttingPlan<Flt64> {
         return CuttingPlan(
-            id = id,
+            id = cuttingPlanIdOf(id),
             material = material(),
             slices = slices,
             demandContributions = emptyList(),
@@ -56,11 +56,11 @@ class WastingMinimizationContextTest {
         // Create plans with slices that leave rest width
         val mat = material()
         val p1 = CuttingPlan(
-            id = "cp1",
+            id = cuttingPlanIdOf("cp1"),
             material = mat,
             slices = listOf(
                 CuttingPlanSlice(
-                    production = Product("p1", "P1", listOf(Quantity(Flt64(1.0), Meter))),
+                    production = Product(productIdOf("p1"), "P1", listOf(Quantity(Flt64(1.0), Meter))),
                     width = Quantity(Flt64(1.3), Meter),
                     amount = UInt64.one
                 )
@@ -69,11 +69,11 @@ class WastingMinimizationContextTest {
             arithmetic = arithmetic
         )
         val p2 = CuttingPlan(
-            id = "cp2",
+            id = cuttingPlanIdOf("cp2"),
             material = mat,
             slices = listOf(
                 CuttingPlanSlice(
-                    production = Product("p2", "P2", listOf(Quantity(Flt64(1.0), Meter))),
+                    production = Product(productIdOf("p2"), "P2", listOf(Quantity(Flt64(1.0), Meter))),
                     width = Quantity(Flt64(1.5), Meter),
                     amount = UInt64.one
                 )
@@ -98,11 +98,11 @@ class WastingMinimizationContextTest {
     fun restMaterialIsComputedFromRestWidthTimesLength() {
         val mat = material()
         val plan = CuttingPlan(
-            id = "cp1",
+            id = cuttingPlanIdOf("cp1"),
             material = mat,
             slices = listOf(
                 CuttingPlanSlice(
-                    production = Product("p1", "P1", listOf(Quantity(Flt64(1.0), Meter))),
+                    production = Product(productIdOf("p1"), "P1", listOf(Quantity(Flt64(1.0), Meter))),
                     width = Quantity(Flt64(1.5), Meter),
                     amount = UInt64.one
                 )
@@ -123,11 +123,11 @@ class WastingMinimizationContextTest {
     fun batchMultiplierAmplifiesWaste() {
         val mat = material()
         val plan = CuttingPlan(
-            id = "cp1",
+            id = cuttingPlanIdOf("cp1"),
             material = mat,
             slices = listOf(
                 CuttingPlanSlice(
-                    production = Product("p1", "P1", listOf(Quantity(Flt64(1.0), Meter))),
+                    production = Product(productIdOf("p1"), "P1", listOf(Quantity(Flt64(1.0), Meter))),
                     width = Quantity(Flt64(1.5), Meter),
                     amount = UInt64.one
                 )

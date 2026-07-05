@@ -39,6 +39,10 @@ data class ThomasCyclicallySymmetricAttractor<V : FloatingNumber<V>>(val b: V, v
     }
 }
 
+/**
+ * Thomas 循环对称吸引子生成器
+ * Thomas Cyclically Symmetric Attractor Generator
+ */
 data class ThomasCyclicallySymmetricAttractorGenerator(
     val attractor: ThomasCyclicallySymmetricAttractor<Flt64> = ThomasCyclicallySymmetricAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

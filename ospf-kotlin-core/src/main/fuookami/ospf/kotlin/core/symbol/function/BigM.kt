@@ -59,6 +59,13 @@ data class LinearPolynomialBounds<V>(
         }
 }
 
+/**
+ * 计算可迭代值中的最大值。
+ * Compute the maximum value in an iterable of values.
+ *
+ * @param values 非空的可迭代值集合 / non-empty iterable of values
+ * @return 最大值 / the maximum value
+ */
 private fun maxOf(values: Iterable<Flt64>): Flt64 {
     val iterator = values.iterator()
     require(iterator.hasNext()) { "values must not be empty" }
@@ -72,6 +79,13 @@ private fun maxOf(values: Iterable<Flt64>): Flt64 {
     return result
 }
 
+/**
+ * 计算可迭代值中的最小值。
+ * Compute the minimum value in an iterable of values.
+ *
+ * @param values 非空的可迭代值集合 / non-empty iterable of values
+ * @return 最小值 / the minimum value
+ */
 private fun minOf(values: Iterable<Flt64>): Flt64 {
     val iterator = values.iterator()
     require(iterator.hasNext()) { "values must not be empty" }
@@ -85,6 +99,13 @@ private fun minOf(values: Iterable<Flt64>): Flt64 {
     return result
 }
 
+/**
+ * 获取符号的有限上下界。
+ * Get the finite lower and upper bounds of a symbol.
+ *
+ * @param symbol 待查询的符号 / the symbol to query
+ * @return 符号的有限上下界对，若符号无有限范围则返回 null / pair of finite lower and upper bounds, or null if the symbol has no finite range
+ */
 private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
     val range = when (symbol) {
         is AbstractVariableItem<*, *> -> symbol.range.valueRange

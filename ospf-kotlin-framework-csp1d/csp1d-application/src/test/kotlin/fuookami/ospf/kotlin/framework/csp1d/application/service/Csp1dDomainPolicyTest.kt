@@ -29,7 +29,7 @@ class Csp1dDomainPolicyTest {
 
     private fun testMaterial(id: String = "mat-1", upperWidth: Double = 1000.0): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "TestMaterial-$id",
             widthRange = WidthRange(
                 width = QuantityRange(
@@ -43,7 +43,7 @@ class Csp1dDomainPolicyTest {
 
     private fun testMachine(id: String = "mc-1"): Machine<Flt64> {
         return Machine(
-            id = id,
+            id = machineIdOf(id),
             name = "TestMachine-$id",
             capacity = Quantity(Flt64(100.0), meter)
         )
@@ -51,7 +51,7 @@ class Csp1dDomainPolicyTest {
 
     private fun testProduct(id: String, width: Double = 100.0): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "TestProduct-$id",
             width = listOf(Quantity(Flt64(width), meter))
         )
@@ -71,7 +71,7 @@ class Csp1dDomainPolicyTest {
      * Simulate downstream width difference constraint: reject plans for specific materials.
      */
     class FakeWidthDifferencePolicy<V : RealNumber<V>>(
-        private val rejectedMaterialIds: Set<String>
+        private val rejectedMaterialIds: Set<MaterialId>
     ) : Csp1dDomainPolicy<V> {
         override val name: String = "fake_width_diff"
 
@@ -87,7 +87,7 @@ class Csp1dDomainPolicyTest {
      * Simulate downstream machine compatibility constraint: reject plans on specific machines.
      */
     class FakeMachineCompatibilityPolicy<V : RealNumber<V>>(
-        private val rejectedMachineIds: Set<String>
+        private val rejectedMachineIds: Set<MachineId>
     ) : Csp1dDomainPolicy<V> {
         override val name: String = "fake_machine_compat"
 
@@ -102,7 +102,7 @@ class Csp1dDomainPolicyTest {
         val material = testMaterial()
         val product = testProduct("p1")
         val plan = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
@@ -122,7 +122,7 @@ class Csp1dDomainPolicyTest {
         val material = testMaterial()
         val product = testProduct("p1")
         val plan = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
@@ -142,19 +142,19 @@ class Csp1dDomainPolicyTest {
         val product = testProduct("p1")
 
         val plan1 = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material1,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
         val plan2 = CuttingPlan(
-            id = "plan-2",
+            id = cuttingPlanIdOf("plan-2"),
             material = material2,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
 
-        val policy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = setOf("mat-1"))
+        val policy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = setOf(materialIdOf("mat-1")))
 
         val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
         val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
@@ -169,21 +169,21 @@ class Csp1dDomainPolicyTest {
         val product = testProduct("p1")
 
         val planOnRejected = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
-            machineId = "mc-rejected",
+            machineId = machineIdOf("mc-rejected"),
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
         val planOnAccepted = CuttingPlan(
-            id = "plan-2",
+            id = cuttingPlanIdOf("plan-2"),
             material = material,
-            machineId = "mc-accepted",
+            machineId = machineIdOf("mc-accepted"),
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
 
-        val policy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf("mc-rejected"))
+        val policy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf(machineIdOf("mc-rejected")))
 
         val ctx1 = SimpleDomainCalculationContext(plan = planOnRejected, planIndex = 0, domainValueSample = Flt64(1.0))
         val ctx2 = SimpleDomainCalculationContext(plan = planOnAccepted, planIndex = 1, domainValueSample = Flt64(1.0))
@@ -198,15 +198,15 @@ class Csp1dDomainPolicyTest {
         val product = testProduct("p1")
 
         val plan = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material1,
-            machineId = "mc-rejected",
+            machineId = machineIdOf("mc-rejected"),
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
 
         val widthPolicy = FakeWidthDifferencePolicy<Flt64>(rejectedMaterialIds = emptySet())
-        val machinePolicy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf("mc-rejected"))
+        val machinePolicy = FakeMachineCompatibilityPolicy<Flt64>(rejectedMachineIds = setOf(machineIdOf("mc-rejected")))
 
         val ctx = SimpleDomainCalculationContext(plan = plan, planIndex = 0, domainValueSample = Flt64(1.0))
 
@@ -244,11 +244,11 @@ class Csp1dDomainPolicyTest {
             materials = listOf(material1, material2),
             machines = emptyList(),
             demands = listOf(demand1, demand2),
-            domainPolicies = listOf(FakeWidthDifferencePolicy(setOf("mat-1")))
+            domainPolicies = listOf(FakeWidthDifferencePolicy(setOf(materialIdOf("mat-1"))))
         )
         val plansWithPolicy = generator.generate(inputWithPolicy)
         assertTrue(plansWithPolicy.isNotEmpty(), "Should still have plans from mat-2")
-        assertTrue(plansWithPolicy.all { it.material.id == "mat-2" },
+        assertTrue(plansWithPolicy.all { it.material.id == materialIdOf("mat-2") },
             "All remaining plans should be from mat-2, got: ${plansWithPolicy.map { it.material.id }}")
     }
 
@@ -290,7 +290,7 @@ class Csp1dDomainPolicyTest {
      * Add extra cost coefficient for plans using specified materials.
      */
     class FakeMaterialCostPolicy<V : RealNumber<V>>(
-        private val extraCostByMaterial: Map<String, Flt64>
+        private val extraCostByMaterial: Map<MaterialId, Flt64>
     ) : Csp1dObjectivePolicy<V> {
         override val name: String = "fake_material_cost"
 
@@ -307,19 +307,19 @@ class Csp1dDomainPolicyTest {
         val product = testProduct("p1")
 
         val plan1 = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material1,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
         val plan2 = CuttingPlan(
-            id = "plan-2",
+            id = cuttingPlanIdOf("plan-2"),
             material = material2,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
 
-        val policy = FakeMaterialCostPolicy<Flt64>(extraCostByMaterial = mapOf("mat-1" to Flt64(5.0)))
+        val policy = FakeMaterialCostPolicy<Flt64>(extraCostByMaterial = mapOf(materialIdOf("mat-1") to Flt64(5.0)))
 
         val ctx1 = SimpleDomainCalculationContext(plan = plan1, planIndex = 0, domainValueSample = Flt64(1.0))
         val ctx2 = SimpleDomainCalculationContext(plan = plan2, planIndex = 1, domainValueSample = Flt64(1.0))
@@ -335,7 +335,7 @@ class Csp1dDomainPolicyTest {
         val material = testMaterial()
         val product = testProduct("p1")
         val plan = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
@@ -356,7 +356,7 @@ class Csp1dDomainPolicyTest {
      * Reject candidate plans using specified materials.
      */
     class FakeCandidateFilterStrategy<V : RealNumber<V>>(
-        private val rejectedMaterialIds: Set<String>
+        private val rejectedMaterialIds: Set<MaterialId>
     ) : Csp1dGenerationStrategy<V> {
         override val name: String = "fake_candidate_filter"
 
@@ -380,13 +380,13 @@ class Csp1dDomainPolicyTest {
             machines = emptyList(),
             demands = listOf(demand1, demand2),
             candidateFilters = listOf({ candidate: CuttingPlan<Flt64>, _: List<CuttingPlan<Flt64>> ->
-                candidate.material.id != "mat-1"
+                candidate.material.id != materialIdOf("mat-1")
             })
         )
         val generator = SimpleInitialCuttingPlanGenerator<Flt64>()
         val plans = generator.generate(input)
         assertTrue(plans.isNotEmpty(), "Should have plans from mat-2")
-        assertTrue(plans.all { it.material.id == "mat-2" },
+        assertTrue(plans.all { it.material.id == materialIdOf("mat-2") },
             "All plans should be from mat-2, got: ${plans.map { it.material.id }}")
     }
 
@@ -423,13 +423,13 @@ class Csp1dDomainPolicyTest {
         val product = testProduct("p1")
 
         val plan1 = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material1,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
         )
         val plan2 = CuttingPlan(
-            id = "plan-2",
+            id = cuttingPlanIdOf("plan-2"),
             material = material2,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
@@ -438,13 +438,13 @@ class Csp1dDomainPolicyTest {
         val flowPolicy = object : Csp1dFlowPolicy<Flt64> {
             override val name = "filter_mat1"
             override fun filterInitialPlans(plans: List<CuttingPlan<Flt64>>): List<CuttingPlan<Flt64>> {
-                return plans.filter { it.material.id != "mat-1" }
+                return plans.filter { it.material.id != materialIdOf("mat-1") }
             }
         }
 
         val filtered = flowPolicy.filterInitialPlans(listOf(plan1, plan2))
         assertEquals(1, filtered.size)
-        assertEquals("mat-2", filtered[0].material.id)
+        assertEquals(materialIdOf("mat-2"), filtered[0].material.id)
     }
 
     @Test
@@ -454,13 +454,13 @@ class Csp1dDomainPolicyTest {
         val product2 = testProduct("p2")
 
         val plan1 = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product1, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product1, quantity = Quantity(Flt64(10.0), meter)))
         )
         val plan2 = CuttingPlan(
-            id = "plan-2",
+            id = cuttingPlanIdOf("plan-2"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product2, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product2, quantity = Quantity(Flt64(10.0), meter)))
@@ -481,7 +481,7 @@ class Csp1dDomainPolicyTest {
         val material = testMaterial()
         val product = testProduct("p1")
         val plan = CuttingPlan(
-            id = "plan-1",
+            id = cuttingPlanIdOf("plan-1"),
             material = material,
             slices = listOf(CuttingPlanSlice(production = product, width = Quantity(Flt64(100.0), meter))),
             demandContributions = listOf(CuttingPlanDemandContribution(product = product, quantity = Quantity(Flt64(10.0), meter)))
@@ -576,7 +576,7 @@ class Csp1dDomainPolicyTest {
      * Simulate downstream candidate acceptance: only accept plans for specific materials.
      */
     class FakeCandidateAcceptanceStrategy<V : RealNumber<V>>(
-        private val acceptedMaterialIds: Set<String>
+        private val acceptedMaterialIds: Set<MaterialId>
     ) : Csp1dGenerationStrategy<V> {
         override val name = "fake_candidate_acceptance"
         override fun acceptCandidate(candidate: CuttingPlan<V>, existingPlans: List<CuttingPlan<V>>): Boolean {
@@ -653,17 +653,17 @@ class Csp1dDomainPolicyTest {
 
     @Test
     fun candidateAcceptanceStrategyFiltersByMaterial() {
-        val strategy = FakeCandidateAcceptanceStrategy<Flt64>(setOf("mat-good"))
+        val strategy = FakeCandidateAcceptanceStrategy<Flt64>(setOf(materialIdOf("mat-good")))
         val goodMaterial = testMaterial("mat-good")
         val badMaterial = testMaterial("mat-bad")
         val goodPlan = CuttingPlan(
-            id = "good-plan",
+            id = cuttingPlanIdOf("good-plan"),
             material = goodMaterial,
             slices = emptyList(),
             demandContributions = emptyList()
         )
         val badPlan = CuttingPlan(
-            id = "bad-plan",
+            id = cuttingPlanIdOf("bad-plan"),
             material = badMaterial,
             slices = emptyList(),
             demandContributions = emptyList()
@@ -710,7 +710,7 @@ class Csp1dDomainPolicyTest {
             ),
             generationStrategies = listOf(
                 FakeCandidateFilterStrategy(emptySet()),
-                FakeCandidateAcceptanceStrategy(setOf("m1"))
+                FakeCandidateAcceptanceStrategy(setOf(materialIdOf("m1")))
             ),
             extractionPolicies = listOf(
                 FakeOutputExtractionPolicy()
@@ -739,7 +739,7 @@ class Csp1dDomainPolicyTest {
             domainPolicy(FakeMachineCompatibilityPolicy(emptySet()))
             objectivePolicy(FakeMaterialCostPolicy(emptyMap()))
             generationStrategy(FakeCandidateFilterStrategy(emptySet()))
-            generationStrategy(FakeCandidateAcceptanceStrategy(setOf("m1")))
+            generationStrategy(FakeCandidateAcceptanceStrategy(setOf(materialIdOf("m1"))))
             extractionPolicy(FakeOutputExtractionPolicy())
         }
 
@@ -832,7 +832,7 @@ class Csp1dDomainPolicyTest {
         categories.add("candidate_filter")
 
         // 7. 候选验收 / candidate acceptance
-        val candidateAcceptance = FakeCandidateAcceptanceStrategy<Flt64>(setOf("m1"))
+        val candidateAcceptance = FakeCandidateAcceptanceStrategy<Flt64>(setOf(materialIdOf("m1")))
         categories.add("candidate_acceptance")
 
         // 8. 输出扩展 / output enrichment

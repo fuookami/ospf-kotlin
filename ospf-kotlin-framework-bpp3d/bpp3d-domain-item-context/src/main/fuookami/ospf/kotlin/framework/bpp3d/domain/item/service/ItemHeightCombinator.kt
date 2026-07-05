@@ -1,7 +1,3 @@
-/**
- * 货物高度组合器。
- * Item height combinator.
- */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import kotlinx.coroutines.*
@@ -17,11 +13,23 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.gr
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.leq
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 
+/**
+ * 货物高度组合器，用于在装箱过程中匹配符合高度约束的货物组合。
+ * Item height combinator for matching item combinations that satisfy height constraints during bin packing.
+ */
 data object ItemHeightCombinator {
     private val logger = logger()
     private val defaultTowSumOffset = FltX(300.0)
     private val defaultThreeSumOffset = FltX(300.0)
 
+    /**
+     * 二数求和：从高度列表中寻找两个高度，使其和接近但不超过目标高度。
+     * Two-sum: find two heights from the list whose sum is close to but does not exceed the target height.
+     * @param height 目标高度 / target height
+     * @param heights 候选高度列表 / list of candidate heights
+     * @param offset 软约束偏移量 / soft constraint offset
+     * @return 符合条件的二元组列表，按与目标高度差值的升序排列 / list of qualified pairs sorted by distance to target height
+     */
     fun twoSum(
         height: FltX,
         heights: List<FltX>,
@@ -47,6 +55,14 @@ data object ItemHeightCombinator {
         return emptyList()
     }
 
+    /**
+     * 三数求和：从高度列表中寻找三个高度，使其和接近但不超过目标高度。
+     * Three-sum: find three heights from the list whose sum is close to but does not exceed the target height.
+     * @param height 目标高度 / target height
+     * @param heights 候选高度列表 / list of candidate heights
+     * @param offset 软约束偏移量 / soft constraint offset
+     * @return 符合条件的三元组列表，按与目标高度差值的升序排列 / list of qualified triples sorted by distance to target height
+     */
     fun threeSum(
         height: FltX,
         heights: List<FltX>,
@@ -78,6 +94,16 @@ data object ItemHeightCombinator {
         return emptyList()
     }
 
+    /**
+     * 获取两个货物的组合，满足高度和重量约束。
+     * Get a combination of two items satisfying height and weight constraints.
+     * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
+     * @param itemsAmount 货物数量映射 / map of item amounts
+     * @param heights 两个货物的目标高度 / target heights for the two items
+     * @param restWeight 剩余重量限制 / remaining weight limit
+     * @param averageWeight 平均重量参考值 / average weight reference value
+     * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
+     */
     suspend fun getItemCombination(
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
@@ -152,6 +178,16 @@ data object ItemHeightCombinator {
         return items
     }
 
+    /**
+     * 获取三个货物的组合，满足高度和重量约束。
+     * Get a combination of three items satisfying height and weight constraints.
+     * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
+     * @param itemsAmount 货物数量映射 / map of item amounts
+     * @param heights 三个货物的目标高度 / target heights for the three items
+     * @param restWeight 剩余重量限制 / remaining weight limit
+     * @param averageWeight 平均重量参考值 / average weight reference value
+     * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
+     */
     suspend fun getItemCombination(
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,

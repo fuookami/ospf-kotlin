@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.utils.min
  * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
  */
 abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
-    override val id: String,
+    override val id: ResourceId,
     override val name: String,
     override val capacities: List<C>,
     override val initialQuantityValue: V

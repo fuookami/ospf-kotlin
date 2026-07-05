@@ -21,6 +21,10 @@ import java.util.concurrent.TimeUnit
 /**
  * core-plugin dump 数据准备热点基准（不调用真实 solver）
  * Core-plugin dump data preparation benchmark (without real solver calls)
+ *
+ * 衡量变量转储、目标系数收集、约束分块和稀疏行扫描等热点路径的性能。
+ * Measures performance of hot paths including variable dumping, objective coefficient
+ * collection, constraint segmentation, and sparse row traversal.
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -35,6 +39,7 @@ open class CorePluginDumpBenchmark {
     private lateinit var constraintsRhs: List<Flt64>
     private lateinit var constraintsSigns: List<ConstraintRelation>
 
+    /** JMH 基准初始化，根据 dataset 参数构造变量、目标系数和约束矩阵 / JMH setup initializing variables, objective cells, and constraint matrix based on dataset parameter */
     @Setup
     fun setup() {
         val variableCount = when (dataset) {
@@ -185,6 +190,7 @@ open class CorePluginDumpBenchmark {
         return checksum
     }
 
+    /** 变量转储数据快照，包含下界、上界、名称和初始结果 / Variable dumping data snapshot containing lower bounds, upper bounds, names, and initial results */
     private data class VariableDumpingDataSnapshot(
         val lowerBounds: DoubleArray,
         val upperBounds: DoubleArray,
@@ -195,6 +201,10 @@ open class CorePluginDumpBenchmark {
     /**
      * 复刻 solver dump 变量数组准备逻辑，不依赖具体 solver API。
      * Mirrors solver dump variable-array preparation without concrete solver APIs.
+     *
+     * @param variables 变量列表 / list of variables
+     * @param _scopeName 作用域名称 / scope name
+     * @return 变量转储数据快照 / variable dumping data snapshot
      */
     private fun prepareVariableDumpingDataLikeSolver(
         variables: List<Variable>,
@@ -224,6 +234,10 @@ open class CorePluginDumpBenchmark {
     /**
      * 复刻 solver dump 约束分块大小逻辑，保持同等复杂度。
      * Mirrors solver dump constraint segment sizing logic with equivalent complexity.
+     *
+     * @param constraintSize 约束总数 / total number of constraints
+     * @param availableProcessors 可用处理器数 / number of available processors
+     * @return 约束分块大小 / constraint segment size
      */
     private fun computeConstraintSegmentSizeLikeSolver(
         constraintSize: Int,
@@ -245,6 +259,7 @@ open class CorePluginDumpBenchmark {
         return segment
     }
 
+    /** 目标函数系数单元 / Objective function coefficient cell */
     private data class ObjectiveCell(
         val colIndex: Int,
         val coefficient: Flt64

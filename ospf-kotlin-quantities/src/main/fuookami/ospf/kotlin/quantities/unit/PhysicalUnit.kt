@@ -379,6 +379,12 @@ data class QuantityUnit(
 // 单位运算符 / Unit Operators
 // ============================================================================
 
+/**
+ * 检查当前单位是否为线性单位，若为仿射单位则抛出异常
+ * Check that the current unit is linear; throws if it is affine
+ *
+ * @param operation 触发检查的运算名称，用于错误信息 / Name of the operation triggering the check, used in the error message
+ */
 private fun PhysicalUnit.requireLinearForUnitOperation(operation: String) {
     require(!isAffine) {
         "Cannot $operation affine unit '$this'. Use a linear difference unit instead."

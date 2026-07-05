@@ -49,7 +49,7 @@ class MaterialDemandReducedCostTest {
 
     private fun cylinderItem(id: String): ActualItem {
         return ActualItem(
-            id = id,
+            id = itemIdOf(id),
             name = id,
             width = FltX(1.0) * Meter,
             height = FltX(1.0) * Meter,
@@ -95,7 +95,7 @@ class MaterialDemandReducedCostTest {
             weight = FltX(2.0) * Kilogram
         )
         val item = ActualItem(
-            id = "item-rc",
+            id = itemIdOf("item-rc"),
             name = "item-rc",
             pack = Package.innerPackage(
                 shape = PackageShape(

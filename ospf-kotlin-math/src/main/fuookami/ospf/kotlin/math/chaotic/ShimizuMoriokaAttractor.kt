@@ -40,6 +40,12 @@ data class ShimizuMoriokaAttractor<V : FloatingNumber<V>>(val alpha: V, val beta
     }
 }
 
+/**
+ * Shimizu-Morioka 吸引子生成器
+ * Shimizu-Morioka Attractor Generator
+ *
+ * @property attractor 吸引子实例 / The attractor instance
+ */
 data class ShimizuMoriokaAttractorGenerator(
     val attractor: ShimizuMoriokaAttractor<Flt64> = ShimizuMoriokaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

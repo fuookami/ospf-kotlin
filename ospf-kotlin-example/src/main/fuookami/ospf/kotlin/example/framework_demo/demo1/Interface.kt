@@ -87,6 +87,10 @@ class SPP {
         }
     }
 
+    /** 解析原始字符串数据为输入模型。Parses raw string data into the input model.
+     * @param data 原始测试数据字符串 / Raw test data string
+     * @return 解析后的输入模型 / Parsed input model
+     */
     private fun read(data: String): Ret<Input> {
         val lines = data.split("\n")
         val firstLine = lines[0].trim()

@@ -278,7 +278,7 @@ class GeneratorMediumScaleBaselineTest {
             )
             assertTrue(report.plans.isNotEmpty(), "${case.name} should keep feasible short-product plans")
             assertTrue(
-                report.plans.none { plan -> plan.slices.any { slice -> slice.production.id == "p-long" } },
+                report.plans.none { plan -> plan.slices.any { slice -> slice.production.id == productIdOf("p-long") } },
                 "${case.name} should not emit the over-length product"
             )
         }
@@ -339,7 +339,7 @@ class GeneratorMediumScaleBaselineTest {
                 message = "${case.name} material-equivalent slice-template cache hit count should match"
             )
             assertEquals(
-                expected = setOf("m-eq-a", "m-eq-b"),
+                expected = setOf(materialIdOf("m-eq-a"), materialIdOf("m-eq-b")),
                 actual = materialIds,
                 message = "${case.name} should rebuild plans for both materials"
             )
@@ -436,7 +436,7 @@ class GeneratorMediumScaleBaselineTest {
             val materialIds = report.plans.map { it.material.id }.toSet()
 
             assertEquals(
-                expected = setOf("m-par-eq-a", "m-par-eq-b"),
+                expected = setOf(materialIdOf("m-par-eq-a"), materialIdOf("m-par-eq-b")),
                 actual = materialIds,
                 message = "${case.name} should rebuild plans for both materials under parallelism"
             )
@@ -584,7 +584,7 @@ class GeneratorMediumScaleBaselineTest {
         length: Double? = null
     ): Product<Flt64> {
         return Product(
-            id = id,
+            id = productIdOf(id),
             name = "product-$id",
             width = listOf(
                 Quantity(Flt64(width), Meter)
@@ -598,7 +598,7 @@ class GeneratorMediumScaleBaselineTest {
         upperBound: Double
     ): Material<Flt64> {
         return Material(
-            id = id,
+            id = materialIdOf(id),
             name = "material-$id",
             widthRange = WidthRange(
                 width = QuantityRange(

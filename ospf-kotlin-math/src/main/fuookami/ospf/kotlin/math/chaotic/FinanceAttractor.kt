@@ -42,6 +42,10 @@ data class FinanceAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, va
     }
 }
 
+/**
+ * 金融吸引子生成器
+ * Finance Attractor Generator
+ */
 data class FinanceAttractorGenerator(
     val attractor: FinanceAttractor<Flt64> = FinanceAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

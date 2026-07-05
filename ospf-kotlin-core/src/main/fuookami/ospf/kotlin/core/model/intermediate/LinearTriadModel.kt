@@ -45,7 +45,12 @@ private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     // && from?.second != true (commented-out additional check / 注释掉的附加检查)
 }
 
-/** 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token */
+/**
+ * 将求解器边界单元格令牌视为 Flt64 令牌
+ * Treat a solver-boundary cell token as an Flt64 token
+ *
+ * @return 转型后的 Flt64 令牌 / The cast Flt64 token
+ */
 @Suppress("UNCHECKED_CAST")
 private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
     return token as Token<Flt64>
@@ -537,7 +542,13 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
-    /** 整理对偶解，将非零对偶值映射回原始约束 / Tidy dual solution, mapping non-zero dual values back to original constraints */
+    /**
+     * 整理对偶解，将非零对偶值映射回原始约束
+     * Tidy dual solution, mapping non-zero dual values back to original constraints
+     *
+     * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
+     * @return 非零对偶值到原始约束的映射 / Mapping from non-zero dual values to original constraints
+     */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {

@@ -38,7 +38,7 @@ sealed class Csp1dShadowPriceKey(
  * @property unitSymbol 需求单位符号 / Demand unit symbol
  */
 data class ProductDemandShadowPriceKey(
-    val productId: String,
+    val productId: ProductId,
     val unitSymbol: String
 ) : Csp1dShadowPriceKey(ProductDemandShadowPriceKey::class) {
     override val name = "product-demand:$productId:$unitSymbol"
@@ -48,7 +48,7 @@ data class ProductDemandShadowPriceKey(
  * 物料用量影子价格键 / Material usage shadow price key
  */
 data class MaterialUsageShadowPriceKey(
-    val materialId: String
+    val materialId: MaterialId
 ) : Csp1dShadowPriceKey(MaterialUsageShadowPriceKey::class) {
     override val name = "material-usage:$materialId"
 }
@@ -57,7 +57,7 @@ data class MaterialUsageShadowPriceKey(
  * 设备批次数影子价格键 / Machine batch count shadow price key
  */
 data class MachineBatchShadowPriceKey(
-    val machineId: String
+    val machineId: MachineId
 ) : Csp1dShadowPriceKey(MachineBatchShadowPriceKey::class) {
     override val name = "machine-batch:$machineId"
 }
@@ -66,7 +66,7 @@ data class MachineBatchShadowPriceKey(
  * 设备业务产能影子价格键 / Machine business capacity shadow price key
  */
 data class MachineCapacityShadowPriceKey(
-    val machineId: String
+    val machineId: MachineId
 ) : Csp1dShadowPriceKey(MachineCapacityShadowPriceKey::class) {
     override val name = "machine-capacity:$machineId"
 }
@@ -78,7 +78,7 @@ data class MachineCapacityShadowPriceKey(
  * @property unitSymbol 需求单位符号 / Demand unit symbol
  */
 data class YieldOverProductionBoundShadowPriceKey(
-    val productId: String,
+    val productId: ProductId,
     val unitSymbol: String
 ) : Csp1dShadowPriceKey(YieldOverProductionBoundShadowPriceKey::class) {
     override val name = "yield-over-production-bound:$productId:$unitSymbol"

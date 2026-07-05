@@ -45,7 +45,11 @@ abstract class MindOPTSolver : AutoCloseable {
         }
     }
 
-    /** 执行 MindOPT 求解 / Execute MindOPT solving */
+    /**
+     * 执行 MindOPT 求解 / Execute MindOPT solving
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun solve(): Try {
         return try {
             mindoptModel.optimize()
@@ -57,7 +61,11 @@ abstract class MindOPTSolver : AutoCloseable {
         }
     }
 
-    /** 分析 MindOPT 求解状态 / Analyze MindOPT solving status */
+    /**
+     * 分析 MindOPT 求解状态 / Analyze MindOPT solving status
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (mindoptModel.get(MDO.IntAttr.Status)) {

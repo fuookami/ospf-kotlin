@@ -174,6 +174,21 @@ class MultiLayerHeuristicSearchAlgorithm(
         return true
     }
 
+    /**
+     * 执行多层启发式搜索装箱。
+     * Perform multi-layer heuristic search packing.
+     *
+     * @param promise 用于发送装箱结果的通道
+     * Channel for sending packing results
+     * @param items 待装箱物品及其数量
+     * Items to be packed and their quantities
+     * @param shape 容器形状
+     * Container shape
+     * @param fixedSpaces 已固定的空间列表
+     * List of fixed spaces already placed
+     * @param blockTable 可用块表
+     * Available block table
+     */
     private suspend fun pack(
         promise: Channel<List<Space>>,
         items: Map<Item, UInt64>,

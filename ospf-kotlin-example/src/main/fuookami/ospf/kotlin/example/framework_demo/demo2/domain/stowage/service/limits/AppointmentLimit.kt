@@ -12,6 +12,15 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * 预约限制管道，根据预约信息约束配载方案中物品的存放位置。
+ * Appointment limit pipeline that constrains the storage positions of items in a stowage solution based on appointment information.
+ *
+ * @property items 物品列表 / List of items
+ * @property positions 舱位列表 / List of positions
+ * @property appointment 预约信息，定义物品与舱位之间的预约关系 / Appointment information defining the relationship between items and positions
+ * @property stowage 配载方案，表示物品与舱位之间的配载关系 / Stowage solution representing the stowage relationship between items and positions
+ */
 class AppointmentLimit(
     private val items: List<Item>,
     private val positions: List<Position>,
@@ -67,7 +76,7 @@ class AppointmentLimit(
             } else {
                 return Failed(
                     ErrorCode.ApplicationFailed,
-                    "ָ����λ $position ��װ������ ${appointments.usize} �������ò�λ���װ�� ${position.mla} ������"
+                    "指定舱位 $position 的装载数量 ${appointments.usize} 超过该舱位可装载 ${position.mla} 的上限"
                 )
             }
         }

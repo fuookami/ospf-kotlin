@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialId
 
 /**
  * 超产面积度量口径 / Over-production area measure policy
@@ -34,7 +35,7 @@ enum class RestMaterialMeasure {
  */
 data class WasteMinimizationConfig<V : RealNumber<V>>(
     val trimWidthPenalty: V? = null,
-    val materialCostPenalty: Map<String, V> = emptyMap(),
+    val materialCostPenalty: Map<MaterialId, V> = emptyMap(),
     val overProductionAreaPenalty: V? = null,
     val restMaterialPenalty: V? = null,
     val overProductionAreaMeasure: OverProductionAreaMeasure = OverProductionAreaMeasure.ProductMaxWidthProxy,
@@ -71,6 +72,6 @@ data class WasteMinimizationResult<V : RealNumber<V>>(
  * @property cost 成本值 / Cost value
  */
 data class ModeledMaterialCost<V : RealNumber<V>>(
-    val materialId: String,
+    val materialId: MaterialId,
     val cost: V
 )

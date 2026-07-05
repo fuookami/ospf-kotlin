@@ -41,6 +41,16 @@ data class Lorenz96Model(
     }
 }
 
+/**
+ * Lorenz 96 模型生成器
+ * Lorenz 96 Model Generator
+ *
+ * 基于 Lorenz96Model 的状态生成器，每次调用时推进一个时间步并返回前一步的状态。
+ * A state generator based on Lorenz96Model that advances one time step per invocation and returns the previous state.
+ *
+ * @property model 底层 Lorenz 96 模型实例 / Underlying Lorenz 96 model instance
+ * @property n 系统维数 / System dimension
+ */
 data class Lorenz96ModelGenerator(
     val model: Lorenz96Model = Lorenz96Model(),
     val n: Int = 40,

@@ -554,6 +554,12 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifWarned(crossinline fun
  * 无有意义返回值的 Result 类型别名。
  */
 typealias Try = Result<Success, ErrorCode, Error<ErrorCode>>
+/**
+ * 自定义错误码的无返回值 Result 类型别名
+ *
+ * Type alias for Result without a meaningful return value and custom error code.
+ * 自定义错误码的无有意义返回值的 Result 类型别名。
+ */
 typealias TryOf<C> = Result<Success, C, Error<C>>
 
 /**
@@ -563,6 +569,12 @@ typealias TryOf<C> = Result<Success, C, Error<C>>
  * 自定义错误类型的 Try 类型别名。
  */
 typealias TryWith<E> = Result<Success, ErrorCode, E>
+/**
+ * 自定义错误码和错误类型的 Try 类型别名
+ *
+ * Type alias for Try with custom error code and error type.
+ * 自定义错误码和错误类型的 Try 类型别名。
+ */
 typealias TryWithOf<C, E> = Result<Success, C, E>
 
 /**
@@ -572,6 +584,12 @@ typealias TryWithOf<C, E> = Result<Success, C, E>
  * 带返回值类型的 Result 类型别名。
  */
 typealias Ret<T> = Result<T, ErrorCode, Error<ErrorCode>>
+/**
+ * 自定义错误码的带返回值 Result 类型别名
+ *
+ * Type alias for Result with a return value type and custom error code.
+ * 自定义错误码的带返回值类型的 Result 类型别名。
+ */
 typealias RetOf<T, C> = Result<T, C, Error<C>>
 
 /**
@@ -859,6 +877,12 @@ suspend fun <T> syncRun(
  * 无有意义返回值的 ExResult 类型别名。
  */
 typealias ExTry = ExResult<Success, ErrorCode, Error<ErrorCode>>
+/**
+ * 自定义错误码的无返回值 ExResult 类型别名
+ *
+ * Type alias for ExResult without a meaningful return value and custom error code.
+ * 自定义错误码的无有意义返回值的 ExResult 类型别名。
+ */
 typealias ExTryWithCode<C> = ExResult<Success, C, Error<C>>
 
 /**
@@ -876,6 +900,12 @@ typealias ExTryWith<E> = ExResult<Success, ErrorCode, E>
  * 带返回值类型的 ExResult 类型别名。
  */
 typealias ExRet<T> = ExResult<T, ErrorCode, Error<ErrorCode>>
+/**
+ * 自定义错误码的带返回值 ExResult 类型别名
+ *
+ * Type alias for ExResult with a return value type and custom error code.
+ * 自定义错误码的带返回值类型的 ExResult 类型别名。
+ */
 typealias ExRetWithCode<T, C> = ExResult<T, C, Error<C>>
 
 /**

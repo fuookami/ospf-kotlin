@@ -44,6 +44,13 @@ data class LuChenSystem<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val
     }
 }
 
+/**
+ * Lu-Chen 系统生成器
+ * Lu-Chen System generator
+ *
+ * @property attractor Lu-Chen 系统吸引子 / Lu-Chen system attractor
+ * @property _x 当前状态点 / Current state point
+ */
 data class LuChenSystemGenerator(
     val attractor: LuChenSystem<Flt64> = LuChenSystem(),
     private var _x: Point<Dim3, Flt64> = point3(

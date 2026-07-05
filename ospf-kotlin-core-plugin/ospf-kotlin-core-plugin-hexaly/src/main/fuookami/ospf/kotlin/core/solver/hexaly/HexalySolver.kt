@@ -52,7 +52,11 @@ abstract class HexalySolver : AutoCloseable {
         }
     }
 
-    /** 执行 Hexaly 求解 / Execute Hexaly solving */
+    /**
+     * 执行 Hexaly 求解 / Execute Hexaly solving
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun solve(): Try {
         return try {
             beginTime = Clock.System.now()
@@ -68,7 +72,11 @@ abstract class HexalySolver : AutoCloseable {
         }
     }
 
-    /** 分析 Hexaly 求解状态 / Analyze Hexaly solving status */
+    /**
+     * 分析 Hexaly 求解状态 / Analyze Hexaly solving status
+     *
+     * @return 操作结果 / operation result
+     */
     protected suspend fun analyzeStatus(): Try {
         return try {
             hexalySolution = optimizer.solution

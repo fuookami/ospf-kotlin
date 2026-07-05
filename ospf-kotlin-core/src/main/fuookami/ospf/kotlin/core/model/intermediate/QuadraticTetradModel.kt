@@ -27,7 +27,12 @@ import java.io.OutputStreamWriter
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
-/** 判断此二次约束是否为单变量边界约束（单项、系数为1、无二次项） / Check whether this quadratic constraint is a single-variable bound constraint (single term, coefficient 1, no quadratic term) */
+/**
+ * 判断此二次约束是否为单变量边界约束（单项、系数为1、无二次项）
+ * Check whether this quadratic constraint is a single-variable bound constraint (single term, coefficient 1, no quadratic term)
+ *
+ * @return 若为单变量边界约束则返回 true，否则返回 false / true if this is a single-variable bound constraint, false otherwise
+ */
 private fun QuadraticConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
@@ -446,20 +451,38 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     override val constraints: QuadraticConstraintBatch
     val dual: Boolean
 
-    /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model) */
+    /** 就地线性松弛（修改当前模型） / In-place linear relaxation (mutates current model)
+     * @return 线性松弛后的模型视图 / The linearly relaxed model view
+     */
     fun linearRelax(): QuadraticTetradModelView
-    /** 返回线性松弛后的副本 / Return a linearly relaxed copy */
+    /** 返回线性松弛后的副本 / Return a linearly relaxed copy
+     * @return 线性松弛后的模型视图副本 / The linearly relaxed model view copy
+     */
     fun linearRelaxed(): QuadraticTetradModelView
-    /** 构造对偶模型 / Construct the dual model */
+    /** 构造对偶模型 / Construct the dual model
+     * @return 对偶二次四元模型 / The dual quadratic tetrad model
+     */
     suspend fun dual(): QuadraticTetradModel
-    /** 构造 Farkas 对偶模型 / Construct the Farkas dual model */
+    /** 构造 Farkas 对偶模型 / Construct the Farkas dual model
+     * @return Farkas 对偶二次四元模型 / The Farkas dual quadratic tetrad model
+     */
     suspend fun farkasDual(): QuadraticTetradModel
-    /** 构造可行性模型 / Construct the feasibility model */
+    /** 构造可行性模型 / Construct the feasibility model
+     * @return 可行性二次四元模型视图 / The feasibility quadratic tetrad model view
+     */
     fun feasibility(): QuadraticTetradModelView
-    /** 构造弹性模型 / Construct the elastic model */
+    /** 构造弹性模型 / Construct the elastic model
+     * @return 弹性二次四元模型视图 / The elastic quadratic tetrad model view
+     */
     fun elastic(): QuadraticTetradModelView
 
-    /** 整理对偶解，将非零对偶值映射回原始约束 / Tidy dual solution, mapping non-zero dual values back to original constraints */
+    /**
+     * 整理对偶解，将非零对偶值映射回原始约束
+     * Tidy dual solution, mapping non-zero dual values back to original constraints
+     *
+     * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
+     * @return 原始约束到对偶值的映射 / Mapping from original constraints to dual values
+     */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
