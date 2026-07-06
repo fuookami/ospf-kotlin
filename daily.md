@@ -474,3 +474,35 @@ mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-application test
 2. 继续用 Workflow 分批处理（脚本在 `.claude/workflows/scripts/`）
 3. `./gradlew compileKotlin` 验证编译
 4. `./gradlew test` 确认无回归
+
+---
+
+## bb3a534 回滚修复后待补全双语 KDoc 的文件
+
+bb3a534 提交中 KDoc 注入工具导致代码腐坏，修复过程中以下文件被回滚或清理，丢失了双语 KDoc，需重新补全：
+
+### 因 KDoc 腐坏被整体回滚（双语 KDoc 完全丢失）
+
+- [ ] SortBy.kt -- KDoc 中注入了 `fun asc(...)` 代码片段，已回滚至 bb3a534^，双语 KDoc 全部丢失
+- [ ] UpdateAssignment.kt -- KDoc 中注入了 `fun set(...)` 代码片段，已回滚至 bb3a534^，双语 KDoc 全部丢失
+
+### 因被重写而回滚至 bb3a534^（双语 KDoc 全部丢失）
+
+- [ ] Position.kt -- 整个文件被替换为无关的 GPS 定位类，已回滚
+- [ ] StowageContext.kt -- 整个文件被替换为数据容器类，已回滚
+- [ ] SolutionAnalyzer.kt -- 整个文件被替换为统计解分析器，已回滚
+
+### 因 KDoc 嵌套/代码注入被清理（双语 KDoc 部分丢失）
+
+- [ ] CoptSolver.kt -- 2 个 KDoc 块被注入到 init 方法 KDoc 内部，已清理注入内容，部分双语 KDoc 保留
+- [ ] CapacitySchedulingSolution.kt -- `val order: Int? = null` 被注入到 8 处 KDoc 中，已清理，但 3 个 data class 的中文 KDoc 标题丢失（仅剩英文）
+
+### 因新建但引用不存在的类型而删除（bb3a534 新增的 KDoc 随文件删除）
+
+- [ ] DataSerializer.kt -- 已删除
+- [ ] ResultHelper.kt -- 已删除
+- [ ] Demo4Application.kt -- 已删除
+- [ ] Demo6Application.kt -- 已删除
+- [ ] ItemCargoLimit.kt -- 已删除
+- [ ] ItemCountLimit.kt -- 已删除
+- [ ] PositionMaxLoadLimit.kt -- 已删除

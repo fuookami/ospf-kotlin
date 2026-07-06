@@ -637,6 +637,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @return 操作结果 / The operation result
      */
     fun addConstraint(
+        relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -696,6 +697,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
+        symbols: Iterable<LinearIntermediateSymbol<V>>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -841,6 +843,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @return 操作结果 / The operation result
      */
     fun addConstraint(
+        relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -865,6 +868,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
+        symbols: Iterable<QuadraticIntermediateSymbol<V>>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,

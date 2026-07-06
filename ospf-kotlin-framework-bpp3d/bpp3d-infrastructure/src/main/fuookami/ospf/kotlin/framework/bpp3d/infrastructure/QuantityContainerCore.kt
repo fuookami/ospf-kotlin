@@ -30,13 +30,13 @@ interface Container3Geometry<V : FloatingNumber<V>> : Eq<Container3Geometry<V>> 
                 && (depth geq orientation.depth(unit)) == true
     }
 
-    fun enabled(unit: Placement3<*, V>): Boolean {
+    fun enabled(unit: QuantityPlacement3<*, V>): Boolean {
         return (width geq unit.maxX) == true
                 && (height geq unit.maxY) == true
                 && (depth geq unit.maxZ) == true
     }
 
-    fun enabled(units: List<Placement3<*, V>>): Boolean {
+    fun enabled(units: List<QuantityPlacement3<*, V>>): Boolean {
         val maxX = maxQuantityByValue(units.map { it.maxX })
         if (maxX != null && (width geq maxX) != true) {
             return false

@@ -481,21 +481,17 @@ abstract class Pattern {
      * @param config 配置 / Configuration
      * @param promise 结果通道 / Result channel
      */
-    /**
-     * 生成平面放置（第二个重载，实际执行逻辑）。
-     * Generate plane placements (second overload, actual execution logic).
-     *
-     * @param originItems 原始项列表 / Original list of items
-     * @param itemsGroup 按高度分组的项 / Items grouped by height
-     * @param twoSumHeight 两层高度组合 / Two-sum height combinations
-     * @param threeSumHeight 三层高度组合 / Three-sum height combinations
-     * @param space 容器空间 / Container space
-     * @param restWeight 剩余重量 / Remaining weight
-     * @param pattern 单个模式步骤列表 / Single pattern step list
-     * @param config 配置 / Configuration
-     * @param promise 结果通道 / Result channel
-     */
     private suspend fun generatePlanePlacements(
+        originItems: List<PatternItemInfo>,
+        itemsGroup: Map<FltX, List<PatternItemInfo>>,
+        twoSumHeight: List<Pair<FltX, FltX>>,
+        threeSumHeight: List<Triple<FltX, FltX, FltX>>,
+        space: AbstractContainer3Shape,
+        restWeight: FltX,
+        pattern: List<Step>,
+        config: Config,
+        promise: Channel<Result<List<QuantityPlacement2<Item, FltX, Bottom>>, ErrorCode, Error<ErrorCode>>>,
+    ) {
         val items = originItems.map { it.copy() }
         while (true) {
             var i = 0

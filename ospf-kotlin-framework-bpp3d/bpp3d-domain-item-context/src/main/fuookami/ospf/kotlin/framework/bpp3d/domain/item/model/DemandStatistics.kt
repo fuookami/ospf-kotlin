@@ -154,6 +154,9 @@ private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3d
  * @param value 需求值 / demand value
  */
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
+    key: Bpp3dDemandKey,
+    value: Bpp3dDemandValue
+) {
     this[key] = this[key]?.let { mergeDemandValue(it, value).value!! } ?: value
 }
 

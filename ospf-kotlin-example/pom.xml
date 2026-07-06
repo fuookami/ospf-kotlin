@@ -15,8 +15,8 @@
     <properties>
         <maven.install.skip>true</maven.install.skip>
         <maven.deploy.skip>true</maven.deploy.skip>
-        <example.source.directory>src/main</example.source.directory>
-        <example.test.source.directory>src/test</example.test.source.directory>
+        <example.source.directory>src/core-demo-none</example.source.directory>
+        <example.test.source.directory>src/core-demo-none</example.test.source.directory>
     </properties>
 
     <dependencies>

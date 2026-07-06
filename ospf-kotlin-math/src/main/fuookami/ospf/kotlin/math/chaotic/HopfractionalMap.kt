@@ -1,91 +1,70 @@
+/**
+ * Hopfractional 混沌映射
+ * Hopfractional Chaotic Map
+ *
+ * Hopfractional 映射是一种基于分数阶的混沌映射，
+ * 通过控制参数产生混沌序列，常用于混沌加密和伪随机数生成。
+ *
+ * The Hopfractional map is a fractional-order-based chaotic map
+ * that generates chaotic sequences through control parameters,
+ * commonly used for chaotic encryption and pseudo-random number generation.
+ */
 package fuookami.ospf.kotlin.math.chaotic
 
-import fuookami.ospf.kotlin.utils.math.*
+import kotlin.random.Random
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * Hopfractional 混沌映射，用于生成混沌序列。
- * Hopfractional chaotic map, used for generating chaotic sequences.
+ * Hopfractional 混沌映射
+ * Hopfractional Chaotic Map
  *
- * @property p 控制参数 p，影响混沌行为。
- * @property q 控制参数 q，影响混沌行为。
- * @property k 控制参数 k，影响混沌行为。
- * @property s 控制参数 s，影响混沌行为。
- * @property iterations 迭代次数，决定生成的混沌序列长度。
+ * @property p 控制参数 p / Control parameter p
+ * @property q 控制参数 q / Control parameter q
+ * @property k 控制参数 k / Control parameter k
+ * @property s 控制参数 s / Control parameter s
  */
-data class HopfractionalMap(
-    val p: Flt64,
-    val q: Flt64,
-    val k: Flt64,
-    val s: Flt64,
-    val iterations: UInt64
-) {
+data class HopfractionalMap<V : FloatingNumber<V>>(
+    val p: V,
+    val q: V,
+    val k: V,
+    val s: V
+) : Extractor<V, V> {
+    @Suppress("UNCHECKED_CAST")
+    override operator fun invoke(x: V): V {
+        val one = x.constants.one
+        val numerator = one + (k * x).pow(q) as V
+        val denominator = one + (s * x).pow(q) as V
+        return p * x * numerator / denominator
+    }
+
     companion object {
-        /**
-         * 使用默认初始值构造 Hopfractional 混沌映射。
-         * Construct a Hopfractional chaotic map with the default initial value.
-         *
-         * @param p 控制参数 p。
-         * @param q 控制参数 q。
-         * @param k 控制参数 k。
-         * @param s 控制参数 s。
-         * @param iterations 迭代次数。
-         * @param initialValue 初始值，默认为零。
-         * @return 新的 [HopfractionalMap] 实例。
-         */
-        fun apply(
-            p: Flt64,
-            q: Flt64,
-            k: Flt64,
-            s: Flt64,
-            iterations: UInt64,
-            initialValue: Flt64 = Flt64.zero
-        ): HopfractionalMap = HopfractionalMap(p, q, k, s, iterations)
-
-        /**
-         * 从现有的 [HopfractionalMap] 实例创建副本。
-         * Create a copy from an existing [HopfractionalMap] instance.
-         *
-         * @param p 控制参数 p。
-         * @param q 控制参数 q。
-         * @param k 控制参数 k。
-         * @param s 控制参数 s。
-         * @param iterations 迭代次数。
-         * @param map 已有的 [HopfractionalMap] 实例。
-         * @return 新的 [HopfractionalMap] 实例。
-         */
-        fun apply(
-            p: Flt64,
-            q: Flt64,
-            k: Flt64,
-            s: Flt64,
-            iterations: UInt64,
-            map: HopfractionalMap
-        ): HopfractionalMap = HopfractionalMap(p, q, k, s, iterations)
+        operator fun invoke(
+            p: Flt64 = Flt64(0.5),
+            q: Flt64 = Flt64(2.0),
+            k: Flt64 = Flt64(1.0),
+            s: Flt64 = Flt64(1.0)
+        ): HopfractionalMap<Flt64> = HopfractionalMap(p, q, k, s)
     }
+}
 
-    /**
-     * 执行一次 Hopfractional 映射迭代。
-     * Perform one iteration of the Hopfractional map.
-     *
-     * @param x 输入值。
-     * @return 映射后的输出值。
-     */
-    operator fun invoke(x: Flt64): Flt64 {
-        val a = x * p
-        val b = (Flt64.one + (k * x).pow(q)) / (Flt64.one + (s * x).pow(q))
-        return a / b
+/**
+ * Hopfractional 混沌映射生成器
+ * Hopfractional Chaotic Map Generator
+ *
+ * @property map Hopfractional 映射实例 / Hopfractional map instance
+ * @property iterations 迭代次数 / Number of iterations
+ */
+data class HopfractionalMapGenerator(
+    val map: HopfractionalMap<Flt64> = HopfractionalMap(),
+    val iterations: UInt64 = UInt64(1000UL),
+    private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
+) : Generator<Flt64> {
+    val x by ::_x
+    override operator fun invoke(): Flt64? {
+        val x = _x.copy(); _x = map(x); return x
     }
-
-    /**
-     * 生成混沌序列。
-     * Generate the chaotic sequence.
-     */
-    val chaoticSequence: Sequence<Flt64>
-        get() = sequence {
-            var x = Flt64.zero
-            for (i in 0L until iterations.value) {
-                x = invoke(x)
-                yield(x)
-            }
-        }
 }

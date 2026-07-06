@@ -24,7 +24,6 @@ typealias CapacityDurationQuantity<V> = Quantity<V>
  * 动作分配结果
  * Action Allocation Result
  *
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
  * Represents allocation result for a single action in a specific time slot.
  *
  * @param A 生产动作类型 / Production action type
@@ -83,16 +82,14 @@ data class ActionAllocation<A : ProductionAction>(
 }
 
 /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
+ * 执行器产能结果
  * Executor Capacity Result
  *
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
  * Represents capacity usage for a single executor in a specific time slot.
  */
 data class ExecutorCapacityResult(
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * The executor
+     * 执行器
      */
     val executor: Executor,
 
@@ -109,7 +106,7 @@ data class ExecutorCapacityResult(
     val slotIndex: Int,
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
+     * 执行器总使用时长
      * Total used duration
      */
     val totalDuration: Duration
@@ -131,24 +128,21 @@ data class ExecutorCapacityResult(
 }
 
 /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
+ * 产能调度解
  * Capacity Scheduling Solution
  *
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
  * Stores complete solution for capacity scheduling.
  *
  * @param A 生产动作类型 / Production action type
  */
 data class CapacitySchedulingSolution<A : ProductionAction>(
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * All actions
+     * 所有生产动作
      */
     val actions: List<A>,
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * All action allocations
+     * 所有动作分配结果
      */
     val actionAllocations: List<ActionAllocation<A>>,
 
@@ -165,8 +159,7 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     val allocationsBySlot: Map<TimeSlot, List<ActionAllocation<A>>> = actionAllocations.groupBy { it.slot },
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * All executor capacity results grouped by slot
+     * 所有执行器产能结果（按时隙分组）
      */
     val capacitiesBySlot: Map<TimeSlot, List<ExecutorCapacityResult>> = executorCapacities.groupBy { it.slot }
 ) {
@@ -184,8 +177,7 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     )
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * Get action allocations for specified slot
+     * 获取指定时隙的动作分配结果
      */
     fun allocationsInSlot(slot: TimeSlot): List<ActionAllocation<A>> {
         return allocationsBySlot[slot] ?: emptyList()
@@ -200,16 +192,14 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     }
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * Get all allocations for specified action
+     * 获取指定动作的所有分配结果
      */
     fun allocationsForAction(action: A): List<ActionAllocation<A>> {
         return actionAllocations.filter { it.action == action }
     }
 
     /**
-    val order: Int? = null  // Only for CapacityOrderCompilation / 仅用于 CapacityOrderCompilation
-     * Get all capacity results for specified executor
+     * 获取指定执行器的所有产能结果
      */
     fun capacitiesForExecutor(executor: Executor): List<ExecutorCapacityResult> {
         return executorCapacities.filter { it.executor == executor }

@@ -514,7 +514,6 @@ class BranchAndPriceAlgorithm<
                     }
                     heartBeat(iteration.optimalRate)
 
-        val solver: String? = null,
                     flush(iteration.iteration)
                     iteration.halveStep()
 

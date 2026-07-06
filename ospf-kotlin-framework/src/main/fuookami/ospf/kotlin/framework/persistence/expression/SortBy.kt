@@ -2,7 +2,7 @@
  * 排序模型
  * Sort Model
  *
- * 定义查询排序规则，支持多字段、方向和空值顺序。
+ * 定义查询排序规则，支持多字段、方向和空值顺序�?
  * Defines query sorting rules, supporting multiple fields, directions, and nulls order.
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
@@ -13,7 +13,7 @@ import kotlin.reflect.KProperty1
  * 排序定义
  * Sort Definition
  *
- * 表示一个或多个排序项的集合。
+ * 表示一个或多个排序项的集合�?
  * Represents a collection of one or more sort items.
  *
  * 示例 / Example:
@@ -26,7 +26,7 @@ data class SortBy(
 ) {
     companion object {
         /**
-         * 空排序
+         * 空排�?
          * Empty sort
          */
         val empty = SortBy(emptyList())
@@ -172,15 +172,15 @@ data class SortBy(
 }
 
 /**
- * 排序模型
+ * 排序�?
  * Sort Item
  *
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+ * 表示单个字段的排序规则�?
  * Represents sorting rule for a single field.
  *
  * @property path 字段路径 / Field path
  * @property direction 排序方向 / Sort direction
- * @property nulls 空值排序策略 / Nulls order strategy
+ * @property nulls 空值排序策�?/ Nulls order strategy
  */
 data class SortItem(
     val path: String,
@@ -207,33 +207,33 @@ enum class SortDirection {
 }
 
 /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+ * 空值排序策�?
  * Nulls Order Strategy
  */
 enum class NullsOrder {
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 空值排在前�?
      * Nulls first
      */
     NullsFirst,
 
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 空值排在后�?
      * Nulls last
      */
     NullsLast
 }
 
 /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+ * 空值排序支持检�?
  * Nulls Order Support Detection
  *
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+ * 用于检测数据库是否支持 NULLS FIRST/LAST 语法�?
  * Used to detect if database supports NULLS FIRST/LAST syntax.
  */
 enum class NullsOrderSupport {
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 自动检�?
      * Auto detect based on database type
      */
     Auto,
@@ -245,19 +245,19 @@ enum class NullsOrderSupport {
     Always,
 
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 从不支持，使用降级策�?
      * Never supported, use fallback strategy
      */
     Never,
 
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 仅在升序时支�?
      * Only supported for ascending order
      */
     OnlyAsc;
 
     /**
-        fun asc(path: String, nulls: NullsOrder? = null): SortBy =
+     * 检查是否支持指定排序项的空值排�?
      * Check if nulls order is supported for the given sort item
      */
     fun isSupported(item: SortItem): Boolean {

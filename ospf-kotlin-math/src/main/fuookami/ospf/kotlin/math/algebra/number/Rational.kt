@@ -1584,17 +1584,17 @@ data class URtnX internal constructor(
     /** 有理数类型伴生对象 / Rational type companion object */
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         /**
-     * 安全构造有理数
-     * Safely construct a rational number
-     *
-     * @param num 分子
-     *            The numerator
-     * @param den 分母
-     *            The denominator
-     * @return 构造结果，分母为零时返回失败
-     *         The construction result, returns failure if denominator is zero
-     */
-    fun of(num: UIntX, den: UIntX): Ret<URtnX> {
+         * 安全构造有理数
+         * Safely construct a rational number
+         *
+         * @param num 分子
+         *            The numerator
+         * @param den 分母
+         *            The denominator
+         * @return 构造结果，分母为零时返回失败
+         *         The construction result, returns failure if denominator is zero
+         */
+        fun of(num: UIntX, den: UIntX): Ret<URtnX> {
             return rationalOf(den) {
                 val divisor = gcdMod(num.abs(), den.abs())
                 URtnX(num / divisor, den / divisor)

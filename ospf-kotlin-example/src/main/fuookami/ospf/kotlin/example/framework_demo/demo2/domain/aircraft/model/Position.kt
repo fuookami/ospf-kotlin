@@ -1,76 +1,206 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
-import java.time.Instant
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.utils.functional.*
 
-/** 飞机位置信息 / Aircraft position information */
-data class Position(
-    val tailNumber: String,
-    /** 纬度 / Latitude */
-    val latitude: Double,
-    /** 经度 / Longitude */
-    val longitude: Double,
-    /** 海拔高度（英尺） / Altitude (feet) */
-    val altitude: Double,
-    /** 速度（节） / Speed (knots) */
-    val speed: Double,
-    /** 航向（度） / Heading (degrees) */
-    val heading: Double,
-    /** 时间戳 / Timestamp */
-    val timestamp: Instant
+/** 描述飞机内货物位置位置的标签。Tags describing the location of a cargo position within the aircraft. */
+enum class PositionLocationTag {
+    Main,
+    Low,
+    LowForward,
+    LowAft,
+    Bulk,
+    Head,
+    Tail
+}
+
+/**
+ * 分类货物位置放置的一组位置标签。A set of location tags that classify a cargo position's placement.
+ *
+ * @property tags 参数。
+ */
+data class PositionLocation(
+    val tags: Set<PositionLocationTag>
 ) {
     companion object {
-        /** 地球半径（公里） / Earth radius (km) */
-        private const val earthRadiusKm = 6371.0
+        val head = PositionLocation(setOf(PositionLocationTag.Main, PositionLocationTag.Head))
+        val tail = PositionLocation(setOf(PositionLocationTag.Main, PositionLocationTag.Tail))
+        val normalMain = PositionLocation(setOf(PositionLocationTag.Main))
+        val lowForwardBulk = PositionLocation(setOf(PositionLocationTag.Low, PositionLocationTag.LowForward, PositionLocationTag.Bulk))
+        val lowForwardNotBulk = PositionLocation(setOf(PositionLocationTag.Low, PositionLocationTag.LowForward))
+        val lowAftBulk = PositionLocation(setOf(PositionLocationTag.Low, PositionLocationTag.LowAft, PositionLocationTag.Bulk))
+        val lowAftNotBulk = PositionLocation(setOf(PositionLocationTag.Low, PositionLocationTag.LowAft))
     }
 
-    /**
-     * 获取以节为单位的当前速度
-     * / Get the current speed in knots
-     * @return 当前速度（节） / Current speed (knots)
-     */
-    fun speed(): Double {
-        return speed
+    operator fun contains(tag: PositionLocationTag) = tags.contains(tag)
+
+    val main = contains(PositionLocationTag.Main)
+    val head = contains(PositionLocationTag.Head)
+    val tail = contains(PositionLocationTag.Tail)
+    val normalMain = contains(PositionLocationTag.Main)
+    val specialMain = head || tail
+    val low = contains(PositionLocationTag.Low)
+    val lowForward = contains(PositionLocationTag.LowForward)
+    val lowAft = contains(PositionLocationTag.LowAft)
+    val bulk = contains(PositionLocationTag.Bulk)
+    val lowNotBulk = low && !bulk
+    val location = when {
+        contains(PositionLocationTag.Main) -> DeckLocation.Main
+        contains(PositionLocationTag.LowForward) -> DeckLocation.LowForward
+        contains(PositionLocationTag.LowAft) -> DeckLocation.LowAft
+        else -> DeckLocation.Main
+    }
+}
+
+operator fun DeckLocation.contains(location: PositionLocation): Boolean {
+    return location.location == this
+}
+
+/**
+ * 具有纵向和横向臂测量的货物位置坐标系。Coordinate system for a cargo position with longitudinal and lateral arm measurements.
+ *
+ * @property aircraftModel 参数。
+ * @property frontArm 参数。
+ * @property backArm 参数。
+ * @property leftArm 参数。
+ * @property rightArm 参数。
+ * @property offsets 参数。
+ */
+class PositionCoordinate(
+    private val aircraftModel: AircraftModel,
+    val frontArm: Quantity<Flt64>,
+    val backArm: Quantity<Flt64>,
+    val leftArm: Quantity<Flt64>,
+    val rightArm: Quantity<Flt64>,
+    val offsets: HashMap<ULDCode, Quantity<Flt64>>
+) {
+    val longitudinalArm = ((frontArm + backArm)!! / Flt64.two)!!
+    val lateralArm = ((leftArm + rightArm)!! / Flt64.two)!!
+
+    val averageOffset = if (offsets.isNotEmpty()) {
+        (offsets.values.fold(Flt64.zero * aircraftModel.lengthUnit) { acc, offset -> (acc + offset)!! } / Flt64(offsets.size))!!
+    } else {
+        lateralArm
+    }
+    val minOffset = if (offsets.isNotEmpty()) {
+        offsets.values.minWithThreeWayComparatorOrNull { lhs, rhs -> (lhs partialOrd rhs)!! } ?: (Flt64.zero * aircraftModel.lengthUnit)
+    } else {
+        lateralArm
     }
 
-    /**
-     * 计算到目标位置的大圆距离（公里）
-     * / Calculate the great-circle distance to the target position (km)
-     * @param other 目标位置 / Target position
-     * @return 距离（公里） / Distance (km)
-     */
-    fun distanceTo(other: Position): Double {
-        val lat1 = Math.toRadians(latitude)
-        val lon1 = Math.toRadians(longitude)
-        val lat2 = Math.toRadians(other.latitude)
-        val lon2 = Math.toRadians(other.longitude)
-
-        val dlat = lat2 - lat1
-        val dlon = lon2 - lon1
-
-        val a = Math.sin(dlat / 2) * Math.sin(dlat / 2) +
-                Math.cos(lat1) * Math.cos(lat2) *
-                Math.sin(dlon / 2) * Math.sin(dlon / 2)
-        val c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a))
-
-        return earthRadiusKm * c
+    fun offset(uld: ULD): Quantity<Flt64> {
+        return offsets[uld.code] ?: averageOffset
     }
 
-    /**
-     * 计算到目标位置的初始方位角（度）
-     * / Calculate the initial bearing to the target position (degrees)
-     * @param other 目标位置 / Target position
-     * @return 方位角（度） / Bearing (degrees)
-     */
-    fun bearingTo(other: Position): Double {
-        val lat1 = Math.toRadians(latitude)
-        val lat2 = Math.toRadians(other.latitude)
-        val dlon = Math.toRadians(other.longitude - longitude)
+    val transverse = (leftArm leq (Flt64.zero * aircraftModel.lengthUnit))!! && ((Flt64.zero * aircraftModel.lengthUnit) leq rightArm)!!
+    val onLeft = !transverse && (lateralArm leq (Flt64.zero * aircraftModel.lengthUnit))!!
+    val onRight = !transverse && (lateralArm gr (Flt64.zero * aircraftModel.lengthUnit))!!
 
-        val y = Math.sin(dlon) * Math.cos(lat2)
-        val x = Math.cos(lat1) * Math.sin(lat2) -
-                Math.sin(lat1) * Math.cos(lat2) * Math.cos(dlon)
-
-        val bearing = Math.toDegrees(Math.atan2(y, x))
-        return (bearing + 360) % 360
+    fun inFrontOf(arm: Quantity<Flt64>): Boolean {
+        return (backArm ls arm)!!
     }
+
+    fun behind(arm: Quantity<Flt64>): Boolean {
+        return (frontArm ls arm)!!
+    }
+
+    fun on(arm: Quantity<Flt64>): Boolean {
+        return (frontArm leq arm)!! && (arm leq backArm)!!
+    }
+
+    fun between(frontArm: Quantity<Flt64>, backArm: Quantity<Flt64>): Boolean {
+        return if ((backArm ls frontArm)!!) {
+            between(backArm, frontArm)
+        } else {
+            (frontArm leq this.frontArm)!! && (this.backArm leq backArm)!!
+        }
+    }
+
+    fun withIntersectionWith(frontArm: Quantity<Flt64>, backArm: Quantity<Flt64>): Boolean {
+        return if ((backArm ls frontArm)!!) {
+            withIntersectionWith(backArm, frontArm)
+        } else {
+            (this.frontArm leq backArm)!! && (this.backArm geq frontArm)!!
+        }
+    }
+
+    fun withIntersectionWith(other: PositionCoordinate): Boolean {
+        return withIntersectionWith(other.frontArm, other.backArm)
+                && (this.leftArm leq other.rightArm)!! && (other.leftArm leq this.rightArm)!!
+    }
+}
+
+/**
+ * 货物位置的物理尺寸和面积。Physical dimensions and area of a cargo position.
+ *
+ * @property aircraftModel 参数。
+ * @property length 参数。
+ * @property width 参数。
+ * @property volume 参数。
+ */
+data class PositionShape(
+    private val aircraftModel: AircraftModel,
+    val length: Quantity<Flt64>,
+    val width: Quantity<Flt64>,
+    val volume: Quantity<Flt64>
+) {
+    val area = (length * width)!!.to(aircraftModel.areaUnit)!!
+}
+
+/**
+ * 飞机上的货物位置（具有坐标、形状、位置和装载顺序）。A cargo position on the aircraft with its coordinates, shape, location, and loading order.
+ *
+ * @property id 参数。
+ * @property spaceName 参数。
+ * @property sizeCode 参数。
+ * @property linearLoadingOrder 参数。
+ * @property coordinate 参数。
+ * @property shape 参数。
+ * @property location 参数。
+ */
+data class Position(
+    val id: UInt64,
+    val spaceName: String,
+    val sizeCode: String,
+    val linearLoadingOrder: UInt8,
+    val coordinate: PositionCoordinate,
+    val shape: PositionShape,
+    val location: PositionLocation
+) {
+    companion object {
+        operator fun invoke(
+            aircraftModel: AircraftModel,
+            id: UInt64,
+            spaceName: String,
+            sizeCode: String,
+            frontArm: Quantity<Flt64>,
+            backArm: Quantity<Flt64>,
+            leftArm: Quantity<Flt64>,
+            rightArm: Quantity<Flt64>,
+            volume: Quantity<Flt64>,
+            offsets: HashMap<ULDCode, Quantity<Flt64>>,
+            location: PositionLocation,
+            linearLoadingOrder: UInt8,
+        ): Position {
+            val coordinate = PositionCoordinate(aircraftModel, frontArm, backArm, leftArm, rightArm, offsets)
+            val shape = PositionShape(aircraftModel, (backArm - frontArm)!!, (rightArm - leftArm)!!, volume)
+            return Position(
+                id = id,
+                spaceName = spaceName,
+                sizeCode = sizeCode,
+                linearLoadingOrder = linearLoadingOrder,
+                coordinate = coordinate,
+                shape = shape,
+                location = location
+            )
+        }
+    }
+
+    internal lateinit var _loadingOrder: LoadingOrder
+    val loadingOrder by ::_loadingOrder
+
+    val alphaSpaceName: String = spaceName.filter { it.isLetterOrDigit() }
+    val enabledULDs by coordinate.offsets::keys
 }

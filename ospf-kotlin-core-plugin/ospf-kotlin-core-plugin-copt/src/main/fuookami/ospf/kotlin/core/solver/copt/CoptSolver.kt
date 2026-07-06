@@ -27,29 +27,8 @@ abstract class CoptSolver : AutoCloseable {
      *
      * @param server 服务器地址 / server address
      * @param port 服务器端口 / server port
-/**
- * COPT 求解器。
- * COPT solver.
- *
- * @property token COPT 许可证令牌。
- * @property token COPT license token.
- * @property model 优化模型。
- * @property model The optimization model.
- * @property timelimit 求解时间限制（秒）。
- * @property timelimit Time limit for solving (seconds).
- * @property mipGap MIP 间隙容忍度。
- * @property mipGap MIP gap tolerance.
- * @property presolve 预求解级别。
- * @property presolve Presolve level.
- * @property log 是否启用日志输出。
- * @property log Whether to enable log output.
- */
      * @param password 服务器密码 / server password
      * @param connectionTime 连接超时时间 / connection timeout duration
-/**
- * 伴生对象，提供工厂方法。
- * Companion object providing factory methods.
- */
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result

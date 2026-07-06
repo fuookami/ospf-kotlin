@@ -210,7 +210,7 @@ fun <V : FloatingNumber<V>> BinType<V>.asContainer3Shape(): Container3Shape {
 class Bin<T, V> internal constructor(
     // inherited from Container3<Bin<T, V>>
     val type: BinType<V>,
-    override val units: List<Placement3<T, V>>,
+    override val units: List<QuantityPlacement3<T, V>>,
     val batchNo: BatchNo? = null
 ) : Container3<Bin<T, V>, V>, AutoIndexed(Bin::class) where T : Cuboid<T, V>, V : FloatingNumber<V> {
     override val shape: Container3Geometry<V> = type

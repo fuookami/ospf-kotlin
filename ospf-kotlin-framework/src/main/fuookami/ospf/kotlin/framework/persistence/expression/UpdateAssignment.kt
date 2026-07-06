@@ -1,8 +1,8 @@
 /**
- * 更新赋值模型
+ * 更新赋值模�?
  * Update Assignment Model
  *
- * 定义 UPDATE SET 语句的赋值规则。
+ * 定义 UPDATE SET 语句的赋值规则�?
  * Defines assignment rules for UPDATE SET statements.
  */
 package fuookami.ospf.kotlin.framework.persistence.expression
@@ -11,10 +11,10 @@ import kotlin.reflect.KProperty1
 import fuookami.ospf.kotlin.math.symbol.expression.ScalarExpression
 
 /**
- * 更新赋值集合
+ * 更新赋值集�?
  * Update Assignments
  *
- * 表示一个或多个更新赋值项的集合。
+ * 表示一个或多个更新赋值项的集合�?
  * Represents a collection of one or more update assignment items.
  *
  * 示例 / Example:
@@ -28,7 +28,7 @@ data class UpdateAssignments(
 ) {
     companion object {
         /**
-         * 空赋值
+         * 空赋�?
          * Empty assignments
          */
         val empty = UpdateAssignments(emptyList())
@@ -99,7 +99,7 @@ data class UpdateAssignments(
     }
 
     /**
-        fun set(path: String, value: Any?): UpdateAssignments =
+     * 组合多个赋�?
      * Combine multiple assignments
      */
     operator fun plus(other: UpdateAssignments): UpdateAssignments =
@@ -186,7 +186,7 @@ data class UpdateAssignments(
  * 更新赋值项
  * Update Assignment Item
  *
-        fun set(path: String, value: Any?): UpdateAssignments =
+ * 表示单个字段的更新赋值规则�?
  * Represents update assignment rule for a single field.
  */
 sealed interface UpdateAssignment {
@@ -198,14 +198,14 @@ sealed interface UpdateAssignment {
 }
 
 /**
-         * 设置值
+ * 设置�?
  * Set Value
  *
-        fun set(path: String, value: Any?): UpdateAssignments =
+ * 将字段设置为指定值�?
  * Set field to specified value.
  *
  * @property path 字段路径 / Field path
- * @property value 要设置的值 / Value to set
+ * @property value 要设置的�?/ Value to set
  */
 data class SetValue(
     override val path: String,
@@ -216,7 +216,7 @@ data class SetValue(
  * 设置 NULL
  * Set NULL
  *
-        fun set(path: String, value: Any?): UpdateAssignments =
+ * 将字段设置为 NULL�?
  * Set field to NULL.
  *
  * @property path 字段路径 / Field path
@@ -229,11 +229,11 @@ data class SetNull(
  * 从表达式设置
  * Set From Expression
  *
-        fun set(path: String, value: Any?): UpdateAssignments =
+ * 将字段设置为表达式的结果�?
  * Set field to result of expression.
  *
  * @property path 字段路径 / Field path
- * @property expression 标量表达式 / Scalar expression
+ * @property expression 标量表达�?/ Scalar expression
  */
 data class SetFromExpression(
     override val path: String,

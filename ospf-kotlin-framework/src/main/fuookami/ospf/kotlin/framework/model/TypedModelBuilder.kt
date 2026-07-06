@@ -1,10 +1,25 @@
 package fuookami.ospf.kotlin.framework.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.core.model.basic.*
-import fuookami.ospf.kotlin.core.model.basic.ConstraintSign
-import fuookami.ospf.kotlin.core.model.variable.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+
+/** 线性系数类型 / Linear coefficient type */
+typealias LinearCoefficient = LinearPolynomial<Flt64>
+
+/** 常数类型 / Constant type */
+typealias Constant = Flt64
+
+/** 约束符号类型 / Constraint sign type */
+typealias ConstraintSign = Comparison
+
+/** 目标类型 / Objective type */
+typealias ObjectiveType = ObjectCategory
+
+/** 类型化模型类型 / Typed model type */
+typealias TypedModel = LinearMetaModel<Flt64>
 
 /**
  * 带类型的约束表示 / Typed constraint representation
@@ -55,13 +70,12 @@ abstract class TypedModelBuilder<T, R> {
      * @param block 用于构建模型的可选闭包 / Optional closure for building the model
      * @return 模型实例 / Model instance
      */
-    fun model(block: (Model.() -> Unit)? = null): Model {
-
-        return if (block != null) {
-            Model(block)
-        } else {
-            Model()
+    fun model(block: (TypedModel.() -> Unit)? = null): TypedModel {
+        val model = LinearMetaModel()
+        if (block != null) {
+            model.block()
         }
+        return model
     }
 
     /**
@@ -76,8 +90,7 @@ abstract class TypedModelBuilder<T, R> {
         sign: ConstraintSign,
         right: TypedExpression
     ): TypedConstraint {
-
-        return TypedConstraint(left.coefficient - right.coefficient, sign, Constant.zero)
+        return TypedConstraint(left.coefficient - right.coefficient, sign, Flt64.zero)
     }
 
     /**
@@ -141,7 +154,7 @@ abstract class TypedModelBuilder<T, R> {
      * @param block 操作闭包 / Operation closure
      * @return 操作结果 / Operation result
      */
-    fun withModel(model: Model, block: T.() -> Unit): R {
+    fun withModel(model: TypedModel, block: T.() -> Unit): R {
         return this.build(model, block)
     }
 
@@ -151,5 +164,5 @@ abstract class TypedModelBuilder<T, R> {
      * @param block 构建闭包 / Build closure
      * @return 构建结果 / Build result
      */
-    abstract fun build(model: Model, block: T.() -> Unit): R
+    abstract fun build(model: TypedModel, block: T.() -> Unit): R
 }

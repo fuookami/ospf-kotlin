@@ -7,6 +7,8 @@ package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.geometry.QuantityCuboid3
+import fuookami.ospf.kotlin.math.geometry.QuantityRectangle2
 import fuookami.ospf.kotlin.quantities.quantity.*
 
 private fun <V : FloatingNumber<V>> projectionQuantityZero(sample: Quantity<V>): Quantity<V> {
@@ -92,19 +94,94 @@ sealed class ProjectivePlane {
     }
 
     open fun <V : FloatingNumber<V>> distance(point: QuantityPoint3<V>): Quantity<V> {
-        return distanceByGeometry(point)
+        return when (this) {
+            Bottom -> point.y
+            Side -> point.z
+            Front -> point.x
+        }
     }
 
     open fun <V : FloatingNumber<V>> point2(point: QuantityPoint3<V>): QuantityPoint2<V> {
-        return point2ByGeometry(point)
+        return when (this) {
+            Bottom -> QuantityPoint2(
+                x = point.z,
+                y = point.x
+            )
+
+            Side -> QuantityPoint2(
+                x = point.x,
+                y = point.y
+            )
+
+            Front -> QuantityPoint2(
+                x = point.z,
+                y = point.y
+            )
+        }
     }
 
     open fun <V : FloatingNumber<V>> point3(point: QuantityPoint2<V>, distance: Quantity<V>): QuantityPoint3<V> {
-        return point3ByGeometry(point, distance)
+        return when (this) {
+            Bottom -> QuantityPoint3(
+                x = point.y,
+                y = distance,
+                z = point.x
+            )
+
+            Side -> QuantityPoint3(
+                x = point.x,
+                y = point.y,
+                z = distance
+            )
+
+            Front -> QuantityPoint3(
+                x = distance,
+                y = point.y,
+                z = point.x
+            )
+        }
     }
 
     open fun <V : FloatingNumber<V>> vector(distance: Quantity<V>): QuantityVector3<V> {
-        return vectorByGeometry(distance)
+        val zero = quantityZeroByValue(distance)
+        return when (this) {
+            Bottom -> QuantityVector3(
+                x = zero,
+                y = distance,
+                z = zero
+            )
+
+            Side -> QuantityVector3(
+                x = zero,
+                y = zero,
+                z = distance
+            )
+
+            Front -> QuantityVector3(
+                x = distance,
+                y = zero,
+                z = zero
+            )
+        }
+    }
+
+    open fun <V : FloatingNumber<V>> footprintByGeometry(cuboid: QuantityCuboid3<V>): QuantityRectangle2<V> {
+        return when (this) {
+            Bottom -> QuantityRectangle2(
+                width = cuboid.depth,
+                height = cuboid.width
+            )
+
+            Side -> QuantityRectangle2(
+                width = cuboid.width,
+                height = cuboid.height
+            )
+
+            Front -> QuantityRectangle2(
+                width = cuboid.height,
+                height = cuboid.depth
+            )
+        }
     }
 }
 
