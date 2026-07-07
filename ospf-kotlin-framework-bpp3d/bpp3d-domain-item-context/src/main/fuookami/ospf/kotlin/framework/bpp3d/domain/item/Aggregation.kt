@@ -1,6 +1,6 @@
 /**
- * 货物聚合。
  * Item aggregation.
+ * 货物聚合。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 

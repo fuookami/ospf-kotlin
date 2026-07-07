@@ -27,26 +27,26 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 生产规划：在满足产品产量要求的同时最小化成本。
  * Production planning: minimize cost while meeting product yield requirements.
+ * 生产规划：在满足产品产量要求的同时最小化成本。
  *
  * @see     https://fuookami.github.io/ospf/examples/example3.html
  */
 data object Demo3 {
     /**
-     * 具有最低产量要求的产品。
      * A product with a minimum yield requirement.
+     * 具有最低产量要求的产品。
      *
-     * @property minYield 最低产量。
+     * @property minYield the minimum yield requirement / 最低产量要求
      */
     data class Product(val minYield: Flt64) : AutoIndexed(Product::class)
 
     /**
-     * 具有成本和每产品产量的物料。
      * A material with cost and yield per product.
+     * 具有成本和每产品产量的物料。
      *
-     * @property cost 成本。
-     * @property yieldQuantity 每产品产量。
+     * @property cost the cost of the material / 物料成本
+     * @property yieldQuantity the yield quantity per product / 每产品产量
      */
     data class Material(
         val cost: Flt64,
@@ -103,9 +103,10 @@ data object Demo3 {
     )
 
     /**
-     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * Runs all sub-processes sequentially to build, solve, and analyze the model.
+     * 顺序运行所有子流程以构建、求解和分析模型。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
@@ -125,9 +126,10 @@ data object Demo3 {
     }
 
     /**
-     * 初始化物料数量的无符号整数变量。/ Initializes unsigned integer variables for material quantities.
+     * Initializes unsigned integer variables for material quantities.
+     * 初始化物料数量的无符号整数变量。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(materials.size))
@@ -139,9 +141,10 @@ data object Demo3 {
     }
 
     /**
-     * 创建成本和每产品产出表达式符号。/ Creates cost and per-product yield expression symbols.
+     * Creates cost and per-product yield expression symbols.
+     * 创建成本和每产品产出表达式符号。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
@@ -165,9 +168,10 @@ data object Demo3 {
     }
 
     /**
-     * 设置目标函数以最小化物料成本。/ Sets the objective to minimize material cost.
+     * Sets the objective to minimize material cost.
+     * 设置目标函数以最小化物料成本。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
@@ -175,9 +179,10 @@ data object Demo3 {
     }
 
     /**
-     * 为每个产品添加产出等式约束。/ Adds yield equality constraints for each product.
+     * Adds yield equality constraints for each product.
+     * 为每个产品添加产出等式约束。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun initConstraint(): Try {
         for (p in products) {
@@ -188,9 +193,10 @@ data object Demo3 {
     }
 
     /**
-     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
+     * Solves the linear model using the SCIP solver.
+     * 使用 SCIP 求解器求解线性模型。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
@@ -211,9 +217,10 @@ data object Demo3 {
     }
 
     /**
-     * 从解中提取物料数量。/ Extracts the material quantities from the solution.
+     * Extracts the material quantities from the solution.
+     * 从解中提取物料数量。
      *
-     * @return 操作结果 / Operation result
+     * @return the operation result / 操作结果
      */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, UInt64>()

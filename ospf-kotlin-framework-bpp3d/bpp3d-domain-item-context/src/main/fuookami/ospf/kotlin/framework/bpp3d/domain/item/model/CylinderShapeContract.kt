@@ -1,6 +1,6 @@
 /**
- * 圆柱形状契约。
  * Cylinder shape contract.
+ * 圆柱形状契约。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

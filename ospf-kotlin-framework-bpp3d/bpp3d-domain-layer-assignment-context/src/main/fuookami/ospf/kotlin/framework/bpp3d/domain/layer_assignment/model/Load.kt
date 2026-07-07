@@ -1,6 +1,6 @@
 /**
- * 层分配负载模型。
  * Layer assignment load model.
+ * 层分配负载模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -22,8 +22,8 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * BPP3D 需求域。
  * BPP3D demand domain.
+ * BPP3D 需求域。
  */
 enum class Bpp3dDemandDomain {
     /** 离散域 / discrete domain */
@@ -77,8 +77,8 @@ private fun defaultDemandUnit(): PhysicalUnit {
 }
 
 /**
- * 货物需求接口。
  * Item demand interface.
+ * 货物需求接口。
  *
  * @param V 数值类型 / numeric type
  */
@@ -92,8 +92,8 @@ interface ItemDemand<V : FloatingNumber<V>> {
 }
 
 /**
- * 物料需求接口。
  * Material demand interface.
+ * 物料需求接口。
  *
  * @param V 数值类型 / numeric type
  */
@@ -107,8 +107,8 @@ interface MaterialDemand<V : FloatingNumber<V>> {
 }
 
 /**
- * BPP3D 需求条目。
  * BPP3D demand entry.
+ * BPP3D 需求条目。
  *
  * @param V 数值类型 / numeric type
  * @property mode 需求模式 / demand mode
@@ -152,8 +152,8 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
 }
 
 /**
- * 货物需求数据类。
  * Item demand data class.
+ * 货物需求数据类。
  *
  * @param V 数值类型 / numeric type
  */

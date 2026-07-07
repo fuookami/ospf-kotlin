@@ -127,6 +127,13 @@ class RemoteQuadraticSolver(
         )
     }
 
+    /**
+     * Converts the remote solve result to a feasible solver output.
+     * 中文将远程求解结果转换为可行求解器输出。
+     *
+     * @param variableCount the expected number of variables / 预期变量数量
+     * @return the feasible solver output or an error / 可行求解器输出或错误
+     */
     private suspend fun SolveResult.toFeasibleOutput(variableCount: Int): Ret<FeasibleSolverOutput<Flt64>> {
         if (!feasible) {
             return Failed(Err(ErrorCode.ORModelInfeasible, message ?: "Remote quadratic solve is infeasible."))

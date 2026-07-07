@@ -1,6 +1,6 @@
 /**
- * 放置类型模型。
  * Placement typing model.
+ * 放置类型模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

@@ -34,10 +34,28 @@ abstract class MongoRepository<E : Any>(
     protected val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) : ExpressionRepository<E> {
 
+    /**
+     * 布尔表达式翻译器实例
+     * Boolean expression translator instance
+     */
     private val booleanTranslator = MongoBooleanTranslator(resolveFieldName, unsupportedPredicatePolicy)
+
+    /**
+     * 排序翻译器实例
+     * Order by translator instance
+     */
     private val orderByTranslator = MongoOrderByTranslator(resolveFieldName)
+
+    /**
+     * 更新翻译器实例
+     * Update translator instance
+     */
     private val updateTranslator = MongoUpdateTranslator(resolveFieldName)
 
+    /**
+     * MongoDB 集合实例
+     * MongoDB collection instance
+     */
     protected val collection: MongoCollection<Document>
         get() = database.getCollection(collectionName)
 

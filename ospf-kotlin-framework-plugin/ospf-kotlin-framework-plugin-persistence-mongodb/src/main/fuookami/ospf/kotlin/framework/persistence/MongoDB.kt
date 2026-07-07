@@ -80,6 +80,10 @@ data class MongoDBConfig(
     val userName: String,
     val password: String
 ) {
+    /**
+     * 获取客户端键
+     * Get client key
+     */
     val key get() = MongoClientKey(name = name, database = database)
 }
 
@@ -91,6 +95,10 @@ data class MongoDBConfig(
  * Manages multiple MongoDB client instances, indexed by name and database.
  */
 object MongoDB {
+    /**
+     * 已注册的 MongoDB 客户端映射
+     * Registered MongoDB client mapping
+     */
     @get:Synchronized
     private val clients: MutableMap<MongoClientKey, MongoClient> = HashMap()
 

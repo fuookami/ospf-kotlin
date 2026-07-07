@@ -172,12 +172,16 @@ data class UpdateAssignments(
     /**
      * 是否为空
      * Check if empty
+     *
+     * @return 如果为空则返回 true / true if empty
      */
     fun isEmpty(): Boolean = items.isEmpty()
 
     /**
      * 是否非空
      * Check if not empty
+     *
+     * @return 如果非空则返回 true / true if not empty
      */
     fun isNotEmpty(): Boolean = items.isNotEmpty()
 }

@@ -530,6 +530,9 @@ abstract class PredicateSchema<E> {
     /**
      * 创建类型化字段
      * Create typed field
+     *
+     * @param property Kotlin 属性引用 / Kotlin property reference
+     * @return 类型化路径构建器 / Typed path builder
      */
     protected fun <T> field(property: KProperty1<E, T>): TypedPathBuilder<E, T> = prop(property)
 }
@@ -537,6 +540,9 @@ abstract class PredicateSchema<E> {
 /**
  * 使用具体 schema 类型构造谓词
  * Build predicate with concrete schema type
+ *
+ * @param block 构建器 lambda / Builder lambda
+ * @return 布尔表达式 / Boolean expression
  */
 fun <E, S : PredicateSchema<E>> S.predicate(block: S.() -> BooleanExpression): BooleanExpression = block()
 

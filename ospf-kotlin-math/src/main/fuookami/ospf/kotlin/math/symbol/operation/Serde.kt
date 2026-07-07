@@ -1,9 +1,9 @@
 /**
- * Flt64 序列化与反序列化
  * Flt64 Serialization and Deserialization
+ * 中文Flt64 序列化与反序列化
  *
- * 提供 Flt64 多项式和不等式的 JSON 序列化与反序列化功能。
  * Provides JSON serialization and deserialization for Flt64 polynomials and inequalities.
+ * 中文提供 Flt64 多项式和不等式的 JSON 序列化与反序列化功能。
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
@@ -169,12 +169,22 @@ fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::s
 // Flt64-specific DTO conversions (internal to adapter)
 // ============================================================================
 
-/** 将符号转换为 DTO 标识符字符串 / Convert a symbol to a DTO identifier string */
+/**
+ * 将符号转换为 DTO 标识符字符串
+ * Convert a symbol to a DTO identifier string
+ *
+ * @return DTO 标识符字符串 / DTO identifier string
+ */
 private fun Symbol.toDtoIdentifier(): String {
     return toSymbolIdentityExpr().toSerializedIdentifier()
 }
 
-/** 将比较运算符转换为 DTO 字符串 / Convert a comparison operator to a DTO string */
+/**
+ * 将比较运算符转换为 DTO 字符串
+ * Convert a comparison operator to a DTO string
+ *
+ * @return DTO 比较运算符字符串 / DTO comparison operator string
+ */
 private fun Comparison.toDtoString(): String {
     return when (this) {
         Comparison.LT -> "LT"
@@ -205,7 +215,12 @@ private fun comparisonFromDtoString(str: String): Ret<Comparison> {
     }
 }
 
-/** 转换 Flt64 规范多项式为 DTO / Convert Flt64 canonical polynomial to DTO */
+/**
+ * 转换 Flt64 规范多项式为 DTO
+ * Convert Flt64 canonical polynomial to DTO
+ *
+ * @return 规范多项式 DTO 数据 / Canonical polynomial DTO data
+ */
 internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
     return CanonicalPolynomialData(
         monomials = monomials.map { CanonicalMonomialData(it.coefficient.value, it.powers.mapKeys { it.key.toDtoIdentifier() }.mapValues { it.value.toInt() }) },
@@ -213,7 +228,12 @@ internal fun CanonicalPolynomial<Flt64>.toFlt64Dto(): CanonicalPolynomialData {
     )
 }
 
-/** 转换 Flt64 线性多项式为 DTO / Convert Flt64 linear polynomial to DTO */
+/**
+ * 转换 Flt64 线性多项式为 DTO
+ * Convert Flt64 linear polynomial to DTO
+ *
+ * @return 线性多项式 DTO 数据 / Linear polynomial DTO data
+ */
 internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
     return LinearPolynomialData(
         monomials = monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) },
@@ -221,7 +241,12 @@ internal fun LinearPolynomial<Flt64>.toFlt64Dto(): LinearPolynomialData {
     )
 }
 
-/** 转换 Flt64 二次多项式为 DTO / Convert Flt64 quadratic polynomial to DTO */
+/**
+ * 转换 Flt64 二次多项式为 DTO
+ * Convert Flt64 quadratic polynomial to DTO
+ *
+ * @return 二次多项式 DTO 数据 / Quadratic polynomial DTO data
+ */
 internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
     return QuadraticPolynomialData(
         monomials = monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) },
@@ -229,7 +254,12 @@ internal fun QuadraticPolynomial<Flt64>.toFlt64Dto(): QuadraticPolynomialData {
     )
 }
 
-/** 转换 Flt64 线性不等式为 DTO / Convert Flt64 linear inequality to DTO */
+/**
+ * 转换 Flt64 线性不等式为 DTO
+ * Convert Flt64 linear inequality to DTO
+ *
+ * @return 线性不等式 DTO 数据 / Linear inequality DTO data
+ */
 internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
     return LinearInequalityData(
         lhs = LinearPolynomialData(lhs.monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) }, lhs.constant.value),
@@ -240,7 +270,12 @@ internal fun LinearInequality<Flt64>.toFlt64Dto(): LinearInequalityData {
     )
 }
 
-/** 转换 Flt64 二次不等式为 DTO / Convert Flt64 quadratic inequality to DTO */
+/**
+ * 转换 Flt64 二次不等式为 DTO
+ * Convert Flt64 quadratic inequality to DTO
+ *
+ * @return 二次不等式 DTO 数据 / Quadratic inequality DTO data
+ */
 internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData {
     return QuadraticInequalityData(
         lhs = QuadraticPolynomialData(lhs.monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) }, lhs.constant.value),
@@ -251,7 +286,12 @@ internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData 
     )
 }
 
-/** 转换 Flt64 规范不等式为 DTO / Convert Flt64 canonical inequality to DTO */
+/**
+ * 转换 Flt64 规范不等式为 DTO
+ * Convert Flt64 canonical inequality to DTO
+ *
+ * @return 规范不等式 DTO 数据 / Canonical inequality DTO data
+ */
 internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     val combinedLhs = lhs.combineTerms()
     val combinedRhs = rhs.combineTerms()
@@ -262,7 +302,13 @@ internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     )
 }
 
-/** 转换规范多项式数据为 Flt64 域 / Convert canonical polynomial data to Flt64 domain */
+/**
+ * 转换规范多项式数据为 Flt64 域
+ * Convert canonical polynomial data to Flt64 domain
+ *
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return Flt64 规范多项式 / Flt64 canonical polynomial
+ */
 internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalPolynomial<Flt64> {
     return CanonicalPolynomial(
         monomials = monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) },
@@ -270,7 +316,13 @@ internal fun CanonicalPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
-/** 转换线性多项式数据为 Flt64 域 / Convert linear polynomial data to Flt64 domain */
+/**
+ * 转换线性多项式数据为 Flt64 域
+ * Convert linear polynomial data to Flt64 domain
+ *
+ * @param symbolOf 符号解析函数 / Symbol resolution function
+ * @return Flt64 线性多项式 / Flt64 linear polynomial
+ */
 internal fun LinearPolynomialData.toFlt64Domain(symbolOf: (String) -> Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials = monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) },

@@ -70,7 +70,14 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
 
     // ========== 解析方法 / Parse Methods ==========
 
-    /** 构建解析失败结果 / Build a parse failure result */
+    /**
+     * 构建解析失败结果
+     * Build a parse failure result
+     *
+     * @param message the error message / 错误信息
+     * @param position the position in the input where the error occurred / 输入中发生错误的位置
+     * @return a failed result containing the parse issue / 包含解析问题的失败结果
+     */
     private fun <T> parseFailed(message: String, position: Int = 0): Ret<T> {
         val issue = ParseIssue(
             type = ParseIssueType.Syntax,
@@ -88,6 +95,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析 or 表达式（最低优先级）
      * Parse or expression (lowest precedence)
+     *
+     * @return the parsed or expression or failure / 解析后的 or 表达式或失败原因
      */
     private fun parseOrExpression(): Ret<BooleanExpression> {
         var left = when (val result = parseAndExpression()) {
@@ -112,6 +121,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析 and 表达式
      * Parse and expression
+     *
+     * @return the parsed and expression or failure / 解析后的 and 表达式或失败原因
      */
     private fun parseAndExpression(): Ret<BooleanExpression> {
         var left = when (val result = parseNotExpression()) {
@@ -136,6 +147,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析 not 表达式
      * Parse not expression
+     *
+     * @return the parsed not expression or failure / 解析后的 not 表达式或失败原因
      */
     private fun parseNotExpression(): Ret<BooleanExpression> {
         if (currentToken().type == TokenType.NOT) {
@@ -153,6 +166,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析基本表达式
      * Parse primary expression
+     *
+     * @return the parsed primary expression or failure / 解析后的基本表达式或失败原因
      */
     private fun parsePrimaryExpression(): Ret<BooleanExpression> {
         return when (currentToken().type) {
@@ -192,6 +207,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析路径表达式（标识符开头的表达式）
      * Parse path expression (expression starting with identifier)
+     *
+     * @return the parsed path expression or failure / 解析后的路径表达式或失败原因
      */
     private fun parsePathExpression(): Ret<BooleanExpression> {
         val path = when (val result = parsePath()) {
@@ -253,6 +270,9 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析空值检查
      * Parse null check
+     *
+     * @param path the property path to check / 待检查的属性路径
+     * @return the null check expression / 空值检查表达式
      */
     private fun parseNullCheck(path: PropertyPath): Ret<BooleanExpression> {
         advance()
@@ -279,6 +299,10 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析集合成员判断
      * Parse set membership (in) expression
+     *
+     * @param path the property path for the left operand / 左操作数的属性路径
+     * @param negated whether the membership check is negated (not in) / 是否为取反的成员判断（not in）
+     * @return the in expression / 集合成员判断表达式
      */
     private fun parseInExpression(path: PropertyPath, negated: Boolean): Ret<BooleanExpression> {
         when (val result = expect(TokenType.LPAREN, "Expected '(' after 'in'")) {
@@ -314,6 +338,11 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析模式匹配表达式
      * Parse pattern match expression
+     *
+     * @param path the property path for the left operand / 左操作数的属性路径
+     * @param mode the pattern match mode / 模式匹配模式
+     * @param negated whether the pattern match is negated / 是否为取反的模式匹配
+     * @return the pattern match expression / 模式匹配表达式
      */
     private fun parsePatternMatch(
         path: PropertyPath,
@@ -331,6 +360,9 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析比较表达式
      * Parse comparison expression
+     *
+     * @param leftPath the property path for the left operand / 左操作数的属性路径
+     * @return the comparison expression or failure / 比较表达式或失败原因
      */
     private fun parseComparison(leftPath: PropertyPath): Ret<BooleanExpression> {
         val operator = currentToken().type.toComparisonOperator()
@@ -353,6 +385,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析标量值（常量或路径引用）
      * Parse scalar value (constant or path reference)
+     *
+     * @return the parsed scalar expression or failure / 解析后的标量表达式或失败原因
      */
     private fun parseScalarValue(): Ret<ScalarExpression<Any?>> {
         return when (currentToken().type) {
@@ -397,6 +431,8 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 解析属性路径
      * Parse property path
+     *
+     * @return the parsed property path or failure / 解析后的属性路径或失败原因
      */
     private fun parsePath(): Ret<PropertyPath> {
         if (currentToken().type != TokenType.IDENTIFIER) {
@@ -413,19 +449,36 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
 
     // ========== 辅助方法 / Helper Methods ==========
 
-    /** 获取当前词法单元 / Get current token */
+    /**
+     * 获取当前词法单元
+     * Get current token
+     *
+     * @return the current token / 当前词法单元
+     */
     private fun currentToken(): Token {
         return tokens.getOrNull(position) ?: Token.eof(position)
     }
 
-    /** 向前移动并返回之前的词法单元 / Advance and return previous token */
+    /**
+     * 向前移动并返回之前的词法单元
+     * Advance and return previous token
+     *
+     * @return the token before advancing / 前进之前的词法单元
+     */
     private fun advance(): Token {
         val token = currentToken()
         position++
         return token
     }
 
-    /** 期望指定类型的词法单元 / Expect a token of specified type */
+    /**
+     * 期望指定类型的词法单元
+     * Expect a token of specified type
+     *
+     * @param type the expected token type / 期望的词法单元类型
+     * @param message the error message if the token does not match / 词法单元不匹配时的错误信息
+     * @return the matched token or failure / 匹配的词法单元或失败原因
+     */
     private fun expect(type: TokenType, message: String): Ret<Token> {
         if (currentToken().type != type) {
             return parseFailed(message, currentToken().position)
@@ -436,6 +489,10 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 合并 or 表达式（扁平化）
      * Merge or expressions (flatten)
+     *
+     * @param left the left boolean expression / 左侧布尔表达式
+     * @param right the right boolean expression / 右侧布尔表达式
+     * @return the merged or expression / 合并后的 or 表达式
      */
     private fun mergeOr(left: BooleanExpression, right: BooleanExpression): OrExpression {
         val operands = mutableListOf<BooleanExpression>()
@@ -458,6 +515,10 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
     /**
      * 合并 and 表达式（扁平化）
      * Merge and expressions (flatten)
+     *
+     * @param left the left boolean expression / 左侧布尔表达式
+     * @param right the right boolean expression / 右侧布尔表达式
+     * @return the merged and expression / 合并后的 and 表达式
      */
     private fun mergeAnd(left: BooleanExpression, right: BooleanExpression): AndExpression {
         val operands = mutableListOf<BooleanExpression>()

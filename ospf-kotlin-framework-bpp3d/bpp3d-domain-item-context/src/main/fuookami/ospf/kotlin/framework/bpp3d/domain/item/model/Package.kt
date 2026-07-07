@@ -1,6 +1,6 @@
 /**
- * 包装模型。
  * Package model.
+ * 包装模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

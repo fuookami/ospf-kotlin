@@ -1,6 +1,6 @@
 /**
- * 模式模型，定义模式放置和生成的接口与公共逻辑。
  * Pattern model, defining the interface and common logic for pattern placement and generation.
+ * 模式模型，定义模式放置和生成的接口与公共逻辑。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

@@ -17,7 +17,7 @@ class AOGPlan(
     override val scheduledTime: TimeRange,
     val airport: Airport,
     status: Set<FlightTaskStatus>,
-    override val actualId: String = UUID.randomUUID().toString()
+    actualId: String = UUID.randomUUID().toString()
 ) : FlightTaskPlan(
     id = "${prefix}_${actualId.replace("-", "")}",
     name = "${aircraft.regNo}_AOG_${scheduledTime.start.toShortString()}",
@@ -54,6 +54,7 @@ class AOGPlan(
         }
     }
 
+    override val actualId = FlightTaskPlanId(actualId)
     override val displayName = "AOG"
     override val enabledAircrafts = setOf(aircraft)
     override val dep = airport

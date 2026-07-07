@@ -15,6 +15,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Enforces adjacent position separation constraints for ELD (Electronic Device) cargo.
+ * 强制执行ELD（电子设备）货物的相邻位置分离约束。
+ *
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property neighbours the list of adjacent position pairs / 相邻位置对列表
+ * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ */
 class ELDAdjacentLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

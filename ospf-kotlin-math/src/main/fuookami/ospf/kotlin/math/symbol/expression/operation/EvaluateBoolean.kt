@@ -142,6 +142,10 @@ fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): 
 /**
  * 求值比较表达式
  * Evaluate comparison expression
+ *
+ * @param expr the comparison expression to evaluate / 要求值的比较表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext): Trivalent {
     val leftValue = evaluateScalar(expr.left, context) ?: return Trivalent.Unknown
@@ -152,8 +156,12 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
 }
 
 /**
- * 求倌In 表达弌
+ * 求值 In 表达式
  * Evaluate In expression
+ *
+ * @param expr the in expression to evaluate / 要求值的 In 表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Trivalent {
     val value = evaluateScalar(expr.value, context) ?: return Trivalent.Unknown
@@ -173,6 +181,10 @@ private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Triva
 /**
  * 求值模式匹配表达式
  * Evaluate pattern match expression
+ *
+ * @param expr the pattern match expression to evaluate / 要求值的模式匹配表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationContext): Trivalent {
     val value = evaluateScalar(expr.value, context)?.toString() ?: return Trivalent.Unknown
@@ -197,8 +209,12 @@ private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationConte
 }
 
 /**
- * 求值空值检柌
+ * 求值空值检查
  * Evaluate null check
+ *
+ * @param expr the null check expression to evaluate / 要求值的空值检查表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Trivalent {
     if (!context.contains(expr.path)) {
@@ -214,8 +230,12 @@ private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Triv
 }
 
 /**
- * 求倌And 表达弌
+ * 求值 And 表达式
  * Evaluate And expression
+ *
+ * @param expr the and expression to evaluate / 要求值的 And 表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trivalent {
     var hasUnknown = false
@@ -232,8 +252,12 @@ private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trival
 }
 
 /**
- * 求倌Or 表达弌
+ * 求值 Or 表达式
  * Evaluate Or expression
+ *
+ * @param expr the or expression to evaluate / 要求值的 Or 表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalent {
     var hasUnknown = false
@@ -250,8 +274,12 @@ private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalen
 }
 
 /**
- * 求倌Not 表达弌
+ * 求值 Not 表达式
  * Evaluate Not expression
+ *
+ * @param expr the not expression to evaluate / 要求值的 Not 表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trivalent {
     return when (evaluateBoolean(expr.operand, context)) {
@@ -264,6 +292,10 @@ private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trival
 /**
  * 求值标量表达式
  * Evaluate scalar expression
+ *
+ * @param expr the scalar expression to evaluate / 要求值的标量表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
 private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext): Any? {
     return when (expr) {
@@ -297,7 +329,13 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         }
     }
 
-    /** 计算绝对值，支持多种数值类型 / Compute absolute value, supporting multiple numeric types */
+    /**
+     * 计算绝对值，支持多种数值类型
+     * Compute absolute value, supporting multiple numeric types
+     *
+     * @param arguments the argument list (must contain exactly one numeric value) / 参数列表（必须恰好包含一个数值）
+     * @return the absolute value, or null if arguments are invalid / 绝对值，参数无效时返回 null
+     */
     private fun evaluateAbs(arguments: List<Any?>): Any? {
         if (arguments.size != 1) {
             return null
@@ -343,7 +381,13 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
         return operation(value)
     }
 
-    /** 返回参数列表中第一个非空值 / Return the first non-null value from the argument list */
+    /**
+     * 返回参数列表中第一个非空值
+     * Return the first non-null value from the argument list
+     *
+     * @param arguments the argument list / 参数列表
+     * @return the first non-null value, or null if all values are null / 第一个非空值，全部为 null 时返回 null
+     */
     private fun evaluateCoalesce(arguments: List<Any?>): Any? {
         if (arguments.isEmpty()) {
             return null
@@ -353,8 +397,12 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
 }
 
 /**
- * 求值一元操佌
+ * 求值一元操作
  * Evaluate unary operation
+ *
+ * @param expr the unary expression to evaluate / 要求值的一元表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
 private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext): Any? {
     val operand = evaluateScalar(expr.operand, context) ?: return null
@@ -367,8 +415,12 @@ private typealias UnaryExpression<T> = ScalarUnary<T>
 private typealias BinaryExpression<T> = ScalarBinary<T>
 
 /**
- * 求值二元操佌
+ * 求值二元操作
  * Evaluate binary operation
+ *
+ * @param expr the binary expression to evaluate / 要求值的二元表达式
+ * @param context the evaluation context / 求值上下文
+ * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
 private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext): Any? {
     val left = evaluateScalar(expr.left, context) ?: return null
@@ -379,8 +431,13 @@ private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext
 // ========== 辅助函数 / Helper Functions ==========
 
 /**
- * 比较两个倌
+ * 比较两个值
  * Compare two values
+ *
+ * @param left the left operand / 左操作数
+ * @param right the right operand / 右操作数
+ * @param operator the comparison operator / 比较运算符
+ * @return the comparison result, or null if either value is null / 比较结果，任一值为 null 时返回 null
  */
 private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator): Boolean? {
     if (left == null || right == null) return null
@@ -398,6 +455,10 @@ private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator)
 /**
  * 比较两个值的大小
  * Compare magnitude of two values
+ *
+ * @param left the left operand / 左操作数
+ * @param right the right operand / 右操作数
+ * @return comparison result (negative if less, zero if equal, positive if greater), or null if types are incompatible / 比较结果（负值表示小于，零表示相等，正值表示大于），类型不兼容时返回 null
  */
 private fun compareOrder(left: Any, right: Any): Int? {
     return when {
@@ -426,8 +487,12 @@ private fun compareSameTypeComparable(left: Any, right: Any): Int {
 }
 
 /**
- * 判断两个值是否相筌
+ * 判断两个值是否相等
  * Check if two values are equal
+ *
+ * @param left the left operand / 左操作数
+ * @param right the right operand / 右操作数
+ * @return whether the two values are equal / 两个值是否相等
  */
 private fun valuesEqual(left: Any?, right: Any?): Boolean {
     if (left == null && right == null) return true
@@ -453,7 +518,12 @@ private fun compareNumbers(left: Number, right: Number): Int? {
     return leftDecimal.compareTo(rightDecimal)
 }
 
-/** 将数值安全转换为 BigDecimal，非有限浮点数返回 null / Safely convert a Number to BigDecimal, returning null for non-finite floats */
+/**
+ * 将数值安全转换为 BigDecimal，非有限浮点数返回 null
+ * Safely convert a Number to BigDecimal, returning null for non-finite floats
+ *
+ * @return the BigDecimal representation, or null for non-finite floats / BigDecimal 表示，非有限浮点数返回 null
+ */
 private fun Number.toBigDecimalOrNull(): BigDecimal? {
     return when (this) {
         is BigDecimal -> this
@@ -471,6 +541,10 @@ private fun Number.toBigDecimalOrNull(): BigDecimal? {
  *
  * 支持 %（任意字符）和_（单个字符）通配符。
  * Supports % (any characters) and _ (single character) wildcards.
+ *
+ * @param value the string value to match / 要匹配的字符串值
+ * @param pattern the LIKE pattern / LIKE 模式
+ * @return whether the value matches the pattern / 值是否匹配模式
  */
 private fun matchLike(value: String, pattern: String): Boolean {
     // 尌SQL LIKE 模式转换为正则表达式

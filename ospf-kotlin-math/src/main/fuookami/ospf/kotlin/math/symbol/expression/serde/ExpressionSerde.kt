@@ -18,28 +18,48 @@ import fuookami.ospf.kotlin.math.Trivalent
 
 // ========== 序列化模型 / Serialization Models ==========
 
+/**
+ * Serialization data model for scalar expressions.
+ * 中文标量表达式的序列化数据模型。
+ */
 @Serializable
 internal sealed interface ScalarExpressionData {
     val typeName: String
 
+    /**
+     * Serialization data for a scalar constant value.
+     * 中文标量常量值的序列化数据。
+     */
     @Serializable
     @SerialName("Constant")
     data class Constant(val value: JsonElement) : ScalarExpressionData {
         override val typeName = "Constant"
     }
 
+    /**
+     * Serialization data for a scalar property path reference.
+     * 中文标量属性路径引用的序列化数据。
+     */
     @Serializable
     @SerialName("Reference")
     data class Reference(val path: String) : ScalarExpressionData {
         override val typeName = "Reference"
     }
 
+    /**
+     * Serialization data for a scalar symbol reference.
+     * 中文标量符号引用的序列化数据。
+     */
     @Serializable
     @SerialName("SymbolReference")
     data class SymbolReference(val identifier: String) : ScalarExpressionData {
         override val typeName = "SymbolReference"
     }
 
+    /**
+     * Serialization data for a unary scalar expression.
+     * 中文一元标量表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Unary")
     data class Unary(
@@ -49,6 +69,10 @@ internal sealed interface ScalarExpressionData {
         override val typeName = "Unary"
     }
 
+    /**
+     * Serialization data for a binary scalar expression.
+     * 中文二元标量表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Binary")
     data class Binary(
@@ -59,6 +83,10 @@ internal sealed interface ScalarExpressionData {
         override val typeName = "Binary"
     }
 
+    /**
+     * Serialization data for a scalar function call expression.
+     * 中文标量函数调用表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Function")
     data class Function(
@@ -68,6 +96,10 @@ internal sealed interface ScalarExpressionData {
         override val typeName = "Function"
     }
 
+    /**
+     * Serialization data for a custom scalar expression.
+     * 中文自定义标量表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Custom")
     data class Custom(
@@ -78,16 +110,28 @@ internal sealed interface ScalarExpressionData {
     }
 }
 
+/**
+ * Serialization data model for boolean expressions.
+ * 中文布尔表达式的序列化数据模型。
+ */
 @Serializable
 internal sealed interface BooleanExpressionData {
     val typeName: String
 
+    /**
+     * Serialization data for a boolean constant.
+     * 中文布尔常量的序列化数据。
+     */
     @Serializable
     @SerialName("BooleanConstant")
     data class BooleanConstant(val value: String) : BooleanExpressionData {
         override val typeName = "BooleanConstant"
     }
 
+    /**
+     * Serialization data for a comparison expression.
+     * 中文比较表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Comparison")
     data class Comparison(
@@ -98,6 +142,10 @@ internal sealed interface BooleanExpressionData {
         override val typeName = "Comparison"
     }
 
+    /**
+     * Serialization data for a set membership (in) expression.
+     * 中文集合成员判断表达式的序列化数据。
+     */
     @Serializable
     @SerialName("In")
     data class In(
@@ -108,6 +156,10 @@ internal sealed interface BooleanExpressionData {
         override val typeName = "In"
     }
 
+    /**
+     * Serialization data for a pattern match expression.
+     * 中文模式匹配表达式的序列化数据。
+     */
     @Serializable
     @SerialName("PatternMatch")
     data class PatternMatch(
@@ -119,6 +171,10 @@ internal sealed interface BooleanExpressionData {
         override val typeName = "PatternMatch"
     }
 
+    /**
+     * Serialization data for a null check expression.
+     * 中文空值检查表达式的序列化数据。
+     */
     @Serializable
     @SerialName("NullCheck")
     data class NullCheck(
@@ -128,24 +184,40 @@ internal sealed interface BooleanExpressionData {
         override val typeName = "NullCheck"
     }
 
+    /**
+     * Serialization data for a logical AND expression.
+     * 中文逻辑与表达式的序列化数据。
+     */
     @Serializable
     @SerialName("And")
     data class And(val operands: List<BooleanExpressionData>) : BooleanExpressionData {
         override val typeName = "And"
     }
 
+    /**
+     * Serialization data for a logical OR expression.
+     * 中文逻辑或表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Or")
     data class Or(val operands: List<BooleanExpressionData>) : BooleanExpressionData {
         override val typeName = "Or"
     }
 
+    /**
+     * Serialization data for a logical NOT expression.
+     * 中文逻辑非表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Not")
     data class Not(val operand: BooleanExpressionData) : BooleanExpressionData {
         override val typeName = "Not"
     }
 
+    /**
+     * Serialization data for a custom boolean expression.
+     * 中文自定义布尔表达式的序列化数据。
+     */
     @Serializable
     @SerialName("Custom")
     data class Custom(
@@ -165,7 +237,10 @@ private val json = Json {
     classDiscriminator = "type"
 }
 
-/** 将 ScalarExpression<Any?> 安全转换为 ScalarExpression<Any>，用于 JSON 反序列化边界 / Safely cast ScalarExpression<Any?> to ScalarExpression<Any> at the JSON deserialization boundary */
+/**
+ * Safely cast ScalarExpression<Any?> to ScalarExpression<Any> at the JSON deserialization boundary.
+ * 中文将 ScalarExpression<Any?> 安全转换为 ScalarExpression<Any>，用于 JSON 反序列化边界。
+ */
 @Suppress("UNCHECKED_CAST")
 private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any> {
     // JSON 反序列化边界只恢复表达式树结构，调用方按 ScalarExpression<Any> 继续处理。
@@ -176,8 +251,10 @@ private fun ScalarExpression<Any?>.asAnyScalarExpression(): ScalarExpression<Any
 // ========== ScalarExpression 序列化 / ScalarExpression Serialization ==========
 
 /**
- * 将 ScalarExpression 转换为序列化数据
- * Convert ScalarExpression to serialization data
+ * Convert ScalarExpression to serialization data.
+ * 中文将 ScalarExpression 转换为序列化数据。
+ *
+ * @return the serialization data / 序列化数据
  */
 internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
     is ScalarConstant<*> -> ScalarExpressionData.Constant(
@@ -210,8 +287,10 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
 }
 
 /**
- * 从序列化数据恢复 ScalarExpression
- * Restore ScalarExpression from serialization data
+ * Restore ScalarExpression from serialization data.
+ * 中文从序列化数据恢复 ScalarExpression。
+ *
+ * @return the restored scalar expression / 恢复的标量表达式
  */
 internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = when (this) {
     is ScalarExpressionData.Constant -> {
@@ -250,8 +329,10 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
 // ========== BooleanExpression 序列化 / BooleanExpression Serialization ==========
 
 /**
- * 将 BooleanExpression 转换为序列化数据
- * Convert BooleanExpression to serialization data
+ * Convert BooleanExpression to serialization data.
+ * 中文将 BooleanExpression 转换为序列化数据。
+ *
+ * @return the serialization data / 序列化数据
  */
 internal fun BooleanExpression.toData(): BooleanExpressionData = when (this) {
     is BooleanConstant -> BooleanExpressionData.BooleanConstant(
@@ -294,8 +375,10 @@ internal fun BooleanExpression.toData(): BooleanExpressionData = when (this) {
 }
 
 /**
- * 从序列化数据恢复 BooleanExpression
- * Restore BooleanExpression from serialization data
+ * Restore BooleanExpression from serialization data.
+ * 中文从序列化数据恢复 BooleanExpression。
+ *
+ * @return the restored boolean expression / 恢复的布尔表达式
  */
 internal fun BooleanExpressionData.toBooleanExpression(): BooleanExpression = when (this) {
     is BooleanExpressionData.BooleanConstant -> BooleanConstant(

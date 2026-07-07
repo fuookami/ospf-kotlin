@@ -1,6 +1,6 @@
 /**
- * 物料装箱编号。
  * Material packing numbers.
+ * 物料装箱编号。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
@@ -8,23 +8,30 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
 /**
- * 物料包装标量零值。
- * Zero value for material packing scalar.
- * @return 零值物料包装标量
+ * Returns the zero value for material packing scalar.
+ * 返回物料包装标量的零值。
+ *
+ * @return The zero FltX value.
+ * 零值 FltX。
  */
 fun materialPackingZero(): FltX = FltX.zero
 
 /**
- * 物料包装标量一值。
- * One value for material packing scalar.
- * @return 一值物料包装标量
+ * Returns the one value for material packing scalar.
+ * 返回物料包装标量的一值。
+ *
+ * @return The one FltX value.
+ * 一值 FltX。
  */
 fun materialPackingOne(): FltX = FltX.one
 
 /**
- * 以 double 构造物料包装标量。
- * Build material packing scalar from double.
- * @param value 双精度浮点数值
- * @return 构造的物料包装标量
+ * Creates a material packing scalar from a double value.
+ * 从双精度浮点数值构造物料包装标量。
+ *
+ * @param value The double value to convert.
+ * 要转换的双精度浮点数值。
+ * @return The FltX scalar value.
+ * 构造的 FltX 标量值。
  */
 fun materialPackingScalar(value: Double): FltX = FltX(value)

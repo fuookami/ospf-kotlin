@@ -425,6 +425,14 @@ class ColumnGenerationStandardExecutors(
         return finalBins.firstOrNull()?.type
     }
 
+    /**
+     * RMP 求解构件，包含线性元模型、货物需求约束和连续半径模型组件。
+     * RMP solving artifacts, containing the linear meta model, item demand constraint and continuous radius model component.
+     *
+     * @property model 线性元模型 / linear meta model
+     * @property demandConstraint 货物需求约束 / item demand constraint
+     * @property continuousRadiusComponent 连续半径模型组件 / continuous radius model component
+     */
     private data class RmpArtifacts(
         val model: LinearMetaModel<FltX>,
         val demandConstraint: ItemDemandConstraint,

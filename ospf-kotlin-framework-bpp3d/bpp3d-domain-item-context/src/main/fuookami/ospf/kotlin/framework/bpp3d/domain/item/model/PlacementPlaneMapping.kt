@@ -1,6 +1,6 @@
 /**
- * 放置平面桥接。
  * Placement plane bridge.
+ * 放置平面桥接。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

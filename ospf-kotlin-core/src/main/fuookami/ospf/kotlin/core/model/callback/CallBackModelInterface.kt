@@ -191,18 +191,24 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
     /**
      * 提供当前 V 类型的 IntoValue<V> 转换器。
      * Provide the IntoValue<V> converter for this V type.
+     *
+     * @return the value converter / 值转换器
      */
     fun converter(): IntoValue<V>
 
     /**
      * 提供当前 V 类型的负无穷值。
      * Provide negative infinity for this V type.
+     *
+     * @return negative infinity value / 负无穷值
      */
     fun negativeInfinity(): V
 
     /**
      * 提供当前 V 类型的正无穷值。
      * Provide positive infinity for this V type.
+     *
+     * @return positive infinity value / 正无穷值
      */
     fun infinity(): V
 }
@@ -267,18 +273,24 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
     /**
      * 提供当前 V 类型的 IntoValue<V> 转换器。
      * Provide the IntoValue<V> converter for this V type.
+     *
+     * @return the value converter / 值转换器
      */
     fun converter(): IntoValue<V>
 
     /**
      * 提供当前 V 类型的负无穷值。
      * Provide negative infinity for this V type.
+     *
+     * @return negative infinity value / 负无穷值
      */
     fun negativeInfinity(): V
 
     /**
      * 提供当前 V 类型的正无穷值。
      * Provide positive infinity for this V type.
+     *
+     * @return positive infinity value / 正无穷值
      */
     fun infinity(): V
 }

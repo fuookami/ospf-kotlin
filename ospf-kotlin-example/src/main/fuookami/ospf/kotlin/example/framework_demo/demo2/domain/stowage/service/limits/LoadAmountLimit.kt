@@ -10,6 +10,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces the maximum load amount constraint for each position.
+ * 强制执行每个位置的最大装载量约束。
+ *
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property load the load decision variables / 装载决策变量
+ */
 class LoadAmountLimit(
     private val positions: List<Position>,
     private val load: Load,

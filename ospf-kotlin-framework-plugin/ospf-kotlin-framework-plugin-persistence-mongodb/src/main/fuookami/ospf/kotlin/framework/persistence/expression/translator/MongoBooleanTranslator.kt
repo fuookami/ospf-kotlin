@@ -36,6 +36,10 @@ class MongoBooleanTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+    /**
+     * 标量表达式翻译器实例
+     * Scalar expression translator instance
+     */
     private val scalarTranslator = MongoScalarTranslator(resolveFieldName, unsupportedPredicatePolicy)
 
     /**
@@ -59,6 +63,13 @@ class MongoBooleanTranslator(
         }
     }
 
+    /**
+     * 翻译布尔常量表达式
+     * Translate boolean constant expression
+     *
+     * @param expr 布尔常量表达式 / Boolean constant expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateConstant(expr: BooleanConstant): Ret<Bson?> {
         val result: Bson? = when (expr.value) {
             Trivalent.True -> Filters.empty()
@@ -66,6 +77,13 @@ class MongoBooleanTranslator(
         }
         return Ok(result)
     }
+    /**
+     * 翻译比较表达式
+     * Translate comparison expression
+     *
+     * @param expr 比较表达式 / Comparison expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateComparison(expr: Comparison<*>): Ret<Bson?> {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -114,6 +132,13 @@ class MongoBooleanTranslator(
             ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
         return Ok(Document("\$expr", Document(exprOperator(expr.operator), listOf(left, right))))
     }
+    /**
+     * 翻译 IN 表达式
+     * Translate IN expression
+     *
+     * @param expr IN 表达式 / IN expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateIn(expr: InExpression<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a field reference", expr)
@@ -131,6 +156,13 @@ class MongoBooleanTranslator(
             Filters.`in`(field, values)
         })
     }
+    /**
+     * 翻译模式匹配表达式
+     * Translate pattern match expression
+     *
+     * @param expr 模式匹配表达式 / Pattern match expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translatePatternMatch(expr: PatternMatch<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a field reference", expr)
@@ -156,6 +188,13 @@ class MongoBooleanTranslator(
         })
     }
 
+    /**
+     * 翻译空值检查表达式
+     * Translate null check expression
+     *
+     * @param expr 空值检查表达式 / Null check expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateNullCheck(expr: NullCheck): Ret<Bson?> {
         val field = resolveFieldName(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
@@ -173,21 +212,49 @@ class MongoBooleanTranslator(
         })
     }
 
+    /**
+     * 翻译逻辑与表达式
+     * Translate logical AND expression
+     *
+     * @param expr 逻辑与表达式 / Logical AND expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateAnd(expr: AndExpression): Ret<Bson?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(Filters.and(conditions))
     }
 
+    /**
+     * 翻译逻辑或表达式
+     * Translate logical OR expression
+     *
+     * @param expr 逻辑或表达式 / Logical OR expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateOr(expr: OrExpression): Ret<Bson?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(Filters.or(conditions))
     }
 
+    /**
+     * 翻译逻辑非表达式
+     * Translate logical NOT expression
+     *
+     * @param expr 逻辑非表达式 / Logical NOT expression
+     * @return Bson 查询条件 / Bson query condition
+     */
     private fun translateNot(expr: NotExpression): Ret<Bson?> {
         val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
         return Ok(Filters.not(condition))
     }
 
+    /**
+     * 将比较运算符映射为 MongoDB 表达式运算符
+     * Map comparison operator to MongoDB expression operator
+     *
+     * @param operator 比较运算符 / Comparison operator
+     * @return MongoDB 表达式运算符字符串 / MongoDB expression operator string
+     */
     private fun exprOperator(operator: ComparisonOperator): String {
         return when (operator) {
             ComparisonOperator.Eq -> "\$eq"
@@ -199,6 +266,14 @@ class MongoBooleanTranslator(
         }
     }
 
+    /**
+     * 根据策略处理不支持的表达式
+     * Handle unsupported expression based on policy
+     *
+     * @param reason 不支持的原因 / Reason for being unsupported
+     * @param expression 不支持的表达式 / Unsupported expression
+     * @return 处理结果 / Handling result
+     */
     private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

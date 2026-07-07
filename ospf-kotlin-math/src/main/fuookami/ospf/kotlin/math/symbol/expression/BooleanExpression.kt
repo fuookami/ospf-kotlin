@@ -35,8 +35,10 @@ sealed interface BooleanExpression {
     val children: List<BooleanExpression>
 
     /**
-     * 判断表达式是否是常量
-     * Check if expression is constant
+     * Checks if the expression is constant.
+     * 判断表达式是否是常量。
+     *
+     * @return true if the expression evaluates to a constant / 如果表达式求值为常量则返回 true
      */
     fun isConstant(): Boolean = when (this) {
         is BooleanConstant -> true
@@ -51,8 +53,10 @@ sealed interface BooleanExpression {
     }
 
     /**
-     * 判断表达式是否是纯逻辑表达式（不含比较等）
-     * Check if expression is pure logical (no comparisons etc.)
+     * Checks if the expression is pure logical (no comparisons etc.).
+     * 判断表达式是否是纯逻辑表达式（不含比较等）。
+     *
+     * @return true if the expression contains only logical operators / 如果表达式仅包含逻辑操作符则返回 true
      */
     fun isPureLogical(): Boolean = when (this) {
         is BooleanConstant -> true
@@ -64,8 +68,10 @@ sealed interface BooleanExpression {
     }
 
     /**
-     * 获取表达式中的所有引用路後
-     * Get all reference paths in the expression
+     * Collects all reference paths in the expression.
+     * 获取表达式中的所有引用路径。
+     *
+     * @return the set of all property paths referenced / 所有引用的属性路径集合
      */
     fun collectReferences(): Set<PropertyPath> {
         val refs = mutableSetOf<PropertyPath>()
@@ -109,8 +115,10 @@ sealed interface BooleanExpression {
     }
 
     /**
-     * 获取逻辑操作符数里
-     * Get number of logical operators
+     * Gets the number of logical operators in the expression.
+     * 获取逻辑操作符数量。
+     *
+     * @return the count of logical operators / 逻辑操作符数量
      */
     fun logicalOperatorCount(): Int = when (this) {
         is BooleanConstant, is Comparison<*>, is InExpression<*>, is PatternMatch<*>, is NullCheck -> 0
@@ -121,8 +129,10 @@ sealed interface BooleanExpression {
     }
 
     /**
-     * 获取表达式深庌
-     * Get expression depth
+     * Gets the depth of the expression tree.
+     * 获取表达式深度。
+     *
+     * @return the depth of the expression / 表达式深度
      */
     fun depth(): Int = when (this) {
         is BooleanConstant, is Comparison<*>, is InExpression<*>, is PatternMatch<*>, is NullCheck -> 1
@@ -174,23 +184,26 @@ data class BooleanConstant(
 
     companion object {
         /**
-         * 创建 true 常量 / Create true constant
+         * Creates a true constant.
+         * 创建 true 常量。
          *
-         * @return true 布尔常量 / True boolean constant
+         * @return true boolean constant / true 布尔常量
          */
         fun true_(): BooleanConstant = BooleanConstant(Trivalent.True)
 
         /**
-         * 创建 false 常量 / Create false constant
+         * Creates a false constant.
+         * 创建 false 常量。
          *
-         * @return false 布尔常量 / False boolean constant
+         * @return false boolean constant / false 布尔常量
          */
         fun false_(): BooleanConstant = BooleanConstant(Trivalent.False)
 
         /**
-         * 创建 unknown 常量 / Create unknown constant
+         * Creates an unknown constant.
+         * 创建 unknown 常量。
          *
-         * @return unknown 布尔常量 / Unknown boolean constant
+         * @return unknown boolean constant / unknown 布尔常量
          */
         fun unknown(): BooleanConstant = BooleanConstant(Trivalent.Unknown)
     }

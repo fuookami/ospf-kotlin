@@ -77,6 +77,9 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
 
     /**
      * 转换对偶值到领域数值 / Convert dual value to domain value
+     *
+     * @param dualValue Dual value from LP solution / LP 对偶值
+     * @return Domain value / 领域数值
      */
     fun convertDualValue(dualValue: Flt64): V = (convertSolverValue(domainValueSample, dualValue) as Ok).value
 }

@@ -270,6 +270,13 @@ data class RequestRecord<T>(
         }
     }
 
+    /**
+     * Converts this record to a persistence object using the provided serializer.
+     * 使用提供的序列化函数将此记录转换为持久化对象。
+     *
+     * @param serializer 序列化函数 / Serialization function
+     * @return 请求记录 PO / Request record PO
+     */
     fun po(serializer: (T) -> ByteArray): RequestRecordPO {
         return RequestRecordPO(
             requestId = this.id,
@@ -356,6 +363,13 @@ data class ResponseRecord<T>(
         }
     }
 
+    /**
+     * Converts this record to a persistence object using the provided serializer.
+     * 使用提供的序列化函数将此记录转换为持久化对象。
+     *
+     * @param serializer 序列化函数 / Serialization function
+     * @return 响应记录 PO / Response record PO
+     */
     fun po(serializer: (T) -> ByteArray): ResponseRecordPO {
         return ResponseRecordPO(
             requestId = this.id,

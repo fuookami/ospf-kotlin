@@ -82,12 +82,6 @@ interface AbstractMVOPolicy<ObjValue, V> :
 }
 
 /**
- *
- * @param V
- * @property minWEP         minimum wormhole existence probability
- * @property maxWEP         maximum wormhole existence probability
- */
-/**
  * 多元宇宙优化器策略
  *
  * 实现多元宇宙优化的虫洞存在概率、旅行距离率和白洞概率计算，
@@ -121,6 +115,17 @@ open class MVOPolicy<ObjValue, V>(
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractMVOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    /**
+     * 创建默认多元宇宙优化器策略 / Create default MVO policy
+     *
+     * @param minWEP 最小虫洞存在概率 / minimum wormhole existence probability
+     * @param maxWEP 最大虫洞存在概率 / maximum wormhole existence probability
+     * @param iterationLimit 迭代次数上限 / iteration limit
+     * @param notBetterIterationLimit 无改进迭代次数上限 / not-better iteration limit
+     * @param timeLimit 时间上限 / time limit
+     * @param randomGenerator 随机数生成器 / random number generator
+     * @return 默认 MVO 策略实例 / default MVO policy instance
+     */
     companion object {
         operator fun invoke(
             minWEP: Flt64 = Flt64(0.2),
@@ -350,5 +355,7 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
     }
 }
 
+/** 单目标多元宇宙优化器别名 / Single-objective Multi-Verse Optimizer typealias */
 typealias MVO = MultiVerseOptimizer<Flt64, Flt64, Flt64>
+/** 多目标多元宇宙优化器别名 / Multi-objective Multi-Verse Optimizer typealias */
 typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

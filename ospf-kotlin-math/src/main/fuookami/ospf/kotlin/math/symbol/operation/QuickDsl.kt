@@ -24,12 +24,17 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
+ * @property converter Flt64 到 V 的转换器 / Flt64 to V converter
  */
 class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
     // ========== LinearPolynomial constructors ==========
     // 线性多项式构造函数 / Linear polynomial constructors
 
-    /** 创建空的线性多项式（零多项式） / Create empty linear polynomial (zero polynomial) */
+    /**
+     * 创建空的线性多项式（零多项式） / Create empty linear polynomial (zero polynomial)
+     *
+     * @return 空的线性多项式 / Empty linear polynomial
+     */
     fun LinearPolynomial(): LinearPolynomial<V> =
         LinearPolynomial(emptyList(), converter.zero)
 
@@ -69,14 +74,22 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     fun LinearPolynomial(symbol: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, symbol)), converter.zero)
 
-    /** 创建空的可变线性多项式 / Create empty mutable linear polynomial */
+    /**
+     * 创建空的可变线性多项式 / Create empty mutable linear polynomial
+     *
+     * @return 空的可变线性多项式 / Empty mutable linear polynomial
+     */
     fun MutableLinearPolynomial(): MutableLinearPolynomial<V> =
         MutableLinearPolynomial(emptyList(), converter.zero)
 
     // ========== QuadraticPolynomial constructors ==========
     // 二次多项式构造函数 / Quadratic polynomial constructors
 
-    /** 创建空的二次多项式（零多项式） / Create empty quadratic polynomial (zero polynomial) */
+    /**
+     * 创建空的二次多项式（零多项式） / Create empty quadratic polynomial (zero polynomial)
+     *
+     * @return 空的二次多项式 / Empty quadratic polynomial
+     */
     fun QuadraticPolynomial(): QuadraticPolynomial<V> =
         QuadraticPolynomial(emptyList(), converter.zero)
 
@@ -116,7 +129,11 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
     fun QuadraticPolynomial(symbol: Symbol): QuadraticPolynomial<V> =
         QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, symbol)), converter.zero)
 
-    /** 创建空的可变二次多项式 / Create empty mutable quadratic polynomial */
+    /**
+     * 创建空的可变二次多项式 / Create empty mutable quadratic polynomial
+     *
+     * @return 空的可变二次多项式 / Empty mutable quadratic polynomial
+     */
     fun MutableQuadraticPolynomial(): MutableQuadraticPolynomial<V> =
         MutableQuadraticPolynomial(emptyList(), converter.zero)
 

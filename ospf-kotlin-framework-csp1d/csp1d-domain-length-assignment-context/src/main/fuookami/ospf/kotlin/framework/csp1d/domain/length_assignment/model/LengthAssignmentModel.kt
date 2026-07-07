@@ -6,12 +6,13 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Product
 
 /**
- * 卷长分配结果，描述单个产品被分配的卷长 / Length assignment result for a single product
+ * Length assignment result for a single product.
+ * 卷长分配结果，描述单个产品被分配的卷长
  *
- * @param V 数值类型 / Numeric value type
- * @property product 产品 / Product
- * @property assignedLength 分配的卷长 / Assigned coil length
- * @property batchCount 分配的批次数 / Assigned batch count
+ * @param V Numeric value type / 数值类型
+ * @property product Product / 产品
+ * @property assignedLength Assigned coil length / 分配的卷长
+ * @property batchCount / 分配的批次数
  */
 data class LengthAssignment<V : RealNumber<V>>(
     val product: Product<V>,

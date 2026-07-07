@@ -22,13 +22,36 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
+/**
+ * Key for identifying quadratic terms during like-term combination.
+ * 二次项合并时的项键。
+ *
+ * Normalizes symbol order so that (s1, s2) and (s2, s1) are treated as the same term.
+ * 规范化符号顺序，使 (s1, s2) 和 (s2, s1) 被视为同一项。
+ *
+ * @property symbol1 the first symbol / 第一个符号
+ * @property symbol2 the second symbol (null for linear terms in quadratic form) / 第二个符号（二次形式中的线性项为 null）
+ */
 internal class QuadraticTermKey private constructor(
     val symbol1: Symbol,
     val symbol2: Symbol?,
     private val hash: Int
 ) {
+    /**
+     * Companion object providing factory methods for QuadraticTermKey.
+     * 提供 QuadraticTermKey 工厂方法的伴生对象。
+     */
     companion object {
-        fun normalized(
+/**
+ * Creates a normalized key for a quadratic term, ensuring consistent symbol ordering.
+ * 为二次项创建规范化的键，确保符号顺序一致。
+ *
+ * @param symbol1 the first symbol / 第一个符号
+ * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
+ * @param comparator the comparator for symbol ordering / 符号排序比较器
+ * @return the normalized QuadraticTermKey / 规范化后的二次项键
+ */
+fun normalized(
             symbol1: Symbol,
             symbol2: Symbol?,
             comparator: Comparator<Symbol>
@@ -43,7 +66,14 @@ internal class QuadraticTermKey private constructor(
             }
         }
 
-        /** 计算两个符号的组合哈希值 / Compute combined hash of two symbols */
+        /**
+         * Computes a combined hash value for two symbols.
+         * 计算两个符号的组合哈希值。
+         *
+         * @param symbol1 the first symbol / 第一个符号
+         * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
+         * @return the combined hash code / 组合哈希值
+         */
         private fun hashOf(symbol1: Symbol, symbol2: Symbol?): Int {
             var result = symbol1.hashCode()
             result = 31 * result + (symbol2?.hashCode() ?: 0)
@@ -64,6 +94,14 @@ internal class QuadraticTermKey private constructor(
     override fun hashCode(): Int = hash
 }
 
+/**
+ * Combine like terms in a collection of linear monomials.
+ * 合并线性单项式集合中的同类项。
+ *
+ * @param zero the zero value for the coefficient type / 系数类型的零值
+ * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
+ * @return the list of combined linear monomials / 合并后的线性单项式列表
+ */
 internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
@@ -82,6 +120,15 @@ internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
     return combinedMonomials
 }
 
+/**
+ * Combine like terms in a collection of quadratic monomials.
+ * 合并二次单项式集合中的同类项。
+ *
+ * @param zero the zero value for the coefficient type / 系数类型的零值
+ * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
+ * @param symbolComparator comparator for symbol ordering (optional) / 符号排序比较器（可选）
+ * @return the list of combined quadratic monomials / 合并后的二次单项式列表
+ */
 internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },

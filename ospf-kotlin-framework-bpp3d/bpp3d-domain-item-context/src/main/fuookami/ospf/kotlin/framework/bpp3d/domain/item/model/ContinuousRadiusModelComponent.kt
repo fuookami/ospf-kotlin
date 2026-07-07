@@ -1,7 +1,7 @@
 /**
- * 连续半径模型组件，统一管理 native 和 PWL 两条路径的变量创建、注册与结果提取。
  * Continuous radius model component that unifies variable creation, registration,
  * and result extraction for both native and PWL paths.
+ * 连续半径模型组件，统一管理 native 和 PWL 两条路径的变量创建、注册与结果提取。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

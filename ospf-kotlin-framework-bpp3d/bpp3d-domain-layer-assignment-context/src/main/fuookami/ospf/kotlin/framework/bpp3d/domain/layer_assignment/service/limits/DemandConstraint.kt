@@ -1,6 +1,6 @@
 /**
- * 需求约束与影子价格提取。
  * Demand constraint and shadow price extraction.
+ * 需求约束与影子价格提取。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -22,8 +22,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 private val shadowPriceConverter = IntoValue.fromConverter(FltX)
 
 /**
- * 需求影子价格键，用于标识需求约束的影子价格。
  * Demand shadow price key, used to identify shadow prices of demand constraints.
+ * 需求影子价格键，用于标识需求约束的影子价格。
  *
  * @property mode 需求模式 / demand mode
  * @property key 需求键 / demand key
@@ -36,8 +36,8 @@ data class DemandShadowPriceKey(
 ) : ShadowPriceKey(DemandShadowPriceKey::class)
 
 /**
- * 符号线性多项式构造。
  * Symbol linear polynomial construction.
+ * 符号线性多项式构造。
  */
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
     return LinearPolynomial(
@@ -47,16 +47,16 @@ private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
 }
 
 /**
- * 常量多项式构造。
  * Constant polynomial construction.
+ * 常量多项式构造。
  */
 private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
     return LinearPolynomial(emptyList(), value)
 }
 
 /**
- * 需求模式标签。
  * Demand mode tag.
+ * 需求模式标签。
  */
 private fun modeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
@@ -70,8 +70,8 @@ private fun modeTag(mode: Bpp3dDemandMode): String {
 }
 
 /**
- * 需求域标签。
  * Demand domain tag.
+ * 需求域标签。
  */
 private fun domainTag(domain: Bpp3dDemandDomain): String {
     return when (domain) {
@@ -81,8 +81,8 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
 }
 
 /**
- * 获取需求统计。
  * Get demand statistics.
+ * 获取需求统计。
  *
  * 使用 Any 参数代替基础设施层通配 Cuboid 类型：when-dispatch 本身即为运行时类型检查，
  * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型的绑定。
@@ -108,8 +108,8 @@ private fun demandStatistics(
 }
 
 /**
- * 需求约束，确保装载量满足需求并提取影子价格。
  * Demand constraint, ensures load satisfies demands and extracts shadow prices.
+ * 需求约束，确保装载量满足需求并提取影子价格。
  *
  * @param Args 影子价格参数类型 / shadow price arguments type
  * @param T 立方体类型 / cuboid type
@@ -128,8 +128,8 @@ open class DemandConstraint<
     override val name: String = "demand"
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
     /**
-     * 按索引获取负载符号，越界时返回错误而非抛出异常。
      * Retrieve the load symbol by index, returning an error instead of throwing on out-of-bounds.
+     * 按索引获取负载符号，越界时返回错误而非抛出异常。
      *
      * @param index 符号索引 / symbol index
      * @return 成功时返回符号，索引越界时返回错误 / symbol on success, error if index is out of bounds
@@ -139,14 +139,45 @@ open class DemandConstraint<
             ?: Failed(ErrorCode.IllegalArgument, "Missing load symbol at index $index")
     }
 
+    /**
+     * Retrieve the upper bound load symbol by index, falling back to the main load symbol.
+     * 按索引获取上界负载符号，回退到主负载符号。
+     *
+     * @param index Symbol index.
+     * index 符号索引。
+     * @return The upper bound symbol.
+     * 返回上界符号。
+     */
     private fun upperSymbolAt(index: Int): Symbol {
         return runCatching { load.overLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
 
+    /**
+     * Retrieve the lower bound load symbol by index, falling back to the main load symbol.
+     * 按索引获取下界负载符号，回退到 *
+     *
+     * @param index Symbol index.
+     * index 符号索引。
+     * @return The lower bound symbol.
+     * 返回下界符号。
+     */
     private fun lowerSymbolAt(index: Int): Symbol {
         return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
 
+    /**
+     * Resolve the shadow price for a demand entry from the shadow price map.
+     * 从影子价格映射中解析需求条目的影子价格。
+     *
+     * @param map Shadow price map.
+     * map 影子价格映射。
+     * @param demand Demand entry.
+     * demand 需求条目。
+     * @param concreteMode Concrete demand mode.
+     * concreteMode 具体需求模式。
+     * @return The resolved shadow price.
+     * 返回解析的影子价格。
+     */
     private fun resolveShadowPrice(
         map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, FltX, T>>,
         demand: Bpp3dDemandEntry<FltX>,
@@ -310,8 +341,8 @@ open class DemandConstraint<
 }
 
 /**
- * 创建 Item 专用需求约束，供业务调用侧避开泛型基类入口。
  * Build item-only demand constraint so business callers avoid the quantity-polymorphic base entry.
+ * 创建 Item 专用需求约束，供业务调用侧避开泛型基类入口。
  *
  * @param load 负载符号 / load symbols
  * @param demandEntries 需求条目列表 / demand entry list
@@ -334,8 +365,8 @@ fun itemDemandConstraint(
 }
 
 /**
- * Item 专用需求约束，不暴露底层泛型 cuboid 约束。
  * Item-only demand constraint, does not expose the underlying quantity-polymorphic cuboid constraint.
+ * Item 专用需求约束，不暴露底层泛型 cuboid 约束。
  *
  * @property load 负载符号 / load symbols
  * @property demandEntries 需求条目列表 / demand entry list

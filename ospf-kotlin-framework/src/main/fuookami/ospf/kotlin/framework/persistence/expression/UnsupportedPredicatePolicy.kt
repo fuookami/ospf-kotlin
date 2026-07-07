@@ -86,6 +86,11 @@ data class UnsupportedPredicateDetail(
         /**
          * 创建 FailFast 策略的详情
          * Create detail for FailFast policy
+         *
+         * @param expressionType 表达式类型 / Expression type
+         * @param reason 不支持的原因 / Reason for unsupported
+         * @param backendName 后端名称 / Backend name
+         * @return FailFast 策略详情 / FailFast policy detail
          */
         fun failFast(
             expressionType: String,
@@ -103,6 +108,11 @@ data class UnsupportedPredicateDetail(
         /**
          * 创建 ClientFilter 策略的详情
          * Create detail for ClientFilter policy
+         *
+         * @param expressionType 表达式类型 / Expression type
+         * @param reason 不支持的原因 / Reason for unsupported
+         * @param backendName 后端名称 / Backend name
+         * @return ClientFilter 策略详情 / ClientFilter policy detail
          */
         fun clientFilter(
             expressionType: String,
@@ -121,6 +131,8 @@ data class UnsupportedPredicateDetail(
     /**
      * 转换为错误
      * Convert to error
+     *
+     * @return 错误对象 / Error object
      */
     fun toError(): Error<ErrorCode> {
         return when (policy) {

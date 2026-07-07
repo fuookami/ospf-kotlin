@@ -1,6 +1,6 @@
 /**
- * 自底向上左对齐算法。
  * Bottom-up left-justified algorithm.
+ * 自底向上左对齐算法。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
@@ -17,13 +17,17 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dValidationErr
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
 /**
- * 比较两个二维坐标点的位置优先级。
  * Compare the position priority of two 2D points.
+ * 比较两个二维坐标点的位置优先级。
  *
- * @param lhs 左侧坐标点
- * @param rhs 右侧坐标点
- * @param withManhattanDistance 是否优先按曼哈顿距离排序
- * @return 比较结果
+ * @param lhs The left-hand side point.
+ * @param lhs 左侧坐标点。
+ * @param rhs The right-hand side point.
+ * @param rhs 右侧坐标点。
+ * @param withManhattanDistance Whether to prioritize sorting by Manhattan distance.
+ * @param withManhattanDistance 是否优先按曼哈顿距离排序。
+ * @return The comparison result.
+ * 返回比较结果。
  */
 private fun compareWithPosition(
     lhs: QuantityPoint2<FltX>,
@@ -50,6 +54,17 @@ private fun compareWithPosition(
     return lhs.x ord rhs.x
 }
 
+/**
+ * Compare two projections by shape and weight for placement priority.
+ * 按形状和重量比较两个投影的放置优先级。
+ *
+ * @param lhs The left-hand side projection.
+ * @param lhs 左侧投影。
+ * @param rhs The right-hand side projection.
+ * @param rhs 右侧投影。
+ * @return The comparison result.
+ * 返回比较结果。
+ */
 fun <P : ProjectivePlane> compareWithShapeAndWeight(
     lhs: Projection<*, FltX, P>,
     rhs: Projection<*, FltX, P>
@@ -87,12 +102,15 @@ fun <P : ProjectivePlane> compareWithShapeAndWeight(
 }
 
 /**
- * 自底向上左对齐算法，在二维投影平面上求解装箱问题。
  * Bottom-up left-justified algorithm for solving bin packing on a 2D projection plane.
+ * 自底向上左对齐算法，在二维投影平面上求解装箱问题。
  *
- * @property space 容器的二维形状
- * @property plane 投影平面
- * @property config 算法配置
+ * @property space The 2D shape of the container.
+ * @property space 容器的二维形状。
+ * @property plane The projection plane.
+ * @property plane 投影平面。
+ * @property config The algorithm configuration.
+ * @property config 算法配置。
  */
 class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private val space: Container2Shape<P>,
@@ -108,13 +126,17 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     )
 
     /**
-     * 自底向上左对齐算法的配置。
      * Configuration for the bottom-up left-justified algorithm.
+     * 自底向上左对齐算法的配置。
      *
-     * @property withDisplacementX 是否启用 X 轴方向的位移搜索
-     * @property withDisplacementY 是否启用 Y 轴方向的位移搜索
-     * @property comparator 投影的三路比较器，决定放置优先级
-     * @property positionComparator 位置的三路比较器，决定候选点优先级
+     * @property withDisplacementX Whether to enable displacement search along the X axis.
+     * @property withDisplacementX 是否启用 X 轴方向的位移搜索。
+     * @property withDisplacementY Whether to enable displacement search along the Y axis.
+     * @property withDisplacementY 是否启用 Y 轴方向的位移搜索。
+     * @property comparator The three-way comparator for projections, determining placement priority.
+     * @property comparator 投影的三路比较器，决定放置优先级。
+     * @property positionComparator The three-way comparator for positions, determining candidate point priority.
+     * @property positionComparator 位置的三路比较器，决定候选点优先级。
      */
     data class Config<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,

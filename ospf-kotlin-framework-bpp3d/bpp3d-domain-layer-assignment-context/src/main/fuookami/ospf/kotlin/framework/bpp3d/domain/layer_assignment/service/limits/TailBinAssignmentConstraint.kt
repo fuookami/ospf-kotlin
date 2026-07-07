@@ -1,6 +1,6 @@
 /**
- * 尾箱分配约束。
  * Tail bin assignment constraint.
+ * 尾箱分配约束。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 /**
- * 尾箱分配约束，确保尾箱标记与分配一致。
  * Tail bin assignment constraint, ensures tail bin marking is consistent with assignment.
+ * 尾箱分配约束，确保尾箱标记与分配一致。
  *
  * @property bins 箱子列表 / bin list
  * @property assignment 精确赋值 / precise assignment
@@ -27,8 +27,8 @@ class TailBinAssignmentConstraint(
     val name: String = "tail_bin_assignment_constraint"
 ) {
     /**
-     * 将约束添加到模型。
      * Add constraint to model.
+     * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

@@ -1,6 +1,6 @@
 /**
- * 需求统计模型。
  * Demand statistics model.
+ * 需求统计模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

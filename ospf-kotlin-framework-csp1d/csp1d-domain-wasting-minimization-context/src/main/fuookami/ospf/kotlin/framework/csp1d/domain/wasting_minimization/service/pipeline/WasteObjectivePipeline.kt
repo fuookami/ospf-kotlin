@@ -47,7 +47,10 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
     }
 
     /**
-     * 生成目标项单项式 / Generate objective monomials
+     * Generate objective monomials.
+     * 生成目标项单项式
+     *
+     * @return List of linear monomials representing waste penalty terms / 表示浪费惩罚项的线性单项式列表
      */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
@@ -101,6 +104,14 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
         return monomials
     }
 
+    /**
+     * Calculate the rest material value for a cutting plan based on the given measure.
+     * 根据给定度量口径计算切割方案的余料值
+     *
+     * @param plan Cutting plan / 切割方案
+     * @param measure Rest material measure policy / 余料度量口径
+     * @return Rest material value, or null if unavailable / 余料值，若不可用则返回 null
+     */
     private fun restMaterialValue(
         plan: CuttingPlan<V>,
         measure: RestMaterialMeasure

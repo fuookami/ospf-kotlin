@@ -1,6 +1,6 @@
 /**
- * 尾箱装载率最小化目标。
  * Tail bin loading rate minimization objective.
+ * 尾箱装载率最小化目标。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 /**
- * 尾箱装载率最小化目标，最小化尾箱的装载率。
  * Tail bin loading rate minimization objective, minimizes tail bin loading rate.
+ * 尾箱装载率最小化目标，最小化尾箱的装载率。
  *
  * @property bins 箱子列表 / bin list
  * @property assignment 精确赋值 / precise assignment
@@ -30,8 +30,8 @@ class TailBinLoadingRateMinimization(
     val name: String = "tail_bin_loading_rate_minimization"
 ) {
     /**
-     * 将目标添加到模型。
      * Add objective to model.
+     * 将目标添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

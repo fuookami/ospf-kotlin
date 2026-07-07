@@ -193,6 +193,10 @@ object NumericDispatcher {
 // 内置数值类型实玌/ Built-in Numeric Type Implementations
 // ============================================================================
 
+/**
+ * Numeric operations implementation for Int type.
+ * 中文Int 类型的数值运算实现。
+ */
 private object IntOps : NumericOps<Int> {
     override val type = Int::class
     override fun negate(value: Int) = -value
@@ -205,6 +209,10 @@ private object IntOps : NumericOps<Int> {
     override fun power(left: Int, right: Int) = Math.pow(left.toDouble(), right.toDouble()).toInt()
 }
 
+/**
+ * Numeric operations implementation for Long type.
+ * 中文Long 类型的数值运算实现。
+ */
 private object LongOps : NumericOps<Long> {
     override val type = Long::class
     override fun negate(value: Long) = -value
@@ -217,6 +225,10 @@ private object LongOps : NumericOps<Long> {
     override fun power(left: Long, right: Long) = Math.pow(left.toDouble(), right.toDouble()).toLong()
 }
 
+/**
+ * Numeric operations implementation for Float type.
+ * 中文Float 类型的数值运算实现。
+ */
 private object FloatOps : NumericOps<Float> {
     override val type = Float::class
     override fun negate(value: Float) = -value
@@ -229,6 +241,10 @@ private object FloatOps : NumericOps<Float> {
     override fun power(left: Float, right: Float) = Math.pow(left.toDouble(), right.toDouble()).toFloat()
 }
 
+/**
+ * Numeric operations implementation for Double type.
+ * 中文Double 类型的数值运算实现。
+ */
 private object DoubleOps : NumericOps<Double> {
     override val type = Double::class
     override fun negate(value: Double) = -value

@@ -10,6 +10,9 @@ import kotlinx.coroutines.runBlocking
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.*
@@ -27,9 +30,8 @@ import org.junit.jupiter.api.Test
  * 使用实时 Gurobi 求解器的 demo4 分支定价端到端测试。
  * End-to-end test for demo4 Branch-and-Price with live Gurobi solver.
  *
- * 验证 B&P 算法可以使用最小场景构建，并且错误处理能产生类型化/有说明的错误（而非 TODO/NPE）。
- * Verifies that the B&P algorithm can be constructed with a minimal scenario
- * and that error handling produces typed/explained errors (not TODOs/NPEs).
+ * 验证 B&P 算法可以求解最小场景，并返回覆盖全部航班任务的可行解。
+ * Verifies that the B&P algorithm solves a minimal scenario and returns a feasible solution covering all flight tasks.
  *
  * 此测试在 `demo4-gurobi-cg` 配置下受控，仅在使用 -Pdemo4-gurobi-cg 显式选择时运行。
  * This test is gated under the `demo4-gurobi-cg` profile and only runs
@@ -38,7 +40,7 @@ import org.junit.jupiter.api.Test
 class Demo4BranchAndPriceE2ETest {
 
     @Test
-    fun `branch-and-price algorithm can be constructed and invoked`() = runBlocking {
+    fun `branch-and-price algorithm solves minimal scenario`() = runBlocking {
         // Build minimal domain objects
         val now = Instant.parse("2026-06-23T08:00:00Z")
         val baseAirport = Airport(ICAO("ZBAA"), AirportType.Domestic, base = true)
@@ -106,20 +108,38 @@ class Demo4BranchAndPriceE2ETest {
         aircraft1._usability = usability1
         aircraft2._usability = usability2
 
+        fun e2eCost(taskCount: Int): Cost<FltX> {
+            val value = FltX(taskCount.toDouble())
+            return Cost(
+                items = listOf(
+                    CostItem(
+                        tag = "demo4-e2e",
+                        costQuantity = Quantity(value, NoneUnit)
+                    )
+                ),
+                costSum = Quantity(value, NoneUnit)
+            )
+        }
+
+        val originBunches = listOf(
+            FlightTaskBunch(aircraft1, listOf(leg1), Int64.zero, e2eCost(1)),
+            FlightTaskBunch(aircraft2, listOf(leg2), Int64.zero, e2eCost(1))
+        )
+
         // Bunch generation context
         val bunchGenContext = BunchGenerationContext()
         val lock = Lock()
         val connectionTimeCalculator: ConnectionTimeCalculator = { _, _, _ -> 30.toDuration(DurationUnit.MINUTES) }
         val minimumDepartureTimeCalculator: MinimumDepartureTimeCalculator = { arrivalTime, _, _, connectionTime -> arrivalTime + connectionTime }
         val ruleChecker: RuleChecker = { _, _, _ -> true }
-        val costCalculator: CostCalculator = { _, _, _, _, _ -> null }
-        val totalCostCalculator: TotalCostCalculator = { _, _ -> null }
+        val costCalculator: CostCalculator = { _, _, _, _, _ -> e2eCost(1) }
+        val totalCostCalculator: TotalCostCalculator = { _, tasks -> e2eCost(tasks.size) }
 
         val initResult = bunchGenContext.init(
             aircrafts = aircrafts,
             aircraftUsability = mapOf(aircraft1 to usability1, aircraft2 to usability2),
             flightTasks = flightTasks,
-            originBunches = emptyList(),
+            originBunches = originBunches,
             lock = lock,
             connectionTimeCalculator = connectionTimeCalculator,
             minimumDepartureTimeCalculator = minimumDepartureTimeCalculator,
@@ -128,6 +148,7 @@ class Demo4BranchAndPriceE2ETest {
             totalCostCalculator = totalCostCalculator
         )
         assertTrue(initResult is Ok, "BunchGenerationContext.init should succeed: $initResult")
+        assertEquals(aircrafts.size, bunchGenContext.initialFlightBunches.size)
 
         // Bunch compilation context
         val bunchCompContext = BunchCompilationContext()
@@ -156,7 +177,7 @@ class Demo4BranchAndPriceE2ETest {
         )
 
         // Initialize compilation
-        val compilationResult = selectionContext.initCompilation(originBunches = emptyList())
+        val compilationResult = selectionContext.initCompilation(originBunches = originBunches)
         assertTrue(compilationResult is Ok, "initCompilation should succeed: $compilationResult")
 
         // Build solver via LinearSolverBuilder
@@ -174,36 +195,21 @@ class Demo4BranchAndPriceE2ETest {
             )
         )
 
-        // Invoke the algorithm — catch framework assertions from minimal scenario
-        // The algorithm construction above verifies the Policy wiring is correct.
-        // A full solve requires a more complete scenario with proper bunch time structure.
-        // Here we verify: (1) construction succeeds, (2) invocation doesn't throw TODO/NPE.
-        try {
-            val result = algorithm("demo4_e2e_test")
-
-            // If we get here, verify the result is a typed Ret
-            when (result) {
-                is Ok -> {
-                    val solution = result.value
-                    assertNotNull(solution.bunches, "Solution should have bunches list")
-                    assertNotNull(solution.canceledTasks, "Solution should have canceledTasks list")
-                }
-                is Failed -> {
-                    val error = result.error
-                    assertNotNull(error, "Error should not be null")
-                    assertFalse(error.toString().contains("TODO"), "Error should not be a raw TODO")
-                }
-                is Fatal -> {
-                    val errors = result.errors
-                    assertTrue(errors.isNotEmpty(), "Fatal should have at least one error")
-                }
+        // Invoke the algorithm and require a feasible solution from the minimal scenario.
+        val solution = when (val result = algorithm("demo4_e2e_test")) {
+            is Ok -> {
+                result.value
             }
-        } catch (e: AssertionError) {
-            // Framework assertions from minimal scenario are acceptable —
-            // verify it's not a TODO/NPE (which would indicate domain code issues)
-            val msg = e.message ?: ""
-            assertFalse(msg.contains("TODO"), "AssertionError should not contain TODO")
-            assertFalse(msg.contains("NullPointerException"), "AssertionError should not be NPE")
+            is Failed -> {
+                fail("Branch-and-price should solve the minimal scenario, but failed: ${result.error}")
+            }
+            is Fatal -> {
+                fail("Branch-and-price should solve the minimal scenario, but was fatal: ${result.errors}")
+            }
         }
+        assertTrue(solution.bunches.isNotEmpty(), "Solution should contain assigned bunches")
+        assertEquals(UInt64(flightTasks.size.toULong()), solution.summary.totalTaskCount)
+        assertEquals(UInt64(flightTasks.size.toULong()), solution.summary.assignedTaskCount)
+        assertEquals(UInt64.zero, solution.summary.canceledTaskCount)
     }
 }

@@ -1,6 +1,6 @@
 /**
- * 箱子装载顺序约束。
  * Bin loading order constraint.
+ * 箱子装载顺序约束。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 /**
- * 箱子装载顺序约束，确保同类型箱子按顺序使用。
  * Bin loading order constraint, ensures same-type bins are used in order.
+ * 箱子装载顺序约束，确保同类型箱子按顺序使用。
  *
  * @property bins 箱子列表 / bin list
  * @property assignment 精确赋值 / precise assignment
@@ -29,8 +29,8 @@ class BinLoadingOrderConstraint(
     val name: String = "bin_loading_order_constraint"
 ) {
     /**
-     * 将约束添加到模型。
      * Add constraint to model.
+     * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

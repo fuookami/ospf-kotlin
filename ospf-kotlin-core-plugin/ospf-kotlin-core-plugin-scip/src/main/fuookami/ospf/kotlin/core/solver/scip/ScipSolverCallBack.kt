@@ -25,7 +25,15 @@ enum class Point {
     AfterFailure
 }
 
-/** SCIP 求解器回调管理器 / SCIP solver callback manager */
+/**
+ * SCIP solver callback manager
+ *
+ * 中文: SCIP 求解器回调管理器
+ *
+ * @property nativeEventMask native event mask / 原生事件掩码
+ * @property nativeCallback native callback function / 原生回调函数
+ * @property map callback function map / 回调函数映射
+ */
 class ScipSolverCallBack(
     internal var nativeEventMask: Long = EventMask.LP_EVENT or EventMask.NODE_EVENT or EventMask.SOL_EVENT,
     internal var nativeCallback: NativeCallBack? = null,
@@ -87,18 +95,60 @@ class ScipSolverCallBack(
         return this
     }
 
-    /** 设置建模完成后的回调 / Set after modeling callback */
+    /**
+     * Set after modeling callback
+     *
+     * 中文: 设置建模完成后的回调
+     *
+     * @param function callback function / 回调函数
+     * @return current callback manager instance / 当前回调管理器实例
+     */
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
-    /** 设置配置阶段的回调 / Set configuration callback */
+    /**
+     * Set configuration callback
+     *
+     * 中文: 设置配置阶段的回调
+     *
+     * @param function callback function / 回调函数
+     * @return current callback manager instance / 当前回调管理器实例
+     */
     fun configuration(function: Function) = set(Point.Configuration, function)
-    /** 设置分析解阶段的回调 / Set analyzing solution callback */
+    /**
+     * Set analyzing solution callback
+     *
+     * 中文: 设置分析解阶段的回调
+     *
+     * @param function callback function / 回调函数
+     * @return current callback manager instance / 当前回调管理器实例
+     */
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
-    /** 设置求解失败后的回调 / Set after failure callback */
+    /**
+     * Set after failure callback
+     *
+     * 中文: 设置求解失败后的回调
+     *
+     * @param function callback function / 回调函数
+     * @return current callback manager instance / 当前回调管理器实例
+     */
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
-    /** 检查是否包含指定时机的回调 / Check if callback at specified point is contained */
+    /**
+     * Check if callback at specified point is contained
+     *
+     * 中文: 检查是否包含指定时机的回调
+     *
+     * @param point callback point / 回调时机
+     * @return whether callbacks exist at the point / 是否存在该时机的回调
+     */
     fun contains(point: Point) = map.containsKey(point)
-    /** 获取指定时机的回调函数列表 / Get callback function list at specified point */
+    /**
+     * Get callback function list at specified point
+     *
+     * 中文: 获取指定时机的回调函数列表
+     *
+     * @param point callback point / 回调时机
+     * @return callback function list or null / 回调函数列表或 null
+     */
     fun get(point: Point): List<Function>? = map[point]
 
     /**

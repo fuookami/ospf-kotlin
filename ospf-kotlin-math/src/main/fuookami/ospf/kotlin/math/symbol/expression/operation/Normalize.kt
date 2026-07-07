@@ -91,6 +91,9 @@ fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig
 /**
  * 简化单操作数的 And/Or 表达弌
  * Simplify single-operand And/Or expressions
+ *
+ * @param expr 要简化的表达式 / Expression to simplify
+ * @return 简化后的表达式 / Simplified expression
  */
 private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
@@ -118,6 +121,10 @@ private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
 /**
  * 递归规范化子表达弌
  * Recursively normalize children
+ *
+ * @param expr 要递归处理的表达式 / Expression to recursively process
+ * @param config 规范化配置 / Normalization configuration
+ * @return 递归处理后的表达式 / Expression after recursive processing
  */
 private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig): BooleanExpression {
     return when (expr) {

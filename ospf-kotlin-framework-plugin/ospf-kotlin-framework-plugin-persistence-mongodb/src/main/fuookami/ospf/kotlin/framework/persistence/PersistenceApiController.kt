@@ -27,6 +27,10 @@ private fun <T : Any> serializerOf(value: T): KSerializer<T> {
  * Controllers implementing this interface can automatically persist API requests and responses to MongoDB.
  */
 interface MongoPersistenceApiController {
+    /**
+     * MongoDB 客户端实例
+     * MongoDB client instance
+     */
     val mongoClient: MongoDatabase?
 
     /**

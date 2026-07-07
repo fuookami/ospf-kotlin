@@ -49,18 +49,46 @@ abstract class FlightTaskType(
         return cls == other.cls
     }
 
+    /**
+     * Checks equality with another flight task type by class.
+     * 中文按类检查与另一个航班任务类型的相等性。
+     *
+     * @param type the flight task type to compare with / 要比较的航班任务类型
+     * @return true if the classes are equal / 如果类相等则为 true
+     */
     infix fun eq(type: FlightTaskType): Boolean {
         return this.cls == type.cls
     }
 
+    /**
+     * Checks inequality with another flight task type by class.
+     * 中文按类检查与另一个航班任务类型的不等性。
+     *
+     * @param type the flight task type to compare with / 要比较的航班任务类型
+     * @return true if the classes are not equal / 如果类不相等则为 true
+     */
     infix fun neq(type: FlightTaskType): Boolean {
         return this.cls != type.cls
     }
 
+    /**
+     * Checks equality with a flight task category.
+     * 中文检查与航班任务类别的相等性。
+     *
+     * @param category the flight task category to compare with / 要比较的航班任务类别
+     * @return true if the category matches / 如果类别匹配则为 true
+     */
     infix fun eq(category: FlightTaskCategory): Boolean {
         return this.category == category
     }
 
+    /**
+     * Checks inequality with a flight task category.
+     * 中文检查与航班任务类别的不等性。
+     *
+     * @param category the flight task category to compare with / 要比较的航班任务类别
+     * @return true if the category does not match / 如果类别不匹配则为 true
+     */
     infix fun neq(category: FlightTaskCategory): Boolean {
         return this.category != category
     }
@@ -93,10 +121,12 @@ open class FlightTaskAssignment(
 
 /** 具有状态、飞机、机场和连接时间逻辑的航班任务计划的抽象基类。Abstract base for flight task plans with status, aircraft, airports, and connection time logic. */
 abstract class FlightTaskPlan(
-    override val id: String,
+    id: String,
     override val name: String,
     val flightTaskStatus: Set<FlightTaskStatus>
 ) : AbstractTaskPlan<Aircraft> {
+    override val id = FlightTaskPlanId(id)
+
     companion object {
         val NotFlightStaticConnectionTime = 5.minutes
     }
@@ -127,15 +157,37 @@ abstract class FlightTaskPlan(
     abstract val arr: Airport
     open val depBackup: List<Airport> get() = listOf()
     open val arrBackup: List<Airport> get() = listOf()
+    /**
+     * Returns the actual arrival airport for a given departure airport.
+     * 中文返回给定出发机场的实际到达机场。
+     *
+     * @param dep the departure airport / 出发机场
+     * @return the actual arrival airport, or null if not applicable / 实际到达机场，如果不适用则为 null
+     */
     open fun actualArr(dep: Airport): Airport? = arr
 
     override val executor = aircraft
     override val enabledExecutors = enabledAircrafts
 
+    /**
+     * Calculates the connection time to a successor task using the plan's aircraft.
+     * 中文使用计划的飞机计算到后续任务的连接时间。
+     *
+     * @param succTask the successor flight task, or null if none / 后续航班任务，如果没有则为 null
+     * @return the connection time duration, or null if no aircraft is assigned / 连接时间持续时间，如果没有分配飞机则为 null
+     */
     open fun connectionTime(succTask: FlightTask?): Duration? {
         return aircraft?.let { connectionTime(it, succTask) }
     }
 
+    /**
+     * Calculates the connection time for a specific aircraft to a successor task.
+     * 中文计算特定飞机到后续任务的连接时间。
+     *
+     * @param aircraft the aircraft for which to calculate connection time / 要计算连接时间的飞机
+     * @param succTask the successor flight task, or null if none / 后续航班任务，如果没有则为 null
+     * @return the connection time duration / 连接时间持续时间
+     */
     open fun connectionTime(aircraft: Aircraft, succTask: FlightTask?): Duration {
         return if (succTask != null) {
             if (succTask.isFlight) {
@@ -166,8 +218,8 @@ abstract class FlightTask(
 
     abstract val plan: FlightTaskPlan
 
-    override val id: String get() = plan.id
-    override val actualId: String get() = plan.actualId
+    override val id: TaskPlanId get() = plan.id
+    override val actualId: TaskPlanId get() = plan.actualId
     override val name: String get() = plan.name
     override val displayName: String get() = plan.displayName
     override val key: TaskKey get() = TaskKey(id, type)
@@ -183,6 +235,13 @@ abstract class FlightTask(
     open val arr: Airport get() = plan.arr
     open val depBackup: List<Airport> get() = plan.depBackup
     open val arrBackup: List<Airport> get() = plan.arrBackup
+    /**
+     * Returns the actual arrival airport for a given departure airport.
+     * 中文返回给定出发机场的实际到达机场。
+     *
+     * @param dep the departure airport / 出发机场
+     * @return the actual arrival airport, or null if not applicable / 实际到达机场，如果不适用则为 null
+     */
     open fun actualArr(dep: Airport): Airport? {
         return plan.actualArr(dep)
     }

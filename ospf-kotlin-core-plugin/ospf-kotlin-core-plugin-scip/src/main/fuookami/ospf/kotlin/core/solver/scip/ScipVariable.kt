@@ -19,6 +19,7 @@ enum class ScipVariable {
         override fun toSCIPVar(): SCIP_Vartype = SCIP_Vartype.SCIP_VARTYPE_CONTINUOUS
     };
 
+    /** Companion object providing variable type conversion / 伴生对象，提供变量类型转换 */
     companion object {
         /**
          * 从内部变量类型创建 SCIP 变量类型 / Create SCIP variable type from internal variable type

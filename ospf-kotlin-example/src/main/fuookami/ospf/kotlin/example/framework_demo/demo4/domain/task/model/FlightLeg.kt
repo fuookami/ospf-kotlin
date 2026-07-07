@@ -69,7 +69,7 @@ enum class FlightType {
  * @property flightTaskStatus 参数。
  */
 class FlightLegPlan(
-    override val actualId: String,
+    actualId: String,
     val no: String,
     val type: FlightType,
     val date: LocalDate,
@@ -92,6 +92,7 @@ class FlightLegPlan(
         const val prefix = "f"
     }
 
+    override val actualId = FlightTaskPlanId(actualId)
     override val displayName = no
 
     override val time: TimeRange? get() = actualTime ?: estimatedTime ?: super.time

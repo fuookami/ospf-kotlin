@@ -22,7 +22,13 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import com.alibaba.damo.mindopt.*
 
-/** MindOPT 线性求解器 / MindOPT linear solver */
+/**
+ * MindOPT linear solver
+ *
+ * MindOPT 线性求解器
+ *
+ * @property callBack Linear solver callback / 线性求解器回调
+ */
 class MindOPTLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTLinearSolverCallBack? = null,
@@ -83,6 +89,15 @@ class MindOPTLinearSolver(
     }
 }
 
+/**
+ * MindOPT linear solver internal implementation
+ *
+ * MindOPT 线性求解器内部实现
+ *
+ * @property config Solver configuration / 求解器配置
+ * @property callBack Linear solver callback / 线性求解器回调
+ * @property statusCallBack Solving status callback / 求解状态回调
+ */
 private class MindOPTLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MindOPTLinearSolverCallBack? = null,
@@ -126,6 +141,14 @@ private class MindOPTLinearSolverImpl(
         return Ok(output)
     }
 
+    /**
+     * Dump linear model into MindOPT solver
+     *
+     * 将线性模型导出到 MindOPT 求解器
+     *
+     * @param model Linear triad model view / 线性三元组模型视图
+     * @return Operation result / 操作结果
+     */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("mindopt", model.nonNullConstraintPriorityAmount())
@@ -142,12 +165,17 @@ private class MindOPTLinearSolverImpl(
 
             for ((col, variable) in model.variables.withIndex()) {
                 variable.initialResult?.let {
-                    mindoptVars[col].set(MDO.DoubleAttr.Start, it.toSolverDouble("linear.variables[$col].initialResult"))
+                    mindoptVars[col].set(
+                        MDO.DoubleAttr.Start,
+                        it.toSolverDouble("linear.variables[$col].initialResult")
+                    )
                 }
             }
 
             val constraints = coroutineScope {
-                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
+                if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime()
+                        .availableProcessors()
+                ) {
                     val segment = computeConstraintSegmentSize(model.constraints.size)
                     val chunkAmount = (model.constraints.size + segment - 1) / segment
                     val promises = (0 until chunkAmount).map { i ->
@@ -157,7 +185,10 @@ private class MindOPTLinearSolverImpl(
                             val constraints = (from until to).map { ii ->
                                 val lhs = MDOLinExpr()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
-                                    lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), mindoptVars[colIndex])
+                                    lhs.addTerm(
+                                        coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"),
+                                        mindoptVars[colIndex]
+                                    )
                                 }
                                 ii to lhs
                             }
@@ -181,7 +212,10 @@ private class MindOPTLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val lhs = MDOLinExpr()
                         model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
-                            lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"), mindoptVars[colIndex])
+                            lhs.addTerm(
+                                coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"),
+                                mindoptVars[colIndex]
+                            )
                         }
                         mindoptModel.addConstr(
                             lhs,
@@ -197,7 +231,10 @@ private class MindOPTLinearSolverImpl(
 
             val obj = MDOLinExpr()
             for (cell in model.objective.objective) {
-                obj.addTerm(cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
+                obj.addTerm(
+                    cell.coefficient.toSolverDouble("linear.objective.cells[${cell.colIndex}].coefficient"),
+                    mindoptVars[cell.colIndex]
+                )
             }
             obj.addConstant(model.objective.constant.toSolverDouble("linear.objective.constant"))
             mindoptModel.setObjective(
@@ -238,6 +275,14 @@ private class MindOPTLinearSolverImpl(
         }
     }
 
+    /**
+     * Configure MindOPT solver parameters
+     *
+     * 配置 MindOPT 求解器参数
+     *
+     * @param model Linear triad model view / 线性三元组模型视图
+     * @return Operation result / 操作结果
+     */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
@@ -340,6 +385,13 @@ private class MindOPTLinearSolverImpl(
         }
     }
 
+    /**
+     * Analyze linear solving result and extract solution
+     *
+     * 分析线性求解结果并提取解
+     *
+     * @return Operation result / 操作结果
+     */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

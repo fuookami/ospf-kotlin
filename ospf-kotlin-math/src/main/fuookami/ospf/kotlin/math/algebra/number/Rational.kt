@@ -45,13 +45,25 @@ private fun <I> ensureNonZeroDenominator(den: I)
     }
 }
 
-/** 判断分母是否为零 / Check if denominator is zero */
+/**
+ * Checks if the denominator is zero.
+ * 中文判断分母是否为零。
+ *
+ * @param den the denominator value to check / 待检查的分母值
+ * @return true if the denominator is zero, false otherwise / 分母为零时返回 true，否则返回 false
+ */
 private fun <I> isZeroDenominator(den: I): Boolean
         where I : Integer<I>, I : NumberField<I> {
     return den eq den.constants.zero
 }
 
-/** 构建分母为零的失败结果 / Build zero denominator failure result */
+/**
+ * Builds a failure result for a zero denominator.
+ * 中文构建分母为零的失败结果。
+ *
+ * @param den the zero denominator value / 为零的分母值
+ * @return a failed result with an error message about zero denominator / 包含零分母错误信息的失败结果
+ */
 private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
     return Failed(
         ErrorCode.IllegalArgument,
@@ -59,6 +71,14 @@ private fun <Self> zeroDenominatorFailure(den: Any?): Ret<Self> {
     )
 }
 
+/**
+ * Constructs a rational number with zero-denominator validation.
+ * 构造有理数，并进行分母为零的验证。
+ *
+ * @param den the denominator value to validate / 待验证的分母值
+ * @param build the constructor lambda invoked when denominator is non-zero / 分母非零时调用的构造 lambda
+ * @return the constructed rational number, or failure if denominator is zero / 构造的有理数，分母为零时返回失败
+ */
 private inline fun <Self, I> rationalOf(
     den: I,
     build: () -> Self
@@ -70,7 +90,12 @@ private inline fun <Self, I> rationalOf(
     }
 }
 
-/** 将 Ret 结果转换为可空值 / Convert Ret result to nullable value */
+/**
+ * Converts a Ret result to a nullable value.
+ * 中文将 Ret 结果转换为可空值。
+ *
+ * @return the value if Ok, or null if Failed or Fatal / Ok 时返回值，Failed 或 Fatal 时返回 null
+ */
 private fun <Self> Ret<Self>.orNull(): Self? {
     return when (this) {
         is Ok -> value
@@ -185,13 +210,29 @@ abstract class Rational<Self, I> protected constructor(
 
     /** 取负 / Negation */
     override operator fun unaryMinus() = ctor(-num, den)
-    /** 可空倒数 / Nullable reciprocal */
+    /**
+     * Returns the nullable reciprocal of this rational number.
+     * 返回此有理数的可空倒数。
+     *
+     * If the numerator is zero, returns null since zero has no reciprocal.
+     * 如果分子为零，返回 null，因为零没有倒数。
+     *
+     * @return the reciprocal, or null if this rational is zero / 倒数，若此有理数为零则返回 null
+     */
     fun reciprocalOrNull(): Self? = if (num eq integerConstants.zero) {
         null
     } else {
         ctor(den, num)
     }
-    /** 安全倒数 / Safe reciprocal */
+    /**
+     * Returns the safe reciprocal of this rational number as a result type.
+     * 以结果类型返回此有理数的安全倒数。
+     *
+     * If the numerator is zero, returns a failure with an error message.
+     * 如果分子为零，返回包含错误信息的失败结果。
+     *
+     * @return the reciprocal as a successful result, or failure if this rational is zero / 成功结果形式的倒数，若此有理数为零则返回失败
+     */
     fun reciprocalSafe(): Ret<Self> {
         return reciprocalOrNull()?.let { ok(it) }
             ?: Failed(
@@ -417,8 +458,19 @@ data class Rtn8 internal constructor(
     override val num: Int8,
     override val den: Int8
 ) : Rational<Rtn8, Int8>(Rtn8::invoke, Int8), Copyable<Rtn8> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the Rtn8 rational number type.
+     * 中文Rtn8 有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<Rtn8, Int8>(Rtn8::invoke, Int8) {
+        /**
+         * Safely constructs a rational number from the given numerator and denominator.
+         * 安全地从给定的分子和分母构造有理数。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         */
         fun of(num: Int8, den: Int8): Ret<Rtn8> {
             return rationalOf(den) {
                 val divisor = gcdMod(num.abs(), den.abs())
@@ -431,10 +483,26 @@ data class Rtn8 internal constructor(
             }
         }
 
+        /**
+         * Safely constructs a rational number, returns null if denominator is zero.
+         * 安全构造有理数，分母为零时返回 null。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         */
         fun ofOrNull(num: Int8, den: Int8): Rtn8? {
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an Rtn8 rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 Rtn8 有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed Rtn8 rational number / 构造的 Rtn8 有理数
+         */
         operator fun invoke(num: Int8, den: Int8): Rtn8 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -534,8 +602,19 @@ data class Rtn16 internal constructor(
     override val num: Int16,
     override val den: Int16
 ) : Rational<Rtn16, Int16>(Rtn16::invoke, Int16), Copyable<Rtn16> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the Rtn16 rational number type.
+     * 中文Rtn16 有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<Rtn16, Int16>(Rtn16::invoke, Int16) {
+        /**
+         * Safely constructs a rational number from the given numerator and denominator.
+         * 安全地从给定的分子和分母构造有理数。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         */
         fun of(num: Int16, den: Int16): Ret<Rtn16> {
             return rationalOf(den) {
                 val divisor = gcdMod(num.abs(), den.abs())
@@ -543,10 +622,26 @@ data class Rtn16 internal constructor(
             }
         }
 
+        /**
+         * Safely constructs a rational number, returns null if denominator is zero.
+         * 安全构造有理数，分母为零时返回 null。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         */
         fun ofOrNull(num: Int16, den: Int16): Rtn16? {
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an Rtn16 rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 Rtn16 有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed Rtn16 rational number / 构造的 Rtn16 有理数
+         */
         operator fun invoke(num: Int16, den: Int16): Rtn16 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -641,8 +736,19 @@ data class Rtn32 internal constructor(
     override val num: Int32,
     override val den: Int32
 ) : Rational<Rtn32, Int32>(Rtn32::invoke, Int32), Copyable<Rtn32> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the Rtn32 rational number type.
+     * 中文Rtn32 有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<Rtn32, Int32>(Rtn32::invoke, Int32) {
+        /**
+         * Safely constructs a rational number from the given numerator and denominator.
+         * 安全地从给定的分子和分母构造有理数。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         */
         fun of(num: Int32, den: Int32): Ret<Rtn32> {
             return rationalOf(den) {
                 val divisor = gcdMod(num.abs(), den.abs())
@@ -650,10 +756,26 @@ data class Rtn32 internal constructor(
             }
         }
 
+        /**
+         * Safely constructs a rational number, returns null if denominator is zero.
+         * 安全构造有理数，分母为零时返回 null。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         */
         fun ofOrNull(num: Int32, den: Int32): Rtn32? {
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an Rtn32 rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 Rtn32 有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed Rtn32 rational number / 构造的 Rtn32 有理数
+         */
         operator fun invoke(num: Int32, den: Int32): Rtn32 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -748,8 +870,19 @@ data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants, factory methods, and Flt64 value conversion for the Rtn64 rational number type.
+     * 中文Rtn64 有理数类型的伴生对象，提供常量、工厂方法和 Flt64 值转换。
+     */
     companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64ValueConverter<Rtn64> {
+        /**
+         * Safely constructs a rational number from the given numerator and denominator.
+         * 安全地从给定的分子和分母构造有理数。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the construction result, returns failure if denominator is zero / 构造结果，分母为零时返回失败
+         */
         fun of(num: Int64, den: Int64): Ret<Rtn64> {
             return rationalOf(den) {
                 val divisor = gcdMod(num.abs(), den.abs())
@@ -757,10 +890,26 @@ data class Rtn64 internal constructor(
             }
         }
 
+        /**
+         * Safely constructs a rational number, returns null if denominator is zero.
+         * 安全构造有理数，分母为零时返回 null。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed rational number, or null if denominator is zero / 构造的有理数，分母为零时返回 null
+         */
         fun ofOrNull(num: Int64, den: Int64): Rtn64? {
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an Rtn64 rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 Rtn64 有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed Rtn64 rational number / 构造的 Rtn64 有理数
+         */
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -860,7 +1009,10 @@ data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants, factory methods, and Flt64 value conversion for the RtnX arbitrary precision rational number type.
+     * 中文RtnX 任意精度有理数类型的伴生对象，提供常量、工厂方法和 Flt64 值转换。
+     */
     companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64ValueConverter<RtnX> {
         /**
          * 安全构造有理数
@@ -892,6 +1044,14 @@ data class RtnX internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an RtnX rational number from Kotlin Int numerator and denominator.
+         * 中文从 Kotlin Int 分子和分母构造 RtnX 有理数。
+         *
+         * @param num the numerator as a Kotlin Int / Kotlin Int 类型的分子
+         * @param den the denominator as a Kotlin Int / Kotlin Int 类型的分母
+         * @return the constructed RtnX rational number / 构造的 RtnX 有理数
+         */
         operator fun invoke(num: Int, den: Int): RtnX {
             return RtnX(IntX(num.toLong()), IntX(den.toLong()))
         }
@@ -929,6 +1089,14 @@ data class RtnX internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs an RtnX rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 RtnX 有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed RtnX rational number / 构造的 RtnX 有理数
+         */
         operator fun invoke(num: IntX, den: IntX): RtnX {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1031,7 +1199,10 @@ data class URtn8 internal constructor(
     override val num: UInt8,
     override val den: UInt8
 ) : Rational<URtn8, UInt8>(URtn8::invoke, UInt8), Copyable<URtn8> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the URtn8 unsigned rational number type.
+     * 中文URtn8 无符号有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<URtn8, UInt8>(URtn8::invoke, UInt8) {
         /**
          * 安全构造有理数
@@ -1066,6 +1237,14 @@ data class URtn8 internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtn8 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 URtn8 无符号有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed URtn8 rational number / 构造的 URtn8 有理数
+         */
         operator fun invoke(num: UInt8, den: UInt8): URtn8 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1160,7 +1339,10 @@ data class URtn16 internal constructor(
     override val num: UInt16,
     override val den: UInt16
 ) : Rational<URtn16, UInt16>(URtn16::invoke, UInt16), Copyable<URtn16> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the URtn16 unsigned rational number type.
+     * 中文URtn16 无符号有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<URtn16, UInt16>(URtn16::invoke, UInt16) {
         /**
          * 安全构造有理数
@@ -1195,6 +1377,14 @@ data class URtn16 internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtn16 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 URtn16 无符号有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed URtn16 rational number / 构造的 URtn16 有理数
+         */
         operator fun invoke(num: UInt16, den: UInt16): URtn16 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1289,7 +1479,10 @@ data class URtn32 internal constructor(
     override val num: UInt32,
     override val den: UInt32
 ) : Rational<URtn32, UInt32>(URtn32::invoke, UInt32), Copyable<URtn32> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the URtn32 unsigned rational number type.
+     * 中文URtn32 无符号有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<URtn32, UInt32>(URtn32::invoke, UInt32) {
         /**
          * 安全构造有理数
@@ -1324,6 +1517,14 @@ data class URtn32 internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtn32 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 URtn32 无符号有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed URtn32 rational number / 构造的 URtn32 有理数
+         */
         operator fun invoke(num: UInt32, den: UInt32): URtn32 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1418,7 +1619,10 @@ data class URtn64 internal constructor(
     override val num: UInt64,
     override val den: UInt64
 ) : Rational<URtn64, UInt64>(URtn64::invoke, UInt64), Copyable<URtn64> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the URtn64 unsigned rational number type.
+     * 中文URtn64 无符号有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<URtn64, UInt64>(URtn64::invoke, UInt64) {
         /**
          * 安全构造有理数
@@ -1453,6 +1657,14 @@ data class URtn64 internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtn64 unsigned rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 URtn64 无符号有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed URtn64 rational number / 构造的 URtn64 有理数
+         */
         operator fun invoke(num: UInt64, den: UInt64): URtn64 {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())
@@ -1489,6 +1701,14 @@ data class URtn64 internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtn64 unsigned rational number from Kotlin Int numerator and denominator.
+         * 中文从 Kotlin Int 分子和分母构造 URtn64 无符号有理数。
+         *
+         * @param num the numerator as a Kotlin Int / Kotlin Int 类型的分子
+         * @param den the denominator as a Kotlin Int / Kotlin Int 类型的分母
+         * @return the constructed URtn64 rational number / 构造的 URtn64 有理数
+         */
         operator fun invoke(num: Int, den: Int): URtn64 {
             return this(UInt64(num), UInt64(den))
         }
@@ -1581,7 +1801,10 @@ data class URtnX internal constructor(
     override val num: UIntX,
     override val den: UIntX
 ) : Rational<URtnX, UIntX>(URtnX::invoke, UIntX), Copyable<URtnX> {
-    /** 有理数类型伴生对象 / Rational type companion object */
+    /**
+     * Companion object providing constants and factory methods for the URtnX arbitrary precision unsigned rational number type.
+     * 中文URtnX 任意精度无符号有理数类型的伴生对象，提供常量和工厂方法。
+     */
     companion object : RationalConstants<URtnX, UIntX>(URtnX::invoke, UIntX) {
         /**
          * 安全构造有理数
@@ -1616,6 +1839,14 @@ data class URtnX internal constructor(
             return of(num, den).orNull()
         }
 
+        /**
+         * Constructs a URtnX unsigned rational number from the given numerator and denominator, throwing on zero denominator.
+         * 中文从给定的分子和分母构造 URtnX 无符号有理数，分母为零时抛出异常。
+         *
+         * @param num the numerator / 分子
+         * @param den the denominator / 分母
+         * @return the constructed URtnX rational number / 构造的 URtnX 有理数
+         */
         operator fun invoke(num: UIntX, den: UIntX): URtnX {
             ensureNonZeroDenominator(den)
             val divisor = gcdMod(num.abs(), den.abs())

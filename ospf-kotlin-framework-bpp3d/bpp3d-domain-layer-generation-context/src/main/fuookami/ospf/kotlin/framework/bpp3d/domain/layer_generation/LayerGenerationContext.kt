@@ -1,6 +1,6 @@
 /**
- * 层生成上下文。
  * Layer generation context.
+ * 层生成上下文。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
@@ -25,6 +25,25 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
 /**
  * Layer generation request.
  * 层生成请求。
+ *
+ * @property iteration The current iteration number.
+ * @property iteration 当前迭代次数。
+ * @property bin The target bin type, or null if unspecified.
+ * @property bin 目标箱型，未指定时为 null。
+ * @property items The list of items to pack.
+ * @property items 待装载的货物列表。
+ * @property existingLayers Pre-existing layers to consider.
+ * @property existingLayers 已有的层列表。
+ * @property demandEntries Demand entries for the generation.
+ * @property demandEntries 生成需求条目。
+ * @property shadowPrices Shadow prices mapped by demand mode key.
+ * @property shadowPrices 按需求模式键映射的影子价格。
+ * @property scoreByShadowPrice Optional scoring function using shadow prices.
+ * @property scoreByShadowPrice 可选的基于影子价格的评分函数。
+ * @property timeLimit Time limit for generation.
+ * @property timeLimit 生成时间限制。
+ * @property maxCandidates Maximum number of candidate layers.
+ * @property maxCandidates 最大候选层数。
  */
 data class Bpp3dLayerGenerationRequest<V>(
     val iteration: Int,

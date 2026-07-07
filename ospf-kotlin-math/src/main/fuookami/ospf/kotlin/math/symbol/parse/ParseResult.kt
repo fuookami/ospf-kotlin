@@ -1,9 +1,9 @@
 /**
+ * Parse result and parse issues
  * 解析结果与解析问题
- * Parse Result and Parse Issues
  *
- * 定义多项式解析的结果类型别名和解析问题类型。
  * Defines type aliases for polynomial parse results and parse issue types.
+ * 定义多项式解析的结果类型别名和解析问题类型。
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
@@ -13,15 +13,15 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
-/** 解析结果类型别名 / Parse result type alias */
+/** Parse result type alias / 中文：解析结果类型别名 */
 typealias ParseResult<T> = Ret<T>
 
 /**
- * 解析问题类型
  * Parse issue type
+ * 解析问题类型
  */
 enum class ParseIssueType {
-    /** 词法错误 / Lexical error */
+    /** Lexical error / 中文：词法错误 */
     Lexical,
     /** 语法错误 / Syntax error */
     Syntax,

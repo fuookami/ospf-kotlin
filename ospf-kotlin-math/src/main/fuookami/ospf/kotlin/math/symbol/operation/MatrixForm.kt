@@ -70,7 +70,13 @@ private fun validateOrder(order: List<Symbol>) {
     }
 }
 
-/** 验证符号顺序 / Validate symbol order */
+/**
+ * Validate symbol order and return a result type.
+ * 验证符号顺序并返回结果类型。
+ *
+ * @param order the symbol order list to validate / 要验证的符号顺序列表
+ * @return ok if valid, Failed if duplicate symbols exist / 验证通过返回 ok，存在重复符号返回 Failed
+ */
 private fun validateOrderRet(order: List<Symbol>): Try {
     return if (order.toSet().size == order.size) {
         ok
@@ -79,7 +85,14 @@ private fun validateOrderRet(order: List<Symbol>): Try {
     }
 }
 
-/** 要求符号索引存在 / Require symbol index exists */
+/**
+ * Require that a symbol index exists in the given map.
+ * 要求符号索引在给定映射中存在。
+ *
+ * @param symbol the symbol to look up / 要查找的符号
+ * @param indexOfSymbol the map from symbol to index / 符号到索引的映射
+ * @return the index of the symbol, or Failed if not found / 符号的索引，未找到则返回 Failed
+ */
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>

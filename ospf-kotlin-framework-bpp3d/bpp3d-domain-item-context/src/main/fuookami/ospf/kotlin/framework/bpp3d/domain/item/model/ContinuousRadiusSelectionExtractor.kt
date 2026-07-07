@@ -1,7 +1,7 @@
 /**
- * 连续半径选择结果提取器，从 native 和 PWL 结果构建 CylinderRadiusSelectionResult 列表。
  * Continuous radius selection result extractor that builds CylinderRadiusSelectionResult lists
  * from native and PWL results.
+ * 连续半径选择结果提取器，从 native 和 PWL 结果构建 CylinderRadiusSelectionResult 列表。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

@@ -1,6 +1,6 @@
 /**
- * 泛型需求缩减成本模型。
  * Quantity demand reduced cost model.
+ * 泛型需求缩减成本模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

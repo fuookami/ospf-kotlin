@@ -204,6 +204,15 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V
         return "$iteration"
     }
 
+    /**
+     * Convert a Flt64 scalar value into a typed physical quantity.
+     * 中文将 Flt64 标量值转换为带类型的物理量
+     *
+     * @param value Flt64 scalar value / Flt64 标量值
+     * @param adapter Solver value adapter / 求解器数值适配器
+     * @param unit Physical unit / 物理单位
+     * @return Typed physical quantity / 带类型的物理量
+     */
     private fun <R : RealNumber<R>> quantity(
         value: Flt64,
         adapter: SchedulingSolverValueAdapter<R>,

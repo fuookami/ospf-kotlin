@@ -10,6 +10,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces item loading constraints based on item assignment status.
+ * 根据货物分配状态强制执行货物装载约束。
+ *
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ */
 class ItemAssignmentLimit(
     private val items: List<Item>,
     private val stowage: Stowage,

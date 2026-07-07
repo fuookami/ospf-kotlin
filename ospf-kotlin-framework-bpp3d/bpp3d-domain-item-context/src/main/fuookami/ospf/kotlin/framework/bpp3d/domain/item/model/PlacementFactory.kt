@@ -1,6 +1,6 @@
 /**
- * 放置构造与底面重叠辅助。
  * Placement factory and bottom-overlap helpers.
+ * 放置构造与底面重叠辅助。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

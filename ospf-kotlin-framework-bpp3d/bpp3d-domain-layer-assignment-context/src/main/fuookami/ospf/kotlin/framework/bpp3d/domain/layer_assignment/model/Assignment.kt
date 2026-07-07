@@ -1,6 +1,6 @@
 /**
- * 层分配赋值模型。
  * Layer assignment model.
+ * 层分配赋值模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -20,8 +20,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 
 /**
- * 不精确赋值，用于列生成 RMP 阶段。
  * Imprecise assignment, used for column generation RMP phase.
+ * 不精确赋值，用于列生成 RMP 阶段。
  *
  * @property items 货物需求映射 / item demand map
  * @property aggregation 层聚合 / layer aggregation
@@ -42,8 +42,8 @@ class ImpreciseAssignment(
     lateinit var volume: LinearExpressionSymbol<FltX>
 
     /**
-     * 注册赋值符号到模型。
      * Register assignment symbols to model.
+     * 注册赋值符号到模型。
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
@@ -68,8 +68,8 @@ class ImpreciseAssignment(
     }
 
     /**
-     * 添加新列到赋值模型。
      * Add new columns to assignment model.
+     * 添加新列到赋值模型。
      *
      * @param iteration 迭代次数 / iteration count
      * @param newLayers 新层列表 / new layer list
@@ -123,8 +123,8 @@ class ImpreciseAssignment(
 }
 
 /**
- * 精确赋值，用于最终 MILP 求解阶段。
  * Precise assignment, used for final MILP solving phase.
+ * 精确赋值，用于最终 MILP 求解阶段。
  *
  * @property bins 箱子列表 / bin list
  * @property layers 层列表 / layer list
@@ -144,8 +144,8 @@ class PreciseAssignment(
     lateinit var tail: BinVariable1
 
     /**
-     * 注册赋值符号到模型。
      * Register assignment symbols to model.
+     * 注册赋值符号到模型。
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result

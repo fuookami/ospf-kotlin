@@ -1,6 +1,6 @@
 /**
- * 箱子数量最小化目标。
  * Bin amount minimization objective.
+ * 箱子数量最小化目标。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 
 /**
- * 箱子数量最小化目标，最小化使用的箱子数量。
  * Bin amount minimization objective, minimizes the number of bins used.
+ * 箱子数量最小化目标，最小化使用的箱子数量。
  *
  * @property bins 箱子列表 / bin list
  * @property assignment 精确赋值 / precise assignment
@@ -28,8 +28,8 @@ class BinAmountMinimization(
     val name: String = "bin_amount_minimization"
 ) {
     /**
-     * 将目标添加到模型。
      * Add objective to model.
+     * 将目标添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

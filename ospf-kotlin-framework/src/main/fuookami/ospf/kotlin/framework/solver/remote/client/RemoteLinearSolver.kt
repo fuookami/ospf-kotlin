@@ -127,6 +127,13 @@ class RemoteLinearSolver(
         )
     }
 
+    /**
+     * Converts the remote solve result to a feasible solver output.
+     * 将远程求解结果转换为可行求解输出。
+     *
+     * @param variableCount 变量数量 / Variable count
+     * @return 可行求解输出或错误 / Feasible solver output or error
+     */
     private suspend fun SolveResult.toFeasibleOutput(variableCount: Int): Ret<FeasibleSolverOutput<Flt64>> {
         if (!feasible) {
             return Failed(Err(ErrorCode.ORModelInfeasible, message ?: "Remote linear solve is infeasible."))
@@ -160,6 +167,13 @@ class RemoteLinearSolver(
         )
     }
 
+    /**
+     * Converts the remote solve result to an empty solution output.
+     * 将远程求解结果转换为空解输出。
+     *
+     * @param variableCount 变量数量 / Variable count
+     * @return 可行求解输出或错误 / Feasible solver output or error
+     */
     private fun SolveResult.toEmptySolutionOutput(variableCount: Int): Ret<FeasibleSolverOutput<Flt64>> {
         if (variableCount != 0) {
             return Failed(
@@ -185,6 +199,12 @@ class RemoteLinearSolver(
         )
     }
 
+    /**
+     * Reads the serialized solution from object storage.
+     * 从对象存储读取序列化的求解结果。
+     *
+     * @return 序列化求解结果，如果不可用则返回 null / Serialized solution, or null if unavailable
+     */
     private suspend fun SolveResult.readSerializedSolution(): SerializedSolution? {
         val ref = resultRef ?: return null
         val storage = resultStoragePort ?: return null

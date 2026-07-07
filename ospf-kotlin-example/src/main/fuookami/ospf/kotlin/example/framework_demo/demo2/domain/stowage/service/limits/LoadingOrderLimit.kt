@@ -14,6 +14,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Enforces loading order constraints between adjacent non-bulk positions.
+ * 强制执行相邻非散货位置之间的装载顺序约束。
+ *
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property neighbours the list of adjacent position pairs / 相邻位置对列表
+ * @property load the load decision variables / 装载决策变量
+ */
 class LoadingOrderLimit(
     private val positions: List<Position>,
     private val neighbours: List<Neighbour>,

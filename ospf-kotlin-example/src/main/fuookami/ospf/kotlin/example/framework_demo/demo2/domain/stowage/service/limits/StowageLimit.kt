@@ -10,6 +10,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces stowage feasibility constraints, preventing infeasible item-position assignments.
+ * 强制执行装载可行性约束，防止不可行的货物-位置分配。
+ *
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ */
 class StowageLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

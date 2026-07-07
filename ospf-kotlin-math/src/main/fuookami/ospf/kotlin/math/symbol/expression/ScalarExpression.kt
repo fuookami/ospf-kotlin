@@ -34,6 +34,8 @@ sealed interface ScalarExpression<out T> {
     /**
      * 判断表达式是否是常量
      * Check if expression is constant
+     *
+     * @return 如果表达式是常量则返回 true，否则返回 false / true if the expression is constant, false otherwise
      */
     fun isConstant(): Boolean = when (this) {
         is ScalarConstant -> true
@@ -48,6 +50,8 @@ sealed interface ScalarExpression<out T> {
     /**
      * 判断表达式是否包含引甌
      * Check if expression contains references
+     *
+     * @return 如果表达式包含引用则返回 true，否则返回 false / true if the expression contains references, false otherwise
      */
     fun containsReference(): Boolean = when (this) {
         is ScalarConstant -> false
@@ -62,6 +66,8 @@ sealed interface ScalarExpression<out T> {
     /**
      * 获取表达式中的所有引用路後
      * Get all reference paths in the expression
+     *
+     * @return 表达式中所有引用路径的集合 / Set of all reference paths in the expression
      */
     fun collectReferences(): Set<PropertyPath> {
         val refs = mutableSetOf<PropertyPath>()
@@ -72,6 +78,8 @@ sealed interface ScalarExpression<out T> {
     /**
      * 将引用路径收集到指定集合
      * Collect reference paths into specified collection
+     *
+     * @param refs 用于收集引用路径的可变集合 / Mutable set to collect reference paths into
      */
     fun collectReferencesInto(refs: MutableSet<PropertyPath>) {
         when (this) {

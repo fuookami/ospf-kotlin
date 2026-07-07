@@ -18,7 +18,14 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.functional.*
 import jscip.SCIP_ParamSetting
 
-/** SCIP 列生成求解器 / SCIP column generation solver */
+/**
+ * SCIP column generation solver
+ *
+ * 中文: SCIP 列生成求解器
+ *
+ * @property config solver configuration / 求解器配置
+ * @property callBack solver callback / 求解器回调
+ */
 class ScipColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()

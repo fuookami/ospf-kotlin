@@ -15,7 +15,7 @@ class TransferPlan internal constructor(
     override val aircraft: Aircraft? = null,
     override val enabledAircrafts: Set<Aircraft>,
     override val duration: Duration? = null,
-    override val actualId: String = UUID.randomUUID().toString(),
+    actualId: String = UUID.randomUUID().toString(),
     status: Set<FlightTaskStatus> = stableStatus
 ) : FlightTaskPlan(
     id = "${prefix}_${actualId.replace("-", "")}",
@@ -25,6 +25,8 @@ class TransferPlan internal constructor(
     companion object {
         private const val prefix = "tf"
 
+        /** The default stable status set for transfer plans, preventing delay, advance, and terminal change.
+         * 中转计划的默认稳定状态集合，禁止延误、提前和航站楼变更。 */
         val stableStatus = setOf(
             FlightTaskStatus.NotDelay,
             FlightTaskStatus.NotAdvance,
@@ -76,6 +78,7 @@ class TransferPlan internal constructor(
         }
     }
 
+    override val actualId = FlightTaskPlanId(actualId)
     override val displayName = "transfer"
     override val scheduledTime: TimeRange? = null
 

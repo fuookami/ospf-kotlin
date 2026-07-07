@@ -52,6 +52,14 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
     }
 
     companion object {
+        /**
+         * Creates an ArnoldTongue instance with Flt64 parameters.
+         * 创建使用 Flt64 参数的 Arnold 舌实例。
+         *
+         * @param omega the frequency parameter / 频率参数
+         * @param kappa the coupling strength parameter / 耦合强度参数
+         * @return a new ArnoldTongue instance / 新的 Arnold 舌实例
+         */
         operator fun invoke(
             omega: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)

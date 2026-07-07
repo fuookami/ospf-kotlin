@@ -21,12 +21,25 @@ import fuookami.ospf.kotlin.math.symbol.*
  */
 const val SerializedSymbolIdentityPrefix = "__ospf_symbol_identity__"
 
+/**
+ * Default symbol implementation.
+ * 默认符号实现。
+ *
+ * @property name the symbol name / 符号名称
+ * @property displayName the display name, or null / 显示名称，可为 null
+ */
 private data class DefaultSymbol(
     override val name: String,
     override val displayName: String? = null
 ) : Symbol
 
-/** 根据名称创建默认符号 / Create a default symbol from a name */
+/**
+ * Creates a default symbol from the given name.
+ * 根据名称创建默认符号。
+ *
+ * @param name the symbol name / 符号名称
+ * @return the default symbol / 默认符号
+ */
 private fun defaultSymbolOf(name: String): Symbol {
     return DefaultSymbol(name)
 }
@@ -106,6 +119,12 @@ sealed interface SymbolIdentityExpr {
     ) : SymbolIdentityExpr
 }
 
+/**
+ * Symbol backed by a serialized identity expression.
+ * 基于序列化标识表达式的符号。
+ *
+ * @property identityExpr the symbol identity expression / 符号标识表达式
+ */
 private data class SerializedIdentitySymbol(
     val identityExpr: SymbolIdentityExpr
 ) : Symbol, IdentifiedSymbol {
@@ -114,12 +133,24 @@ private data class SerializedIdentitySymbol(
     override val symbolId: String = identityExpr.toSerializedIdentifier()
 }
 
-/** 将字节数组转换为十六进制字符串 / Convert a byte array to a hex string */
+/**
+ * Converts a byte array to a hexadecimal string.
+ * 将字节数组转换为十六进制字符串。
+ *
+ * @receiver the byte array to convert / 要转换的字节数组
+ * @return the hexadecimal string representation / 十六进制字符串表示
+ */
 private fun ByteArray.toHexString(): String {
     return joinToString(separator = "") { value -> "%02x".format(value) }
 }
 
-/** 将十六进制字符串转换为字节数组，格式无效时返回 null / Convert a hex string to a byte array, or null if invalid */
+/**
+ * Converts a hexadecimal string to a byte array, or null if the format is invalid.
+ * 将十六进制字符串转换为字节数组，格式无效时返回 null。
+ *
+ * @receiver the hexadecimal string to convert / 要转换的十六进制字符串
+ * @return the byte array, or null if the hex string is invalid / 字节数组，格式无效时返回 null
+ */
 private fun String.hexToByteArrayOrNull(): ByteArray? {
     if (length % 2 != 0) {
         return null

@@ -81,10 +81,20 @@ data class QuantityBox2<V : FloatingNumber<V>>(
     /** y 方向最大值，失败时返回 null / Maximum y value, or null on failure */
     val maxYOrNull: Quantity<V>? get() = maxY().value
 
-    /** x 方向最大值 / Maximum x value */
+    /**
+     * 获取 x 方向最大值
+     * Get the maximum x value
+     *
+     * @return x 方向最大值 / Maximum x value
+     */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
-    /** y 方向最大值 / Maximum y value */
+    /**
+     * 获取 y 方向最大值
+     * Get the maximum y value
+     *
+     * @return y 方向最大值 / Maximum y value
+     */
     fun maxY(): Ret<Quantity<V>> = quantityPlusSafe(y, height)
 
     private val centerXOrNull: Quantity<V>? get() = centerX().value

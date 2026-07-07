@@ -71,12 +71,16 @@ interface DummyIndexRange {
     /**
      * 获取范围的起始边界
      * Get the start bound of the range
+     *
+     * @return 范围的起始边界，null 表示无边界 / Start bound of the range, null means no bound
      */
     fun start(): Int?
 
     /**
      * 获取范围的结束边界
      * Get the end bound of the range
+     *
+     * @return 范围的结束边界，null 表示无边界 / End bound of the range, null means no bound
      */
     fun end(): Int?
 

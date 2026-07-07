@@ -25,6 +25,13 @@ import java.util.concurrent.TimeUnit
  * 衡量变量转储、目标系数收集、约束分块和稀疏行扫描等热点路径的性能。
  * Measures performance of hot paths including variable dumping, objective coefficient
  * collection, constraint segmentation, and sparse row traversal.
+ *
+ * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
+ * @property variables 变量列表 / list of variables
+ * @property objectiveCells 目标函数系数单元列表 / list of objective function coefficient cells
+ * @property constraintsLhs 约束左侧稀疏矩阵 / constraint left-hand side sparse matrix
+ * @property constraintsRhs 约束右侧值列表 / constraint right-hand side values
+ * @property constraintsSigns 约束关系符号列表 / constraint relation signs
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -137,6 +144,8 @@ open class CorePluginDumpBenchmark {
     /**
      * 对应各 solver dump 的 objective 系数到 double 的收集过程。
      * Maps to objective coefficient collection to double in solver dumps.
+     *
+     * @return 系数累加校验和 / coefficient accumulation checksum
      */
     @Benchmark
     fun collectObjectiveCoefficients(): Double {
@@ -150,6 +159,8 @@ open class CorePluginDumpBenchmark {
     /**
      * 对应各 solver dump 的约束分块大小推导。
      * Maps to constraint segment size derivation in solver dumps.
+     *
+     * @return 约束分块数量 / number of constraint segments
      */
     @Benchmark
     fun computeConstraintSegments(): Int {
@@ -160,6 +171,8 @@ open class CorePluginDumpBenchmark {
     /**
      * 对应各 solver dump 的 sparse row 扫描与界限转换。
      * Maps to sparse row traversal and bound conversion in solver dumps.
+     *
+     * @return 系数与界限累加校验和 / coefficient and bound accumulation checksum
      */
     @Benchmark
     fun walkSparseRowsAndBounds(): Double {
@@ -190,7 +203,14 @@ open class CorePluginDumpBenchmark {
         return checksum
     }
 
-    /** 变量转储数据快照，包含下界、上界、名称和初始结果 / Variable dumping data snapshot containing lower bounds, upper bounds, names, and initial results */
+    /**
+     * 变量转储数据快照，包含下界、上界、名称和初始结果
+     * Variable dumping data snapshot containing lower bounds, upper bounds, names, and initial results
+     *
+     * @property lowerBounds 变量下界数组 / array of variable lower bounds
+     * @property upperBounds 变量上界数组 / array of variable upper bounds
+     * @property initialResults 带初始值的变量索引与值对列表 / list of variable index and value pairs with initial results
+     */
     private data class VariableDumpingDataSnapshot(
         val lowerBounds: DoubleArray,
         val upperBounds: DoubleArray,
@@ -259,7 +279,13 @@ open class CorePluginDumpBenchmark {
         return segment
     }
 
-    /** 目标函数系数单元 / Objective function coefficient cell */
+    /**
+     * 目标函数系数单元
+     * Objective function coefficient cell
+     *
+     * @property colIndex 列索引 / column index
+     * @property coefficient 系数值 / coefficient value
+     */
     private data class ObjectiveCell(
         val colIndex: Int,
         val coefficient: Flt64

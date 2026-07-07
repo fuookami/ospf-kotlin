@@ -1,6 +1,6 @@
 /**
- * 量纲域模型。
  * Quantity domain models.
+ * 量纲域模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

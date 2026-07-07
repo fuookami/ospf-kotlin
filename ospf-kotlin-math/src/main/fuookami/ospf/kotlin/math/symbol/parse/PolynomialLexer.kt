@@ -11,6 +11,10 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 
+/**
+ * Token types for polynomial lexical analysis.
+ * 多项式词法分析的词法单元类型。
+ */
 internal enum class PolynomialTokenType {
     Number,
     Identifier,
@@ -29,18 +33,37 @@ internal enum class PolynomialTokenType {
     End
 }
 
+/**
+ * A token produced by the polynomial lexer.
+ * 多项式词法分析器产生的词法单元。
+ *
+ * @property type the token type / 词法单元类型
+ * @property text the raw text of the token / 词法单元的原始文本
+ * @property position the starting position in the input string / 在输入字符串中的起始位置
+ */
 internal data class PolynomialToken(
     val type: PolynomialTokenType,
     val text: String,
     val position: Int
 )
 
+/**
+ * Lexer for polynomial expressions, tokenizing an input string into a sequence of tokens.
+ * 多项式表达式的词法分析器，将输入字符串分解为词法单元序列。
+ *
+ * @property input the input string to tokenize / 待词法分析的输入字符串
+ */
 internal class PolynomialLexer(
     private val input: String
 ) {
     private var index: Int = 0
 
-    /** 执行词法分析 / Execute lexical analysis */
+    /**
+     * Executes lexical analysis on the input string.
+     * 对输入字符串执行词法分析。
+     *
+     * @return the list of tokens or a parse error / 词法单元列表或解析错误
+     */
     fun lex(): ParseResult<List<PolynomialToken>> {
         val tokens = ArrayList<PolynomialToken>()
         while (true) {
@@ -135,7 +158,12 @@ internal class PolynomialLexer(
         }
     }
 
-    /** 读取数字字面量（整数或小数） / Read a numeric literal (integer or decimal) */
+    /**
+     * Reads a numeric literal (integer or decimal) from the input.
+     * 从输入中读取数字字面量（整数或小数）。
+     *
+     * @return the numeric token or a parse error / 数字词法单元或解析错误
+     */
     private fun readNumber(): ParseResult<PolynomialToken> {
         val start = index
         var hasDot = false
@@ -166,7 +194,12 @@ internal class PolynomialLexer(
         )
     }
 
-    /** 读取标识符（字母、数字或下划线组成的词） / Read an identifier (word composed of letters, digits, or underscores) */
+    /**
+     * Reads an identifier (word composed of letters, digits, or underscores) from the input.
+     * 从输入中读取标识符（由字母、数字或下划线组成的词）。
+     *
+     * @return the identifier token / 标识符词法单元
+     */
     private fun readIdentifier(): PolynomialToken {
         val start = index
         while (!isEnd()) {
@@ -184,19 +217,32 @@ internal class PolynomialLexer(
         )
     }
 
-    /** 跳过空白字符 / Skip whitespace characters */
+    /**
+     * Skips whitespace characters in the input.
+     * 跳过输入中的空白字符。
+     */
     private fun skipWhitespace() {
         while (!isEnd() && input[index].isWhitespace()) {
             index += 1
         }
     }
 
-    /** 判断是否已到达输入末尾 / Check whether the end of input has been reached */
+    /**
+     * Checks whether the end of input has been reached.
+     * 判断是否已到达输入末尾。
+     *
+     * @return whether the index is past the end of input / 索引是否已超过输入末尾
+     */
     private fun isEnd(): Boolean {
         return index >= input.length
     }
 
-    /** 查看下一个字符，不存在则返回 null / Peek at the next character, or null if absent */
+    /**
+     * Peeks at the next character without advancing the index.
+     * 查看下一个字符但不推进索引。
+     *
+     * @return the next character, or null if absent / 下一个字符，不存在则返回 null
+     */
     private fun peekNext(): Char? {
         return if (index + 1 < input.length) {
             input[index + 1]

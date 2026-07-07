@@ -56,17 +56,35 @@ data class LatexNumberOps<T>(
     val format: (T) -> String
 )
 
+/**
+ * Signed term for LaTeX rendering.
+ * 中文带符号的项。
+ *
+ * @property body the term body string / 项体字符串
+ * @property negative whether the term is negative / 项是否为负
+ */
 private data class SignedTerm(
     val body: String,
     val negative: Boolean
 )
 
-/** 获取符号的 LaTeX 显示名称，优先使用 displayName / Get the LaTeX display name of a symbol, preferring displayName */
+/**
+ * Get the LaTeX display name of a symbol, preferring displayName.
+ * 中文获取符号的 LaTeX 显示名称，优先使用 displayName。
+ *
+ * @return the display name string / 显示名称字符串
+ */
 private fun Symbol.latexName(): String {
     return displayName ?: name
 }
 
-/** 根据选项获取乘法符号字符串 / Get multiplication symbol string based on options */
+/**
+ * Get multiplication symbol string based on options.
+ * 中文根据选项获取乘法符号字符串。
+ *
+ * @param options LaTeX formatting options / LaTeX 格式化选项
+ * @return the multiplication symbol string, or empty string if not using cdot / 乘法符号字符串，不使用 cdot 时为空字符串
+ */
 private fun mulSymbol(options: LatexOptions): String {
     return if (options.useCdot) {
         if (options.compact) {

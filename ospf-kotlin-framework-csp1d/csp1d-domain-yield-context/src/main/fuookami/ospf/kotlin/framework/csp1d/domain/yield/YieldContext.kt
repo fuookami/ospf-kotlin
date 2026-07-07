@@ -105,6 +105,12 @@ class YieldContext<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 按产品+单位聚合贡献 / Aggregate contributions by product+unit
+     *
+     * @param produce 主问题产出 / Master problem output
+     * @return 按聚合键分组的贡献映射 / Contribution map grouped by aggregation key
+     */
     private fun aggregateContributions(
         produce: Produce<V>
     ): Ret<Map<DemandAggregationKey<V>, List<CuttingPlanDemandContribution<V>>>> {
@@ -123,6 +129,13 @@ class YieldContext<V : RealNumber<V>>(
         return Ok(map)
     }
 
+    /**
+     * 将贡献量按次数累乘 / Multiply contribution quantity by repeating count
+     *
+     * @param contribution 切割方案需求贡献 / Cutting plan demand contribution
+     * @param times 重复次数 / Repeat count
+     * @return 累乘后的贡献 / Multiplied contribution
+     */
     private fun multiplyContribution(
         contribution: CuttingPlanDemandContribution<V>,
         times: UInt64
@@ -145,6 +158,12 @@ class YieldContext<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 汇总同组贡献量 / Sum contributions within the same group
+     *
+     * @param contributions 同组贡献列表 / Contribution list within the same group
+     * @return 汇总后的量，空列表返回 null / Summed quantity, or null if list is empty
+     */
     private fun sumContributions(
         contributions: List<CuttingPlanDemandContribution<V>>
     ): Ret<Quantity<V>?> {

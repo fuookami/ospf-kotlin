@@ -83,6 +83,12 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
         return actionsByExecutor[executorId] ?: emptyList()
     }
 
+    /**
+     * Calculate total capacity value across all actions and slots.
+     * 计算所有动作和时隙的总产能值。
+     *
+     * @return Total capacity value / 总产能值
+     */
     private fun totalCapacityValue(): V {
         val zero = timeWindow.fromDouble(0.0)
         var total = zero

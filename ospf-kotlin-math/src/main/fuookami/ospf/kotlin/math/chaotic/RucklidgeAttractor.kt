@@ -40,6 +40,13 @@ data class RucklidgeAttractor<V : FloatingNumber<V>>(val alpha: V, val kappa: V,
     }
 }
 
+/**
+ * Rucklidge attractor generator that iteratively produces chaotic sequences.
+ * Rucklidge 吸引子生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Rucklidge attractor instance / Rucklidge 吸引子实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class RucklidgeAttractorGenerator(
     val attractor: RucklidgeAttractor<Flt64> = RucklidgeAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

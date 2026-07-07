@@ -30,6 +30,13 @@ enum class MaterialPackingMixedDemandPolicy {
     Merge
 }
 
+/**
+ * 将量纲值转换为 FltX 量纲值。
+ * Converts a quantity value to FltX quantity value.
+ *
+ * @param quantity 量纲值 / quantity value
+ * @return FltX 量纲值 / FltX quantity value
+ */
 private fun <T : FloatingNumber<T>> toFltXQuantity(
     quantity: Quantity<T>
 ): Quantity<FltX> {

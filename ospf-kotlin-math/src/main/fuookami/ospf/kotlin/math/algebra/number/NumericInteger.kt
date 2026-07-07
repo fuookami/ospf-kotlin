@@ -1,14 +1,14 @@
 /**
- * 数值有符号整数模块
  * Numeric Signed Integer Module
- *
- * 本模块定义了带有数值语义的有符号整数类型，包括 NInt8、NInt16、NInt32、NInt64 和 NIntX。
- * 与普通有符号整数不同，这些类型的除法运算返回有理数结果而非整数结果，
- * 从而提供更精确的数值计算。适用于需要精确数值计算的场景。
+ * 数值有符号整数模块
  *
  * This module defines signed integer types with numeric semantics, including NInt8, NInt16, NInt32, NInt64, and NIntX.
  * Unlike regular signed integers, division operations of these types return rational number results instead of integer results,
  * thus providing more precise numerical calculations. Suitable for scenarios requiring precise numerical calculations.
+ *
+ * 本模块定义了带有数值语义的有符号整数类型，包括 NInt8、NInt16、NInt32、NInt64 和 NIntX。
+ * 与普通有符号整数不同，这些类型的除法运算返回有理数结果而非整数结果，
+ * 从而提供更精确的数值计算。适用于需要精确数值计算的场景。
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
@@ -22,21 +22,21 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
 
 /**
- * 数值有符号整数接口
  * Numeric Signed Integer Interface
- *
- * 提供数值有符号整数类型的通用实现，包括自增自减、对数、幂运算、
- * 三角函数等数学运算的默认实现。
- * 注意：除法运算返回有理数结果。
+ * 数值有符号整数接口
  *
  * Provides common implementation for numeric signed integer types, including default implementations
  * for increment/decrement, logarithm, power operations, trigonometric functions, and other mathematical operations.
  * Note: Division operation returns rational number result.
  *
- * @param Self 实现此接口的具体类型
- *             The concrete type implementing this interface
- * @param I 底层整数类型
- *           The underlying integer type
+ * 提供数值有符号整数类型的通用实现，包括自增自减、对数、幂运算、
+ * 三角函数等数学运算的默认实现。
+ * 注意：除法运算返回有理数结果。
+ *
+ * @param Self The concrete type implementing this interface
+ *             实现此接口的具体类型
+ * @param I The underlying integer type
+ *          底层整数类型
  */
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {

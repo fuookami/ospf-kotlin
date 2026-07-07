@@ -38,6 +38,8 @@ data class ColumnGenerationConfig(
  * @property bins 最终箱子（可选） / final bins (optional)
  * @property shadowPrices 影子价格映射 / shadow price map
  * @property continuousRadiusSolverPrototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
+ * @property continuousRadiusSolverResults 连续半径 solver 选出结果 / continuous-radius solver selected results
+ * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
  */
 data class ColumnGenerationState<V>(
     val iteration: Int,
@@ -116,6 +118,7 @@ data class ColumnGenerationLpResult<V>(
  * @property bins 最终箱子 / final bins
  * @property objective 目标值（可选） / objective value (optional)
  * @property info 附加信息 / additional info
+ * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
  */
 data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
@@ -142,6 +145,8 @@ data class ColumnGenerationFinalResult<V>(
  * @property elapsed 耗时 / elapsed time
  * @property lpInfos LP 求解信息列表 / LP info list
  * @property finalInfo 最终求解信息 / final solve info
+ * @property continuousRadiusSolverResults 连续半径 solver 选出结果 / continuous-radius solver selected results
+ * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
  */
 data class ColumnGenerationResult<V>(
     val columns: List<BinLayer>,
@@ -261,6 +266,15 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
  * @property solutionAnalyzer 解分析器（可选） / solution analyzer (optional)
  * @property heartbeat 心跳回调（可选） / heartbeat callback (optional)
  * @property layerRequestBuilder 层请求构建器（可选） / layer request builder (optional)
+ * @property initialColumns 初始列提供函数 / initial columns provider function
+ * @property solveRmpAndExtractShadowPrice RMP 求解并提取影子价格函数 / RMP solve and extract shadow price function
+ * @property solveRmpWithResult RMP 求解并返回完整结果函数（可选） / RMP solve with full result function (optional)
+ * @property filterByReducedCost 按检验数过滤列函数 / filter columns by reduced cost function
+ * @property deduplicateColumns 列去重函数 / column deduplication function
+ * @property solveFinalMilp 最终 MILP 求解函数 / final MILP solve function
+ * @property solveFinalMilpWithResult 最终 MILP 求解并返回完整结果函数（可选） / final MILP solve with full result function (optional)
+ * @property analyzeSolution 解分析函数 / solution analysis function
+ * @property onIterationHeartbeat 迭代心跳回调函数 / iteration heartbeat callback function
  */
 class ColumnGenerationAlgorithm<V>(
     private val layerGenerator: Bpp3dLayerGenerator<V>,

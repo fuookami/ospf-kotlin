@@ -64,6 +64,13 @@ class LocalFileObjectStoragePort(
         return resolveObjectPath(ref.path).exists()
     }
 
+    /**
+     * Resolves an object path to an absolute filesystem path within the storage root.
+     * 将对象路径解析为存储根目录内的绝对文件系统路径。
+     *
+     * @param path 对象路径 / Object path
+     * @return 绝对文件系统路径 / Absolute filesystem path
+     */
     private fun resolveObjectPath(path: ObjectPath): Path {
         val normalizedPath = normalizeObjectPath(path)
         val resolved = root.resolve(normalizedPath.value).toAbsolutePath().normalize()
@@ -73,20 +80,48 @@ class LocalFileObjectStoragePort(
         return resolved
     }
 
+    /**
+     * Normalizes an object path value.
+     * 规范化对象路径值。
+     *
+     * @param path 对象路径 / Object path
+     * @return 规范化后的对象路径 / Normalized object path
+     */
     private fun normalizeObjectPath(path: ObjectPath): ObjectPath {
         return ObjectPath.of(path.value)
     }
 
+    /**
+     * Computes the metadata file path for a given object path.
+     * 计算给定对象路径的元数据文件路径。
+     *
+     * @param path 对象文件路径 / Object file path
+     * @return 元数据文件路径 / Metadata file path
+     */
     private fun metadataPath(path: Path): Path {
         return path.resolveSibling("${path.fileName}.metadata")
     }
 
+    /**
+     * Encodes metadata map to a string representation.
+     * 将元数据映射编码为字符串表示。
+     *
+     * @param metadata 元数据键值对 / Metadata key-value pairs
+     * @return 编码后的字符串 / Encoded string
+     */
     private fun encodeMetadata(metadata: Map<String, String>): String {
         return metadata.entries.joinToString("\n") { (key, value) ->
             "${key.replace("\n", "\\n")}=${value.replace("\n", "\\n")}"
         }
     }
 
+    /**
+     * Computes the SHA-256 hash of the given bytes.
+     * 计算给定字节的 SHA-256 哈希值。
+     *
+     * @param bytes 字节数组 / Byte array
+     * @return 十六进制哈希字符串 / Hexadecimal hash string
+     */
     private fun sha256(bytes: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
         return digest.joinToString("") { "%02x".format(it) }

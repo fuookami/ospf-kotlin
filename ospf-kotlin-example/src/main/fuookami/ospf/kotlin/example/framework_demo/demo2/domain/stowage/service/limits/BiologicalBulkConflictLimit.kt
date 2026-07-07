@@ -13,6 +13,15 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces bulk cargo conflict constraints for incompatible biological cargo types.
+ * 强制执行不相容生物货物类型的散货冲突约束。
+ *
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property biologicalLimit the biological cargo compatibility rules / 生物货物兼容性规则
+ * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
+ */
 class BiologicalBulkConflictLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

@@ -27,6 +27,12 @@ data class GenerationConstraints<V : RealNumber<V>>(
     val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) {
     companion object {
+        /**
+         * Returns unconstrained generation constraints with all limits disabled.
+         * 返回所有限制均禁用的无约束生成配置。
+         *
+         * @return unconstrained generation constraints / 无约束的生成配置
+         */
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()
     }
 

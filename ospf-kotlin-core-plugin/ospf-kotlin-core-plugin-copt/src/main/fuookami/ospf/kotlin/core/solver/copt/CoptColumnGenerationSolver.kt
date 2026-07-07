@@ -18,7 +18,12 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
-/** COPT 列生成求解器 / COPT column generation solver */
+/**
+ * COPT 列生成求解器 / COPT column generation solver
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 线性求解器回调 / linear solver callback
+ */
 class CoptColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack()

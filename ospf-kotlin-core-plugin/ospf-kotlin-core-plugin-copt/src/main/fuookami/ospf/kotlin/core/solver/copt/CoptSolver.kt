@@ -10,7 +10,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.*
 import copt.*
 
-/** COPT 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / COPT solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
+/**
+ * COPT 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / COPT solver abstract base class, provides common implementation for environment initialization, solving, and status analysis
+ *
+ * @property env COPT 环境 / COPT environment
+ * @property coptModel COPT 模型 / COPT model
+ * @property status 求解状态 / solving status
+ */
 abstract class CoptSolver : AutoCloseable {
     protected lateinit var env: Envr
     protected lateinit var coptModel: Model

@@ -46,6 +46,13 @@ class MongoScalarTranslator(
         }
     }
 
+    /**
+     * 翻译一元标量表达式
+     * Translate unary scalar expression
+     *
+     * @param expr 一元标量表达式 / Unary scalar expression
+     * @return MongoDB 可用的值 / MongoDB-compatible value
+     */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<Any?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
@@ -55,6 +62,13 @@ class MongoScalarTranslator(
         }
     }
 
+    /**
+     * 翻译二元标量表达式
+     * Translate binary scalar expression
+     *
+     * @param expr 二元标量表达式 / Binary scalar expression
+     * @return MongoDB 可用的值 / MongoDB-compatible value
+     */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<Any?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value ?: return Ok(null)
@@ -69,6 +83,13 @@ class MongoScalarTranslator(
         return Ok(Document(operator, listOf(left, right)))
     }
 
+    /**
+     * 翻译标量函数表达式
+     * Translate scalar function expression
+     *
+     * @param expr 标量函数表达式 / Scalar function expression
+     * @return MongoDB 可用的值 / MongoDB-compatible value
+     */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<Any?> {
         val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
@@ -89,6 +110,16 @@ class MongoScalarTranslator(
         }
     }
 
+    /**
+     * 翻译一元函数为 MongoDB 表达式
+     * Translate unary function to MongoDB expression
+     *
+     * @param logicalName 逻辑函数名 / Logical function name
+     * @param mongoName MongoDB 函数名 / MongoDB function name
+     * @param arguments 函数参数列表 / Function argument list
+     * @param argumentMapper 参数映射函数 / Argument mapper function
+     * @return MongoDB 可用的值 / MongoDB-compatible value
+     */
     private fun translateUnaryFunction(
         logicalName: String,
         mongoName: String,
@@ -101,6 +132,13 @@ class MongoScalarTranslator(
         return Ok(Document(mongoName, argumentMapper(arguments[0])))
     }
 
+    /**
+     * 根据策略处理不支持的标量表达式
+     * Handle unsupported scalar expression based on policy
+     *
+     * @param reason 不支持的原因 / Reason for being unsupported
+     * @return 处理结果 / Handling result
+     */
     private fun unsupported(reason: String): Ret<Any?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

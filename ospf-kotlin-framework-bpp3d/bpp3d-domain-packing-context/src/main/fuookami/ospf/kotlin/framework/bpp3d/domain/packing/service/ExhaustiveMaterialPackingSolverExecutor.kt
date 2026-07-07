@@ -1,6 +1,6 @@
 /**
- * 穷举物料装箱求解器执行器。
  * Exhaustive material packing solver executor.
+ * 穷举物料装箱求解器执行器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
@@ -11,17 +11,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.MaterialKey
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
 
 /**
- * 穷举物料装箱求解器执行器，通过枚举所有候选组合来求解物料排包问题。
  * Exhaustive material packing solver executor that solves the material packing problem by enumerating all candidate combinations.
+ * 穷举物料装箱求解器执行器，通过枚举所有候选组合来求解物料排包问题。
  */
 class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
     /**
-     * 候选解的评分，用于比较不同枚举方案的质量。
      * Score for a candidate solution, used to compare the quality of different enumeration plans.
-     * @property objective 综合目标值 / Composite objective value
-     * @property packageCount 包数量 / Number of packages
-     * @property slack 物料过剩总量 / Total material slack (over-coverage)
-     * @property volume 总体积 / Total volume
+     * 候选解的评分，用于比较不同枚举方案的质量。
+     *
+     * @property objective The composite objective value.
+     * 综合目标值。
+     * @property packageCount The number of packages.
+     * 包数量。
+     * @property slack The total material slack (over-coverage).
+     * 物料过剩总量（过度覆盖）。
+     * @property volume The total volume.
+     * 总体积。
      */
     private data class CandidateScore(
         val objective: FltX,
@@ -131,12 +136,17 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         var bestScore: CandidateScore? = null
 
         /**
-         * 根据覆盖量、包数量和体积计算候选解评分。
          * Calculate the candidate solution score from coverage, package count, and volume.
-         * @param covered 每种物料的覆盖量 / Coverage amount for each material
-         * @param packageCount 包数量 / Number of packages
-         * @param volumeValue 体积值 / Volume value
-         * @return 候选解评分 / Candidate solution score
+         * 根据覆盖量、包数量和体积计算候选解评分。
+         *
+         * @param covered The coverage amount for each material.
+         * 每种物料的覆盖量。
+         * @param packageCount The number of packages.
+         * 包数量。
+         * @param volumeValue The volume value.
+         * 体积值。
+         * @return The candidate solution score.
+         * 候选解评分。
          */
         fun scoreFrom(covered: LongArray, packageCount: Long, volumeValue: FltX): CandidateScore {
             var slack = 0L
@@ -155,11 +165,15 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         }
 
         /**
-         * 判断候选解是否优于当前最优解。
          * Determine whether the candidate solution is better than the current best.
-         * @param candidate 候选解评分 / Candidate solution score
-         * @param best 当前最优解评分 / Current best solution score
-         * @return 如果候选解更优则返回 true / true if the candidate is better
+         * 判断候选解是否优于当前最优解。
+         *
+         * @param candidate The candidate solution score.
+         * 候选解评分。
+         * @param best The current best solution score.
+         * 当前最优解评分。
+         * @return True if the candidate is better.
+         * 如果候选解更优则返回 true。
          */
         fun betterThanBest(candidate: CandidateScore, best: CandidateScore?): Boolean {
             if (best == null) {
@@ -189,11 +203,15 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         }
 
         /**
-         * 判断从当前候选索引开始，即使使用所有后续候选也无法满足需求。
          * Determine whether the demand cannot be met even if all subsequent candidates are used starting from the current index.
-         * @param candidateIndex 当前候选索引 / Current candidate index
-         * @param covered 当前已覆盖的物料量 / Currently covered material amounts
-         * @return 如果不可行则返回 true / true if infeasible
+         * 判断从当前候选索引开始，即使使用所有后续候选也无法满足需求。
+         *
+         * @param candidateIndex The current candidate index.
+         * 当前候选索引。
+         * @param covered The currently covered material amounts.
+         * 当前已覆盖的物料量。
+         * @return True if infeasible.
+         * 如果不可行则返回 true。
          */
         fun infeasibleByCapacity(candidateIndex: Int, covered: LongArray): Boolean {
             for (materialIndex in materials.indices) {
@@ -205,9 +223,11 @@ class ExhaustiveMaterialPackingSolverExecutor : MaterialPackingSolverExecutor {
         }
 
         /**
-         * 深度优先搜索枚举所有候选组合，寻找最优解。
          * Depth-first search enumerating all candidate combinations to find the optimal solution.
-         * @param candidateIndex 当前搜索的候选索引 / Current candidate index being searched
+         * 深度优先搜索枚举所有候选组合，寻找最优解。
+         *
+         * @param candidateIndex The current candidate index being searched.
+         * 当前搜索的候选索引。
          */
         fun search(candidateIndex: Int) {
             if (infeasibleByCapacity(candidateIndex, currentCovered)) {

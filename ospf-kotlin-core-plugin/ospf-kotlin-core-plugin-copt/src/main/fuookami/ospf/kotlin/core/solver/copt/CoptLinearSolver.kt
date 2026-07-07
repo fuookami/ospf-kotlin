@@ -23,7 +23,12 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import copt.*
 
-/** COPT 线性求解器 / COPT linear solver */
+/**
+ * COPT 线性求解器 / COPT linear solver
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 线性求解器回调 / linear solver callback
+ */
 class CoptLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptLinearSolverCallBack? = null
@@ -98,7 +103,13 @@ class CoptLinearSolver(
     }
 }
 
-/** COPT 线性求解器内部实现 / COPT linear solver internal implementation */
+/**
+ * COPT 线性求解器内部实现 / COPT linear solver internal implementation
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 线性求解器回调 / linear solver callback
+ * @property statusCallBack 求解状态回调 / solving status callback
+ */
 private class CoptLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptLinearSolverCallBack? = null,

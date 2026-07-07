@@ -1,11 +1,11 @@
 /**
- * 三角剖分
- * Triangulation
+ * Triangulation.
+ * 中文三角剖分。
  *
- * 实现二维 Delaunay 三角剖分算法，支持将点集分解为三角形网格。
- * 同时支持三维点和等值线的三角剖分。
  * Implements 2D Delaunay triangulation algorithm, supporting decomposition of point sets into triangle meshes.
  * Also supports triangulation of 3D points and isolines.
+ * 中文实现二维 Delaunay 三角剖分算法，支持将点集分解为三角形网格。
+ * 中文同时支持三维点和等值线的三角剖分。
  */
 package fuookami.ospf.kotlin.math.geometry
 
@@ -15,17 +15,17 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 二维 Delaunay 三角剖分结果
- * 2D Delaunay triangulation result
+ * 2D Delaunay triangulation result.
+ * 中文二维 Delaunay 三角剖分结果。
  *
- * @property triangles 三角形列表 / List of triangles
- * @property points 输入点集 / Input point set
+ * @property triangles the list of triangles / 三角形列表
+ * @property points the input point set / 输入点集
  */
 data class DelaunayTriangulation2(
     val triangles: List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>,
     val points: List<Point<Dim2, Flt64>>
 ) {
-    /** 去重后的边列表 / Deduplicated list of edges */
+    /** The deduplicated list of edges. / 中文去重后的边列表。 */
     val edges: List<Edge<Point<Dim2, Flt64>, Dim2, Flt64>> by lazy {
         val result = mutableListOf<Edge<Point<Dim2, Flt64>, Dim2, Flt64>>()
         val seen = mutableSetOf<Pair<Int, Int>>()
@@ -45,12 +45,12 @@ data class DelaunayTriangulation2(
     }
 
     /**
-     * 查找两个点在点集中的索引
-     * Find the indices of two points in the point set
+     * Find the indices of two points in the point set.
+     * 中文查找两个点在点集中的索引。
      *
-     * @param p1 第一个点 / The first point
-     * @param p2 第二个点 / The second point
-     * @return 两个点的索引对 / The pair of indices
+     * @param p1 the first point / 第一个点
+     * @param p2 the second point / 第二个点
+     * @return the pair of indices / 两个点的索引对
      */
     private fun findPointIndices(p1: Point<Dim2, Flt64>, p2: Point<Dim2, Flt64>): Pair<Int, Int> {
         var i1 = 0
@@ -70,12 +70,12 @@ data class DelaunayTriangulation2(
 }
 
 /**
- * 判断三角形列表是否满足 Delaunay 条件
- * Check whether a list of triangles satisfies the Delaunay condition
+ * Check whether a list of triangles satisfies the Delaunay condition.
+ * 中文判断三角形列表是否满足 Delaunay 条件。
  *
- * @param triangles 三角形列表 / List of triangles
- * @param points 点集 / Point set
- * @return 是否满足 Delaunay 条件 / Whether the Delaunay condition is satisfied
+ * @param triangles the list of triangles / 三角形列表
+ * @param points the point set / 点集
+ * @return whether the Delaunay condition is satisfied / 是否满足 Delaunay 条件
  */
 fun isDelaunay(triangles: List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>, points: List<Point<Dim2, Flt64>>): Boolean {
     for (triangle in triangles) {
@@ -95,31 +95,31 @@ fun isDelaunay(triangles: List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>, point
 }
 
 /**
- * 判断点是否在三角形外接圆内（严格）
- * Check whether a point is strictly inside the circumcircle of a triangle
+ * Check whether a point is strictly inside the circumcircle of a triangle.
+ * 中文判断点是否在三角形外接圆内（严格）。
  *
- * @param point 待检测的点 / The point to check
- * @param triangle 三角形 / The triangle
- * @return 是否在外接圆内 / Whether inside the circumcircle
+ * @param point the point to check / 待检测的点
+ * @param triangle the triangle / 三角形
+ * @return whether inside the circumcircle / 是否在外接圆内
  */
 fun pointInCircumcircle(point: Point<Dim2, Flt64>, triangle: Triangle<Point<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     return triangle.circumcircle() containsPointStrict point
 }
 
 /**
- * Delaunay 三角剖分算法对象
- * Delaunay triangulation algorithm object
+ * Delaunay triangulation algorithm object.
+ * 中文Delaunay 三角剖分算法对象。
  *
- * 提供基于 Bowyer-Watson 算法的二维 Delaunay 三角剖分实现。
  * Provides 2D Delaunay triangulation implementation based on the Bowyer-Watson algorithm.
+ * 中文提供基于 Bowyer-Watson 算法的二维 Delaunay 三角剖分实现。
  */
 data object Delaunay {
     /**
-     * 对二维点集进行 Delaunay 三角剖分，返回完整结果
-     * Perform Delaunay triangulation on a 2D point set, returning full result
+     * Perform Delaunay triangulation on a 2D point set, returning full result.
+     * 中文对二维点集进行 Delaunay 三角剖分，返回完整结果。
      *
-     * @param points 二维点集 / 2D point set
-     * @return 三角剖分结果 / Triangulation result
+     * @param points the 2D point set / 二维点集
+     * @return the triangulation result / 三角剖分结果
      */
     fun triangulate(points: List<Point<Dim2, Flt64>>): DelaunayTriangulation2 {
         val triangles = invoke(points)
@@ -127,11 +127,11 @@ data object Delaunay {
     }
 
     /**
-     * 对二维点集进行 Delaunay 三角剖分（带错误处理）
-     * Perform Delaunay triangulation on a 2D point set (with error handling)
+     * Perform Delaunay triangulation on a 2D point set (with error handling).
+     * 中文对二维点集进行 Delaunay 三角剖分（带错误处理）。
      *
-     * @param points 二维点集（至少 3 个点） / 2D point set (at least 3 points)
-     * @return 三角剖分结果或错误 / Triangulation result or error
+     * @param points the 2D point set (at least 3 points) / 二维点集（至少 3 个点）
+     * @return the triangulation result or error / 三角剖分结果或错误
      */
     fun triangulateRet(points: List<Point<Dim2, Flt64>>): Ret<DelaunayTriangulation2> {
         if (points.size < 3) {

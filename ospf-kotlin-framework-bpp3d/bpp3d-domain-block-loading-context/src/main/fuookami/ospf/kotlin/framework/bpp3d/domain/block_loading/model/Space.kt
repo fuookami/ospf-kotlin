@@ -1,6 +1,6 @@
 /**
- * 空间模型。
  * Space model.
+ * 空间模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
@@ -12,6 +12,15 @@ import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
+/**
+ * Creates a 3D infrastructure point with the specified coordinates.
+ * 创建指定坐标的三维基础点。
+ *
+ * @param x The x coordinate. 中文：x 坐标。
+ * @param y The y coordinate. 中文：y 坐标。
+ * @param z The z coordinate. 中文：z 坐标。
+ * @return A 3D point. 中文：三维点。
+ */
 private fun infraPoint3(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -20,6 +29,15 @@ private fun infraPoint3(
     return Point(x, y, z)
 }
 
+/**
+ * Creates a 3D infrastructure vector with the specified components.
+ * 创建指定分量的三维基础向量。
+ *
+ * @param x The x component. 中文：x 分量。
+ * @param y The y component. 中文：y 分量。
+ * @param z The z component. 中文：z 分量。
+ * @return A 3D vector. 中文：三维向量。
+ */
 private fun infraVector3(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -29,14 +47,14 @@ private fun infraVector3(
 }
 
 /**
- * 空间模型，表示容器中的一个可放置区域。
  * Space model, representing a placeable region within a container.
- * @property parentShape 父空间形状，默认为当前形状
- * @property parentShape the parent space shape, defaults to the current shape
- * @property block 放置在该空间中的箱子，为空表示空闲空间
- * @property block the block placed in this space, null indicates free space
- * @property forwardLink 前向关联，指向分割后的下一个空间
- * @property forwardLink the forward link to the next space after splitting
+ * 空间模型，表示容器中的一个可放置区域。
+ *
+ * @property position The position of the space in 3D coordinates. 中文：空间在三维坐标系中的位置。
+ * @property shape The shape of the space. 中文：空间的形状。
+ * @property parentShape The parent space shape, defaults to the current shape. 中文：父空间形状，默认为当前形状。
+ * @property block The block placed in this space, null indicates free space. 中文：放置在该空间中的箱子，为空表示空闲空间。
+ * @property forwardLink The forward link to the next space after splitting. 中文：前向关联，指向分割后的下一个空间。
  */
 data class Space(
     val position: Point<Dim3, FltX>,
@@ -46,10 +64,26 @@ data class Space(
     val forwardLink: Pair<ProjectivePlane, Space>? = null
 ) {
     companion object {
+        /**
+         * Creates a list of spaces from a bin of blocks.
+         * 从一箱块创建空间列表。
+         *
+         * @param blocks The bin containing blocks. 中文：包含块的容器。
+         * @return The list of spaces, or null if construction fails. 中文：空间列表，构造失败则返回 null。
+         */
         fun from(blocks: Bin<Block, FltX>): List<Space>? {
             return from(blocks.units)
         }
 
+        /**
+         * Creates a list of spaces from a list of block placements within a container shape.
+         * 从容器形状内的块放置列表创建空间列表。
+         *
+         * @param blocks The list of block placements. 中文：块放置列表。
+         * @param shape The container shape. 中文：容器形状。
+         * @param offset The position offset. 中文：位置偏移。
+         * @return The list of spaces, or null if construction fails. 中文：空间列表，构造失败则返回 null。
+         */
         fun from(
             blocks: List<QuantityPlacement3<Block, FltX>>,
             shape: AbstractContainer3Shape = Container3Shape(),
@@ -77,25 +111,35 @@ data class Space(
         }
     }
 
+    /** The complexity of the space, measured by the depth of the forward link chain. 中文：空间的复杂度，由前向关联链的深度衡量。 */
     val complexity: UInt64 by lazy {
         forwardLink?.let { it.second.complexity + UInt64.one } ?: UInt64.zero
     }
 
+    /** The width of the space, from the block if present, otherwise from the shape. 中文：空间的宽度，有块时取块宽度，否则取形状宽度。 */
     val width get() = block?.width ?: shape.width
+    /** The height of the space, from the block if present, otherwise from the shape. 中文：空间的高度，有块时取块高度，否则取形状高度。 */
     val height get() = block?.height ?: shape.height
+    /** The depth of the space, from the block if present, otherwise from the shape. 中文：空间的深度，有块时取块深度，否则取形状深度。 */
     val depth get() = block?.depth ?: shape.depth
 
+    /** The x coordinate of the space position. 中文：空间位置的 x 坐标。 */
     val x get() = position[0]
+    /** The y coordinate of the space position. 中文：空间位置的 y 坐标。 */
     val y get() = position[1]
+    /** The z coordinate of the space position. 中文：空间位置的 z 坐标。 */
     val z get() = position[2]
 
+    /** The maximum x coordinate (x + width). 中文：最大 x 坐标（x + 宽度）。 */
     val maxX get() = x + width
+    /** The maximum y coordinate (y + height). 中文：最大 y 坐标（y + 高度）。 */
     val maxY get() = y + height
+    /** The maximum z coordinate (z + depth). 中文：最大 z 坐标（z + 深度）。 */
     val maxZ get() = z + depth
 
     /**
-     * 当前空间放置箱子后产生的关联空间列表。
      * The list of linked spaces generated after placing a block in the current space.
+     * 当前空间放置箱子后产生的关联空间列表。
      */
     val links: List<Pair<ProjectivePlane, Space>>
         get() {
@@ -162,8 +206,8 @@ data class Space(
         }
 
     /**
-     * 获取底部方向关联的空间列表。
      * Get the list of spaces linked in the bottom direction.
+     * 获取底部方向关联的空间列表。
      */
     val bottomSpaces: List<Space>
         get() {

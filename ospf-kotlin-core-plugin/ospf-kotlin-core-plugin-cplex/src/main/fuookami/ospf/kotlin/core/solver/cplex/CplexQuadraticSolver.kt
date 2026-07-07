@@ -132,6 +132,13 @@ private class CplexQuadraticSolverImpl(
         return Ok(output)
     }
 
+    /**
+     * Dump the quadratic model to CPLEX
+     * 中文: 将二次模型转储到 CPLEX
+     *
+     * @param model quadratic model view / 二次模型视图
+     * @return operation result / 操作结果
+     */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
 
@@ -307,6 +314,13 @@ private class CplexQuadraticSolverImpl(
         return ok
     }
 
+    /**
+     * Configure CPLEX solver parameters for quadratic model
+     * 中文: 为二次模型配置 CPLEX 求解器参数
+     *
+     * @param model quadratic model view / 二次模型视图
+     * @return operation result / 操作结果
+     */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         cplex.setParam(IloCplex.Param.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
         cplex.setParam(IloCplex.Param.MIP.Tolerances.MIPGap, config.gap.toSolverDouble("quadratic.config.gap"))
@@ -403,6 +417,12 @@ private class CplexQuadraticSolverImpl(
         return ok
     }
 
+    /**
+     * Execute CPLEX solving for quadratic model
+     * 中文: 执行二次模型的 CPLEX 求解
+     *
+     * @return operation result / 操作结果
+     */
     private suspend fun solve(): Try {
         when (val result = callBack?.execIfContain(
             point = Point.Solving,

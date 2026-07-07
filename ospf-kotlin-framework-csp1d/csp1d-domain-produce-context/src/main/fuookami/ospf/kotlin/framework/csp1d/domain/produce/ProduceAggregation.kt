@@ -68,6 +68,8 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
 
     /**
      * 添加初始方案（注册时调用）/ Add initial plans (called during registration)
+     *
+     * @param initialPlans 初始方案列表 / Initial plan list
      */
     fun addInitialPlans(initialPlans: List<CuttingPlan<V>>) {
         for (plan in initialPlans) {
@@ -169,6 +171,9 @@ class ProduceAggregation<V : RealNumber<V>>(
 
     /**
      * 获取指定索引的变量（初始 x 组）/ Get variable at specified index (from initial x group)
+     *
+     * @param index 变量索引 / Variable index
+     * @return 变量引用，未注册时返回错误 / Variable reference, or error if not registered
      */
     fun getAt(index: Int): Ret<UIntVariable1> {
         val value = _x.firstOrNull()
@@ -194,6 +199,9 @@ class ProduceAggregation<V : RealNumber<V>>(
      *
      * 将初始 x 变量、batch 中间符号和约束中间符号注册到元模型。
      * Register the initial x variables, batch intermediate symbols and constraint intermediate symbols.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
      */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         // 初始化迭代聚合 / Initialize iterative aggregation

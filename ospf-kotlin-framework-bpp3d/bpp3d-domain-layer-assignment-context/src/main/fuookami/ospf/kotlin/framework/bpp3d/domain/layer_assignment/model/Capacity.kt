@@ -1,6 +1,6 @@
 /**
- * 层分配容量模型。
  * Layer assignment capacity model.
+ * 层分配容量模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -19,8 +19,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 
 /**
- * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
  * Capacity interface, provides symbolic expressions for load weight, volume, depth and loading rate.
+ * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
  */
 interface Capacity {
     /** 装载重量符号 / load weight symbols */
@@ -37,8 +37,8 @@ interface Capacity {
 }
 
 /**
- * 精确装载容量，基于精确分配计算各箱子的容量指标。
  * Precise load capacity, computes capacity metrics per bin based on precise assignment.
+ * 精确装载容量，基于精确分配计算各箱子的容量指标。
  *
  * @property bins 箱子列表 / bin list
  * @property layers 层列表 / layer list
@@ -59,8 +59,8 @@ class PreciseLoadCapacity(
     override lateinit var tailLoadingRate: LinearIntermediateSymbols1<FltX>
 
     /**
-     * 注册容量符号到模型。
      * Register capacity symbols to model.
+     * 注册容量符号到模型。
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result

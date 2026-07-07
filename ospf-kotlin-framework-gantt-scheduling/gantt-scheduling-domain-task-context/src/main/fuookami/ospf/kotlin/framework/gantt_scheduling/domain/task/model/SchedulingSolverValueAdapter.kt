@@ -66,7 +66,12 @@ private object Flt64SolverValueAdapter : SchedulingSolverValueAdapter<Flt64> {
     override fun floorValue(value: Flt64): Flt64 = value.floor()
 }
 
-/** 泛型 adapter 实现，通过 Flt64ValueConverter 桥接任意 V / Generic adapter implementation, bridging arbitrary V via Flt64ValueConverter */
+/**
+ * Generic adapter implementation, bridging arbitrary V via Flt64ValueConverter.
+ * 泛型 adapter 实现，通过 Flt64ValueConverter 桥接任意 V
+ *
+ * @property delegate The Flt64 value converter delegate / Flt64值转换器委托
+ */
 class GenericSolverValueAdapter<V : RealNumber<V>>(
     private val delegate: fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter<V>
 ) : SchedulingSolverValueAdapter<V> {

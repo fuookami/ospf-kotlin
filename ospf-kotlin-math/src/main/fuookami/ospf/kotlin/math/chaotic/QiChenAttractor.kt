@@ -42,6 +42,13 @@ data class QiChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
     }
 }
 
+/**
+ * Qi-Chen attractor generator that iteratively produces chaotic sequences.
+ * Qi-Chen 吸引子生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Qi-Chen attractor instance / Qi-Chen 吸引子实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class QiChenAttractorGenerator(
     val attractor: QiChenAttractor<Flt64> = QiChenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

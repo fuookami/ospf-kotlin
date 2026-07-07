@@ -68,6 +68,13 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
     }
 
     companion object {
+        /**
+         * Creates a ChebyshevMap instance with Flt64 parameters.
+         * 创建使用 Flt64 参数的切比雪夫映射实例。
+         *
+         * @param a the Chebyshev polynomial order parameter / 切比雪夫多项式阶数参数
+         * @return a new ChebyshevMap instance / 新的切比雪夫映射实例
+         */
         operator fun invoke(
             a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten)
         ): ChebyshevMap<Flt64> {
@@ -77,14 +84,25 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
 }
 
 /**
- * 切比雪夫映射生成噌
- * Chebyshev Map Generator
+ * Chebyshev map generator that produces chaotic sequences iteratively.
+ * 切比雪夫映射生成器，通过迭代产生混沌序列。
+ *
+ * @property chebyshevMap the underlying Chebyshev map instance / 底层切比雪夫映射实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
  */
 data class ChebyshevMapGenerator(
     val chebyshevMap: ChebyshevMap<Flt64> = ChebyshevMap(),
     private var _x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
+        /**
+         * Creates a ChebyshevMapGenerator instance with specified parameters.
+         * 创建使用指定参数的切比雪夫映射生成器实例。
+         *
+         * @param a the Chebyshev polynomial order parameter / 切比雪夫多项式阶数参数
+         * @param x the initial state value / 初始状态值
+         * @return a new ChebyshevMapGenerator instance / 新的切比雪夫映射生成器实例
+         */
         operator fun invoke(
             a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten),
             x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)
@@ -96,6 +114,7 @@ data class ChebyshevMapGenerator(
         }
     }
 
+    /** The current state value exposed as read-only / 当前状态值的只读暴露 */
     val x by ::_x
 
     override operator fun invoke(): Flt64 {

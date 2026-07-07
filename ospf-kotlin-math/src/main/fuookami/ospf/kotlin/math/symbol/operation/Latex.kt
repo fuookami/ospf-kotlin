@@ -18,7 +18,13 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Includes compact and simplified formatting modes.
  */
 
-/** 将 Flt64 格式化为去除尾随零的十进制字符串 / Format a Flt64 as a decimal string with trailing zeros stripped */
+/**
+ * Formats a Flt64 as a decimal string with trailing zeros stripped.
+ * 将 Flt64 格式化为去除尾随零的十进制字符串。
+ *
+ * @param value the Flt64 value to format / 待格式化的 Flt64 值
+ * @return the formatted decimal string / 格式化后的十进制字符串
+ */
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()
     if (!doubleValue.isFinite()) {
@@ -113,7 +119,12 @@ fun CanonicalPolynomial<Flt64>.toLatex(
     return toLatexString(flt64LatexOps, options)
 }
 
-/** 将比较运算符转换为 LaTeX 符号 / Convert a comparison operator to its LaTeX symbol */
+/**
+ * Converts a comparison operator to its LaTeX symbol.
+ * 将比较运算符转换为 LaTeX 符号。
+ *
+ * @return the LaTeX symbol string / LaTeX 符号字符串
+ */
 private fun Comparison.latexSymbol(): String {
     return when (this) {
         Comparison.LT -> "<"
@@ -165,7 +176,12 @@ fun CanonicalInequality<Flt64>.toLatex(
 }
 
 // Solver-adapter formatting helper (simplified, without LatexOptions).
-/** 将 Flt64 转换为简化的 LaTeX 字符串，整数不带小数点 / Convert Flt64 to a simplified LaTeX string, integers without decimal point */
+/**
+ * Converts a Flt64 to a simplified LaTeX string, rendering integers without a decimal point.
+ * 将 Flt64 转换为简化的 LaTeX 字符串，整数不带小数点。
+ *
+ * @return the simplified LaTeX string / 简化的 LaTeX 字符串
+ */
 private fun Flt64.toLatexString(): String {
     val value = this.toDouble()
     return if (value == value.toLong().toDouble()) {

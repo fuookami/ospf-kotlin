@@ -96,7 +96,10 @@ data class Box2Need<V : FloatingNumber<V>>(
     /** 面积 / Area */
     val area: Quantity<V> get() = quantityProduct(width, height)
 
-    /** 判断是否与另一盒体重叠 / Check whether this box overlaps with another */
+    /** 判断是否与另一盒体重叠 / Check whether this box overlaps with another
+     * @param rhs 另一盒体 / Another box
+     * @return 是否重叠 / Whether overlapping
+     */
     fun overlaps(rhs: Box2Need<V>): Boolean {
         if (quantityOrd(maxX, rhs.minX, "maxX-rhsMinX").value!! !is Order.Greater) {
             return false
@@ -113,7 +116,10 @@ data class Box2Need<V : FloatingNumber<V>>(
         return true
     }
 
-    /** 计算与另一盒体的交集 / Compute intersection with another box */
+    /** 计算与另一盒体的交集 / Compute intersection with another box
+     * @param rhs 另一盒体 / Another box
+     * @return 交集盒体，无交集时返回null / Intersection box, or null if no intersection
+     */
     fun intersect(rhs: Box2Need<V>): Box2Need<V>? {
         val left = quantityMax(minX, rhs.minX, "left")
         val right = quantityMin(maxX, rhs.maxX, "right")
@@ -278,7 +284,11 @@ data class PackingScene2<V : FloatingNumber<V>>(
     }
 }
 
-/** 量值加法 / Quantity addition */
+/** 量值加法 / Quantity addition
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 加法结果 / Addition result
+ */
 private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value + rhs.value, lhs.unit))
@@ -291,7 +301,11 @@ private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity
     return ok(Quantity(lhs.value + converted.value, lhs.unit))
 }
 
-/** 量值减法 / Quantity subtraction */
+/** 量值减法 / Quantity subtraction
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 减法结果 / Subtraction result
+ */
 private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value - rhs.value, lhs.unit))
@@ -304,18 +318,32 @@ private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantit
     return ok(Quantity(lhs.value - converted.value, lhs.unit))
 }
 
-/** 量值乘法 / Quantity multiplication */
+/** 量值乘法 / Quantity multiplication
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @return 乘法结果 / Multiplication result
+ */
 private fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return Quantity(lhs.value * rhs.value, lhs.unit * rhs.unit)
 }
 
-/** 量值比较 / Quantity comparison */
+/** 量值比较 / Quantity comparison
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @param axis 比较轴名称 / Axis name for comparison
+ * @return 比较结果 / Comparison result
+ */
 private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
     return lhs.partialOrd(rhs)?.let { ok(it) }
         ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
 }
 
-/** 量值取最大 / Quantity max */
+/** 量值取最大 / Quantity max
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @param axis 比较轴名称 / Axis name for comparison
+ * @return 较大的量值 / The larger quantity
+ */
 private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater, Order.Equal -> lhs
@@ -323,7 +351,12 @@ private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<
     }
 }
 
-/** 量值取最小 / Quantity min */
+/** 量值取最小 / Quantity min
+ * @param lhs 左操作数 / Left operand
+ * @param rhs 右操作数 / Right operand
+ * @param axis 比较轴名称 / Axis name for comparison
+ * @return 较小的量值 / The smaller quantity
+ */
 private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater -> rhs
@@ -331,7 +364,10 @@ private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<
     }
 }
 
-/** 获取量值的零值 / Get zero value for a quantity */
+/** 获取量值的零值 / Get zero value for a quantity
+ * @param quantity 参考量值 / Reference quantity
+ * @return 零值量值 / Zero quantity
+ */
 private fun <V : FloatingNumber<V>> quantityZeroOf(quantity: Quantity<V>): Quantity<V> {
     return quantity.value.constants.zero * quantity.unit
 }

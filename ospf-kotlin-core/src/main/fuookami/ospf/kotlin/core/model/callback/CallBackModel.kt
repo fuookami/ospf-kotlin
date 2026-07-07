@@ -315,12 +315,37 @@ class CallBackModel<V> internal constructor(
     override val constraints by ::_constraints
     override val objectiveFunctions by ::_objectiveFunctions
 
+    /**
+     * Returns the value converter used by this model.
+     * 返回此模型使用的值转换器。
+     *
+     * @return 值转换器 / The value converter
+     */
     override fun converter(): IntoValue<V> = _converter
 
+    /**
+     * Returns the negative infinity value for the numeric type.
+     * 返回数值类型的负无穷值。
+     *
+     * @return 负无穷值 / The negative infinity value
+     */
     override fun negativeInfinity(): V = _converter.negativeInfinity
 
+    /**
+     * Returns the positive infinity value for the numeric type.
+     * 返回数值类型的正无穷值。
+     *
+     * @return 正无穷值 / The positive infinity value
+     */
     override fun infinity(): V = _converter.infinity
 
+    /**
+     * Generates initial solutions based on the specified count.
+     * 根据指定数量生成初始解。
+     *
+     * @param initialSolutionAmount 初始解数量 / The number of initial solutions
+     * @return 初始解列表 / The list of initial solutions
+     */
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
         return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
     }
@@ -611,6 +636,13 @@ class MultiObjectCallBackModel<V> internal constructor(
         }
     }
 
+    /**
+     * Computes the weighted objective value vector from multi-objective components.
+     * 从多目标分量计算加权目标值向量。
+     *
+     * @param obj 多目标位置与值的配对列表 / The list of multi-objective location and value pairs
+     * @return 加权目标值列表 / The weighted objective value list
+     */
     override fun objectiveValue(obj: List<Pair<MultiObjectLocation<V>, V>>): List<V> {
         val value = MutableList(objectiveSize) { _converter.zero }
         for ((location, objective) in obj) {

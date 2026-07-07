@@ -19,7 +19,14 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 
-/** MindOPT 线性 Benders 分解求解器 / MindOPT linear Benders decomposition solver */
+/**
+ * MindOPT linear Benders decomposition solver
+ *
+ * MindOPT 线性 Benders 分解求解器
+ *
+ * @property config Solver configuration / 求解器配置
+ * @property linearCallBack Linear solver callback / 线性求解器回调
+ */
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack()

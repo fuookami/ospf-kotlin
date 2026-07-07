@@ -248,22 +248,56 @@ fun <T> parseLinearInequalityOrNull(
 // Internal polynomial term and parser
 // ============================================================================
 
+/**
+ * Represents a single term in a parsed polynomial expression.
+ * 表示已解析多项式表达式中的单个项。
+ *
+ * @property coefficient the numeric coefficient of the term / 项的数值系数
+ * @property powers the map of symbols to their exponents / 符号到其指数的映射
+ */
 private data class ParsedTerm<T>(
     val coefficient: T,
     val powers: Map<Symbol, Int32>
 )
 
+/**
+ * Represents a parsed polynomial with terms and a constant.
+ * 表示包含项和常数的已解析多项式。
+ *
+ * @property terms the list of parsed terms / 已解析项的列表
+ * @property constant the constant term of the polynomial / 多项式的常数项
+ */
 private data class ParsedPolynomial<T>(
     val terms: List<ParsedTerm<T>>,
     val constant: T
 )
 
+/**
+ * Represents a parsed inequality with left-hand side, right-hand side, and comparison operator.
+ * 表示包含左侧、右侧和比较运算符的已解析不等式。
+ *
+ * @property lhs the left-hand side polynomial / 左侧多项式
+ * @property rhs the right-hand side polynomial / 右侧多项式
+ * @property comparison the comparison operator / 比较运算符
+ */
 private data class ParsedInequality<T>(
     val lhs: ParsedPolynomial<T>,
     val rhs: ParsedPolynomial<T>,
     val comparison: Comparison
 )
 
+/**
+ * Recursive descent parser for polynomial and inequality expressions with generic Ring type.
+ * 支持泛型 Ring 类型的多项式和不等式表达式递归下降解析器。
+ *
+ * @property input the original input string / 原始输入字符串
+ * @property tokens the list of lexed tokens / 词法分析后的 token 列表
+ * @property numberParser the parser for numeric values / 数值解析器
+ * @property zero the zero value of type T / 类型 T 的零值
+ * @property one the unit value of type T / 类型 T 的单位值
+ * @property symbolOf the function to resolve symbol names / 符号名称解析函数
+ * @property isZero the function to check if a value is zero / 零值判断函数
+ */
 private class DirectPolynomialParser<T>(
     private val input: String,
     private val tokens: List<PolynomialToken>,
@@ -275,14 +309,18 @@ private class DirectPolynomialParser<T>(
 ) where T : Ring<T> {
     private var position: Int = 0
 
-    /** 解析多项式 / Parse polynomial */
+    /** 解析多项式 / Parse polynomial
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     fun parsePolynomial(): ParseResult<ParsedPolynomial<T>> {
         return parseExpression().andThen { result ->
             expect(PolynomialTokenType.End).map { result }
         }
     }
 
-    /** 解析不等式 / Parse inequality */
+    /** 解析不等式 / Parse inequality
+     * @return the parsed inequality result / 解析后的不等式结果
+     */
     fun parseInequality(): ParseResult<ParsedInequality<T>> {
         return parseExpression().andThen { lhs ->
             val comparisonToken = current()
@@ -308,7 +346,9 @@ private class DirectPolynomialParser<T>(
         }
     }
 
-    /** 解析加减法表达式 / Parse an addition/subtraction expression */
+    /** 解析加减法表达式 / Parse an addition/subtraction expression
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     private fun parseExpression(): ParseResult<ParsedPolynomial<T>> {
         var result = when (val parsed = parseTerm()) {
             is Ok -> parsed.value

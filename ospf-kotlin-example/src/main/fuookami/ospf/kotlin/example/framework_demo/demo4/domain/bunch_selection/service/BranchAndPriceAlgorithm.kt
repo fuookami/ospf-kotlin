@@ -7,6 +7,7 @@ import org.apache.logging.log4j.kotlin.logger
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch.BranchAndPriceAlgorithm as FrameworkBranchAndPriceAlgorithm
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.*
@@ -95,7 +96,7 @@ class BranchAndPriceAlgorithm(
     ): Ret<BunchSolution<FlightTaskBunch, FltX, FlightTask, Aircraft, FlightTaskAssignment>> {
         logger.info { "Starting branch-and-price algorithm for $id" }
 
-        val result = algorithm(id, heartBeatCallBack)
+        val result = algorithm(SolverRunId(id), heartBeatCallBack)
 
         when (result) {
             is Ok -> {

@@ -13,7 +13,14 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductDemand
 import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
- * 长度分配约束管线 / Length assignment constraint pipeline
+ * Length assignment constraint pipeline.
+ * 长度分配约束管线
+ *
+ * Add constraints for dynamic-length products:
+ * - Lower bound: assigned_length_i >= lowerBound
+ * - Upper bound: assigned_length_i <= upperBound
+ * - Over-length bound: over_length_i <= overLengthUpperBound
+ * - Assigned-over-length link: assigned_length_i - over_length_i <= maxOverProduceLength
  *
  * 为动态长度产品添加约束：
  * - 下界约束: assigned_length_i >= lowerBound
@@ -21,12 +28,10 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * - 超长上限约束: over_length_i <= overLengthUpperBound
  * - 卷长-超长关联约束: assigned_length_i - over_length_i <= maxOverProduceLength
  *
- * Add constraints for dynamic-length products.
- *
- * @param V 数值类型 / Numeric value type
- * @property length 长度分配聚合 / Length assignment aggregation
- * @property config 长度分配建模配置 / Length assignment modeling configuration
- * @property demands 需求列表 / Demand list
+ * @param V Numeric value type / 数值类型
+ * @property length Length assignment aggregation / 长度分配聚合
+ * @property config Length assignment modeling configuration / 长度分配建模配置
+ * @property demands Demand list / 需求列表
  */
 class LengthConstraintPipeline<V : RealNumber<V>>(
     private val length: LengthAggregation<V>,

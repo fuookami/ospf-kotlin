@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.NoneUnit
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Try
 
@@ -124,8 +125,8 @@ object Demo4GenericQuantitySample {
     val iterationSnapshot = Iteration<Demo4Task, Executor, AssignmentPolicy<Executor>>()
         .snapshot(GenericSolverValueAdapter(FltX))
     val taskSolutionSummary = TaskSolution(
-        assignedTasks = listOf(Demo4Task(id = "assigned", name = "assigned")),
-        canceledTasks = listOf(Demo4Task(id = "canceled", name = "canceled"))
+        assignedTasks = listOf(Demo4Task(id = FlightTaskId("assigned"), name = "assigned")),
+        canceledTasks = listOf(Demo4Task(id = FlightTaskId("canceled"), name = "canceled"))
     ).summary
     private val solverAdapter = GenericSolverValueAdapter(FltX)
     private val solverModel = LinearMetaModel(
@@ -134,28 +135,28 @@ object Demo4GenericQuantitySample {
     )
     private val taskTime = Demo4TaskTime()
     val taskEstimateStartQuantity = taskTime.estimateStartTimeQuantity(
-        task = Demo4Task(id = "task-time", name = "task-time"),
+        task = Demo4Task(id = FlightTaskId("task-time"), name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )
     val taskDelayLastEndTimeQuantity = taskTime.delayLastEndTimeQuantity(
-        task = Demo4Task(id = "task-time", name = "task-time"),
+        task = Demo4Task(id = FlightTaskId("task-time"), name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )
     val taskAdvanceEarliestEndTimeQuantity = taskTime.advanceEarliestEndTimeQuantity(
-        task = Demo4Task(id = "task-time", name = "task-time"),
+        task = Demo4Task(id = FlightTaskId("task-time"), name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )
     val switchTimeQuantity = Demo4Switch().switchTimeQuantity(
-        from = Demo4Task(id = "from-task", name = "from-task"),
-        to = Demo4Task(id = "to-task", name = "to-task"),
+        from = Demo4Task(id = FlightTaskId("from-task"), name = "from-task"),
+        to = Demo4Task(id = FlightTaskId("to-task"), name = "to-task"),
         model = solverModel,
         adapter = solverAdapter
     )
     val makespanQuantity = Makespan(
-        tasks = listOf(Demo4Task(id = "makespan", name = "makespan")),
+        tasks = listOf(Demo4Task(id = FlightTaskId("makespan"), name = "makespan")),
         taskTime = taskTime
     ).apply {
         makespan = LinearExpressionSymbol(Flt64(4.0), name = "demo4_makespan")
@@ -164,12 +165,12 @@ object Demo4GenericQuantitySample {
         adapter = solverAdapter
     )
     val overMaxDelayTimeQuantity = taskTime.overMaxDelayTimeQuantity(
-        task = Demo4Task(id = "task-time", name = "task-time"),
+        task = Demo4Task(id = FlightTaskId("task-time"), name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )
     val overMaxAdvanceTimeQuantity = taskTime.overMaxAdvanceTimeQuantity(
-        task = Demo4Task(id = "task-time", name = "task-time"),
+        task = Demo4Task(id = FlightTaskId("task-time"), name = "task-time"),
         model = solverModel,
         adapter = solverAdapter
     )
@@ -215,7 +216,7 @@ object Demo4GenericQuantitySample {
 /** 测试泛型数量转换的演示任务实现。Demo task implementation for testing generic quantity conversions. */
 private data class Demo4Task(
     override val index: Int = 0,
-    override val id: String,
+    override val id: FlightTaskId,
     override val name: String,
     override val iteration: Int64 = Int64.zero
 ) : IterativeAbstractTask<Executor, AssignmentPolicy<Executor>> {
@@ -272,7 +273,7 @@ private class Demo4Switch : Switch {
 private class Demo4Resource(
     override val capacities: List<ResourceCapacity<FltX>>
 ) : ExecutionResource<ResourceCapacity<FltX>, FltX>(
-    id = "demo4-resource",
+    id = ResourceIdImpl("demo4-resource"),
     name = "demo4-resource",
     capacities = capacities,
     initialQuantityValue = FltX.zero
@@ -360,9 +361,9 @@ private fun constantSymbols(
 
 /** 容量分配示例的演示生产动作。Demo production action for capacity allocation samples. */
 private object Demo4Action : ProductionAction {
-    override val id: String = "demo4-action"
+    override val id = ProductionActionIdImpl("demo4-action")
     override val name: String = "demo4-action"
-    override val executor: Executor = Executor("demo4-executor", "demo4-executor")
+    override val executor: Executor = Executor(AircraftId("demo4-executor"), "demo4-executor")
     override val discrete: Boolean = false
 
     override fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V {

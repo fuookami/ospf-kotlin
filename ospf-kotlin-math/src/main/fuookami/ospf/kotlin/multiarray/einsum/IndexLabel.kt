@@ -140,8 +140,10 @@ data class IndexList(
     val names: String = indices.joinToString(", ") { it.labelName }
 
     /**
-     * 检查是否为穌
+     * 检查是否为空
      * Check if empty
+     *
+     * @return 如果为空则返回true / true if empty
      */
     fun isEmpty(): Boolean = indices.isEmpty()
 
@@ -191,12 +193,18 @@ data class IndexList(
         /**
          * 从索引标签创建索引列表
          * Create index list from index labels
+         *
+         * @param labels the index labels / 索引标签
+         * @return the created index list / 创建的索引列表
          */
         fun of(vararg labels: IndexLabel): IndexList = IndexList(labels.toList())
 
         /**
          * 从索引ID 创建索引列表
          * Create index list from index IDs
+         *
+         * @param ids the index IDs / 索引 ID 列表
+         * @return the created index list / 创建的索引列表
          */
         fun fromIds(ids: List<Int>): IndexList {
             return IndexList(ids.mapNotNull { IndexLabel.fromId(it) })

@@ -1,4 +1,7 @@
-/** Hexaly 求解器回调支持 / Hexaly solver callback support */
+/**
+ * Hexaly solver callback support
+ * Hexaly 求解器回调支持
+ */
 package fuookami.ospf.kotlin.core.solver.hexaly
 
 import java.util.*
@@ -8,31 +11,44 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
-/** 创建环境函数类型 / Creating environment function type */
+/**
+ * Creating environment function type
+ * 创建环境函数类型
+ */
 typealias CreatingEnvironmentFunction = (HexalyOptimizer) -> Try
-/** Hexaly 原生回调函数类型 / Hexaly native callback function type */
+/**
+ * Hexaly native callback function type
+ * Hexaly 原生回调函数类型
+ */
 typealias NativeCallBack = (HexalyOptimizer, HxCallbackType) -> Unit
-/** Hexaly 求解器回调函数类型 / Hexaly solver callback function type */
+/**
+ * Hexaly solver callback function type
+ * Hexaly 求解器回调函数类型
+ */
 typealias Function = suspend (SolverStatus?, HexalyOptimizer, List<HxExpression>, List<HxExpression>) -> Try
 
-/** 求解器回调时机枚举 / Solver callback point enum */
+/**
+ * Solver callback point enum
+ * 求解器回调时机枚举
+ */
 enum class Point {
-    /** 建模完成后 / After modeling */
+    /** After modeling / 中文 建模完成后 */
     AfterModeling,
-    /** 配置阶段 / Configuration phase */
+    /** Configuration phase / 中文 配置阶段 */
     Configuration,
-    /** 分析解阶段 / Analyzing solution phase */
+    /** Analyzing solution phase / 中文 分析解阶段 */
     AnalyzingSolution,
-    /** 求解失败后 / After failure */
+    /** After failure / 中文 求解失败后 */
     AfterFailure
 }
 
 /**
- * Hexaly 求解器回调管理器 / Hexaly solver callback manager
+ * Hexaly solver callback manager
+ * Hexaly 求解器回调管理器
  *
- * @property nativeCallback 原生回调函数 / Native callback function
- * @property creatingEnvironmentFunction 创建环境函数 / Creating environment function
- * @property map 回调时机到回调函数列表的映射 / Mapping from callback point to callback function list
+ * @property nativeCallback native callback function / 中文 原生回调函数
+ * @property creatingEnvironmentFunction creating environment function / 中文 创建环境函数
+ * @property map mapping from callback point to callback function list / 中文 回调时机到回调函数列表的映射
  */
 class HexalySolverCallBack(
     internal var nativeCallback: NativeCallBack? = null,
@@ -40,9 +56,10 @@ class HexalySolverCallBack(
     private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<HexalySolverCallBack> {
     /**
-     * 设置原生回调函数 / Set native callback function
+     * Set native callback function
+     * 设置原生回调函数
      *
-     * @param function 原生回调函数 / Native callback function
+     * @param function native callback function / 中文 原生回调函数
      */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallBack) {
@@ -50,9 +67,10 @@ class HexalySolverCallBack(
     }
 
     /**
-     * 设置创建环境函数 / Set creating environment function
+     * Set creating environment function
+     * 设置创建环境函数
      *
-     * @param function 创建环境函数 / Creating environment function
+     * @param function creating environment function / 中文 创建环境函数
      */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
@@ -60,11 +78,12 @@ class HexalySolverCallBack(
     }
 
     /**
-     * 在指定时机添加回调函数 / Add callback function at specified point
+     * Add callback function at specified point
+     * 在指定时机添加回调函数
      *
-     * @param point 回调时机 / callback point
-     * @param function 回调函数 / callback function
-     * @return 当前回调管理器实例 / current callback manager instance
+     * @param point callback point / 中文 回调时机
+     * @param function callback function / 中文 回调函数
+     * @return current callback manager instance / 中文 当前回调管理器实例
      */
     operator fun set(point: Point, function: Function): HexalySolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
@@ -72,70 +91,79 @@ class HexalySolverCallBack(
     }
 
     /**
-     * 设置创建环境回调 / Set creating environment callback
+     * Set creating environment callback
+     * 设置创建环境回调
      *
-     * @param function 创建环境函数 / Creating environment function
+     * @param function creating environment function / 中文 创建环境函数
      */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
     /**
-     * 设置建模完成后的回调 / Set after modeling callback
+     * Set after modeling callback
+     * 设置建模完成后的回调
      *
-     * @param function 回调函数 / Callback function
+     * @param function callback function / 中文 回调函数
      */
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
     /**
-     * 设置配置阶段的回调 / Set configuration callback
+     * Set configuration callback
+     * 设置配置阶段的回调
      *
-     * @param function 回调函数 / Callback function
+     * @param function callback function / 中文 回调函数
      */
     fun configuration(function: Function) = set(Point.Configuration, function)
     /**
-     * 设置分析解阶段的回调 / Set analyzing solution callback
+     * Set analyzing solution callback
+     * 设置分析解阶段的回调
      *
-     * @param function 回调函数 / Callback function
+     * @param function callback function / 中文 回调函数
      */
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
     /**
-     * 设置求解失败后的回调 / Set after failure callback
+     * Set after failure callback
+     * 设置求解失败后的回调
      *
-     * @param function 回调函数 / Callback function
+     * @param function callback function / 中文 回调函数
      */
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
     /**
-     * 检查是否包含指定时机的回调 / Check if callback at specified point is contained
+     * Check if callback at specified point is contained
+     * 检查是否包含指定时机的回调
      *
-     * @param point 回调时机 / Callback point
-     * @return 是否包含 / Whether contained
+     * @param point callback point / 中文 回调时机
+     * @return whether contained / 中文 是否包含
      */
     fun contains(point: Point) = map.containsKey(point)
     /**
-     * 获取指定时机的回调函数列表 / Get callback function list at specified point
+     * Get callback function list at specified point
+     * 获取指定时机的回调函数列表
      *
-     * @param point 回调时机 / Callback point
-     * @return 回调函数列表 / Callback function list
+     * @param point callback point / 中文 回调时机
+     * @return callback function list / 中文 回调函数列表
      */
     fun get(point: Point): List<Function>? = map[point]
 
     /**
-     * 如果包含创建环境函数则执行 / Execute creating environment function if contained
+     * Execute creating environment function if contained
+     * 如果包含创建环境函数则执行
      *
-     * @param env Hexaly 优化器 / Hexaly optimizer
-     * @return 操作结果 / operation result
+     * @param env Hexaly optimizer / 中文 Hexaly 优化器
+     * @return operation result / 中文 操作结果
      */
     fun execIfContain(env: HexalyOptimizer): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
 
     /**
-     * 如果包含指定时机的回调则执行 / Execute callbacks at specified point if contained
+     * Execute callbacks at specified point if contained
+     * 如果包含指定时机的回调则执行
      *
-     * @param point 回调时机 / callback point
-     * @param status 求解状态 / solving status
-     * @param hexaly Hexaly 优化器 / Hexaly optimizer
-     * @param variables 变量表达式列表 / variable expression list
-     * @param constraints 约束表达式列表 / constraint expression list
-     * @return 操作结果 / operation result
+     * @param point callback point / 中文 回调时机
+     * @param status solving status / 中文 求解状态
+     * @param hexaly Hexaly optimizer / 中文 Hexaly 优化器
+     * @param variables variable expression list / 中文 变量表达式列表
+     * @param constraints constraint expression list / 中文 约束表达式列表
+     * @return operation result / 中文 操作结果
      */
     suspend fun execIfContain(
         point: Point,
@@ -154,9 +182,10 @@ class HexalySolverCallBack(
     }
 
     /**
-     * 复制回调管理器 / Copy callback manager
+     * Copy callback manager
+     * 复制回调管理器
      *
-     * @return 回调管理器副本 / callback manager copy
+     * @return callback manager copy / 中文 回调管理器副本
      */
     override fun copy(): HexalySolverCallBack {
         return HexalySolverCallBack(

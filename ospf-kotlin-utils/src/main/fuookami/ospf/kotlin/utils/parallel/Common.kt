@@ -1,7 +1,6 @@
 /**
- * 并行操作公共工具
- *
  * Common utilities for parallel operations including worker pool and concurrency control.
+ *
  * 提供并行操作的公共工具，包括工作线程池和并发控制。
  */
 package fuookami.ospf.kotlin.utils.parallel
@@ -14,14 +13,21 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 并行操作工具模块
- *
  * Utility module for parallel operations.
  *
- * RVW-009 改进：使用 Channel + Worker Pool 实现真正的协程数量控制。
+ * 并行操作工具模块。
+ *
  * Improvement for RVW-009: Uses Channel + Worker Pool to truly control coroutine count.
- * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * RVW-009 改进：使用 Channel + Worker Pool 实现真正的协程数量控制。
  * Coroutine count is bound to concurrentAmount, not pre-created by input size.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ *
+ * Approach:
+ * 1. Create Channel for task distribution
+ * 2. Launch fixed number of worker coroutines (= concurrentAmount)
+ * 3. Each worker receives tasks from Channel and executes
+ * 4. Sender sends all tasks to Channel then closes
+ * 5. Wait for all workers to complete
  *
  * 方案说明：
  * 1. 创建 Channel 用于任务分发
@@ -30,6 +36,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 4. 发送端将所有任务发送到 Channel 后关闭
  * 5. 等待所有 worker 完成
  *
+ * Guarantees:
+ * - Coroutine creation count = concurrentAmount (fixed)
+ * - Task distribution via Channel, no pre-creation of large coroutine counts
+ * - No coroutine explosion for large collections
+ *
  * 这样可以保证：
  * - 协程创建数量 = concurrentAmount（固定）
  * - 任务分发通过 Channel，不会预创建大量协程
@@ -37,16 +48,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 
 /**
- * 默认并发量（Collection 版本）
+ * Default concurrent amount based on collection size and available processors.
+ * Returns 1 for empty collections to avoid log(0) = -inf.
  *
  * 根据集合大小和可用处理器计算合理的并发量。
  * 对于空集合返回 1 以避免 log(0) = -inf。
  *
- * Default concurrent amount based on collection size and available processors.
- * Returns 1 for empty collections to avoid log(0) = -inf.
- *
- * @receiver 集合 / Collection
- * @return 默认并发量 / Default concurrent amount
+ * @receiver Collection / 集合
+ * @return Default concurrent amount / 默认并发量
  */
 val Collection<*>.defaultConcurrentAmount: ULong
     get() = if (this.isEmpty()) {
@@ -62,15 +71,13 @@ val Collection<*>.defaultConcurrentAmount: ULong
     }
 
 /**
- * 默认并发量（Iterable 版本）
- *
- * 对于非 Collection 的 Iterable，使用可用处理器数作为默认值。
- *
  * Default concurrent amount for Iterables that are not Collections.
  * Uses available processors as the default.
  *
- * @receiver 可迭代对象 / Iterable
- * @return 默认并发量 / Default concurrent amount
+ * 对于非 Collection 的 Iterable，使用可用处理器数作为默认值。
+ *
+ * @receiver Iterable / 可迭代对象
+ * @return Default concurrent amount / 默认并发量
  */
 val Iterable<*>.defaultConcurrentAmount: ULong
     get() = if (this is Collection<*>) {
@@ -82,13 +89,13 @@ val Iterable<*>.defaultConcurrentAmount: ULong
     }
 
 /**
- * 解析并发量参数
- *
  * Resolve concurrent amount parameter, using default if null.
  *
- * @param concurrentAmount 指定的并发量 / Specified concurrent amount
- * @param default 默认并发量 / Default concurrent amount
- * @return 解析后的并发量 / Resolved concurrent amount
+ * 解析并发量参数，为 null 时使用默认值。
+ *
+ * @param concurrentAmount Specified concurrent amount / 指定的并发量
+ * @param default Default concurrent amount / 默认并发量
+ * @return Resolved concurrent amount / 解析后的并发量
  */
 @PublishedApi
 internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): ULong {
@@ -96,12 +103,12 @@ internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): 
 }
 
 /**
- * 创建并发控制信号量
- *
  * Create semaphore for concurrency control.
  *
- * @param concurrentAmount 并发上限 / Concurrency limit
- * @return 信号量实例 / Semaphore instance
+ * 创建并发控制信号量。
+ *
+ * @param concurrentAmount Concurrency limit / 并发上限
+ * @return Semaphore instance / 信号量实例
  */
 @PublishedApi
 internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
@@ -109,13 +116,13 @@ internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
 }
 
 /**
- * 并发限流执行块
- *
  * Execute block with concurrency throttling using semaphore.
  *
- * @param semaphore 信号量 / Semaphore
- * @param block 执行块 / Execution block
- * @return 执行结果 / Execution result
+ * 使用信号量进行并发限流执行块。
+ *
+ * @param semaphore Semaphore / 信号量
+ * @param block Execution block / 执行块
+ * @return Execution result / 执行结果
  */
 @PublishedApi
 internal suspend inline fun <T> withConcurrencyLimit(
@@ -133,13 +140,13 @@ internal suspend inline fun <T> withConcurrencyLimit(
 }
 
 /**
- * Worker Pool 任务包装器
- *
  * Task wrapper for Worker Pool execution.
  *
- * @param T 任务输入类型 / Task input type
- * @param index 任务索引 / Task index
- * @param element 任务元素 / Task element
+ * Worker Pool 任务包装器。
+ *
+ * @param T Task input type / 任务输入类型
+ * @property index Task index / 任务索引
+ * @property element Task element / 任务元素
  */
 @PublishedApi
 internal data class WorkerPoolTask<T>(
@@ -148,13 +155,13 @@ internal data class WorkerPoolTask<T>(
 )
 
 /**
- * Worker Pool 结果包装器
- *
  * Result wrapper for Worker Pool execution.
  *
- * @param R 结果类型 / Result type
- * @param index 任务索引（用于保持顺序）/ Task index (for ordering)
- * @param result 执行结果 / Execution result
+ * Worker Pool 结果包装器。
+ *
+ * @param R Result type / 结果类型
+ * @property index Task index (for ordering) / 任务索引（用于保持顺序）
+ * @property result Execution result / 执行结果
  */
 @PublishedApi
 internal data class WorkerPoolResult<R>(
@@ -163,15 +170,15 @@ internal data class WorkerPoolResult<R>(
 )
 
 /**
- * 安全转换 Worker Pool 结果
- *
  * Safely cast Worker Pool result value.
- * 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
  * Safety invariant: each result slot is fully written before read, and runtime type matches target R.
  *
- * @param R 目标类型 / Target type
- * @param value 待转换值 / Value to cast
- * @return 转换后的值 / Casted value
+ * 安全转换 Worker Pool 结果值。
+ * 安全不变量：结果槽位在读取前都由对应任务完整写入，运行时类型与目标 R 一致。
+ *
+ * @param R Target type / 目标类型
+ * @param value Value to cast / 待转换值
+ * @return Casted value / 转换后的值
  */
 @PublishedApi
 @Suppress("UNCHECKED_CAST")

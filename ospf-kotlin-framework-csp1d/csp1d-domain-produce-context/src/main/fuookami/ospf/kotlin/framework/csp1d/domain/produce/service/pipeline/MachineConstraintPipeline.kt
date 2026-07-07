@@ -57,6 +57,16 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
         return ok
     }
 
+    /**
+     * 添加设备批次数约束 / Add machine batch count constraint
+     *
+     * 构建 machineBatchQuantity <= maxBatchCount 约束。
+     * Build machineBatchQuantity <= maxBatchCount constraint.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param machineIndex 设备索引 / Machine index
+     * @param machine 设备 / Machine
+     */
     private fun addMachineBatchConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         machineIndex: Int,
@@ -88,6 +98,16 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 添加设备产能约束 / Add machine capacity constraint
+     *
+     * 构建 machineCapacityQuantity <= capacity 约束。
+     * Build machineCapacityQuantity <= capacity constraint.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param machineIndex 设备索引 / Machine index
+     * @param machine 设备 / Machine
+     */
     private fun addMachineCapacityConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         machineIndex: Int,

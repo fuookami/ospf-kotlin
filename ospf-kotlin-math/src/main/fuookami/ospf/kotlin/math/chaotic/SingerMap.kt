@@ -11,10 +11,14 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
- * @property c786 常量 7.86 / Constant 7.86
- * @property c2323 常量 23.23 / Constant 23.23
- * @property c2875 常量 28.75 / Constant 28.75
- * @property c1330 常量 13.30 / Constant 13.30
+ * Singer map, a one-dimensional chaotic map based on a quartic polynomial.
+ * Singer 映射，基于四次多项式的一维混沌映射。
+ *
+ * @property mu the bifurcation parameter controlling chaotic behavior / 控制混沌行为的分岔参数
+ * @property c786 constant 7.86 / 常量 7.86
+ * @property c2323 constant 23.23 / 常量 23.23
+ * @property c2875 constant 28.75 / 常量 28.75
+ * @property c1330 constant 13.30 / 常量 13.30
  */
 data class SingerMap<V : FloatingNumber<V>>(val mu: V, val c786: V, val c2323: V, val c2875: V, val c1330: V) :
     Extractor<V, V> {
@@ -31,6 +35,13 @@ data class SingerMap<V : FloatingNumber<V>>(val mu: V, val c786: V, val c2323: V
     }
 }
 
+/**
+ * Singer map generator that iteratively produces chaotic sequences.
+ * Singer 映射生成器，通过迭代产生混沌序列。
+ *
+ * @property map the Singer map instance / Singer 映射实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class SingerMapGenerator(
     val map: SingerMap<Flt64> = SingerMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

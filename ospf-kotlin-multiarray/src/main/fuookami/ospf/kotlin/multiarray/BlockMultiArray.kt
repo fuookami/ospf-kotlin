@@ -46,22 +46,66 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+/**
+ * Index key for block storage
+ * 索引键，用于分块存储
+ *
+ * Internal key class used to map multi-dimensional indices to block storage entries.
+ * Provides both persistent (copying) and transient (non-copying) creation modes.
+ * 内部键类，用于将多维索引映射到分块存储条目。
+ * 提供持久化（拷贝）和瞬态（非拷贝）两种创建模式。
+ *
+ * @property indices 索引数组 / Index array
+ * @property hash 预计算的哈希值 / Precomputed hash value
+ */
 private class IndexKey private constructor(
     private val indices: IntArray,
     private val hash: Int
 ) {
     companion object {
+        /**
+         * Create a persistent IndexKey that copies the indices array
+         * 创建持久化索引键，会拷贝索引数组
+         *
+         * Use when the indices array may be modified after creation.
+         * 当索引数组在创建后可能被修改时使用。
+         *
+         * @param indices 索引数组 / Index array
+         * @return 持久化的索引键 / Persistent index key
+         */
         fun persistent(indices: IntArray): IndexKey {
             return IndexKey(indices.copyOf(), indices.contentHashCode())
         }
 
+        /**
+         * Create a transient IndexKey that shares the indices array
+         * 创建瞬态索引键，共享索引数组
+         *
+         * Use when the indices array will not be modified after creation.
+         * 当索引数组在创建后不会被修改时使用。
+         *
+         * @param indices 索引数组 / Index array
+         * @return 瞬态的索引键 / Transient index key
+         */
         fun transient(indices: IntArray): IndexKey {
             return IndexKey(indices, indices.contentHashCode())
         }
     }
 
+    /**
+     * Convert to IntArray representation
+     * 转换为 IntArray 表示
+     *
+     * @return 索引数组的引用 / Reference to the index array
+     */
     fun asIntArray(): IntArray = indices
 
+    /**
+     * Convert to List representation for external API
+     * 转换为 List 表示，用于外部 API
+     *
+     * @return 索引的不可变列表 / Immutable list of indices
+     */
     fun toListKey(): List<Int> = indices.toList()
 
     override fun equals(other: Any?): Boolean {
@@ -77,6 +121,10 @@ private class IndexKey private constructor(
     override fun hashCode(): Int = hash
 }
 
+/**
+ * Internal token object to restrict BlockMultiArray constructor access
+ * 内部令牌对象，用于限制 BlockMultiArray 构造函数的访问
+ */
 private object InternalIndexKeyBlocks
 
 /**

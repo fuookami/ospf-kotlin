@@ -1,14 +1,14 @@
 /**
- * 无符号整数模块
  * Unsigned Integer Module
- *
- * 本模块定义了无符号整数的类型系统，包括 UInt8、UInt16、UInt32、UInt64 和 UIntX（任意精度无符号整数）。
- * 这些类型提供了完整的算术运算、比较操作、类型转换以及数学函数支持。
- * 无符号整数只能表示非负值，适用于需要确保数值为正的场景。
+ * 中文无符号整数模块
  *
  * This module defines the unsigned integer type system, including UInt8, UInt16, UInt32, UInt64, and UIntX (arbitrary precision unsigned integer).
  * These types provide full support for arithmetic operations, comparison operations, type conversions, and mathematical functions.
  * Unsigned integers can only represent non-negative values, suitable for scenarios where positive values need to be ensured.
+ *
+ * 中文本模块定义了无符号整数的类型系统，包括 UInt8、UInt16、UInt32、UInt64 和 UIntX（任意精度无符号整数）。
+ * 中文这些类型提供了完整的算术运算、比较操作、类型转换以及数学函数支持。
+ * 中文无符号整数只能表示非负值，适用于需要确保数值为正的场景。
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
@@ -25,21 +25,21 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 使用浮点基数计算无符号整数的对数
  * Calculate the logarithm of an unsigned integer using a floating-point base
+ * 中文使用浮点基数计算无符号整数的对数
  *
- * @param floatValue Float 值表示
- *                   The Float value representation
- * @param doubleValue Double 值表示
- *                    The Double value representation
- * @param base 浮点数基数
- *              The floating-point base
- * @param toFltX 转换到 FltX 的函数
- *              The function to convert to FltX
- * @param source 源类型名称，用于错误信息
- *               The source type name for error messages
- * @return 对数结果，以浮点数表示；如果无法计算则返回 null
- *         The logarithm result as a floating-point number; null if cannot be calculated
+ * @param floatValue The Float value representation
+ *                   中文Float 值表示
+ * @param doubleValue The Double value representation
+ *                    中文Double 值表示
+ * @param base The floating-point base
+ *             中文浮点数基数
+ * @param toFltX The function to convert to FltX
+ *               中文转换到 FltX 的函数
+ * @param source The source type name for error messages
+ *               中文源类型名称，用于错误信息
+ * @return The logarithm result as a floating-point number; null if cannot be calculated
+ *         中文对数结果，以浮点数表示；如果无法计算则返回 null
  */
 private fun uIntegerLogByFloatingBase(
     floatValue: Float,
@@ -55,21 +55,21 @@ private fun uIntegerLogByFloatingBase(
 }
 
 /**
- * 使用浮点指数计算无符号整数的幂
  * Calculate the power of an unsigned integer using a floating-point index
+ * 中文使用浮点指数计算无符号整数的幂
  *
- * @param floatValue Float 值表示
- *                   The Float value representation
- * @param doubleValue Double 值表示
- *                    The Double value representation
- * @param index 浮点数指数
- *              The floating-point index
- * @param toFltX 转换到 FltX 的函数
- *              The function to convert to FltX
- * @param source 源类型名称，用于错误信息
- *               The source type name for error messages
- * @return 幂运算结果，以浮点数表示
- *         The power operation result as a floating-point number
+ * @param floatValue The Float value representation
+ *                   中文Float 值表示
+ * @param doubleValue The Double value representation
+ *                    中文Double 值表示
+ * @param index The floating-point index
+ *              中文浮点数指数
+ * @param toFltX The function to convert to FltX
+ *               中文转换到 FltX 的函数
+ * @param source The source type name for error messages
+ *               中文源类型名称，用于错误信息
+ * @return The power operation result as a floating-point number
+ *         中文幂运算结果，以浮点数表示
  */
 private fun uIntegerPowByFloatingIndex(
     floatValue: Float,

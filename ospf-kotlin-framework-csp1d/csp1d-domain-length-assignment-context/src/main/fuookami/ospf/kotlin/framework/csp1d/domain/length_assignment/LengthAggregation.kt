@@ -10,14 +10,16 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 长度分配聚合根 / Length assignment aggregation root
+ * Length assignment aggregation root.
+ * 长度分配聚合根
  *
- * 管理动态卷长变量（assigned_length_i）和超长松弛变量（over_length_i），
- * 替代 Csp1dMilpSolver 中的 LengthSlackVars 内部类。
+ * Manages dynamic coil length variables (assigned_length_i) and over-length slack variables (over_length_i),
+ * replacing the LengthSlackVars inner class in Csp1dMilpSolver.
+ * 管理动态卷长变量（assigned_length_i）和超长松弛变量（over_length_i），替代 Csp1dMilpSolver 中的 LengthSlackVars 内部类。
  *
- * @param V 数值类型 / Numeric value type
- * @property config 长度分配建模配置 / Length assignment modeling configuration
- * @property demands 需求列表 / Demand list
+ * @param V Numeric value type / 数值类型
+ * @property config Length assignment modeling configuration / 长度分配建模配置
+ * @property demands Demand list / 需求列表
  */
 class LengthAggregation<V : RealNumber<V>>(
     val config: LengthAssignmentModelingConfig<V>,

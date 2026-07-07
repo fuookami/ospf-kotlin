@@ -41,6 +41,13 @@ data class RabinovichFabrikantEquation<V : FloatingNumber<V>>(val a: V, val b: V
     }
 }
 
+/**
+ * Rabinovich-Fabrikant equation generator that iteratively produces chaotic sequences.
+ * Rabinovich-Fabrikant 方程生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Rabinovich-Fabrikant equation instance / Rabinovich-Fabrikant 方程实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class RabinovichFabrikantEquationGenerator(
     val attractor: RabinovichFabrikantEquation<Flt64> = RabinovichFabrikantEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

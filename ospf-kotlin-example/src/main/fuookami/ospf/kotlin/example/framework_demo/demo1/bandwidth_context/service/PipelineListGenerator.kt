@@ -12,12 +12,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.servi
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 生成用于模型构建的带宽约束和成本目标的管线列表。Generates the pipeline list of bandwidth constraints and cost objective for model construction.
+ * Generates the pipeline list of bandwidth constraints and cost objective for model construction.
+ * 表示生成用于模型构建的带宽约束和成本目标的管线列表。
  *
- * @property aggregation 参数。
- * @property graph 参数。
- * @property services 参数。
- * @property assignment 参数。
+ * @property aggregation the bandwidth aggregation model / 带宽聚合模型
+ * @property graph the route network graph / 路由网络图
+ * @property services the list of services / 服务列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
  */
 class PipelineListGenerator(
     private val aggregation: Aggregation,

@@ -25,22 +25,51 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 // Compiled Evaluation Operations (Ring-based, no Generic conversion)
 // ============================================================================
 
+/**
+ * Compiled linear monomial.
+ * 中文编译后的线性单项式。
+ *
+ * @property coefficient the coefficient / 系数
+ * @property symbolIndex the index of the symbol in the order / 符号在顺序中的索引
+ */
 private data class CompiledLinearMonomial<T>(
     val coefficient: T,
     val symbolIndex: Int
 ) where T : Ring<T>
 
+/**
+ * Compiled quadratic monomial.
+ * 中文编译后的二次单项式。
+ *
+ * @property coefficient the coefficient / 系数
+ * @property symbol1Index the index of the first symbol in the order / 第一个符号在顺序中的索引
+ * @property symbol2Index the index of the second symbol in the order, null for pure linear terms / 第二个符号在顺序中的索引，纯线性项时为 null
+ */
 private data class CompiledQuadraticMonomial<T>(
     val coefficient: T,
     val symbol1Index: Int,
     val symbol2Index: Int?
 ) where T : Ring<T>
 
+/**
+ * Compiled canonical monomial.
+ * 中文编译后的规范单项式。
+ *
+ * @property coefficient the coefficient / 系数
+ * @property powers list of symbol index and exponent pairs / 符号索引与指数的列表
+ */
 private data class CompiledCanonicalMonomial<T>(
     val coefficient: T,
     val powers: List<Pair<Int, Int32>>  // (symbolIndex, exponent)
 ) where T : Ring<T>
 
+/**
+ * Compiled canonical gradient monomial.
+ * 中文编译后的规范梯度单项式。
+ *
+ * @property coefficient the coefficient / 系数
+ * @property factorCounts list of symbol index and factor count pairs / 符号索引与因子次数的列表
+ */
 private data class CompiledCanonicalGradientMonomial<T>(
     val coefficient: T,
     val factorCounts: List<Pair<Int, Int32>>

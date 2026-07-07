@@ -1,6 +1,6 @@
 /**
- * 影子价格映射模型。
  * Shadow price map model.
+ * 影子价格映射模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

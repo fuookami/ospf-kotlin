@@ -17,7 +17,7 @@ package fuookami.ospf.kotlin.math.symbol.expression.parser
  * 支持的标识符：单个标识符或点分隔路径（如 a.b.c，
  * Supported identifiers: single identifiers or dot-separated paths (e.g., a.b.c)
  *
- * @param input 要分析的输入字符串 / Input string to tokenize
+ * @property input the input string to tokenize / 待词法分析的输入字符串
  */
 class Lexer(private val input: String) {
     private var position = 0
@@ -148,6 +148,9 @@ class Lexer(private val input: String) {
     /**
      * 查看前方笌n 个字符，不移动位罌
      * Peek at the nth character ahead, without moving position
+     *
+     * @param n the number of characters to look ahead / 向前查看的字符数
+     * @return the character at the specified offset, or null if out of bounds / 指定偏移量处的字符，越界则返回 null
      */
     private fun peekChar(n: Int = 1): Char? {
         return input.getOrNull(position + n)
@@ -156,6 +159,9 @@ class Lexer(private val input: String) {
     /**
      * 读取字符串字面量
      * Read string literal
+     *
+     * @param startPos the starting position of the string literal / 字符串字面量的起始位置
+     * @return the string token / 字符串词法单元
      */
     private fun readString(startPos: Int): Token {
         val quote = currentChar!!
@@ -191,6 +197,9 @@ class Lexer(private val input: String) {
     /**
      * 读取数字字面里
      * Read number literal
+     *
+     * @param startPos the starting position of the number literal / 数字字面量的起始位置
+     * @return the number token / 数字词法单元
      */
     private fun readNumber(startPos: Int): Token {
         val sb = StringBuilder()
@@ -237,6 +246,9 @@ class Lexer(private val input: String) {
     /**
      * 读取标识符或关键孌
      * Read identifier or keyword
+     *
+     * @param startPos the starting position of the identifier or keyword / 标识符或关键字的起始位置
+     * @return the identifier or keyword token / 标识符或关键字词法单元
      */
     private fun readIdentifierOrKeyword(startPos: Int): Token {
         val sb = StringBuilder()

@@ -21,7 +21,10 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Wraps generic evaluation operations with ValueProvider and Map value sources.
  */
 
-/** 构造符号缺失值的错误结果 / Construct an error result for a missing symbol value */
+/** 构造符号缺失值的错误结果 / Construct an error result for a missing symbol value
+ * @param symbol 缺失值的符号 / The symbol with missing value
+ * @return 包含错误码和信息的 Failed 结果 / Failed result containing error code and message
+ */
 private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
 }

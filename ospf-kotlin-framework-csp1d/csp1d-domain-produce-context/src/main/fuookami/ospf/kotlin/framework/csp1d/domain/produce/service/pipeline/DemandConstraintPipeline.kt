@@ -86,6 +86,9 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
      *
      * Reference produce.demandQuantity[demandIndex] instead of x variables directly,
      * so that addColumns flush of intermediate symbols automatically includes new column coefficients.
+     *
+     * @param demandIndex 需求索引 / Demand index
+     * @return 需求贡献左侧多项式 / Demand contribution left-hand side polynomial
      */
     private fun buildDemandLhs(demandIndex: Int): LinearPolynomial<Flt64> {
         return LinearPolynomial(
@@ -94,6 +97,17 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * 添加需求等式约束 / Add demand equality constraint
+     *
+     * 当存在 yield slack 变量时，构建 demandQuantity - over + under = demand 等式约束。
+     * When yield slack variables exist, build demandQuantity - over + under = demand equality constraint.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param demandIndex 需求索引 / Demand index
+     * @param demand 产品需求 / Product demand
+     * @param priceKey 影子价格键 / Shadow price key
+     */
     private fun addEqualityConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         demandIndex: Int,
@@ -128,6 +142,17 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * 添加需求大于等于约束 / Add demand greater-than-or-equal constraint
+     *
+     * 构建 demandQuantity >= demand 约束。
+     * Build demandQuantity >= demand constraint.
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @param demand 产品需求 / Product demand
+     * @param demandIndex 需求索引 / Demand index
+     * @param priceKey 影子价格键 / Shadow price key
+     */
     private fun addGeConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         demand: ProductDemand<V>,
@@ -182,10 +207,22 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
     }
 
     companion object {
+        /**
+         * 创建常数多项式 / Create constant polynomial
+         *
+         * @param value 常数值 / Constant value
+         * @return 常数多项式 / Constant polynomial
+         */
         internal fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
             return LinearPolynomial(emptyList(), value)
         }
 
+        /**
+         * 获取物理单位的符号表示 / Get symbol representation of physical unit
+         *
+         * @param unit 物理单位 / Physical unit
+         * @return 单位符号字符串 / Unit symbol string
+         */
         internal fun shadowPriceUnitSymbol(unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit): String {
             return unit.symbol ?: unit.toString()
         }

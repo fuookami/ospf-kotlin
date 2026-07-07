@@ -21,7 +21,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * Includes Ret-wrapped demotion conversions and inequality normalization operations.
  */
 
-/** 计算两个 Flt64 线性多项式的差 / Subtract one Flt64 linear polynomial from another */
+/** 计算两个 Flt64 线性多项式的差 / Subtract one Flt64 linear polynomial from another
+ * @param rhs 被减的线性多项式 / The linear polynomial to subtract
+ * @return 两个线性多项式的差 / The difference of the two linear polynomials
+ */
 private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return subtractLinear(
         rhs = rhs,

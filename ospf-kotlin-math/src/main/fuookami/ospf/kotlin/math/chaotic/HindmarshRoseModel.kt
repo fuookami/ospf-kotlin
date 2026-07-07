@@ -55,6 +55,13 @@ data class HindmarshRoseModel<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Hindmarsh-Rose neuron model generator that iteratively produces chaotic sequences.
+ * Hindmarsh-Rose 神经元模型生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Hindmarsh-Rose neuron model instance / Hindmarsh-Rose 神经元模型实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class HindmarshRoseModelGenerator(
     val attractor: HindmarshRoseModel<Flt64> = HindmarshRoseModel(),
     private var _x: Point<Dim3, Flt64> = point3(

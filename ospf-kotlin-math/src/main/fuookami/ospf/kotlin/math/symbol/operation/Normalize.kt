@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * 将 Flt64 线性不等式规范化为标准形式（LHS - RHS <= 0）
  * Normalize a Flt64 linear inequality to standard form (LHS - RHS <= 0)
  *
+ * @receiver 待规范化的线性不等式 / The linear inequality to normalize
  * @return 规范化的不等式 / Normalized inequality
  */
 fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
@@ -33,6 +34,7 @@ fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
  * 将 Flt64 二次不等式规范化为标准形式（LHS - RHS <= 0）
  * Normalize a Flt64 quadratic inequality to standard form (LHS - RHS <= 0)
  *
+ * @receiver 待规范化的二次不等式 / The quadratic inequality to normalize
  * @return 规范化的不等式 / Normalized inequality
  */
 fun QuadraticInequalityOf<Flt64>.normalize(): QuadraticInequalityOf<Flt64> {

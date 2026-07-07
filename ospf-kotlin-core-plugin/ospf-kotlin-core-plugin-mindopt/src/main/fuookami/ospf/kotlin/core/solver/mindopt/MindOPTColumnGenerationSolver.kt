@@ -16,7 +16,14 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 
-/** MindOPT 列生成求解器 / MindOPT column generation solver */
+/**
+ * MindOPT column generation solver
+ *
+ * MindOPT 列生成求解器
+ *
+ * @property config Solver configuration / 求解器配置
+ * @property callBack Linear solver callback / 线性求解器回调
+ */
 class MindOPTColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack()

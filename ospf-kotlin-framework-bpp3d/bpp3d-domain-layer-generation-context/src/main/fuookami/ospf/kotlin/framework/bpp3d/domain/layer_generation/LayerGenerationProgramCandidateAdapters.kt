@@ -1,6 +1,6 @@
 /**
- * 层生成程序候选适配器。
  * Layer generation program candidate adapters.
+ * 层生成程序候选适配器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
@@ -11,11 +11,13 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPackingProgramCandidate
 
 /**
- * 将通用数量值转换为 FltX 类型的数量值。
  * Convert a generic quantity value to a FltX-typed quantity value.
+ * 将通用数量值转换为 FltX 类型的数量值。
  *
- * @param value 要转换的数量值 / the quantity value to convert
- * @return 转换后的 FltX 类型数量值 / the converted FltX-typed quantity value
+ * @param value The quantity value to convert.
+ * @param value 要转换的数量值。
+ * @return The converted FltX-typed quantity value.
+ * 返回转换后的 FltX 类型数量值。
  */
 @Suppress("UNCHECKED_CAST")
 private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
@@ -26,11 +28,13 @@ private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
 }
 
 /**
- * 获取包装程序候选默认包装属性。
  * Get default package attribute for packing program candidate.
+ * 获取包装程序候选默认包装属性。
  *
- * @param packageType 包装类型 / package type
- * @return 默认包装属性 / default package attribute
+ * @param packageType Package type.
+ * @param packageType 包装类型。
+ * @return Default package attribute.
+ * 返回默认包装属性。
  */
 private fun defaultProgramPackageAttribute(
     packageType: PackageType
@@ -45,12 +49,15 @@ private fun defaultProgramPackageAttribute(
 }
 
 /**
- * 将物料装箱方案候选转换为层生成货物项。
  * Convert material packing program candidate to layer generation item.
+ * 将物料装箱方案候选转换为层生成货物项。
  *
- * @param sequence 序列号 / sequence number
- * @param materialCatalog 物料目录 / material catalog
- * @return 层生成货物项 / layer generation item
+ * @param sequence Sequence number.
+ * @param sequence 序列号。
+ * @param materialCatalog Material catalog.
+ * @param materialCatalog 物料目录。
+ * @return Layer generation item.
+ * 返回层生成货物项。
  */
 fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
     sequence: Int,
@@ -74,12 +81,15 @@ fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
 }
 
 /**
- * 批量转换层生成程序需求为货物需求。
  * Convert layer generation program demands to item demands.
+ * 批量转换层生成程序需求为货物需求。
  *
- * @param programDemands 程序需求列表 / program demand list
- * @param materialCatalog 物料目录 / material catalog
- * @return 货物需求列表 / item demand list
+ * @param programDemands Program demand list.
+ * @param programDemands 程序需求列表。
+ * @param materialCatalog Material catalog.
+ * @param materialCatalog 物料目录。
+ * @return Item demand list.
+ * 返回货物需求列表。
  */
 fun layerGenerationItemDemandsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
@@ -97,12 +107,15 @@ fun layerGenerationItemDemandsFromPrograms(
 }
 
 /**
- * 批量转换层生成程序需求为货物列表。
  * Convert layer generation program demands to item list.
+ * 批量转换层生成程序需求为货物列表。
  *
- * @param programDemands 程序需求列表 / program demand list
- * @param materialCatalog 物料目录 / material catalog
- * @return 货物列表 / item list
+ * @param programDemands Program demand list.
+ * @param programDemands 程序需求列表。
+ * @param materialCatalog Material catalog.
+ * @param materialCatalog 物料目录。
+ * @return Item list.
+ * 返回货物列表。
  */
 fun layerGenerationItemsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,

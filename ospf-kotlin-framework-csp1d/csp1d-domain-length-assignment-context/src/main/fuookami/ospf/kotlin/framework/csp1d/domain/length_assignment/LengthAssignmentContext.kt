@@ -8,9 +8,10 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 长度推导函数：从需求量和产品属性推导卷长 / Length derivation function: derive coil length from demand quantity and product properties
+ * Length derivation function: derive coil length from demand quantity and product properties.
+ * 长度推导函数：从需求量和产品属性推导卷长
  *
- * @param V 数值类型 / Numeric value type
+ * @param V Numeric value type / 数值类型
  */
 fun interface LengthDerivation<V : RealNumber<V>> {
     /**

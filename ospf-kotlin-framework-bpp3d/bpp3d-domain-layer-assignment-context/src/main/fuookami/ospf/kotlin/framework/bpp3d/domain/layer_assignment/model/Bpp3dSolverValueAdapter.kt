@@ -1,6 +1,6 @@
 /**
- * BPP3D 求解器值适配器。
  * BPP3D solver value adapter.
+ * BPP3D 求解器值适配器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -10,24 +10,24 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bpp3dDemandValue
 
 /**
- * UInt64 转求解器 FltX。
  * Convert UInt64 to solver FltX.
+ * UInt64 转求解器 FltX。
  *
  * @return 求解器数值 / solver numeric value
  */
 private fun UInt64.toSolverNumber(): FltX = FltX(this.toULong().toDouble())
 
 /**
- * Quantity 提取求解器 FltX。
  * Extract solver FltX from Quantity.
+ * Quantity 提取求解器 FltX。
  *
  * @return 求解器数值 / solver numeric value
  */
 private fun Quantity<FltX>.toSolverNumber(): FltX = this.value
 
 /**
- * UInt64 值域转求解器值域。
  * Convert UInt64 value range to solver value range.
+ * UInt64 值域转求解器值域。
  *
  * @return 求解器值域 / solver value range
  */
@@ -44,13 +44,13 @@ private fun ValueRange<UInt64>.toSolverRange(): ValueRange<FltX> {
 }
 
 /**
- * BPP3D 求解器值适配器接口，将业务类型转换为求解器数值类型。
  * BPP3D solver value adapter interface, converts business types to solver numeric types.
+ * BPP3D 求解器值适配器接口，将业务类型转换为求解器数值类型。
  */
 interface Bpp3dSolverValueAdapter {
     /**
-     * 数量转求解器值。
      * Convert amount to solver value.
+     * 数量转求解器值。
      *
      * @param value 数量值 / amount value
      * @return 求解器数值 / solver numeric value
@@ -58,8 +58,8 @@ interface Bpp3dSolverValueAdapter {
     fun amountToSolver(value: UInt64): FltX
 
     /**
-     * 数量值域转求解器值域。
      * Convert amount value range to solver value range.
+     * 数量值域转求解器值域。
      *
      * @param value 数量值域 / amount value range
      * @return 求解器值域 / solver value range
@@ -67,8 +67,8 @@ interface Bpp3dSolverValueAdapter {
     fun amountRangeToSolver(value: ValueRange<UInt64>): ValueRange<FltX> = value.toSolverRange()
 
     /**
-     * 长度转求解器值。
      * Convert length to solver value.
+     * 长度转求解器值。
      *
      * @param value 长度量 / length quantity
      * @return 求解器数值 / solver numeric value
@@ -76,8 +76,8 @@ interface Bpp3dSolverValueAdapter {
     fun lengthToSolver(value: Quantity<FltX>): FltX
 
     /**
-     * 面积转求解器值。
      * Convert area to solver value.
+     * 面积转求解器值。
      *
      * @param value 面积量 / area quantity
      * @return 求解器数值 / solver numeric value
@@ -85,8 +85,8 @@ interface Bpp3dSolverValueAdapter {
     fun areaToSolver(value: Quantity<FltX>): FltX
 
     /**
-     * 体积转求解器值。
      * Convert volume to solver value.
+     * 体积转求解器值。
      *
      * @param value 体积量 / volume quantity
      * @return 求解器数值 / solver numeric value
@@ -94,8 +94,8 @@ interface Bpp3dSolverValueAdapter {
     fun volumeToSolver(value: Quantity<FltX>): FltX
 
     /**
-     * 深度转求解器值（默认委托给长度转换）。
      * Convert depth to solver value (defaults to length conversion).
+     * 深度转求解器值（默认委托给长度转换）。
      *
      * @param value 深度量 / depth quantity
      * @return 求解器数值 / solver numeric value
@@ -103,8 +103,8 @@ interface Bpp3dSolverValueAdapter {
     fun depthToSolver(value: Quantity<FltX>): FltX = lengthToSolver(value)
 
     /**
-     * 重量转求解器值。
      * Convert weight to solver value.
+     * 重量转求解器值。
      *
      * @param value 重量量 / weight quantity
      * @return 求解器数值 / solver numeric value
@@ -112,8 +112,8 @@ interface Bpp3dSolverValueAdapter {
     fun weightToSolver(value: Quantity<FltX>): FltX
 
     /**
-     * 需求值转求解器值。
      * Convert demand value to solver value.
+     * 需求值转求解器值。
      *
      * @param value 需求值 / demand value
      * @return 求解器数值 / solver numeric value
@@ -127,8 +127,8 @@ interface Bpp3dSolverValueAdapter {
 }
 
 /**
- * 直接使用 FltX 转换的默认实现。
  * Default implementation using direct FltX conversion.
+ * 直接使用 FltX 转换的默认实现。
  */
 private data object DirectBpp3dSolverValueAdapter : Bpp3dSolverValueAdapter {
     override fun amountToSolver(value: UInt64): FltX = value.toSolverNumber()
@@ -139,7 +139,7 @@ private data object DirectBpp3dSolverValueAdapter : Bpp3dSolverValueAdapter {
 }
 
 /**
- * 默认 BPP3D 求解器值适配器实例。
  * Default BPP3D solver value adapter instance.
+ * 默认 BPP3D 求解器值适配器实例。
  */
 val DefaultBpp3dSolverValueAdapter: Bpp3dSolverValueAdapter = DirectBpp3dSolverValueAdapter

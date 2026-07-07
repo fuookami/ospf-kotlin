@@ -25,6 +25,13 @@ import java.util.concurrent.TimeUnit
 /**
  * math symbol combine 热点基准
  * Benchmark for math symbol combine hot paths
+ *
+ * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
+ * @property symbols 基准用符号列表 / list of symbols for benchmarking
+ * @property linearMonomials 线性单项式列表 / list of linear monomials
+ * @property quadraticMonomials 二次单项式列表 / list of quadratic monomials
+ * @property linearPolynomial 线性多项式 / linear polynomial
+ * @property quadraticPolynomial 二次多项式 / quadratic polynomial
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
@@ -33,6 +40,12 @@ open class SymbolCombineBenchmark {
     @Param("small", "medium", "large")
     lateinit var dataset: String
 
+    /**
+     * 基准测试用符号实现
+     * Symbol implementation for benchmarking purposes
+     *
+     * @property displayName 可选的显示名称 / optional display name
+     */
     private data class BenchSymbol(
         override val name: String,
         override val displayName: String? = null
@@ -44,6 +57,10 @@ open class SymbolCombineBenchmark {
     private lateinit var linearPolynomial: LinearPolynomial<Flt64>
     private lateinit var quadraticPolynomial: QuadraticPolynomial<Flt64>
 
+    /**
+     * 初始化基准测试数据，根据 [dataset] 参数生成不同规模的符号、单项式和多项式。
+     * Initializes benchmark data, generating symbols, monomials, and polynomials of varying sizes based on the [dataset] parameter.
+     */
     @Setup
     fun setup() {
         val symbolCount = when (dataset) {
@@ -82,26 +99,56 @@ open class SymbolCombineBenchmark {
         quadraticPolynomial = QuadraticPolynomial(quadraticMonomials, Flt64.zero)
     }
 
+    /**
+     * 线性单项式可迭代对象合并基准
+     * Benchmark for combining linear monomial iterable
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun combineLinearIterable(): Int {
         return linearMonomials.combineTerms().size
     }
 
+    /**
+     * 线性多项式泛型合并基准
+     * Benchmark for combining linear polynomial generically
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun combineLinearPolynomialGeneric(): Int {
         return linearPolynomial.combineLinearTerms(zero = Flt64.zero).monomials.size
     }
 
+    /**
+     * 二次单项式可迭代对象合并基准
+     * Benchmark for combining quadratic monomial iterable
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun combineQuadraticIterable(): Int {
         return quadraticMonomials.combineTerms().size
     }
 
+    /**
+     * 二次多项式泛型合并基准
+     * Benchmark for combining quadratic polynomial generically
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun combineQuadraticPolynomialGeneric(): Int {
         return quadraticPolynomial.combineQuadraticTerms(zero = Flt64.zero).monomials.size
     }
 
+    /**
+     * 可变线性多项式累加后合并基准
+     * Benchmark for mutable linear polynomial accumulate-then-combine
+     *
+     * @return 合并后单项式数量 / monomial count after combining
+     */
     @Benchmark
     fun mutableLinearAccumulateAndCombine(): Int {
         val mutable = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)

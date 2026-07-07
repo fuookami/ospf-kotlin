@@ -1,6 +1,6 @@
 /**
- * 物料模型。
  * Material model.
+ * 物料模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

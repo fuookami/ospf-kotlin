@@ -9,8 +9,9 @@ import fuookami.ospf.kotlin.core.variable.UIntVariable1
 /**
  * CSP1D 方案分配，包含一组无符号整数决策变量。
  * Csp1d assignment, containing a set of unsigned integer decision variables.
- * @property x 无符号整数决策变量，维度为方案数量。
- * @property planCount 方案数量。
+ *
+ * @property x Unsigned integer decision variable, dimensioned by plan count / 无符号整数决策变量，维度为方案数量
+ * @property planCount Plan count / 方案数量
  */
 class Csp1dAssignment(
     val x: UIntVariable1,

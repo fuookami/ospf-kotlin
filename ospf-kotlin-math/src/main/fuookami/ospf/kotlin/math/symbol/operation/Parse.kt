@@ -26,16 +26,38 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 // Internal Flt64 polynomial term representation for direct parsing
 // ============================================================================
 
+/**
+ * Represents a single term in a parsed polynomial expression.
+ * 表示已解析多项式表达式中的单个项。
+ *
+ * @property coefficient the numeric coefficient of the term / 项的数值系数
+ * @property powers the map of symbols to their exponents / 符号到其指数的映射
+ */
 private data class ParsedTerm(
     val coefficient: Flt64,
     val powers: Map<Symbol, Int32>
 )
 
+/**
+ * Represents a parsed polynomial with terms and a constant.
+ * 表示包含项和常数的已解析多项式。
+ *
+ * @property terms the list of parsed terms / 已解析项的列表
+ * @property constant the constant term of the polynomial / 多项式的常数项
+ */
 private data class ParsedPolynomial(
     val terms: List<ParsedTerm>,
     val constant: Flt64
 )
 
+/**
+ * Represents a parsed inequality with left-hand side, right-hand side, and comparison operator.
+ * 表示包含左侧、右侧和比较运算符的已解析不等式。
+ *
+ * @property lhs the left-hand side polynomial / 左侧多项式
+ * @property rhs the right-hand side polynomial / 右侧多项式
+ * @property comparison the comparison operator / 比较运算符
+ */
 private data class ParsedInequality(
     val lhs: ParsedPolynomial,
     val rhs: ParsedPolynomial,
@@ -46,6 +68,14 @@ private data class ParsedInequality(
 // Internal recursive descent parser
 // ============================================================================
 
+/**
+ * Recursive descent parser for polynomial and inequality expressions.
+ * 多项式和不等式表达式的递归下降解析器。
+ *
+ * @property input the original input string / 原始输入字符串
+ * @property tokens the list of lexed tokens / 词法分析后的 token 列表
+ * @property symbolOf the function to resolve symbol names / 符号名称解析函数
+ */
 private class DirectPolynomialParser(
     private val input: String,
     private val tokens: List<PolynomialToken>,
@@ -53,14 +83,18 @@ private class DirectPolynomialParser(
 ) {
     private var position: Int = 0
 
-    /** 解析多项式 / Parse polynomial */
+    /** 解析多项式 / Parse polynomial
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     fun parsePolynomial(): ParseResult<ParsedPolynomial> {
         return parseExpression().andThen { result ->
             expect(PolynomialTokenType.End).map { result }
         }
     }
 
-    /** 解析不等式 / Parse inequality */
+    /** 解析不等式 / Parse inequality
+     * @return the parsed inequality result / 解析后的不等式结果
+     */
     fun parseInequality(): ParseResult<ParsedInequality> {
         return parseExpression().andThen { lhs ->
             val comparisonToken = current()
@@ -86,7 +120,9 @@ private class DirectPolynomialParser(
         }
     }
 
-    /** 解析表达式（加减法层级） / Parse expression (addition/subtraction level) */
+    /** 解析表达式（加减法层级） / Parse expression (addition/subtraction level)
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     private fun parseExpression(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parseTerm()) {
             is Ok -> parsed.value
@@ -122,7 +158,9 @@ private class DirectPolynomialParser(
         return Ok(result)
     }
 
-    /** 解析项（乘法层级） / Parse term (multiplication level) */
+    /** 解析项（乘法层级） / Parse term (multiplication level)
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     private fun parseTerm(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parsePower()) {
             is Ok -> parsed.value
@@ -148,7 +186,9 @@ private class DirectPolynomialParser(
         return Ok(result)
     }
 
-    /** 解析幂运算层级 / Parse power operation level */
+    /** 解析幂运算层级 / Parse power operation level
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     private fun parsePower(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parseFactor()) {
             is Ok -> parsed.value
@@ -189,7 +229,9 @@ private class DirectPolynomialParser(
         return Ok(result)
     }
 
-    /** 解析因子（数字、变量、括号、负号） / Parse factor (number, variable, parentheses, negation) */
+    /** 解析因子（数字、变量、括号、负号） / Parse factor (number, variable, parentheses, negation)
+     * @return the parsed polynomial result / 解析后的多项式结果
+     */
     private fun parseFactor(): ParseResult<ParsedPolynomial> {
         val token = current()
         return when (token.type) {
@@ -239,7 +281,9 @@ private class DirectPolynomialParser(
         }
     }
 
-    /** 获取当前 token / Get current token */
+    /** 获取当前 token / Get current token
+     * @return the current token / 当前 token
+     */
     private fun current(): PolynomialToken {
         return tokens[position]
     }

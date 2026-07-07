@@ -70,12 +70,18 @@ abstract class CapacitySchedulingProduce<
     /**
      * 注册变量到模型
      * Register variables to model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
      */
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
      * 将 quantity 变量添加到模型
      * Add quantity variables to model
+     *
+     * @param model 线性元模型 / Linear meta model
+     * @return 成功与否 / Success or failure
      */
     protected fun addQuantityToModel(model: LinearMetaModel<Flt64>): Try {
         if (products.isNotEmpty()) {

@@ -1,18 +1,15 @@
 /**
- * 本文件实现上下文管理系统，支持线程局部和协程作用域的变量存储。
  * This file implements a context management system for thread-local and coroutine-scoped variable storage.
+ * 中文本文件实现上下文管理系统，支持线程局部和协程作用域的变量存储。
  */
 package fuookami.ospf.kotlin.utils.context
 
 /**
- * 上下文键
- *
- * 用于标识上下文变量的唯一键，包含线程信息和调用栈信息。
- *
  * A unique key for identifying context variables, containing thread information and call stack information.
+ * 中文上下文键，用于标识上下文变量的唯一键，包含线程信息和调用栈信息。
  *
- * @property thread 当前线程 / Current thread
- * @property stackTree 调用栈数组 / Call stack array
+ * @property thread current thread / 当前线程
+ * @property stackTree call stack array / 调用栈数组
  */
 data class ContextKey(
     val thread: Thread,
@@ -20,12 +17,11 @@ data class ContextKey(
 ) {
     companion object {
         /**
-         * 规范化调用栈，将顶层栈帧的行号设为 -1
-         *
          * Normalize the call stack by setting the line number of the top stack frame to -1.
+         * 中文规范化调用栈，将顶层栈帧的行号设为 -1。
          *
-         * @param stackTree 原始调用栈列表 / Original call stack list
-         * @return 规范化后的调用栈数组 / Normalized call stack array
+         * @param stackTree original call stack list / 原始调用栈列表
+         * @return normalized call stack array / 规范化后的调用栈数组
          */
         private fun dump(stackTree: List<StackTraceElement>): Array<StackTraceElement> {
             if (stackTree.isEmpty()) {
@@ -46,11 +42,10 @@ data class ContextKey(
         }
 
         /**
-         * 创建当前上下文键
-         *
          * Create a context key for the current context.
+         * 中文创建当前上下文键。
          *
-         * @return 当前上下文键 / Current context key
+         * @return current context key / 当前上下文键
          */
         operator fun invoke(): ContextKey {
             val stackTree = Thread.currentThread().stackTrace
@@ -62,9 +57,8 @@ data class ContextKey(
     }
 
     /**
-     * 父上下文键
-     *
      * The parent context key, derived by removing the top stack frame.
+     * 中文父上下文键，通过移除顶层栈帧派生。
      */
     val parent by lazy {
         if (stackTree.isEmpty()) {
@@ -78,16 +72,13 @@ data class ContextKey(
     }
 
     /**
-     * 判断两个上下文键是否相等
-     *
      * Checks equality using [contentDeepEquals] for the stack tree array,
      * ensuring structural comparison of array contents rather than reference equality.
-     *
-     * 使用 [contentDeepEquals] 对栈树数组进行结构化比较，
+     * 中文判断两个上下文键是否相等，使用 [contentDeepEquals] 对栈树数组进行结构化比较，
      * 确保比较的是数组内容而非引用。
      *
-     * @param other 待比较的对象 / The object to compare against
-     * @return 是否相等 / Whether the two keys are equal
+     * @param other the object to compare against / 待比较的对象
+     * @return whether the two keys are equal / 是否相等
      */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -100,15 +91,12 @@ data class ContextKey(
     }
 
     /**
-     * 计算上下文键的哈希码
-     *
      * Computes the hash code using [contentDeepHashCode] for the stack tree array,
      * consistent with the structural equality defined in [equals].
-     *
-     * 使用 [contentDeepHashCode] 计算栈树数组的哈希码，
+     * 中文计算上下文键的哈希码，使用 [contentDeepHashCode] 计算栈树数组的哈希码，
      * 与 [equals] 中定义的结构化相等性保持一致。
      *
-     * @return 哈希码 / The hash code
+     * @return the hash code / 哈希码
      */
     override fun hashCode(): Int {
         var result = thread.hashCode()
@@ -118,43 +106,37 @@ data class ContextKey(
 }
 
 /**
- * 上下文变量
- *
- * 一个线程安全的、支持栈层级查找的变量容器。
- * 可以在不同上下文中设置不同的值，并通过栈层级自动查找最近的值。
- *
  * A thread-safe variable container that supports stack-level lookup.
  * Can set different values in different contexts and automatically finds the nearest value through stack levels.
+ * 中文上下文变量，一个线程安全的、支持栈层级查找的变量容器。
+ * 可以在不同上下文中设置不同的值，并通过栈层级自动查找最近的值。
  *
- * @param T 变量值的类型 / Type of the variable value
- * @property defaultValue 默认值，当没有匹配的上下文时返回 / Default value returned when no matching context exists
+ * @param T type of the variable value / 变量值的类型
+ * @property defaultValue default value returned when no matching context exists / 默认值，当没有匹配的上下文时返回
  */
 class ContextVar<T>(
     internal val defaultValue: T
 ) {
     /**
-     * 栈层级值映射表
-     *
      * Map of values keyed by stack-level context keys.
+     * 中文栈层级值映射表。
      */
     @get:Synchronized
     internal val stackValues: MutableMap<ContextKey, T> = hashMapOf()
 
     /**
-     * 自定义键值映射表
-     *
      * Map of values keyed by custom keys.
+     * 中文自定义键值映射表。
      */
     @get:Synchronized
     internal val customValues: MutableMap<Any, T> = hashMapOf()
 
     /**
-     * 在当前上下文中设置值
-     *
      * Set a value in the current context.
+     * 中文在当前上下文中设置值。
      *
-     * @param value 要设置的值 / Value to set
-     * @return 上下文对象，用于自动清理 / Context object for automatic cleanup
+     * @param value value to set / 要设置的值
+     * @return context object for automatic cleanup / 上下文对象，用于自动清理
      */
     @Synchronized
     fun set(value: T): Context<T> {
@@ -164,12 +146,11 @@ class ContextVar<T>(
     }
 
     /**
-     * 在当前上下文中通过构建器设置值
-     *
      * Set a value in the current context using a builder function.
+     * 中文在当前上下文中通过构建器设置值。
      *
-     * @param builder 值构建器 / Value builder function
-     * @return 上下文对象，用于自动清理 / Context object for automatic cleanup
+     * @param builder value builder function / 值构建器
+     * @return context object for automatic cleanup / 上下文对象，用于自动清理
      */
     @Synchronized
     fun set(builder: () -> T): Context<T> {
@@ -179,13 +160,12 @@ class ContextVar<T>(
     }
 
     /**
-     * 通过指定键设置值
-     *
      * Set a value with a specified key.
+     * 中文通过指定键设置值。
      *
-     * @param key 键，可以是 ContextKey 或自定义键 / Key, can be ContextKey or custom key
-     * @param value 要设置的值 / Value to set
-     * @return 上下文对象，用于自动清理 / Context object for automatic cleanup
+     * @param key key, can be ContextKey or custom key / 键，可以是 ContextKey 或自定义键
+     * @param value value to set / 要设置的值
+     * @return context object for automatic cleanup / 上下文对象，用于自动清理
      */
     @Synchronized
     operator fun set(key: Any, value: T): Context<T> {
@@ -202,11 +182,10 @@ class ContextVar<T>(
     }
 
     /**
-     * 获取当前上下文的值
-     *
      * Get the value in the current context.
+     * 中文获取当前上下文的值。
      *
-     * @return 当前上下文的值或默认值 / Value in current context or default value
+     * @return value in current context or default value / 当前上下文的值或默认值
      */
     @Synchronized
     fun get(): T {

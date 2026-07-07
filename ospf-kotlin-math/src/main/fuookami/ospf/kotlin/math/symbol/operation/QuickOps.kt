@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
+ * @property converter Flt64 to V converter / Flt64 到 V 的转换器
  */
 class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
     // ========== Flt64 arithmetic ==========

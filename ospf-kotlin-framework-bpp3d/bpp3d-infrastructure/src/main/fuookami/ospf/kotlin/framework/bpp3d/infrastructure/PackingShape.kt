@@ -10,11 +10,19 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.geometry.Axis3
 import fuookami.ospf.kotlin.quantities.quantity.*
 
+/**
+ * Enumeration of packing shape types.
+ * 装载形状类型枚举。
+ */
 enum class PackingShapeType {
     Cuboid,
     Cylinder
 }
 
+/**
+ * Enumeration of algorithm-specific packing shape types, distinguishing cylinder orientations.
+ * 算法侧装载形状类型枚举，区分圆柱体方向。
+ */
 enum class PackingAlgorithmShapeType {
     Cuboid,
     VerticalCylinder,
@@ -22,29 +30,68 @@ enum class PackingAlgorithmShapeType {
     HorizontalCylinderZ
 }
 
+/**
+ * Enumeration of packing axes in 3D space.
+ * 三维装载轴向枚举。
+ */
 enum class PackingAxis3 {
     X,
     Y,
     Z
 }
 
+/**
+ * 3D shape bounding box with width, height, and depth.
+ * 三维形状包围盒，包含宽度、高度和深度。
+ *
+ * @property width The bounding width.
+ *                 中文：包围宽度。
+ * @property height The bounding height.
+ *                  中文：包围高度。
+ * @property depth The bounding depth.
+ *                 中文：包围深度。
+ */
 data class ShapeBoundingBox3<V : FloatingNumber<V>>(
     val width: Quantity<V>,
     val height: Quantity<V>,
     val depth: Quantity<V>
 )
 
+/**
+ * Sealed interface for 2D shape footprints, either rectangular or circular.
+ * 二维形状占位密封接口，可以是矩形或圆形。
+ */
 sealed interface ShapeFootprint2<V : FloatingNumber<V>> {
+    /**
+     * Rectangular footprint with width and depth.
+     * 矩形占位，包含宽度和深度。
+     *
+     * @property width The footprint width.
+     *                 中文：占位宽度。
+     * @property depth The footprint depth.
+     *                 中文：占位深度。
+     */
     data class Rectangle<V : FloatingNumber<V>>(
         val width: Quantity<V>,
         val depth: Quantity<V>
     ) : ShapeFootprint2<V>
 
+    /**
+     * Circular footprint with radius.
+     * 圆形占位，包含半径。
+     *
+     * @property radius The footprint radius.
+     *                   中文：占位半径。
+     */
     data class Circle<V : FloatingNumber<V>>(
         val radius: Quantity<V>
     ) : ShapeFootprint2<V>
 }
 
+/**
+ * Interface for 3D packing shapes, providing bounding dimensions, weight, and footprint.
+ * 三维装载形状接口，提供包围尺寸、重量和占位信息。
+ */
 interface PackingShape3<V : FloatingNumber<V>> {
     val shapeType: PackingShapeType
     val algorithmShapeType: PackingAlgorithmShapeType

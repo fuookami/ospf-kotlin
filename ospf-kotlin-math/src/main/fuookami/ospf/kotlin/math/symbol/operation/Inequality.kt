@@ -43,35 +43,186 @@ fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
 // ========== Symbol-level DSL ==========
 // 符号级不等式 DSL 运算符重载 / Symbol-level inequality DSL operator overloads
 
-/** 将符号转换为系数为 1 的线性多项式 / Convert a symbol to a linear polynomial with coefficient one */
+/**
+ * Converts a symbol to a linear polynomial with coefficient one.
+ * 将符号转换为系数为 1 的线性多项式。
+ *
+ * @return the linear polynomial representation of this symbol / 此符号的线性多项式表示
+ */
 private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 }
 
-/** 将 Flt64 值转换为常数线性多项式 / Convert a Flt64 value to a constant linear polynomial */
+/**
+ * Converts a Flt64 value to a constant linear polynomial.
+ * 将 Flt64 值转换为常数线性多项式。
+ *
+ * @return the constant linear polynomial representation of this value / 此值的常数线性多项式表示
+ */
 private fun Flt64.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), this)
 }
 
+/**
+ * Creates a less-than linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的小于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
+ */
 infix fun Symbol.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+
+/**
+ * Creates a less-than-or-equal linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的小于等于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
+ */
 infix fun Symbol.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+
+/**
+ * Creates an equal linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的等于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
+ */
 infix fun Symbol.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+
+/**
+ * Creates a not-equal linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的不等于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
+ */
 infix fun Symbol.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+
+/**
+ * Creates a greater-than-or-equal linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的大于等于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
+ */
 infix fun Symbol.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+
+/**
+ * Creates a greater-than linear inequality between a symbol and a Flt64 value.
+ * 创建符号与 Flt64 值之间的大于线性不等式。
+ *
+ * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
+ * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
+ */
 infix fun Symbol.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
+/**
+ * Creates a less-than linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的小于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
+ */
 infix fun Flt64.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+
+/**
+ * Creates a less-than-or-equal linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的小于等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
+ */
 infix fun Flt64.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+
+/**
+ * Creates an equal linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
+ */
 infix fun Flt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+
+/**
+ * Creates a not-equal linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的不等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
+ */
 infix fun Flt64.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+
+/**
+ * Creates a greater-than-or-equal linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的大于等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
+ */
 infix fun Flt64.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+
+/**
+ * Creates a greater-than linear inequality between a Flt64 value and a symbol.
+ * 创建 Flt64 值与符号之间的大于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
+ */
 infix fun Flt64.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
+/**
+ * Creates a less-than linear inequality between two symbols.
+ * 创建两个符号之间的小于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
+ */
 infix fun Symbol.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+
+/**
+ * Creates a less-than-or-equal linear inequality between two symbols.
+ * 创建两个符号之间的小于等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
+ */
 infix fun Symbol.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+
+/**
+ * Creates an equal linear inequality between two symbols.
+ * 创建两个符号之间的等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
+ */
 infix fun Symbol.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+
+/**
+ * Creates a not-equal linear inequality between two symbols.
+ * 创建两个符号之间的不等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
+ */
 infix fun Symbol.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+
+/**
+ * Creates a greater-than-or-equal linear inequality between two symbols.
+ * 创建两个符号之间的大于等于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
+ */
 infix fun Symbol.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+
+/**
+ * Creates a greater-than linear inequality between two symbols.
+ * 创建两个符号之间的大于线性不等式。
+ *
+ * @param rhs the right-hand side symbol / 右侧符号
+ * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
+ */
 infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 // ========== isSatisfied ==========

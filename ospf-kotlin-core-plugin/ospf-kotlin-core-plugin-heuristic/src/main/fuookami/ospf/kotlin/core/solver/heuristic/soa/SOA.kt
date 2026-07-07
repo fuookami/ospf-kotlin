@@ -1,5 +1,11 @@
-/** 海鸥优化算法 / Seagull Optimization Algorithm */
+/**
+ * Seagull Optimization Algorithm
+ * 中文海鸥优化算法
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic.soa
 
-/** 海鸥优化算法，尚未实现 / Seagull Optimization Algorithm, not implemented yet */
+/**
+ * Seagull Optimization Algorithm, not implemented yet
+ * 中文海鸥优化算法，尚未实现
+ */
 class SeagullOptimizationAlgorithm

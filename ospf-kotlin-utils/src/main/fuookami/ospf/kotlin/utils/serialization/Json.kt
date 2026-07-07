@@ -1,6 +1,6 @@
 /**
- * 本文件提供 JSON 序列化工具，支持命名策略自动转换。
  * This file provides JSON serialization utilities with naming strategy support.
+ * 中文本文件提供 JSON 序列化工具，支持命名策略自动转换。
  */
 package fuookami.ospf.kotlin.utils.serialization
 
@@ -12,16 +12,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import fuookami.ospf.kotlin.utils.meta_programming.*
 
 /**
- * JSON 命名策略
- *
- * 用于在序列化/反序列化时自动转换字段名的命名格式。
- * 将前端命名系统（如 camelCase）转换为后端命名系统（如 snake_case）。
- *
  * A JSON naming strategy for automatic field name conversion during serialization/deserialization.
  * Converts frontend naming system (e.g., camelCase) to backend naming system (e.g., snake_case).
+ * 中文JSON 命名策略，用于在序列化/反序列化时自动转换字段名的命名格式，将前端命名系统（如 camelCase）转换为后端命名系统（如 snake_case）。
  *
- * @property frontend 前端命名系统 / Frontend naming system
- * @property backend 后端命名系统 / Backend naming system
+ * @property frontend frontend naming system / 前端命名系统
+ * @property backend backend naming system / 后端命名系统
  */
 @OptIn(ExperimentalSerializationApi::class)
 class JsonNamingPolicy(
@@ -29,27 +25,24 @@ class JsonNamingPolicy(
     val backend: NamingSystem
 ) : JsonNamingStrategy {
     /**
-     * 名称转换器
-     *
      * The name transfer for converting between naming systems.
+     * 中文名称转换器，用于在命名系统之间进行转换。
      */
     val transfer = NameTransfer(frontend, backend)
 
     /**
-     * 获取 JSON 字段名
-     *
      * Get the JSON field name for a given serial name.
      * Converts the Kotlin property name (serialName) from frontend format to backend format.
+     * 中文获取 JSON 字段名，将 Kotlin 属性名（serialName）从前端格式转换为后端格式。
      *
-     * BUG FIX: 原始代码使用 descriptor.serialName（类名），这是错误的。
-     * FIX: Original code used descriptor.serialName (class name), which is incorrect.
-     * 应该直接转换 serialName（字段名）。
+     * BUG FIX: Original code used descriptor.serialName (class name), which is incorrect.
      * Should directly convert serialName (field name).
+     * 中文BUG 修复：原始代码使用 descriptor.serialName（类名），这是错误的，应该直接转换 serialName（字段名）。
      *
-     * @param descriptor 序列化描述符 / Serialization descriptor
-     * @param elementIndex 元素索引 / Element index
-     * @param serialName Kotlin 属性名 / Kotlin property name
-     * @return 转换后的 JSON 字段名 / Converted JSON field name
+     * @param descriptor serialization descriptor / 序列化描述符
+     * @param elementIndex element index / 元素索引
+     * @param serialName Kotlin property name / Kotlin 属性名
+     * @return converted JSON field name / 转换后的 JSON 字段名
      */
     override fun serialNameForJson(descriptor: SerialDescriptor, elementIndex: Int, serialName: String): String {
         return transfer(serialName)
@@ -57,14 +50,13 @@ class JsonNamingPolicy(
 }
 
 /**
- * 从文件读取 JSON 对象
- *
  * Read a JSON object from a file.
+ * 中文从文件读取 JSON 对象。
  *
- * @param T 对象类型 / Object type
- * @param path 文件路径 / File path
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的对象 / Parsed object
+ * @param T object type / 对象类型
+ * @param path file path / 文件路径
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed object / 解析后的对象
  */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNamingPolicy? = null): T {
@@ -76,14 +68,13 @@ inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNaming
 }
 
 /**
- * 从文件读取 JSON 列表
- *
  * Read a JSON list from a file.
+ * 中文从文件读取 JSON 列表。
  *
- * @param T 列表元素类型 / List element type
- * @param path 文件路径 / File path
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的列表 / Parsed list
+ * @param T list element type / 列表元素类型
+ * @param path file path / 文件路径
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed list / 解析后的列表
  */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
@@ -95,15 +86,14 @@ inline fun <reified T : Any> readFromJsonList(path: String, namingPolicy: JsonNa
 }
 
 /**
- * 从文件读取 JSON 对象（使用序列化器）
- *
  * Read a JSON object from a file using a serializer.
+ * 中文从文件读取 JSON 对象（使用序列化器）。
  *
- * @param T 对象类型 / Object type
- * @param serializer 序列化器 / Serializer
- * @param path 文件路径 / File path
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的对象 / Parsed object
+ * @param T object type / 对象类型
+ * @param serializer serializer / 序列化器
+ * @param path file path / 文件路径
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed object / 解析后的对象
  */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): T {
@@ -122,15 +112,14 @@ fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: Jso
 }
 
 /**
- * 从文件读取 JSON 列表（使用序列化器）
- *
  * Read a JSON list from a file using a serializer.
+ * 中文从文件读取 JSON 列表（使用序列化器）。
  *
- * @param T 列表元素类型 / List element type
- * @param serializer 元素序列化器 / Element serializer
- * @param path 文件路径 / File path
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的列表 / Parsed list
+ * @param T list element type / 列表元素类型
+ * @param serializer element serializer / 元素序列化器
+ * @param path file path / 文件路径
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed list / 解析后的列表
  */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJsonList(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
@@ -142,14 +131,13 @@ fun <T> readFromJsonList(serializer: KSerializer<T>, path: String, namingPolicy:
 }
 
 /**
- * 从流读取 JSON 对象
- *
  * Read a JSON object from a stream.
+ * 中文从流读取 JSON 对象。
  *
- * @param T 对象类型 / Object type
- * @param stream 输入流 / Input stream
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的对象 / Parsed object
+ * @param T object type / 对象类型
+ * @param stream input stream / 输入流
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed object / 解析后的对象
  */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {
@@ -161,14 +149,13 @@ inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: Jso
 }
 
 /**
- * 从流读取 JSON 列表
- *
  * Read a JSON list from a stream.
+ * 中文从流读取 JSON 列表。
  *
- * @param T 列表元素类型 / List element type
- * @param stream 输入流 / Input stream
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的列表 / Parsed list
+ * @param T list element type / 列表元素类型
+ * @param stream input stream / 输入流
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed list / 解析后的列表
  */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): List<T> {
@@ -180,15 +167,14 @@ inline fun <reified T : Any> readFromJsonList(stream: InputStream, namingPolicy:
 }
 
 /**
- * 从流读取 JSON 对象（使用序列化器）
- *
  * Read a JSON object from a stream using a serializer.
+ * 中文从流读取 JSON 对象（使用序列化器）。
  *
- * @param T 对象类型 / Object type
- * @param serializer 序列化器 / Serializer
- * @param stream 输入流 / Input stream
- * @param namingPolicy 命名策略 / Naming policy
- * @return 解析后的对象 / Parsed object
+ * @param T object type / 对象类型
+ * @param serializer serializer / 序列化器
+ * @param stream input stream / 输入流
+ * @param namingPolicy naming policy / 命名策略
+ * @return parsed object / 解析后的对象
  */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJson(serializer: KSerializer<T>, stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {

@@ -15,22 +15,31 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
 
+/**
+ * Computes the next reduced-cost cutoff for column pruning.
+ * 计算列剪枝的下一个约简成本阈值
+ *
+ * @param maximumReducedCost Current maximum reduced cost / 当前最大约简成本
+ * @return Next reduced-cost cutoff value / 下一个约简成本阈值
+ */
 private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
     val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
     return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
 }
 
 /**
- * 抽象任务束编译聚合 / Abstract bunch compilation aggregation
+ * Abstract bunch compilation aggregation.
+ * 抽象任务束编译聚合
  *
- * @param B 任务束类型 / Bunch type
- * @param T 任务类型 / Task type
- * @param E 执行器类型 / Executor type
- * @param A 分配策略类型 / Assignment policy type
- * @param tasks 任务列表 / List of tasks
- * @param executors 执行器列表 / List of executors
- * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
- * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ * @param B Bunch type / 任务束类型
+ * @param V Numeric type / 数值类型
+ * @param T Task type / 任务类型
+ * @param E Executor type / 执行器类型
+ * @param A Assignment policy type / 分配策略类型
+ * @param tasks List of tasks / 任务列表
+ * @param executors List of executors / 执行器列表
+ * @param lockCancelTasks Set of locked cancel tasks / 锁定取消任务集合
+ * @param withExecutorLeisure Whether to include executor leisure / 是否包含执行器空闲
  */
 abstract class AbstractBunchCompilationAggregation<
         B : AbstractTaskBunch<T, E, A, V>,

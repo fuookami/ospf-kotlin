@@ -11,14 +11,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.Aggregati
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.limits.*
 
 /**
- * 生成用于模型构建的路线约束和目标的管线列表。Generates the pipeline list of route constraints and objectives for model construction.
+ * Generates the pipeline list of route constraints and objectives for model construction.
+ * 表示生成用于模型构建的路由约束和目标的管线列表。
  *
- * @property aggregation 参数。
+ * @property aggregation the route aggregation model / 路由聚合模型
  */
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
-    /** @return 管线列表。 */
+    /** @return the pipeline list / 管线列表 */
     operator fun invoke(): Ret<PipelineList<LinearMetaModel<Flt64>>> {
         val list = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
 

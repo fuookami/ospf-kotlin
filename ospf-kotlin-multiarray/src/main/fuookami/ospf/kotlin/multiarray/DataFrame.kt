@@ -93,18 +93,25 @@ class DataFrame<T>(
     /**
      * 获取行数
      * Get number of rows
+     *
+     * @return 行数 / Number of rows
      */
     fun getNRows(): Int = nrows
 
     /**
      * 获取列数
      * Get number of columns
+     *
+     * @return 列数 / Number of columns
      */
     fun getNCols(): Int = ncols
 
     /**
      * 通过列名获取列索引
      * Get column index by column name
+     *
+     * @param name 列名 / Column name
+     * @return 列索引，若列名不存在则返回 null / Column index, or null if column name not found
      */
     fun getColumnIndex(name: String): Int? = columnIndex[name]
 

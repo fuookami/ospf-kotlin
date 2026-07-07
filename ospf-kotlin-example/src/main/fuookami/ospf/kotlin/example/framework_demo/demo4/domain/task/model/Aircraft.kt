@@ -19,7 +19,7 @@ data class Aircraft(
     val regNo: AircraftRegisterNumber,
     val minorType: AircraftMinorType,
     val capacity: AircraftCapacity
-) : Executor(regNo.no, regNo.no) {
+) : Executor(AircraftId(regNo.no), regNo.no) {
     internal lateinit var _usability: AircraftUsability
     val usability get() = _usability
 

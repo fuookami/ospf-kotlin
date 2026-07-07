@@ -1,3 +1,4 @@
+/** MindOpt solver configuration / 中文 MindOpt 求解器配置 */
 package fuookami.ospf.kotlin.core.solver.mindopt
 
 /**

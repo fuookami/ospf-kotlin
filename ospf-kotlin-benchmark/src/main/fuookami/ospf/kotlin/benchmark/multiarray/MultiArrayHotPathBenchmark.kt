@@ -22,6 +22,13 @@ import fuookami.ospf.kotlin.multiarray.vectorUnchecked
 /**
  * multiarray 热点路径基准
  * Multiarray hot path benchmark
+ *
+ * @property dataset 数据集规模标识（small/medium/large） / dataset size identifier (small/medium/large)
+ * @property shape 三维形状 / three-dimensional shape
+ * @property vectors 索引向量列表 / list of index vectors
+ * @property dense 密集可变多数组 / dense mutable multi-array
+ * @property sparse 稀疏分块多数组 / sparse block multi-array
+ * @property sourceList 源数据列表 / source data list
  */
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)

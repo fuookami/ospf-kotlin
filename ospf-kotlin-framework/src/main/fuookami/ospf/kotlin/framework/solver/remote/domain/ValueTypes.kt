@@ -58,7 +58,13 @@ value class TaskId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [TaskId] instance / 规范化的 [TaskId] 实例
+         */
         fun of(value: String): TaskId {
             return TaskId(value.trim())
         }
@@ -83,7 +89,13 @@ value class SliceId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [SliceId] instance / 规范化的 [SliceId] 实例
+         */
         fun of(value: String): SliceId {
             return SliceId(value.trim())
         }
@@ -108,7 +120,13 @@ value class NodeId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [NodeId] instance / 规范化的 [NodeId] 实例
+         */
         fun of(value: String): NodeId {
             return NodeId(value.trim())
         }
@@ -133,7 +151,13 @@ value class TenantId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [TenantId] instance / 规范化的 [TenantId] 实例
+         */
         fun of(value: String): TenantId {
             return TenantId(value.trim())
         }
@@ -158,7 +182,13 @@ value class RequestId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [RequestId] instance / 规范化的 [RequestId] 实例
+         */
         fun of(value: String): RequestId {
             return RequestId(value.trim())
         }
@@ -183,7 +213,13 @@ value class HandleId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [HandleId] instance / 规范化的 [HandleId] 实例
+         */
         fun of(value: String): HandleId {
             return HandleId(value.trim())
         }
@@ -208,7 +244,13 @@ value class TraceId(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [TraceId] instance / 规范化的 [TraceId] 实例
+         */
         fun of(value: String): TraceId {
             return TraceId(value.trim())
         }
@@ -234,7 +276,13 @@ value class ObjectPath(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace, converting backslashes to forward slashes, and removing leading slashes.
+         * 通过修剪空白、转换反斜杠为正斜杠并移除前导斜杠创建规范化实例。
+         *
+         * @param value the raw path string / 原始路径字符串
+         * @return the normalized [ObjectPath] instance / 规范化的 [ObjectPath] 实例
+         */
         fun of(value: String): ObjectPath {
             val normalized = value.trim().replace('\\', '/').trimStart('/')
             return ObjectPath(normalized)
@@ -260,7 +308,13 @@ value class ObjectVersion(val value: String) {
     }
 
     companion object {
-        /** 规范化创建 / Normalized creation */
+        /**
+         * Creates a normalized instance by trimming whitespace.
+         * 通过修剪空白创建规范化实例。
+         *
+         * @param value the raw string value / 原始字符串值
+         * @return the normalized [ObjectVersion] instance / 规范化的 [ObjectVersion] 实例
+         */
         fun of(value: String): ObjectVersion {
             return ObjectVersion(value.trim())
         }

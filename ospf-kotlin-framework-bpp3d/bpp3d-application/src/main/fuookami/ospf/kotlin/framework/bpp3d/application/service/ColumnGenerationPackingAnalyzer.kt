@@ -98,6 +98,7 @@ class ColumnGenerationPackingAnalyzer(
      * Analyze current column generation state and generate packing snapshot.
      *
      * @param state 列生成状态 / column generation state
+     * @return 分析结果 / analysis result
      */
     override suspend fun analyze(state: ColumnGenerationState<FltX>): Try {
         val bins: List<Bin<BinLayer, FltX>> = if (state.bins.isNotEmpty()) {
@@ -186,6 +187,7 @@ class ColumnGenerationPackingAnalyzer(
  * @param shadowPrices 影子价格（可选） / shadow prices (optional)
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
+ * @return 分析结果 / analysis result
  */
 suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQuantity(
     iteration: Int,

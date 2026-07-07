@@ -1,6 +1,6 @@
 /**
- * 物料装箱器。
  * Material packer.
+ * 物料装箱器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
@@ -14,22 +14,27 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 物料装箱器，用于将物料需求装箱到包装方案中。
  * Material packer for packing material demands into packaging programs.
+ * 物料装箱器，用于将物料需求装箱到包装方案中。
  *
- * @param solverExecutor 物料装箱求解器执行器 / the material packing solver executor
+ * @param solverExecutor The material packing solver executor.
+ * 物料装箱求解器执行器。
  */
 class MaterialPacker(
     private val solverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
 ) {
     /**
-     * 包装槽位，表示一个候选方案在当前槽位的包装实例。
      * Package slot representing a packaging instance of a candidate program in the current slot.
+     * 包装槽位，表示一个候选方案在当前槽位的包装实例。
      *
-     * @property candidateIndex 候选方案索引 / the candidate program index
-     * @property pack 包装实例 / the package instance
-     * @property assigned 已分配的物料及其数量 / the assigned materials and their amounts
-     * @property pending 是否待定 / whether the slot is pending
+     * @property candidateIndex The candidate program index.
+     * 候选方案索引。
+     * @property pack The package instance.
+     * 包装实例。
+     * @property assigned The assigned materials and their amounts.
+     * 已分配的物料及其数量。
+     * @property pending Whether the slot is pending.
+     * 是否待定。
      */
     private data class PackageSlot(
         val candidateIndex: Int,
@@ -39,12 +44,15 @@ class MaterialPacker(
     )
 
     /**
-     * 槽位签名，用于对相同配置的槽位进行分组。
      * Slot signature for grouping slots with the same configuration.
+     * 槽位签名，用于对相同配置的槽位进行分组。
      *
-     * @property candidateIndex 候选方案索引 / the candidate program index
-     * @property pending 是否待定 / whether the slot is pending
-     * @property materials 物料及其分配数量列表 / the list of materials and their assigned amounts
+     * @property candidateIndex The candidate program index.
+     * 候选方案索引。
+     * @property pending Whether the slot is pending.
+     * 是否待定。
+     * @property materials The list of materials and their assigned amounts.
+     * 物料及其分配数量列表。
      */
     private data class SlotSignature(
         val candidateIndex: Int,
@@ -53,11 +61,13 @@ class MaterialPacker(
     )
 
     /**
-     * 将装箱数量转换为 FltX 标量类型。
      * Convert a packing quantity to the FltX scalar type.
+     * 将装箱数量转换为 FltX 标量类型。
      *
-     * @param value 待转换的数量 / the quantity to convert
-     * @return 转换后的 FltX 数量 / the converted FltX quantity
+     * @param value The quantity to convert.
+     * 待转换的数量。
+     * @return The converted FltX quantity.
+     * 转换后的 FltX 数量。
      */
     @Suppress("UNCHECKED_CAST")
     private fun packQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
@@ -68,11 +78,13 @@ class MaterialPacker(
     }
 
     /**
-     * 将重量需求量转换为装箱数量类型。仅支持 FltX 标量类型。
      * Convert a weight demand quantity to the packing quantity type. Only FltX scalar type is supported.
+     * 将重量需求量转换为装箱数量类型。仅支持 FltX 标量类型。
      *
-     * @param value 待转换的重量需求量 / weight demand quantity to convert
-     * @return 转换后的装箱数量，标量类型不支持时失败 / converted packing quantity, fails when scalar type is unsupported
+     * @param value The weight demand quantity to convert.
+     * 待转换的重量需求量。
+     * @return The converted packing quantity, fails when scalar type is unsupported.
+     * 转换后的装箱数量，标量类型不支持时失败。
      */
     @Suppress("UNCHECKED_CAST")
     private fun weightDemandToPackingQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
@@ -82,6 +94,21 @@ class MaterialPacker(
         }
     }
 
+    /**
+     * Plan the material packing by solving the MIP and assigning materials to package slots.
+     * 通过求解混合整数规划并分配物料到包装槽位来规划物料装箱。
+     *
+     * @param V The floating number type.
+     * 浮点数类型。
+     * @param demands The list of material packing demands.
+     * 物料装箱需求列表。
+     * @param candidates The list of candidate packing programs.
+     * 候选装箱方案列表。
+     * @param objective The objective weight configuration.
+     * 目标权重配置。
+     * @return The material packing plan.
+     * 物料装箱计划。
+     */
     suspend fun <V : FloatingNumber<V>> plan(
         demands: List<MaterialPackingDemand<V>>,
         candidates: List<MaterialPackingProgramCandidate<V>>,
@@ -345,11 +372,13 @@ class MaterialPacker(
     }
 
     /**
-     * 将 Long 值转换为 UInt64，负值返回零。
      * Convert a Long value to UInt64, returning zero for negative values.
+     * 将 Long 值转换为 UInt64，负值返回零。
      *
-     * @param value 待转换的长整型值 / the long value to convert
-     * @return 转换后的 UInt64 值 / the converted UInt64 value
+     * @param value The long value to convert.
+     * 待转换的长整型值。
+     * @return The converted UInt64 value.
+     * 转换后的 UInt64 值。
      */
     private fun toUInt64(value: Long): UInt64 {
         return if (value <= 0L) {
@@ -359,6 +388,17 @@ class MaterialPacker(
         }
     }
 
+    /**
+     * Create a default package attribute for a candidate program.
+     * 为候选方案创建默认的包装属性。
+     *
+     * @param V The floating number type.
+     * 浮点数类型。
+     * @param candidate The candidate program.
+     * 候选方案。
+     * @return The default package attribute.
+     * 默认的包装属性。
+     */
     private fun <V : FloatingNumber<V>> defaultPackageAttribute(candidate: MaterialPackingProgramCandidate<V>): PackageAttribute {
         return PackageAttribute(
             packageType = candidate.program.packageType,

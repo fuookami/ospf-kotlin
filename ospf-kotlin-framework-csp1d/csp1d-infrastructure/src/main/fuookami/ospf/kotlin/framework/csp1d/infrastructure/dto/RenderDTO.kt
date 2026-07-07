@@ -3,53 +3,67 @@ package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 import kotlinx.serialization.Serializable
 import fuookami.ospf.kotlin.math.algebra.number.*
 
-/** 渲染生产类型 / Render production type */
+/**
+ * Render production type.
+ * 中文渲染生产类型
+ */
 enum class RenderProductionType {
-    /** 产品 / Product */
+    /** Product / 产品 */
     Product,
-    /** 联副产品 / Co-product */
+    /** Co-product / 联副产品 */
     Costar
 }
 
-/** 渲染切割方案生产项DTO / Render cutting plan production DTO */
+/**
+ * Render cutting plan production DTO.
+ * 中文渲染切割方案生产项DTO
+ *
+ * @property x X coordinate / X坐标
+ * @property width Width / 宽度
+ * @property unitLength Unit length / 单位长度
+ * @property productionType Production type / 生产类型
+ * @property info Additional info / 附加信息
+ */
 @Serializable
 data class RenderCuttingPlanProductionDTO(
-    /** 名称 / Name */
     val name: String,
-    /** X坐标 / X coordinate */
     val x: FltX,
-    /** 宽度 / Width */
     val width: FltX,
-    /** 单位长度 / Unit length */
     val unitLength: FltX?,
-    /** 生产类型 / Production type */
     val productionType: RenderProductionType,
-    /** 附加信息 / Additional info */
     val info: Map<String, String>
 )
 
-/** 渲染切割方案DTO / Render cutting plan DTO */
+/**
+ * Render cutting plan DTO.
+ * 中文渲染切割方案DTO
+ *
+ * @property group Group identifiers / 分组标识
+ * @property productions List of productions / 生产项列表
+ * @property width Width / 宽度
+ * @property standardWidth Standard width / 标准宽度
+ * @property amount Amount / 数量
+ * @property info Additional info / 附加信息
+ */
 @Serializable
 data class RenderCuttingPlanDTO(
-    /** 分组标识 / Group identifiers */
     val group: List<String>,
-    /** 生产项列表 / List of productions */
     val productions: List<RenderCuttingPlanProductionDTO>,
-    /** 宽度 / Width */
     val width: FltX,
-    /** 标准宽度 / Standard width */
     val standardWidth: FltX,
-    /** 数量 / Amount */
     val amount: UInt64,
-    /** 附加信息 / Additional info */
     val info: Map<String, String>
 )
 
-/** 渲染方案DTO / Render schema DTO */
+/**
+ * Render schema DTO.
+ * 中文渲染方案DTO
+ *
+ * @property kpi KPI metrics / KPI指标
+ * @property cuttingPlans List of cutting plans / 切割方案列表
+ */
 @Serializable
 data class RenderSchemaDTO(
-    /** KPI指标 / KPI metrics */
     val kpi: Map<String, String>,
-    /** 切割方案列表 / List of cutting plans */
     val cuttingPlans: List<RenderCuttingPlanDTO>,
 )

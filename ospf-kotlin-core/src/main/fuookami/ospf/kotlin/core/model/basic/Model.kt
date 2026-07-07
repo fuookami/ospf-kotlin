@@ -42,49 +42,84 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      */
     fun remove(item: AbstractVariableItem<*, *>)
 
-    /** 添加变量列表（嵌套展平）/ Add variable lists (flattened) */
+    /**
+     * 添加变量列表（嵌套展平）/ Add variable lists (flattened)
+     *
+     * @param items the nested variable item lists / 嵌套的变量项列表
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVariablesLists")
     fun add(items: Iterable<Iterable<AbstractVariableItem<*, *>>>): Try {
         return add(items.flatten())
     }
 
-    /** 添加变量映射 / Add variable map */
+    /**
+     * 添加变量映射 / Add variable map
+     *
+     * @param items the variable item map / 变量项映射
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapVariables")
     fun <K> add(items: Map<K, AbstractVariableItem<*, *>>): Try {
         return add(items.values)
     }
 
-    /** 添加变量列表映射 / Add variable list map */
+    /**
+     * 添加变量列表映射 / Add variable list map
+     *
+     * @param items the variable item list map / 变量项列表映射
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapVariablesLists")
     fun <K> add(items: Map<K, Iterable<AbstractVariableItem<*, *>>>): Try {
         return add(items.values.flatten())
     }
 
-    /** 添加二级映射变量 / Add two-level map variables */
+    /**
+     * 添加二级映射变量 / Add two-level map variables
+     *
+     * @param items the two-level map of variable items / 二级映射变量项
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2Variables")
     fun <K1, K2> add(items: MultiMap2<K1, K2, AbstractVariableItem<*, *>>): Try {
         return add(items.values.flatMap { it.values })
     }
 
-    /** 添加二级映射变量列表 / Add two-level map variable lists */
+    /**
+     * 添加二级映射变量列表 / Add two-level map variable lists
+     *
+     * @param items the two-level map of variable item lists / 二级映射变量项列表
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2VariableLists")
     fun <K1, K2> add(items: MultiMap2<K1, K2, Iterable<AbstractVariableItem<*, *>>>): Try {
         return add(items.values.flatMap { it.values }.flatten())
     }
 
-    /** 添加三级映射变量 / Add three-level map variables */
+    /**
+     * 添加三级映射变量 / Add three-level map variables
+     *
+     * @param items the three-level map of variable items / 三级映射变量项
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3Variables")
     fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, AbstractVariableItem<*, *>>): Try {
         return add(items.values.flatMap { it.values }.flatMap { it.values })
     }
 
-    /** 添加三级映射变量列表 / Add three-level map variable lists */
+    /**
+     * 添加三级映射变量列表 / Add three-level map variable lists
+     *
+     * @param items the three-level map of variable item lists / 三级映射变量项列表
+     * @return the operation result / 操作结果
+     */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3VariableLists")
     fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, Iterable<AbstractVariableItem<*, *>>>): Try {

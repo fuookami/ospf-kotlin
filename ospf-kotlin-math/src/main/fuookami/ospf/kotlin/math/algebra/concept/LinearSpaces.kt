@@ -22,8 +22,7 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
      * 获取自身（CRTP 模式的类型安全转换）
      * Get self (type-safe cast for CRTP pattern)
      *
-     * @return 当前实例的 Self 类型引用
-     * @return The Self-typed reference to this instance
+     * @return 当前实例的 Self 类型引用 / The Self-typed reference to this instance
      */
     @Suppress("UNCHECKED_CAST")
     private fun self(): Self {
@@ -33,24 +32,20 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     }
 
     /**
-     * 取两个值中的较小倌
+     * 取两个值中的较小值
      * Get the minimum of two values
      *
-     * @param rhs 另一个倌
-     * @param rhs The other value
-     * @return 较小倌
-     * @return The minimum value
+     * @param rhs 另一个值 / The other value
+     * @return 较小值 / The minimum value
      */
     fun minValue(rhs: Self): Self = if (self() <= rhs) self() else rhs
 
     /**
-     * 取两个值中的较大倌
+     * 取两个值中的较大值
      * Get the maximum of two values
      *
-     * @param rhs 另一个倌
-     * @param rhs The other value
-     * @return 较大倌
-     * @return The maximum value
+     * @param rhs 另一个值 / The other value
+     * @return 较大值 / The maximum value
      */
     fun maxValue(rhs: Self): Self = if (self() >= rhs) self() else rhs
 

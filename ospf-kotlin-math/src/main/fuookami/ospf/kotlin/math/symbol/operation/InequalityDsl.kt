@@ -14,28 +14,27 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * 提供基于 Flt64ValueConverter 的泛型比较运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
  * Provides generic comparison operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
- */
-
-/**
- * 泛型不等式 DSL
- * Inequality DSL
  *
  * 通过 Flt64ValueConverter 提供泛型比较运算符重载。
  * Provides generic comparison operator overloads via Flt64ValueConverter.
  *
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
+ * @property converter Flt64 到 V 的转换器 / Flt64 to V converter
  */
 class InequalityDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
-    /** 将符号转换为系数为 1 的线性多项式 / Convert a symbol to a linear polynomial with coefficient one */
+    /** 将符号转换为系数为 1 的线性多项式 / Convert a symbol to a linear polynomial with coefficient one
+     * @return 系数为 1 的线性多项式 / Linear polynomial with coefficient one */
     private fun Symbol.asLinearPolynomial(): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, this)), converter.zero)
 
-    /** 将 Flt64 值转换为常数线性多项式 / Convert a Flt64 value to a constant linear polynomial */
+    /** 将 Flt64 值转换为常数线性多项式 / Convert a Flt64 value to a constant linear polynomial
+     * @return 常数线性多项式 / Constant linear polynomial */
     private fun Flt64.asLinearPolynomial(): LinearPolynomial<V> =
         LinearPolynomial(emptyList(), converter.intoValue(this))
 
-    /** 将布尔值转换为 Flt64，true 为 1，false 为 0 / Convert a Boolean to Flt64: true becomes 1, false becomes 0 */
+    /** 将布尔值转换为 Flt64，true 为 1，false 为 0 / Convert a Boolean to Flt64: true becomes 1, false becomes 0
+     * @return 对应的 Flt64 值 / Corresponding Flt64 value */
     private fun Boolean.asFlt64(): Flt64 = if (this) Flt64.one else Flt64.zero
 
     // ========== Symbol vs Flt64 ==========

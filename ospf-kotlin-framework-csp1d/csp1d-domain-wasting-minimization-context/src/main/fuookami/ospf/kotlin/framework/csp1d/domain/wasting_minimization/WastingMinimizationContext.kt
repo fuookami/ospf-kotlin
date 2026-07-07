@@ -123,6 +123,14 @@ class WastingMinimizationContext<V : RealNumber<V>>(
         return Ok(result)
     }
 
+    /**
+     * Multiply two quantities together.
+     * 将两个数量相乘
+     *
+     * @param a First quantity / 第一个数量
+     * @param b Second quantity / 第二个数量
+     * @return Product of the two quantities / 两个数量的乘积
+     */
     private fun multiplyQuantities(a: Quantity<V>, b: Quantity<V>): Quantity<V> {
         return (a * b)!!
     }

@@ -13,6 +13,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces recommended load weight limits for positions requiring recommended weight validation.
+ * 强制执行需要推荐重量验证的位置的推荐装载重量限制。
+ *
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property load the load decision variables / 装载决策变量
+ */
 class RecommendLoadWeightLimit(
     private val positions: List<Position>,
     private val load: Load,

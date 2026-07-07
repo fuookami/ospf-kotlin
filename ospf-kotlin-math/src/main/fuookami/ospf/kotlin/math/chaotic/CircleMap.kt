@@ -29,6 +29,14 @@ data class CircleMap<V : FloatingImpl<V>>(
     val beta: V
 ) : Extractor<V, V> {
     companion object {
+        /**
+         * Creates a CircleMap instance with Flt64 parameters.
+         * 创建使用 Flt64 参数的圆映射实例。
+         *
+         * @param alpha the frequency parameter / 频率参数
+         * @param beta the nonlinear coupling strength parameter / 非线性耦合强度参数
+         * @return a new CircleMap instance / 新的圆映射实例
+         */
         operator fun invoke(
             alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)

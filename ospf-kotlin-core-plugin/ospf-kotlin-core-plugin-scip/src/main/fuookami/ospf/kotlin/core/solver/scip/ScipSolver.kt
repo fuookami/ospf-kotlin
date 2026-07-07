@@ -15,6 +15,7 @@ import jscip.*
 /** SCIP 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / SCIP solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 @OptIn(ExperimentalTime::class)
 abstract class ScipSolver : AutoCloseable {
+    /** Companion object managing SCIP native library loading / 伴生对象，管理 SCIP 原生库加载 */
     companion object {
         internal var loadedLibrary = false
 

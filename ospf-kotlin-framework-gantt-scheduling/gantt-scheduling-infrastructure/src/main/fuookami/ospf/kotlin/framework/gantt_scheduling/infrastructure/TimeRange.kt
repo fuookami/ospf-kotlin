@@ -1,7 +1,8 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 /**
- * 时间范围及相关工具函数 / Time range and related utility functions
+ * Time range and related utility functions.
+ * 时间范围及相关工具函数。
  */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
@@ -19,10 +20,11 @@ import fuookami.ospf.kotlin.utils.max
 import fuookami.ospf.kotlin.utils.min
 
 /**
- * 时间范围 [start, end)，实现 TimeSlot 接口 / Time range [start, end), implementing TimeSlot interface
+ * Time range [start, end), implementing TimeSlot interface.
+ * 时间范围 [start, end)，实现 TimeSlot 接口。
  *
- * @property start 开始时间（默认为 DISTANT_PAST）/ Start time (default DISTANT_PAST)
- * @property end 结束时间（默认为 DISTANT_FUTURE）/ End time (default DISTANT_FUTURE)
+ * @property start Start time (default DISTANT_PAST) / 开始时间（默认为 DISTANT_PAST）
+ * @property end End time (default DISTANT_FUTURE) / 结束时间（默认为 DISTANT_FUTURE）
  */
 // [b, e)
 @Serializable

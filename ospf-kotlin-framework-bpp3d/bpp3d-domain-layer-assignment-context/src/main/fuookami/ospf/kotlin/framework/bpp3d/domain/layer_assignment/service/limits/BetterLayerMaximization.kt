@@ -1,6 +1,6 @@
 /**
- * 更优层最大化目标。
  * Better layer maximization objective.
+ * 更优层最大化目标。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 
 /**
- * 更优层最大化目标，最大化层与箱子的匹配系数。
  * Better layer maximization objective, maximizes layer-bin matching coefficients.
+ * 更优层最大化目标，最大化层与箱子的匹配系数。
  *
  * @property bins 箱子列表 / bin list
  * @property layers 层列表 / layer list
@@ -30,8 +30,8 @@ class BetterLayerMaximization(
     val name: String = "better_layer_maximization"
 ) {
     /**
-     * 将目标添加到模型。
      * Add objective to model.
+     * 将目标添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

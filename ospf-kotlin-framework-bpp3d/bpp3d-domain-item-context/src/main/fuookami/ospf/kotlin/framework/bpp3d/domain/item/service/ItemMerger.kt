@@ -1,6 +1,6 @@
 /**
- * 货物合并服务。
  * Item merger service.
+ * 货物合并服务。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 

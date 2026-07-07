@@ -130,7 +130,16 @@ object FltXPowerStrategy {
         return FltXSeriesResult(value, core.iterations, core.converged)
     }
 
-    /** 计算 [1, 2) 区间内 FltX 的自然对数（泰勒级数） / Compute natural logarithm of FltX in [1, 2) via Taylor series */
+    /**
+     * Compute natural logarithm of FltX in [1, 2) via Taylor series.
+     * 通过泰勒级数计算 [1, 2) 区间内 FltX 的自然对数。
+     *
+     * @param x the value in [1, 2) / [1, 2) 区间内的值
+     * @param scale the decimal scale for intermediate rounding / 中间舍入的小数位数
+     * @param precision the convergence precision threshold / 收敛精度阈值
+     * @param maxIterations the maximum number of iterations / 最大迭代次数
+     * @return the series computation result / 级数计算结果
+     */
     private fun lnUnitInterval(
         x: FltX,
         scale: Int,

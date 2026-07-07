@@ -164,6 +164,7 @@ enum class Csp1dExtensionMode {
      *
      * @param mode 建模模式 / Modeling mode
      * @param isFinalMilp 是否为列生成最终 MILP / Whether this is a column generation final MILP
+     * @return true 表示匹配 / true if matches
      */
     fun matches(mode: Csp1dModelingMode, isFinalMilp: Boolean = false): Boolean {
         return when (this) {
@@ -261,7 +262,12 @@ interface Csp1dModelingContext<V : RealNumber<V>> {
     /** 领域数值样本，用于 solver 值显式转换 / Domain value sample for explicit solver value conversion */
     val domainValueSample: V
 
-    /** 转换为领域数值 / Convert to domain value */
+    /**
+     * 转换为领域数值 / Convert to domain value
+     *
+     * @param value 浮点数值 / Floating point value
+     * @return 领域数值 / Domain value
+     */
     fun toDomainValue(value: Flt64): V
 }
 
@@ -625,6 +631,11 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
 
 /**
  * 通过流程策略列表过滤初始方案 / Filter initial plans through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @param plans 初始方案列表 / Initial plan list
+ * @return 过滤后的方案列表 / Filtered plan list
  */
 fun <V : RealNumber<V>> filterInitialPlansByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -636,6 +647,12 @@ fun <V : RealNumber<V>> filterInitialPlansByPolicies(
 
 /**
  * 通过流程策略列表检查等价 / Check equivalence through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @param existing 已有方案 / Existing plan
+ * @param candidate 候选方案 / Candidate plan
+ * @return true 表示等价 / true if equivalent
  */
 fun <V : RealNumber<V>> isEquivalentByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -648,6 +665,10 @@ fun <V : RealNumber<V>> isEquivalentByPolicies(
 
 /**
  * 通过流程策略列表判断是否提前停止 / Check early stop through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @return true 表示应停止 / true if should stop
  */
 fun <V : RealNumber<V>> shouldStopByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -658,6 +679,12 @@ fun <V : RealNumber<V>> shouldStopByPolicies(
 
 /**
  * 通过流程策略列表自定义终止 / Select termination through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @param defaultReason 默认终止原因 / Default termination reason
+ * @param defaultMessage 默认消息 / Default message
+ * @return (终止原因名, 消息) 对 / (reason name, message) pair
  */
 fun <V : RealNumber<V>> selectTerminationByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -672,6 +699,11 @@ fun <V : RealNumber<V>> selectTerminationByPolicies(
 
 /**
  * 通过流程策略列表判断 partial 接受 / Accept partial through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @param defaultDecision 默认决策 / Default decision
+ * @return true 表示接受 partial / true to accept partial
  */
 fun <V : RealNumber<V>> acceptPartialByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -683,6 +715,11 @@ fun <V : RealNumber<V>> acceptPartialByPolicies(
 
 /**
  * 通过流程策略列表判断 recovery fallback / Allow recovery fallback through flow policy list
+ *
+ * @param policies 流程策略列表 / Flow policy list
+ * @param context 流程上下文 / Flow context
+ * @param defaultDecision 默认决策 / Default decision
+ * @return true 表示启用 / true to enable
  */
 fun <V : RealNumber<V>> allowRecoveryFallbackByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
@@ -777,7 +814,10 @@ data class Csp1dExtensionSet<V : RealNumber<V>>(
     val extractionPolicies: List<Csp1dExtractionPolicy<V>> = emptyList()
 ) {
     companion object {
-        /** 空扩展包 / Empty extension set */
+        /** 空扩展包 / Empty extension set
+         *
+         * @return 空的扩展包实例 / Empty extension set instance
+         */
         fun <V : RealNumber<V>> empty(): Csp1dExtensionSet<V> = Csp1dExtensionSet()
     }
 }

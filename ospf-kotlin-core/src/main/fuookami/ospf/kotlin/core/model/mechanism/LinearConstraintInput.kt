@@ -455,6 +455,16 @@ private fun evaluateFlattenDataWithValuesAndTokenList(
     return result
 }
 
+/**
+ * Evaluates Flt64 linear flatten data using solution results and token table for symbol indexing.
+ * 使用求解结果和符号表索引来评估 Flt64 线性扁平化数据。
+ *
+ * @param data the linear flatten data / 线性扁平化数据
+ * @param results the solution result list / 求解结果列表
+ * @param tokenTable the token table / 符号表
+ * @param zeroIfNone whether to treat missing values as zero / 是否将缺失值视为零
+ * @return the evaluated Flt64 value, or null if unavailable / 评估后的 Flt64 值，无法计算时返回 null
+ */
 internal fun <V> evaluateFlt64FlattenDataWithResults(
     data: LinearFlattenData<Flt64>,
     results: List<Flt64>,

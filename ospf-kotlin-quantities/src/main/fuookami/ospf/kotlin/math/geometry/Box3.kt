@@ -68,13 +68,28 @@ data class QuantityBox3<V : FloatingNumber<V>>(
     /** z 方向最大值，失败时返回 null / Maximum z value, or null on failure */
     val maxZOrNull: Quantity<V>? get() = maxZ().value
 
-    /** x 方向最大值 / Maximum x value */
+    /**
+     * 获取 x 方向最大值
+     * Get the maximum x value
+     *
+     * @return x 方向最大值 / Maximum x value
+     */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
-    /** y 方向最大值 / Maximum y value */
+    /**
+     * 获取 y 方向最大值
+     * Get the maximum y value
+     *
+     * @return y 方向最大值 / Maximum y value
+     */
     fun maxY(): Ret<Quantity<V>> = quantityPlusSafe(y, height)
 
-    /** z 方向最大值 / Maximum z value */
+    /**
+     * 获取 z 方向最大值
+     * Get the maximum z value
+     *
+     * @return z 方向最大值 / Maximum z value
+     */
     fun maxZ(): Ret<Quantity<V>> = quantityPlusSafe(z, depth)
 
     /**

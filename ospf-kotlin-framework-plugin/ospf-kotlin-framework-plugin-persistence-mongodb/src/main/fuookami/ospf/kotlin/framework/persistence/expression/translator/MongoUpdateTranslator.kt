@@ -55,16 +55,37 @@ class MongoUpdateTranslator(
         }
     }
 
+    /**
+     * 翻译设置值赋值项
+     * Translate set-value assignment item
+     *
+     * @param item 设置值赋值项 / Set-value assignment item
+     * @return Bson 更新表达式 / Bson update expression
+     */
     private fun translateSetValue(item: SetValue): Bson? {
         val field = resolveFieldName(item.path) ?: return null
         return Updates.set(field, item.value)
     }
 
+    /**
+     * 翻译设置空值赋值项
+     * Translate set-null assignment item
+     *
+     * @param item 设置空值赋值项 / Set-null assignment item
+     * @return Bson 更新表达式 / Bson update expression
+     */
     private fun translateSetNull(item: SetNull): Bson? {
         val field = resolveFieldName(item.path) ?: return null
         return Updates.set(field, null)
     }
 
+    /**
+     * 翻译表达式赋值项
+     * Translate set-from-expression assignment item
+     *
+     * @param item 表达式赋值项 / Set-from-expression assignment item
+     * @return Bson 更新表达式 / Bson update expression
+     */
     private fun translateSetFromExpression(item: SetFromExpression): Bson? {
         val field = resolveFieldName(item.path) ?: return null
 

@@ -240,7 +240,7 @@ class Flow(
     val scene: FlowControlScene,
     capacities: List<FlowControl>,
 ) : ConnectionResource<FlowControl, FltX>(
-    id = id,
+    id = ResourceIdImpl(id),
     name = "${airport}_flow",
     capacities = capacities,
     initialQuantityValue = FltX.zero,

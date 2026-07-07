@@ -45,11 +45,6 @@ interface AbstractPSOPolicy<ObjValue, V> :
 }
 
 /**
- *
- * @property c1         local learning factor
- * @property c2         global learning factor
- */
-/**
  * 粒子群优化器策略
  *
  * 实现粒子群优化的加速操作，使用惯性权重、局部学习因子和全局学习因子控制粒子运动。

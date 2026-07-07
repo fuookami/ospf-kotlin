@@ -191,6 +191,10 @@ class Aggregation(
             }
         }
 
+        if (unduplicatedBunches.isEmpty()) {
+            return Ok(unduplicatedBunches)
+        }
+
         when (val result = taskTime.addColumns(iteration, unduplicatedBunches, model)) {
             is Ok -> {}
 

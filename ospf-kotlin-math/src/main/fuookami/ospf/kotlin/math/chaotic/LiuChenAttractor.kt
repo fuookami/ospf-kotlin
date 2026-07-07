@@ -51,6 +51,13 @@ data class LiuChenAttractor<V : FloatingNumber<V>>(
     }
 }
 
+/**
+ * Liu-Chen attractor generator that iteratively produces chaotic sequences.
+ * Liu-Chen 吸引子生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Liu-Chen attractor instance / Liu-Chen 吸引子实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class LiuChenAttractorGenerator(
     val attractor: LiuChenAttractor<Flt64> = LiuChenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

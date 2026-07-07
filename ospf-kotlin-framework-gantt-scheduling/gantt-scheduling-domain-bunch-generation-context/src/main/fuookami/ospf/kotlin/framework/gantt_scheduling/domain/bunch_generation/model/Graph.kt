@@ -12,6 +12,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param index 节点索引 / Node index
  */
 sealed class Node(val index: UInt64) {
+    /**
+     * Companion object providing index constants for root and end nodes.
+     * 提供根节点和终止节点索引常量的伴生对象
+     */
     companion object {
         internal val root: UInt64 = UInt64.zero
         internal val end: UInt64 = UInt64.maximum

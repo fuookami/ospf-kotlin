@@ -43,7 +43,7 @@ class MaintenancePlan internal constructor(
     val category: MaintenanceCategory,
     val expirationTime: Instant,
     status: Set<FlightTaskStatus>,
-    override val actualId: String = UUID.randomUUID().toString()
+    actualId: String = UUID.randomUUID().toString()
 ) : FlightTaskPlan(
     id = "${prefix}_${actualId.replace("-", "")}",
     name = "${aircraft.regNo}_${category}_${scheduledTime.start.toShortString()}",
@@ -102,6 +102,7 @@ class MaintenancePlan internal constructor(
         }
     }
 
+    override val actualId = FlightTaskPlanId(actualId)
     override val displayName = "${category}-${aircraft.regNo}"
     override val enabledAircrafts = setOf(aircraft)
     override val dep = airport

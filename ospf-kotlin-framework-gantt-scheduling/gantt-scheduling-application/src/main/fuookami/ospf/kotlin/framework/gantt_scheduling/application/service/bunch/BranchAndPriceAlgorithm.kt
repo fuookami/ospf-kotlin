@@ -119,9 +119,24 @@ class BranchAndPriceAlgorithm<
     private val columnAmount: UInt64 get() = context.columnAmount
     private val executorAmount: UInt64 get() = UInt64(executors.size)
 
+    /**
+     * Calculate the number of executors not associated with fixed bunches.
+     * 中文计算未关联固定任务束的执行器数量
+     *
+     * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
+     * @return Number of non-fixed executors / 未固定的执行器数量
+     */
     private fun notFixedExtractorAmount(fixedBunches: Set<B>): UInt64 =
         executorAmount - UInt64(fixedBunches.size.toULong())
 
+    /**
+     * Calculate the minimum column amount requirement per executor in the current state.
+     * 中文计算当前状态下每个执行器的最小列数要求
+     *
+     * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
+     * @param configuration Algorithm configuration / 算法配置
+     * @return Minimum column amount / 最小列数
+     */
     private fun minimumColumnAmount(
         fixedBunches: Set<B>,
         configuration: Configuration
@@ -546,6 +561,13 @@ class BranchAndPriceAlgorithm<
         }
     }
 
+    /**
+     * Register the context and extract contexts in the model, and add initial columns.
+     * 中文在模型中注册上下文和提取上下文，并添加初始列
+     *
+     * @param model Linear meta model / 线性元模型
+     * @return Operation result / 操作结果
+     */
     private suspend fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = context.register(model)) {
             is Ok -> {}
@@ -604,6 +626,16 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 
+    /**
+     * Solve the linear relaxation of the restricted master problem (RMP) and extract shadow prices.
+     * 中文求解受限主问题（RMP）的线性松弛，提取影子价格
+     *
+     * @param id Solver run identifier / 求解器运行标识
+     * @param iteration Current iteration / 当前迭代
+     * @param model Linear meta model / 线性元模型
+     * @param withKeeping Whether to perform bunch keeping when the objective improves / 目标值改善时是否执行任务束保留
+     * @return Shadow price map / 影子价格映射
+     */
     private suspend fun solveRMP(
         id: SolverRunId,
         iteration: Iteration<T, E, A, V>,

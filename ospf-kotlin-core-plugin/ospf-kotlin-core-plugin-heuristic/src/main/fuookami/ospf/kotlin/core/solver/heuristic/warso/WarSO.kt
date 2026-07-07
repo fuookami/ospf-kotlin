@@ -1,5 +1,11 @@
-/** 战争策略优化算法 / War Strategy Optimization Algorithm */
+/**
+ * War Strategy Optimization Algorithm
+ * 中文战争策略优化算法
+ */
 package fuookami.ospf.kotlin.core.solver.heuristic.warso
 
-/** 战争策略优化算法，尚未实现 / War Strategy Optimization Algorithm, not implemented yet */
+/**
+ * War Strategy Optimization Algorithm, not implemented yet
+ * 中文战争策略优化算法，尚未实现
+ */
 class WarStrategyOptimizationAlgorithm

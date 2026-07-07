@@ -1,6 +1,6 @@
 /**
- * 体积最小化目标。
  * Volume minimization objective.
+ * 体积最小化目标。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Imprec
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 
 /**
- * 体积最小化目标，最小化总体积使用。
  * Volume minimization objective, minimizes total volume usage.
+ * 体积最小化目标，最小化总体积使用。
  *
  * @param Args 影子价格参数类型 / shadow price arguments type
  * @param T 立方体类型 / cuboid type
@@ -32,8 +32,8 @@ open class VolumeMinimization<
     override val name: String = "volume_minimization",
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
     /**
-     * 将目标添加到模型。
      * Add objective to model.
+     * 将目标添加到模型。
      *
      * @param model 线性元模型 / linear meta model
      * @return 操作结果 / operation result
@@ -59,8 +59,8 @@ open class VolumeMinimization<
 }
 
 /**
- * 创建 Item 专用体积最小化目标，供业务调用侧避开泛型基类入口。
  * Build item-only volume minimization objective so business callers avoid the quantity-polymorphic base entry.
+ * 创建 Item 专用体积最小化目标，供业务调用侧避开泛型基类入口。
  *
  * @param assignment 不精确赋值 / imprecise assignment
  * @param coefficient 体积系数 / volume coefficient
@@ -80,8 +80,8 @@ fun itemVolumeMinimization(
 }
 
 /**
- * Item 专用体积最小化目标，不暴露底层泛型 cuboid 约束。
  * Item-only volume minimization objective, does not expose the underlying quantity-polymorphic cuboid constraint.
+ * Item 专用体积最小化目标，不暴露底层泛型 cuboid 约束。
  *
  * @property assignment 不精确赋值 / imprecise assignment
  * @property coefficient 体积系数 / volume coefficient

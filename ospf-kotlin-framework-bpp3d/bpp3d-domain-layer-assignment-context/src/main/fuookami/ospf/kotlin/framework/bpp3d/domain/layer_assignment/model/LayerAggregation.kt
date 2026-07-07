@@ -1,6 +1,6 @@
 /**
- * 层聚合模型。
  * Layer aggregation model.
+ * 层聚合模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 
 /**
- * 层聚合，管理列生成过程中的层集合。
  * Layer aggregation, manages layer sets during column generation.
+ * 层聚合，管理列生成过程中的层集合。
  *
  * @property layersIteration 每次迭代新增的层 / layers added per iteration
  * @property layers 当前所有层 / all current layers
@@ -23,14 +23,14 @@ class LayerAggregation(
     val removedLayers: MutableSet<BinLayer> = HashSet()
 ) {
     /**
-     * 最近一次迭代的层。
      * Layers from the last iteration.
+     * 最近一次迭代的层。
      */
     val lastIterationLayers: List<BinLayer> get() = layersIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
     /**
-     * 添加新列（去重后）。
      * Add new columns (after deduplication).
+     * 添加新列（去重后）。
      *
      * @param newLayers 新层列表 / new layer list
      * @return 去重后实际新增的层 / deduplicated newly added layers
@@ -75,8 +75,8 @@ class LayerAggregation(
     }
 
     /**
-     * 移除单个层。
      * Remove a single layer.
+     * 移除单个层。
      *
      * @param layer 要移除的层 / layer to remove
      */
@@ -88,8 +88,8 @@ class LayerAggregation(
     }
 
     /**
-     * 移除多个层。
      * Remove multiple layers.
+     * 移除多个层。
      *
      * @param layers 要移除的层列表 / layers to remove
      */

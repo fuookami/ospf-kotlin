@@ -1,6 +1,6 @@
 /**
- * 装箱器。
  * Packer.
+ * 装箱器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
@@ -13,10 +13,11 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 装箱器，将最终箱子转换为装箱结果。
  * Packer, converts final bins into packing results.
+ * 装箱器，将最终箱子转换为装箱结果。
  *
- * @property loadingOrderCalculator 装载顺序计算器 / loading order calculator
+ * @property loadingOrderCalculator The loading order calculator.
+ * 装载顺序计算器。
  */
 class Packer(
     private val loadingOrderCalculator: LoadingOrderCalculator = LoadingOrderCalculator(
@@ -25,12 +26,15 @@ class Packer(
     )
 ) {
     /**
-     * 校验每层中圆柱体的轴向是否一致。同一层内不允许混合不同轴向的圆柱体。
      * Validate that cylinder axes are consistent within each layer. Mixed cylinder axes in the same layer are not allowed.
+     * 校验每层中圆柱体的轴向是否一致。同一层内不允许混合不同轴向的圆柱体。
      *
-     * @param bin 待校验的箱子 / bin to validate
-     * @param source 调用来源标识 / caller source identifier
-     * @return 校验结果，轴向不一致时失败 / validation result, fails when mixed axes are detected
+     * @param bin The bin to validate.
+     * 待校验的箱子。
+     * @param source The caller source identifier.
+     * 调用来源标识。
+     * @return The validation result, fails when mixed axes are detected.
+     * 校验结果，轴向不一致时失败。
      */
     private fun requireSingleCylinderAxisPerLayer(
         bin: Bin<BinLayer, FltX>,
@@ -55,12 +59,15 @@ class Packer(
     }
 
     /**
-     * 终态装箱分析：将 final bins 转为 PackingResult/SchemaDTO 所需结构。
      * Final packing analyzer: converts final bins into PackingResult-ready structures.
+     * 终态装箱分析：将 final bins 转为 PackingResult/SchemaDTO 所需结构。
      *
-     * @param bins 最终箱子列表 / final bin list
-     * @param context 装箱上下文 / packing context
-     * @return 装箱结果 / packing result
+     * @param bins The final bin list.
+     * 最终箱子列表。
+     * @param context The packing context.
+     * 装箱上下文。
+     * @return The packing result.
+     * 装箱结果。
      */
     suspend operator fun invoke(
         bins: List<Bin<BinLayer, FltX>>,
@@ -107,11 +114,13 @@ class Packer(
     }
 
     /**
-     * 汇总物料使用情况。
      * Summarize material usage.
+     * 汇总物料使用情况。
      *
-     * @param bins 已装箱列表 / packed bin list
-     * @return 物料汇总列表 / material summary list
+     * @param bins The packed bin list.
+     * 已装箱列表。
+     * @return The material summary list.
+     * 物料汇总列表。
      */
     private fun summarizeMaterials(bins: List<PackedBin>): List<MaterialSummary> {
         val summary = LinkedHashMap<MaterialKey, UInt64>()

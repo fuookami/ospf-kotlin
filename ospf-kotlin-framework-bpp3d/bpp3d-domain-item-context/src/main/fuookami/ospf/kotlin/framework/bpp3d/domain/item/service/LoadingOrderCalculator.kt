@@ -1,6 +1,6 @@
 /**
- * 装载顺序计算器。
  * Loading order calculator.
+ * 装载顺序计算器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 

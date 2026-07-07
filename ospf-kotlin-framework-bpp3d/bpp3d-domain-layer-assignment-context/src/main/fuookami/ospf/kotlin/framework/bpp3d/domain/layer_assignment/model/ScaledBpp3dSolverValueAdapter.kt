@@ -1,6 +1,6 @@
 /**
- * 带缩放的 BPP3D 求解器值适配器。
  * Scaled BPP3D solver value adapter.
+ * 带缩放的 BPP3D 求解器值适配器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 求解器单位系统配置。
  * Solver unit system configuration.
+ * 求解器单位系统配置。
  *
  * @property lengthUnit 长度单位 / length unit
  * @property areaUnit 面积单位 / area unit
@@ -28,8 +28,8 @@ data class Bpp3dSolverUnitSystem(
 )
 
 /**
- * 求解器浮点缩放因子配置。
  * Solver floating-point scale factor configuration.
+ * 求解器浮点缩放因子配置。
  *
  * @property amount 数量缩放因子 / amount scale factor
  * @property length 长度缩放因子 / length scale factor
@@ -48,8 +48,8 @@ data class Bpp3dSolverFltXScale(
 )
 
 /**
- * 带缩放的 BPP3D 求解器值适配器，支持单位转换和数值缩放。
  * Scaled BPP3D solver value adapter, supports unit conversion and numeric scaling.
+ * 带缩放的 BPP3D 求解器值适配器，支持单位转换和数值缩放。
  *
  * @property unitSystem 单位系统 / unit system
  * @property scale 缩放因子配置 / scale factor configuration
@@ -97,8 +97,8 @@ class ScaledBpp3dSolverValueAdapter(
     }
 
     /**
-     * 将物理量转换为求解器数值，先做单位归一化再乘以缩放因子。
      * Convert a physical quantity to a solver value by normalizing to the target unit and applying the scale factor.
+     * 将物理量转换为求解器数值，先做单位归一化再乘以缩放因子。
      *
      * @param value 待转换的物理量 / quantity to convert
      * @param targetUnit 目标单位 / target unit for normalization

@@ -53,6 +53,10 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         return distance(from, to)
     }
 
+    /**
+     * The squared length of the edge.
+     * 边的长度平方。
+     */
     val lengthSquared: V by lazy {
         val v = from[0]
         from.indices.sumOf(v.constants) { i ->

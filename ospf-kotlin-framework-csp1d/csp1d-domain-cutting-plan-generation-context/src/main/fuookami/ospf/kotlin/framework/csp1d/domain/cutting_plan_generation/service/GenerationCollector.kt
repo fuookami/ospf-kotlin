@@ -11,6 +11,23 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialId
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MachineId
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
 
+/**
+ * Collects, deduplicates, and applies dominance pruning to generated cutting plan candidates.
+ * 收集、去重并对生成的切割方案候选应用支配剪枝。
+ *
+ * @param maxPlans the maximum number of plans to accept
+ * 最大接受方案数
+ * @param deadline optional nano-time deadline after which generation stops
+ * 可选的纳秒截止时间，超过后停止生成
+ * @param enableDominancePruning whether to enable dominance-based plan pruning
+ * 是否启用基于支配的方案剪枝
+ * @param dominanceStrategy the dominance strategy to use when pruning
+ * 剪枝时使用的支配策略
+ * @param canonicalKeyOverride custom canonical key resolver; when returns non-null, replaces the default canonicalKey()
+ * 自定义 canonical key 解析函数，返回非 null 时替代默认 canonicalKey()
+ * @param dominanceAcceptOverride custom dominance acceptance function; returns true if the new candidate should be accepted
+ * 自定义 dominance 接受函数，返回 true 表示新候选应被接受
+ */
 internal class GenerationCollector<V : RealNumber<V>>(
     private val maxPlans: Int64,
     private val deadline: Int64?,

@@ -1,6 +1,6 @@
 /**
- * 箱子容量约束。
  * Bin capacity constraint.
+ * 箱子容量约束。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
 /**
- * 箱子容量约束，确保装载重量不超过箱子承载能力。
  * Bin capacity constraint, ensures load weight does not exceed bin capacity.
+ * 箱子容量约束，确保装载重量不超过箱子承载能力。
  *
  * @property bins 箱子列表 / bin list
  * @property capacity 容量符号 / capacity symbols
@@ -30,8 +30,8 @@ class BinCapacityConstraint(
     val name: String = "bin_capacity_constraint"
 ) {
     /**
-     * 将约束添加到模型。
      * Add constraint to model.
+     * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result

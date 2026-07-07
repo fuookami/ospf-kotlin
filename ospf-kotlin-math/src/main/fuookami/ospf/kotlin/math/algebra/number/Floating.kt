@@ -1,14 +1,14 @@
 /**
- * 浮点数模块
  * Floating-Point Number Module
- *
- * 本模块定义了浮点数的类型系统，包括 Flt32、Flt64 和 FltX（任意精度浮点数）。
- * 这些类型提供了完整的算术运算、比较操作、类型转换以及各种数学函数支持，
- * 包括三角函数、双曲函数、指数函数、对数函数等。
+ * 浮点数模块
  *
  * This module defines the floating-point number type system, including Flt32, Flt64, and FltX (arbitrary precision floating-point number).
  * These types provide full support for arithmetic operations, comparison operations, type conversions, and various mathematical functions,
  * including trigonometric functions, hyperbolic functions, exponential functions, logarithmic functions, etc.
+ *
+ * 本模块定义了浮点数的类型系统，包括 Flt32、Flt64 和 FltX（任意精度浮点数）。
+ * 这些类型提供了完整的算术运算、比较操作、类型转换以及各种数学函数支持，
+ * 包括三角函数、双曲函数、指数函数、对数函数等。
  */
 package fuookami.ospf.kotlin.math.algebra.number
 
@@ -25,22 +25,23 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.orderOf
 
 /**
- * 将浮点数转换为有理数
  * Convert floating-point number to rational number
+ * 将浮点数转换为有理数
  *
- * 将浮点数的字符串表示转换为有理数形式（分子/分母），并进行约分化简。
  * Converts the string representation of a floating-point number to rational form (numerator/denominator) and simplifies.
  *
- * @param f 浮点数值
- *          The floating-point number value
- * @param converter1 字符串到整数类型的转换函数
- *                   The conversion function from string to integer type
- * @param converter2 Long 到整数类型的转换函数
- *                   The conversion function from Long to integer type
- * @param ctor 有理数构造函数
- *             The rational number constructor
- * @return 有理数值
- *         The rational number value
+ * 将浮点数的字符串表示转换为有理数形式（分子/分母），并进行约分化简。
+ *
+ * @param f The floating-point number value
+ *          浮点数值
+ * @param converter1 The conversion function from string to integer type
+ *                   字符串到整数类型的转换函数
+ * @param converter2 The conversion function from Long to integer type
+ *                   Long 到整数类型的转换函数
+ * @param ctor The rational number constructor
+ *             有理数构造函数
+ * @return The rational number value
+ *         有理数值
  */
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,

@@ -17,13 +17,6 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property lambda 各子区间长度 / Lengths of subintervals
  * @property pi 置换 / Permutation
  */
-/**
- * 区间交换变换
- * Interval Exchange Transformation
- *
- * @property lambda 各子区间长度 / Lengths of subintervals
- * @property pi 置换 / Permutation
- */
 data class IntervalExchangeTransformation<V : FloatingNumber<V>>(val lambda: List<V>, val pi: List<Int>) :
     Extractor<V, V> {
     init {
@@ -51,6 +44,13 @@ data class IntervalExchangeTransformation<V : FloatingNumber<V>>(val lambda: Lis
     }
 }
 
+/**
+ * Interval exchange transformation generator that iteratively produces chaotic sequences.
+ * 区间交换变换生成器，通过迭代产生混沌序列。
+ *
+ * @property map the interval exchange transformation instance / 区间交换变换实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class IntervalExchangeTransformationGenerator(
     val map: IntervalExchangeTransformation<Flt64>,
     private var _x: Flt64 = Random.nextFlt64(

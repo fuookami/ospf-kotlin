@@ -4,7 +4,10 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.*
 
-/** 枚举舱位（具有索引和短字符串表示）。Enumerates the passenger classes with their index and short string representation. */
+/**
+ * Enumerates the passenger classes with their index and short string representation.
+ * 中文枚举舱位等级，具有索引和短字符串表示。
+ */
 enum class PassengerClass: Indexed {
     First {
         override fun toShortString() = "F"

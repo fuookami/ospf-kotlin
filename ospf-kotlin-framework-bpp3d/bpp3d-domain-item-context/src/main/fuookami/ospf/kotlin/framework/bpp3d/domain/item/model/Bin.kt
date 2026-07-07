@@ -1,6 +1,6 @@
 /**
- * 箱位模型。
  * Bin model.
+ * 箱位模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

@@ -20,7 +20,14 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import jscip.SCIP_ParamSetting
 
-/** SCIP 线性 Benders 分解求解器 / SCIP linear Benders decomposition solver */
+/**
+ * SCIP linear Benders decomposition solver
+ *
+ * 中文: SCIP 线性 Benders 分解求解器
+ *
+ * @property config solver configuration / 求解器配置
+ * @property callBack solver callback / 求解器回调
+ */
 class ScipLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()

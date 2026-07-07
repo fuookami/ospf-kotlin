@@ -15,13 +15,13 @@
 package fuookami.ospf.kotlin.math.symbol.expression
 
 /**
- * 属性路後
  * Property Path
+ * 中文属性路径
  *
- * 表示字段或属性的引用路径，如 `user.address.city`。
  * Represents a reference path for fields or properties, e.g., `user.address.city`.
+ * 中文表示字段或属性的引用路径，如 `user.address.city`。
  *
- * @property value 路径的字符串表示 / String representation of the path
+ * @property value the string representation of the path / 路径的字符串表示
  */
 @JvmInline
 value class PropertyPath(val value: String) {
@@ -163,8 +163,21 @@ value class PropertyPath(val value: String) {
         else PropertyPath("$value.$segment")
     }
 
+    /**
+     * Returns string representation
+     * 中文返回字符串表示
+     *
+     * @return the string representation of the path / 路径的字符串表示
+     */
     override fun toString(): String = value
 
+    /**
+     * Property Path companion object
+     * 中文属性路径伴生对象
+     *
+     * Provides factory methods and constants for creating and parsing PropertyPath instances.
+     * 中文提供创建和解析 PropertyPath 实例的工厂方法和常量。
+     */
     companion object {
         /**
          * 空路後
@@ -247,13 +260,17 @@ value class PropertyPath(val value: String) {
 }
 
 /**
- * 扩展函数：字符串转属性路後
  * Extension function: String to PropertyPath
+ * 中文扩展函数：字符串转属性路径
+ *
+ * @return the parsed PropertyPath / 解析后的属性路径
  */
 fun String.toPropertyPath(): PropertyPath = PropertyPath.parse(this)
 
 /**
- * 扩展函数：字符串尝试转属性路後
  * Extension function: String to PropertyPathOrNull
+ * 中文扩展函数：字符串尝试转属性路径
+ *
+ * @return the parsed PropertyPath, or null if the text is invalid / 解析后的属性路径，如果文本无效则返回 null
  */
 fun String.toPropertyPathOrNull(): PropertyPath? = PropertyPath.parseOrNull(this)

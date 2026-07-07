@@ -29,7 +29,13 @@ enum class Point {
     AfterFailure
 }
 
-/** COPT 线性求解器回调管理器 / COPT linear solver callback manager */
+/**
+ * COPT 线性求解器回调管理器 / COPT linear solver callback manager
+ *
+ * @property nativeCallback COPT 原生回调函数 / COPT native callback function
+ * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
+ * @property map 回调函数映射 / callback function mapping
+ */
 class CoptLinearSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
@@ -168,7 +174,13 @@ class CoptLinearSolverCallBack(
     }
 }
 
-/** COPT 二次求解器回调管理器 / COPT quadratic solver callback manager */
+/**
+ * COPT 二次求解器回调管理器 / COPT quadratic solver callback manager
+ *
+ * @property nativeCallback COPT 原生回调函数 / COPT native callback function
+ * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
+ * @property map 回调函数映射 / callback function mapping
+ */
 class CoptQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,

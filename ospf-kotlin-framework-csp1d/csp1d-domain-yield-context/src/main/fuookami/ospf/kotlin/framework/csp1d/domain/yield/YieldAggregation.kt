@@ -80,6 +80,9 @@ class YieldAggregation<V : RealNumber<V>>(
 
     /**
      * 提取产出建模结果 / Extract yield modeling result
+     *
+     * @param model 求解后的线性元模型 / Solved linear meta model
+     * @return 产出建模结果，若无偏差变量则为 null / Yield modeling result, or null if no slack variables exist
      */
     fun extractResult(model: AbstractLinearMetaModel<Flt64>): YieldModelingResult<V>? {
         val underProductions = ArrayList<ModeledUnderProduction<V>>()
@@ -118,6 +121,12 @@ class YieldAggregation<V : RealNumber<V>>(
     }
 
     companion object {
+        /**
+         * 生成需求影子价格键 / Generate demand shadow price key
+         *
+         * @param demand 产品需求 / Product demand
+         * @return 需求影子价格键 / Demand shadow price key
+         */
         internal fun demandShadowPriceKey(demand: ProductDemand<*>): ProductDemandShadowPriceKey {
             return ProductDemandShadowPriceKey(
                 productId = demand.product.id,

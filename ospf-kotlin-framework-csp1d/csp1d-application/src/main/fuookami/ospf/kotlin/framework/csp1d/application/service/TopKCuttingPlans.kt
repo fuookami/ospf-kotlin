@@ -59,6 +59,14 @@ class TopKCuttingPlans<V : RealNumber<V>>(
         return heap.toList().sortedWith(comparator.reversed())
     }
 
+    /**
+     * Compare scores between two cutting plans.
+     * 中文比较两个切割方案的评分
+     *
+     * @param left Left score / 左侧评分
+     * @param right Right score / 右侧评分
+     * @return Comparison result (-1, 0, or 1) / 比较结果（-1、0 或 1）
+     */
     private fun compareScore(left: Flt64?, right: Flt64?): Int {
         return when {
             left == null && right == null -> 0

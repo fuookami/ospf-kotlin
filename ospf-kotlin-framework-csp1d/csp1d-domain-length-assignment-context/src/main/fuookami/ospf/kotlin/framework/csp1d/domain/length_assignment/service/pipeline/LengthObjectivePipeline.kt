@@ -11,19 +11,23 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.ProduceAggregation
 import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
- * 长度分配目标管线 / Length assignment objective pipeline
+ * Length assignment objective pipeline.
+ * 长度分配目标管线
+ *
+ * Add length-related penalty terms to the objective function:
+ * - Total length penalty: sum(totalLengthPenalty * assigned_length_i)
+ * - Over-length penalty: sum(overLengthPenalty * over_length_i)
+ * - Batch minimization penalty: extra weight on Σx_j
  *
  * 在目标函数中添加长度相关惩罚项：
  * - 总卷长惩罚: sum(totalLengthPenalty * assigned_length_i)
  * - 超长惩罚: sum(overLengthPenalty * over_length_i)
  * - 批次最小惩罚: 对 Σx_j 施加额外加权
  *
- * Add length-related penalty terms to the objective function.
- *
- * @param V 数值类型 / Numeric value type
- * @property produce 产出聚合 / Produce aggregation
- * @property length 长度分配聚合 / Length assignment aggregation
- * @property config 长度分配建模配置 / Length assignment modeling configuration
+ * @param V Numeric value type / 数值类型
+ * @property produce Produce aggregation / 产出聚合
+ * @property length Length assignment aggregation / 长度分配聚合
+ * @property config Length assignment modeling configuration / 长度分配建模配置
  */
 class LengthObjectivePipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,

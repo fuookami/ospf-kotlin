@@ -1,6 +1,6 @@
 /**
- * 块模型。
  * Block model.
+ * 块模型。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 

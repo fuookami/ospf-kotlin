@@ -40,6 +40,13 @@ data class SakaryaAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, va
     }
 }
 
+/**
+ * Sakarya attractor generator that iteratively produces chaotic sequences.
+ * Sakarya 吸引子生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Sakarya attractor instance / Sakarya 吸引子实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class SakaryaAttractorGenerator(
     val attractor: SakaryaAttractor<Flt64> = SakaryaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

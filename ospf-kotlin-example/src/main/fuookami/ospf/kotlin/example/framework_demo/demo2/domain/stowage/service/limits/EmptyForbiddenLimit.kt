@@ -10,6 +10,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Enforces that positions marked as empty-forbidden must be loaded.
+ * 强制执行标记为禁止空载的位置必须被装载。
+ *
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property load the load decision variables / 装载决策变量
+ */
 class EmptyForbiddenLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

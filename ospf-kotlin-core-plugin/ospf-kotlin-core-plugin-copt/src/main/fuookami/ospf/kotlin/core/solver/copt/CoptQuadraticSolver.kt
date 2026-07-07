@@ -23,7 +23,12 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import copt.*
 
-/** COPT 二次求解器 / COPT quadratic solver */
+/**
+ * COPT 二次求解器 / COPT quadratic solver
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 二次求解器回调 / quadratic solver callback
+ */
 class CoptQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptQuadraticSolverCallBack? = null
@@ -97,7 +102,13 @@ class CoptQuadraticSolver(
     }
 }
 
-/** COPT 二次求解器内部实现 / COPT quadratic solver internal implementation */
+/**
+ * COPT 二次求解器内部实现 / COPT quadratic solver internal implementation
+ *
+ * @property config 求解器配置 / solver configuration
+ * @property callBack 二次求解器回调 / quadratic solver callback
+ * @property statusCallBack 求解状态回调 / solving status callback
+ */
 private class CoptQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptQuadraticSolverCallBack? = null,

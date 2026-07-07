@@ -1,6 +1,6 @@
 /**
- * 包装解决方案适配器。
  * Package solution like adapter.
+ * 包装解决方案适配器。
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
@@ -10,15 +10,53 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * Sealed interface representing the quantity of a package solution, which can be by amount, weight, or both.
+ * 密封接口，表示包装解决方案的数量，可按数量、重量或两者混合。
+ */
 sealed interface PackageSolutionLikeQuantity {
+    /**
+     * Quantity specified by item amount.
+     * 按物品数量指定的数量。
+     *
+     * @property value The amount value.
+     * 数量值。
+     */
     data class Amount(val value: UInt64) : PackageSolutionLikeQuantity
+
+    /**
+     * Quantity specified by weight.
+     * 按重量指定的数量。
+     *
+     * @property value The weight value.
+     * 重量值。
+     */
     data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : PackageSolutionLikeQuantity
+
+    /**
+     * Quantity specified by both amount and weight.
+     * 按数量和重量混合指定的数量。
+     *
+     * @property amount The amount value.
+     * 数量值。
+     * @property weight The weight value.
+     * 重量值。
+     */
     data class AmountAndWeight<V : FloatingNumber<V>>(
         val amount: UInt64,
         val weight: Quantity<V>
     ) : PackageSolutionLikeQuantity
 }
 
+/**
+ * A material item in a package solution with its material key and quantity.
+ * 包装解决方案中的物料项，包含物料键和数量。
+ *
+ * @property material The material key identifying the material.
+ * 标识物料的物料键。
+ * @property quantity The quantity of the material.
+ * 物料的数量。
+ */
 data class PackageSolutionLikeMaterialItem(
     val material: MaterialKey,
     val quantity: PackageSolutionLikeQuantity

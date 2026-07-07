@@ -44,6 +44,13 @@ data class LorenzMod2Attractor<V : FloatingNumber<V>>(val alpha: V, val beta: V,
     }
 }
 
+/**
+ * Lorenz Mod 2 attractor generator that iteratively produces chaotic sequences.
+ * Lorenz 修正 2 吸引子生成器，通过迭代产生混沌序列。
+ *
+ * @property attractor the Lorenz Mod 2 attractor instance / Lorenz 修正 2 吸引子实例
+ * @property _x the internal state variable for iteration / 迭代用的内部状态变量
+ */
 data class LorenzMod2AttractorGenerator(
     val attractor: LorenzMod2Attractor<Flt64> = LorenzMod2Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(

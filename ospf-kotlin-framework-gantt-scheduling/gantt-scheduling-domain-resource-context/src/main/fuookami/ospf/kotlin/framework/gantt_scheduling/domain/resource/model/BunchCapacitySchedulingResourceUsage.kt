@@ -155,6 +155,12 @@ class BunchCapacitySchedulingResourceUsage<
         return ok
     }
 
+    /**
+     * 解析产能时间槽索引 / Resolve the capacity slot index for a given time slot
+     *
+     * @param slot 资源时间槽 / Resource time slot
+     * @return 产能时间槽索引 / Capacity slot index
+     */
     private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C, V>): Int {
         if (capacitySlots.isNotEmpty()) {
             return capacitySlots.indexOfFirst { it.time.contains(slot.time) }

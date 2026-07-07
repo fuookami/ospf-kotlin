@@ -18,7 +18,13 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import mosek.*
 
-/** MOSEK 线性求解器 / MOSEK linear solver */
+/**
+ * MOSEK linear solver
+ *
+ * MOSEK 线性求解器
+ *
+ * @property callBack Solver callback / 求解器回调
+ */
 class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MosekSolverCallBack? = null
@@ -69,7 +75,15 @@ class MosekLinearSolver(
     }
 }
 
-/** MOSEK 线性求解器内部实现 / MOSEK linear solver internal implementation */
+/**
+ * MOSEK linear solver internal implementation
+ *
+ * MOSEK 线性求解器内部实现
+ *
+ * @property config Solver configuration / 求解器配置
+ * @property callBack Solver callback / 求解器回调
+ * @property statusCallBack Solving status callback / 求解状态回调
+ */
 class MosekLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MosekSolverCallBack? = null,
