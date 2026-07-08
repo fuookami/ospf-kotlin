@@ -12,6 +12,7 @@ import java.math.*
 import kotlin.math.abs
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 求值上下文
@@ -148,8 +149,8 @@ fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): 
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext): Trivalent {
-    val leftValue = evaluateScalar(expr.left, context) ?: return Trivalent.Unknown
-    val rightValue = evaluateScalar(expr.right, context) ?: return Trivalent.Unknown
+    val leftValue = evaluateScalarInternal(expr.left, context) ?: return Trivalent.Unknown
+    val rightValue = evaluateScalarInternal(expr.right, context) ?: return Trivalent.Unknown
 
     val result = compareValues(leftValue, rightValue, expr.operator) ?: return Trivalent.Unknown
     return Trivalent(result)
@@ -164,11 +165,11 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Trivalent {
-    val value = evaluateScalar(expr.value, context) ?: return Trivalent.Unknown
+    val value = evaluateScalarInternal(expr.value, context) ?: return Trivalent.Unknown
 
     var isIn = false
     for (candidateExpr in expr.candidates) {
-        val candidate = evaluateScalar(candidateExpr, context) ?: continue
+        val candidate = evaluateScalarInternal(candidateExpr, context) ?: continue
         if (valuesEqual(value, candidate)) {
             isIn = true
             break
@@ -187,8 +188,8 @@ private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Triva
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
  */
 private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationContext): Trivalent {
-    val value = evaluateScalar(expr.value, context)?.toString() ?: return Trivalent.Unknown
-    val pattern = evaluateScalar(expr.pattern, context)?.toString() ?: return Trivalent.Unknown
+    val value = evaluateScalarInternal(expr.value, context)?.toString() ?: return Trivalent.Unknown
+    val pattern = evaluateScalarInternal(expr.pattern, context)?.toString() ?: return Trivalent.Unknown
 
     val matches = when (expr.mode) {
         PatternMatchMode.Exact -> value == pattern
@@ -297,18 +298,13 @@ private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trival
  * @param context the evaluation context / 求值上下文
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
-private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext): Any? {
-    return when (expr) {
-        is ScalarConstant<*> -> expr.value
-        is ScalarReference<*> -> context[expr.path]
-        is ScalarSymbolReference<*> -> null
-        is ScalarUnary<*> -> evaluateUnary(expr, context)
-        is ScalarBinary<*> -> evaluateBinary(expr, context)
-        is ScalarFunction<*> -> DefaultScalarFunctionEvaluator.evaluate(
-            expr.name,
-            expr.arguments.map { evaluateScalar(it, context) }
-        )
-        is ScalarCustom<*> -> null
+@Suppress("FunctionName")
+private fun evaluateScalarInternal(expr: ScalarExpression<*>, context: EvaluationContext): Any? {
+    val result = evaluateScalar(expr, context, DefaultScalarFunctionEvaluator)
+    return when (result) {
+        is Ok<*, *, *> -> result.value
+        is Failed<*, *, *> -> null
+        is Fatal<*, *, *> -> null
     }
 }
 
@@ -405,7 +401,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
 private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext): Any? {
-    val operand = evaluateScalar(expr.operand, context) ?: return null
+    val operand = evaluateScalarInternal(expr.operand, context) ?: return null
     return NumericDispatcher.evaluateUnary(expr.operator, operand)
 }
 
@@ -423,8 +419,8 @@ private typealias BinaryExpression<T> = ScalarBinary<T>
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
  */
 private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext): Any? {
-    val left = evaluateScalar(expr.left, context) ?: return null
-    val right = evaluateScalar(expr.right, context) ?: return null
+    val left = evaluateScalarInternal(expr.left, context) ?: return null
+    val right = evaluateScalarInternal(expr.right, context) ?: return null
     return NumericDispatcher.evaluateBinary(expr.operator, left, right)
 }
 

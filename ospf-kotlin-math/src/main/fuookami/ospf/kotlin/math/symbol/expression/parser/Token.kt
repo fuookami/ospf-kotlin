@@ -66,10 +66,50 @@ enum class TokenType {
     /** 大于等于 / Greater Than or Equal */
     GE,          // >=
 
+    // 条件关键字 / Conditional Keywords
+    /** if 关键字 / if keyword */
+    IF,
+    /** then 关键字 / then keyword */
+    THEN,
+    /** else 关键字 / else keyword */
+    ELSE,
+    /** fi 关键字 / fi keyword */
+    FI,
+
+    // 算术操作符 / Arithmetic Operators
+    /** 加号 / Plus */
+    PLUS,        // +
+    /** 减号 / Minus */
+    MINUS,       // -
+    /** 乘号 / Star */
+    STAR,        // *
+    /** 除号 / Slash */
+    SLASH,       // /
+    /** 取模 / Percent */
+    PERCENT,     // %
+    /** 幂运算符 ^ / Caret (power) */
+    CARET,       // ^
+    /** 幂运算符 ** / Double star (power) */
+    DOUBLE_STAR, // **
+
+    // 条件操作符 / Conditional Operators
+    /** 问号（三元条件） / Question mark (ternary) */
+    QUESTION,    // ?
+    /** 冒号（三元条件） / Colon (ternary) */
+    COLON,       // :
+
+    // 逻辑操作符（符号形式） / Logical Operators (symbolic form)
+    /** 逻辑与 && / Logical AND */
+    AMPERSAND_AMPERSAND, // &&
+    /** 逻辑或 || / Logical OR */
+    PIPE_PIPE,           // ||
+    /** 逻辑非 ! / Logical NOT */
+    BANG,                // !
+
     // 其他符号 / Other Symbols
-    /** 左括双/ Left parenthesis */
+    /** 左括号 / Left parenthesis */
     LPAREN,      // (
-    /** 右括双/ Right parenthesis */
+    /** 右括号 / Right parenthesis */
     RPAREN,      // )
     /** 逗号 / Comma */
     COMMA,       // ,

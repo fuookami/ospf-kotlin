@@ -419,6 +419,8 @@ fun ScalarExpression<*>.structuralKey(): String {
         is ScalarUnary<*> -> "Unary:$operator:${operand.structuralKey()}"
         is ScalarBinary<*> -> "Bin:$operator:${left.structuralKey()}:${right.structuralKey()}"
         is ScalarFunction<*> -> "Func:$name:${arguments.joinToString(",") { it.structuralKey() }}"
+        is ScalarConditional<*> -> "Cond:${condition.structuralKey()}:${thenBranch.structuralKey()}:${elseBranch.structuralKey()}"
+        is ScalarBoolean<*> -> "Bool:${expr.structuralKey()}"
         is ScalarCustom<*> -> "Custom:$description"
     }
 }

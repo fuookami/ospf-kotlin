@@ -52,6 +52,50 @@ data class QuadraticInequality<T : Ring<T>>(...)
 data class CanonicalInequality<T : Ring<T>>(...)
 ```
 
+### 表达式 AST
+
+`symbol.expression` 包提供两棵并行的表达式树：`ScalarExpression<T>` 表示标量值（数值/字符串/布尔），`BooleanExpression` 表示布尔谓词。二者在比较节点和条件节点处桥接，支持 `if (x > 0) then y else z fi` 这类混合表达式。
+
+#### ScalarExpression 节点
+
+| 节点 | 形式 | 描述 |
+|------|------|------|
+| `ScalarConstant<T>(value)` | `42`, `3.14`, `"str"` | 字面常量 |
+| `ScalarReference<T>(path)` | `x`, `user.age` | 对属性路径的引用 |
+| `ScalarSymbolReference<T>(symbol)` | 符号引用 | 对 `Symbol` 的引用（非路径形式） |
+| `ScalarUnary<T>(operator, operand)` | `-x`, `+x` | 一元操作 |
+| `ScalarBinary<T>(operator, left, right)` | `x + y`, `x ^ 2` | 二元操作 |
+| `ScalarFunction<T>(name, arguments)` | `sqrt(x)`, `max(a, b)` | 函数调用 |
+| `ScalarConditional<T>(condition, then, else)` | `if (c) then a else b fi` | 条件表达式；桥接 `BooleanExpression` -> `ScalarExpression` |
+| `ScalarBoolean<T>(expr)` | 作为标量的 `x > 0` | 布尔表达式包装为标量值 |
+| `ScalarCustom<T>(value, description)` | 用户定义 | 不透明自定义表达式 |
+
+#### BooleanExpression 节点
+
+| 节点 | 形式 | 描述 |
+|------|------|------|
+| `BooleanConstant(value)` | `true`, `false`, `unknown` | 三值（`Trivalent`）布尔常量 |
+| `Comparison<T>(operator, left, right)` | `x > 0`, `a == b` | 比较；桥接 `ScalarExpression` -> `BooleanExpression` |
+| `InExpression<T>(value, candidates, negated)` | `x in (1, 2, 3)` | 集合成员判断 |
+| `PatternMatch<T>(value, pattern, mode)` | `name like 'A%'` | 模式匹配 |
+| `NullCheck(path, type)` | `email is null` | 路径空值检查 |
+| `AndExpression(operands)` | `a and b` | 逻辑与 |
+| `OrExpression(operands)` | `a or b` | 逻辑或 |
+| `NotExpression(operand)` | `not a` | 逻辑非 |
+| `BooleanCustom(value, description)` | 用户定义 | 不透明自定义布尔 |
+
+#### 操作符
+
+| 操作符类型 | 取值 |
+|-----------|------|
+| `UnaryOperator` | `Negate`, `Positive`, `Abs` |
+| `BinaryOperator` | `Add`, `Subtract`, `Multiply`, `Divide`, `Modulo`, `Power` |
+| `ComparisonOperator` | `Eq`, `Ne`, `Lt`, `Le`, `Gt`, `Ge` |
+| `PatternMatchMode` | `Exact`, `Prefix`, `Suffix`, `Contains`, `Like`, `Regex` |
+| `NullCheckType` | `IsNull`, `IsNotNull` |
+
+> **桥接方向：** `Comparison` 桥接标量 -> 布尔；`ScalarConditional` 桥接布尔 -> 标量。二者复用对方的树而非重复造节点。
+
 ## 使用示例
 
 ### 多项式构造
@@ -167,6 +211,126 @@ val restored = canonicalPolynomialFromJson(json)
 // 不等式序列化
 val ineqJson = linearInequality.toJsonString()
 val restoredIneq = linearInequalityFromJson(ineqJson)
+```
+
+### 表达式解析
+
+标量和布尔表达式可从字符串解析。标量解析器支持完整 Aviator 兼容语法（算术、比较、逻辑、三元、`if/then/else/fi`、`math.*` 函数）；布尔解析器支持过滤式谓词。
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.parser.*
+
+// 解析标量表达式
+val expr = parseScalarExpression("math.sqrt(x^2 + y^2)").value!!
+// -> ScalarFunction("sqrt", [ScalarBinary(Add, Power(x,2), Power(y,2))])
+
+val cond = parseScalarExpression("if (w > 787) then x else y fi").value!!
+// -> ScalarConditional(Comparison(Gt, w, 787), Ref(x), Ref(y))
+
+val boolAsScalar = parseScalarExpression("x > 0 && y > 0").value!!
+// -> ScalarBoolean(AndExpression([Comparison(Gt, x, 0), Comparison(Gt, y, 0)]))
+
+// 解析布尔过滤表达式（and/or/not、比较、in、is null、like）
+val filter = parseBooleanExpression("age > 18 and status = 'active'").value!!
+// -> AndExpression([Comparison(Gt, age, 18), Comparison(Eq, status, "active")])
+```
+
+标量解析器优先级（从高到低）：
+
+| 优先级 | 操作符 | 结合性 |
+|--------|--------|--------|
+| 1（最高） | 字面量、标识符、`( )`、`true`、`false`、`null` | - |
+| 2 | `^`、`**`（幂） | 右 |
+| 3 | `+`（一元正号） | 右 |
+| 4 | `*`、`/`、`%` | 左 |
+| 5 | `+`、`-`（一元负号在此层处理） | 左 |
+| 6 | `>`、`<`、`>=`、`<=`、`==`、`!=` | 左 |
+| 7 | `&&`、`and` | 左 |
+| 8 | `\|\|`、`or` | 左 |
+| 9（最低） | `? :`、`if/then/else/fi` | 右 |
+
+解析说明：
+- `-x^2` 解析为 `-(x^2)`（一元负号低于幂运算），与 Python/Excel/Aviator 一致。`-x^2+1` = `-(x^2)+1`。
+- `**` 和 `^` 均映射到 `BinaryOperator.Power`。
+- `math.PI` 和 `math.E` 在解析期解析为常量（无运行时函数调用）。
+- `math.` 前缀在函数调用时剥离：`math.sqrt(x)` -> `ScalarFunction("sqrt", [x])`。
+- `if`/`? :` 的条件在逻辑或层解析，因此 `if x > 0 && y > 0 then ... fi` 无需外层括号。
+- 词法分析器有两种模式：`LexMode.Boolean`（默认，将 `-3` 合并为数字 token）和 `LexMode.Scalar`（输出 `MINUS` + `NUMBER`）。`parseScalarExpression` 使用标量模式。
+
+### 表达式求值
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+// 从字符串路径构建上下文
+val context = MapEvaluationContext.fromStringMap(mapOf("x" to 3.0, "y" to 4.0))
+
+// 求值标量表达式（返回 Ret<Any?> 以显式处理错误）
+val result = evaluateScalar(expr, context).value!!  // 5.0
+
+// 使用 math.* 函数求值
+val withMath = evaluateScalar(
+    parseScalarExpression("math.pow(x, 2) + math.pow(y, 2)").value!!,
+    context,
+    MathFunctionEvaluator
+).value!!  // 25.0
+
+// 求值布尔表达式（返回 Trivalent 以支持三值逻辑）
+val boolResult = evaluateBoolean(filter, context)  // Trivalent.True / False / Unknown
+
+// 便捷扩展函数
+val r = parseScalarExpression("x + y").value!!
+    .evaluateWith(mapOf("x" to 1.0, "y" to 2.0))
+    .value!!  // 3.0
+```
+
+错误处理：`evaluateScalar` 返回 `Ret<Any?>`。除零、未知函数、类型不匹配、未绑定符号引用均返回 `Failed`。`ScalarSymbolReference` 和 `ScalarCustom` 返回 `Failed`（不透明节点无法泛化求值）。布尔参与算术（如 `(x > 0) + 1`）返回 `Failed`——核心求值器不做布尔到数值的隐式强转；如需此能力由公式引擎层补充。
+
+### math.* 函数表
+
+`MathFunctionEvaluator` 实现 `ScalarFunctionEvaluator`，覆盖 17 个 Aviator 白名单数学函数：
+
+| 函数 | 返回类型 | 说明 |
+|------|---------|------|
+| `sqrt`、`exp`、`log`（自然对数）、`log10` | `Double` | |
+| `sin`、`cos`、`tan`、`asin`、`acos`、`atan` | `Double` | 弧度 |
+| `floor`、`ceil` | `Double` | |
+| `round` | `Long` | 对齐 Aviator `math.round(3.7) = 4L` |
+| `pow`、`max`、`min` | `Double` | 双参数 |
+| `abs` | 委托 `DefaultScalarFunctionEvaluator` | 已存在 |
+
+`MathFunctionEvaluator` 与 `DefaultScalarFunctionEvaluator` 组合（后者提供 `abs`、`lower`、`upper`、`trim`、`length`、`coalesce`）。若要将调用方限制在 `math.*` 白名单内，应在 AST 层面校验 `ScalarFunction.name` 是否属于 `MathFunctionEvaluator.supportedFunctions`——不能依赖求值器拒绝，因为组合链暴露了字符串函数。
+
+### 表达式 DSL
+
+无需解析，以编程方式构造表达式：
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+
+// 通过 DSL 构造布尔表达式
+val expr = path("age") gt 18 and (path("status") eq "active")
+
+// 类型化路径构建器（编译期检查属性引用）
+data class User(val age: Int, val status: String)
+val typed = prop(User::age) gt 18
+
+// 标量函数
+val absExpr = abs(path("value"))
+```
+
+### 表达式序列化
+
+表达式支持独立于多项式的 JSON 往返：
+
+```kotlin
+// 标量表达式
+val json = expr.toJsonString()
+val restored = scalarExpressionFromJson(json)
+
+// 布尔表达式
+val boolJson = filter.toJsonString()
+val restoredBool = booleanExpressionFromJson(boolJson)
 ```
 
 ### 矩阵形式
@@ -301,6 +465,11 @@ val sumQ = quadraticEquations.sumAxis(
 | `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 矩阵形式提取 |
 | `toLatex` | `operation/Latex.kt` | LaTeX 渲染 |
 | `convert` | `operation/Convert.kt` | 类型转换 |
+| `evaluateScalar` | `expression/operation/EvaluateScalar.kt` | 求值标量表达式（`Ret<Any?>`） |
+| `evaluateBoolean` | `expression/operation/EvaluateBoolean.kt` | 求值布尔表达式（`Trivalent`） |
+| `normalize` | `expression/operation/Normalize.kt` | 规范化布尔表达式（扁平化、折叠、去重） |
+| `parseScalarExpression` | `expression/parser/ScalarParser.kt` | 解析标量表达式字符串 -> AST |
+| `parseBooleanExpression` | `expression/parser/Parser.kt` | 解析布尔过滤字符串 -> AST |
 
 ## 性能建议
 
@@ -333,6 +502,12 @@ val sumQ = quadraticEquations.sumAxis(
 - `MutableCombineTest.kt`：可变多项式合并（9 个测试）
 - `FactorizationTest.kt`：二次因式分解（17 个测试）
 - `IntegrationTest.kt`：符号积分（18 个测试）
+- `BooleanParserTest.kt`：布尔表达式解析
+- `ScalarParserTest.kt`：标量表达式解析与求值（38 个测试）
+- `EvaluateScalarTest.kt`：标量求值器边界用例（21 个测试）
+- `EvaluateBooleanTest.kt`：布尔求值器
+- `NormalizeTest.kt`：表达式规范化
+- `ExpressionSerdeTest.kt`：表达式 JSON 往返
 
 运行测试：
 

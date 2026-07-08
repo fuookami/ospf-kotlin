@@ -44,6 +44,8 @@ sealed interface ScalarExpression<out T> {
         is ScalarUnary -> operand.isConstant()
         is ScalarBinary -> left.isConstant() && right.isConstant()
         is ScalarFunction -> arguments.all { it.isConstant() }
+        is ScalarConditional -> condition.isConstant() && thenBranch.isConstant() && elseBranch.isConstant()
+        is ScalarBoolean -> expr.isConstant()
         is ScalarCustom -> false
     }
 
@@ -60,6 +62,8 @@ sealed interface ScalarExpression<out T> {
         is ScalarUnary -> operand.containsReference()
         is ScalarBinary -> left.containsReference() || right.containsReference()
         is ScalarFunction -> arguments.any { it.containsReference() }
+        is ScalarConditional -> condition.collectReferences().isNotEmpty() || thenBranch.containsReference() || elseBranch.containsReference()
+        is ScalarBoolean -> expr.collectReferences().isNotEmpty()
         is ScalarCustom -> true
     }
 
@@ -91,6 +95,12 @@ sealed interface ScalarExpression<out T> {
                 right.collectReferencesInto(refs)
             }
             is ScalarFunction -> arguments.forEach { it.collectReferencesInto(refs) }
+            is ScalarConditional -> {
+                condition.collectReferencesInto(refs)
+                thenBranch.collectReferencesInto(refs)
+                elseBranch.collectReferencesInto(refs)
+            }
+            is ScalarBoolean -> expr.collectReferencesInto(refs)
             is ScalarConstant, is ScalarCustom -> { }
         }
     }
@@ -242,6 +252,50 @@ data class ScalarCustom<T>(
 }
 
 /**
+ * 标量条件表达式
+ * Scalar Conditional Expression
+ *
+ * 表示条件表达式（if/then/else 或三元 ?:），桥接 BooleanExpression（条件）到 ScalarExpression（分支）。
+ * Represents a conditional expression (if/then/else or ternary ?:),
+ * bridging BooleanExpression (condition) to ScalarExpression (branches).
+ *
+ * 注：桥接方向与 Comparison 相反——Comparison 是标量→布尔，ScalarConditional 是布尔→标量。
+ * Note: Bridge direction is opposite to Comparison — Comparison is scalar→boolean, ScalarConditional is boolean→scalar.
+ *
+ * @property condition 条件布尔表达式 / Condition boolean expression
+ * @property thenBranch 条件为真时的分支 / Branch when condition is true
+ * @property elseBranch 条件为假时的分支 / Branch when condition is false
+ */
+data class ScalarConditional<T>(
+    val condition: BooleanExpression,
+    val thenBranch: ScalarExpression<T>,
+    val elseBranch: ScalarExpression<T>
+) : ScalarExpression<T> {
+    override val typeName: String = "Conditional"
+    override val children: List<ScalarExpression<T>> = listOf(thenBranch, elseBranch)
+
+    override fun toString(): String = "if ($condition) then $thenBranch else $elseBranch"
+}
+
+/**
+ * 标量布尔包装表达式
+ * Scalar Boolean Wrapper Expression
+ *
+ * 将布尔表达式包装为标量值，用于公式返回布尔结果的场景（如 x > 0 && y > 0）。
+ * Wraps a boolean expression as a scalar value, for formulas returning boolean results (e.g., x > 0 && y > 0).
+ *
+ * @property expr 被包装的布尔表达式 / Wrapped boolean expression
+ */
+data class ScalarBoolean<T>(
+    val expr: BooleanExpression
+) : ScalarExpression<T> {
+    override val typeName: String = "Boolean"
+    override val children: List<ScalarExpression<T>> = emptyList()
+
+    override fun toString(): String = "Bool($expr)"
+}
+
+/**
  * 标量表达式工厌
  * Scalar Expression Factory
  *
@@ -365,6 +419,30 @@ object ScalarExpressionFactory {
      */
     fun <T> divide(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Divide, left, right)
+
+    /**
+     * 创建条件表达式
+     * Create conditional expression
+     *
+     * @param condition 条件布尔表达式 / Condition boolean expression
+     * @param thenBranch 条件为真时的分支 / Branch when condition is true
+     * @param elseBranch 条件为假时的分支 / Branch when condition is false
+     * @return 条件表达式 / Conditional expression
+     */
+    fun <T> conditional(
+        condition: BooleanExpression,
+        thenBranch: ScalarExpression<T>,
+        elseBranch: ScalarExpression<T>
+    ): ScalarExpression<T> = ScalarConditional(condition, thenBranch, elseBranch)
+
+    /**
+     * 创建布尔包装表达式
+     * Create boolean wrapper expression
+     *
+     * @param expr 布尔表达式 / Boolean expression
+     * @return 布尔包装表达式 / Boolean wrapper expression
+     */
+    fun <T> boolean(expr: BooleanExpression): ScalarExpression<T> = ScalarBoolean(expr)
 }
 
 /**

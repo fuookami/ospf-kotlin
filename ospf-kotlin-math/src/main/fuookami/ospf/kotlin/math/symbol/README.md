@@ -52,6 +52,50 @@ data class QuadraticInequality<T : Ring<T>>(...)
 data class CanonicalInequality<T : Ring<T>>(...)
 ```
 
+### Expression AST
+
+The `symbol.expression` package provides two parallel expression trees: `ScalarExpression<T>` for scalar values (numeric/string/boolean) and `BooleanExpression` for boolean predicates. They bridge at comparison and conditional nodes, enabling mixed expressions like `if (x > 0) then y else z fi`.
+
+#### ScalarExpression Nodes
+
+| Node | Form | Description |
+|------|------|-------------|
+| `ScalarConstant<T>(value)` | `42`, `3.14`, `"str"` | Literal constant |
+| `ScalarReference<T>(path)` | `x`, `user.age` | Reference to a property path |
+| `ScalarSymbolReference<T>(symbol)` | symbol reference | Reference to a `Symbol` (non-path form) |
+| `ScalarUnary<T>(operator, operand)` | `-x`, `+x` | Unary operation |
+| `ScalarBinary<T>(operator, left, right)` | `x + y`, `x ^ 2` | Binary operation |
+| `ScalarFunction<T>(name, arguments)` | `sqrt(x)`, `max(a, b)` | Function call |
+| `ScalarConditional<T>(condition, then, else)` | `if (c) then a else b fi` | Conditional; bridges `BooleanExpression` -> `ScalarExpression` |
+| `ScalarBoolean<T>(expr)` | `x > 0` as scalar | Boolean expression wrapped as scalar value |
+| `ScalarCustom<T>(value, description)` | user-defined | Opaque custom expression |
+
+#### BooleanExpression Nodes
+
+| Node | Form | Description |
+|------|------|-------------|
+| `BooleanConstant(value)` | `true`, `false`, `unknown` | Three-valued (`Trivalent`) boolean constant |
+| `Comparison<T>(operator, left, right)` | `x > 0`, `a == b` | Comparison; bridges `ScalarExpression` -> `BooleanExpression` |
+| `InExpression<T>(value, candidates, negated)` | `x in (1, 2, 3)` | Set membership |
+| `PatternMatch<T>(value, pattern, mode)` | `name like 'A%'` | Pattern matching |
+| `NullCheck(path, type)` | `email is null` | Null check on a path |
+| `AndExpression(operands)` | `a and b` | Logical AND |
+| `OrExpression(operands)` | `a or b` | Logical OR |
+| `NotExpression(operand)` | `not a` | Logical NOT |
+| `BooleanCustom(value, description)` | user-defined | Opaque custom boolean |
+
+#### Operators
+
+| Operator Type | Values |
+|---------------|--------|
+| `UnaryOperator` | `Negate`, `Positive`, `Abs` |
+| `BinaryOperator` | `Add`, `Subtract`, `Multiply`, `Divide`, `Modulo`, `Power` |
+| `ComparisonOperator` | `Eq`, `Ne`, `Lt`, `Le`, `Gt`, `Ge` |
+| `PatternMatchMode` | `Exact`, `Prefix`, `Suffix`, `Contains`, `Like`, `Regex` |
+| `NullCheckType` | `IsNull`, `IsNotNull` |
+
+> **Bridge direction:** `Comparison` bridges scalar -> boolean; `ScalarConditional` bridges boolean -> scalar. Both reuse the other tree rather than duplicating nodes.
+
 ## Usage Examples
 
 ### Polynomial Construction
@@ -167,6 +211,126 @@ val restored = canonicalPolynomialFromJson(json)
 // Inequality serialization
 val ineqJson = linearInequality.toJsonString()
 val restoredIneq = linearInequalityFromJson(ineqJson)
+```
+
+### Expression Parsing
+
+Scalar and boolean expressions can be parsed from strings. The scalar parser supports full Aviator-compatible syntax (arithmetic, comparison, logic, ternary, `if/then/else/fi`, `math.*` functions); the boolean parser supports filter-style predicates.
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.parser.*
+
+// Parse scalar expression
+val expr = parseScalarExpression("math.sqrt(x^2 + y^2)").value!!
+// -> ScalarFunction("sqrt", [ScalarBinary(Add, Power(x,2), Power(y,2))])
+
+val cond = parseScalarExpression("if (w > 787) then x else y fi").value!!
+// -> ScalarConditional(Comparison(Gt, w, 787), Ref(x), Ref(y))
+
+val boolAsScalar = parseScalarExpression("x > 0 && y > 0").value!!
+// -> ScalarBoolean(AndExpression([Comparison(Gt, x, 0), Comparison(Gt, y, 0)]))
+
+// Parse boolean filter expression (and/or/not, comparison, in, is null, like)
+val filter = parseBooleanExpression("age > 18 and status = 'active'").value!!
+// -> AndExpression([Comparison(Gt, age, 18), Comparison(Eq, status, "active")])
+```
+
+Scalar parser precedence (high to low):
+
+| Priority | Operators | Associativity |
+|----------|-----------|---------------|
+| 1 (highest) | literals, identifiers, `( )`, `true`, `false`, `null` | - |
+| 2 | `^`, `**` (power) | Right |
+| 3 | `+` (unary positive) | Right |
+| 4 | `*`, `/`, `%` | Left |
+| 5 | `+`, `-` (unary minus handled here) | Left |
+| 6 | `>`, `<`, `>=`, `<=`, `==`, `!=` | Left |
+| 7 | `&&`, `and` | Left |
+| 8 | `\|\|`, `or` | Left |
+| 9 (lowest) | `? :`, `if/then/else/fi` | Right |
+
+Parsing notes:
+- `-x^2` parses as `-(x^2)` (unary minus below power), matching Python/Excel/Aviator. `-x^2+1` = `-(x^2)+1`.
+- `**` and `^` both map to `BinaryOperator.Power`.
+- `math.PI` and `math.E` resolve to constants at parse time (no runtime function call).
+- `math.` prefix is stripped from function calls: `math.sqrt(x)` -> `ScalarFunction("sqrt", [x])`.
+- `if`/`? :` conditions parse at logical-OR level, so `if x > 0 && y > 0 then ... fi` works without outer parentheses.
+- The lexer has two modes: `LexMode.Boolean` (default, merges `-3` into a number token) and `LexMode.Scalar` (emits `MINUS` + `NUMBER`). `parseScalarExpression` uses scalar mode.
+
+### Expression Evaluation
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+// Build context from string paths
+val context = MapEvaluationContext.fromStringMap(mapOf("x" to 3.0, "y" to 4.0))
+
+// Evaluate scalar expression (returns Ret<Any?> for explicit error handling)
+val result = evaluateScalar(expr, context).value!!  // 5.0
+
+// Evaluate with math.* functions
+val withMath = evaluateScalar(
+    parseScalarExpression("math.pow(x, 2) + math.pow(y, 2)").value!!,
+    context,
+    MathFunctionEvaluator
+).value!!  // 25.0
+
+// Evaluate boolean expression (returns Trivalent for three-valued logic)
+val boolResult = evaluateBoolean(filter, context)  // Trivalent.True / False / Unknown
+
+// Convenience extension
+val r = parseScalarExpression("x + y").value!!
+    .evaluateWith(mapOf("x" to 1.0, "y" to 2.0))
+    .value!!  // 3.0
+```
+
+Error handling: `evaluateScalar` returns `Ret<Any?>`. Division by zero, unknown functions, type mismatches, and unbound symbol references all yield `Failed`. `ScalarSymbolReference` and `ScalarCustom` return `Failed` (opaque nodes cannot be evaluated generically). Boolean-in-arithmetic (e.g. `(x > 0) + 1`) returns `Failed` -- no implicit boolean-to-number coercion; the formula engine layer can add this if needed.
+
+### math.* Function Table
+
+`MathFunctionEvaluator` implements `ScalarFunctionEvaluator` with 17 Aviator-whitelisted math functions:
+
+| Function | Returns | Notes |
+|----------|---------|-------|
+| `sqrt`, `exp`, `log` (natural), `log10` | `Double` | |
+| `sin`, `cos`, `tan`, `asin`, `acos`, `atan` | `Double` | radians |
+| `floor`, `ceil` | `Double` | |
+| `round` | `Long` | aligns with Aviator `math.round(3.7) = 4L` |
+| `pow`, `max`, `min` | `Double` | 2-argument |
+| `abs` | delegates to `DefaultScalarFunctionEvaluator` | already exists |
+
+`MathFunctionEvaluator` composes with `DefaultScalarFunctionEvaluator` (which provides `abs`, `lower`, `upper`, `trim`, `length`, `coalesce`). To restrict callers to the `math.*` whitelist, validate `ScalarFunction.name` against `MathFunctionEvaluator.supportedFunctions` at the AST level -- do not rely on evaluator rejection, since the composite chain exposes string functions.
+
+### Expression DSL
+
+Construct expressions programmatically without parsing:
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+
+// Boolean expression via DSL
+val expr = path("age") gt 18 and (path("status") eq "active")
+
+// Typed path builder (compile-checked property references)
+data class User(val age: Int, val status: String)
+val typed = prop(User::age) gt 18
+
+// Scalar function
+val absExpr = abs(path("value"))
+```
+
+### Expression Serialization
+
+Expressions support JSON round-trip independent of polynomials:
+
+```kotlin
+// Scalar expression
+val json = expr.toJsonString()
+val restored = scalarExpressionFromJson(json)
+
+// Boolean expression
+val boolJson = filter.toJsonString()
+val restoredBool = booleanExpressionFromJson(boolJson)
 ```
 
 ### Matrix Form
@@ -301,6 +465,11 @@ val sumQ = quadraticEquations.sumAxis(
 | `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 matrix form extraction |
 | `toLatex` | `operation/Latex.kt` | LaTeX rendering |
 | `convert` | `operation/Convert.kt` | Type conversion |
+| `evaluateScalar` | `expression/operation/EvaluateScalar.kt` | Evaluate scalar expression (`Ret<Any?>`) |
+| `evaluateBoolean` | `expression/operation/EvaluateBoolean.kt` | Evaluate boolean expression (`Trivalent`) |
+| `normalize` | `expression/operation/Normalize.kt` | Normalize boolean expression (flatten, fold, dedup) |
+| `parseScalarExpression` | `expression/parser/ScalarParser.kt` | Parse scalar expression string -> AST |
+| `parseBooleanExpression` | `expression/parser/Parser.kt` | Parse boolean filter string -> AST |
 
 ## Performance Notes
 
@@ -333,6 +502,12 @@ val sumQ = quadraticEquations.sumAxis(
 - `MutableCombineTest.kt`: Mutable polynomial combine (9 tests)
 - `FactorizationTest.kt`: Quadratic factorization (17 tests)
 - `IntegrationTest.kt`: Symbolic integration (18 tests)
+- `BooleanParserTest.kt`: Boolean expression parsing
+- `ScalarParserTest.kt`: Scalar expression parsing and evaluation (38 tests)
+- `EvaluateScalarTest.kt`: Scalar evaluator edge cases (21 tests)
+- `EvaluateBooleanTest.kt`: Boolean evaluator
+- `NormalizeTest.kt`: Expression normalization
+- `ExpressionSerdeTest.kt`: Expression JSON round-trip
 
 Run tests:
 

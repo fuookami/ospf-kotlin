@@ -108,6 +108,30 @@ internal sealed interface ScalarExpressionData {
     ) : ScalarExpressionData {
         override val typeName = "Custom"
     }
+
+    /**
+     * Serialization data for a scalar conditional expression.
+     * 中文标量条件表达式的序列化数据。
+     */
+    @Serializable
+    @SerialName("Conditional")
+    data class Conditional(
+        val condition: BooleanExpressionData,
+        val thenBranch: ScalarExpressionData,
+        val elseBranch: ScalarExpressionData
+    ) : ScalarExpressionData {
+        override val typeName = "Conditional"
+    }
+
+    /**
+     * Serialization data for a scalar boolean wrapper expression.
+     * 中文标量布尔包装表达式的序列化数据。
+     */
+    @Serializable
+    @SerialName("Boolean")
+    data class Boolean(val expr: BooleanExpressionData) : ScalarExpressionData {
+        override val typeName = "Boolean"
+    }
 }
 
 /**
@@ -283,6 +307,14 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
         name = name,
         arguments = arguments.map { it.toData() }
     )
+    is ScalarConditional<*> -> ScalarExpressionData.Conditional(
+        condition = condition.toData(),
+        thenBranch = thenBranch.toData(),
+        elseBranch = elseBranch.toData()
+    )
+    is ScalarBoolean<*> -> ScalarExpressionData.Boolean(
+        expr = expr.toData()
+    )
     is ScalarCustom<*> -> ScalarExpressionData.Custom(value.toString(), description)
 }
 
@@ -322,6 +354,14 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
     is ScalarExpressionData.Function -> ScalarFunction(
         name,
         arguments.map { it.toScalarExpression() }
+    ).asAnyScalarExpression()
+    is ScalarExpressionData.Conditional -> ScalarConditional(
+        condition.toBooleanExpression(),
+        thenBranch.toScalarExpression(),
+        elseBranch.toScalarExpression()
+    ).asAnyScalarExpression()
+    is ScalarExpressionData.Boolean -> ScalarBoolean<Any>(
+        expr.toBooleanExpression()
     ).asAnyScalarExpression()
     is ScalarExpressionData.Custom -> ScalarCustom<Any>(payload ?: Unit, description)
 }
