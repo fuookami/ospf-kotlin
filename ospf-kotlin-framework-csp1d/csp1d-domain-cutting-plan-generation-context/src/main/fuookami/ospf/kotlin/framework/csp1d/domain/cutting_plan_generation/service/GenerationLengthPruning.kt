@@ -60,7 +60,7 @@ internal fun <V : RealNumber<V>> GenerationWidthIndex<V>.filterByLengthBound(
  *
  * @property widthIndex 过滤后的宽度索引 / The filtered width index
  * @property prunedEntries 被剪枝的条目数 / The number of pruned entries
- */
+*/
 internal data class GenerationLengthBoundFilterResult<V : RealNumber<V>>(
     val widthIndex: GenerationWidthIndex<V>,
     val prunedEntries: Int64

@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 线性模型 IIS 计算 / Linear model IIS computation */
 package fuookami.ospf.kotlin.core.solver.iis
 
@@ -20,7 +21,7 @@ import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
  * @property guardConstraints 守卫约束（可选）/ Guard constraints (optional)
  * @property origin 原始模型视图 / Original model view
  * @property relaxedFeasible 是否为松弛可行（无守卫约束）/ Whether relaxed feasible (no guard constraints)
- */
+*/
 data class LinearIISModel(
     private val impl: BasicLinearTriadModel,
     val guardConstraints: LinearConstraintBatch?,
@@ -37,7 +38,7 @@ data class LinearIISModel(
      *
      * @param writer 输出写入器 / Output writer
      * @return 操作结果 / Operation result
-     */
+    */
     override fun exportLP(writer: OutputStreamWriter): Try {
         return impl.exportLP(writer)
     }
@@ -51,7 +52,7 @@ data class LinearIISModel(
  * @param solver 线性求解器 / Linear solver
  * @param config IIS 配置 / IIS configuration
  * @return IIS 模型 / IIS model
- */
+*/
 @OptIn(ExperimentalTime::class)
 suspend fun computeIIS(
     model: LinearTriadModelView,
@@ -154,7 +155,7 @@ suspend fun computeIIS(
  * @param model 线性三元模型视图 / Linear triad model view
  * @param slackVariables 松弛变量集合 / Slack variable set
  * @return 关联的约束索引列表 / Related constraint index list
- */
+*/
 private fun getRelatedConstraints(
     model: LinearTriadModelView,
     slackVariables: Set<Variable>
@@ -176,7 +177,7 @@ private fun getRelatedConstraints(
  * @param filter 过滤的松弛变量集合 / Filtered slack variable set
  * @param relatedConstraints 关联的约束索引列表 / Related constraint index list
  * @return 变量及其下界和上界的 triple 列表 / List of variable with its lower and upper bounds as triples
- */
+*/
 private fun getRelatedVariables(
     model: LinearTriadModelView,
     filter: Set<Variable>,
@@ -220,7 +221,7 @@ private fun getRelatedVariables(
  * @param model 线性三元模型视图 / Linear triad model view
  * @param elasticFilter 弹性过滤结果，松弛变量到值的映射 / Elastic filter result, mapping of slack variables to values
  * @return 构建的线性 IIS 模型 / Built linear IIS model
- */
+*/
 private fun dump(
     model: LinearTriadModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -259,7 +260,7 @@ private fun dump(
  * @param misConstraints 不可行子系统约束对应的松弛变量集合 / Slack variable set for MIS constraints
  * @param guardConstraints 守卫约束对应的松弛变量集合 / Slack variable set for guard constraints
  * @return 构建的线性 IIS 模型 / Built linear IIS model
- */
+*/
 private fun dump(
     model: LinearTriadModelView,
     misConstraints: Set<Variable>,
@@ -304,7 +305,7 @@ private fun dump(
  * @param solver 线性求解器 / Linear solver
  * @param config IIS 配置 / IIS configuration
  * @return 是否直接可行及松弛变量映射 / Whether directly feasible and slack variable mapping
- */
+*/
 private suspend fun performElasticFiltering(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,
@@ -399,7 +400,7 @@ private suspend fun performElasticFiltering(
  * @param constraintAmount 约束总数 / Total number of constraints
  * @param config IIS 配置 / IIS configuration
  * @return MIS 约束集合与守卫约束集合 / MIS constraint set and guard constraint set
- */
+*/
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: LinearTriadModelView,
@@ -483,7 +484,7 @@ private suspend fun performDeletionFiltering(
  * @param tolerance 松弛变量容差 / Slack variable tolerance
  * @param relaxCondition 判断是否松弛的谓词 / Predicate to determine whether to relax
  * @return 是否可行及松弛变量映射 / Whether feasible and slack variable mapping
- */
+*/
 private suspend fun relaxSpecificComponents(
     elasticModel: LinearTriadModelView,
     solver: AbstractLinearSolver,

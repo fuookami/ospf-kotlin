@@ -15,20 +15,21 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 强制取消沿乘客路线传播的管线。Pipeline enforcing that cancellation propagates along passenger routes.
  *
- * @property passengers 参数。
- * @property cancel 参数。
- */
+ * @property passengers List of flight-passenger associations / 航班乘客关联列表
+ * @property cancel Passenger cancel component / 乘客取消组件
+*/
 class PassengerRouteCancelConstraint(
     private val passengers: List<FlightPassenger>,
     private val cancel: PassengerCancel,
     override val name: String = "passenger_route_cancel_constraint"
 ) : CGPipeline {
+
     /**
      * 添加路线取消约束，确保前序航段在后续航段之前取消。Adds route cancel constraints ensuring previous legs cancel before subsequent ones.
- *
-     * @param model 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param model The linear meta model to add constraints to / 要添加约束的线性元模型
+     * @return Registration result / 注册结果
+    */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
             val prev = passenger.prev

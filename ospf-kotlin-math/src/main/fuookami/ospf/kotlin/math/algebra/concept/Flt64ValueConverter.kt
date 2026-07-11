@@ -14,7 +14,7 @@
  *
  * The companion objects of the four core numeric types (Flt64, FltX, Rtn64, RtnX)
  * all implement this interface, and can thus be used directly as IntoValue<V>-equivalent providers.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -41,9 +41,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  * and are provided by core's IntoValue<V> via intoValue(Flt64.infinity) default implementation.
  *
  * @param V 目标数值类型，必须是实数且满足数域约束
- * @param V The target numeric type, must be a real number satisfying number field constraints
- */
+*/
 interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
+
     /**
      * 将 Flt64 值转换为 V 类型
      * Convert a Flt64 value to type V
@@ -52,7 +52,7 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
      *              The Flt64 source value
      * @return V 类型目标值
      *         The target value of type V
-     */
+    */
     fun intoValue(value: Flt64): V
 
     /**
@@ -66,7 +66,7 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
      *              The source value of type V
      * @return Flt64 目标值
      *         The Flt64 target value
-     */
+    */
     fun fromValue(value: V): Flt64 = value.toFlt64()
 }
 
@@ -75,12 +75,10 @@ interface Flt64ValueConverter<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
  * Resolve Flt64ValueConverter through companion object reflection
  *
  * @param V 目标数值类型
- * @param V The target numeric type
  * @param caller 调用者名称
- * @param caller The caller name
  * @return 解析到的 Flt64ValueConverter 提供者
  * @return The resolved Flt64ValueConverter provider
- */
+*/
 inline fun <reified V> resolveFlt64ValueConverter(caller: String): Ret<Flt64ValueConverter<V>> where V : RealNumber<V> {
     return resolveFlt64ValueConverterSafe(caller)
 }
@@ -90,12 +88,10 @@ inline fun <reified V> resolveFlt64ValueConverter(caller: String): Ret<Flt64Valu
  * Safely resolve Flt64ValueConverter
  *
  * @param V 目标数值类型
- * @param V The target numeric type
  * @param caller 调用者名称
- * @param caller The caller name
  * @return Flt64ValueConverter 解析结果
  * @return The Flt64ValueConverter resolution result
- */
+*/
 inline fun <reified V> resolveFlt64ValueConverterSafe(caller: String): Ret<Flt64ValueConverter<V>> where V : RealNumber<V> {
     return resolveCompanionProviderSafe<V, Flt64ValueConverter<V>>(
         caller = caller,
@@ -108,12 +104,10 @@ inline fun <reified V> resolveFlt64ValueConverterSafe(caller: String): Ret<Flt64
  * Try resolving Flt64ValueConverter, returning null on failure
  *
  * @param V 目标数值类型
- * @param V The target numeric type
  * @param caller 调用者名称
- * @param caller The caller name
  * @return Flt64ValueConverter，失败时返回 null
  * @return The Flt64ValueConverter, or null on failure
- */
+*/
 inline fun <reified V> resolveFlt64ValueConverterOrNull(caller: String): Flt64ValueConverter<V>? where V : RealNumber<V> {
     return resolveCompanionProviderOrNull<V, Flt64ValueConverter<V>>(
         caller = caller,

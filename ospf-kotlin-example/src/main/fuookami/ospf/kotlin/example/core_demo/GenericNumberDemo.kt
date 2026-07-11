@@ -61,6 +61,7 @@ private object GenericNumberCases {
 
 /** 演示线性和二次模型构建器在多种数值类型下正常工作。Demonstrates that the linear and quadratic model builders work correctly across multiple numeric types. */
 data object GenericNumberDemo {
+
     /**
      * 线性模型构建摘要（包括约束数量和目标系数）。Summary of a linear model build, including constraint count and objective coefficients.
      *
@@ -68,7 +69,7 @@ data object GenericNumberDemo {
      * @property constraintCount 约束数量 / Constraint count
      * @property objectiveCategory 目标类型 / Objective category
      * @property objectiveCoefficients 目标系数 / Objective coefficients
-     */
+    */
     data class LinearBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -83,7 +84,7 @@ data object GenericNumberDemo {
      * @property constraintCount 约束数量 / Constraint count
      * @property objectiveCategory 目标类型 / Objective category
      * @property objectiveCoefficients 目标系数 / Objective coefficients
-     */
+    */
     data class QuadraticBuildSummary(
         val success: Boolean,
         val constraintCount: Int,
@@ -97,7 +98,7 @@ data object GenericNumberDemo {
      * @property numberType 数值类型名称 / Numeric type name
      * @property linear 线性构建摘要 / Linear build summary
      * @property quadratic 二次构建摘要 / Quadratic build summary
-     */
+    */
     data class GenericNumberBuildSummary(
         val numberType: String,
         val linear: LinearBuildSummary,
@@ -108,7 +109,7 @@ data object GenericNumberDemo {
      * 对所有预定义数值类型运行线性和二次构建转储。/ Runs linear and quadratic build-and-dump for all predefined numeric types.
      *
      * @return 构建摘要列表 / List of build summaries
-     */
+    */
     fun runBuildAndDump(): List<GenericNumberBuildSummary> {
         return runBlocking {
             return@runBlocking listOf(

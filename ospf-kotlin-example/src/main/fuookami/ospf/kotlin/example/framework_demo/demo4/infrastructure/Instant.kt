@@ -16,5 +16,5 @@ private val shortTimeFormatter: DateTimeFormatter = DateTimeFormatter
  * Formats an [Instant] as a short string using the "MMddHHmm" pattern.
  *
  * @return 格式化后的短字符串。
- */
+*/
 fun Instant.toShortString(): String = shortTimeFormatter.format(java.time.Instant.ofEpochMilli(this.toEpochMilliseconds()))

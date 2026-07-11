@@ -2,7 +2,7 @@
  * 并行计数操作
  *
  * Parallel counting operations with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 满足条件的元素数量 / Count of elements satisfying the predicate
- */
+*/
 suspend inline fun <T> Iterable<T>.countParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -36,7 +36,7 @@ suspend inline fun <T> Iterable<T>.countParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 计数结果或错误 / Count result or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryCountParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -60,7 +60,7 @@ suspend inline fun <T> Iterable<T>.tryCountParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 计数结果或错误集合 / Count result or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryCountParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>

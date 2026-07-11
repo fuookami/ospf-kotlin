@@ -1,7 +1,7 @@
 /**
  * Placement plane bridge.
  * 放置平面桥接。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -25,6 +25,11 @@ private fun <P : ProjectivePlane> QuantityPlacement2<*, FltX, P>.asFrontPlacemen
     }
 }
 
+/**
+ * QuantityPlacement2.
+ * QuantityPlacement2。
+ * @return item-typed side placement, or null / 货物类型侧面放置，或 null
+*/
 private fun QuantityPlacement2<*, FltX, Side>.asItemSidePlacementOrNull(): QuantityPlacement2<Item, FltX, Side>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
@@ -37,6 +42,11 @@ private fun QuantityPlacement2<*, FltX, Side>.asItemSidePlacementOrNull(): Quant
     )
 }
 
+/**
+ * QuantityPlacement2.
+ * QuantityPlacement2。
+ * @return item-typed front placement, or null / 货物类型正面放置，或 null
+*/
 private fun QuantityPlacement2<*, FltX, Front>.asItemFrontPlacementOrNull(): QuantityPlacement2<Item, FltX, Front>? {
     val item = unit as? Item ?: return null
     val itemView = item.view(orientation) ?: return null
@@ -49,6 +59,11 @@ private fun QuantityPlacement2<*, FltX, Front>.asItemFrontPlacementOrNull(): Qua
     )
 }
 
+/**
+ * QuantityPlacement2.
+ * QuantityPlacement2。
+ * @return block-typed side placement, or null / 块类型侧面放置，或 null
+*/
 private fun QuantityPlacement2<*, FltX, Side>.asBlockSidePlacementOrNull(): QuantityPlacement2<Block, FltX, Side>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null
@@ -61,6 +76,11 @@ private fun QuantityPlacement2<*, FltX, Side>.asBlockSidePlacementOrNull(): Quan
     )
 }
 
+/**
+ * QuantityPlacement2.
+ * QuantityPlacement2。
+ * @return block-typed front placement, or null / 块类型正面放置，或 null
+*/
 private fun QuantityPlacement2<*, FltX, Front>.asBlockFrontPlacementOrNull(): QuantityPlacement2<Block, FltX, Front>? {
     val block = unit as? Block ?: return null
     val blockView = block.view(orientation) ?: return null

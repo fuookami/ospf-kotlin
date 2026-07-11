@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** CPLEX 原生回调函数类型 / CPLEX native callback function type */
 typealias NativeCallback = IloCplex.Callback.() -> Unit
+
 /** CPLEX 求解器回调函数类型 / CPLEX solver callback function type */
 typealias Function = suspend (SolverStatus?, IloCplex, List<IloNumVar>, List<IloRange>) -> Try
 
@@ -34,16 +35,17 @@ enum class Point {
  *
  * @property nativeCallback CPLEX 原生回调函数 / CPLEX native callback function
  * @property map 回调时机到回调函数列表的映射 / mapping from callback point to callback function list
- */
+*/
 class CplexSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     private val map: MutableMap<Point, MutableList<Function>> = EnumMap(Point::class.java)
 ) : Copyable<CplexSolverCallBack> {
+
     /**
      * 设置原生回调函数 / Set native callback function
      *
      * @param function 原生回调函数 / native callback function
-     */
+    */
     fun set(function: NativeCallback) {
         nativeCallback = function
     }
@@ -54,7 +56,7 @@ class CplexSolverCallBack(
      * @param point 回调时机 / callback point
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun set(point: Point, function: Function): CplexSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
         return this
@@ -65,35 +67,39 @@ class CplexSolverCallBack(
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterModeling(function: Function) = set(Point.AfterModeling, function)
+
     /**
      * 设置配置阶段的回调 / Set configuration callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun configuration(function: Function) = set(Point.Configuration, function)
+
     /**
      * 设置求解阶段的回调 / Set solving callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun solving(function: Function) = set(Point.Solving, function)
+
     /**
      * 设置分析解阶段的回调 / Set analyzing solution callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun analyzingSolution(function: Function) = set(Point.AnalyzingSolution, function)
+
     /**
      * 设置求解失败后的回调 / Set after failure callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterFailure(function: Function) = set(Point.AfterFailure, function)
 
     /**
@@ -101,14 +107,15 @@ class CplexSolverCallBack(
      *
      * @param point 回调时机 / callback point
      * @return 是否包含 / whether contained
-     */
+    */
     fun contains(point: Point) = map.containsKey(point)
+
     /**
      * 获取指定时机的回调函数列表 / Get callback function list at specified point
      *
      * @param point 回调时机 / callback point
      * @return 回调函数列表 / callback function list
-     */
+    */
     fun get(point: Point): List<Function>? = map[point]
 
     /**
@@ -120,7 +127,7 @@ class CplexSolverCallBack(
      * @param variables 变量列表 / variable list
      * @param constraints 约束列表 / constraint list
      * @return 操作结果 / operation result
-     */
+    */
     suspend fun execIfContain(
         point: Point,
         status: SolverStatus?,
@@ -141,7 +148,7 @@ class CplexSolverCallBack(
      * 复制回调管理器 / Copy callback manager
      *
      * @return 回调管理器副本 / callback manager copy
-     */
+    */
     override fun copy(): CplexSolverCallBack {
         return CplexSolverCallBack(
             nativeCallback = nativeCallback,

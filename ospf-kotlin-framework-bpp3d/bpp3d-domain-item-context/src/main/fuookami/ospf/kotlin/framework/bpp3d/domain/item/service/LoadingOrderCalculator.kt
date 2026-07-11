@@ -1,7 +1,7 @@
 /**
  * Loading order calculator.
  * 装载顺序计算器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -9,17 +9,21 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-
+/**
+ * LoadingOrderCalculator class.
+ * LoadingOrderCalculator类。
+*/
 class LoadingOrderCalculator(
     private val maxBlockDepth: Quantity<FltX>?,
     private val sameTypeJudger: (Item, Item) -> Boolean
 ) {
+
     /**
      * 解析放置的装箱形状。
      * Resolve the packing shape of a placement.
      * @param placement the placement to resolve
      * @return the resolved packing shape
-     */
+    */
     private fun resolvePackingShape(placement: QuantityPlacement3<*, FltX>): PackingShape3<FltX> {
         return placement.resolvedPackingShape()
     }
@@ -30,7 +34,7 @@ class LoadingOrderCalculator(
      * @param lhs the left-hand side placement
      * @param rhs the right-hand side placement
      * @return true if the footprints overlap
-     */
+    */
     private fun bottomFootprintOverlapped(lhs: QuantityPlacement3<*, FltX>, rhs: QuantityPlacement3<*, FltX>): Boolean {
         val lhsShapePlacement = lhs.asShapePlacement3(::resolvePackingShape)
         val rhsShapePlacement = rhs.asShapePlacement3(::resolvePackingShape)
@@ -46,7 +50,7 @@ class LoadingOrderCalculator(
      * @param rhsStart the start coordinate of the right-hand side
      * @param rhsEnd the end coordinate of the right-hand side
      * @return true if the intervals overlap
-     */
+    */
     private fun axisOverlapped(
         lhsStart: Quantity<FltX>,
         lhsEnd: Quantity<FltX>,
@@ -74,7 +78,7 @@ class LoadingOrderCalculator(
      * @param rhs the right-hand side placement
      * @param plane the projective plane to check overlap on
      * @return true if the placements overlap on the given plane
-     */
+    */
     private fun overlappedAt(
         lhs: QuantityPlacement3<*, FltX>,
         rhs: QuantityPlacement3<*, FltX>,
@@ -165,7 +169,7 @@ class LoadingOrderCalculator(
      * Merge the old placement list into a block sequence by attempting merge along width-depth, height-depth, and width-height directions.
      * @param oldPlacements the original placements to merge
      * @return the merged placements
-     */
+    */
     private fun merge(oldPlacements: List<QuantityPlacement3<*, FltX>>): List<QuantityPlacement3<*, FltX>> {
         return merge(
             merge(
@@ -200,7 +204,7 @@ class LoadingOrderCalculator(
      * @param lhs the left-hand side unit
      * @param rhs the right-hand side unit
      * @return true if the two units are the same type
-     */
+    */
     private fun isSameType(lhs: Any, rhs: Any): Boolean {
         return if (lhs is Item && rhs is Item) {
             return sameTypeJudger(lhs, rhs)
@@ -222,7 +226,7 @@ class LoadingOrderCalculator(
      * @param checkDepth whether to check the depth constraint
      * @param predicate the merge predicate
      * @return the merged placements
-     */
+    */
     private fun merge(
         oldPlacements: List<QuantityPlacement3<*, FltX>>,
         checkDepth: Boolean = false,
@@ -288,7 +292,7 @@ class LoadingOrderCalculator(
      * @param thisPlacement the reference placement
      * @param thisPlacements the other placements to merge into the block
      * @return the merged common block
-     */
+    */
     private fun mergeToBlock(
         thisPlacement: QuantityPlacement3<*, FltX>,
         thisPlacements: MutableList<QuantityPlacement3<*, FltX>>
@@ -331,7 +335,7 @@ class LoadingOrderCalculator(
      * Build a forward dependency matrix recording the indices of other placements that must be loaded before each placement.
      * @param placements the list of placements
      * @return a matrix where matrix[i] contains indices of placements that precede placement i
-     */
+    */
     private fun tidyForwardMatrix(placements: List<QuantityPlacement3<*, FltX>>): List<List<Int>> {
         val forwardMatrix = placements.map { _ -> ArrayList<Int>() }
         for (i in placements.indices) {
@@ -350,7 +354,7 @@ class LoadingOrderCalculator(
      * @param lhs the left-hand side placement
      * @param rhs the right-hand side placement
      * @return true if lhs should precede rhs
-     */
+    */
     private fun forward(lhs: QuantityPlacement3<*, FltX>, rhs: QuantityPlacement3<*, FltX>): Boolean {
         val planes = listOf(Bottom, Side, Front)
         for (plane in planes) {
@@ -372,12 +376,13 @@ class LoadingOrderCalculator(
             plane.distance(lhs.position) leq plane.distance(rhs.position)
         }
     }
+
     /**
      * 将合并后的放置序列展平为单个物品级别的放置列表。
      * Flatten the merged placement sequence into a list of individual item-level placements.
      * @param placements the merged placements with sequence numbers
      * @return the flattened item-level placements with sequence numbers
-     */
+    */
     private fun dump(placements: List<Pair<QuantityPlacement3<*, FltX>, UInt64>>): List<Pair<QuantityPlacement3<Item, FltX>, UInt64>> {
         val ret = ArrayList<Pair<QuantityPlacement3<Item, FltX>, UInt64>>()
         for ((placement, sequence) in placements) {

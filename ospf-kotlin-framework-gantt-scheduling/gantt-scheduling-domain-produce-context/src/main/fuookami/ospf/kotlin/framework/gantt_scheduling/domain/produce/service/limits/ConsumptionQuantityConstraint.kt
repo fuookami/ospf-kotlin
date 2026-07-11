@@ -3,7 +3,7 @@
  *
  * 本文件定义消耗数量约束管道及影子价格键，用于建模原料消耗的上下限约束。
  * This file defines consumption quantity constraint pipeline and shadow price key for modeling material consumption lower/upper bound constraints.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param C 材料类型 / Material type
  * @param material 材料 / Material
- */
+*/
 data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
     val material: C,
 ) : ShadowPriceKey(ConsumptionQuantityShadowPriceKey::class)
@@ -37,7 +37,7 @@ data class ConsumptionQuantityShadowPriceKey<C : AbstractMaterial>(
  * @param consumption 消费对象 / Consumption object
  * @param shadowPriceArguments 影子价格参数提取器 / Shadow price arguments extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class ConsumptionQuantityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [QuadraticMaskingRangeFunction]，实现当 z=1 时 y=poly，当 z=0 时 y 自由的二次约束建模。
  *
  * Provides [QuadraticMaskingRangeFunction] for quadratic constraint modeling where y=poly when z=1, and y is free when z=0.
- */
+*/
 
 /**
  * 二次掩码范围：当 z = 1 时，y 被强制等于多项式；当 z = 0 时，y 自由（在边界内）。
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class QuadraticMaskingRangeFunction<V>(
     val _polynomial: QuadraticPolynomial<V>,
     val z: AbstractVariableItem<*, *>,
@@ -83,7 +83,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -105,7 +105,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -132,7 +132,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -153,7 +153,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -177,7 +177,7 @@ class QuadraticMaskingRangeFunction<V>(
      *
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 掩码结果值或 null / masking result value or null
-     */
+    */
     private fun evaluateMasking(
         resolve: (Symbol) -> V?
     ): V? {
@@ -196,7 +196,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算的掩码求值结果或 null / pre-computed masking evaluation result or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -218,8 +218,9 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 结果列表求值（始终返回 null）。
      * Evaluate with Flt64 results list (always returns null).
@@ -228,8 +229,9 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 值映射求值（始终返回 null）。
      * Evaluate with Flt64 value map (always returns null).
@@ -238,7 +240,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param tokenList 可选的 Flt64 token 列表 / optional Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -263,6 +265,7 @@ class QuadraticMaskingRangeFunction<V>(
             evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
+
     /**
      * 使用 Flt64 结果列表进行求解器求值。
      * Evaluate solver with Flt64 results list.
@@ -272,11 +275,12 @@ class QuadraticMaskingRangeFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 掩码求值结果或 null / masking evaluation result or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /**
      * 使用 Flt64 值映射进行求解器求值。
      * Evaluate solver with Flt64 value map.
@@ -286,7 +290,7 @@ class QuadraticMaskingRangeFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 掩码求值结果或 null / masking evaluation result or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -297,7 +301,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * 将辅助变量 (resultVar) 注册到 token 集合中。
      * Register helper variable (resultVar) with the token collection.
-     */
+    */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(listOf(resultVar))) {
             is Ok -> ok
@@ -309,7 +313,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * 注册 Big-M 掩码约束。
      * Register Big-M masking constraints.
-     */
+    */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val m = bigM
         val resultMon = QuadraticMonomial.linear(converter.one, resultVar)

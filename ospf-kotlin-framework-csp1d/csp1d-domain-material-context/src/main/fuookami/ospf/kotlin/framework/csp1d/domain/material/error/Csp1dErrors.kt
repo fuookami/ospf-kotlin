@@ -4,7 +4,7 @@
  *
  * 定义 CSP1D 领域的语义化错误类型，替代裸 ErrorCode + message 构造。
  * Defines semantic error types for the CSP1D domain, replacing bare ErrorCode + message constructions.
- */
+*/
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.error
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.error.*
  * Used for errors related to the CSP1D application lifecycle (registration, recovery, context, etc.).
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class Csp1dLifecycleError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -33,7 +33,7 @@ class Csp1dLifecycleError(
  * Used for unsupported type errors in the CSP1D domain.
  *
  * @property type 不支持的类型 / The unsupported type
- */
+*/
 class Csp1dTypeError(
     val type: String? = null
 ) : Err<ErrorCode>(
@@ -49,7 +49,7 @@ class Csp1dTypeError(
  * Used for solving-related errors in the CSP1D domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class Csp1dSolvingError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -65,7 +65,7 @@ class Csp1dSolvingError(
  * Used for capability-not-supported errors in the CSP1D domain.
  *
  * @property capability 不支持的能力 / The unsupported capability
- */
+*/
 class Csp1dCapabilityError(
     val capability: String? = null
 ) : Err<ErrorCode>(

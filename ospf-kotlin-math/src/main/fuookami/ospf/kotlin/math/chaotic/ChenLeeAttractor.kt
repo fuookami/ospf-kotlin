@@ -9,7 +9,7 @@
  * The Chen-Lee attractor is a three-dimensional chaotic system proposed by Chen and Lee.
  * This system features unique nonlinear structures, exhibiting rich chaotic dynamical behavior.
  * Commonly used for chaos dynamics research, chaos encryption, and chaos synchronization applications.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property delta 系统参数 delta / System parameter delta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChenLeeAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -57,7 +57,7 @@ data class ChenLeeAttractor<V : FloatingNumber<V>>(
 /**
  * Chen-Lee 吸引子生成器
  * Chen-Lee Attractor Generator
- */
+*/
 data class ChenLeeAttractorGenerator(
     val chenLeeAttractor: ChenLeeAttractor<Flt64> = ChenLeeAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -5,7 +5,7 @@
  *
  * 提供中间符号的表达式求值、缓存和求解器边界支持。
  * Provides expression evaluation, caching, and solver boundary support for intermediate symbols.
- */
+*/
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.quantities.unit.reciprocal
  *
  * 非目标：不在此处定义兼容层桥接 API；跨类型转换统一走显式 converter 与 SolverBoundaryCasts。
  * Non-goal: compatibility bridge APIs are not defined here; cross-type conversions must go through explicit converters and SolverBoundaryCasts.
- */
+*/
 
 /**
  * 判断是否需要准备符号（使用指定缓存键）。
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.quantities.unit.reciprocal
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
  * @return 是否需要准备 / Whether preparation is needed
- */
+*/
 internal fun IntermediateSymbol<*>.shouldPrepare(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
@@ -63,7 +63,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
  * @return 是否需要准备 / Whether preparation is needed
- */
+*/
 internal fun IntermediateSymbol<*>.shouldPrepare(
     values: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<Flt64>
@@ -79,7 +79,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
  * @return 是否需要准备 / Whether preparation is needed
- */
+*/
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
@@ -95,7 +95,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
  * @param values 固定值映射（可空） / Fixed values map (nullable)
  * @param tokenTable 令牌表 / Token table
  * @return 是否需要准备 / Whether preparation is needed
- */
+*/
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<Flt64>
@@ -112,7 +112,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
  * @param tokenTable 令牌表 / Token table
  * @param block 求值回调 / Evaluation callback
  * @return 回调结果，若已缓存则返回 null / Callback result, or null if cached
- */
+*/
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
@@ -134,7 +134,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
  * @param tokenTable 令牌表 / Token table
  * @param block 求值回调 / Evaluation callback
  * @return 回调结果，若已缓存则返回 null / Callback result, or null if cached
- */
+*/
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     values: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<Flt64>,
@@ -152,7 +152,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
  * @param tokenTable 令牌表 / Token table
  * @param block 求值回调 / Evaluation callback
  * @return 回调结果，若已缓存则返回 null / Callback result, or null if cached
- */
+*/
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
@@ -174,7 +174,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
  * @param tokenTable 令牌表 / Token table
  * @param block 求值回调 / Evaluation callback
  * @return 回调结果，若已缓存则返回 null / Callback result, or null if cached
- */
+*/
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<Flt64>,
@@ -192,7 +192,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
  * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
  * @param calculator 求值回调 / Evaluation callback
  * @return 求值结果 / Evaluation result
- */
+*/
 private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     tokenTable: AbstractTokenTable<V>,
     converter: IntoValue<V>,
@@ -233,7 +233,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
  * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
  * @param calculator 求值回调 / Evaluation callback
  * @return 求值结果 / Evaluation result
- */
+*/
 private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     results: List<Flt64>,
     tokenTable: AbstractTokenTable<V>,
@@ -269,7 +269,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
  * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
  * @param calculator 求值回调 / Evaluation callback
  * @return 求值结果 / Evaluation result
- */
+*/
 private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     values: Map<Symbol, Flt64>,
     tokenTable: AbstractTokenTable<V>,
@@ -314,7 +314,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
  * @param parent 父级符号（可空） / Parent symbol (nullable)
  * @param name 符号名称 / Symbol name
  * @param displayName 显示名称（可空） / Display name (nullable)
- */
+*/
 class LinearExpressionSymbol<V>(
     internal val _utilsPolynomial: MutableLinearPolynomial<V>,
     category: Category = Linear,
@@ -349,7 +349,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             item: AbstractVariableItem<*, *>,
             constants: RealNumberConstants<V>,
@@ -379,7 +379,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             symbol: LinearIntermediateSymbol<*>,
             constants: RealNumberConstants<V>,
@@ -408,7 +408,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -436,7 +436,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             monomial: LinearMonomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -464,7 +464,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             polynomial: MutableLinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -489,7 +489,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 线性表达式符号 / Linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             constant: V,
             parent: IntermediateSymbol<*>? = null,
@@ -517,7 +517,7 @@ class LinearExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 零值线性表达式符号 / Zero-valued linear expression symbol
-         */
+        */
         operator fun <V> invoke(
             constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -563,7 +563,7 @@ class LinearExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -586,7 +586,7 @@ class LinearExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -611,7 +611,7 @@ class LinearExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -632,7 +632,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -653,7 +653,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -675,7 +675,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -701,7 +701,7 @@ class LinearExpressionSymbol<V>(
      * Calculate the Flt64 value range of the linear expression.
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
-     */
+    */
     private fun calculateRange(): ValueRange<Flt64>? {
         val poly = _polyFlt64
         var range: ValueRange<Flt64>? = ValueRange(poly.constant, Flt64).value
@@ -742,12 +742,13 @@ class LinearExpressionSymbol<V>(
         category = Linear,
         prefix = "__linear_expression_flatten_cache__"
     )
+
     /**
      * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
      * Retrieve the bound token table from dependencies and cast to Flt64 view.
      *
      * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
-     */
+    */
     private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies
@@ -786,7 +787,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenTable 令牌表 / Token table
      * @param converter 值转换器 / Value converter
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // 求解器求值前触发 flatten 视图创建。
         // Trigger flatten-view creation before solver evaluation.
@@ -842,7 +843,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -884,7 +885,7 @@ class LinearExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
@@ -906,7 +907,7 @@ class LinearExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
@@ -942,7 +943,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -961,7 +962,7 @@ class LinearExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
@@ -1002,7 +1003,7 @@ class LinearExpressionSymbol<V>(
  * @param parent 父级符号（可空） / Parent symbol (nullable)
  * @param name 符号名称 / Symbol name
  * @param displayName 显示名称（可空） / Display name (nullable)
- */
+*/
 class QuadraticExpressionSymbol<V>(
     internal val _utilsPolynomial: MutableQuadraticPolynomial<V>,
     category: Category = _utilsPolynomial.category,
@@ -1037,7 +1038,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             item: AbstractVariableItem<*, *>,
             constants: RealNumberConstants<V>,
@@ -1067,7 +1068,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             symbol: LinearIntermediateSymbol<*>,
             constants: RealNumberConstants<V>,
@@ -1097,7 +1098,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             symbol: QuadraticIntermediateSymbol<*>,
             constants: RealNumberConstants<V>,
@@ -1126,7 +1127,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1155,7 +1156,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             monomial: LinearMonomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1184,7 +1185,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             polynomial: QuadraticPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1212,7 +1213,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             monomial: QuadraticMonomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1240,7 +1241,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             polynomial: MutableQuadraticPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1265,7 +1266,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 二次表达式符号 / Quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             constant: V,
             parent: IntermediateSymbol<*>? = null,
@@ -1293,7 +1294,7 @@ class QuadraticExpressionSymbol<V>(
          * @param name 符号名称 / Symbol name
          * @param displayName 显示名称（可空） / Display name (nullable)
          * @return 零值二次表达式符号 / Zero-valued quadratic expression symbol
-         */
+        */
         operator fun <V> invoke(
             constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
@@ -1339,7 +1340,7 @@ class QuadraticExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         return when (symbol) {
@@ -1362,7 +1363,7 @@ class QuadraticExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         return when (symbol) {
@@ -1387,7 +1388,7 @@ class QuadraticExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         val tokenList = SolverBoundaryCasts.tokenListAsFlt64OrNull(tokenTable)
         return when (symbol) {
@@ -1408,7 +1409,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -1430,7 +1431,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -1453,7 +1454,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -1488,7 +1489,7 @@ class QuadraticExpressionSymbol<V>(
      * Calculate the Flt64 value range of the quadratic expression.
      *
      * @return Flt64 值域，若依赖符号无值域则返回 null / Flt64 value range, or null if dependency symbols have no range
-     */
+    */
     private fun calculateRange(): ValueRange<Flt64>? {
         var range: ValueRange<Flt64>? = ValueRange(_polyFlt64.constant, Flt64).value
         for (monomial in _polyFlt64.monomials) {
@@ -1558,12 +1559,13 @@ class QuadraticExpressionSymbol<V>(
         category = Quadratic,
         prefix = "__quadratic_expression_flatten_cache__"
     )
+
     /**
      * 从依赖符号中获取绑定的令牌表并转换为 Flt64 视图。
      * Retrieve the bound token table from dependencies and cast to Flt64 view.
      *
      * @return Flt64 令牌表，若无可用依赖则返回 null / Flt64 token table, or null if no dependency provides one
-     */
+    */
     private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
             dependencies
@@ -1602,7 +1604,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenTable 令牌表 / Token table
      * @param converter 值转换器 / Value converter
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // 求解器求值前触发 flatten 视图创建。
         // Trigger flatten-view creation before solver evaluation.
@@ -1677,7 +1679,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1728,7 +1730,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1753,7 +1755,7 @@ class QuadraticExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
@@ -1779,7 +1781,7 @@ class QuadraticExpressionSymbol<V>(
      * @param tokenList Flt64 令牌列表（可空） / Flt64 token list (nullable)
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return Flt64 求值结果 / Flt64 evaluation result
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
@@ -1805,7 +1807,7 @@ class QuadraticExpressionSymbol<V>(
      * @param converter 值转换器 / Value converter
      * @param zeroIfNone 无值时是否返回零 / Whether to return zero when value is absent
      * @return 求值结果 / Evaluation result
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
@@ -1871,7 +1873,7 @@ class QuadraticExpressionSymbol<V>(
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲线性中间符号 / Quantity linear intermediate symbol
- */
+*/
 operator fun <V> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs)
 }
@@ -1882,7 +1884,7 @@ operator fun <V> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲线性中间符号 / Quantity linear intermediate symbol
- */
+*/
 operator fun <V> LinearIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs.reciprocal())
 }
@@ -1893,7 +1895,7 @@ operator fun <V> LinearIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<Li
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲二次中间符号 / Quantity quadratic intermediate symbol
- */
+*/
 operator fun <V> QuadraticIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs)
 }
@@ -1904,7 +1906,7 @@ operator fun <V> QuadraticIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quanti
  *
  * @param rhs 物理单位 / Physical unit
  * @return 量纲二次中间符号 / Quantity quadratic intermediate symbol
- */
+*/
 operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs.reciprocal())
 }
@@ -1915,7 +1917,7 @@ operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity
  *
  * @param rhs 右侧线性中间符号 / Right-hand linear intermediate symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<V>
     where V : RealNumber<V>, V : NumberField<V> {
     val lhs = this.toLinearPolynomial()
@@ -1929,7 +1931,7 @@ operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<
  *
  * @param rhs 右侧线性中间符号 / Right-hand linear intermediate symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<V>
     where V : RealNumber<V>, V : NumberField<V> {
     val lhs = this.toLinearPolynomial()

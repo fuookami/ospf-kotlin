@@ -21,7 +21,7 @@ sealed class Link(
 /**
  * 两个未恢复航段之间的连接链接。A connecting link between two unrecovered flight legs.
  *
- */
+*/
 data class ConnectingLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -52,7 +52,7 @@ data class ConnectingLink(
 /**
  * 具有计算连接时间的两个未恢复航段之间的经停链接。A stopover link between two unrecovered flight legs with computed connection time.
  *
- */
+*/
 data class StopoverLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -85,7 +85,7 @@ data class StopoverLink(
 /**
  * 忽略连接时间约束的两个未恢复航段之间的链接。A link between two unrecovered flight legs that ignores connection time constraints.
  *
- */
+*/
 data class ConnectionTimeIgnoringLink(
     override val prevTask: FlightTask,
     override val succTask: FlightTask,
@@ -116,10 +116,10 @@ data class ConnectionTimeIgnoringLink(
 /**
  * 提供按前驱和后继任务查找的所有链接类型映射。A map of all link types providing lookup by predecessor and successor tasks.
  *
- * @property connectingLinks 参数。
- * @property stopoverLinks 参数。
- * @property connectionTimeIgnoringLinks 参数。
- */
+ * @property connectingLinks The list of connecting links / 连接链接列表
+ * @property stopoverLinks The list of stopover links / 经停链接列表
+ * @property connectionTimeIgnoringLinks The list of connection-time-ignoring links / 忽略连接时间的链接列表
+*/
 class LinkMap(
     val connectingLinks: List<ConnectingLink>,
     val stopoverLinks: List<StopoverLink>,
@@ -132,9 +132,9 @@ class LinkMap(
     /**
      * 返回给定任务作为前驱的所有链接。Returns all links where the given task is the predecessor.
      *
-     * @param task 参数。
-     * @return 返回结果。
-     */
+     * @param task The flight task to look up / 要查找的航班任务
+     * @return All links where the given task is the predecessor / 给定任务作为前驱的所有链接
+    */
     fun linksAfter(task: FlightTask): List<Link> {
         return leftMapper[task] ?: emptyList()
     }
@@ -142,9 +142,9 @@ class LinkMap(
     /**
      * 返回给定任务作为后继的所有链接。Returns all links where the given task is the successor.
      *
-     * @param task 参数。
-     * @return 返回结果。
-     */
+     * @param task The flight task to look up / 要查找的航班任务
+     * @return All links where the given task is the successor / 给定任务作为后继的所有链接
+    */
     fun linksBefore(task: FlightTask): List<Link> {
         return rightMapper[task] ?: emptyList()
     }

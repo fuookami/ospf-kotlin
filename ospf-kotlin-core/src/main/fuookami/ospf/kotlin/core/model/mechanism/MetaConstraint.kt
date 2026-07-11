@@ -1,7 +1,7 @@
 /**
  * 元约束组与数学约束
  * Meta-constraint group and math constraints
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 元约束组接口，提供在 MetaModel 上注册和查询约束组的能力。
  * Meta-constraint group interface providing constraint group registration and querying on MetaModel.
- */
+*/
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
@@ -50,7 +50,7 @@ interface MetaConstraintGroup {
      * @param args          附加参数（可为 null） / Additional arguments (nullable)
      * @param withRangeSet  是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
@@ -83,7 +83,7 @@ interface MetaConstraintGroup {
      * @param args          附加参数（可为 null） / Additional arguments (nullable)
      * @param withRangeSet  是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         constraint: LinearIntermediateSymbol<V>,
         lazy: Boolean? = null,
@@ -115,7 +115,7 @@ interface MetaConstraintGroup {
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param args        附加参数（可为 null） / Additional arguments (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun <V> AbstractLinearMetaModel<V>.partition(
@@ -148,7 +148,7 @@ interface MetaConstraintGroup {
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param args        附加参数（可为 null） / Additional arguments (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun <V> AbstractLinearMetaModel<V>.partition(
@@ -182,7 +182,7 @@ interface MetaConstraintGroup {
      * @param args          附加参数（可为 null） / Additional arguments (nullable)
      * @param withRangeSet  是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
         constraint: QuadraticIntermediateSymbol<V>,
         lazy: Boolean? = null,
@@ -213,7 +213,7 @@ interface MetaConstraintGroup {
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param args        附加参数（可为 null） / Additional arguments (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun <V> AbstractQuadraticMetaModel<V>.partition(
@@ -249,7 +249,7 @@ interface MetaConstraintGroup {
      * @param args        附加参数（可为 null） / Additional arguments (nullable)
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun <V> AbstractLinearMetaModel<V>.addConstraint(
         relation: LinearInequality<V>,
         lazy: Boolean? = null,
@@ -280,7 +280,7 @@ interface MetaConstraintGroup {
      * @param args         附加参数（可为 null） / Additional arguments (nullable)
      * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
         relation: QuadraticInequalityOf<V>,
         lazy: Boolean? = null,
@@ -313,7 +313,7 @@ fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathCo
 /**
  * 数学约束通用接口。
  * Common interface for math-based constraints.
- */
+*/
 interface MathConstraint {
     val group: MetaConstraintGroup?
     val lazy: Boolean
@@ -339,7 +339,7 @@ interface MathConstraint {
  * @property lazy 是否延迟求值 / Whether lazy evaluation
  * @property args 附加参数 / Additional arguments
  * @property priority 约束优先级 / Constraint priority
- */
+*/
 data class LinearInequalityConstraint<V>(
     val inequality: LinearInequality<V>,
     val converter: IntoValue<V>,
@@ -350,6 +350,7 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 将内部线性不等式扁平化为 LinearFlattenData。
      * Flatten the internal linear inequality into LinearFlattenData.
@@ -358,7 +359,7 @@ data class LinearInequalityConstraint<V>(
      * Converts the inequality into a monomial-list-plus-constant form for constraint building and evaluation.
      *
      * @return 包含扁平化线性数据的结果，或错误 / Result containing the flattened linear data, or an error
-     */
+    */
     fun flattenData(): Ret<LinearFlattenData<V>> {
         return inequality.toLinearFlattenData().fold(
             onSuccess = { flattenData -> ok(flattenData) },
@@ -381,7 +382,7 @@ data class LinearInequalityConstraint<V>(
      *
      * @param value 待判断的值 / Value to evaluate
      * @return 判断结果 / Evaluation result
-     */
+    */
     override fun <V1> isTrue(
         solution: List<V1>,
         tokenTable: AbstractTokenTable<V1>,
@@ -416,7 +417,7 @@ data class LinearInequalityConstraint<V>(
  * @property lazy 是否延迟求值 / Whether lazy evaluation
  * @property args 附加参数 / Additional arguments
  * @property priority 约束优先级 / Constraint priority
- */
+*/
 data class QuadraticInequalityConstraint<V>(
     val inequality: QuadraticInequalityOf<V>,
     val converter: IntoValue<V>,
@@ -459,7 +460,7 @@ data class QuadraticInequalityConstraint<V>(
  * @property flattenData 展平的二次数据 / Flattened quadratic data
  * @property name 子目标名称 / Sub-objective name
  * @property displayName 子目标显示名称 / Sub-objective display name
- */
+*/
 data class QuadraticFlattenSubObject<V>(
     val category: ObjectCategory,
     val flattenData: QuadraticFlattenData<V>,

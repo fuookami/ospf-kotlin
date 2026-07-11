@@ -29,6 +29,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /** 遗传算法策略接口 / Genetic algorithm policy interface */
 interface AbstractGAPolicy<ObjValue, V> :
     AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 执行种群迁移 / Execute population migration
      *
@@ -36,7 +37,7 @@ interface AbstractGAPolicy<ObjValue, V> :
      * @param populations 种群列表 / population list
      * @param model 回调模型 / callback model
      * @return 迁移后的种群列表 / migrated population list
-     */
+    */
     suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<ObjValue, V>>,
@@ -50,7 +51,7 @@ interface AbstractGAPolicy<ObjValue, V> :
      * @param population 种群 / population
      * @param model 回调模型 / callback model
      * @return 选中的染色体列表 / selected chromosome list
-     */
+    */
     suspend fun select(
         iteration: Iteration,
         population: AbstractPopulation<ObjValue, V>,
@@ -65,7 +66,7 @@ interface AbstractGAPolicy<ObjValue, V> :
      * @param model 回调模型 / callback model
      * @param parentAmountRange 父代数量范围 / parent amount range
      * @return 交叉后的染色体列表 / crossed chromosome list
-     */
+    */
     suspend fun cross(
         iteration: Iteration,
         population: List<Chromosome<ObjValue, V>>,
@@ -81,7 +82,7 @@ interface AbstractGAPolicy<ObjValue, V> :
      * @param model 回调模型 / callback model
      * @param mutationRateRange 变异率范围 / mutation rate range
      * @return 变异后的染色体列表 / mutated chromosome list
-     */
+    */
     suspend fun mutate(
         iteration: Iteration,
         population: List<Chromosome<ObjValue, V>>,
@@ -111,7 +112,7 @@ interface AbstractGAPolicy<ObjValue, V> :
  * @property mutation 变异算子 / mutation operator
  * @property normalization 目标归一化方法 / objective normalization method
  * @property randomGenerator 随机数生成器 / random number generator
- */
+*/
 class GAPolicy<ObjValue, V>(
     val migration: Migration<ObjValue, V>,
     val selectionMode: SelectionMode<ObjValue, V>,
@@ -310,6 +311,7 @@ class GAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+
 /**
  * 遗传算法
  *
@@ -327,20 +329,21 @@ class GAPolicy<ObjValue, V>(
  * @property migrationPeriod 迁移周期 / migration period
  * @property solutionAmount 期望解的数量 / desired number of solutions
  * @property policy 遗传算法策略 / genetic algorithm policy
- */
+*/
 class GeneAlgorithm<Obj, ObjValue, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGAPolicy<ObjValue, V>,
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 执行遗传算法 / Execute genetic algorithm
      *
      * @param model 回调模型 / callback model
      * @param runningCallBack 运行回调函数 / running callback function
      * @return 最优染色体列表 / best chromosome list
-     */
+    */
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, Chromosome<ObjValue, V>, List<Chromosome<ObjValue, V>>, List<AbstractPopulation<ObjValue, V>>) -> Try)? = null
@@ -477,5 +480,6 @@ class GeneAlgorithm<Obj, ObjValue, V>(
 
 /** 单目标遗传算法类型 / Single-objective genetic algorithm type */
 typealias GA = GeneAlgorithm<Flt64, Flt64, Flt64>
+
 /** 多目标遗传算法类型 / Multi-objective genetic algorithm type */
 typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

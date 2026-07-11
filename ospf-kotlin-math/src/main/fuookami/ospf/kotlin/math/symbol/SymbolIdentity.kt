@@ -7,7 +7,7 @@
  * Provides unique identification mechanism for symbols,
  * used to distinguish different symbol instances during symbolic computation.
  * Even if two symbols have the same name, they can be distinguished by unique identifiers.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -23,15 +23,16 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * Wraps the unique identifier string of a symbol, providing type-safe identification.
  *
  * @property value 符号标识的字符串倌/ String value of the symbol identifier
- */
+*/
 @JvmInline
 value class SymbolId(val value: String) {
+
     /**
      * 返回符号标识的字符串表示。
      * Returns the string representation of the symbol identifier.
      *
      * @return 符号标识的字符串倌/ String value of the symbol identifier
-     */
+    */
     override fun toString(): String = value
 }
 
@@ -44,7 +45,7 @@ value class SymbolId(val value: String) {
  * interface have identifiers that remain constant throughout their lifecycle.
  *
  * @property stableSymbolId 符号的稳定标识符 / Stable identifier of the symbol
- */
+*/
 interface StableSymbol : Symbol {
     val stableSymbolId: SymbolId
 }
@@ -58,7 +59,7 @@ interface StableSymbol : Symbol {
  * Symbols implementing this interface have unique identifiers.
  *
  * @property symbolId 符号的唯一标识字符丌/ Unique identifier string of the symbol
- */
+*/
 interface IdentifiedSymbol : StableSymbol {
     val symbolId: String
 
@@ -74,7 +75,7 @@ interface IdentifiedSymbol : StableSymbol {
  * Extends the [Symbol] interface, adding unique identifier property to symbols.
  *
  * @property id 符号的唯一标识笌/ Unique identifier of the symbol
- */
+*/
 interface OwnedSymbolLike : StableSymbol {
     val id: SymbolId
 
@@ -93,19 +94,20 @@ interface OwnedSymbolLike : StableSymbol {
  * @property id 符号的唯一标识笌/ Unique identifier of the symbol
  * @property name 符号的名秌/ Name of the symbol
  * @property displayName 符号的显示名称（可选），用于输出和展示 / Display name (optional) for output and visualization
- */
+*/
 data class OwnedSymbol(
     override val id: SymbolId,
     override val name: String,
     override val displayName: String? = null
 ) : OwnedSymbolLike {
+
     /**
      * 从现有符号创建拥有者符号。
      * Creates an owned symbol from an existing symbol.
      *
      * @param symbol 源符双/ Source symbol
      * @param id 符号标识符，默认使用符号的稳定标诌/ Symbol identifier, defaults to the symbol's stable ID
-     */
+    */
     constructor(symbol: Symbol, id: SymbolId = symbol.stableId()) : this(
         id = id,
         name = symbol.name,
@@ -128,7 +130,7 @@ data class OwnedSymbol(
  * - Other types use name and object hash code combination
  *
  * @return 符号的稳定标识符 / Stable identifier of the symbol
- */
+*/
 fun Symbol.stableIdOrNull(): SymbolId? {
     return (this as? StableSymbol)?.stableSymbolId
 }
@@ -138,7 +140,7 @@ fun Symbol.stableIdOrNull(): SymbolId? {
  * Checks whether the symbol has a stable identifier.
  *
  * @return 如果符号具有稳定标识则返回true / True if the symbol has a stable identifier
- */
+*/
 fun Symbol.hasStableId(): Boolean {
     return stableIdOrNull() != null
 }
@@ -148,7 +150,7 @@ fun Symbol.hasStableId(): Boolean {
  * Gets the stable identifier of the symbol.
  *
  * @return 符号的稳定标识符结果 / Stable identifier result of the symbol
- */
+*/
 fun Symbol.requireStableId(): Ret<SymbolId> {
     return stableIdOrNull()
         ?.let { Ok(it) }
@@ -164,7 +166,7 @@ fun Symbol.requireStableId(): Ret<SymbolId> {
  * from the name and object hash code.
  *
  * @return 符号的稳定标识符 / Stable identifier of the symbol
- */
+*/
 fun Symbol.stableId(): SymbolId {
     return stableIdOrNull() ?: SymbolId("${name}#${System.identityHashCode(this)}")
 }
@@ -175,7 +177,7 @@ fun Symbol.stableId(): SymbolId {
  *
  * @param id 符号标识符，默认使用符号的稳定标诌/ Symbol identifier, defaults to the symbol's stable ID
  * @return 拥有者符号实侌/ Owned symbol instance
- */
+*/
 fun Symbol.owned(id: SymbolId = stableId()): OwnedSymbol {
     return OwnedSymbol(this, id)
 }
@@ -185,7 +187,7 @@ fun Symbol.owned(id: SymbolId = stableId()): OwnedSymbol {
  * Gets the identity string of a symbol.
  *
  * @return 符号的唯一身份字符丌/ Unique identity string of the symbol
- */
+*/
 fun Symbol.identity(): String {
     return stableId().value
 }
@@ -196,7 +198,7 @@ fun Symbol.identity(): String {
  *
  * 用于符号排序的比较器，首先按名称比较，名称相同则按身份标识比较。
  * Comparator for sorting symbols, first by name, then by identity if names are equal.
- */
+*/
 val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     val byName = lhs.name.compareTo(rhs.name)
     if (byName != 0) {
@@ -214,7 +216,7 @@ val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
  * 要求符号具有显式的稳定标识，否则抛出异常。
  * Comparator for sorting symbols, first by name, then by stable identifier if names are equal.
  * Requires symbols to have explicit stable identifiers, throws otherwise.
- */
+*/
 val defaultStableSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     val byName = lhs.name.compareTo(rhs.name)
     if (byName != 0) {

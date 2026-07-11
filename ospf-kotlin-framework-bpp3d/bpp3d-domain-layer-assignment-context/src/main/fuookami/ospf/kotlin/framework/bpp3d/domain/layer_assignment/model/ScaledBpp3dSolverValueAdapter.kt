@@ -1,7 +1,7 @@
 /**
  * Scaled BPP3D solver value adapter.
  * 带缩放的 BPP3D 求解器值适配器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property areaUnit 面积单位 / area unit
  * @property volumeUnit 体积单位 / volume unit
  * @property weightUnit 重量单位 / weight unit
- */
+*/
 data class Bpp3dSolverUnitSystem(
     val lengthUnit: PhysicalUnit = Meter,
     val areaUnit: PhysicalUnit = SquareMeter,
@@ -37,7 +37,7 @@ data class Bpp3dSolverUnitSystem(
  * @property volume 体积缩放因子 / volume scale factor
  * @property depth 深度缩放因子 / depth scale factor
  * @property weight 重量缩放因子 / weight scale factor
- */
+*/
 data class Bpp3dSolverFltXScale(
     val amount: FltX = FltX.one,
     val length: FltX = FltX.one,
@@ -53,11 +53,18 @@ data class Bpp3dSolverFltXScale(
  *
  * @property unitSystem 单位系统 / unit system
  * @property scale 缩放因子配置 / scale factor configuration
- */
+*/
 class ScaledBpp3dSolverValueAdapter(
     private val unitSystem: Bpp3dSolverUnitSystem = Bpp3dSolverUnitSystem(),
     private val scale: Bpp3dSolverFltXScale = Bpp3dSolverFltXScale()
 ) : Bpp3dSolverValueAdapter {
+
+/**
+ * Converts this FltX to a solver-internal numeric representation.
+ * 将此 FltX 转换为求解器内部数值表示。
+ *
+ * @return solver-internal FltX value with reduced precision for solver consumption / 供求解器使用的降低精度的 FltX 值
+*/
     private fun FltX.toSolverNumber(): FltX = FltX(this.toDouble())
 
     override fun amountToSolver(value: UInt64): FltX {
@@ -104,7 +111,7 @@ class ScaledBpp3dSolverValueAdapter(
      * @param targetUnit 目标单位 / target unit for normalization
      * @param factor 缩放因子 / scale factor to apply
      * @return 成功时返回求解器数值，单位不兼容时返回错误 / solver value on success, error if units are incompatible
-     */
+    */
     private fun quantityToSolver(
         value: Quantity<FltX>,
         targetUnit: PhysicalUnit,

@@ -13,7 +13,7 @@
  * Also known as truncation or saturation function, commonly used for value limiting, color normalization, etc.
  * Boundary case: if min > max, function still executes per definition; caller should ensure min <= max.
  * Requires type to implement Ord interface for comparison operations.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.utils.functional.Ord
@@ -26,5 +26,5 @@ import fuookami.ospf.kotlin.utils.functional.Ord
  * @param min 最小值 / Minimum value
  * @param max 最大值 / Maximum value
  * @return 限制后的值 / Restricted value
- */
+*/
 fun <T : Ord<T>> clamp(v: T, min: T, max: T): T = if (v < min) min else if (v > max) max else v

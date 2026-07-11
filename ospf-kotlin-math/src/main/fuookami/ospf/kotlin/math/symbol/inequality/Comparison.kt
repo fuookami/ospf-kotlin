@@ -5,7 +5,7 @@
  * 定义不等式中的比较运算符枚举，包括小于、小于等于、等于、不等于、大于等于和大于。 * 提供运算符的符号表示、属性查询和反转操作。 * Defines the comparison operator enumeration for inequalities,
  * including less than, less than or equal, equal, not equal, greater than or equal, and greater than.
  * Provides symbol representation, property queries, and reversal operations.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.inequality
 
 /**
@@ -25,13 +25,19 @@ package fuookami.ospf.kotlin.math.symbol.inequality
  * - [NE]: Not equal (!=)
  * - [GE]: Greater than or equal (>=)
  * - [GT]: Greater than (>)
- */
+*/
 enum class Comparison {
+    /** Less than / 小于 */
     LT,
+    /** Less than or equal / 小于等于 */
     LE,
+    /** Equal / 等于 */
     EQ,
+    /** Not equal / 不等于 */
     NE,
+    /** Greater than or equal / 大于等于 */
     GE,
+    /** Greater than / 大于 */
     GT;
 
     /** 运算符的符号表示 / Symbol representation of the operator */
@@ -66,7 +72,7 @@ enum class Comparison {
      * Returns the reversed comparison operator.
      *
      * @return 反转后的比较运算符 / The reversed comparison operator
-     */
+    */
     fun reverse(): Comparison {
         return when (this) {
             LT -> GT

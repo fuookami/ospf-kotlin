@@ -1,7 +1,7 @@
 /**
  * 线性三元模型转储构建器
  * Linear triad model dump builders
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -14,7 +14,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.Quadruple
 import kotlinx.coroutines.*
-
+/**
+ * 将任意数值类型转换为 Flt64（求解器边界用）
+ * Convert any numeric value to Flt64 (for solver boundary use)
+ *
+ * @return 转换后的 Flt64 值 / The converted Flt64 value
+*/
 private fun Any?.toSolverFlt64(): Flt64 {
     return when (this) {
         is Flt64 -> this
@@ -23,7 +28,12 @@ private fun Any?.toSolverFlt64(): Flt64 {
     }
 }
 
-/** 将求解器边界单元格令牌视为 Flt64 令牌 / Treat a solver-boundary cell token as an Flt64 token */
+/**
+ * 将求解器边界单元格令牌视为 Flt64 令牌
+ * Treat a solver-boundary cell token as an Flt64 token
+ *
+ * @return 转型后的 Flt64 令牌 / The cast Flt64 token
+*/
 @Suppress("UNCHECKED_CAST")
 private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
     return token as Token<Flt64>
@@ -35,7 +45,7 @@ private fun LinearCell<*>.tokenAsFlt64(): Token<Flt64> {
  *
  * @param rows 约束单元格行列表 / The list of constraint cell rows
  * @return 稀疏矩阵 / The sparse matrix
- */
+*/
 internal fun buildLinearSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
     val matrix = SparseMatrix<Flt64>()
     for (row in rows) {
@@ -55,7 +65,7 @@ internal fun buildLinearSparseLhs(rows: List<List<LinearConstraintCell>>): Spars
  * @param tokenIndexes 标记到列索引的映射 / The mapping from tokens to column indices
  * @param bounds       标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @return 求解器变量列表 / The list of solver variables
- */
+*/
 internal fun dumpLinearTriadVariables(
     tokenIndexes: Map<Token<Flt64>, Int>,
     bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
@@ -106,7 +116,7 @@ internal fun dumpLinearTriadVariables(
  * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 线性约束批次 / The linear constraint batch
- */
+*/
 internal fun dumpLinearTriadConstraints(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -178,7 +188,7 @@ internal fun dumpLinearTriadConstraints(
  * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 线性约束批次 / The linear constraint batch
- */
+*/
 internal suspend fun dumpLinearTriadConstraintsAsync(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -316,7 +326,7 @@ internal suspend fun dumpLinearTriadConstraintsAsync(
  * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 线性目标 / The linear objective
- */
+*/
 internal fun dumpLinearTriadObjectives(
     model: LinearMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,

@@ -1,7 +1,7 @@
 /**
  * Material attribute model.
  * 物料属性模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  * 此物料允许的最大层数。
  * @property maxHeight The maximum height allowed for this material.
  * 此物料允许的最大高度。
- */
+*/
 data class MaterialAttributeValue<V : FloatingNumber<V>>(
     val deformationCoefficient: V?,
     val overTypes: List<PackageType>,
@@ -52,7 +52,7 @@ data class MaterialAttributeValue<V : FloatingNumber<V>>(
  * 要匹配的货物属性，可为空。
  * @property base Whether this key is a base (default) key with no package type.
  * 此键是否为基础（默认）键，无包装类型。
- */
+*/
 open class MaterialAttributeKey(
     val packageType: PackageType? = null,
     val cargoAttribute: AbstractCargoAttribute? = null,
@@ -67,7 +67,7 @@ open class MaterialAttributeKey(
      * 要匹配的包装。
      * @return True if this key matches the package, false otherwise.
      * 如果此键匹配包装则返回 true，否则返回 false。
-     */
+    */
     open fun match(pack: Package<*>): Boolean {
         return packageType == null || pack.packageType == packageType
     }

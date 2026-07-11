@@ -31,10 +31,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * @param V
  *
  * @property markovLength               the length of the markov chain
- */
+*/
 /** 模拟退火算法策略接口 / Simulated Annealing Algorithm policy interface */
 interface AbstractSAAPolicy<ObjValue, V> :
     AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /** 马尔可夫链长度 / Markov chain length */
     val markovLength: UInt64
 
@@ -45,7 +46,7 @@ interface AbstractSAAPolicy<ObjValue, V> :
      * @param solution 当前解 / current solution
      * @param model 回调模型 / callback model
      * @return 变换后的解 / transformed solution
-     */
+    */
     fun transformSolution(
         iteration: Iteration,
         solution: Solution<V>,
@@ -59,7 +60,7 @@ interface AbstractSAAPolicy<ObjValue, V> :
      * @param currentObjective 当前目标值 / current objective value
      * @param newObjective 新目标值 / new objective value
      * @return 是否接受 / whether to accept
-     */
+    */
     fun accept(
         iteration: Iteration,
         currentObjective: ObjValue,
@@ -81,7 +82,7 @@ interface AbstractSAAPolicy<ObjValue, V> :
  * @property disturbanceAmount          the amount of disturbance
  * @property distance                   the distance rate function between two objectives
  * @property randomGenerator
- */
+*/
 /**
  * 模拟退火算法策略
  *
@@ -101,7 +102,7 @@ interface AbstractSAAPolicy<ObjValue, V> :
  * @property disturbanceAmount 扰动点数量 / disturbance point amount
  * @property distance 目标值距离函数 / objective distance function
  * @property randomGenerator 随机数生成器 / random number generator
- */
+*/
 open class SAAPolicy<ObjValue, V>(
     val initialTemperature: Flt64 = Flt64(100.0),
     val finalTemperature: Flt64 = Flt64(1.0),
@@ -202,7 +203,7 @@ open class SAAPolicy<ObjValue, V>(
      *
      * @param iteration 当前迭代 / current iteration
      * @return 当前温度 / current temperature
-     */
+    */
     private fun currentTemperature(iteration: Iteration): Flt64 {
         if (iteration.iteration >= UInt64(temperatureCache.size)) {
             for (i in temperatureCache.size..iteration.iteration.toInt()) {
@@ -214,6 +215,7 @@ open class SAAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+
 /**
  * 模拟退火算法
  *
@@ -228,7 +230,7 @@ open class SAAPolicy<ObjValue, V>(
  * @param ObjValue 目标值类型 / objective value type
  * @param V 值类型 / value type
  * @property policy 模拟退火策略 / simulated annealing policy
- */
+*/
 class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
     val policy: AbstractSAAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -244,7 +246,7 @@ class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
      * @param model 回调模型 / callback model
      * @param runningCallBack 运行回调函数 / running callback function
      * @return 最优个体列表 / best individual list
-     */
+    */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
@@ -329,5 +331,6 @@ class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
 
 /** 单目标模拟退火算法类型 / Single-objective Simulated Annealing Algorithm type */
 typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64, Flt64>
+
 /** 多目标模拟退火算法类型 / Multi-objective Simulated Annealing Algorithm type */
 typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

@@ -7,7 +7,12 @@ import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
-/** 批次生成路线图中的节点。Node in the route graph for bunch generation. */
+/**
+ * 批次生成路线图中的节点。
+ * Node in the route graph for bunch generation.
+ *
+ * @property index the node index / 节点索引
+*/
 sealed class Node(val index: UInt64) {
     companion object {
         internal val root: UInt64 = UInt64.zero
@@ -32,9 +37,9 @@ object EndNode : Node(end) {
 /**
  * 路线图中表示航班任务的任务节点。Task node representing a flight task in the route graph.
  *
- * @property task 参数。
- * @property index 参数。
- */
+ * @property task The flight task represented by this node / 此节点表示的航班任务
+ * @property index The node index in the graph / 图中的节点索引
+*/
 class TaskNode(
     val task: FlightTask,
     override val time: Instant,
@@ -46,9 +51,9 @@ class TaskNode(
 /**
  * 路线图中的有向边。Directed edge in the route graph.
  *
- * @property from 参数。
- * @property to 参数。
- */
+ * @property from The source node of the edge / 边的起始节点
+ * @property to The target node of the edge / 边的目标节点
+*/
 data class Edge(
     val from: Node,
     val to: Node
@@ -59,27 +64,28 @@ data class Edge(
 /**
  * 批次生成的路线图（包含节点和有向边）。Route graph for bunch generation, containing nodes and directed edges.
  *
- * @property nodes 参数。
- */
+ * @property nodes The mutable map of node indices to nodes / 节点索引到节点的可变映射
+*/
 class Graph(
     val nodes: MutableMap<UInt64, Node> = HashMap(),
     val edges: MutableMap<Node, MutableSet<Edge>> = HashMap()
 ) {
+
     /**
      * 向图中添加节点。Adds a node to the graph.
- *
-     * @param node 参数。
-     */
+     *
+     * @param node The node to add / 要添加的节点
+    */
     fun put(node: Node) {
         nodes[node.index] = node
     }
 
     /**
      * 添加从一个节点到另一个节点的有向边。Adds a directed edge from one node to another.
- *
-     * @param from 参数。
-     * @param to 参数。
-     */
+     *
+     * @param from The source node / 起始节点
+     * @param to The target node / 目标节点
+    */
     fun put(from: Node, to: Node) {
         if (!edges.containsKey(from)) {
             edges[from] = HashSet()
@@ -89,31 +95,31 @@ class Graph(
 
     /**
      * 根据索引获取节点。Gets a node by its index.
- *
-     * @param index 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param index The node index to look up / 要查找的节点索引
+     * @return The node with the given index, or null if not found / 具有给定索引的节点，未找到时为 null
+    */
     operator fun get(index: UInt64): Node? {
         return nodes[index]
     }
 
     /**
      * 获取节点的所有出边。Gets all outgoing edges from a node.
- *
-     * @param node 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param node The node whose outgoing edges to retrieve / 要获取出边的节点
+     * @return The set of outgoing edges from the node / 该节点的出边集合
+    */
     operator fun get(node: Node): Set<Edge> {
         return edges[node] ?: emptySet()
     }
 
     /**
      * 检查两个节点之间是否存在有向边。Checks if there is a directed edge from one node to another.
- *
-     * @param from 参数。
-     * @param to 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param from The source node / 起始节点
+     * @param to The target node / 目标节点
+     * @return Whether a directed edge exists from the source to the target / 从起始节点到目标节点是否存在有向边
+    */
     fun connected(from: Node, to: Node): Boolean {
         return edges[from]?.contains(Edge(from, to)) ?: false
     }

@@ -15,7 +15,7 @@
  * 使用示例 / Usage example:
  * val range = 1..10  // [1, 10]
  * val halfOpen = 1 until 10  // [1, 10)
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -31,10 +31,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（范围终点）的类垌
  * @param Ret 返回值（范围类型）的类型，必须是可比较的
  *
- * @param Rhs The type of the right operand (range end)
- * @param Ret The type of the return value (range type), must be Comparable
- */
+*/
 interface RangeTo<in Rhs, out Ret : Comparable<@UnsafeVariance Ret>> {
+
     /**
      * 创建闭区间范囌[this, rhs]
      * Creates a closed interval range [this, rhs]
@@ -42,9 +41,8 @@ interface RangeTo<in Rhs, out Ret : Comparable<@UnsafeVariance Ret>> {
      * @param rhs 范围终点
      * @return 闭区间范围对豌
      *
-     * @param rhs Range end
      * @return Closed interval range object
-     */
+    */
     operator fun rangeTo(rhs: Rhs): ClosedRange<@UnsafeVariance Ret>
 
     /**
@@ -54,8 +52,7 @@ interface RangeTo<in Rhs, out Ret : Comparable<@UnsafeVariance Ret>> {
      * @param rhs 范围终点（不包含，
      * @return 半开区间范围对象
      *
-     * @param rhs Range end (exclusive)
      * @return Half-open interval range object
-     */
+    */
     infix fun until(rhs: Rhs): ClosedRange<@UnsafeVariance Ret>
 }

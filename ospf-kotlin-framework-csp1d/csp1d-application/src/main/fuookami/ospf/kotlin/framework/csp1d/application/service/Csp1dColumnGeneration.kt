@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 列生成终止原因 / Column generation termination reason
- */
+*/
 enum class Csp1dTerminationReason {
     /** 达到迭代上限 / Iteration limit reached */
     IterationLimitReached,
@@ -44,7 +44,7 @@ enum class Csp1dTerminationReason {
  * @property planCountBefore 本轮开始时方案池大小 / Plan pool size before this iteration
  * @property pricedPlanCount 本轮定价新增方案数 / Number of plans added by pricing this iteration
  * @property planCountAfter 本轮结束时方案池大小 / Plan pool size after this iteration
- */
+*/
 data class Csp1dIterationRecord(
     val iteration: Int64,
     val lpObjective: Flt64,
@@ -67,7 +67,7 @@ data class Csp1dIterationRecord(
  * @property failureMessage 失败信息 / Failure message
  * @property pricingGenerationStatistics pricing 生成统计 / Pricing generation statistics
  * @property lpFailureMessage LP 失败的详细错误信息 / LP failure detail message
- */
+*/
 data class Csp1dColumnGenerationTrace(
     val initialPlanCount: UInt64,
     val finalPlanCount: UInt64,
@@ -100,7 +100,7 @@ data class Csp1dColumnGenerationTrace(
  * @property wasteConfig 默认 waste 建模配置 / Default waste modeling config
  * @property lengthConfig 默认 length 建模配置 / Default length modeling config
  * @property warmStartPlanUsages warm start 方案使用量 / Warm start plan usages
- */
+*/
 class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val solver: ColumnGenerationSolver,
     private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
@@ -111,6 +111,15 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
     private val lengthConfig: LengthAssignmentModelingConfig<V>? = null,
     private val warmStartPlanUsages: List<CuttingPlanUsage<V>> = emptyList()
 ) {
+
+/**
+ * LpMaster data class.
+ * LpMaster数据类。
+ *
+ * @param model 线性元模型 / Linear meta model
+ * @param context CSP1D 生产上下文 / CSP1D produce context
+ * @param domainValueSample 领域值样本 / Domain value sample
+*/
     private data class LpMaster<V : RealNumber<V>>(
         val model: LinearMetaModel<Flt64>,
         val context: Csp1dProduceContext<V>,
@@ -123,7 +132,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
      * @param problem 问题定义 / Problem definition
      * @param solveConfig 显式求解配置，优先级高于 problem.solveConfig / Explicit solve config, higher priority than problem.solveConfig
      * @return CSP1D 解 / CSP1D solution
-     */
+    */
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -143,7 +152,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
      * @param problem 问题定义 / Problem definition
      * @param solveConfig 显式求解配置，优先级高于 problem.solveConfig / Explicit solve config, higher priority than problem.solveConfig
      * @return 列生成结果（含追踪信息）/ Column generation result with trace
-     */
+    */
     suspend fun solveWithTrace(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -685,6 +694,20 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * initialPlanPool.
+ * initialPlanPool。
+ *
+ * @param problem 问题定义 / Problem definition
+ * @param configuration 列生成配置 / Column generation configuration
+ * @param domainPolicies 领域策略列表 / Domain policy list
+ * @param candidateFilters 候选过滤函数列表 / Candidate filter function list
+ * @param canonicalKeyOverrides 规范键覆盖函数列表 / Canonical key override function list
+ * @param dominanceAcceptOverrides 支配接受覆盖函数列表 / Dominance accept override function list
+ * @param flowPolicies 流策略列表 / Flow policy list
+ * @param widthFeasibilityCheck 宽度可行性检查函数 / Width feasibility check function
+ * @return 初始方案池 / Initial plan pool
+*/
     private fun initialPlanPool(
         problem: Csp1dProblem<V>,
         configuration: Csp1dConfiguration<V>,
@@ -740,11 +763,26 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * InitialPlanPool data class.
+ * InitialPlanPool数据类。
+ *
+ * @param plans 切割方案列表 / Cutting plan list
+ * @param statistics 生成统计 / Generation statistics
+*/
     private data class InitialPlanPool<V : RealNumber<V>>(
         val plans: List<CuttingPlan<V>>,
         val statistics: CuttingPlanGenerationStatistics?
     )
 
+/**
+ * mergeGenerationStatistics.
+ * mergeGenerationStatistics。
+ *
+ * @param left 左侧统计 / Left statistics
+ * @param right 右侧统计 / Right statistics
+ * @return 合并后的统计 / Merged statistics
+*/
     private fun mergeGenerationStatistics(
         left: CuttingPlanGenerationStatistics?,
         right: CuttingPlanGenerationStatistics
@@ -777,6 +815,17 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * deduplicatePlans.
+ * deduplicatePlans。
+ *
+ * @param existing 已有方案列表 / Existing plan list
+ * @param candidates 候选方案列表 / Candidate plan list
+ * @param flowPolicies 流策略列表 / Flow policy list
+ * @param flowContext 流上下文 / Flow context
+ * @param canonicalKeyOverrides 规范键覆盖函数列表 / Canonical key override function list
+ * @return 去重后的新方案列表 / Deduplicated new plan list
+*/
     private fun deduplicatePlans(
         existing: List<CuttingPlan<V>>,
         candidates: List<CuttingPlan<V>>,
@@ -809,7 +858,12 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
     }
 
-    /** 定价目标配置 / Pricing objective configuration */
+    /**
+     * 定价目标配置 / Pricing objective configuration
+     *
+     * @param solveConfig 求解配置 / solve configuration
+     * @return 定价目标配置 / pricing objective configuration
+    */
     private fun pricingObjectiveConfig(solveConfig: Csp1dSolveConfig<V>): Csp1dPricingObjectiveConfig<V> {
         return Csp1dPricingObjectiveConfig(
             planUsagePenalty = solveConfig.lengthConfig?.batchMinPenalty,
@@ -819,6 +873,16 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * Builds lpMaster.
+ * 构建LpMaster。
+ *
+ * @param problem 问题定义 / Problem definition
+ * @param cuttingPlans 切割方案列表 / Cutting plan list
+ * @param extensions 建模扩展列表 / Modeling extension list
+ * @param domainValueSample 领域值样本 / Domain value sample
+ * @return LP 主问题 / LP master
+*/
     private fun buildLpMaster(
         problem: Csp1dProblem<V>,
         cuttingPlans: List<CuttingPlan<V>>,
@@ -855,6 +919,14 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         ))
     }
 
+/**
+ * Solves the problem lpMaster.
+ * 求解问题LpMaster。
+ *
+ * @param master LP 主问题 / LP master
+ * @param iteration 迭代号 / Iteration number
+ * @return LP 求解结果 / LP solve result
+*/
     private suspend fun solveLpMaster(
         master: LpMaster<V>,
         iteration: Int64
@@ -885,7 +957,13 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
-    /** 解析求解配置 / Resolve solve configuration */
+    /**
+     * 解析求解配置 / Resolve solve configuration
+     *
+     * @param problem 问题定义 / problem definition
+     * @param solveConfig 显式求解配置 / explicit solve config
+     * @return 解析后的求解配置 / resolved solve configuration
+    */
     private fun resolveSolveConfig(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>?
@@ -900,6 +978,15 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * Solves the problem finalMilp.
+ * 求解问题FinalMilp。
+ *
+ * @param problem 问题定义 / Problem definition
+ * @param cuttingPlans 切割方案列表 / Cutting plan list
+ * @param solveConfig 求解配置 / Solve configuration
+ * @return 最终 MILP 求解结果 / Final MILP solve result
+*/
     private suspend fun solveFinalMilp(
         problem: Csp1dProblem<V>,
         cuttingPlans: List<CuttingPlan<V>>,
@@ -950,6 +1037,13 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * emptyProduce.
+ * emptyProduce。
+ *
+ * @param problem 问题定义 / Problem definition
+ * @return 空生产结果 / Empty produce
+*/
     private fun emptyProduce(problem: Csp1dProblem<V>): Produce<V> {
         return Produce(
             cuttingPlans = emptyList(),
@@ -959,6 +1053,19 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         )
     }
 
+/**
+ * Builds flowContext.
+ * 构建FlowContext。
+ *
+ * @param iteration 迭代号 / Iteration number
+ * @param currentPlans 当前方案列表 / Current plan list
+ * @param iterationLimit 迭代上限 / Iteration limit
+ * @param allowPartialSolution 是否允许部分解 / Whether to allow partial solution
+ * @param newPlans 新方案列表 / New plan list
+ * @param hasValidLpResult 是否有有效 LP 结果 / Whether there is a valid LP result
+ * @param pricingStatistics 定价生成统计 / Pricing generation statistics
+ * @return 流上下文 / Flow context
+*/
     private fun buildFlowContext(
         iteration: Int64,
         currentPlans: List<CuttingPlan<V>>,
@@ -979,6 +1086,14 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
         }
     }
 
+/**
+ * FinalMilpSolveResult data class.
+ * FinalMilpSolveResult数据类。
+ *
+ * @param status 最终 MILP 状态 / Final MILP status
+ * @param milpResult MILP 求解结果 / MILP solve result
+ * @param failureMessage 失败信息 / Failure message
+*/
     private data class FinalMilpSolveResult<V : RealNumber<V>>(
         val status: Csp1dFinalMilpStatus,
         val milpResult: Csp1dMilpSolver.MilpResult<V>?,
@@ -991,7 +1106,11 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
      *
      * Map customReason from selectTerminationByPolicies back to Csp1dTerminationReason.
      * If customReason matches an enum name, use that value; otherwise keep the default.
-     */
+     *
+     * @param customReason 自定义终止原因 / Custom termination reason
+     * @param defaultReason 默认终止原因 / Default termination reason
+     * @return 解析后的终止原因 / Resolved termination reason
+    */
     private fun resolveTerminationReason(
         customReason: String,
         defaultReason: Csp1dTerminationReason
@@ -1010,7 +1129,7 @@ class Csp1dColumnGeneration<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property solution CSP1D 解 / CSP1D solution
  * @property trace 列生成追踪信息 / Column generation trace
- */
+*/
 data class Csp1dColumnGenerationResult<V : RealNumber<V>>(
     val solution: Csp1dSolution<V>,
     val trace: Csp1dColumnGenerationTrace

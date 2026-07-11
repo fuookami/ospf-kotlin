@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property timeout 超时限制 / Timeout limit
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
- */
+*/
 class DFSGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
@@ -37,7 +37,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param arithmetic 物理量算术策略 / quantity arithmetic strategy
      * @param maxPlans 最大方案数（提前终止）/ max plans (early termination)
      * @param timeout 超时限制 / timeout limit
-     */
+    */
     constructor(
         constraints: GenerationConstraints<V>,
         arithmetic: QuantityArithmetic<V>,
@@ -238,7 +238,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param quantityCache 数量缓存 / quantity cache
      * @param templateRecorder 可选的切片模板记录器 / optional slice template recorder
      * @param widthCheck 可选宽度可行性检查 / optional width feasibility check
-     */
+    */
     private fun dfsSearch(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -369,7 +369,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param collector 方案收集器 / plan collector
      * @param templates 缓存的切片模板列表 / cached slice template list
      * @param widthCheck 可选宽度可行性检查 / optional width feasibility check
-     */
+    */
     private fun emitTemplates(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -403,7 +403,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param upperBound 宽度上限 / width upper bound
      * @param material 当前原料 / the current material
      * @return 是否满足所有剪枝约束 / whether all pruning constraints are satisfied
-     */
+    */
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -424,7 +424,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param upperBound 宽度上限 / width upper bound
      * @param material 当前原料 / the current material
      * @return 是否满足所有叶子节点约束 / whether all leaf constraints are satisfied
-     */
+    */
     private fun satisfiesLeafConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -445,7 +445,7 @@ class DFSGenerator<V : RealNumber<V>>(
      * @param widthIndex 宽度索引 / the width index
      * @param planId 方案 ID / the plan ID
      * @return 构建的切割方案 / the built cutting plan
-     */
+    */
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,

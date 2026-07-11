@@ -24,9 +24,9 @@ sealed interface CrewMember {
 /**
  * 作为飞行员的机组成员（将身份字段委托给底层 [Pilot]）。A crew member who is a pilot, delegating identity fields to the underlying [Pilot].
  *
- * @property rank 参数。
- * @property pilot 参数。
- */
+ * @property rank Pilot rank of this member / 该成员的飞行员职级
+ * @property pilot Underlying pilot entity / 底层飞行员实体
+*/
 data class CrewPilotMember(
     override val type: CrewType,
     val rank: PilotRank,
@@ -45,9 +45,9 @@ data class CrewPilotMember(
 /**
  * 非飞行员的机组成员（将身份字段委托给底层 [CrewMan]）。A crew member who is not a pilot, delegating identity fields to the underlying [CrewMan].
  *
- * @property rank 参数。
- * @property crewMan 参数。
- */
+ * @property rank Crew man rank of this member / 该成员的机组人员职级
+ * @property crewMan Underlying crew man entity / 底层机组人员实体
+*/
 data class CrewNotPilotMember(
     override val type: CrewType,
     val rank: CrewManRank,
@@ -66,13 +66,14 @@ data class CrewNotPilotMember(
 /**
  * 分配给航班任务的机组（由飞行员和非飞行员成员组成）。A crew assigned to a flight task, composed of pilot and non-pilot members.
  *
- * @property flight 参数。
- * @property members 参数。
- */
+ * @property flight Flight task assigned to this crew / 该机组分配的航班任务
+ * @property members Members of this crew / 该机组的成员列表
+*/
 data class Crew(
     val flight: FlightTask,
     val members: List<CrewMember>
 ) {
+
     /** 返回按职级分组的飞行员成员。Returns pilot members grouped by their rank. */
     val pilotMembers: Map<PilotRank, List<Pilot>> by lazy {
         members.filterIsInstance<CrewPilotMember>()

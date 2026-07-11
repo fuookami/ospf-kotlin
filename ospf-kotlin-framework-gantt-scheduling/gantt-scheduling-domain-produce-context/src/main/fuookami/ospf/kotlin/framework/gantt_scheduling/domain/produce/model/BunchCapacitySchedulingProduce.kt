@@ -3,7 +3,7 @@
  *
  * 本文件定义 BunchCapacitySchedulingProduce 类，用于列生成场景下的产品产量管理。
  * This file defines BunchCapacitySchedulingProduce class for product output management in column generation scenarios.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -26,7 +26,17 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
  *
  * 用于列生成场景，通过 CapacityColumn 追加产量贡献
  * Used for column generation scenarios, adds produce contribution through CapacityColumn
- */
+ *
+ * @param E 执行器类型 / Executor type
+ * @param A 生产动作类型 / Production action type
+ * @param P 产品物料类型 / Product material type
+ * @param C 消耗物料类型 / Consumption material type
+ * @param V 数值类型 / Value type
+ * @param products 产品列表及其需求 / Product list with demands
+ * @param actions 生产动作列表 / List of production actions
+ * @param slots 时间槽列表 / List of time slots
+ * @param timeWindow 时间窗口 / Time window
+*/
 class BunchCapacitySchedulingProduce<
         E : Executor,
         A : ProductionAction,
@@ -56,7 +66,7 @@ class BunchCapacitySchedulingProduce<
      * @param columns 产能列列表 / Capacity columns
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,

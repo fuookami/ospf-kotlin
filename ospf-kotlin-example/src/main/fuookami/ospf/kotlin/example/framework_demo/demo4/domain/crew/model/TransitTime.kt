@@ -7,18 +7,21 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /** 基于飞机和机场关系枚举中转时间场景。Enumerates the transit time scenarios based on aircraft and airport relationships. */
 enum class TransitTimeScene {
+    /** Same aircraft for consecutive flights / 连续航班使用同一飞机 */
     SameAircraft,
+    /** Domestic airport with different aircraft / 国内机场且飞机不同 */
     DomainNotSameAircraft,
+    /** International airport with different aircraft / 国际机场且飞机不同 */
     InternationNotSameAircraft;
 
     companion object {
         /**
          * 判定给定连续航班任务的中转时间场景。Determines the transit time scene for the given consecutive flight tasks.
- *
-         * @param prevTask 参数。
-         * @param nextTask 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param prevTask Previous flight task / 前一个航班任务
+         * @param nextTask Next flight task / 后一个航班任务
+         * @return The transit time scene, or null if not applicable / 中转时间场景，不适用则返回 null
+        */
         operator fun invoke(prevTask: FlightTask, nextTask: FlightTask): TransitTimeScene? {
             return if (prevTask.aircraft == nextTask.aircraft) {
                 SameAircraft
@@ -38,9 +41,9 @@ enum class TransitTimeScene {
 /**
  * 将场景与其所需时长关联的中转时间条目。A transit time entry associating a scene with its required duration.
  *
- * @property scene 参数。
- * @property duration 参数。
- */
+ * @property scene Transit time scene / 中转时间场景
+ * @property duration Required transit duration / 所需中转时长
+*/
 data class TransitTime(
     val scene: TransitTimeScene,
     val duration: Duration
@@ -53,10 +56,10 @@ typealias TransitTimeMap = Map<TransitTimeScene, TransitTime>
  * 查找给定连续航班任务的中转时间。
  * Looks up the transit time for the given consecutive flight tasks.
  *
- * @param prevTask 前一个任务。
- * @param nextTask 后一个任务。
- * @return 中转时间，如果不存在则返回 null。
- */
+ * @param prevTask Previous flight task / 前一个航班任务
+ * @param nextTask Next flight task / 后一个航班任务
+ * @return The transit time entry, or null if not found / 中转时间条目，未找到则返回 null
+*/
 operator fun TransitTimeMap.get(prevTask: FlightTask, nextTask: FlightTask): TransitTime? {
     return TransitTimeScene.invoke(prevTask, nextTask)?.let {
         this[it]

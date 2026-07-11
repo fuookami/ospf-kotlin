@@ -1,7 +1,7 @@
 /**
  * 求解器状态枚举
  * Solver status enum
- */
+*/
 package fuookami.ospf.kotlin.core.solver.output
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 /**
  * 求解器状态枚举，表示求解过程的各种结果。
  * Solver status enum, representing various results of the solving process.
- */
+*/
 enum class SolverStatus {
     /** 最优解 / Optimal solution */
     Optimal,

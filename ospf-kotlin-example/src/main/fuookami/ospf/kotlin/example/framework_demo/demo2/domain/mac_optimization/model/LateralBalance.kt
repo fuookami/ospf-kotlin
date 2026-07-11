@@ -17,17 +17,24 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 
 /**
- * 宽体飞机扭矩优化的横向平衡松弛变量。Lateral balance slack variable for wide-body aircraft torque optimization.
+ * Lateral balance slack variable for wide-body aircraft torque optimization.
+ * 宽体飞机扭矩优化的横向平衡松弛变量。
  *
- * @property aircraftModel 参数。
- * @property torque 参数。
- */
+ * @property slack The linear intermediate symbol representing lateral balance slack / 表示横向平衡松弛的线性中间符号
+*/
 class LateralBalance(
     private val aircraftModel: AircraftModel,
     private val torque: Torque
 ) {
     lateinit var slack: QuantityLinearIntermediateSymbol<Flt64>
 
+    /**
+     * Registers the lateral balance slack symbol into the optimization model.
+     * 将横向平衡松弛符号注册到优化模型中。
+     *
+     * @param model The linear meta-model to register the slack into / 要注册松弛符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

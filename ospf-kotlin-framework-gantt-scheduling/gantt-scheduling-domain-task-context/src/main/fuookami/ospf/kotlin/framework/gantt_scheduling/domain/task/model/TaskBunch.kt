@@ -2,7 +2,7 @@
 
 /**
  * 任务束模型，表示一组有序任务 / Task bunch model representing an ordered group of tasks
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.*
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.sumOf
  * @property cost 成本 / The cost
  * @property initialUsability 初始可用性 / The initial usability
  * @property iteration 迭代次数 / The iteration number
- */
+*/
 open class AbstractTaskBunch<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -78,8 +78,10 @@ open class AbstractTaskBunch<
 
     /** 任务数量 / Number of tasks */
     open val size get() = tasks.size
+
     /** 是否为空 / Whether the bunch is empty */
     open val empty get() = tasks.isEmpty()
+
     /** 上一个任务 / The last task */
     open val lastTask get() = initialUsability.lastTask
 
@@ -162,10 +164,23 @@ open class AbstractTaskBunch<
         return tasks[index]
     }
 
+/**
+ * contains.
+ * contains。
+ * @param task The task to check for membership in the bunch / 要检查是否包含在任务束中的任务
+ * @return Whether the bunch contains the given task / 任务束是否包含给定任务
+*/
     open fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
         return keys.contains(task.key)
     }
 
+/**
+ * contains.
+ * contains。
+ * @param prev The preceding task in the pair / 任务对中的前序任务
+ * @param succ The succeeding task in the pair / 任务对中的后续任务
+ * @return Whether the bunch contains both tasks as consecutive entries / 任务束是否包含这两个任务且它们相邻
+*/
     open fun contains(
         prev: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>,
         succ: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>
@@ -179,12 +194,24 @@ open class AbstractTaskBunch<
         }
     }
 
+/**
+ * contains.
+ * contains。
+ * @param taskPair The pair of tasks to check for consecutive membership / 要检查是否相邻包含的任务对
+ * @return Whether the bunch contains both tasks in the pair as consecutive entries / 任务束是否包含该任务对且它们相邻
+*/
     open fun contains(
         taskPair: Pair<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>, AbstractTask<@UnsafeVariance E, @UnsafeVariance A>>
     ): Boolean {
         return contains(taskPair.first, taskPair.second)
     }
 
+/**
+ * get.
+ * get。
+ * @param originTask The task to look up in the bunch / 要在任务束中查找的任务
+ * @return The matching task from the bunch, or null if not found / 任务束中匹配的任务，未找到时为null
+*/
     open fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {

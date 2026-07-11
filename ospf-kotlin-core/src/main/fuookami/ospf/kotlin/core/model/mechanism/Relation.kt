@@ -1,7 +1,7 @@
 /**
  * 约束关系
  * Constraint relation
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
@@ -14,14 +14,18 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 线性约束关系密封接口，封装线性展平数据和比较符号。
  * Sealed interface for linear constraint relations, encapsulating linear flatten data and comparison sign.
- */
+*/
 sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /** 扁平化的线性数据 / Flattened linear data */
     val flattenData: LinearFlattenData<V>
+
     /** 比较符号 / Comparison sign */
     val sign: Comparison
+
     /** 约束名称 / Constraint name */
     val name: String
+
     /** 显示名称 / Display name */
     val displayName: String?
 
@@ -30,26 +34,30 @@ sealed interface LinearRelation<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid
      * @return 包含 ConstraintRelation 的 Ret，或失败信息 / Ret containing ConstraintRelation, or failure
-     */
+    */
     fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
     /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE)
      * @return 归一化后的线性约束关系 / The normalized linear constraint relation
-     */
+    */
     fun normalize(): LinearRelation<V>
 }
 
 /**
  * 二次约束关系密封接口，封装二次展平数据和比较符号。
  * Sealed interface for quadratic constraint relations, encapsulating quadratic flatten data and comparison sign.
- */
+*/
 sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /** 扁平化的二次数据 / Flattened quadratic data */
     val flattenData: QuadraticFlattenData<V>
+
     /** 比较符号 / Comparison sign */
     val sign: Comparison
+
     /** 约束名称 / Constraint name */
     val name: String
+
     /** 显示名称 / Display name */
     val displayName: String?
 
@@ -58,12 +66,12 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
 
     /** 转换为 ConstraintRelation 枚举，失败时返回 Ret 失败 / Convert to ConstraintRelation enum, returning Ret failure when invalid
      * @return 包含 ConstraintRelation 的 Ret，或失败信息 / Ret containing ConstraintRelation, or failure
-     */
+    */
     fun constraintRelation(): Ret<ConstraintRelation> = ConstraintRelation.ofSafe(sign)
 
     /** 归一化（将 GT/GE 转换为 LT/LE）/ Normalize (convert GT/GE to LT/LE)
      * @return 归一化后的二次约束关系 / The normalized quadratic constraint relation
-     */
+    */
     fun normalize(): QuadraticRelation<V>
 }
 
@@ -76,7 +84,7 @@ sealed interface QuadraticRelation<V> where V : RealNumber<V>, V : NumberField<V
  * @property sign 比较符号 / Comparison sign
  * @property name 约束名称 / Constraint name
  * @property displayName 显示名称 / Display name
- */
+*/
 data class LinearRelationImpl<V>(
     override val flattenData: LinearFlattenData<V>,
     override val sign: Comparison,
@@ -118,7 +126,7 @@ data class LinearRelationImpl<V>(
  * @property sign 比较符号 / Comparison sign
  * @property name 约束名称 / Constraint name
  * @property displayName 显示名称 / Display name
- */
+*/
 data class QuadraticRelationImpl<V>(
     override val flattenData: QuadraticFlattenData<V>,
     override val sign: Comparison,

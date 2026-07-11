@@ -28,7 +28,7 @@ import kotlin.time.Duration
  * @param threshold 阈值提取器 / Threshold extractor
  * @param coefficient 成本系数提取器 / Extractor for cost coefficient
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskAdvanceTimeMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,
@@ -42,6 +42,7 @@ class TaskAdvanceTimeMinimization<
     private val coefficient: Extractor<Flt64?, T> = { Flt64.one },
     override val name: String = "task_advance_time_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+
     /**
      * 通过 solver 时间窗口边界创建任务提前时间最小化 / Create task advance time minimization from a solver time-window boundary
      *
@@ -51,7 +52,7 @@ class TaskAdvanceTimeMinimization<
      * @param threshold 阈值提取器 / Threshold extractor
      * @param coefficient 成本系数提取器 / Extractor for cost coefficient
      * @param name 管道名称 / Pipeline name
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,

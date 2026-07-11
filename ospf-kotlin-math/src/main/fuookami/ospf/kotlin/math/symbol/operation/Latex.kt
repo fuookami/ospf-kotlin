@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * 包含紧凑和简化两种格式化模式。
  * Provides LaTeX string conversion for Flt64 polynomials and inequalities.
  * Includes compact and simplified formatting modes.
- */
+*/
 
 /**
  * Formats a Flt64 as a decimal string with trailing zeros stripped.
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  *
  * @param value the Flt64 value to format / 待格式化的 Flt64 值
  * @return the formatted decimal string / 格式化后的十进制字符串
- */
+*/
 private fun formatNumber(value: Flt64): String {
     val doubleValue = value.toDouble()
     if (!doubleValue.isFinite()) {
@@ -47,7 +47,7 @@ private val flt64LatexOps = LatexNumberOps<Flt64>(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun LinearMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -60,7 +60,7 @@ fun LinearMonomial<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun QuadraticMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -73,7 +73,7 @@ fun QuadraticMonomial<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun CanonicalMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -86,7 +86,7 @@ fun CanonicalMonomial<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun LinearPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -99,7 +99,7 @@ fun LinearPolynomial<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun QuadraticPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -112,7 +112,7 @@ fun QuadraticPolynomial<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun CanonicalPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -124,7 +124,7 @@ fun CanonicalPolynomial<Flt64>.toLatex(
  * 将比较运算符转换为 LaTeX 符号。
  *
  * @return the LaTeX symbol string / LaTeX 符号字符串
- */
+*/
 private fun Comparison.latexSymbol(): String {
     return when (this) {
         Comparison.LT -> "<"
@@ -142,7 +142,7 @@ private fun Comparison.latexSymbol(): String {
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun LinearInequality<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -155,7 +155,7 @@ fun LinearInequality<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun QuadraticInequalityOf<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -168,7 +168,7 @@ fun QuadraticInequalityOf<Flt64>.toLatex(
  *
  * @param options LaTeX 格式选项 / LaTeX format options
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun CanonicalInequality<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
@@ -181,7 +181,7 @@ fun CanonicalInequality<Flt64>.toLatex(
  * 将 Flt64 转换为简化的 LaTeX 字符串，整数不带小数点。
  *
  * @return the simplified LaTeX string / 简化的 LaTeX 字符串
- */
+*/
 private fun Flt64.toLatexString(): String {
     val value = this.toDouble()
     return if (value == value.toLong().toDouble()) {
@@ -191,7 +191,12 @@ private fun Flt64.toLatexString(): String {
     }
 }
 
-/** 将 Flt64 线性单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 linear monomial to a simplified LaTeX string */
+/**
+ * 将 Flt64 线性单项式转换为简化的 LaTeX 字符串
+ * Convert a Flt64 linear monomial to a simplified LaTeX string
+ *
+ * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
+*/
 private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val symbolName = symbol.displayName ?: symbol.name
@@ -202,7 +207,12 @@ private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
-/** 将 Flt64 二次单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 quadratic monomial to a simplified LaTeX string */
+/**
+ * 将 Flt64 二次单项式转换为简化的 LaTeX 字符串
+ * Convert a Flt64 quadratic monomial to a simplified LaTeX string
+ *
+ * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
+*/
 private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val s1Name = symbol1.displayName ?: symbol1.name
@@ -233,7 +243,12 @@ private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
-/** 将 Flt64 规范单项式转换为简化的 LaTeX 字符串 / Convert a Flt64 canonical monomial to a simplified LaTeX string */
+/**
+ * 将 Flt64 规范单项式转换为简化的 LaTeX 字符串
+ * Convert a Flt64 canonical monomial to a simplified LaTeX string
+ *
+ * @return 简化的 LaTeX 字符串 / Simplified LaTeX string
+*/
 private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val powerParts = powers.entries.joinToString(" \\cdot ") { (symbol, power) ->
@@ -253,7 +268,7 @@ private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
  * Convert a Flt64 linear polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun LinearPolynomial<Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
@@ -284,7 +299,7 @@ fun LinearPolynomial<Flt64>.toLatexString(): String {
  * Convert a Flt64 quadratic polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun QuadraticPolynomial<Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
@@ -315,7 +330,7 @@ fun QuadraticPolynomial<Flt64>.toLatexString(): String {
  * Convert a Flt64 canonical polynomial to a simplified LaTeX string
  *
  * @return LaTeX 字符串 / LaTeX string
- */
+*/
 fun CanonicalPolynomial<Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()

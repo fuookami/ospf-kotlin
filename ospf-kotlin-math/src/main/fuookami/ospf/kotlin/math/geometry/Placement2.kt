@@ -4,7 +4,7 @@
  *
  * 定义二维几何空间中的放置操作，将投影形状放置在指定 (x, y) 位置。
  * Defines placement operation in 2D geometric space, placing a projection shape at a specified (x, y) position.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property x X 坐标 / X coordinate
  * @property y Y 坐标 / Y coordinate
  * @property shape 放置的二维形状 / The 2D shape being placed
- */
+*/
 data class Placement2<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
@@ -40,6 +40,7 @@ data class Placement2<V : FloatingNumber<V>>(
 
     /** X 轴最大值 / Maximum X value */
     val maxX: V get() = box.maxX
+
     /** Y 轴最大值 / Maximum Y value */
     val maxY: V get() = box.maxY
 
@@ -53,7 +54,7 @@ data class Placement2<V : FloatingNumber<V>>(
      * @param withUpperBound 是否包含上界 / Whether to include the upper bound
      * @param withBorder 是否包含边界 / Whether to include the border
      * @return 点是否在放置区域内 / Whether the point is inside the placement region
-     */
+    */
     fun contains(
         x: V,
         y: V,
@@ -76,7 +77,7 @@ data class Placement2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个放置 / The other placement
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     fun overlapped(rhs: Placement2<V>): Ret<Boolean> {
         return box.overlapped(rhs.box)
     }
@@ -87,7 +88,7 @@ data class Placement2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个放置 / The other placement
      * @return 交集放置，无交集返回 null / The intersection placement, or null if no overlap
-     */
+    */
     fun intersect(rhs: Placement2<V>): Ret<Placement2<V>?> {
         val intersection = when (val result = box.intersect(rhs.box)) {
             is Ok -> result.value

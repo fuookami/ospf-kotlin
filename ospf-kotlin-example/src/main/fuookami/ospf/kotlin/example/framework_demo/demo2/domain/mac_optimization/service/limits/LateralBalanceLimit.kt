@@ -15,12 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model.*
 
 /**
- * 最小化宽体飞机按系数加权的横向平衡松弛。Minimizes lateral balance slack weighted by a coefficient for wide-body aircraft.
- *
- * @property aircraftModel 参数。
- * @property lateralBalance 参数。
- * @property coefficient 参数。
- */
+ * Minimizes lateral balance slack weighted by a coefficient for wide-body aircraft.
+ * 最小化宽体飞机按系数加权的横向平衡松弛。
+*/
 class LateralBalanceLimit(
     private val aircraftModel: AircraftModel,
     private val lateralBalance: LateralBalance,

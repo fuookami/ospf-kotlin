@@ -1,7 +1,7 @@
 /**
  * 回调模型
  * Call-back model
- */
+*/
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -19,8 +19,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Call-back model policy interface defining objective comparison and initial solution generation.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /** 三路比较器 / The three-way comparator */
     val comparator: ThreeWayComparator<V>
 
@@ -31,7 +32,7 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
      * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
      * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
      * @return 比较结果，任一为 null 时另一个更优 / The comparison result; when either is null, the other is preferred
-     */
+    */
     fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
@@ -51,7 +52,7 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
      * @param initialSolutionAmount 初始解数量 / The number of initial solutions
      * @param variableAmount 变量数量 / The number of variables
      * @return 初始解列表 / The list of initial solutions
-     */
+    */
     fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<V>> {
         return emptyList()
     }
@@ -63,7 +64,7 @@ interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
  *
  * @property objectiveComparator       目标比较器 / Objective comparator
  * @property _initialSolutionsGenerator 初始解生成器（可为 null） / Initial solution generator (nullable)
- */
+*/
 class FunctionalCallBackModelPolicy<V>(
     val objectiveComparator: PartialComparator<V>,
     private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null
@@ -86,7 +87,7 @@ class FunctionalCallBackModelPolicy<V>(
      * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
      * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
      * @return 比较结果 / The comparison result
-     */
+    */
     override fun compareObjective(lhs: V?, rhs: V?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
@@ -112,7 +113,7 @@ class FunctionalCallBackModelPolicy<V>(
      * @param initialSolutionAmount 初始解数量 / The number of initial solutions
      * @param variableAmount 变量数量 / The number of variables
      * @return 初始解列表 / The list of initial solutions
-     */
+    */
     override fun initialSolutions(
         initialSolutionAmount: UInt64,
         variableAmount: UInt64
@@ -138,7 +139,7 @@ class FunctionalCallBackModelPolicy<V>(
  * @property _objectiveFunctions 目标函数列表 / The objective function list
  * @property policy 回调模型策略 / The call-back model policy
  * @property _converter 值转换器 / The value converter
- */
+*/
 class CallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -156,7 +157,7 @@ class CallBackModel<V> internal constructor(
          * @param category 优化方向 / The optimization direction
          * @param converter 值转换器 / The value converter
          * @return 部分比较器 / The partial comparator
-         */
+        */
         private fun <V> dumpObjectiveComparator(
             category: ObjectCategory,
             converter: IntoValue<V>
@@ -173,7 +174,7 @@ class CallBackModel<V> internal constructor(
          * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
          * @param converter               值转换器 / The value converter
          * @return 回调模型实例 / The call-back model instance
-         */
+        */
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -195,7 +196,7 @@ class CallBackModel<V> internal constructor(
          * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
          * @param converter               值转换器 / The value converter
          * @return 回调模型实例 / The call-back model instance
-         */
+        */
         operator fun <V> invoke(
             objectiveComparator: PartialComparator<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -216,7 +217,7 @@ class CallBackModel<V> internal constructor(
          * @param initialSolutionGenerator 初始解生成器 / The initial solution generator
          * @param converter               值转换器 / The value converter
          * @return 回调模型实例 / The call-back model instance
-         */
+        */
         operator fun <V> invoke(
             model: AbstractMetaModel<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -264,7 +265,7 @@ class CallBackModel<V> internal constructor(
          * @param concurrent              是否使用并发符号表 / Whether to use a concurrent token table
          * @param converter               值转换器 / The value converter
          * @return 回调模型实例 / The call-back model instance
-         */
+        */
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
@@ -320,7 +321,7 @@ class CallBackModel<V> internal constructor(
      * 返回此模型使用的值转换器。
      *
      * @return 值转换器 / The value converter
-     */
+    */
     override fun converter(): IntoValue<V> = _converter
 
     /**
@@ -328,7 +329,7 @@ class CallBackModel<V> internal constructor(
      * 返回数值类型的负无穷值。
      *
      * @return 负无穷值 / The negative infinity value
-     */
+    */
     override fun negativeInfinity(): V = _converter.negativeInfinity
 
     /**
@@ -336,7 +337,7 @@ class CallBackModel<V> internal constructor(
      * 返回数值类型的正无穷值。
      *
      * @return 正无穷值 / The positive infinity value
-     */
+    */
     override fun infinity(): V = _converter.infinity
 
     /**
@@ -345,7 +346,7 @@ class CallBackModel<V> internal constructor(
      *
      * @param initialSolutionAmount 初始解数量 / The number of initial solutions
      * @return 初始解列表 / The list of initial solutions
-     */
+    */
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
         return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
     }
@@ -357,7 +358,7 @@ class CallBackModel<V> internal constructor(
      * @param lhs 左侧目标值 / The left-hand side objective value
      * @param rhs 右侧目标值 / The right-hand side objective value
      * @return 比较结果 / The comparison result
-     */
+    */
     override fun compareObjective(lhs: V, rhs: V): Order {
         return policy.comparator(lhs, rhs)
     }
@@ -369,7 +370,7 @@ class CallBackModel<V> internal constructor(
      * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
      * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
      * @return 比较结果 / The comparison result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("compareObjectiveNullable")
     override fun compareObjective(lhs: V?, rhs: V?): Order? {
@@ -397,7 +398,7 @@ class CallBackModel<V> internal constructor(
      * @param inequality  线性不等式输入 / The linear inequality input
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -419,7 +420,7 @@ class CallBackModel<V> internal constructor(
      * @param inequality  线性不等式输入 / The linear inequality input
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -472,7 +473,7 @@ class CallBackModel<V> internal constructor(
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -503,7 +504,7 @@ class CallBackModel<V> internal constructor(
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -525,7 +526,7 @@ class CallBackModel<V> internal constructor(
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         func: Extractor<V?, Solution<V>>,
         name: String?,
@@ -569,7 +570,7 @@ class CallBackModel<V> internal constructor(
  * @property _objectiveFunctions 目标函数列表 / The objective function list
  * @property _initialSolutionsGenerator 初始解生成器（可为 null） / Initial solution generator (nullable)
  * @property _converter 值转换器 / The value converter
- */
+*/
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -590,7 +591,7 @@ class MultiObjectCallBackModel<V> internal constructor(
          * @param initialSolutionGenerator 初始解生成器（可为 null） / The initial solution generator (nullable)
          * @param converter               值转换器 / The value converter
          * @return 多目标回调模型实例 / The multi-objective call-back model instance
-         */
+        */
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             objectiveLocation: List<MultiObjectLocation<V>>,
@@ -642,7 +643,7 @@ class MultiObjectCallBackModel<V> internal constructor(
      *
      * @param obj 多目标位置与值的配对列表 / The list of multi-objective location and value pairs
      * @return 加权目标值列表 / The weighted objective value list
-     */
+    */
     override fun objectiveValue(obj: List<Pair<MultiObjectLocation<V>, V>>): List<V> {
         val value = MutableList(objectiveSize) { _converter.zero }
         for ((location, objective) in obj) {
@@ -710,7 +711,7 @@ class MultiObjectCallBackModel<V> internal constructor(
      * @param inequality  线性不等式输入 / The linear inequality input
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: Flt64LinearConstraintInput,
@@ -732,7 +733,7 @@ class MultiObjectCallBackModel<V> internal constructor(
      * @param inequality  线性不等式输入 / The linear inequality input
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
         inequality: LinearConstraintInput<V>,
@@ -788,7 +789,7 @@ class MultiObjectCallBackModel<V> internal constructor(
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,

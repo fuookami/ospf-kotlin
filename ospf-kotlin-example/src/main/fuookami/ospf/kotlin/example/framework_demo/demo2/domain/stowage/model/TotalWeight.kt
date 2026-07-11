@@ -14,6 +14,14 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 
+/**
+ * Total weight model managing estimated and actual total weight calculations
+ * across different flight phases (takeoff, landing, zero-fuel).
+ * 总重模型，管理不同飞行阶段（起飞、着陆、零油）的预估和实际总重计算。
+ *
+ * @property maxTotalWeight the maximum total weight per flight phase / 每个飞行阶段的最大总重
+ * @property computedTotalWeight the computed total weight per flight phase, or empty if not yet computed / 每个飞行阶段的已计算总重，未计算时为空
+*/
 class TotalWeight(
     val maxTotalWeight: Map<FlightPhase, Quantity<Flt64>>,
     val computedTotalWeight: Map<FlightPhase, Quantity<Flt64>>,
@@ -25,6 +33,13 @@ class TotalWeight(
     lateinit var estimateTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
     lateinit var actualTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
 
+    /**
+     * Registers total weight symbols into the model.
+     * 将总重符号注册到模型中。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -92,6 +107,14 @@ class TotalWeight(
         return ok
     }
 
+    /**
+     * Computes the total weight polynomial for a given flight phase and payload.
+     * 计算给定飞行阶段和业载的总重多项式。
+     *
+     * @param phase the flight phase / 飞行阶段
+     * @param payload the payload polynomial / 业载多项式
+     * @return the total weight polynomial / 总重多项式
+    */
     private fun totalWeight(
         phase: FlightPhase,
         payload: LinearPolynomial<Flt64>

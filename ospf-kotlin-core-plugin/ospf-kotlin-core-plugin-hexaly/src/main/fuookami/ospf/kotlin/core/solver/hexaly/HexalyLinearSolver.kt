@@ -23,7 +23,7 @@ import com.hexaly.optimizer.*
  *
  * @property config solver configuration / 中文 求解器配置
  * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
- */
+*/
 class HexalyLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: HexalySolverCallBack? = null
@@ -81,7 +81,7 @@ class HexalyLinearSolver(
  * @property config solver configuration / 中文 求解器配置
  * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
  * @property statusCallBack solving status callback / 中文 求解状态回调
- */
+*/
 private class HexalyLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: HexalySolverCallBack? = null,
@@ -128,7 +128,7 @@ private class HexalyLinearSolverImpl(
      *
      * @param model linear triad model view / 中文 线性三元组模型视图
      * @return operation result / 中文 操作结果
-     */
+    */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("hexaly", model.nonNullConstraintPriorityAmount())
@@ -261,7 +261,7 @@ private class HexalyLinearSolverImpl(
      *
      * @param model linear triad model view / 中文 线性三元组模型视图
      * @return operation result / 中文 操作结果
-     */
+    */
     @OptIn(ExperimentalTime::class)
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
@@ -373,7 +373,7 @@ private class HexalyLinearSolverImpl(
      * 分析 Hexaly 求解器的解
      *
      * @return operation result / 中文 操作结果
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

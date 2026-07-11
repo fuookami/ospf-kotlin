@@ -4,7 +4,7 @@
  *
  * 将表达式字符串解析为词法单元序列。
  * Parses expression strings into token sequences.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 /**
@@ -14,7 +14,7 @@ package fuookami.ospf.kotlin.math.symbol.expression.parser
  * 控制负号的处理方式：布尔模式下负号作为数字的一部分，标量模式下负号始终作为独立 token。
  * Controls how the minus sign is handled: in boolean mode it's part of a number,
  * in scalar mode it's always a separate token.
- */
+*/
 enum class LexMode {
     /** 布尔表达式模式（默认），-3 合并为 NUMBER / Boolean mode (default), -3 merged into NUMBER */
     Boolean,
@@ -34,7 +34,7 @@ enum class LexMode {
  *
  * @property input the input string to tokenize / 待词法分析的输入字符串
  * @property lexMode the lexing mode / 词法分析模式
- */
+*/
 class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Boolean) {
     private var position = 0
     private var currentChar: Char? = input.getOrNull(position)
@@ -44,7 +44,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      * Tokenize the entire input, returning a list of tokens
      *
      * @return 词法单元列表（包含 EOF） / List of tokens (including EOF)
-     */
+    */
     fun tokenize(): List<Token> {
         val tokens = mutableListOf<Token>()
         var token = nextToken()
@@ -61,7 +61,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      * Get the next token
      *
      * @return 下一个词法单元 / Next token
-     */
+    */
     fun nextToken(): Token {
         skipWhitespace()
 
@@ -213,7 +213,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     /**
      * 跳过空白字符
      * Skip whitespace characters
-     */
+    */
     private fun skipWhitespace() {
         while (currentChar?.isWhitespace() == true) {
             advance()
@@ -223,7 +223,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
     /**
      * 向前移动一个字符
      * Advance one character
-     */
+    */
     private fun advance() {
         position++
         currentChar = input.getOrNull(position)
@@ -235,7 +235,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      *
      * @param n the number of characters to look ahead / 向前查看的字符数
      * @return the character at the specified offset, or null if out of bounds / 指定偏移量处的字符，越界则返回 null
-     */
+    */
     private fun peekChar(n: Int = 1): Char? {
         return input.getOrNull(position + n)
     }
@@ -246,7 +246,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      *
      * @param startPos the starting position of the string literal / 字符串字面量的起始位置
      * @return the string token / 字符串词法单元
-     */
+    */
     private fun readString(startPos: Int): Token {
         val quote = currentChar!!
         advance() // 跳过起始引号 / Skip opening quote
@@ -284,7 +284,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      *
      * @param startPos the starting position of the number literal / 数字字面量的起始位置
      * @return the number token / 数字词法单元
-     */
+    */
     private fun readNumber(startPos: Int): Token {
         val sb = StringBuilder()
 
@@ -333,7 +333,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
      *
      * @param startPos the starting position of the identifier or keyword / 标识符或关键字的起始位置
      * @return the identifier or keyword token / 标识符或关键字词法单元
-     */
+    */
     private fun readIdentifierOrKeyword(startPos: Int): Token {
         val sb = StringBuilder()
 
@@ -386,7 +386,7 @@ class Lexer(private val input: String, private val lexMode: LexMode = LexMode.Bo
  * Extension function: String to token list
  *
  * @return 词法单元列表 / List of tokens
- */
+*/
 fun String.tokenize(): List<Token> = Lexer(this).tokenize()
 
 /**
@@ -394,5 +394,5 @@ fun String.tokenize(): List<Token> = Lexer(this).tokenize()
  * Extension function: String to token list (scalar mode)
  *
  * @return 词法单元列表 / List of tokens
- */
+*/
 fun String.tokenizeAsScalar(): List<Token> = Lexer(this, LexMode.Scalar).tokenize()

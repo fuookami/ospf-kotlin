@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
  *
  * 非目标：不替代 solver 原生状态机，也不判断业务可恢复性。
  * Non-goal: does not replace native solver state machines or decide business-level recoverability.
- */
+*/
 
 /**
  * 统一 callback 失败结果处理，命中失败分支时执行 abort 并返回 `true`。
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
  * @param callbackResult 回调结果（可选）/ Callback result (optional)
  * @param abort 中止操作 / Abort operation
  * @return 是否命中失败分支 / Whether a failure branch was hit
- */
+*/
 inline fun shouldAbortOnCallbackFailure(
     callbackResult: Try?,
     abort: () -> Unit
@@ -46,7 +46,7 @@ inline fun shouldAbortOnCallbackFailure(
  *
  * @param fallback 兜底错误码 / Fallback error code
  * @return 错误码 / Error code
- */
+*/
 fun SolverStatus.resolveErrCode(
     fallback: ErrorCode = ErrorCode.OREngineSolvingException
 ): ErrorCode {
@@ -60,7 +60,7 @@ fun SolverStatus.resolveErrCode(
  * @param status 求解器状态 / Solver status
  * @param fallback 兜底错误码 / Fallback error code
  * @return 失败结果 / Failure result
- */
+*/
 fun failByStatus(
     status: SolverStatus,
     fallback: ErrorCode = ErrorCode.OREngineSolvingException

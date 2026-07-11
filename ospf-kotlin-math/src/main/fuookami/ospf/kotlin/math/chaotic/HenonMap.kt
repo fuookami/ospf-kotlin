@@ -9,7 +9,7 @@
  * The Henon map is a classic two-dimensional chaotic map proposed by Michel Henon in 1976.
  * This map is a simplified model of the Lorenz attractor's Poincare section, exhibiting strange attractor behavior.
  * Commonly used for chaos theory research, fractal geometry, and dynamical systems education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
- */
+*/
 data class HenonMap<V : FloatingNumber<V>>(
     val a: V,
     val b: V
@@ -55,7 +55,7 @@ data class HenonMap<V : FloatingNumber<V>>(
  * Henon Map Generator
  * @property henonMap 埃农映射实例 / Henon map instance
  * @property _x 当前状态点 / Current state point
- */
+*/
 data class HenonMapGenerator(
     val henonMap: HenonMap<Flt64> = HenonMap(),
     private var _x: Point<Dim2, Flt64> = point2(
@@ -82,7 +82,7 @@ data class HenonMapGenerator(
     /**
      * 当前状态点。
      * The current state point.
-     */
+    */
     val x by ::_x
 
     override operator fun invoke(): Point<Dim2, Flt64> {

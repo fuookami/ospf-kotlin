@@ -14,6 +14,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Minimizes trailer changes between adjacent positions for ordered trailer pairs.
+ * 最小化有序拖车对在相邻位置之间的拖车更换。
+ *
+ * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
+ * @property orderedTrailers The list of ordered trailer pairs. / 有序拖车对列表
+ * @property loading The trailer loading model providing change symbols. / 提供更换符号的拖车装载模型
+ * @property coefficient Function computing the penalty coefficient for each trailer-position pair. / 计算每个拖车-位置对惩罚系数的函数
+*/
 class TrailerChangeLimit(
     private val adjacentPositions: List<PositionPair>,
     private val orderedTrailers: List<Pair<Trailer, Trailer>>,

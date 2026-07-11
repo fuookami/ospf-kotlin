@@ -6,7 +6,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 
-/** 支持的飞机类型枚举（具有机身类型和装载偏好属性）。Enumeration of supported aircraft types with properties for body type and loading preferences. */
+/**
+ * Enumeration of supported aircraft types with properties for body type and loading preferences.
+ * 支持的飞机类型枚举（具有机身类型和装载偏好属性）。
+*/
 enum class AircraftType {
     B737,
     B757 {
@@ -31,12 +34,13 @@ enum class AircraftType {
 }
 
 /**
- * 飞机模型（具有类型分类、物理单位定义和重力转换）。Aircraft model with type classification, physical unit definitions, and gravity conversion.
+ * Aircraft model with type classification, physical unit definitions, and gravity conversion.
+ * 飞机模型（具有类型分类、物理单位定义和重力转换）。
  *
- * @property type 飞机类型。
- * @property model 飞机型号名称。
- * @property minorModel 飞机子型号。
- */
+ * @property type The aircraft type classification. / 飞机类型分类
+ * @property model The aircraft model name. / 飞机型号名称
+ * @property minorModel The aircraft minor model variant. / 飞机子型号
+*/
 data class AircraftModel(
     val type: AircraftType?,
     val model: String,
@@ -70,11 +74,12 @@ data class AircraftModel(
     val fuelDensityUnit = weightUnit / fuelVolumeUnit
 
     /**
-     * 根据重量计算重力值。Calculate gravity force from weight.
+     * Calculate gravity force from weight.
+     * 根据重量计算重力值。
      *
-     * @param weight 重量值。
-     * @return 重力值。
-     */
+     * @param weight The weight value. / 重量值
+     * @return The gravity force value. / 重力值
+    */
     fun gravity(weight: Quantity<Flt64>): Quantity<Flt64> {
         val forcePerWeight = Flt64.one * (forceUnit / weightUnit)
         return (weight * forcePerWeight)!!

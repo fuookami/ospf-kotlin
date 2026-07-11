@@ -12,9 +12,24 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Analyzer that extracts a stowage domain solution from the solver's raw solution values.
+ * 从求解器的原始解值中提取配载域方案的分析器。
+ *
+ * @property aggregation the stowage aggregation / 配载聚合
+*/
 data class SolutionAnalyzer(
     private val aggregation: Aggregation
 ) {
+
+    /**
+     * Extracts the stowage solution from the solver's solution values.
+     * 从求解器的解值中提取配载方案。
+     *
+     * @param solution the solver solution values / 求解器解值
+     * @param model the linear meta-model / 线性元模型
+     * @return the stowage solution or failure / 配载方案或失败
+    */
     operator fun invoke(
         solution: List<Flt64>,
         model: AbstractLinearMetaModel<Flt64>

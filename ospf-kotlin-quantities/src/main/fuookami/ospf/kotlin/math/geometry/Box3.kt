@@ -4,7 +4,7 @@
  *
  * 由位置坐标和长方体形状定义的三维包围盒，支持包含测试、重叠检测和求交运算。
  * A 3D bounding box defined by position coordinates and a cuboid shape, supporting containment tests, overlap detection, and intersection.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property z 原点的 z 坐标 / z coordinate of the origin
  * @property cuboid 包围盒的长方体形状 / Cuboid shape of the bounding box
  * @param V 数值类型 / Number type
- */
+*/
 data class QuantityBox3<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>,
@@ -43,7 +43,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
          * @param cuboid 长方体形状 / Cuboid shape
          * @param V 数值类型 / Number type
          * @return 原点处的包围盒 / Bounding box at the origin
-         */
+        */
         fun <V : FloatingNumber<V>> atOrigin(cuboid: QuantityCuboid3<V>): QuantityBox3<V> {
             return QuantityBox3(
                 x = quantityZeroOf(cuboid.width),
@@ -56,15 +56,19 @@ data class QuantityBox3<V : FloatingNumber<V>>(
 
     /** 包围盒宽度 / Bounding box width */
     val width get() = cuboid.width
+
     /** 包围盒高度 / Bounding box height */
     val height get() = cuboid.height
+
     /** 包围盒深度 / Bounding box depth */
     val depth get() = cuboid.depth
 
     /** x 方向最大值，失败时返回 null / Maximum x value, or null on failure */
     val maxXOrNull: Quantity<V>? get() = maxX().value
+
     /** y 方向最大值，失败时返回 null / Maximum y value, or null on failure */
     val maxYOrNull: Quantity<V>? get() = maxY().value
+
     /** z 方向最大值，失败时返回 null / Maximum z value, or null on failure */
     val maxZOrNull: Quantity<V>? get() = maxZ().value
 
@@ -73,7 +77,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      * Get the maximum x value
      *
      * @return x 方向最大值 / Maximum x value
-     */
+    */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
     /**
@@ -81,7 +85,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      * Get the maximum y value
      *
      * @return y 方向最大值 / Maximum y value
-     */
+    */
     fun maxY(): Ret<Quantity<V>> = quantityPlusSafe(y, height)
 
     /**
@@ -89,7 +93,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      * Get the maximum z value
      *
      * @return z 方向最大值 / Maximum z value
-     */
+    */
     fun maxZ(): Ret<Quantity<V>> = quantityPlusSafe(z, depth)
 
     /**
@@ -103,7 +107,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      * @param withUpperBound 是否包含上界 / Whether to include upper bound
      * @param withBorder 是否包含边界 / Whether to include border
      * @return 点是否在包围盒内 / Whether the point is inside
-     */
+    */
     fun contains(
         x: Quantity<V>,
         y: Quantity<V>,
@@ -154,7 +158,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     fun overlapped(rhs: QuantityBox3<V>): Ret<Boolean> {
         val thisMaxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -243,7 +247,7 @@ data class QuantityBox3<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 交集包围盒，如果不相交则返回 null / Intersection box, or null if they don't intersect
-     */
+    */
     fun intersect(rhs: QuantityBox3<V>): Ret<QuantityBox3<V>?> {
         val thisMaxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -360,5 +364,5 @@ data class QuantityBox3<V : FloatingNumber<V>>(
 /**
  * 三维轴对齐包围盒别名
  * Type alias for 3D axis-aligned bounding box
- */
+*/
 typealias QuantityAxisAlignedBox3<V> = QuantityBox3<V>

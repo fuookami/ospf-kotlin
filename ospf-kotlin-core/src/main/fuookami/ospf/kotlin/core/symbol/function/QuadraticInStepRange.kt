@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [QuadraticInStepRangeFunction]，实现二次约束下的区间步进函数建模。
  *
  * Provides [QuadraticInStepRangeFunction] for interval step function modeling under quadratic constraints.
- */
+*/
 
 /**
  * 二次步进区间函数：若 x 在 [lower, upper] 范围内则 y = x，否则 y = 0。
@@ -47,7 +47,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class QuadraticInStepRangeFunction<V>(
     val x: QuadraticPolynomial<V>,
     val lower: V,
@@ -99,7 +99,7 @@ class QuadraticInStepRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -121,7 +121,7 @@ class QuadraticInStepRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -148,7 +148,7 @@ class QuadraticInStepRangeFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -169,7 +169,7 @@ class QuadraticInStepRangeFunction<V>(
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -193,7 +193,7 @@ class QuadraticInStepRangeFunction<V>(
      *
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 步进区间结果值或 null / step-range result value or null
-     */
+    */
     private fun evaluateStepRange(
         resolve: (Symbol) -> V?
     ): V? {
@@ -212,7 +212,7 @@ class QuadraticInStepRangeFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -231,21 +231,23 @@ class QuadraticInStepRangeFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
      * @param results Flt64 结果值列表 / Flt64 results list
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /** 使用 Flt64 值映射求值（始终返回 null）。 / Evaluate with Flt64 value map (always returns null).
      * @param values Flt64 值映射 / Flt64 value map
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -270,24 +272,26 @@ class QuadraticInStepRangeFunction<V>(
             evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
+
     /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      * @param results Flt64 结果值列表 / Flt64 results list
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      * @param values Flt64 值映射 / Flt64 value map
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -298,7 +302,7 @@ class QuadraticInStepRangeFunction<V>(
     /**
      * 将辅助变量 (z, y) 注册到 token 集合中。
      * Register helper variables (z, y) with the token collection.
-     */
+    */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(listOf(z, y))) {
             is Ok -> ok
@@ -310,7 +314,7 @@ class QuadraticInStepRangeFunction<V>(
     /**
      * 为步进区间函数注册 Big-M 约束。
      * Register Big-M constraints for the in-step-range function.
-     */
+    */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val m = bigM
         val zero = converter.zero

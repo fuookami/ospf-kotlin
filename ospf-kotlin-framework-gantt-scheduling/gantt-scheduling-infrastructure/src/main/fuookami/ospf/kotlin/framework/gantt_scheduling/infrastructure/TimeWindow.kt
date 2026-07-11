@@ -2,7 +2,7 @@
 
 /**
  * 时间窗口模型，提供时间离散化和舍入功能 / Time window model providing time discretization and rounding capabilities
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlin.math.*
@@ -35,7 +35,7 @@ typealias TimeWindowValueQuantity<V> = Quantity<V>
  * @property interval 时间间隔 / The time interval
  * @property fromDouble 从 Double 转换为 V / Convert from Double to V
  * @property toDouble 从 V 转换为 Double / Convert from V to Double
- */
+*/
 data class TimeWindow<V : RealNumber<V>>(
     val window: TimeRange,
     val continues: Boolean = true,
@@ -57,7 +57,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> seconds(
             timeWindow: TimeRange,
             dateOffset: V,
@@ -88,7 +88,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> seconds(
             timeWindow: TimeRange,
             dateOffset: TimeWindowValueQuantity<V>,
@@ -118,7 +118,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> minutes(
             timeWindow: TimeRange,
             dateOffset: V,
@@ -149,7 +149,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> minutes(
             timeWindow: TimeRange,
             dateOffset: TimeWindowValueQuantity<V>,
@@ -179,7 +179,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> hours(
             timeWindow: TimeRange,
             dateOffset: V,
@@ -210,7 +210,7 @@ data class TimeWindow<V : RealNumber<V>>(
          * @param fromDouble 从 Double 转换为 V / Convert from Double to V
          * @param toDouble 从 V 转换为 Double / Convert from V to Double
          * @return 泛型时间窗口 / Generic time window
-         */
+        */
         fun <V : RealNumber<V>> hours(
             timeWindow: TimeRange,
             dateOffset: TimeWindowValueQuantity<V>,
@@ -236,7 +236,7 @@ data class TimeWindow<V : RealNumber<V>>(
      * Convert to a calendar numeric boundary for calendar or solver internals that still use the solver numeric type
      *
      * @return 日历数值时间窗口边界 / The calendar numeric time-window boundary
-     */
+    */
     fun toFlt64Boundary(): TimeWindow<Flt64> {
         return TimeWindow(
             window = window,
@@ -257,7 +257,9 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 获取持续时间的 V 数值 / Get the V numeric value of a duration
-     */
+     * @param duration 持续时间 / The duration
+     * @return V 数值 / The V numeric value
+    */
     fun valueOf(duration: Duration): V = duration.value
 
     /**
@@ -266,7 +268,7 @@ data class TimeWindow<V : RealNumber<V>>(
      * @param duration 持续时间 / Duration
      * @param unit 时间数值单位 / Time value unit
      * @return 持续时间物理量数值 / Duration quantity value
-     */
+    */
     fun quantityOf(
         duration: Duration,
         unit: PhysicalUnit = NoneUnit
@@ -276,17 +278,23 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 舍入持续时间 / Round a duration
-     */
+     * @param duration 持续时间 / The duration
+     * @return 舍入后的持续时间 / The rounded duration
+    */
     fun round(duration: Duration) = duration.round
 
     /**
      * 向下取整持续时间 / Floor a duration
-     */
+     * @param duration 持续时间 / The duration
+     * @return 向下取整后的持续时间 / The floored duration
+    */
     fun floor(duration: Duration) = duration.floor
 
     /**
      * 向上取整持续时间 / Ceil a duration
-     */
+     * @param duration 持续时间 / The duration
+     * @return 向上取整后的持续时间 / The ceiled duration
+    */
     fun ceil(duration: Duration) = duration.ceil
 
     /** 将时间点转换为相对于窗口起始的 V 数值 / Convert an instant to a V value relative to window start */
@@ -297,7 +305,9 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 获取时间点的 V 数值 / Get the V numeric value of an instant
-     */
+     * @param instant 时间点 / The instant
+     * @return V 数值 / The V numeric value
+    */
     fun valueOf(instant: Instant): V = instant.value
 
     /**
@@ -306,7 +316,7 @@ data class TimeWindow<V : RealNumber<V>>(
      * @param instant 时间点 / Instant
      * @param unit 时间数值单位 / Time value unit
      * @return 时间点物理量数值 / Instant quantity value
-     */
+    */
     fun quantityOf(
         instant: Instant,
         unit: PhysicalUnit = NoneUnit
@@ -316,17 +326,23 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 舍入时间点 / Round an instant
-     */
+     * @param instant 时间点 / The instant
+     * @return 舍入后的时间点 / The rounded instant
+    */
     fun round(instant: Instant) = instant.round
 
     /**
      * 向下取整时间点 / Floor an instant
-     */
+     * @param instant 时间点 / The instant
+     * @return 向下取整后的时间点 / The floored instant
+    */
     fun floor(instant: Instant) = instant.floor
 
     /**
      * 向上取整时间点 / Ceil an instant
-     */
+     * @param instant 时间点 / The instant
+     * @return 向上取整后的时间点 / The ceiled instant
+    */
     fun ceil(instant: Instant) = instant.ceil
 
     /** 将 V 数值转换为持续时间 / Convert V numeric value to duration */
@@ -336,17 +352,23 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 从 V 数值创建持续时间 / Create a duration from a V value
-     */
+     * @param duration V 数值 / The V numeric value
+     * @return 持续时间 / The duration
+    */
     fun durationOf(duration: V) = duration.duration
 
     /**
      * 从整数值创建持续时间 / Create a duration from an integer value
-     */
+     * @param duration 整数值 / The integer value
+     * @return 持续时间 / The duration
+    */
     fun durationOf(duration: Int64) = duration.duration
 
     /**
      * 从无符号整数值创建持续时间 / Create a duration from an unsigned integer value
-     */
+     * @param duration 无符号整数值 / The unsigned integer value
+     * @return 持续时间 / The duration
+    */
     fun durationOf(duration: UInt64) = duration.duration
 
     /** 将 V 数值转换为时间点 / Convert V numeric value to an instant */
@@ -356,27 +378,37 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 从 V 数值创建时间点 / Create an instant from a V value
-     */
+     * @param instant V 数值 / The V numeric value
+     * @return 时间点 / The instant
+    */
     fun instantOf(instant: V) = instant.instant
 
     /**
      * 从整数值创建时间点 / Create an instant from an integer value
-     */
+     * @param instant 整数值 / The integer value
+     * @return 时间点 / The instant
+    */
     fun instantOf(instant: Int64) = instant.instant
 
     /**
      * 从无符号整数值创建时间点 / Create an instant from an unsigned integer value
-     */
+     * @param instant 无符号整数值 / The unsigned integer value
+     * @return 时间点 / The instant
+    */
     fun instantOf(instant: UInt64) = instant.instant
 
     /** 是否为空窗口 / Whether this is an empty window */
     val empty: Boolean by window::empty
+
     /** 开始时间 / Start time */
     val start: Instant by window::start
+
     /** 结束时间 / End time */
     val end: Instant by window::end
+
     /** 持续时间 / Duration */
     val duration: Duration by window::duration
+
     /** 上级时间间隔（nullable） / The upper-level time interval (nullable) */
     val upperIntervalOrNull: Duration? by lazy {
         when (durationUnit) {
@@ -398,7 +430,9 @@ data class TimeWindow<V : RealNumber<V>>(
         }
     }
 
-    /** 上级时间间隔 / The upper-level time interval */
+    /** 上级时间间隔 / The upper-level time interval
+     * @return 上级时间间隔 / upper-level time interval
+    */
     fun upperInterval(): Ret<Duration> {
         return when (durationUnit) {
             DurationUnit.SECONDS -> Ok(1.toDuration(DurationUnit.MINUTES))
@@ -408,8 +442,18 @@ data class TimeWindow<V : RealNumber<V>>(
         }
     }
 
+/**
+ * Int64.
+ * Int64。
+ * @return Double 数值 / The Double value
+*/
     private fun Int64.timeWindowValue() = toLong().toDouble()
 
+/**
+ * UInt64.
+ * UInt64。
+ * @return Double 数值 / The Double value
+*/
     private fun UInt64.timeWindowValue() = toLong().toDouble()
 
     /** 上级时间窗口（nullable） / The upper-level time window (nullable) */
@@ -435,7 +479,7 @@ data class TimeWindow<V : RealNumber<V>>(
      * 上级时间窗口 / The upper-level time window
      *
      * @return 上级时间窗口，若不受支持则返回错误 / The upper-level time window, or an error if not supported
-     */
+    */
     fun upper(): Ret<TimeWindow<V>> {
         val upperUnit = when (durationUnit) {
             DurationUnit.SECONDS -> DurationUnit.MINUTES
@@ -455,7 +499,9 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 按缩放比例计算上级时间间隔 / Calculate upper interval by scale
-     */
+     * @param scale 缩放比例 / Scale factor
+     * @return 上级时间间隔 / The upper-level time interval
+    */
     fun upperIntervalByScale(scale: UInt64): Duration {
         val upperInterval = interval * scale.toInt().toDouble()
         return if (upperInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
@@ -474,7 +520,7 @@ data class TimeWindow<V : RealNumber<V>>(
      *
      * @param scale 缩放比例 / Scale factor
      * @return 上级时间窗口 / The upper-level time window
-     */
+    */
     fun upperByScale(scale: UInt64): TimeWindow<V> {
         val scaleInterval = interval * scale.toInt().toDouble()
         val (upperUnit, upperInterval) = if (scaleInterval > 1.toDuration(DurationUnit.DAYS) && durationUnit.ordinal < DurationUnit.DAYS.ordinal) {
@@ -503,7 +549,9 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 按指定间隔划分时间段 / Divide time slots by the specified interval
-     */
+     * @param interval 时间间隔 / The time interval
+     * @return 时间段列表 / The list of time ranges
+    */
     fun timeSlotsOf(interval: Duration): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
         var current = start
@@ -527,7 +575,10 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 按指定间隔生成舍入时间段 / Generate rounded time slots by the specified interval
-     */
+     * @param interval 时间间隔 / The time interval
+     * @param excludedTimes 排除的时间段列表 / The list of excluded time ranges
+     * @return 舍入时间段列表 / The list of rounded time ranges
+    */
     fun roundTimeSlotsOf(
         interval: Duration,
         excludedTimes: List<TimeRange> = emptyList()
@@ -541,7 +592,10 @@ data class TimeWindow<V : RealNumber<V>>(
     /**
      * Generate rounded time slots based on intervals and excluded times.
      * 生成基于时间粒度和排除时间的舍入时间段。
-     */
+     * @param intervals 时间范围到间隔的映射 / The mapping from time ranges to intervals
+     * @param excludedTimes 排除的时间段列表 / The list of excluded time ranges
+     * @return 舍入时间段列表 / The list of rounded time ranges
+    */
     fun roundTimeSlotsOf(
         intervals: Map<TimeRange?, Duration>,
         excludedTimes: List<TimeRange> = emptyList()
@@ -555,6 +609,13 @@ data class TimeWindow<V : RealNumber<V>>(
             }
         }
         var current = start
+
+/**
+ * intervalAt.
+ * intervalAt。
+ * @param time 时间点 / The instant
+ * @return 时间间隔 / The time interval
+*/
         fun intervalAt(time: Instant): Duration {
             for ((timeRange, thisInterval) in specificIntervals) {
                 if (timeRange.contains(time)) {
@@ -659,28 +720,36 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 判断是否与另一时间范围有交集 / Check whether this window intersects with another range
-     */
+     * @param ano 另一时间范围 / The other time range
+     * @return 是否有交集 / Whether there is an intersection
+    */
     fun withIntersection(ano: TimeRange): Boolean {
         return window.withIntersection(ano)
     }
 
     /**
      * 判断是否包含指定时间点 / Check whether this window contains the specified instant
-     */
+     * @param time 时间点 / The instant
+     * @return 是否包含 / Whether the instant is contained
+    */
     fun contains(time: Instant): Boolean {
         return window.contains(time)
     }
 
     /**
      * 判断是否包含指定时间范围 / Check whether this window contains the specified time range
-     */
+     * @param time 时间范围 / The time range
+     * @return 是否包含 / Whether the time range is contained
+    */
     fun contains(time: TimeRange): Boolean {
         return window.contains(time)
     }
 
     /**
      * 按指定时间点拆分窗口 / Split the window at the specified instants
-     */
+     * @param times 时间点列表 / The list of instants
+     * @return 拆分后的时间范围列表 / The list of split time ranges
+    */
     fun split(
         times: List<Instant>
     ): List<TimeRange> {
@@ -689,7 +758,12 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 按持续时间单元拆分窗口 / Split the window by duration unit
-     */
+     * @param unit 持续时间范围 / The duration range
+     * @param currentDuration 当前已消耗的持续时间 / The current consumed duration
+     * @param maxDuration 最大持续时间 / The maximum duration
+     * @param breakTime 休息时间 / The break time
+     * @return 拆分后的时间范围 / The split time ranges
+    */
     fun split(
         unit: DurationRange,
         currentDuration: Duration = Duration.ZERO,
@@ -706,7 +780,11 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 反向按持续时间单元拆分窗口 / Reverse split the window by duration unit
-     */
+     * @param unit 持续时间范围 / The duration range
+     * @param maxDuration 最大持续时间 / The maximum duration
+     * @param breakTime 休息时间 / The break time
+     * @return 拆分后的时间范围 / The split time ranges
+    */
     fun rsplit(
         unit: DurationRange,
         maxDuration: Duration? = null,
@@ -721,7 +799,10 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 计算给定时间所属的日期 / Calculate the date to which the given time belongs
-     */
+     * @param time 本地日期时间 / The local date-time
+     * @param timeZone 时区 / The time zone
+     * @return 日期 / The date
+    */
     fun date(
         time: LocalDateTime,
         timeZone: TimeZone = TimeZone.currentSystemDefault()
@@ -735,7 +816,10 @@ data class TimeWindow<V : RealNumber<V>>(
 
     /**
      * 创建新的时间窗口 / Create a new time window
-     */
+     * @param window 时间范围 / The time range
+     * @param continues 是否连续 / Whether continuous
+     * @return 新的时间窗口 / The new time window
+    */
     fun new(window: TimeRange, continues: Boolean): TimeWindow<V> {
         return TimeWindow(
             window = window,

@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 求解器输出数据结构 / Solver output data structures */
 package fuookami.ospf.kotlin.core.solver.output
 
@@ -14,34 +15,41 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 求解器输出的密封接口。
  * Sealed interface for solver output.
- */
+*/
 sealed interface SolverOutput {}
+
 /**
  * 统一求解器输出接口，包含通用的求解统计信息。
  * Unified solver output interface, containing common solving statistics.
- */
+*/
 sealed interface UnifiedSolverOutput : SolverOutput {
+
     /** 迭代次数（可选） / Iteration count (optional) */
     val iterations: UInt64?
+
     /** 节点数（可选） / Node count (optional) */
     val nodeCount: UInt64?
+
     /** 最优界（可选） / Best bound (optional) */
     val bestBound: Flt64?
+
     /** MIP 间隙（可选） / MIP gap (optional) */
     val mipGap: Flt64?
+
     /** 求解时间（可选） / Solve time (optional) */
     val solveTime: Duration?
 }
+
 /**
  * 线性求解器输出接口。
  * Linear solver output interface.
- */
+*/
 sealed interface LinearSolverOutput : SolverOutput {}
 
 /**
  * 二次求解器输出接口。
  * Quadratic solver output interface.
- */
+*/
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
 /** 将 Flt64 默认值转换为 V 类型；非 Flt64 解返回 null / Convert a Flt64 default value to V type; returns null for non-Flt64 solutions */
@@ -71,7 +79,7 @@ private fun <V> castSolverFlt64FallbackToValueOrNull(value: Flt64, solution: Sol
  * @property objValueOrNull 目标值（V 类型，可为 null）/ Objective value (V type, nullable)
  * @property possibleBestObjValueOrNull 可能的最优目标值（V 类型，可为 null）/ Possible best objective value (V type, nullable)
  * @property bestBoundValueOrNull 最优界（V 类型，可为 null）/ Best bound (V type, nullable)
- */
+*/
 data class FeasibleSolverOutput<V>(
     val obj: Flt64,
     val solution: Solution<V>,
@@ -87,10 +95,11 @@ data class FeasibleSolverOutput<V>(
     val possibleBestObjValueOrNull: V? = castSolverFlt64FallbackToValueOrNull(possibleBestObj, solution),
     val bestBoundValueOrNull: V? = bestBound?.let { castSolverFlt64FallbackToValueOrNull(it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput {
+
     /**
      * 获取目标值，缺失时返回失败 / Get objective value, returning failure when missing
      * @return 目标值，缺失时返回失败 / Objective value, or failure when missing
-     */
+    */
     fun objValue(): Ret<V> {
         return objValueOrNull
             ?.let { ok(it) }
@@ -103,7 +112,7 @@ data class FeasibleSolverOutput<V>(
     /**
      * 获取可能的最优目标值，缺失时返回失败 / Get possible best objective value, returning failure when missing
      * @return 可能的最优目标值，缺失时返回失败 / Possible best objective value, or failure when missing
-     */
+    */
     fun possibleBestObjValue(): Ret<V> {
         return possibleBestObjValueOrNull
             ?.let { ok(it) }
@@ -116,7 +125,7 @@ data class FeasibleSolverOutput<V>(
     /**
      * 获取最优界，缺失时返回失败 / Get best bound value, returning failure when missing
      * @return 最优界值，缺失时返回失败 / Best bound value, or failure when missing
-     */
+    */
     fun bestBoundValue(): Ret<V> {
         return bestBoundValueOrNull
             ?.let { ok(it) }
@@ -134,7 +143,7 @@ data class FeasibleSolverOutput<V>(
  * @param V 目标值类型 / Target value type
  * @param converter 值转换器 / Value converter
  * @return 转换后的可行求解器输出 / Converted feasible solver output
- */
+*/
 fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
     return FeasibleSolverOutput(
@@ -164,7 +173,7 @@ fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): Feasible
  * @property bestBound 最优界（可选）/ Best bound (optional)
  * @property mipGap MIP 间隙（可选）/ MIP gap (optional)
  * @property solveTime 求解时间（可选）/ Solve time (optional)
- */
+*/
 data class LinearInfeasibleSolverOutput(
     val iis: BasicLinearTriadModelView,
     override val iterations: UInt64? = null,
@@ -184,7 +193,7 @@ data class LinearInfeasibleSolverOutput(
  * @property bestBound 最优界（可选）/ Best bound (optional)
  * @property mipGap MIP 间隙（可选）/ MIP gap (optional)
  * @property solveTime 求解时间（可选）/ Solve time (optional)
- */
+*/
 data class QuadraticInfeasibleSolverOutput(
     val iis: QuadraticTetradModelView,
     override val iterations: UInt64? = null,
@@ -201,7 +210,7 @@ data class QuadraticInfeasibleSolverOutput(
  * @param IIS IIS 类型 / IIS type
  * @property output 求解器输出 / Solver output
  * @property iis IIS 信息（可选）/ IIS information (optional)
- */
+*/
 data class SolverOutputWithIIS<out IIS>(
     val output: SolverOutput,
     val iis: IIS?
@@ -214,7 +223,7 @@ data class SolverOutputWithIIS<out IIS>(
  * @param IIS IIS 类型 / IIS type
  * @param iis IIS 信息（可为 null） / IIS information (nullable)
  * @return 带 IIS 的求解器输出 / Solver output with IIS
- */
+*/
 fun <IIS> SolverOutput.withIIS(iis: IIS?): SolverOutputWithIIS<IIS> {
     return SolverOutputWithIIS(
         output = this,
@@ -227,7 +236,7 @@ fun <IIS> SolverOutput.withIIS(iis: IIS?): SolverOutputWithIIS<IIS> {
  * Wrap solver output without IIS information.
  *
  * @return 无 IIS 的求解器输出 / Solver output without IIS
- */
+*/
 fun SolverOutput.withoutIIS(): SolverOutputWithIIS<Nothing> {
     return SolverOutputWithIIS(
         output = this,
@@ -240,7 +249,7 @@ fun SolverOutput.withoutIIS(): SolverOutputWithIIS<Nothing> {
  * Combine linear infeasible solver output with its built-in IIS information.
  *
  * @return 带 IIS 的求解器输出 / Solver output with IIS
- */
+*/
 fun LinearInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<BasicLinearTriadModelView> {
     return SolverOutputWithIIS(
         output = this,
@@ -253,7 +262,7 @@ fun LinearInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<BasicLinearTriad
  * Combine quadratic infeasible solver output with its built-in IIS information.
  *
  * @return 带 IIS 的求解器输出 / Solver output with IIS
- */
+*/
 fun QuadraticInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<QuadraticTetradModelView> {
     return SolverOutputWithIIS(
         output = this,

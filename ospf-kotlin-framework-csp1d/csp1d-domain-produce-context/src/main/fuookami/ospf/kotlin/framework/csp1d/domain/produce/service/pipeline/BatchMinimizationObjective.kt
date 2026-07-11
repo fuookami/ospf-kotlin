@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  *
  * @property produce 产出聚合 / Produce aggregation
  * @property batchCoefficient 批次目标系数（默认 1.0）/ Batch objective coefficient (default 1.0)
- */
+*/
 class BatchMinimizationObjective(
     private val produce: ProduceAggregation<*>,
     private val batchCoefficient: Flt64 = Flt64.one

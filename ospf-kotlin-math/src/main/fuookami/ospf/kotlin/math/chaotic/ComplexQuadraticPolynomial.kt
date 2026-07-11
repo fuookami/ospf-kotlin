@@ -9,7 +9,7 @@
  * The complex quadratic polynomial is an iterative map on the complex domain, serving as the foundation for Mandelbrot set and Julia set research.
  * Iterating complex quadratic polynomials generates rich fractal structures, exhibiting complex chaotic dynamical behavior.
  * Commonly used for fractal geometry research, chaos visualization analysis, and complex dynamics theory research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property c 复数常数项（二维点表示复数） / Complex constant term (2D point represents complex number)
  * @property d 多项式指数 / Polynomial exponent
- */
+*/
 data class ComplexQuadraticPolynomial(
     val c: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(-Flt64.one, Flt64.one),
@@ -46,7 +46,7 @@ data class ComplexQuadraticPolynomial(
 /**
  * 复二次多项式生成器
  * Complex Quadratic Polynomial Generator
- */
+*/
 data class ComplexQuadraticPolynomialGenerator(
     val complexQuadraticPolynomial: ComplexQuadraticPolynomial = ComplexQuadraticPolynomial(),
     private var _x: Point<Dim2, Flt64> = point2(

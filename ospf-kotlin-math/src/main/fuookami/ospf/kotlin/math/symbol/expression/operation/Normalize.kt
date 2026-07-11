@@ -5,7 +5,7 @@
  * 提供布尔表达式的规范化操作，包括扁平化、常量折叠、去重、双重否定消除、德摩根定律。
  * Provides boolean expression normalization operations, including flattening,
  * constant folding, deduplication, double negation elimination, and De Morgan's laws.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
 import fuookami.ospf.kotlin.math.symbol.identity
@@ -22,18 +22,24 @@ import fuookami.ospf.kotlin.math.Trivalent
  * @property eliminateDoubleNegation 是否消除双重否定 / Whether to eliminate double negation
  * @property applyDeMorgan 是否应用德摩根定律 / Whether to apply De Morgan's laws
  * @property sortOperands 是否排序操作数（用于去重比较） / Whether to sort operands (for deduplication comparison)
- */
+*/
 data class NormalizeConfig(
+
     /** 是否扁平匌And/Or / Whether to flatten And/Or */
     val flatten: Boolean = true,
+
     /** 是否进行常量折叠 / Whether to perform constant folding */
     val constantFolding: Boolean = true,
+
     /** 是否去重 / Whether to deduplicate */
     val deduplicate: Boolean = true,
+
     /** 是否消除双重否定 / Whether to eliminate double negation */
     val eliminateDoubleNegation: Boolean = true,
+
     /** 是否应用德摩根定後/ Whether to apply De Morgan's laws */
     val applyDeMorgan: Boolean = false,  // 默认关闭，可能改变语义结枌/ Off by default, may change semantic structure
+
     /** 是否排序操作数（用于去重比较， Whether to sort operands (for deduplication comparison) */
     val sortOperands: Boolean = false
 )
@@ -45,7 +51,7 @@ data class NormalizeConfig(
  * @param expr 要规范化的表达式 / Expression to normalize
  * @param config 规范化配罌/ Normalization configuration
  * @return 规范化后的表达式 / Normalized expression
- */
+*/
 fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig()): BooleanExpression {
     var result = expr
 
@@ -94,7 +100,7 @@ fun normalize(expr: BooleanExpression, config: NormalizeConfig = NormalizeConfig
  *
  * @param expr 要简化的表达式 / Expression to simplify
  * @return 简化后的表达式 / Simplified expression
- */
+*/
 private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
@@ -125,7 +131,7 @@ private fun simplifySingleOperand(expr: BooleanExpression): BooleanExpression {
  * @param expr 要递归处理的表达式 / Expression to recursively process
  * @param config 规范化配置 / Normalization configuration
  * @return 递归处理后的表达式 / Expression after recursive processing
- */
+*/
 private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig): BooleanExpression {
     return when (expr) {
         is AndExpression -> AndExpression(expr.operands.map { normalize(it, config) })
@@ -148,7 +154,7 @@ private fun normalizeChildren(expr: BooleanExpression, config: NormalizeConfig):
  *
  * @param expr 要扁平化的表达式 / Expression to flatten
  * @return 扁平化后的表达式 / Flattened expression
- */
+*/
 fun flatten(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
@@ -205,7 +211,7 @@ fun flatten(expr: BooleanExpression): BooleanExpression {
  *
  * @param expr 要进行常量折叠的表达式 / Expression to constant-fold
  * @return 常量折叠后的表达式 / Constant-folded expression
- */
+*/
 fun constantFold(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is BooleanConstant -> expr
@@ -281,7 +287,7 @@ fun constantFold(expr: BooleanExpression): BooleanExpression {
  *
  * @param expr 要去重的表达式 / Expression to deduplicate
  * @return 去重后的表达式 / Deduplicated expression
- */
+*/
 fun deduplicate(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
@@ -315,7 +321,7 @@ fun deduplicate(expr: BooleanExpression): BooleanExpression {
  *
  * @param expr 要消除双重否定的表达式 / Expression to eliminate double negation
  * @return 消除双重否定后的表达式 / Expression with double negation eliminated
- */
+*/
 fun eliminateDoubleNegation(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is NotExpression -> {
@@ -341,7 +347,7 @@ fun eliminateDoubleNegation(expr: BooleanExpression): BooleanExpression {
  *
  * @param expr 要应用德摩根定律的表达式 / Expression to apply De Morgan's laws
  * @return 应用德摩根定律后的表达式 / Expression after applying De Morgan's laws
- */
+*/
 fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is NotExpression -> {
@@ -367,7 +373,7 @@ fun applyDeMorgan(expr: BooleanExpression): BooleanExpression {
  *
  * @param expr 要排序操作数的表达式 / Expression whose operands to sort
  * @return 操作数排序后的表达式 / Expression with sorted operands
- */
+*/
 fun sortOperands(expr: BooleanExpression): BooleanExpression {
     return when (expr) {
         is AndExpression -> {
@@ -390,7 +396,7 @@ fun sortOperands(expr: BooleanExpression): BooleanExpression {
  * Get structural key of expression (for deduplication and sorting)
  *
  * @return 结构键字符串 / Structural key string
- */
+*/
 fun BooleanExpression.structuralKey(): String {
     return when (this) {
         is BooleanConstant -> "Const:${when(value) { Trivalent.True -> "True"; Trivalent.False -> "False"; Trivalent.Unknown -> "Unknown" }}"
@@ -410,7 +416,7 @@ fun BooleanExpression.structuralKey(): String {
  * Get structural key of scalar expression
  *
  * @return 结构键字符串 / Structural key string
- */
+*/
 fun ScalarExpression<*>.structuralKey(): String {
     return when (this) {
         is ScalarConstant<*> -> "Const:$value"

@@ -4,7 +4,7 @@
  *
  * 提供将 API 请求和响应记录插入和查询 MongoDB 的扩展函数。
  * Provides extension functions for inserting and querying API request/response records in MongoDB.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import kotlinx.serialization.*
@@ -20,7 +20,7 @@ import com.mongodb.client.MongoDatabase
  * @param requester 请求者标识 / Requester identifier
  * @param version API 版本 / API version
  * @param request 请求对象 / Request object
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T> MongoDatabase.insertRequest(
     path: String,
@@ -50,7 +50,7 @@ inline fun <reified T> MongoDatabase.insertRequest(
  * @param version API 版本 / API version
  * @param serializer 序列化器 / Serializer
  * @param request 请求对象 / Request object
- */
+*/
 fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
     path: String,
     app: String,
@@ -80,7 +80,7 @@ fun <T : RequestDTO<T>> MongoDatabase.insertRequest(
  * @param path API 路径 / API path
  * @param query 查询条件 / Query conditions
  * @return 请求记录列表 / Request record list
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T> MongoDatabase.getRequest(
     path: String,
@@ -102,7 +102,7 @@ inline fun <reified T> MongoDatabase.getRequest(
  * @param serializer 序列化器 / Serializer
  * @param query 查询条件 / Query conditions
  * @return 请求记录列表 / Request record list
- */
+*/
 fun <T : RequestDTO<T>> MongoDatabase.getRequest(
     path: String,
     serializer: KSerializer<T>,
@@ -125,7 +125,7 @@ fun <T : RequestDTO<T>> MongoDatabase.getRequest(
  * @param requester 请求者标识 / Requester identifier
  * @param version API 版本 / API version
  * @param response 响应对象 / Response object
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T> MongoDatabase.insertResponse(
     path: String,
@@ -155,7 +155,7 @@ inline fun <reified T> MongoDatabase.insertResponse(
  * @param version API 版本 / API version
  * @param serializer 序列化器 / Serializer
  * @param response 响应对象 / Response object
- */
+*/
 fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
     path: String,
     app: String,
@@ -185,7 +185,7 @@ fun <T : ResponseDTO<T>> MongoDatabase.insertResponse(
  * @param path API 路径 / API path
  * @param query 查询条件 / Query conditions
  * @return 响应记录列表 / Response record list
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T> MongoDatabase.getResponse(
     path: String,
@@ -207,7 +207,7 @@ inline fun <reified T> MongoDatabase.getResponse(
  * @param serializer 序列化器 / Serializer
  * @param query 查询条件 / Query conditions
  * @return 响应记录列表 / Response record list
- */
+*/
 fun <T : ResponseDTO<T>> MongoDatabase.getResponse(
     path: String,
     serializer: KSerializer<T>,

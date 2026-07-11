@@ -25,7 +25,7 @@ enum class MindOPTVariable {
          *
          * @param type 内部变量类型 / internal variable type
          * @return MindOPT 变量类型 / MindOPT variable type
-         */
+        */
         operator fun invoke(type: VariableType<*>): MindOPTVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.variable.Binary -> {
@@ -47,6 +47,6 @@ enum class MindOPTVariable {
      * 转换为 MindOPT 变量类型字符 / Convert to MindOPT variable type character
      *
      * @return MindOPT 变量类型字符 / MindOPT variable type character
-     */
+    */
     abstract fun toMindOPTVar(): Char
 }

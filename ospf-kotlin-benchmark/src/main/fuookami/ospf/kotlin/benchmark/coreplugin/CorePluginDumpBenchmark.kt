@@ -32,7 +32,7 @@ import java.util.concurrent.TimeUnit
  * @property constraintsLhs 约束左侧稀疏矩阵 / constraint left-hand side sparse matrix
  * @property constraintsRhs 约束右侧值列表 / constraint right-hand side values
  * @property constraintsSigns 约束关系符号列表 / constraint relation signs
- */
+*/
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -131,7 +131,9 @@ open class CorePluginDumpBenchmark {
     /**
      * 对应各 solver dump 的变量 lower/upper/name/initial 预处理。
      * Maps to variable lower/upper/name/initial preprocessing in solver dumps.
-     */
+     *
+     * @return the result / 整数值
+    */
     @Benchmark
     fun prepareVariableDumpingDataHotPath(): Int {
         val data = prepareVariableDumpingDataLikeSolver(
@@ -146,7 +148,7 @@ open class CorePluginDumpBenchmark {
      * Maps to objective coefficient collection to double in solver dumps.
      *
      * @return 系数累加校验和 / coefficient accumulation checksum
-     */
+    */
     @Benchmark
     fun collectObjectiveCoefficients(): Double {
         var checksum = 0.0
@@ -161,7 +163,7 @@ open class CorePluginDumpBenchmark {
      * Maps to constraint segment size derivation in solver dumps.
      *
      * @return 约束分块数量 / number of constraint segments
-     */
+    */
     @Benchmark
     fun computeConstraintSegments(): Int {
         val segment = computeConstraintSegmentSizeLikeSolver(constraintsSigns.size, availableProcessors = 12)
@@ -173,7 +175,7 @@ open class CorePluginDumpBenchmark {
      * Maps to sparse row traversal and bound conversion in solver dumps.
      *
      * @return 系数与界限累加校验和 / coefficient and bound accumulation checksum
-     */
+    */
     @Benchmark
     fun walkSparseRowsAndBounds(): Double {
         var checksum = 0.0
@@ -210,7 +212,7 @@ open class CorePluginDumpBenchmark {
      * @property lowerBounds 变量下界数组 / array of variable lower bounds
      * @property upperBounds 变量上界数组 / array of variable upper bounds
      * @property initialResults 带初始值的变量索引与值对列表 / list of variable index and value pairs with initial results
-     */
+    */
     private data class VariableDumpingDataSnapshot(
         val lowerBounds: DoubleArray,
         val upperBounds: DoubleArray,
@@ -225,7 +227,7 @@ open class CorePluginDumpBenchmark {
      * @param variables 变量列表 / list of variables
      * @param _scopeName 作用域名称 / scope name
      * @return 变量转储数据快照 / variable dumping data snapshot
-     */
+    */
     private fun prepareVariableDumpingDataLikeSolver(
         variables: List<Variable>,
         _scopeName: String
@@ -258,7 +260,7 @@ open class CorePluginDumpBenchmark {
      * @param constraintSize 约束总数 / total number of constraints
      * @param availableProcessors 可用处理器数 / number of available processors
      * @return 约束分块大小 / constraint segment size
-     */
+    */
     private fun computeConstraintSegmentSizeLikeSolver(
         constraintSize: Int,
         availableProcessors: Int
@@ -285,7 +287,7 @@ open class CorePluginDumpBenchmark {
      *
      * @property colIndex 列索引 / column index
      * @property coefficient 系数值 / coefficient value
-     */
+    */
     private data class ObjectiveCell(
         val colIndex: Int,
         val coefficient: Flt64

@@ -1,7 +1,7 @@
 /**
  * 列生成装箱分析器。
  * Column generation packing analyzer.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service.*
  * @property schema 渲染方案 / rendering schema
  * @property demandModeShadowPriceTotals 需求模式影子价格总和 / demand mode shadow price totals
  * @property demandModeShadowPriceEntryCounts 需求模式影子价格条目数 / demand mode shadow price entry counts
- */
+*/
 data class ColumnGenerationPackingSnapshot(
     val bins: List<Bin<BinLayer, FltX>>,
     val packingResult: PackingResult,
@@ -39,7 +39,7 @@ data class ColumnGenerationPackingSnapshot(
  *
  * @param mode 需求模式 / demand mode
  * @return 模式对应的标签字符串 / tag string corresponding to the mode
- */
+*/
 private fun demandModeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
         is Bpp3dDemandMode.Item -> "item"
@@ -58,7 +58,7 @@ private fun demandModeTag(mode: Bpp3dDemandMode): String {
  * @param layer 量纲层转换后的模型层 / model layer converted from a quantity layer
  * @param index 层序号 / layer index
  * @return 分析用箱型 / analysis bin type
- */
+*/
 private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
     return BinType(
         width = layer.shape.width,
@@ -78,7 +78,7 @@ private fun knownCoordinateBinType(layer: BinLayer, index: Int): BinType<FltX> {
  * @property packer 装箱器 / packer
  * @property rendererAdapter 渲染适配器 / renderer adapter
  * @property contextBuilder 上下文构建器 / context builder
- */
+*/
 class ColumnGenerationPackingAnalyzer(
     private val packer: Packer = Packer(),
     private val rendererAdapter: PackingRendererAdapter = PackingRendererAdapter(),
@@ -86,10 +86,11 @@ class ColumnGenerationPackingAnalyzer(
         PackingContext(info = mapOf("cg_iteration" to state.iteration.toString()))
     }
 ) : ColumnGenerationSolutionAnalyzer<FltX> {
+
     /**
      * 最近一次分析的装箱快照。
      * Latest packing snapshot from the most recent analysis.
-     */
+    */
     var latest: ColumnGenerationPackingSnapshot? = null
         private set
 
@@ -99,7 +100,7 @@ class ColumnGenerationPackingAnalyzer(
      *
      * @param state 列生成状态 / column generation state
      * @return 分析结果 / analysis result
-     */
+    */
     override suspend fun analyze(state: ColumnGenerationState<FltX>): Try {
         val bins: List<Bin<BinLayer, FltX>> = if (state.bins.isNotEmpty()) {
             state.bins
@@ -188,7 +189,7 @@ class ColumnGenerationPackingAnalyzer(
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 分析结果 / analysis result
- */
+*/
 suspend fun <T : FloatingNumber<T>> ColumnGenerationPackingAnalyzer.analyzeFromQuantity(
     iteration: Int,
     columns: List<QuantityBinLayer<T>>,

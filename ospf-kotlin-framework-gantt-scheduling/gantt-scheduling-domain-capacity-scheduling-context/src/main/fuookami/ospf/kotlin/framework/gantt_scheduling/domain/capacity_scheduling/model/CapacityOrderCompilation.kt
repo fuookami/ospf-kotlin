@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @property slots 时隙列表 / List of time slots
  * @property timeWindow 时间窗口 / Time window
  * @property maxOrderPerSlot 每时隙最大顺序数 / Maximum order per slot
- */
+*/
 class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
     private val actions: List<A>,
     private val slots: List<TimeSlot>,
@@ -56,21 +56,21 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
      * 三维整型变量
      * 3D integer variable
      * x[action, slot, order] -> amount
-     */
+    */
     lateinit var x: UIntVariable3
         private set
 
     /**
      * 三维二元变量（顺序占用标记）
      * 3D binary variable for order occupation
-     */
+    */
     lateinit var b: BinVariable3
         private set
 
     /**
      * 成本表达式
      * Cost expression
-     */
+    */
     lateinit var cost: LinearIntermediateSymbol<Flt64>
         private set
 
@@ -86,7 +86,7 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         // Register x variable
         // 注册 x 变量
@@ -208,7 +208,7 @@ class CapacityOrderCompilation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param model Abstract linear meta model / 抽象线性元模型
      * @return Capacity scheduling solution / 产能调度解
-     */
+    */
     override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
 

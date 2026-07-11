@@ -13,7 +13,7 @@
  * - Day: 24 hours = 86400 seconds
  * - Week: 7 days = 604800 seconds
  * - Year: 365.25 days (Julian year)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Time
  *
  * 来源：SI 七个基本单位之一
  * Source: One of the seven SI base units
- */
+*/
 object Second : PhysicalUnit() {
     override val name: String = "second"
     override val symbol: String = "s"
@@ -59,7 +59,7 @@ object Second : PhysicalUnit() {
  *
  * 来源：SI 时间单位，常用于计算机科学和高精度计时
  * Source: SI time unit, commonly used in computer science and high-precision timing
- */
+*/
 object Nanosecond : DerivedPhysicalUnit(Second * Scale.nano) {
     override val name: String = "nanosecond"
     override val symbol: String = "ns"
@@ -82,7 +82,7 @@ object Nanosecond : DerivedPhysicalUnit(Second * Scale.nano) {
  *
  * 来源：SI 时间单位，常用于科学实验和工程测量
  * Source: SI time unit, commonly used in scientific experiments and engineering measurements
- */
+*/
 object Microsecond : DerivedPhysicalUnit(Second * Scale.micro) {
     override val name: String = "microsecond"
     override val symbol: String = "μs"
@@ -105,7 +105,7 @@ object Microsecond : DerivedPhysicalUnit(Second * Scale.micro) {
  *
  * 来源：SI 时间单位，常用于日常计时和计算机编程
  * Source: SI time unit, commonly used in daily timing and computer programming
- */
+*/
 object Millisecond : DerivedPhysicalUnit(Second * Scale.milli) {
     override val name: String = "millisecond"
     override val symbol: String = "ms"
@@ -128,7 +128,7 @@ object Millisecond : DerivedPhysicalUnit(Second * Scale.milli) {
  *
  * 来源：常用时间单位
  * Source: Common time unit
- */
+*/
 object Minute : DerivedPhysicalUnit(Second * 60) {
     override val name: String = "minute"
     override val symbol: String = "min"
@@ -151,7 +151,7 @@ object Minute : DerivedPhysicalUnit(Second * 60) {
  *
  * 来源：常用时间单位
  * Source: Common time unit
- */
+*/
 object Hour : DerivedPhysicalUnit(Minute * 60) {
     override val name: String = "hour"
     override val symbol: String = "h"
@@ -174,7 +174,7 @@ object Hour : DerivedPhysicalUnit(Minute * 60) {
  *
  * 来源：常用时间单位，基于地球自转周期
  * Source: Common time unit, based on Earth's rotation period
- */
+*/
 object Day : DerivedPhysicalUnit(Hour * 24) {
     override val name: String = "day"
     override val symbol: String = "d"
@@ -197,7 +197,7 @@ object Day : DerivedPhysicalUnit(Hour * 24) {
  *
  * 来源：常用时间单位
  * Source: Common time unit
- */
+*/
 object Week : DerivedPhysicalUnit(Day * 7) {
     override val name: String = "week"
     override val symbol: String = "wk"
@@ -220,7 +220,7 @@ object Week : DerivedPhysicalUnit(Day * 7) {
  *
  * 来源：儒略年，常用于天文学和科学计算
  * Source: Julian year, commonly used in astronomy and scientific calculations
- */
+*/
 object Year : DerivedPhysicalUnit(Day * 365.25) {
     override val name: String = "year"
     override val symbol: String = "yr"

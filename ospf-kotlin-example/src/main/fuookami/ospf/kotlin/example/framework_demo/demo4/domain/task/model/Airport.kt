@@ -19,12 +19,12 @@ enum class AirportType {
 /**
  * 通过 ICAO 代码标识的机场（具有类型、中转时间和基地标志）。An airport identified by ICAO code, with type, transfer times, and base flag.
  *
- * @property icao 参数。
- * @property type 参数。
- * @property passengerTransferTime 参数。
- * @property cargoTransferTime 参数。
- * @property base 参数。
- */
+ * @property icao The ICAO code / ICAO代码
+ * @property type The airport type / 机场类型
+ * @property passengerTransferTime The passenger transfer time / 旅客中转时间
+ * @property cargoTransferTime The cargo transfer time / 货物中转时间
+ * @property base Whether this airport is a base / 是否为基地
+*/
 data class Airport(
     val icao: ICAO,
     val type: AirportType,
@@ -37,11 +37,11 @@ data class Airport(
         val values by pool::values
 
         /**
-         * 通过 ICAO 代码从池中获取机场。/ Retrieves an [Airport] by ICAO code from the pool.
- *
-         * @param icao 参数。
-         * @return 返回结果。
-         */
+         * Retrieves an [Airport] by ICAO code from the pool / 通过 ICAO 代码从池中获取机场
+         *
+         * @param icao The ICAO code to look up / 要查找的ICAO代码
+         * @return The airport instance, or null if not found / 机场实例，未找到则为null
+        */
         operator fun invoke(icao: ICAO): Airport? {
             return pool[icao]
         }
@@ -77,9 +77,9 @@ data class Airport(
 /**
  * 由出发和到达机场定义的航线。A route defined by departure and arrival airports.
  *
- * @property dep 参数。
- * @property arr 参数。
- */
+ * @property dep The departure airport / 出发机场
+ * @property arr The arrival airport / 到达机场
+*/
 data class Route(
     val dep: Airport,
     val arr: Airport

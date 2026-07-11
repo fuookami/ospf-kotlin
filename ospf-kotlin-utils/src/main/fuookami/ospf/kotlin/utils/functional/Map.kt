@@ -15,7 +15,7 @@
  * - [MultiMap2]: 二级嵌套 Map (K1 -> K2 -> V)
  * - [MultiMap3]: 三级嵌套 Map (K1 -> K2 -> K3 -> V)
  * - [MultiMap4]: 四级嵌套 Map (K1 -> K2 -> K3 -> K4 -> V)
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -23,7 +23,7 @@ package fuookami.ospf.kotlin.utils.functional
  *
  * Type alias for a two-level nested Map.
  * 二级嵌套 Map 的类型别名。
- */
+*/
 typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
 
 /**
@@ -31,7 +31,7 @@ typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
  *
  * Type alias for a three-level nested Map.
  * 三级嵌套 Map 的类型别名。
- */
+*/
 typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>
 
 /**
@@ -39,7 +39,7 @@ typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>
  *
  * Type alias for a four-level nested Map.
  * 四级嵌套 Map 的类型别名。
- */
+*/
 typealias MultiMap4<K1, K2, K3, K4, V> = Map<K1, Map<K2, Map<K3, Map<K4, V>>>>
 
 /**
@@ -47,7 +47,7 @@ typealias MultiMap4<K1, K2, K3, K4, V> = Map<K1, Map<K2, Map<K3, Map<K4, V>>>>
  *
  * Type alias for a two-level nested mutable Map.
  * 二级嵌套可变 Map 的类型别名。
- */
+*/
 typealias MutableMultiMap2<K1, K2, V> = MutableMap<K1, MutableMap<K2, V>>
 
 /**
@@ -55,7 +55,7 @@ typealias MutableMultiMap2<K1, K2, V> = MutableMap<K1, MutableMap<K2, V>>
  *
  * Type alias for a three-level nested mutable Map.
  * 三级嵌套可变 Map 的类型别名。
- */
+*/
 typealias MutableMultiMap3<K1, K2, K3, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, V>>>
 
 /**
@@ -63,7 +63,7 @@ typealias MutableMultiMap3<K1, K2, K3, V> = MutableMap<K1, MutableMap<K2, Mutabl
  *
  * Type alias for a four-level nested mutable Map.
  * 四级嵌套可变 Map 的类型别名。
- */
+*/
 typealias MutableMultiMap4<K1, K2, K3, K4, V> = MutableMap<K1, MutableMap<K2, MutableMap<K3, MutableMap<K4, V>>>>
 
 /**
@@ -76,7 +76,7 @@ typealias MutableMultiMap4<K1, K2, K3, K4, V> = MutableMap<K1, MutableMap<K2, Mu
  * @param K2 第二级键的类型 / The type of the second level key
  * @param V 值的类型 / The type of the value
  * @return 转换后的二维 Map / The converted MultiMap2
- */
+*/
 fun <K1, K2, V> List<Triple<K1, K2, V>>.toMap2(): MultiMap2<K1, K2, V> {
     return this.groupBy(
         { it.first },
@@ -95,7 +95,7 @@ fun <K1, K2, V> List<Triple<K1, K2, V>>.toMap2(): MultiMap2<K1, K2, V> {
  * @param K3 第三级键的类型 / The type of the third level key
  * @param V 值的类型 / The type of the value
  * @return 转换后的三维 Map / The converted MultiMap3
- */
+*/
 fun <K1, K2, K3, V> List<Quadruple<K1, K2, K3, V>>.toMap3(): MultiMap3<K1, K2, K3, V> {
     return this.groupBy(
         { it.first },
@@ -114,7 +114,7 @@ fun <K1, K2, K3, V> List<Quadruple<K1, K2, K3, V>>.toMap3(): MultiMap3<K1, K2, K
  * @param key Map 的键 / The key of the map
  * @param i 列表中的索引 / The index in the list
  * @return 找到的元素，如果不存在则返回 null / The found element, or null if not found
- */
+*/
 operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
     return this[key]?.get(i)
 }
@@ -130,7 +130,7 @@ operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
  * @param key Map 的键 / The key of the map
  * @param i 列表中的 ULong 索引 / The ULong index in the list
  * @return 找到的元素，如果不存在则返回 null / The found element, or null if not found
- */
+*/
 operator fun <K, T> Map<K, List<T>>.get(key: K, i: ULong): T? {
     return this[key]?.get(i.toInt())
 }
@@ -147,7 +147,7 @@ operator fun <K, T> Map<K, List<T>>.get(key: K, i: ULong): T? {
  * @param key1 第一级键 / The first level key
  * @param key2 第二级键 / The second level key
  * @return 找到的值，如果不存在则返回 null / The found value, or null if not found
- */
+*/
 operator fun <K1, K2, V> MultiMap2<K1, K2, V>.get(key1: K1, key2: K2): V? {
     return this[key1]?.get(key2)
 }
@@ -166,7 +166,7 @@ operator fun <K1, K2, V> MultiMap2<K1, K2, V>.get(key1: K1, key2: K2): V? {
  * @param defaultValue 默认值提供者 / The default value provider
  * @param defaultContainer 默认容器提供者 / The default container provider
  * @return 找到的值或新设置的默认值 / The found value or the newly set default value
- */
+*/
 fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.getOrPut(
     key1: K1,
     key2: K2,
@@ -191,7 +191,7 @@ fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.getOrPut(
  * @param key2 第二级键 / The second level key
  * @param value 要设置的值 / The value to set
  * @return 之前的值，如果不存在则返回 null / The previous value, or null if not found
- */
+*/
 operator fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.set(
     key1: K1,
     key2: K2,
@@ -214,7 +214,7 @@ operator fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.set(
  * @param value 要设置的值 / The value to set
  * @param defaultContainer 默认容器提供者 / The default container provider
  * @return 之前的值，如果不存在则返回 null / The previous value, or null if not found
- */
+*/
 fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.put(
     key1: K1,
     key2: K2,
@@ -231,7 +231,7 @@ fun <K1, K2, V> MutableMultiMap2<K1, K2, V>.put(
  *
  * Gets an element from a two-level nested Map with List values by keys and index.
  * 通过两个键和一个索引从二级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: Int): T? {
     return this[key1]?.get(key2)?.get(i)
 }
@@ -241,7 +241,7 @@ operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: I
  *
  * Gets an element from a two-level nested Map with List values by keys and ULong index.
  * 通过两个键和一个 ULong 索引从二级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: ULong): T? {
     return this[key1]?.get(key2)?.get(i.toInt())
 }
@@ -251,7 +251,7 @@ operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: U
  *
  * Gets a value from a three-level nested Map by three keys.
  * 通过三个键从三级嵌套 Map 中获取值。
- */
+*/
 operator fun <K1, K2, K3, V> MultiMap3<K1, K2, K3, V>.get(key1: K1, key2: K2, key3: K3): V? {
     return this[key1]?.get(key2)?.get(key3)
 }
@@ -261,7 +261,7 @@ operator fun <K1, K2, K3, V> MultiMap3<K1, K2, K3, V>.get(key1: K1, key2: K2, ke
  *
  * Gets a value from a three-level nested mutable Map, or puts and returns the default value if not found.
  * 从三级嵌套可变 Map 中获取值，如果未找到则设置并返回默认值。
- */
+*/
 fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.getOrPut(
     key1: K1,
     key2: K2,
@@ -281,7 +281,7 @@ fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.getOrPut(
  *
  * Sets a value in a three-level nested mutable Map using operator syntax.
  * 使用操作符语法设置三级嵌套可变 Map 中的值。
- */
+*/
 operator fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.set(
     key1: K1,
     key2: K2,
@@ -296,7 +296,7 @@ operator fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.set(
  *
  * Puts a value in a three-level nested mutable Map.
  * 设置三级嵌套可变 Map 中的值。
- */
+*/
 fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.put(
     key1: K1,
     key2: K2,
@@ -316,7 +316,7 @@ fun <K1, K2, K3, V> MutableMultiMap3<K1, K2, K3, V>.put(
  *
  * Gets an element from a three-level nested Map with List values by keys and index.
  * 通过三个键和一个索引从三级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: Int): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(i)
 }
@@ -326,7 +326,7 @@ operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: 
  *
  * Gets an element from a three-level nested Map with List values by keys and ULong index.
  * 通过三个键和一个 ULong 索引从三级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: ULong): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(i.toInt())
 }
@@ -336,7 +336,7 @@ operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: 
  *
  * Gets a value from a four-level nested Map by four keys.
  * 通过四个键从四级嵌套 Map 中获取值。
- */
+*/
 operator fun <K1, K2, K3, K4, V> MultiMap4<K1, K2, K3, K4, V>.get(key1: K1, key2: K2, key3: K3, key4: K4): V? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)
 }
@@ -346,7 +346,7 @@ operator fun <K1, K2, K3, K4, V> MultiMap4<K1, K2, K3, K4, V>.get(key1: K1, key2
  *
  * Gets a value from a four-level nested mutable Map, or puts and returns the default value if not found.
  * 从四级嵌套可变 Map 中获取值，如果未找到则设置并返回默认值。
- */
+*/
 fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.getOrPut(
     key1: K1,
     key2: K2,
@@ -369,7 +369,7 @@ fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.getOrPut(
  *
  * Sets a value in a four-level nested mutable Map using operator syntax.
  * 使用操作符语法设置四级嵌套可变 Map 中的值。
- */
+*/
 operator fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.set(
     key1: K1,
     key2: K2,
@@ -385,7 +385,7 @@ operator fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.set(
  *
  * Puts a value in a four-level nested mutable Map.
  * 设置四级嵌套可变 Map 中的值。
- */
+*/
 fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.put(
     key1: K1,
     key2: K2,
@@ -408,7 +408,7 @@ fun <K1, K2, K3, K4, V> MutableMultiMap4<K1, K2, K3, K4, V>.put(
  *
  * Gets an element from a four-level nested Map with List values by keys and index.
  * 通过四个键和一个索引从四级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: Int): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i)
 }
@@ -418,7 +418,7 @@ operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1
  *
  * Gets an element from a four-level nested Map with List values by keys and ULong index.
  * 通过四个键和一个 ULong 索引从四级嵌套 Map（值类型为 List）中获取元素。
- */
+*/
 operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: ULong): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i.toInt())
 }

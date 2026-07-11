@@ -4,7 +4,7 @@
  *
  * 提供避免扩展函数命名冲突的仓储谓词构造入口。
  * Provides repository predicate builders that avoid extension-function name conflicts.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import kotlin.reflect.KProperty1
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 等值比较表达式 / Equality comparison expression
- */
+*/
 fun <E, T> eq(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Eq, value)
 }
@@ -29,7 +29,7 @@ fun <E, T> eq(property: KProperty1<E, T>, value: T): Comparison<T> {
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 不等值比较表达式 / Not-equal comparison expression
- */
+*/
 fun <E, T> ne(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Ne, value)
 }
@@ -41,7 +41,7 @@ fun <E, T> ne(property: KProperty1<E, T>, value: T): Comparison<T> {
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 大于比较表达式 / Greater-than comparison expression
- */
+*/
 fun <E, T : Comparable<T>> gt(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Gt, value)
 }
@@ -53,7 +53,7 @@ fun <E, T : Comparable<T>> gt(property: KProperty1<E, T>, value: T): Comparison<
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 大于等于比较表达式 / Greater-than-or-equal comparison expression
- */
+*/
 fun <E, T : Comparable<T>> ge(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Ge, value)
 }
@@ -65,7 +65,7 @@ fun <E, T : Comparable<T>> ge(property: KProperty1<E, T>, value: T): Comparison<
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 小于比较表达式 / Less-than comparison expression
- */
+*/
 fun <E, T : Comparable<T>> lt(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Lt, value)
 }
@@ -77,7 +77,7 @@ fun <E, T : Comparable<T>> lt(property: KProperty1<E, T>, value: T): Comparison<
  * @param property 属性引用 / Property reference
  * @param value 比较值 / Comparison value
  * @return 小于等于比较表达式 / Less-than-or-equal comparison expression
- */
+*/
 fun <E, T : Comparable<T>> le(property: KProperty1<E, T>, value: T): Comparison<T> {
     return compare(property, ComparisonOperator.Le, value)
 }
@@ -89,7 +89,7 @@ fun <E, T : Comparable<T>> le(property: KProperty1<E, T>, value: T): Comparison<
  * @param property 属性引用 / Property reference
  * @param values 候选值集合 / Candidate values
  * @return In 表达式 / In expression
- */
+*/
 fun <E, T> inValues(property: KProperty1<E, T>, values: Collection<T>): InExpression<T> {
     return InExpression(reference(property), values.map { ScalarConstant(it) })
 }
@@ -101,7 +101,7 @@ fun <E, T> inValues(property: KProperty1<E, T>, values: Collection<T>): InExpres
  * @param property 属性引用 / Property reference
  * @param values 候选值 / Candidate values
  * @return In 表达式 / In expression
- */
+*/
 fun <E, T> inValues(property: KProperty1<E, T>, vararg values: T): InExpression<T> {
     return inValues(property, values.asList())
 }
@@ -113,7 +113,7 @@ fun <E, T> inValues(property: KProperty1<E, T>, vararg values: T): InExpression<
  * @param property 属性引用 / Property reference
  * @param values 候选值集合 / Candidate values
  * @return Not In 表达式 / Not In expression
- */
+*/
 fun <E, T> notInValues(property: KProperty1<E, T>, values: Collection<T>): InExpression<T> {
     return InExpression(reference(property), values.map { ScalarConstant(it) }, negated = true)
 }
@@ -125,7 +125,7 @@ fun <E, T> notInValues(property: KProperty1<E, T>, values: Collection<T>): InExp
  * @param property 属性引用 / Property reference
  * @param values 候选值 / Candidate values
  * @return Not In 表达式 / Not In expression
- */
+*/
 fun <E, T> notInValues(property: KProperty1<E, T>, vararg values: T): InExpression<T> {
     return notInValues(property, values.asList())
 }
@@ -136,7 +136,7 @@ fun <E, T> notInValues(property: KProperty1<E, T>, vararg values: T): InExpressi
  *
  * @param property 属性引用 / Property reference
  * @return 空值检查表达式 / Null-check expression
- */
+*/
 fun <E, T> isNull(property: KProperty1<E, T>): NullCheck {
     return NullCheck(path(property), NullCheckType.IsNull)
 }
@@ -147,7 +147,7 @@ fun <E, T> isNull(property: KProperty1<E, T>): NullCheck {
  *
  * @param property 属性引用 / Property reference
  * @return 非空检查表达式 / Not-null-check expression
- */
+*/
 fun <E, T> isNotNull(property: KProperty1<E, T>): NullCheck {
     return NullCheck(path(property), NullCheckType.IsNotNull)
 }
@@ -158,7 +158,7 @@ fun <E, T> isNotNull(property: KProperty1<E, T>): NullCheck {
  *
  * @param expressions 子表达式 / Child expressions
  * @return AND 表达式；空集合返回 true，单元素返回原表达式 / AND expression; empty returns true, single returns itself
- */
+*/
 fun and(vararg expressions: BooleanExpression): BooleanExpression {
     return combineAnd(expressions.toList())
 }
@@ -169,7 +169,7 @@ fun and(vararg expressions: BooleanExpression): BooleanExpression {
  *
  * @param init 子表达式收集逻辑 / Child expression collection logic
  * @return AND 表达式 / AND expression
- */
+*/
 fun and(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
     val scope = BooleanExpressionScope()
     scope.init()
@@ -182,7 +182,7 @@ fun and(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
  *
  * @param expressions 子表达式 / Child expressions
  * @return OR 表达式；空集合返回 false，单元素返回原表达式 / OR expression; empty returns false, single returns itself
- */
+*/
 fun or(vararg expressions: BooleanExpression): BooleanExpression {
     return combineOr(expressions.toList())
 }
@@ -193,7 +193,7 @@ fun or(vararg expressions: BooleanExpression): BooleanExpression {
  *
  * @param init 子表达式收集逻辑 / Child expression collection logic
  * @return OR 表达式 / OR expression
- */
+*/
 fun or(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
     val scope = BooleanExpressionScope()
     scope.init()
@@ -208,7 +208,7 @@ fun or(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
  * @param value 范围值 / Scope value
  * @param additional 额外条件 / Additional predicates
  * @return 组合后的表达式 / Combined expression
- */
+*/
 fun <E, T> scopedAnd(
     field: KProperty1<E, T>,
     value: T,
@@ -220,8 +220,9 @@ fun <E, T> scopedAnd(
 /**
  * 布尔表达式收集作用域
  * Boolean expression collection scope
- */
+*/
 class BooleanExpressionScope internal constructor() {
+
     /** 已收集的子表达式 / Collected child expressions */
     private val expressions = ArrayList<BooleanExpression>()
 
@@ -232,7 +233,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 等值比较表达式 / Equality comparison expression
-     */
+    */
     fun <E, T> eq(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Eq, value))
     }
@@ -244,7 +245,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 不等值比较表达式 / Not-equal comparison expression
-     */
+    */
     fun <E, T> ne(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Ne, value))
     }
@@ -256,7 +257,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 大于比较表达式 / Greater-than comparison expression
-     */
+    */
     fun <E, T : Comparable<T>> gt(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Gt, value))
     }
@@ -268,7 +269,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 大于等于比较表达式 / Greater-than-or-equal comparison expression
-     */
+    */
     fun <E, T : Comparable<T>> ge(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Ge, value))
     }
@@ -280,7 +281,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 小于比较表达式 / Less-than comparison expression
-     */
+    */
     fun <E, T : Comparable<T>> lt(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Lt, value))
     }
@@ -292,7 +293,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param value 比较值 / Comparison value
      * @return 小于等于比较表达式 / Less-than-or-equal comparison expression
-     */
+    */
     fun <E, T : Comparable<T>> le(property: KProperty1<E, T>, value: T): Comparison<T> {
         return add(compare(property, ComparisonOperator.Le, value))
     }
@@ -304,7 +305,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param values 候选值集合 / Candidate values
      * @return In 表达式 / In expression
-     */
+    */
     fun <E, T> inValues(property: KProperty1<E, T>, values: Collection<T>): InExpression<T> {
         return add(InExpression(reference(property), values.map { ScalarConstant(it) }))
     }
@@ -316,7 +317,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param values 候选值 / Candidate values
      * @return In 表达式 / In expression
-     */
+    */
     fun <E, T> inValues(property: KProperty1<E, T>, vararg values: T): InExpression<T> {
         return inValues(property, values.asList())
     }
@@ -328,7 +329,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param values 候选值集合 / Candidate values
      * @return Not In 表达式 / Not In expression
-     */
+    */
     fun <E, T> notInValues(property: KProperty1<E, T>, values: Collection<T>): InExpression<T> {
         return add(InExpression(reference(property), values.map { ScalarConstant(it) }, negated = true))
     }
@@ -340,7 +341,7 @@ class BooleanExpressionScope internal constructor() {
      * @param property 属性引用 / Property reference
      * @param values 候选值 / Candidate values
      * @return Not In 表达式 / Not In expression
-     */
+    */
     fun <E, T> notInValues(property: KProperty1<E, T>, vararg values: T): InExpression<T> {
         return notInValues(property, values.asList())
     }
@@ -351,7 +352,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param property 属性引用 / Property reference
      * @return 空值检查表达式 / Null-check expression
-     */
+    */
     fun <E, T> isNull(property: KProperty1<E, T>): NullCheck {
         return add(NullCheck(path(property), NullCheckType.IsNull))
     }
@@ -362,7 +363,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param property 属性引用 / Property reference
      * @return 非空检查表达式 / Not-null-check expression
-     */
+    */
     fun <E, T> isNotNull(property: KProperty1<E, T>): NullCheck {
         return add(NullCheck(path(property), NullCheckType.IsNotNull))
     }
@@ -373,7 +374,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param expressions 子表达式 / Child expressions
      * @return AND 表达式 / AND expression
-     */
+    */
     fun and(vararg expressions: BooleanExpression): BooleanExpression {
         removeCollectedSuffix(expressions.toList())
         return add(combineAnd(expressions.toList()))
@@ -385,7 +386,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param init 子表达式收集逻辑 / Child expression collection logic
      * @return AND 表达式 / AND expression
-     */
+    */
     fun and(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
         val scope = BooleanExpressionScope()
         scope.init()
@@ -398,7 +399,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param expressions 子表达式 / Child expressions
      * @return OR 表达式 / OR expression
-     */
+    */
     fun or(vararg expressions: BooleanExpression): BooleanExpression {
         removeCollectedSuffix(expressions.toList())
         return add(combineOr(expressions.toList()))
@@ -410,7 +411,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param init 子表达式收集逻辑 / Child expression collection logic
      * @return OR 表达式 / OR expression
-     */
+    */
     fun or(init: BooleanExpressionScope.() -> Unit): BooleanExpression {
         val scope = BooleanExpressionScope()
         scope.init()
@@ -422,7 +423,7 @@ class BooleanExpressionScope internal constructor() {
      * Build the current scope expression with AND semantics
      *
      * @return 当前作用域表达式 / Current scope expression
-     */
+    */
     internal fun buildAnd(): BooleanExpression {
         return combineAnd(expressions)
     }
@@ -432,7 +433,7 @@ class BooleanExpressionScope internal constructor() {
      * Build the current scope expression with OR semantics
      *
      * @return 当前作用域表达式 / Current scope expression
-     */
+    */
     internal fun buildOr(): BooleanExpression {
         return combineOr(expressions)
     }
@@ -443,7 +444,7 @@ class BooleanExpressionScope internal constructor() {
      *
      * @param expression 待记录表达式 / Expression to record
      * @return 原表达式 / Original expression
-     */
+    */
     private fun <T : BooleanExpression> add(expression: T): T {
         expressions.add(expression)
         return expression
@@ -454,7 +455,7 @@ class BooleanExpressionScope internal constructor() {
      * Remove tail expressions already collected while evaluating vararg arguments
      *
      * @param suffix 待移除的尾部表达式 / Tail expressions to remove
-     */
+    */
     private fun removeCollectedSuffix(suffix: List<BooleanExpression>) {
         if (suffix.isEmpty() || suffix.size > expressions.size) {
             return
@@ -475,7 +476,7 @@ class BooleanExpressionScope internal constructor() {
  *
  * @param property 属性引用 / Property reference
  * @return 属性路径 / Property path
- */
+*/
 private fun <E, T> path(property: KProperty1<E, T>): PropertyPath {
     return PropertyPath.parse(property.name)
 }
@@ -486,7 +487,7 @@ private fun <E, T> path(property: KProperty1<E, T>): PropertyPath {
  *
  * @param property 属性引用 / Property reference
  * @return 标量引用 / Scalar reference
- */
+*/
 private fun <E, T> reference(property: KProperty1<E, T>): ScalarReference<T> {
     return ScalarReference(path(property))
 }
@@ -499,7 +500,7 @@ private fun <E, T> reference(property: KProperty1<E, T>): ScalarReference<T> {
  * @param operator 比较操作符 / Comparison operator
  * @param value 比较值 / Comparison value
  * @return 比较表达式 / Comparison expression
- */
+*/
 private fun <E, T> compare(
     property: KProperty1<E, T>,
     operator: ComparisonOperator,
@@ -514,7 +515,7 @@ private fun <E, T> compare(
  *
  * @param expressions 子表达式 / Child expressions
  * @return 组合后的表达式 / Combined expression
- */
+*/
 private fun combineAnd(expressions: List<BooleanExpression>): BooleanExpression {
     return when (expressions.size) {
         0 -> BooleanConstant.true_()
@@ -529,7 +530,7 @@ private fun combineAnd(expressions: List<BooleanExpression>): BooleanExpression 
  *
  * @param expressions 子表达式 / Child expressions
  * @return 组合后的表达式 / Combined expression
- */
+*/
 private fun combineOr(expressions: List<BooleanExpression>): BooleanExpression {
     return when (expressions.size) {
         0 -> BooleanConstant.false_()

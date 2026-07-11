@@ -2,6 +2,10 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.DiagnosticNote
 
+/**
+ * Diagnostic utility object for structured logging of stowage optimization notes with level, group, and code classification.
+ * 诊断工具对象，用于结构化记录配载优化日志，包含级别、分组和代码分类。
+*/
 object Diagnostics {
     const val LEVEL_DIAGNOSTIC = "diagnostic"
     const val LEVEL_CRITICAL = "critical"
@@ -43,6 +47,16 @@ object Diagnostics {
     const val CODE_BENDERS_FAILED = "benders_failed"
     const val CODE_SOLVER_PATH = "solver_path"
 
+    /**
+     * Appends a structured diagnostic note to the notes list with level, group, code, and message.
+     * 向日志列表追加结构化诊断信息，包含级别、分组、代码和消息。
+     *
+     * @param notes The mutable list of notes to append to. / 要追加到的可变日志列表
+     * @param level The diagnostic level (e.g., "diagnostic", "critical"). / 诊断级别（如 "diagnostic"、"critical"）
+     * @param group The diagnostic group category (e.g., "airworthiness", "solver"). / 诊断分组类别（如 "airworthiness"、"solver"）
+     * @param code The specific diagnostic code identifier. / 特定诊断代码标识符
+     * @param message The human-readable diagnostic message. / 人类可读的诊断消息
+    */
     fun pushGroupedNote(
         notes: MutableList<String>,
         level: String,
@@ -53,6 +67,13 @@ object Diagnostics {
         notes.add("$level|group=$group|code=$code|msg=$message")
     }
 
+    /**
+     * Builds a list of structured DiagnosticNote objects from raw note strings, parsing grouped format where possible.
+     * 从原始日志字符串构建结构化 DiagnosticNote 列表，尽可能解析分组格式。
+     *
+     * @param notes The list of raw note strings to parse. / 要解析的原始日志字符串列表
+     * @return The list of parsed DiagnosticNote objects. / 解析后的 DiagnosticNote 对象列表
+    */
     fun buildStructured(notes: List<String>): List<DiagnosticNote> {
         return notes.map { note -> parseGroupedNote(note) ?: DiagnosticNote(
             level = LEVEL_DIAGNOSTIC,
@@ -60,6 +81,13 @@ object Diagnostics {
         ) }
     }
 
+    /**
+     * Parses a grouped note string into a DiagnosticNote, extracting level, group, code, and message segments.
+     * 将分组日志字符串解析为 DiagnosticNote，提取级别、分组、代码和消息段。
+     *
+     * @param note The raw note string in "level|group=...|code=...|msg=..." format. / "level|group=...|code=...|msg=..." 格式的原始日志字符串
+     * @return The parsed DiagnosticNote, or null if the format is invalid. / 解析后的 DiagnosticNote，格式无效时返回 null
+    */
     private fun parseGroupedNote(note: String): DiagnosticNote? {
         val segments = note.split("|")
         val level = segments.firstOrNull()?.trim()?.ifEmpty { return null } ?: return null

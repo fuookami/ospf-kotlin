@@ -7,7 +7,7 @@
  * Provides a mutable version of linear polynomials, supporting in-place modifications.
  * Used for scenarios requiring incremental building or modification of polynomials,
  * and can be converted to an immutable LinearPolynomial after construction.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property _monomials 内部可变的线性单项式列表 / Internal mutable list of linear monomials
  * @property _constant 内部可变的常数项 / Internal mutable constant term
- */
+*/
 class MutableLinearPolynomial<T : NumberField<T>>(
     monomials: List<LinearMonomial<T>> = emptyList(),
     constant: T
@@ -38,13 +38,13 @@ class MutableLinearPolynomial<T : NumberField<T>>(
     /**
      * 线性单项式列表（只读）
      * List of linear monomials (read-only)
-     */
+    */
     val monomials: List<LinearMonomial<T>> get() = _monomials.toList()
 
     /**
      * 常数项
      * Constant term
-     */
+    */
     val constant: T get() = _constant
 
     /**
@@ -53,7 +53,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      *
      * 可变线性多项式总是属于线性类型。
      * Mutable linear polynomials always belong to the Linear category.
-     */
+    */
     val category: Category
         get() = Linear
 
@@ -66,7 +66,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
          * Requires T to have a companion object implementing ArithmeticConstants<T>.
          *
          * @return 零多项式 / Zero polynomial
-         */
+        */
         inline fun <reified T> zero(): Ret<MutableLinearPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableLinearPolynomial.zero").mapResolved { constants ->
                 MutableLinearPolynomial(emptyList(), constants.zero)
@@ -81,7 +81,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
          * Requires T to have a companion object implementing ArithmeticConstants<T>.
          *
          * @return 值为 1 的多项式 / Polynomial with value 1
-         */
+        */
         inline fun <reified T> one(): Ret<MutableLinearPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableLinearPolynomial.one").mapResolved { constants ->
                 MutableLinearPolynomial(emptyList(), constants.one)
@@ -97,7 +97,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
          *
          * @param value 常数值 / Constant value
          * @return 常数多项式 / Constant polynomial
-         */
+        */
         fun <T : NumberField<T>> fromConstant(value: T): MutableLinearPolynomial<T> {
             return MutableLinearPolynomial(emptyList(), value)
         }
@@ -108,7 +108,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * Adds a linear monomial
      *
      * @param monomial 要添加的线性单项式 / The linear monomial to add
-     */
+    */
     fun addMonomial(monomial: LinearMonomial<T>) {
         _monomials.add(monomial)
     }
@@ -118,7 +118,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * Adds to the constant term
      *
      * @param value 要增加的值 / The value to add
-     */
+    */
     fun addConstant(value: T) {
         _constant = _constant + value
     }
@@ -128,7 +128,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * Sets the constant term
      *
      * @param value 新的常数项值 / The new constant term value
-     */
+    */
     fun setConstant(value: T) {
         _constant = value
     }
@@ -136,7 +136,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
     /**
      * 清除所有单项式
      * Clears all monomials
-     */
+    */
     fun clear() {
         _monomials.clear()
     }
@@ -146,7 +146,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * Converts to an immutable linear polynomial
      *
      * @return 不可变的线性多项式 / Immutable linear polynomial
-     */
+    */
     fun toLinearPolynomial(): LinearPolynomial<T> {
         return LinearPolynomial(_monomials.toList(), _constant)
     }
@@ -156,7 +156,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
      * Converts to immutable form
      *
      * @return 不可变的线性多项式 / Immutable linear polynomial
-     */
+    */
     fun toImmutable(): LinearPolynomial<T> = toLinearPolynomial()
 
     override fun toString(): String {
@@ -182,7 +182,7 @@ class MutableLinearPolynomial<T : NumberField<T>>(
  *
  * @receiver 不可变线性多项式 / Immutable linear polynomial
  * @return 可变线性多项式 / Mutable linear polynomial
- */
+*/
 fun <T : NumberField<T>> LinearPolynomial<T>.toMutable(): MutableLinearPolynomial<T> {
     return MutableLinearPolynomial(monomials, constant)
 }
@@ -193,7 +193,7 @@ fun <T : NumberField<T>> LinearPolynomial<T>.toMutable(): MutableLinearPolynomia
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @return 不可变线性多项式 / Immutable linear polynomial
- */
+*/
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.toImmutable(): LinearPolynomial<T> {
     return this.toLinearPolynomial()
 }
@@ -204,7 +204,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.toImmutable(): LinearPolynom
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @return 所有项取负后的可变线性多项式 / Mutable linear polynomial with all terms negated
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.unaryMinus(): MutableLinearPolynomial<T> {
     return MutableLinearPolynomial(monomials.map { -it }, -constant)
 }
@@ -215,7 +215,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.unaryMinus(): Mutab
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 线性单项式 / Linear monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: LinearMonomial<T>) {
     addMonomial(rhs)
 }
@@ -226,7 +226,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Lin
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 线性多项式 / Linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: LinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -238,7 +238,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Lin
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 可变线性多项式 / Mutable linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: MutableLinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -250,7 +250,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: Mut
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: T) {
     _constant = _constant + rhs
 }
@@ -261,7 +261,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.plusAssign(rhs: T) 
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 线性单项式 / Linear monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: LinearMonomial<T>) {
     _monomials.add(-rhs)
 }
@@ -272,7 +272,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Li
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 线性多项式 / Linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: LinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
@@ -284,7 +284,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Li
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 可变线性多项式 / Mutable linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: MutableLinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
@@ -296,7 +296,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: Mu
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: T) {
     _constant = _constant - rhs
 }
@@ -307,7 +307,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssign(rhs: T)
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.timesAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] * rhs
@@ -321,7 +321,7 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.timesAssign(rhs: T)
  *
  * @receiver 可变线性多项式 / Mutable linear polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.divAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] / rhs

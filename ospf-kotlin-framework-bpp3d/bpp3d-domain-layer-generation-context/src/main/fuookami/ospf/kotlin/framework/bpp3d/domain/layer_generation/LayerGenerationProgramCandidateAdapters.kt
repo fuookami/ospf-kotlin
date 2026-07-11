@@ -1,7 +1,7 @@
 /**
  * Layer generation program candidate adapters.
  * 层生成程序候选适配器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -15,10 +15,9 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.MaterialPacking
  * 将通用数量值转换为 FltX 类型的数量值。
  *
  * @param value The quantity value to convert.
- * @param value 要转换的数量值。
  * @return The converted FltX-typed quantity value.
  * 返回转换后的 FltX 类型数量值。
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
     return when (value.value) {
@@ -32,10 +31,9 @@ private fun programQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
  * 获取包装程序候选默认包装属性。
  *
  * @param packageType Package type.
- * @param packageType 包装类型。
  * @return Default package attribute.
  * 返回默认包装属性。
- */
+*/
 private fun defaultProgramPackageAttribute(
     packageType: PackageType
 ): PackageAttribute {
@@ -53,12 +51,10 @@ private fun defaultProgramPackageAttribute(
  * 将物料装箱方案候选转换为层生成货物项。
  *
  * @param sequence Sequence number.
- * @param sequence 序列号。
  * @param materialCatalog Material catalog.
- * @param materialCatalog 物料目录。
  * @return Layer generation item.
  * 返回层生成货物项。
- */
+*/
 fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
     sequence: Int,
     materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
@@ -85,12 +81,10 @@ fun MaterialPackingProgramCandidate<*>.toLayerGenerationItem(
  * 批量转换层生成程序需求为货物需求。
  *
  * @param programDemands Program demand list.
- * @param programDemands 程序需求列表。
  * @param materialCatalog Material catalog.
- * @param materialCatalog 物料目录。
  * @return Item demand list.
  * 返回货物需求列表。
- */
+*/
 fun layerGenerationItemDemandsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
     materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()
@@ -111,12 +105,10 @@ fun layerGenerationItemDemandsFromPrograms(
  * 批量转换层生成程序需求为货物列表。
  *
  * @param programDemands Program demand list.
- * @param programDemands 程序需求列表。
  * @param materialCatalog Material catalog.
- * @param materialCatalog 物料目录。
  * @return Item list.
  * 返回货物列表。
- */
+*/
 fun layerGenerationItemsFromPrograms(
     programDemands: List<Pair<MaterialPackingProgramCandidate<*>, UInt64>>,
     materialCatalog: Map<MaterialKey, Material<FltX>> = emptyMap()

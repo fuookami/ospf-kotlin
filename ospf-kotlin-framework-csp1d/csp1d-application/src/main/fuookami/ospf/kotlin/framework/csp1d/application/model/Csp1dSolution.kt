@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.*
 
 /**
  * CSP1D 解状态 / CSP1D solution status
- */
+*/
 enum class Csp1dSolutionStatus {
     /** 已得到最终 MILP 解 / Final MILP solution is available */
     Feasible,
@@ -26,7 +26,7 @@ enum class Csp1dSolutionStatus {
 
 /**
  * CSP1D KPI 稳定字段名 / Stable CSP1D KPI keys
- */
+*/
 object Csp1dKpiKeys {
     const val SelectedPlanCount = "selectedPlanCount"
     const val SelectedBatchCount = "selectedBatchCount"
@@ -100,7 +100,7 @@ object Csp1dKpiKeys {
      *
      * @param materialId 物料 ID / Material id
      * @return KPI key / KPI key
-     */
+    */
     fun materialUsageBatchCount(materialId: MaterialId): String {
         return "materialUsage.$materialId.batchCount"
     }
@@ -110,7 +110,7 @@ object Csp1dKpiKeys {
      *
      * @param machineId 设备 ID / Machine id
      * @return KPI key / KPI key
-     */
+    */
     fun machineCapacityUsed(machineId: MachineId): String {
         return "machineCapacityUsed.$machineId"
     }
@@ -121,7 +121,7 @@ object Csp1dKpiKeys {
      * @param productId 产品 ID / Product id
      * @param unitSymbol 需求单位符号 / Demand unit symbol
      * @return KPI key / KPI key
-     */
+    */
     fun underProduction(productId: ProductId, unitSymbol: String): String {
         return "underProduction.$productId.$unitSymbol"
     }
@@ -132,7 +132,7 @@ object Csp1dKpiKeys {
      * @param productId 产品 ID / Product id
      * @param unitSymbol 需求单位符号 / Demand unit symbol
      * @return KPI key / KPI key
-     */
+    */
     fun overProduction(productId: ProductId, unitSymbol: String): String {
         return "overProduction.$productId.$unitSymbol"
     }
@@ -142,7 +142,7 @@ object Csp1dKpiKeys {
      *
      * @param materialId 物料 ID / Material id
      * @return KPI key / KPI key
-     */
+    */
     fun materialCost(materialId: MaterialId): String {
         return "materialCost.$materialId"
     }
@@ -152,7 +152,7 @@ object Csp1dKpiKeys {
      *
      * @param productId 产品 ID / Product id
      * @return KPI key / KPI key
-     */
+    */
     fun assignedLength(productId: ProductId): String {
         return "assignedLength.$productId"
     }
@@ -162,7 +162,7 @@ object Csp1dKpiKeys {
      *
      * @param productId 产品 ID / Product id
      * @return KPI key / KPI key
-     */
+    */
     fun overLength(productId: ProductId): String {
         return "overLength.$productId"
     }
@@ -183,7 +183,7 @@ object Csp1dKpiKeys {
  * @property wasteMetricCount waste 回填指标数 / Waste metric count
  * @property lengthMetricCount length 回填指标数 / Length metric count
  * @property details 可序列化 KPI 明细 / Serializable KPI details
- */
+*/
 data class Csp1dKpi(
     val selectedPlanCount: UInt64,
     val selectedBatchCount: UInt64,
@@ -210,7 +210,7 @@ data class Csp1dKpi(
  * @property status 解状态 / Solution status
  * @property failureMessage 失败信息 / Failure message
  * @property topPlans Top-K 方案 / Top-K plans
- */
+*/
 data class Csp1dSolution<V : RealNumber<V>>(
     val produce: Produce<V>,
     val yieldResult: YieldModelingResult<V>? = null,
@@ -228,8 +228,9 @@ data class Csp1dSolution<V : RealNumber<V>>(
  * CSP1D 解分析器 / CSP1D solution analyzer
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 fun interface Csp1dSolutionAnalyzer<V : RealNumber<V>> {
+
     /**
      * 分析并组装解 / Analyze and build solution
      *
@@ -237,7 +238,7 @@ fun interface Csp1dSolutionAnalyzer<V : RealNumber<V>> {
      * @param produce 主问题结果 / Master problem output
      * @param generatedPlans 切割方案池 / Generated cutting plans
      * @return CSP1D 解 / CSP1D solution
-     */
+    */
     fun analyze(
         problem: Csp1dProblem<V>,
         produce: Produce<V>,
@@ -249,7 +250,7 @@ fun interface Csp1dSolutionAnalyzer<V : RealNumber<V>> {
  * 默认解分析器 / Default solution analyzer
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V> {
     override fun analyze(
         problem: Csp1dProblem<V>,
@@ -298,6 +299,13 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
         )
     }
 
+/**
+ * renderCuttingPlan.
+ * renderCuttingPlan。
+ * @param plan the cutting plan to render / 要渲染的切割方案
+ * @param amount the number of times this cutting plan is selected / 该切割方案被选中的使用次数
+ * @return the rendered cutting plan DTO / 渲染后的切割方案数据传输对象
+*/
     private fun renderCuttingPlan(
         plan: CuttingPlan<V>,
         amount: UInt64
@@ -330,6 +338,15 @@ class DefaultCsp1dSolutionAnalyzer<V : RealNumber<V>> : Csp1dSolutionAnalyzer<V>
         )
     }
 
+/**
+ * Converts to renderProductionDto.
+ * 转换为RenderProductionDto。
+ * @param production the production item (Product or Costar) to convert / 要转换的生产项（产品或伴生物）
+ * @param x the horizontal offset of this production in the cutting plan / 该生产项在切割方案中的水平偏移量
+ * @param width the width of this production slice / 该生产切片的宽度
+ * @param amount the quantity of this production item / 该生产项的数量
+ * @return the rendered cutting plan production DTO / 渲染后的切割方案生产项数据传输对象
+*/
     @Suppress("UNCHECKED_CAST")
     private fun toRenderProductionDto(
         production: Any,

@@ -4,7 +4,7 @@
  *
  * 通过统一锁与 TokenCacheContexts 管理 value/flatten/range 缓存，并在 close/remove 时解绑上下文。
  * Value/flatten/range caches are managed with a unified lock and TokenCacheContexts, and symbol contexts are unbound on close/remove.
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -29,17 +29,18 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property category 符号操作类别 / Symbol operation category
  * @property tokenList token 列表 / Token list
  * @property symbols 已注册的中间符号集合 / Registered intermediate symbol collection
- */
+*/
 data class ConcurrentTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
     override val symbols: List<IntermediateSymbol<*>>
 ) : AbstractTokenTable<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 从并发可变 token 表构造不可变副本 / Construct immutable copy from concurrent mutable token table
      *
      * @param tokenTable 并发可变 token 表 / Concurrent mutable token table
-     */
+    */
     constructor(tokenTable: ConcurrentMutableTokenTable<V>) : this(
         category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList as MutableTokenList<V>),
@@ -239,7 +240,7 @@ data class ConcurrentTokenTable<V>(
  * @property category 符号操作类别 / Symbol operation category
  * @property tokenList 可变 token 列表 / Mutable token list
  * @property _symbols 已注册的中间符号列表 / Registered intermediate symbol list
- */
+*/
 sealed class ConcurrentMutableTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractMutableTokenList<V>,
@@ -259,7 +260,7 @@ sealed class ConcurrentMutableTokenTable<V>(
      *
      * @param symbol 依赖方符号 / Dependent symbol
      * @param dependsOn 被依赖的符号 / Symbol depended on
-     */
+    */
     fun addSymbolDependency(symbol: IntermediateSymbol<*>, dependsOn: IntermediateSymbol<*>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
@@ -271,7 +272,7 @@ sealed class ConcurrentMutableTokenTable<V>(
      *
      * @param symbol 依赖方符号 / Dependent symbol
      * @param dependencies 被依赖的符号集合 / Set of symbols depended on
-     */
+    */
     fun addSymbolWithDependencies(symbol: IntermediateSymbol<*>, dependencies: Set<IntermediateSymbol<*>>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
@@ -282,17 +283,18 @@ sealed class ConcurrentMutableTokenTable<V>(
      * 验证符号依赖关系中无环 / Validate no cycles in symbol dependencies
      *
      * @return 是否无环 / Whether acyclic
-     */
+    */
     fun validateNoCycles(): Boolean {
         synchronized(lock) {
             val visited = mutableSetOf<IntermediateSymbol<*>>()
             val onStack = mutableSetOf<IntermediateSymbol<*>>()
+
             /**
              * 深度优先搜索检测环 / Depth-first search to detect cycles
              *
              * @param symbol 待检测的符号 / Symbol to check
              * @return 无环返回 true，有环返回 false / True if acyclic, false if cycle detected
-             */
+            */
             fun dfs(symbol: IntermediateSymbol<*>): Boolean {
                 if (symbol in onStack) return false
                 if (symbol in visited) return true
@@ -579,19 +581,20 @@ sealed class ConcurrentMutableTokenTable<V>(
  * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
  * @property _tokenList 自动 token 列表 / Auto token list
- */
+*/
 class ConcurrentAutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
     private val _tokenList: AutoTokenList<V>,
     _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
 ) : ConcurrentMutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
      * @param category 符号操作类别 / Symbol operation category
      * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
-     */
+    */
     constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
         category = category,
         checkTokenExists = checkTokenExists,
@@ -617,19 +620,20 @@ class ConcurrentAutoTokenTable<V>(
  * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
  * @property _tokenList 手动 token 列表 / Manual token list
- */
+*/
 class ConcurrentManualAddTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
     private val _tokenList: ManualTokenList<V>,
     _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
 ) : ConcurrentMutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
      * @param category 符号操作类别 / Symbol operation category
      * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
-     */
+    */
     constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
         category = category,
         checkTokenExists = checkTokenExists,

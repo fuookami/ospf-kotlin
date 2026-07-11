@@ -21,7 +21,7 @@
  * - LogFun: 对数运算函数扩展接口
  * - LogP: 带精度参数的对数运算接口
  * - LogFunP: 带精度参数的对数运算函数扩展接口
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -37,10 +37,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Base 对数底数的类垌
  * @param Ret 对数运算的结果类垌
  *
- * @param Base The type of the logarithm base
- * @param Ret The result type of the logarithm operation
- */
+*/
 interface Log<in Base, out Ret> {
+
     /**
      * 计算以指定底数的对数
      * Calculates the logarithm with specified base
@@ -48,9 +47,8 @@ interface Log<in Base, out Ret> {
      * @param base 对数底数
      * @return 对数值，如果运算无定义则返回 null
      *
-     * @param base The logarithm base
      * @return The logarithm value, or null if the operation is undefined
-     */
+    */
     fun log(base: Base): Ret?
 
     /**
@@ -60,7 +58,7 @@ interface Log<in Base, out Ret> {
      * @return 常用对数值，如果运算无定义则返回 null
      *
      * @return The common logarithm value, or null if the operation is undefined
-     */
+    */
     fun lg(): Ret?
 
     /**
@@ -70,7 +68,7 @@ interface Log<in Base, out Ret> {
      * @return 二进制对数值，如果运算无定义则返回 null
      *
      * @return The binary logarithm value, or null if the operation is undefined
-     */
+    */
     fun lg2(): Ret?
 
     /**
@@ -80,7 +78,7 @@ interface Log<in Base, out Ret> {
      * @return 自然对数值，如果运算无定义则返回 null
      *
      * @return The natural logarithm value, or null if the operation is undefined
-     */
+    */
     fun ln(): Ret?
 }
 
@@ -96,11 +94,9 @@ interface Log<in Base, out Ret> {
  * @param Base 对数底数的类垌
  * @param Ret 对数运算的结果类垌
  *
- * @param Self The receiver type
- * @param Base The type of the logarithm base
- * @param Ret The result type of the logarithm operation
- */
+*/
 interface LogFun<in Self, in Base, out Ret> {
+
     /**
      * 计算以指定底数的对数（扩展函数）
      * Calculates the logarithm with specified base (extension function)
@@ -108,9 +104,8 @@ interface LogFun<in Self, in Base, out Ret> {
      * @param base 对数底数
      * @return 对数倌
      *
-     * @param base The logarithm base
      * @return The logarithm value
-     */
+    */
     fun Self.log(base: Base): Ret
 
     /**
@@ -120,7 +115,7 @@ interface LogFun<in Self, in Base, out Ret> {
      * @return 常用对数值，如果运算无定义则返回 null
      *
      * @return The common logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.lg(): Ret?
 
     /**
@@ -130,7 +125,7 @@ interface LogFun<in Self, in Base, out Ret> {
      * @return 二进制对数值，如果运算无定义则返回 null
      *
      * @return The binary logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.lg2(): Ret?
 
     /**
@@ -140,7 +135,7 @@ interface LogFun<in Self, in Base, out Ret> {
      * @return 自然对数值，如果运算无定义则返回 null
      *
      * @return The natural logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.ln(): Ret?
 }
 
@@ -155,10 +150,9 @@ interface LogFun<in Self, in Base, out Ret> {
  * @param Base 对数底数的类垌
  * @param Ret 对数运算的结果类垌
  *
- * @param Base The type of the logarithm base
- * @param Ret The result type of the logarithm operation
- */
+*/
 interface LogP<in Base, Ret> : Log<Base, Ret> {
+
     /**
      * 计算以指定底数的对数，带精度参数
      * Calculates the logarithm with specified base, with precision parameters
@@ -168,11 +162,8 @@ interface LogP<in Base, Ret> : Log<Base, Ret> {
      * @param precision 精度倌
      * @return 对数值，如果运算无定义则返回 null
      *
-     * @param base The logarithm base
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The logarithm value, or null if the operation is undefined
-     */
+    */
     fun log(base: Base, digits: Int, precision: Ret): Ret? {
         return log(base)
     }
@@ -185,10 +176,8 @@ interface LogP<in Base, Ret> : Log<Base, Ret> {
      * @param precision 精度倌
      * @return 常用对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The common logarithm value, or null if the operation is undefined
-     */
+    */
     fun lg(digits: Int, precision: Ret): Ret? {
         return lg()
     }
@@ -201,10 +190,8 @@ interface LogP<in Base, Ret> : Log<Base, Ret> {
      * @param precision 精度倌
      * @return 二进制对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The binary logarithm value, or null if the operation is undefined
-     */
+    */
     fun lg2(digits: Int, precision: Ret): Ret? {
         return lg2()
     }
@@ -217,10 +204,8 @@ interface LogP<in Base, Ret> : Log<Base, Ret> {
      * @param precision 精度倌
      * @return 自然对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The natural logarithm value, or null if the operation is undefined
-     */
+    */
     fun ln(digits: Int, precision: Ret): Ret? {
         return ln()
     }
@@ -238,11 +223,9 @@ interface LogP<in Base, Ret> : Log<Base, Ret> {
  * @param Base 对数底数的类垌
  * @param Ret 对数运算的结果类垌
  *
- * @param Self The receiver type
- * @param Base The type of the logarithm base
- * @param Ret The result type of the logarithm operation
- */
+*/
 interface LogFunP<in Self, in Base, Ret> {
+
     /**
      * 计算以指定底数的对数，带精度参数（扩展函数）
      * Calculates the logarithm with specified base, with precision parameters (extension function)
@@ -252,11 +235,8 @@ interface LogFunP<in Self, in Base, Ret> {
      * @param precision 精度倌
      * @return 对数值，如果运算无定义则返回 null
      *
-     * @param base The logarithm base
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.log(base: Base, digits: Int, precision: Ret): Ret?
 
     /**
@@ -267,10 +247,8 @@ interface LogFunP<in Self, in Base, Ret> {
      * @param precision 精度倌
      * @return 常用对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The common logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.lg(digits: Int, precision: Ret): Ret?
 
     /**
@@ -281,10 +259,8 @@ interface LogFunP<in Self, in Base, Ret> {
      * @param precision 精度倌
      * @return 二进制对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The binary logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.lg2(digits: Int, precision: Ret): Ret?
 
     /**
@@ -295,10 +271,8 @@ interface LogFunP<in Self, in Base, Ret> {
      * @param precision 精度倌
      * @return 自然对数值，如果运算无定义则返回 null
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return The natural logarithm value, or null if the operation is undefined
-     */
+    */
     fun Self.ln(digits: Int, precision: Ret): Ret?
 }
 
@@ -313,13 +287,8 @@ interface LogFunP<in Self, in Base, Ret> {
  * @param natural 对数的真敌
  * @return 对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the Log interface
- * @param Ret The return type
- * @param base The logarithm base
- * @param natural The antilogarithm
  * @return The logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> log(
     base: Base,
     natural: Natural
@@ -340,15 +309,8 @@ fun <Base, Natural, Ret> log(
  * @param func 对数运算函数扩展
  * @return 对数倌
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The logarithm base
- * @param natural The antilogarithm
- * @param func The logarithm operation function extension
  * @return The logarithm value
- */
+*/
 fun <Base, Natural, Ret, Func> log(
     base: Base,
     natural: Natural,
@@ -372,15 +334,8 @@ fun <Base, Natural, Ret, Func> log(
  * @param precision 精度倌
  * @return 对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the LogP interface
- * @param Ret The return type
- * @param base The logarithm base
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return The logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> log(
     base: Base,
     natural: Natural,
@@ -409,17 +364,8 @@ fun <Base, Natural, Ret> log(
  * @param func 对数运算函数扩展
  * @return 对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The logarithm base
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The logarithm operation function extension
  * @return The logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> log(
     base: Base,
     natural: Natural,
@@ -446,12 +392,8 @@ fun <Base, Natural, Ret, Func> log(
  * @param natural 对数的真敌
  * @return 常用对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the Log interface
- * @param Ret The return type
- * @param natural The antilogarithm
  * @return The common logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> lg(
     natural: Natural
 ): Ret? where Natural : Log<Base, Ret> {
@@ -470,14 +412,8 @@ fun <Base, Natural, Ret> lg(
  * @param func 对数运算函数扩展
  * @return 常用对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param func The logarithm operation function extension
  * @return The common logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> lg(
     natural: Natural,
     func: Func
@@ -499,14 +435,8 @@ fun <Base, Natural, Ret, Func> lg(
  * @param precision 精度倌
  * @return 常用对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the LogP interface
- * @param Ret The return type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return The common logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> lg(
     natural: Natural,
     digits: Int,
@@ -529,16 +459,8 @@ fun <Base, Natural, Ret> lg(
  * @param func 对数运算函数扩展
  * @return 常用对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The logarithm operation function extension
  * @return The common logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> lg(
     natural: Natural,
     digits: Int,
@@ -560,12 +482,8 @@ fun <Base, Natural, Ret, Func> lg(
  * @param natural 对数的真敌
  * @return 二进制对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the Log interface
- * @param Ret The return type
- * @param natural The antilogarithm
  * @return The binary logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> lg2(
     natural: Natural
 ): Ret? where Natural : Log<Base, Ret> {
@@ -584,14 +502,8 @@ fun <Base, Natural, Ret> lg2(
  * @param func 对数运算函数扩展
  * @return 二进制对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param func The logarithm operation function extension
  * @return The binary logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> lg2(
     natural: Natural,
     func: Func
@@ -613,14 +525,8 @@ fun <Base, Natural, Ret, Func> lg2(
  * @param precision 度倌
  * @return 二进制对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the LogP interface
- * @param Ret The return type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return The binary logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> lg2(
     natural: Natural,
     digits: Int,
@@ -643,16 +549,8 @@ fun <Base, Natural, Ret> lg2(
  * @param func 对数运算函数扩展
  * @return 二进制对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The logarithm operation function extension
  * @return The binary logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> lg2(
     natural: Natural,
     digits: Int,
@@ -674,12 +572,8 @@ fun <Base, Natural, Ret, Func> lg2(
  * @param natural 对数的真敌
  * @return 自然对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the Log interface
- * @param Ret The return type
- * @param natural The antilogarithm
  * @return The natural logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> ln(
     natural: Natural
 ): Ret? where Natural : Log<Base, Ret> {
@@ -698,14 +592,8 @@ fun <Base, Natural, Ret> ln(
  * @param func 对数运算函数扩展
  * @return 自然对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param func The logarithm operation function extension
  * @return The natural logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> ln(
     natural: Natural,
     func: Func
@@ -727,14 +615,8 @@ fun <Base, Natural, Ret, Func> ln(
  * @param precision 精度倌
  * @return 自然对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type, must implement the LogP interface
- * @param Ret The return type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return The natural logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret> ln(
     natural: Natural,
     digits: Int,
@@ -757,16 +639,8 @@ fun <Base, Natural, Ret> ln(
  * @param func 对数运算函数扩展
  * @return 自然对数值，如果运算无定义则返回 null
  *
- * @param Base The base type
- * @param Natural The operand type
- * @param Ret The return type
- * @param Func The extension function type
- * @param natural The antilogarithm
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The logarithm operation function extension
  * @return The natural logarithm value, or null if the operation is undefined
- */
+*/
 fun <Base, Natural, Ret, Func> ln(
     natural: Natural,
     digits: Int,

@@ -10,7 +10,7 @@
  * in the form Σc??x?x? + Σc?x? + b, where c??, c? are coefficients,
  * x?, x?, x? are symbol variables, and b is the constant term.
  * Widely used in quadratic programming and convex optimization.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -33,18 +33,19 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  *
  * @property monomials 二次单项式列表 / List of quadratic monomials
  * @property constant 常数项 / Constant term
- */
+*/
 data class QuadraticPolynomial<T : Ring<T>>(
     val monomials: List<QuadraticMonomial<T>> = emptyList(),
     val constant: T
 ) : ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T>, TryToLinearPolynomial<T> {
+
     /**
      * 表达式类型分类
      * Expression type category
      *
      * 如果包含真正的二次项（symbol2 不为 null），则返回 Quadratic；否则返回 Linear。
      * Returns Quadratic if there are true quadratic terms (symbol2 not null); otherwise returns Linear.
-     */
+    */
     val category: Category
         get() = if (monomials.any { it.isQuadratic }) Quadratic else Linear
 
@@ -53,7 +54,7 @@ data class QuadraticPolynomial<T : Ring<T>>(
      * Converts to a quadratic polynomial (self)
      *
      * @return 自身 / Self
-     */
+    */
     override fun toQuadraticPolynomial(): QuadraticPolynomial<T> = this
 
     /**
@@ -61,7 +62,7 @@ data class QuadraticPolynomial<T : Ring<T>>(
      * Converts to a canonical polynomial
      *
      * @return 规范多项式 / Canonical polynomial
-     */
+    */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
         return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
     }
@@ -74,7 +75,7 @@ data class QuadraticPolynomial<T : Ring<T>>(
      * Returns the corresponding linear polynomial if there are no true quadratic terms; otherwise returns null.
      *
      * @return 线性多项式或 null / Linear polynomial or null
-     */
+    */
     override fun toLinearPolynomialOrNull(): LinearPolynomial<T>? {
         if (monomials.any { it.isQuadratic }) return null
         return LinearPolynomial(
@@ -90,7 +91,7 @@ data class QuadraticPolynomial<T : Ring<T>>(
  *
  * @receiver 二次多项式 / Quadratic polynomial
  * @return 所有项取负后的二次多项式 / Quadratic polynomial with all terms negated
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.unaryMinus(): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
@@ -105,7 +106,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.unaryMinus(): QuadraticPolynom
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 线性单项式 / Linear monomial
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials + QuadraticMonomial.linear(rhs.coefficient, rhs.symbol), constant)
 }
@@ -117,7 +118,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: LinearMonomial<T>): 
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(QuadraticMonomial.linear(coefficient, symbol)) + rhs.monomials, rhs.constant)
 }
@@ -129,7 +130,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: QuadraticPolynomial<T>): 
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 线性单项式 / Linear monomial
  * @return 差值二次多项式 / Difference quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials + QuadraticMonomial.linear(-rhs.coefficient, rhs.symbol), constant)
 }
@@ -141,7 +142,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: LinearMonomial<T>):
  * @receiver 线性单项式 / Linear monomial
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 差值二次多项式 / Difference quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         listOf(QuadraticMonomial.linear(coefficient, symbol)) +
@@ -157,7 +158,7 @@ operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: QuadraticPolynomial<T>):
  * @receiver 左侧二次多项式 / Left-hand quadratic polynomial
  * @param rhs 右侧二次多项式 / Right-hand quadratic polynomial
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials + rhs.monomials, constant + rhs.constant)
 }
@@ -169,7 +170,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: QuadraticPolynomial<
  * @receiver 左侧二次多项式 / Left-hand quadratic polynomial
  * @param rhs 右侧二次多项式 / Right-hand quadratic polynomial
  * @return 差值二次多项式 / Difference quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         monomials + rhs.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
@@ -184,7 +185,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: QuadraticPolynomial
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 线性多项式 / Linear polynomial
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = rhs.monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(monomials + lifted, constant + rhs.constant)
@@ -197,7 +198,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: LinearPolynomial<T>)
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(lifted + rhs.monomials, constant + rhs.constant)
@@ -210,7 +211,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: QuadraticPolynomial<T>)
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 线性多项式 / Linear polynomial
  * @return 差值二次多项式 / Difference quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = rhs.monomials.map { QuadraticMonomial.linear(-it.coefficient, it.symbol) }
     return QuadraticPolynomial(monomials + lifted, constant - rhs.constant)
@@ -223,7 +224,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: LinearPolynomial<T>
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 差值二次多项式 / Difference quadratic polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(
@@ -239,7 +240,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: QuadraticPolynomial<T>
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数乘以标量后的二次多项式 / Quadratic polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.times(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(it.coefficient * rhs, it.symbol1, it.symbol2) },
@@ -254,7 +255,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.times(rhs: T): QuadraticPolyno
  * @receiver 标量值 / Scalar value
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 所有系数乘以标量后的二次多项式 / Quadratic polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> T.times(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return rhs * this
 }
@@ -266,7 +267,7 @@ operator fun <T : Ring<T>> T.times(rhs: QuadraticPolynomial<T>): QuadraticPolyno
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数除以标量后的二次多项式 / Quadratic polynomial with all coefficients divided by scalar
- */
+*/
 operator fun <T : Field<T>> QuadraticPolynomial<T>.div(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(it.coefficient / rhs, it.symbol1, it.symbol2) },
@@ -281,7 +282,7 @@ operator fun <T : Field<T>> QuadraticPolynomial<T>.div(rhs: T): QuadraticPolynom
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项增加标量后的二次多项式 / Quadratic polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials, constant + rhs)
 }
@@ -293,7 +294,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: T): QuadraticPolynom
  * @receiver 标量值 / Scalar value
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 常数项增加标量后的二次多项式 / Quadratic polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> T.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(rhs.monomials, this + rhs.constant)
 }
@@ -305,7 +306,7 @@ operator fun <T : Ring<T>> T.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynom
  * @receiver 二次多项式 / Quadratic polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项减少标量后的二次多项式 / Quadratic polynomial with constant decreased by scalar
- */
+*/
 operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials, constant - rhs)
 }
@@ -317,7 +318,7 @@ operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: T): QuadraticPolyno
  * @receiver 标量值 / Scalar value
  * @param rhs 二次多项式 / Quadratic polynomial
  * @return 从标量减去多项式后的二次多项式 / Quadratic polynomial representing scalar minus polynomial
- */
+*/
 operator fun <T : Ring<T>> T.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(
         rhs.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },

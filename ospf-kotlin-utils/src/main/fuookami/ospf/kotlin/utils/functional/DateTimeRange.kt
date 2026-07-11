@@ -3,7 +3,7 @@
  *
  * Iterator utilities for LocalDate ranges with configurable step periods.
  * LocalDate 范围的迭代器工具，支持可配置的步进周期。
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlinx.datetime.*
@@ -17,12 +17,13 @@ import kotlinx.datetime.*
  * @param current 当前日期位置 / The current date position
  * @param range 日期范围 / The date range
  * @param step 步进周期 / The step period
- */
+*/
 class LocalDateClosedRangeIterator(
     private var current: LocalDate,
     private val range: ClosedRange<LocalDate>,
     private val step: DatePeriod
 ) : Iterator<LocalDate> {
+
     /**
      * 检查是否有下一个日期
      *
@@ -30,7 +31,7 @@ class LocalDateClosedRangeIterator(
      * 检查范围内是否有下一个日期。
      *
      * @return 如果当前日期小于等于结束日期则返回 true / Returns true if current date is less than or equal to end date
-     */
+    */
     override fun hasNext(): Boolean {
         return current <= range.endInclusive
     }
@@ -42,7 +43,7 @@ class LocalDateClosedRangeIterator(
      * 返回下一个日期并按步进周期推进迭代器。
      *
      * @return 当前日期（推进前的位置） / The current date (before advancing)
-     */
+    */
     override fun next(): LocalDate {
         val next = current
         current += step
@@ -59,7 +60,7 @@ class LocalDateClosedRangeIterator(
  * @param range 日期闭区间 / The date closed range
  * @param step 步进周期 / The step period
  * @return LocalDate 闭区间迭代器 / A LocalDate closed range iterator
- */
+*/
 fun ClosedRange<LocalDate>.iterator(step: DatePeriod): Iterator<LocalDate> {
     return LocalDateClosedRangeIterator(
         this.start,
@@ -77,12 +78,13 @@ fun ClosedRange<LocalDate>.iterator(step: DatePeriod): Iterator<LocalDate> {
  * @param current 当前日期位置 / The current date position
  * @param range 日期范围 / The date range
  * @param step 步进周期 / The step period
- */
+*/
 class LocalDateOpenEndRangeIterator(
     private var current: LocalDate,
     val range: OpenEndRange<LocalDate>,
     val step: DatePeriod
 ) : Iterator<LocalDate> {
+
     /**
      * 检查是否有下一个日期
      *
@@ -90,7 +92,7 @@ class LocalDateOpenEndRangeIterator(
      * 检查范围内是否有下一个日期（不包含结束日期）。
      *
      * @return 如果当前日期小于结束日期则返回 true / Returns true if current date is less than the end date
-     */
+    */
     override fun hasNext(): Boolean {
         return current < range.endExclusive
     }
@@ -102,7 +104,7 @@ class LocalDateOpenEndRangeIterator(
      * 返回下一个日期并按步进周期推进迭代器。
      *
      * @return 当前日期（推进前的位置） / The current date (before advancing)
-     */
+    */
     override fun next(): LocalDate {
         val next = current
         current += step
@@ -119,7 +121,7 @@ class LocalDateOpenEndRangeIterator(
  * @param range 日期开区间 / The date open-ended range
  * @param step 步进周期 / The step period
  * @return LocalDate 开区间迭代器 / A LocalDate open-ended range iterator
- */
+*/
 fun OpenEndRange<LocalDate>.iterator(step: DatePeriod): Iterator<LocalDate> {
     return LocalDateOpenEndRangeIterator(
         this.start,

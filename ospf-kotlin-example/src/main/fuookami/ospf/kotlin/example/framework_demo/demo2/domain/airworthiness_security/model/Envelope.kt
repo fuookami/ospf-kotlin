@@ -20,33 +20,38 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
-/** 定义每个飞行阶段最小/最大指数边界的 CG 包络线约束接口。Interface for CG envelope constraints that define min/max index bounds per flight phase. */
+/**
+ * Interface for CG envelope constraints that define min/max index bounds per flight phase.
+ * 定义每个飞行阶段最小/最大指数边界的 CG 包络线约束接口。
+*/
 interface AbstractEnvelope {
+
     /**
-     * 包络线上的点。
      * A point on the envelope.
+     * 包络线上的点。
      *
-     * @property totalWeight 总重量。
-     * @property index 指数。
-     */
+     * @property totalWeight Total weight at this point. / 此点的总重量
+     * @property index CG index at this point. / 此点的 CG 指数
+    */
     data class Point(
         val totalWeight: Quantity<Flt64>,
         val index: Quantity<Flt64>
     )
 
+    /** The side type of the envelope (left or right). / 包络线的侧边类型（左侧或右侧）。 */
     enum class SideType {
         Left,
         Right
     }
 
     /**
-     * 包络线的一侧。
      * A side of the envelope.
+     * 包络线的一侧。
      *
-     * @property name 名称。
-     * @property type 类型。
-     * @property points 点列表。
-     */
+     * @property name The name of this side. / 此侧边的名称
+     * @property type The side type (left or right). / 侧边类型（左侧或右侧）
+     * @property points The list of points defining this side. / 定义此侧边的点列表
+    */
     class Side(
         private val aircraftModel: AircraftModel,
         val name: String,
@@ -66,7 +71,12 @@ interface AbstractEnvelope {
                 name = "${name}_${type.name.lowercase(Locale.getDefault())}"
             )
         }
-
+/**
+ * Returns the piecewise linear CG index bound as a quantity symbol for the given total weight.
+ * 返回给定总重量的分段线性 CG 指数边界作为量符号。
+ * @param totalWeight The total weight symbol to evaluate the envelope bound at / 要评估包络线边界的总重量符号
+ * @return The CG index bound as a quantity linear intermediate symbol / CG 指数边界作为量线性中间符号
+*/
         fun piecewise(totalWeight: QuantityLinearIntermediateSymbol<Flt64>): QuantityLinearIntermediateSymbol<Flt64> {
             return Quantity(
                 LinearExpressionSymbol(
@@ -90,17 +100,22 @@ interface AbstractEnvelope {
     val minIndex: QuantityLinearIntermediateSymbol<Flt64>
     val maxIndex: QuantityLinearIntermediateSymbol<Flt64>
 
+/**
+ * Registers the envelope's min and max index symbols into the linear meta model.
+ * 将包络线的最小和最大指数符号注册到线性元模型中。
+ * @param model The linear meta model to register symbols into / 要注册符号的线性元模型
+ * @return Success or failure of the registration / 注册操作的成功或失败
+*/
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
 /**
- * 具有定义最小/最大指数边界的左右两侧的标准 CG 包络线。Standard CG envelope with left and right sides defining min/max index bounds.
+ * Standard CG envelope with left and right sides defining min/max index bounds.
+ * 具有定义最小/最大指数边界的左右两侧的标准 CG 包络线。
  *
- * @property aircraftModel 参数。
- * @property lhsSide 参数。
- * @property rhsSide 参数。
- * @property totalWeight 参数。
- */
+ * @property lhsSide The left-hand side of the envelope. / 包络线的左侧
+ * @property rhsSide The right-hand side of the envelope. / 包络线的右侧
+*/
 class Envelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,
@@ -109,10 +124,25 @@ class Envelope(
     val rhsSide: AbstractEnvelope.Side,
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
+
+    /**
+     * Returns the minimum CG index for the given total weight.
+     * 返回给定总重量的最小 CG 指数。
+     *
+     * @param totalWeight The total weight to evaluate. / 要评估的总重量
+     * @return The minimum CG index quantity. / 最小 CG 指数量
+    */
     fun minIndexOf(totalWeight: Quantity<Flt64>): Quantity<Flt64> {
         return lhsSide(totalWeight)
     }
 
+    /**
+     * Returns the maximum CG index for the given total weight.
+     * 返回给定总重量的最大 CG 指数。
+     *
+     * @param totalWeight The total weight to evaluate. / 要评估的总重量
+     * @return The maximum CG index quantity. / 最大 CG 指数量
+    */
     fun maxIndexOf(totalWeight: Quantity<Flt64>): Quantity<Flt64> {
         return rhsSide(totalWeight)
     }
@@ -180,15 +210,16 @@ class Envelope(
 }
 
 /**
- * 具有基于运行时条件切换的条件边的 CG 包络线。CG envelope with conditional sides that switch based on a runtime condition.
+ * CG envelope with conditional sides that switch based on a runtime condition.
+ * 具有基于运行时条件切换的条件边的 CG 包络线。
  *
- * @property aircraftModel 参数。
- * @property lhsSide1 参数。
- * @property rhsSide1 参数。
- * @property lhsSide2 参数。
- * @property rhsSide2 参数。
- * @property valueCondition 参数。
- */
+ * @property lhsSide1 The first left-hand side of the envelope. / 包络线的第一个左侧
+ * @property rhsSide1 The first right-hand side of the envelope. / 包络线的第一个右侧
+ * @property lhsSide2 The second left-hand side of the envelope. / 包络线的第二个左侧
+ * @property rhsSide2 The second right-hand side of the envelope. / 包络线的第二个右侧
+ * @property valueCondition Runtime condition function returning true, false, or null. / 运行时条件函数，返回 true、false 或 null
+ * @property symbolCondition Symbolic condition function for the model. / 模型的符号条件函数
+*/
 class ConditionalEnvelope(
     private val aircraftModel: AircraftModel,
     override val phase: FlightPhase,

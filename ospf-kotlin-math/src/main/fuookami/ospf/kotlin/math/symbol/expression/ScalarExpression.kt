@@ -5,7 +5,7 @@
  * 定义标量值的表达弌AST，包括常量、引用、一元操作、二元操作、函数调用和自定义表达式。
  * Defines the expression AST for scalar values,
  * including constant, reference, unary, binary, function call, and custom expressions.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -16,19 +16,19 @@ import fuookami.ospf.kotlin.math.symbol.*
  *
  * 表示标量值的表达式，支持多种操作类型。
  * Represents an expression for scalar values, supporting various operation types.
- */
+*/
 sealed interface ScalarExpression<out T> {
 
     /**
      * 表达式类型名秌
      * Expression type name
-     */
+    */
     val typeName: String
 
     /**
      * 子表达式列表
      * Child expressions list
-     */
+    */
     val children: List<ScalarExpression<T>>
 
     /**
@@ -36,7 +36,7 @@ sealed interface ScalarExpression<out T> {
      * Check if expression is constant
      *
      * @return 如果表达式是常量则返回 true，否则返回 false / true if the expression is constant, false otherwise
-     */
+    */
     fun isConstant(): Boolean = when (this) {
         is ScalarConstant -> true
         is ScalarReference -> false
@@ -54,7 +54,7 @@ sealed interface ScalarExpression<out T> {
      * Check if expression contains references
      *
      * @return 如果表达式包含引用则返回 true，否则返回 false / true if the expression contains references, false otherwise
-     */
+    */
     fun containsReference(): Boolean = when (this) {
         is ScalarConstant -> false
         is ScalarReference -> true
@@ -72,7 +72,7 @@ sealed interface ScalarExpression<out T> {
      * Get all reference paths in the expression
      *
      * @return 表达式中所有引用路径的集合 / Set of all reference paths in the expression
-     */
+    */
     fun collectReferences(): Set<PropertyPath> {
         val refs = mutableSetOf<PropertyPath>()
         collectReferencesInto(refs)
@@ -84,7 +84,7 @@ sealed interface ScalarExpression<out T> {
      * Collect reference paths into specified collection
      *
      * @param refs 用于收集引用路径的可变集合 / Mutable set to collect reference paths into
-     */
+    */
     fun collectReferencesInto(refs: MutableSet<PropertyPath>) {
         when (this) {
             is ScalarReference -> refs.add(path)
@@ -112,7 +112,7 @@ sealed interface ScalarExpression<out T> {
  *
  * 表示常量值。
  * Represents a constant value.
- */
+*/
 /**
  * 标量常量
  * Scalar Constant
@@ -121,7 +121,7 @@ sealed interface ScalarExpression<out T> {
  * Represents a constant value.
  *
  * @property value 常量值 / Constant value
- */
+*/
 data class ScalarConstant<T>(
     val value: T
 ) : ScalarExpression<T> {
@@ -140,7 +140,7 @@ data class ScalarConstant<T>(
  *
  * @property path 属性路径 / Property path
  * @property symbol 路径符号，默认从 path 转换 / Path symbol, defaults to conversion from path
- */
+*/
 data class ScalarReference<T>(
     val path: PropertyPath,
     val symbol: PathSymbol = path.toPathSymbol()
@@ -159,7 +159,7 @@ data class ScalarReference<T>(
  * Represents a reference to a symbol (non-path form).
  *
  * @property symbol 符号 / Symbol
- */
+*/
 data class ScalarSymbolReference<T>(
     val symbol: Symbol
 ) : ScalarExpression<T> {
@@ -178,7 +178,7 @@ data class ScalarSymbolReference<T>(
  *
  * @property operator 一元操作符 / Unary operator
  * @property operand 操作数 / Operand
- */
+*/
 data class ScalarUnary<T>(
     val operator: UnaryOperator,
     val operand: ScalarExpression<T>
@@ -199,7 +199,7 @@ data class ScalarUnary<T>(
  * @property operator 二元操作符 / Binary operator
  * @property left 左操作数 / Left operand
  * @property right 右操作数 / Right operand
- */
+*/
 data class ScalarBinary<T>(
     val operator: BinaryOperator,
     val left: ScalarExpression<T>,
@@ -219,8 +219,8 @@ data class ScalarBinary<T>(
  * Represents a function call expression.
  *
  * @property name 函数名称 / Function name
- * @property arguments 参数列表 / Argument list
- */
+ * @property arguments List of argument expressions for the function call / 函数调用的参数表达式列表
+*/
 data class ScalarFunction<T>(
     val name: String,
     val arguments: List<ScalarExpression<T>>
@@ -240,7 +240,7 @@ data class ScalarFunction<T>(
  *
  * @property value 自定义值 / Custom value
  * @property description 可选描述 / Optional description
- */
+*/
 data class ScalarCustom<T>(
     val value: Any,
     val description: String? = null
@@ -265,7 +265,7 @@ data class ScalarCustom<T>(
  * @property condition 条件布尔表达式 / Condition boolean expression
  * @property thenBranch 条件为真时的分支 / Branch when condition is true
  * @property elseBranch 条件为假时的分支 / Branch when condition is false
- */
+*/
 data class ScalarConditional<T>(
     val condition: BooleanExpression,
     val thenBranch: ScalarExpression<T>,
@@ -285,7 +285,7 @@ data class ScalarConditional<T>(
  * Wraps a boolean expression as a scalar value, for formulas returning boolean results (e.g., x > 0 && y > 0).
  *
  * @property expr 被包装的布尔表达式 / Wrapped boolean expression
- */
+*/
 data class ScalarBoolean<T>(
     val expr: BooleanExpression
 ) : ScalarExpression<T> {
@@ -301,15 +301,16 @@ data class ScalarBoolean<T>(
  *
  * 提供便捷的标量表达式构造方法。
  * Provides convenient scalar expression construction methods.
- */
+*/
 object ScalarExpressionFactory {
+
     /**
      * 创建常量表达弌
      * Create constant expression
      *
      * @param value 常量值 / Constant value
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> constant(value: T): ScalarExpression<T> = ScalarConstant(value)
 
     /**
@@ -318,7 +319,7 @@ object ScalarExpressionFactory {
      *
      * @param path 属性路径 / Property path
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> reference(path: PropertyPath): ScalarExpression<T> = ScalarReference(path)
 
     /**
@@ -327,7 +328,7 @@ object ScalarExpressionFactory {
      *
      * @param path 路径字符串 / Path string
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> reference(path: String): ScalarExpression<T> = reference(PropertyPath.parse(path))
 
     /**
@@ -336,7 +337,7 @@ object ScalarExpressionFactory {
      *
      * @param symbol 符号 / Symbol
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> reference(symbol: Symbol): ScalarExpression<T> = ScalarSymbolReference(symbol)
 
     /**
@@ -346,7 +347,7 @@ object ScalarExpressionFactory {
      * @param operator 一元操作符 / Unary operator
      * @param operand 操作数 / Operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> unary(operator: UnaryOperator, operand: ScalarExpression<T>): ScalarExpression<T> =
         ScalarUnary(operator, operand)
 
@@ -358,7 +359,7 @@ object ScalarExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> binary(
         operator: BinaryOperator,
         left: ScalarExpression<T>,
@@ -372,7 +373,7 @@ object ScalarExpressionFactory {
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> function(name: String, arguments: List<ScalarExpression<T>>): ScalarExpression<T> =
         ScalarFunction(name, arguments)
 
@@ -383,7 +384,7 @@ object ScalarExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> add(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Add, left, right)
 
@@ -394,7 +395,7 @@ object ScalarExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> subtract(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Subtract, left, right)
 
@@ -405,7 +406,7 @@ object ScalarExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> multiply(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Multiply, left, right)
 
@@ -416,7 +417,7 @@ object ScalarExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 标量表达式 / Scalar expression
-     */
+    */
     fun <T> divide(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Divide, left, right)
 
@@ -428,7 +429,7 @@ object ScalarExpressionFactory {
      * @param thenBranch 条件为真时的分支 / Branch when condition is true
      * @param elseBranch 条件为假时的分支 / Branch when condition is false
      * @return 条件表达式 / Conditional expression
-     */
+    */
     fun <T> conditional(
         condition: BooleanExpression,
         thenBranch: ScalarExpression<T>,
@@ -441,14 +442,14 @@ object ScalarExpressionFactory {
      *
      * @param expr 布尔表达式 / Boolean expression
      * @return 布尔包装表达式 / Boolean wrapper expression
-     */
+    */
     fun <T> boolean(expr: BooleanExpression): ScalarExpression<T> = ScalarBoolean(expr)
 }
 
 /**
  * 标准标量函数名称
  * Standard scalar function names
- */
+*/
 object ScalarFunctionNames {
     const val Abs: String = "abs"
     const val Lower: String = "lower"
@@ -463,8 +464,9 @@ object ScalarFunctionNames {
  * Scalar function registry
  *
  * @param R 注册表使用的中间表示类型 / Intermediate representation type used by registry
- */
+*/
 interface ScalarFunctionRegistry<R> {
+
     /**
      * 将标量函数调用翻译为目标表示
      * Translate scalar function call to target representation
@@ -472,15 +474,16 @@ interface ScalarFunctionRegistry<R> {
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list
      * @return 翻译结果，不支持的函数返回 null / Translation result, null if function not supported
-     */
+    */
     fun translate(name: String, arguments: List<R>): R?
 }
 
 /**
  * 标量函数求值器
  * Scalar function evaluator
- */
+*/
 interface ScalarFunctionEvaluator {
+
     /**
      * 求值标量函数
      * Evaluate scalar function
@@ -488,6 +491,6 @@ interface ScalarFunctionEvaluator {
      * @param name 函数名 / Function name
      * @param arguments 参数列表 / Argument list
      * @return 求值结果 / Evaluation result
-     */
+    */
     fun evaluate(name: String, arguments: List<Any?>): Any?
 }

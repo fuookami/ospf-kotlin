@@ -1,7 +1,7 @@
 /**
  * Material packer.
  * 物料装箱器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.ceil
@@ -19,10 +19,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param solverExecutor The material packing solver executor.
  * 物料装箱求解器执行器。
- */
+*/
 class MaterialPacker(
     private val solverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
 ) {
+
     /**
      * Package slot representing a packaging instance of a candidate program in the current slot.
      * 包装槽位，表示一个候选方案在当前槽位的包装实例。
@@ -35,7 +36,7 @@ class MaterialPacker(
      * 已分配的物料及其数量。
      * @property pending Whether the slot is pending.
      * 是否待定。
-     */
+    */
     private data class PackageSlot(
         val candidateIndex: Int,
         val pack: Package<*>,
@@ -53,7 +54,7 @@ class MaterialPacker(
      * 是否待定。
      * @property materials The list of materials and their assigned amounts.
      * 物料及其分配数量列表。
-     */
+    */
     private data class SlotSignature(
         val candidateIndex: Int,
         val pending: Boolean,
@@ -68,7 +69,7 @@ class MaterialPacker(
      * 待转换的数量。
      * @return The converted FltX quantity.
      * 转换后的 FltX 数量。
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     private fun packQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
         return when (value.value) {
@@ -85,7 +86,7 @@ class MaterialPacker(
      * 待转换的重量需求量。
      * @return The converted packing quantity, fails when scalar type is unsupported.
      * 转换后的装箱数量，标量类型不支持时失败。
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     private fun weightDemandToPackingQuantity(value: Quantity<*>): Ret<Quantity<FltX>> {
         return when (value.value) {
@@ -108,7 +109,7 @@ class MaterialPacker(
      * 目标权重配置。
      * @return The material packing plan.
      * 物料装箱计划。
-     */
+    */
     suspend fun <V : FloatingNumber<V>> plan(
         demands: List<MaterialPackingDemand<V>>,
         candidates: List<MaterialPackingProgramCandidate<V>>,
@@ -379,7 +380,7 @@ class MaterialPacker(
      * 待转换的长整型值。
      * @return The converted UInt64 value.
      * 转换后的 UInt64 值。
-     */
+    */
     private fun toUInt64(value: Long): UInt64 {
         return if (value <= 0L) {
             UInt64.zero
@@ -398,7 +399,7 @@ class MaterialPacker(
      * 候选方案。
      * @return The default package attribute.
      * 默认的包装属性。
-     */
+    */
     private fun <V : FloatingNumber<V>> defaultPackageAttribute(candidate: MaterialPackingProgramCandidate<V>): PackageAttribute {
         return PackageAttribute(
             packageType = candidate.program.packageType,

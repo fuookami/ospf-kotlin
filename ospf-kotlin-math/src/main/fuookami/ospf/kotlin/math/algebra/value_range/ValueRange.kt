@@ -4,7 +4,7 @@
  *
  * 定义值范围类，表示一个数值区间，支持集合操作（并集、交集、包含判断）和算术运算（加、减、乘、除）。
  * Defines value range class representing a numerical interval, with support for set operations (union, intersection, containment) and arithmetic operations (add, subtract, multiply, divide).
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import java.util.*
@@ -30,17 +30,18 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param T 数值类型，必须是实数和数域
  * @property valueSerializer 值包装器的序列化噌
- */
+*/
 open class ValueRangeSerializer<T>(
     private val valueSerializer: ValueWrapperSerializer<T>
 ) : KSerializer<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+
     /**
      * 序列化描述符
      * Serialization descriptor
      *
      * 定义了四个字段：lowerBound、upperBound、lowerInterval、upperInterval。
      * Defines four fields: lowerBound, upperBound, lowerInterval, upperInterval.
-     */
+    */
     override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ValueRange<T>") {
         element<JsonElement>("lowerBound")
         element<JsonElement>("upperBound")
@@ -54,7 +55,7 @@ open class ValueRangeSerializer<T>(
      *
      * @param encoder JSON 编码噌
      * @param value 要序列化的值范囌
-     */
+    */
     override fun serialize(encoder: Encoder, value: ValueRange<T>) {
         val jsonEncoder = requireJsonEncoder(encoder, "ValueRangeSerializer")
         jsonEncoder.encodeJsonElement(
@@ -73,7 +74,7 @@ open class ValueRangeSerializer<T>(
      *
      * @param decoder JSON 解码噌
      * @return 解析后的值范囌
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     override fun deserialize(decoder: Decoder): ValueRange<T> {
         val jsonDecoder = requireJsonDecoder(decoder, "ValueRangeSerializer")
@@ -111,19 +112,19 @@ open class ValueRangeSerializer<T>(
 /**
  * Int64 类型值范围的序列化器
  * Serializer for Int64 typed value range
- */
+*/
 data object ValueRangeInt64Serializer : ValueRangeSerializer<Int64>(ValueWrapperSerializer(Int64))
 
 /**
  * UInt64 类型值范围的序列化器
  * Serializer for UInt64 typed value range
- */
+*/
 data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapperSerializer(UInt64))
 
 /**
  * Flt64 类型值范围的序列化器
  * Serializer for Flt64 typed value range
- */
+*/
 data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer(Flt64))
 
 /**
@@ -147,7 +148,7 @@ data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapper
  * @property lowerBound 下边界
  * @property upperBound 上边界
  * @property constants 数值常量对豌
- */
+*/
 data class ValueRange<T>(
     val lowerBound: Bound<T>,
     val upperBound: Bound<T>,
@@ -169,7 +170,7 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类垌
          * @param ubInterval 上边界区间类垌
          * @return 区间是否为空
-         */
+        */
         fun <T> empty(
             lb: ValueWrapper<T>,
             ub: ValueWrapper<T>,
@@ -193,7 +194,7 @@ data class ValueRange<T>(
          *
          * @param constants 数值常量对豌
          * @return 全范围的值范囌
-         */
+        */
         operator fun <T> invoke(
             constants: RealNumberConstants<T>
         ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
@@ -210,7 +211,7 @@ data class ValueRange<T>(
          *
          * @return 全范围的值范围解析结果
          * @return The full value range resolution result
-         */
+        */
         inline operator fun <reified T> invoke(): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             return resolveRealNumberConstantsSafe<T>("ValueRange").mapResolved { constants ->
                 invoke(constants)
@@ -226,7 +227,7 @@ data class ValueRange<T>(
          *
          * @param value 单点倌
          * @return 创建结果
-         */
+        */
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -242,7 +243,7 @@ data class ValueRange<T>(
          * @param value 单点倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         operator fun <T> invoke(
             value: T,
             constants: RealNumberConstants<T>
@@ -265,7 +266,7 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类型，默认为闭区间
          * @param ubInterval 上边界区间类型，默认为闭区间
          * @return 创建结果
-         */
+        */
         inline operator fun <reified T> invoke(
             lb: T,
             ub: T,
@@ -293,7 +294,7 @@ data class ValueRange<T>(
          * @param ubInterval 上边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         operator fun <T> invoke(
             lb: T,
             ub: T,
@@ -344,7 +345,7 @@ data class ValueRange<T>(
          * @param ub 正无穷标讌
          * @param lbInterval 下边界区间类型，默认为闭区间
          * @return 创建结果
-         */
+        */
         inline operator fun <reified T> invoke(
             lb: T,
             ub: Infinity,
@@ -369,7 +370,7 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         operator fun <T> invoke(
             lb: T,
             ub: Infinity,
@@ -406,7 +407,7 @@ data class ValueRange<T>(
          * @param ub 上边界倌
          * @param ubInterval 上边界区间类型，默认为闭区间
          * @return 创建结果
-         */
+        */
         inline operator fun <reified T> invoke(
             lb: NegativeInfinity,
             ub: T,
@@ -431,7 +432,7 @@ data class ValueRange<T>(
          * @param ubInterval 上边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         operator fun <T> invoke(
             lb: NegativeInfinity,
             ub: T,
@@ -467,7 +468,7 @@ data class ValueRange<T>(
          * @param lb 下边界倌
          * @param lbInterval 下边界区间类型，默认为闭区间
          * @return 创建结果
-         */
+        */
         inline fun <reified T> geq(
             lb: T,
             lbInterval: Interval = Interval.Closed
@@ -487,7 +488,7 @@ data class ValueRange<T>(
          *
          * @param lb 下边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> gr(
             lb: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -509,7 +510,7 @@ data class ValueRange<T>(
          * @param lb 下边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> gr(
             lb: T,
             constants: RealNumberConstants<T>
@@ -529,7 +530,7 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> geq(
             lb: T,
             lbInterval: Interval,
@@ -564,7 +565,7 @@ data class ValueRange<T>(
          * @param ub 上边界倌
          * @param lbInterval 上边界区间类型，默认为闭区间
          * @return 创建结果
-         */
+        */
         inline fun <reified T> leq(
             ub: T,
             lbInterval: Interval = Interval.Closed
@@ -584,7 +585,7 @@ data class ValueRange<T>(
          *
          * @param ub 上边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> ls(
             ub: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -606,7 +607,7 @@ data class ValueRange<T>(
          * @param ub 上边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> ls(
             ub: T,
             constants: RealNumberConstants<T>
@@ -626,7 +627,7 @@ data class ValueRange<T>(
          * @param lbInterval 上边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> leq(
             ub: T,
             lbInterval: Interval,
@@ -663,7 +664,7 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类垌
          * @param ubInterval 上边界区间类垌
          * @return 创建结果
-         */
+        */
         inline operator fun <reified T> invoke(
             lb: ValueWrapper<T>,
             ub: ValueWrapper<T>,
@@ -691,7 +692,7 @@ data class ValueRange<T>(
          * @param ubInterval 上边界区间类垌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         operator fun <T> invoke(
             lb: ValueWrapper<T>,
             ub: ValueWrapper<T>,
@@ -724,7 +725,7 @@ data class ValueRange<T>(
      *
      * 计算上下边界的平均值。
      * Calculates the average of upper and lower bounds.
-     */
+    */
     val meanOrNull: ValueWrapper<T>? by lazy {
         val sum = lowerBound.value + upperBound.value ?: return@lazy null
         sum / constants.two
@@ -735,7 +736,7 @@ data class ValueRange<T>(
      * Interval mean value result
      *
      * @return 平均值结果，失败时返回错误 / The mean value result, or an error when unavailable
-     */
+    */
     val mean: Ret<ValueWrapper<T>>
         get() = meanOrNull?.let { Ok(it) }
             ?: Failed(
@@ -749,7 +750,7 @@ data class ValueRange<T>(
      *
      * 计算上下边界的差值。
      * Calculates the difference between upper and lower bounds.
-     */
+    */
     val diffOrNull: ValueWrapper<T>? by lazy {
         upperBound.value - lowerBound.value
     }
@@ -759,7 +760,7 @@ data class ValueRange<T>(
      * Interval width result
      *
      * @return 宽度结果，失败时返回错误 / The width result, or an error when unavailable
-     */
+    */
     val diff: Ret<ValueWrapper<T>>
         get() = diffOrNull?.let { Ok(it) }
             ?: Failed(
@@ -773,7 +774,7 @@ data class ValueRange<T>(
      *
      * 计算区间宽度与平均值的相对比例，用于精度控制。
      * Calculates the relative ratio of interval width to mean value, used for precision control.
-     */
+    */
     val gapOrNull: ValueWrapper<T>? by lazy {
         val diff = diffOrNull ?: return@lazy null
         val mean = meanOrNull?.unwrapOrNull() ?: return@lazy null
@@ -785,7 +786,7 @@ data class ValueRange<T>(
      * Interval relative precision result
      *
      * @return 相对精度结果，失败时返回错误 / The relative precision result, or an error when unavailable
-     */
+    */
     val gap: Ret<ValueWrapper<T>>
         get() = gapOrNull?.let { Ok(it) }
             ?: Failed(
@@ -799,7 +800,7 @@ data class ValueRange<T>(
      *
      * 当上下边界相等且均为闭区间时为固定值。
      * When upper and lower bounds are equal and both are closed intervals, it's a fixed value.
-     */
+    */
     val fixed: Boolean by lazy {
         if (lowerBound.interval != Interval.Closed || upperBound.interval != Interval.Closed) {
             false
@@ -818,7 +819,7 @@ data class ValueRange<T>(
      *
      * 当区间为固定值时返回该值，否则返回 null。
      * Returns the value when interval is fixed, otherwise returns null.
-     */
+    */
     val fixedValue: T? by lazy {
         if (fixed) {
             lowerBound.value.unwrap()
@@ -836,7 +837,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 并集结果，或 null（不相交时）
-     */
+    */
     infix fun union(rhs: ValueRange<T>): ValueRange<T>? {
         if (upperBound.value ls rhs.lowerBound.value || rhs.upperBound.value ls lowerBound.value) {
             return null
@@ -881,7 +882,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 交集结果，或 null（不相交时）
-     */
+    */
     infix fun intersect(rhs: ValueRange<T>): ValueRange<T>? {
         val newLb = when (lowerBound.value ord rhs.lowerBound.value) {
             is Order.Less -> rhs.lowerBound.value
@@ -934,7 +935,7 @@ data class ValueRange<T>(
      *
      * @param value 要判断的倌
      * @return 是否在范围内
-     */
+    */
     override infix operator fun contains(value: T): Boolean {
         return if (lowerBound.value.isNegativeInfinity && upperBound.value.isInfinity) {
             true
@@ -957,7 +958,7 @@ data class ValueRange<T>(
      *
      * @param valueRange 要判断的值范囌
      * @return 是否完全包含
-     */
+    */
     infix operator fun contains(valueRange: ValueRange<T>): Boolean {
         val lowerContains = when (lowerBound.value ord valueRange.lowerBound.value) {
             is Order.Less -> true
@@ -980,7 +981,7 @@ data class ValueRange<T>(
      * Copies value range
      *
      * @return 新的值范围副朌
-     */
+    */
     override fun copy(): ValueRange<T> {
         return ValueRange(
             lowerBound = lowerBound.copy(),
@@ -995,7 +996,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 是否相等，或无法确定时返囌null
-     */
+    */
     override fun partialEq(rhs: ValueRange<T>): Boolean? {
         when (val result = lowerBound partialEq rhs.lowerBound) {
             false, null -> {
@@ -1025,7 +1026,7 @@ data class ValueRange<T>(
      *
      * @param rhs 要添加的数倌
      * @return 新的值范囌
-     */
+    */
     operator fun plus(rhs: T): ValueRange<T>? {
         val newLowerBound = lowerBound + rhs ?: return null
         val newUpperBound = upperBound + rhs ?: return null
@@ -1045,7 +1046,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 新的值范囌
-     */
+    */
     override fun plus(rhs: ValueRange<T>): ValueRange<T>? {
         val newLowerBound = lowerBound + rhs.lowerBound ?: return null
         val newUpperBound = upperBound + rhs.upperBound ?: return null
@@ -1065,7 +1066,7 @@ data class ValueRange<T>(
      *
      * @param rhs 要减去的数倌
      * @return 新的值范囌
-     */
+    */
     operator fun minus(rhs: T): ValueRange<T>? {
         val newLowerBound = lowerBound - rhs ?: return null
         val newUpperBound = upperBound - rhs ?: return null
@@ -1085,7 +1086,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 新的值范囌
-     */
+    */
     override fun minus(rhs: ValueRange<T>): ValueRange<T>? {
         val newLowerBound = lowerBound - rhs.upperBound ?: return null
         val newUpperBound = upperBound - rhs.lowerBound ?: return null
@@ -1105,7 +1106,7 @@ data class ValueRange<T>(
      *
      * @param rhs 要乘的数倌
      * @return 新的值范围，戌null（乘零且边界为无穷时，
-     */
+    */
     operator fun times(rhs: T): ValueRange<T>? {
         return if (rhs gr constants.zero) {
             val newLowerBound = lowerBound * rhs ?: return null
@@ -1155,7 +1156,7 @@ data class ValueRange<T>(
      *
      * @param rhs 另一个值范囌
      * @return 新的值范围，戌null（运算无效时，
-     */
+    */
     override fun times(rhs: ValueRange<T>): ValueRange<T>? {
         val bounds = listOf(
             Bound(
@@ -1191,7 +1192,7 @@ data class ValueRange<T>(
      *
      * @param rhs 要除的数倌
      * @return 新的值范围，戌null（除零时，
-     */
+    */
     override fun div(rhs: T): ValueRange<T>? {
         return if (rhs eq constants.zero) {
             null
@@ -1205,7 +1206,7 @@ data class ValueRange<T>(
      * Converts to Flt64 typed value range
      *
      * @return Flt64 类型的新值范囌
-     */
+    */
     fun toFlt64() = ValueRange(
         lowerBound.toFlt64(),
         upperBound.toFlt64(),
@@ -1218,7 +1219,7 @@ data class ValueRange<T>(
      *
      * @param other 要比较的对象
      * @return 是否相等
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -1239,8 +1240,8 @@ data class ValueRange<T>(
      * Compares whether the values and interval types of upper and lower bounds are respectively equal.
      *
      * @param other 另一个值范围对象（已通过 javaClass 和 constants 校验）
-     * @return 边界是否相同
-     */
+     * @return Whether the bounds are the same / 边界是否相同
+    */
     @Suppress("UNCHECKED_CAST")
     private fun hasSameBounds(other: Any): Boolean {
         // 安全不变量：equals 已校验 javaClass 与 constants，当前对象与 other 共享同一运行时数值类型。
@@ -1254,7 +1255,7 @@ data class ValueRange<T>(
      * Computes hash value
      *
      * @return 哈希倌
-     */
+    */
     override fun hashCode(): Int {
         var result = lowerBound.hashCode()
         result = 31 * result + upperBound.hashCode()
@@ -1270,7 +1271,7 @@ data class ValueRange<T>(
      * Format is [lower, upper] or (lower, upper) etc.
      *
      * @return 值范围的字符串形弌
-     */
+    */
     override fun toString(): String = "${lowerBound.interval.lowerSign}${lowerBound.value}, ${upperBound.value}${upperBound.interval.upperSign}"
 }
 
@@ -1281,7 +1282,7 @@ data class ValueRange<T>(
  * @param value 数倌
  * @param valueRange 值范囌
  * @return 新的值范囌
- */
+*/
 operator fun <T> T.plus(valueRange: ValueRange<T>): ValueRange<T>? where T : RealNumber<T>, T : NumberField<T> {
     return valueRange + this
 }
@@ -1293,7 +1294,7 @@ operator fun <T> T.plus(valueRange: ValueRange<T>): ValueRange<T>? where T : Rea
  * @param value 数倌
  * @param valueRange 值范囌
  * @return 新的值范围，戌null
- */
+*/
 operator fun <T> T.times(valueRange: ValueRange<T>): ValueRange<T>? where T : RealNumber<T>, T : NumberField<T> {
     return valueRange * this
 }
@@ -1308,7 +1309,7 @@ operator fun <T> T.times(valueRange: ValueRange<T>): ValueRange<T>? where T : Re
  * @param value 数倌
  * @param valueRange 值范囌
  * @return 约束后的数倌
- */
+*/
 fun <T> T.coerceIn(valueRange: ValueRange<T>): T where T : RealNumber<T>, T : NumberField<T> {
     val lb = valueRange.lowerBound.value.unwrapOrNull()
     val ub = valueRange.upperBound.value.unwrapOrNull()
@@ -1326,7 +1327,7 @@ fun <T> T.coerceIn(valueRange: ValueRange<T>): T where T : RealNumber<T>, T : Nu
  * Negation operation for Flt32 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeFlt32")
 operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1339,7 +1340,7 @@ operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
  * Negation operation for Flt64 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeFlt64")
 operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1352,7 +1353,7 @@ operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
  * Negation operation for FltX typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeFltX")
 operator fun ValueRange<FltX>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1365,7 +1366,7 @@ operator fun ValueRange<FltX>.unaryMinus() = ValueRange(
  * Negation operation for Int8 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeInt8")
 operator fun ValueRange<Int8>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1378,7 +1379,7 @@ operator fun ValueRange<Int8>.unaryMinus() = ValueRange(
  * Negation operation for Int16 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeInt16")
 operator fun ValueRange<Int16>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1391,7 +1392,7 @@ operator fun ValueRange<Int16>.unaryMinus() = ValueRange(
  * Negation operation for Int32 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeInt32")
 operator fun ValueRange<Int32>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1404,7 +1405,7 @@ operator fun ValueRange<Int32>.unaryMinus() = ValueRange(
  * Negation operation for Int64 typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeInt64")
 operator fun ValueRange<Int64>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
@@ -1417,7 +1418,7 @@ operator fun ValueRange<Int64>.unaryMinus() = ValueRange(
  * Negation operation for IntX typed value range
  *
  * @return 取负后的新值范囌
- */
+*/
 @JvmName("negValueRangeIntX")
 operator fun ValueRange<IntX>.unaryMinus() = ValueRange(
     upperBound = -upperBound,

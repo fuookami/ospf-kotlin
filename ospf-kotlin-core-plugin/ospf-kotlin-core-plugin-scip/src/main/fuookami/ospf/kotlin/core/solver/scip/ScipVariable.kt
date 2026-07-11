@@ -26,7 +26,7 @@ enum class ScipVariable {
          *
          * @param type 内部变量类型 / internal variable type
          * @return SCIP 变量类型 / SCIP variable type
-         */
+        */
         operator fun invoke(type: VariableType<*>): ScipVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.variable.Binary -> {
@@ -48,6 +48,6 @@ enum class ScipVariable {
      * 转换为 SCIP 变量类型 / Convert to SCIP variable type
      *
      * @return SCIP 变量类型 / SCIP variable type
-     */
+    */
     abstract fun toSCIPVar(): SCIP_Vartype
 }

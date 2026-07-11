@@ -6,7 +6,7 @@
  *
  * 提供基于 http4k 的 HTTP 响应发送和重试机制。
  * Provides HTTP response sending and retry mechanism based on http4k.
- */
+*/
 package fuookami.ospf.kotlin.framework.network
 
 import kotlin.time.Duration
@@ -27,15 +27,16 @@ import org.http4k.filter.ClientFilters.CustomBasicAuth.withBasicAuth
  *
  * 用于在发送请求前注入认证信息。
  * Used to inject authentication info before sending request.
- */
+*/
 interface Authorization {
+
     /**
      * 对请求应用授权
      * Apply authorization to request
      *
      * @param request 原始请求 / Original request
      * @return 添加授权后的请求 / Request with authorization applied
-     */
+    */
     suspend operator fun invoke(request: Request): Request
 }
 
@@ -45,7 +46,7 @@ interface Authorization {
  *
  * @property username 用户名 / Username
  * @property password 密码 / Password
- */
+*/
 data class BasicAuthorization(
     private val username: String,
     private val password: String
@@ -67,7 +68,7 @@ data class BasicAuthorization(
  * @property times 最大重试次数 / Maximum retry count
  * @property delay 重试间隔，默认 1 秒 / Retry delay, default 1 second
  * @property condition 响应成功判定条件 / Response success condition
- */
+*/
 data class ResponseRetry(
     val times: Int,
     val delay: Duration = 1.seconds,
@@ -84,7 +85,7 @@ data class ResponseRetry(
  * @param authorization 授权，可为 null / Authorization, nullable
  * @param T 请求数据类型 / Request data type
  * @return HTTP 响应，URL 为空时返回 null / HTTP response, null if URL is empty
- */
+*/
 @OptIn(InternalSerializationApi::class)
 suspend inline fun <reified T : Any> response(
     result: T,
@@ -115,7 +116,7 @@ suspend inline fun <reified T : Any> response(
  * @param authorization 授权，可为 null / Authorization, nullable
  * @param T 请求数据类型 / Request data type
  * @return HTTP 响应，URL 为空时返回 null / HTTP response, null if URL is empty
- */
+*/
 suspend inline fun <reified T> response(
     result: T,
     url: String,

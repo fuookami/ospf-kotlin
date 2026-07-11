@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  * @param task 任务 / Task
- */
+*/
 data class TaskOverMaxDelayShadowPriceKey<
         E : Executor,
         A : AssignmentPolicy<E>
@@ -40,7 +40,7 @@ data class TaskOverMaxDelayShadowPriceKey<
  * @param taskTime 任务时间对象 / Task time object
  * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskOverMaxDelayTimeConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
@@ -52,6 +52,7 @@ class TaskOverMaxDelayTimeConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_over_max_delay_time"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+
     /**
      * 通过 solver 时间窗口边界创建任务超最大延迟时间约束 /
      * Create task over-max delay time constraint from a solver time-window boundary
@@ -61,7 +62,7 @@ class TaskOverMaxDelayTimeConstraint<
      * @param taskTime 任务时间对象 / Task time object
      * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
      * @param name 管道名称 / Pipeline name
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<AbstractTask<E, A>>,

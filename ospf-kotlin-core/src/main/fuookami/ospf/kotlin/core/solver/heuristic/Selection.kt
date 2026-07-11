@@ -1,7 +1,7 @@
 /**
  * 选择策略接口与实现
  * Selection strategy interface and implementations
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import kotlinx.coroutines.*
@@ -12,8 +12,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 选择策略接口，定义从种群中选择个体的行为。
  * Selection strategy interface, defining behavior for selecting individuals from the population.
- */
+*/
 interface Selection {
+
     /**
      * 按权重选择一个个体索引。
      * Select one individual index by weight.
@@ -21,7 +22,7 @@ interface Selection {
      * @param iteration 当前迭代 / Current iteration
      * @param weights 权重列表 / Weight list
      * @return 选中的个体索引 / Selected individual index
-     */
+    */
     operator fun invoke(
         iteration: Iteration,
         weights: List<Flt64>
@@ -35,7 +36,7 @@ interface Selection {
      * @param weights 权重列表 / Weight list
      * @param amount 选择数量 / Selection amount
      * @return 选中的个体索引列表 / Selected individual index list
-     */
+    */
     suspend operator fun invoke(
         iteration: Iteration,
         weights: List<Flt64>,
@@ -48,7 +49,7 @@ interface Selection {
  * Roulette selection strategy, selecting individuals with probability proportional to weights.
  *
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RouletteSelection(
     private val randomGenerator: Generator<Flt64>
 ) : Selection {
@@ -95,7 +96,7 @@ data class RouletteSelection(
 /**
  * 排名选择策略，选择权重最高的个体。
  * Rank selection strategy, selecting individuals with the highest weights.
- */
+*/
 data object RankSelection : Selection {
     override operator fun invoke(
         iteration: Iteration,
@@ -126,7 +127,7 @@ data object RankSelection : Selection {
  *
  * @property eliteAmount 每组精英数量函数 / Elite amount per group function
  * @property groupMinAmount 每组最小数量函数 / Minimum group size function
- */
+*/
 data class TournamentSelection(
     private val eliteAmount: (Iteration) -> UInt64,
     private val groupMinAmount: (Iteration) -> UInt64
@@ -139,7 +140,7 @@ data class TournamentSelection(
          * @param eliteAmount 每组精英数量 / Elite amount per group
          * @param groupMinAmount 每组最小数量 / Minimum group size
          * @return 锦标赛选择策略实例 / Tournament selection strategy instance
-         */
+        */
         operator fun invoke(
             eliteAmount: UInt64,
             groupMinAmount: UInt64
@@ -201,7 +202,7 @@ data class TournamentSelection(
  * Stochastic universal selection strategy, using equally spaced pointers for selection.
  *
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class StochasticUniversalSelection(
     private val randomGenerator: Generator<Flt64>
 ) : Selection {
@@ -243,7 +244,7 @@ data class StochasticUniversalSelection(
  * Truncation selection strategy, truncating by threshold then randomly selecting.
  *
  * @property truncationThreshold 截断阈值函数 / Truncation threshold function
- */
+*/
 data class TruncationSelection(
     private val truncationThreshold: (Iteration) -> Flt64
 ) : Selection {
@@ -254,7 +255,7 @@ data class TruncationSelection(
          *
          * @param truncationThreshold 截断阈值 / Truncation threshold
          * @return 截断选择策略实例 / Truncation selection strategy instance
-         */
+        */
         operator fun invoke(
             truncationThreshold: Flt64
         ): TruncationSelection {
@@ -309,7 +310,7 @@ data class TruncationSelection(
  *
  * @property temperature 温度函数 / Temperature function
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class BoltzmannSelection(
     private val temperature: (Iteration) -> Flt64,
     private val randomGenerator: Generator<Flt64>
@@ -323,7 +324,7 @@ data class BoltzmannSelection(
          * @param decayRate 衰减率 / Decay rate
          * @param randomGenerator 随机数生成器 / Random number generator
          * @return 玻尔兹曼选择策略实例 / Boltzmann selection strategy instance
-         */
+        */
         operator fun invoke(
             initialTemperature: Flt64,
             decayRate: Flt64,
@@ -381,10 +382,12 @@ data class BoltzmannSelection(
 /**
  * 局部选择策略基类，基于邻域进行选择。
  * Base class for local selection strategies, selecting based on neighborhood.
- */
+*/
 abstract class LocalSelection : Selection {
+
     /** 邻域大小函数 / Neighborhood size function */
     protected abstract val neighborhoodSize: (Iteration) -> UInt64
+
     /** 随机数生成器 / Random number generator */
     protected abstract val randomGenerator: Generator<Flt64>
 
@@ -395,7 +398,7 @@ abstract class LocalSelection : Selection {
      * @param weights 权重列表 / Weight list
      * @param amount 邻域大小 / Neighborhood size
      * @return 邻域个体索引集合 / Set of neighbor individual indices
-     */
+    */
     protected abstract fun getNeighbours(weights: List<Flt64>, amount: UInt64): Set<UInt64>
 
     override fun invoke(
@@ -436,7 +439,7 @@ abstract class LocalSelection : Selection {
  *
  * @property neighborhoodSize 邻域大小函数 / Neighborhood size function
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RingLocalSelection(
     override val neighborhoodSize: (Iteration) -> UInt64,
     override val randomGenerator: Generator<Flt64>
@@ -449,7 +452,7 @@ data class RingLocalSelection(
          * @param neighborhoodSize 邻域大小 / Neighborhood size
          * @param randomGenerator 随机数生成器 / Random number generator
          * @return 局部选择策略实例 / Local selection strategy instance
-         */
+        */
         operator fun invoke(
             neighborhoodSize: UInt64,
             randomGenerator: Generator<Flt64>
@@ -468,7 +471,7 @@ data class RingLocalSelection(
      * @param weights 权重列表 / Weight list
      * @param amount 邻域大小 / Neighborhood size
      * @return 邻域个体索引集合 / Set of neighbor individual indices
-     */
+    */
     override fun getNeighbours(weights: List<Flt64>, amount: UInt64): Set<UInt64> {
         val neighbours = HashSet<UInt64>()
         val medium = (randomGenerator()!! * Flt64(weights.size)).round().toUInt64()

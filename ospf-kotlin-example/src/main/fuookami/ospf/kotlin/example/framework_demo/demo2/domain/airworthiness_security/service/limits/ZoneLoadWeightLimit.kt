@@ -20,12 +20,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个机身区域内的总载荷重量到最大允许值。Constrains the total load weight within each fuselage zone to the maximum allowed value.
  *
- * @property aircraftModel 参数。
- * @property fuselage 参数。
- * @property maxZoneLoadWeight 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
+ * @property fuselage The fuselage providing liferaft weight data / 提供救生筏重量数据的机身
+ * @property maxZoneLoadWeight The maximum zone load weight limits / 各区域最大载荷重量限制
+ * @property positions The list of cargo positions / 货物位置列表
+ * @property load The load estimation model / 载荷估算模型
+*/
 class ZoneLoadWeightLimit(
     private val aircraftModel: AircraftModel,
     private val fuselage: Fuselage,

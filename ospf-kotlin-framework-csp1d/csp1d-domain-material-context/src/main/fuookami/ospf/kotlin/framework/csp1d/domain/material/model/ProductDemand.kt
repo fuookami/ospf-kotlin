@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.quantities.unit.*
 
 /**
  * 卷数离散单位 / Discrete unit for roll count
- */
+*/
 object RollCountUnit : PhysicalUnit() {
     override val name = "roll"
     override val symbol = "roll"
@@ -23,7 +23,7 @@ object RollCountUnit : PhysicalUnit() {
 
 /**
  * 张数离散单位 / Discrete unit for sheet count
- */
+*/
 object SheetCountUnit : PhysicalUnit() {
     override val name = "sheet"
     override val symbol = "sheet"
@@ -43,7 +43,7 @@ object SheetCountUnit : PhysicalUnit() {
  * @property product 产品 / Product
  * @property quantity 需求值 / Demand quantity
  * @property mode 需求口径标签，仅用于语义标识 / Demand mode label for semantic tracing only
- */
+*/
 data class ProductDemand<V : RealNumber<V>>(
     val product: Product<V>,
     val quantity: Quantity<V>,
@@ -56,7 +56,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param product 产品 / Product
          * @param quantity 需求值 / Demand quantity
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> roll(
             product: Product<V>,
             quantity: Quantity<V>
@@ -74,7 +74,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param product 产品 / Product
          * @param quantity 需求值 / Demand quantity
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> weight(
             product: Product<V>,
             quantity: Quantity<V>
@@ -92,7 +92,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param product 产品 / Product
          * @param quantity 需求值 / Demand quantity
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> sheet(
             product: Product<V>,
             quantity: Quantity<V>
@@ -111,7 +111,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param rollAmount 卷数值 / Roll amount
          * @param unit 离散单位，默认 roll / Discrete unit, defaults to roll
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> legacyRoll(
             product: Product<V>,
             rollAmount: V,
@@ -130,7 +130,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param weightAmount 重量值 / Weight amount
          * @param unit 质量单位，默认 kg / Mass unit, defaults to kg
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> legacyWeight(
             product: Product<V>,
             weightAmount: V,
@@ -149,7 +149,7 @@ data class ProductDemand<V : RealNumber<V>>(
          * @param sheetAmount 张数值 / Sheet amount
          * @param unit 离散单位，默认 sheet / Discrete unit, defaults to sheet
          * @return 产品需求 / Product demand
-         */
+        */
         fun <V : RealNumber<V>> legacySheet(
             product: Product<V>,
             sheetAmount: V,

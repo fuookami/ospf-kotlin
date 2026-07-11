@@ -4,7 +4,7 @@
  *
  * 由半径、高度和轴方向定义的圆柱体，支持投影、体积计算和轴置换。
  * A cylinder defined by radius, height, and axis direction, supporting projection, volume calculation, and axis permutation.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property from 起点坐标 / Start coordinate
  * @property to 终点坐标 / End coordinate
  * @param V 数值类型 / Number type
- */
+*/
 data class QuantityAxisLine3<V : FloatingNumber<V>>(
     val axis: Axis3,
     val from: Quantity<V>,
@@ -40,12 +40,13 @@ data class QuantityAxisLine3<V : FloatingNumber<V>>(
  * @property height 高度 / Height
  * @property axis 轴方向 / Axis direction
  * @param V 数值类型 / Number type
- */
+*/
 data class QuantityCylinder3<V : FloatingNumber<V>>(
     val radius: Quantity<V>,
     val height: Quantity<V>,
     val axis: Axis3
 ) : QuantityShape3<V> {
+
     /** 直径 / Diameter */
     val diameter: Quantity<V> get() = Quantity(radius.value + radius.value, radius.unit)
 
@@ -65,7 +66,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      *
      * @param axis 目标轴 / Target axis
      * @return 沿该轴的尺寸（轴方向为高度，其余为直径）/ Dimension along the axis (height along axis, diameter otherwise)
-     */
+    */
     fun along(axis: Axis3): Quantity<V> {
         return if (axis == this.axis) {
             height
@@ -88,7 +89,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      *
      * @param plane 目标平面 / Target plane
      * @return 投影形状（矩形或圆形）/ Projection shape (rectangle or circle)
-     */
+    */
     fun projectionOn(plane: AxisPlane3): QuantityProjection2<V> {
         return if (plane.contains(axis)) {
             QuantityRectangle2(
@@ -106,7 +107,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      *
      * @param pi 圆周率值 / Pi value
      * @return 底面积 / Base area
-     */
+    */
     fun baseArea(pi: V): Quantity<V> = quantityProduct(quantityProduct(radius, radius), pi)
 
     /**
@@ -115,7 +116,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      *
      * @param pi 圆周率值 / Pi value
      * @return 体积 / Volume
-     */
+    */
     fun volume(pi: V): Quantity<V> = quantityProduct(baseArea(pi), height)
 
     /**
@@ -124,7 +125,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      *
      * @param permutation 轴置换 / Axis permutation
      * @return 置换后的圆柱体结果 / Permuted cylinder result
-     */
+    */
     fun permute(permutation: QuantityAxisPermutation3): Ret<QuantityCylinder3<V>> = permutation.apply(this)
 
     /**
@@ -132,7 +133,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      * Create a bounding box at the origin
      *
      * @return 原点处的包围盒 / Bounding box at the origin
-     */
+    */
     fun boundingBoxAtOrigin(): QuantityBox3<V> = QuantityBox3.atOrigin(boundingCuboid)
 
     /**
@@ -143,7 +144,7 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
      * @param y y 坐标 / y coordinate
      * @param z z 坐标 / z coordinate
      * @return 指定位置的包围盒 / Bounding box at the specified position
-     */
+    */
     fun toBoundingBox(
         x: Quantity<V>,
         y: Quantity<V>,
@@ -161,5 +162,5 @@ data class QuantityCylinder3<V : FloatingNumber<V>>(
 /**
  * 三维轴对齐圆柱体别名
  * Type alias for 3D axis-aligned cylinder
- */
+*/
 typealias QuantityAxisAlignedCylinder3<V> = QuantityCylinder3<V>

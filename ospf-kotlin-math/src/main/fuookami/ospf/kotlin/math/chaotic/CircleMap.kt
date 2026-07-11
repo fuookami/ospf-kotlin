@@ -9,7 +9,7 @@
  * The circle map is a one-dimensional chaotic map describing the dynamics of periodically driven nonlinear oscillators.
  * This map exhibits complex dynamical behavior between frequency locking and chaos, with Arnold tongues being its important feature.
  * Commonly used for phase-locked loop analysis, synchronization dynamics research, and nonlinear oscillator modeling.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property alpha 频率参数 / Frequency parameter
  * @property beta 非线性耦合强度参数 / Nonlinear coupling strength parameter
- */
+*/
 data class CircleMap<V : FloatingImpl<V>>(
     val alpha: V,
     val beta: V
@@ -33,10 +33,10 @@ data class CircleMap<V : FloatingImpl<V>>(
          * Creates a CircleMap instance with Flt64 parameters.
          * 创建使用 Flt64 参数的圆映射实例。
          *
-         * @param alpha the frequency parameter / 频率参数
+         * @param alpha angular frequency of the circle map / 圆映射的角频率
          * @param beta the nonlinear coupling strength parameter / 非线性耦合强度参数
          * @return a new CircleMap instance / 新的圆映射实例
-         */
+        */
         operator fun invoke(
             alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)
@@ -54,15 +54,15 @@ data class CircleMap<V : FloatingImpl<V>>(
     }
 
     /**
-     * 将 sin 运算结果转换为类型 V
-     * Cast sin operation result to type V
+     * Cast sin operation result to type V.
+     * 将 sin 运算结果转换为类型 V。
      *
-     * 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
      * Safety invariant: V implements FloatingImpl<V> and belongs to FloatingNumber; sin preserves the same numeric family as input.
+     * 安全不变量：V 实现 FloatingImpl<V> 且属于 FloatingNumber；sin 返回值与输入保持同一数值族。
      *
-     * @param value sin 运算的结果值 / The result value of the sin operation
-     * @return 转换为类型 V 的数值 / The value cast to type V
-     */
+     * @param value the result value of the sin operation / sin 运算的结果值
+     * @return the value cast to type V / 转换为类型 V 的数值
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {
         return value as V
@@ -74,7 +74,7 @@ data class CircleMap<V : FloatingImpl<V>>(
  * Circle Map Generator
  *
  * @property circleMap 圆映射实例 / Circle map instance
- */
+*/
 data class CircleMapGenerator(
     val circleMap: CircleMap<Flt64> = CircleMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

@@ -13,11 +13,12 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
 
 /**
- * 用于将服务分配到网络中节点的决策变量和中间符号。Decision variables and intermediate symbols for assigning services to nodes in the network.
+ * Decision variables and intermediate symbols for assigning services to nodes in the network.
+ * 用于将服务分配到网络中节点的决策变量和中间符号。
  *
- * @property nodes 参数。
- * @property services 参数。
- */
+ * @property nodes the list of network nodes / 网络节点列表
+ * @property services the list of services / 服务列表
+*/
 class Assignment(
     private val nodes: List<Node>,
     private val services: List<Service>
@@ -27,11 +28,12 @@ class Assignment(
     lateinit var serviceAssignment: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * 将决策变量和中间符号注册到线性元模型中。Register the decision variables and intermediate symbols into the linear meta model.
+     * Registers the decision variables and intermediate symbols into the linear meta model.
+     * 将决策变量和中间符号注册到线性元模型中。
      *
-     * @param model 线性元模型 / the linear meta model
-     * @return 注册结果 / the registration result
-     */
+     * @param model the linear meta model / 线性元模型
+     * @return the registration result / 注册结果
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))

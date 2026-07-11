@@ -4,7 +4,7 @@
  *
  * 将通用 ScalarExpression 翻译为参数化 SQL 片段。
  * Translates generic ScalarExpression to parameterized SQL fragments.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.*
@@ -17,21 +17,22 @@ import fuookami.ospf.kotlin.utils.functional.*
  * MyBatis scalar SQL fragment
  *
  * @property sql SQL 片段字符串 / SQL fragment string
- * @property params 参数列表 / Parameter list
+ * @property params List of parameter values for SQL binding / SQL 参数绑定的值列表
  * @property isColumnOnly 是否仅为列引用 / Whether it's a column reference only
- */
+*/
 data class MybatisScalarSql(
     val sql: String,
     val params: List<Any?> = emptyList(),
     val isColumnOnly: Boolean = false
 ) {
+
     /**
      * 将参数占位符整体右移
      * Shift parameter placeholders by offset
      *
      * @param offset 偏移量 / Offset value
      * @return 偏移后的新 SQL 片段 / New SQL fragment with shifted placeholders
-     */
+    */
     fun shifted(offset: Int): MybatisScalarSql {
         if (offset == 0 || params.isEmpty()) return this
         var shiftedSql = sql
@@ -48,18 +49,19 @@ data class MybatisScalarSql(
  *
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class MybatisScalarTranslator(
     private val resolveColumnName: MybatisColumnNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+
     /**
      * 翻译标量表达式为参数化 SQL 片段
      * Translate scalar expression to parameterized SQL fragment
      *
      * @param expr 标量表达式 / Scalar expression
      * @return 参数化 SQL 片段，不支持时返回 null / Parameterized SQL fragment, or null if unsupported
-     */
+    */
     fun translate(expr: ScalarExpression<*>): Ret<MybatisScalarSql?> {
         return when (expr) {
             is ScalarReference<*> -> {
@@ -81,7 +83,7 @@ class MybatisScalarTranslator(
      *
      * @param expr 一元标量表达式 / Unary scalar expression
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
-     */
+    */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<MybatisScalarSql?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
@@ -97,7 +99,7 @@ class MybatisScalarTranslator(
      *
      * @param expr 二元标量表达式 / Binary scalar expression
      * @return 参数化 SQL 片段 / Parameterized SQL fragment
-     */
+    */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<MybatisScalarSql?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value?.shifted(left.params.size) ?: return Ok(null)
@@ -122,7 +124,7 @@ class MybatisScalarTranslator(
      *
      * @param expr 标量函数表达式 / Scalar function expression
      * @return 参数化 SQL 函数片段 / Parameterized SQL function fragment
-     */
+    */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<MybatisScalarSql?> {
         val arguments = mutableListOf<MybatisScalarSql>()
         var paramOffset = 0
@@ -159,7 +161,7 @@ class MybatisScalarTranslator(
      * @param arguments 已翻译的参数列表 / Translated argument list
      * @param expected 期望参数数量 / Expected argument count
      * @return 参数化 SQL 函数片段 / Parameterized SQL function fragment
-     */
+    */
     private fun translateSqlFunction(
         logicalName: String,
         sqlName: String,
@@ -182,7 +184,7 @@ class MybatisScalarTranslator(
      *
      * @param reason 不支持的原因 / Reason for being unsupported
      * @return 根据策略返回失败或 null / Returns failure or null based on policy
-     */
+    */
     private fun unsupported(reason: String): Ret<MybatisScalarSql?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

@@ -15,6 +15,7 @@ import jscip.*
 /** SCIP 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现 / SCIP solver abstract base class, provides common implementation for environment initialization, solving, and status analysis */
 @OptIn(ExperimentalTime::class)
 abstract class ScipSolver : AutoCloseable {
+
     /** Companion object managing SCIP native library loading / 伴生对象，管理 SCIP 原生库加载 */
     companion object {
         internal var loadedLibrary = false
@@ -31,7 +32,12 @@ abstract class ScipSolver : AutoCloseable {
         private val winLibraries = listOf("tbb", "libscip", "jscip")
         private val unixLibraries = listOf("libgcg", "libgmp", "libpthread", "libgfortran", "libquadmath", "libopenblas", "libtbb", "libsplexshared", "libscip", "libjscip")
 
-        /** 从 JAR 包中加载 SCIP 原生库 / Load SCIP native library from JAR package */
+        /**
+         * 从 JAR 包中加载 SCIP 原生库
+         * Load SCIP native library from JAR package
+         *
+         * @return the load result as Try / 以Try包装的加载结果
+        */
         fun loadLibraryInJar(): Try {
             val systemType = System.getProperty("os.name")
             val libExtension = if (systemType.lowercase(Locale.getDefault()).indexOf("win") != -1) {
@@ -75,7 +81,7 @@ abstract class ScipSolver : AutoCloseable {
      *
      * @param name 模型名称 / model name
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun init(name: String): Try {
         if (!loadedLibrary) {
             try {
@@ -95,7 +101,7 @@ abstract class ScipSolver : AutoCloseable {
      *
      * @param threadNum 线程数 / number of threads
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun solve(threadNum: UInt64): Try {
         val begin = Clock.System.now()
         if (threadNum gr UInt64.one) {
@@ -116,7 +122,7 @@ abstract class ScipSolver : AutoCloseable {
      * 分析 SCIP 求解状态 / Analyze SCIP solving status
      *
      * @return 操作结果 / Operation result
-     */
+    */
     protected suspend fun analyzeStatus(): Try {
         val solution = scip.bestSol
         status = when (scip.status) {

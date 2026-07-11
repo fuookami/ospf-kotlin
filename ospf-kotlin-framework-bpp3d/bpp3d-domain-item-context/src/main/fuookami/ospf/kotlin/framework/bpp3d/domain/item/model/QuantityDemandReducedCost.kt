@@ -1,7 +1,7 @@
 /**
  * Quantity demand reduced cost model.
  * 泛型需求缩减成本模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 /**
  * 泛型需求影子价格键。
  * Quantity demand shadow price key.
- */
+*/
 data class QuantityDemandShadowPriceKey<V : FloatingNumber<V>>(
     val mode: Bpp3dDemandMode,
     val key: QuantityBpp3dDemandKey<V>

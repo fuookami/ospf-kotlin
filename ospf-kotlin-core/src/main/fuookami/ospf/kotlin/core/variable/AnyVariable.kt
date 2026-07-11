@@ -5,7 +5,7 @@
  * 将所有 VariableType 变体统一为单一类型参数 V，通过 IntoValue<V> 提供 V 类型的访问器。
  * Unifies all VariableType variants into a single type parameter V,
  * providing V-type accessors via IntoValue<V> conversion.
- */
+*/
 package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -31,23 +31,29 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
  * @property varType 变量类型 / Variable type
  * @property lowerBoundFlt64 Flt64 下界 / Flt64 lower bound
  * @property upperBoundFlt64 Flt64 上界 / Flt64 upper bound
- */
+*/
 class AnyVariable<V : RealNumber<V>>(
     val data: AbstractVariableItem<*, *>
 ) {
+
     /** 变量唯一标识 / Variable unique key */
     val id: VariableItemKey get() = data.key
+
     /** 变量索引 / Variable index */
     val index: Int get() = data.index
+
     /** 变量名称 / Variable name */
     val name: String get() = data.name
+
     /** 显示名称 / Display name */
     val displayName: String? get() = data.displayName
+
     /** 变量类型 / Variable type */
     val varType: VariableType<*> get() = data.type
 
     /** Flt64 下界 / Flt64 lower bound */
     val lowerBoundFlt64: Flt64? get() = data.lowerBound?.value?.toFlt64()
+
     /** Flt64 上界 / Flt64 upper bound */
     val upperBoundFlt64: Flt64? get() = data.upperBound?.value?.toFlt64()
 
@@ -57,7 +63,7 @@ class AnyVariable<V : RealNumber<V>>(
      *
      * @param converter 值转换器 / Value converter
      * @return V 类型下界，如果无界返回 null / V-type lower bound, or null if unbounded
-     */
+    */
     fun lowerBound(converter: IntoValue<V>): V? = lowerBoundFlt64?.let { converter.intoValue(it) }
 
     /**
@@ -66,7 +72,7 @@ class AnyVariable<V : RealNumber<V>>(
      *
      * @param converter 值转换器 / Value converter
      * @return V 类型上界，如果无界返回 null / V-type upper bound, or null if unbounded
-     */
+    */
     fun upperBound(converter: IntoValue<V>): V? = upperBoundFlt64?.let { converter.intoValue(it) }
 
     /**
@@ -75,7 +81,7 @@ class AnyVariable<V : RealNumber<V>>(
      *
      * @param value 待检查的值 / Value to check
      * @return 是否有效 / Whether valid
-     */
+    */
     fun isValidValue(value: Flt64): Boolean {
         val lb = lowerBoundFlt64
         val ub = upperBoundFlt64
@@ -90,7 +96,7 @@ class AnyVariable<V : RealNumber<V>>(
      *
      * @param value 待检查的值 / Value to check
      * @return 是否有效 / Whether valid
-     */
+    */
     fun isValidValue(value: V): Boolean {
         val f64 = value.toFlt64()
         return isValidValue(f64)
@@ -102,7 +108,7 @@ class AnyVariable<V : RealNumber<V>>(
     /**
      * @param other 待比较对象 / Object to compare
      * @return 是否相同 / Whether equal
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AnyVariable<*>) return false
@@ -120,7 +126,7 @@ class AnyVariable<V : RealNumber<V>>(
          * @param V 数值类型 / The number type
          * @param item 变量项 / Variable item
          * @return AnyVariable 实例 / AnyVariable instance
-         */
+        */
         fun <V : RealNumber<V>> from(item: AbstractVariableItem<*, *>): AnyVariable<V> {
             return AnyVariable(item)
         }

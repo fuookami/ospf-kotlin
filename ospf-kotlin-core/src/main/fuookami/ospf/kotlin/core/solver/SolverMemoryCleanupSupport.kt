@@ -12,12 +12,12 @@ import fuookami.ospf.kotlin.utils.memoryUseOver
  *
  * 非目标：不承诺即时回收，也不替代 JVM/GC 调优参数。
  * Non-goal: does not guarantee immediate reclamation or replace JVM/GC tuning options.
- */
+*/
 
 /**
  * 在内存压力触发阈值后执行保守清理。
  * Perform conservative cleanup when memory-pressure threshold is met.
- */
+*/
 fun cleanupOnSolverMemoryPressure() {
     if (memoryUseOver()) {
         System.gc()
@@ -27,7 +27,7 @@ fun cleanupOnSolverMemoryPressure() {
 /**
  * 在求解主流程结束后执行一次统一清理，保持既有保守策略。
  * Run one unified cleanup after solver main flow to keep existing conservative behavior.
- */
+*/
 fun cleanupAfterSolverRun() {
     System.gc()
 }

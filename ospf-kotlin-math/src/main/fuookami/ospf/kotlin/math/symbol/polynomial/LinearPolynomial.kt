@@ -10,7 +10,7 @@
  * in the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b, where cᵢ are coefficients,
  * xᵢ are symbol variables, and b is the constant term.
  * Widely used in linear programming and mixed-integer programming.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import kotlin.jvm.JvmName
@@ -34,18 +34,19 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  *
  * @property monomials 线性单项式列表 / List of linear monomials
  * @property constant 常数项 / Constant term
- */
+*/
 data class LinearPolynomial<T : Ring<T>>(
     val monomials: List<LinearMonomial<T>> = emptyList(),
     val constant: T
 ) : ToLinearPolynomial<T>, ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
+
     /**
      * 表达式类型分类
      * Expression type category
      *
      * 线性多项式始终属于线性类型。
      * Linear polynomials always belong to the Linear category.
-     */
+    */
     val category: Category
         get() = Linear
 
@@ -54,7 +55,7 @@ data class LinearPolynomial<T : Ring<T>>(
      * Converts to a linear polynomial (self)
      *
      * @return 自身 / Self
-     */
+    */
     override fun toLinearPolynomial(): LinearPolynomial<T> = this
 
     /**
@@ -62,7 +63,7 @@ data class LinearPolynomial<T : Ring<T>>(
      * Converts to a quadratic polynomial
      *
      * @return 二次多项式 / Quadratic polynomial
-     */
+    */
     override fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
         return QuadraticPolynomial(monomials.map { it.toQuadraticMonomial() }, constant)
     }
@@ -72,7 +73,7 @@ data class LinearPolynomial<T : Ring<T>>(
      * Converts to a canonical polynomial
      *
      * @return 规范多项式 / Canonical polynomial
-     */
+    */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
         return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
     }
@@ -84,7 +85,7 @@ data class LinearPolynomial<T : Ring<T>>(
  *
  * @receiver 线性多项式 / Linear polynomial
  * @return 所有项取负后的线性多项式 / Linear polynomial with all terms negated
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.unaryMinus(): LinearPolynomial<T> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -99,7 +100,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.unaryMinus(): LinearPolynomial<T>
  * @receiver 左侧线性多项式 / Left-hand linear polynomial
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 合并后的线性多项式 / Combined linear polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return LinearPolynomial(monomials + rhs.monomials, constant + rhs.constant)
 }
@@ -111,7 +112,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: LinearPolynomial<T>): L
  * @receiver 左侧线性多项式 / Left-hand linear polynomial
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 差值线性多项式 / Difference linear polynomial
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return LinearPolynomial(
         monomials + rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -126,7 +127,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: LinearPolynomial<T>): 
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数乘以标量后的线性多项式 / Linear polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.times(rhs: T): LinearPolynomial<T> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(it.coefficient * rhs, it.symbol) },
@@ -141,7 +142,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.times(rhs: T): LinearPolynomial<T
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial
  * @return 所有系数乘以标量后的线性多项式 / Linear polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> T.times(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return rhs * this
 }
@@ -153,7 +154,7 @@ operator fun <T : Ring<T>> T.times(rhs: LinearPolynomial<T>): LinearPolynomial<T
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数除以标量后的线性多项式 / Linear polynomial with all coefficients divided by scalar
- */
+*/
 operator fun <T : Field<T>> LinearPolynomial<T>.div(rhs: T): LinearPolynomial<T> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(it.coefficient / rhs, it.symbol) },
@@ -168,7 +169,7 @@ operator fun <T : Field<T>> LinearPolynomial<T>.div(rhs: T): LinearPolynomial<T>
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项增加标量后的线性多项式 / Linear polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: T): LinearPolynomial<T> {
     return LinearPolynomial(monomials, constant + rhs)
 }
@@ -180,7 +181,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: T): LinearPolynomial<T>
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial
  * @return 常数项增加标量后的线性多项式 / Linear polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> T.plus(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return LinearPolynomial(rhs.monomials, this + rhs.constant)
 }
@@ -192,7 +193,7 @@ operator fun <T : Ring<T>> T.plus(rhs: LinearPolynomial<T>): LinearPolynomial<T>
  * @receiver 线性多项式 / Linear polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项减少标量后的线性多项式 / Linear polynomial with constant decreased by scalar
- */
+*/
 operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: T): LinearPolynomial<T> {
     return LinearPolynomial(monomials, constant - rhs)
 }
@@ -204,7 +205,7 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: T): LinearPolynomial<T
  * @receiver 标量值 / Scalar value
  * @param rhs 线性多项式 / Linear polynomial
  * @return 从标量减去多项式后的线性多项式 / Linear polynomial representing scalar minus polynomial
- */
+*/
 operator fun <T : Ring<T>> T.minus(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return LinearPolynomial(
         rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },

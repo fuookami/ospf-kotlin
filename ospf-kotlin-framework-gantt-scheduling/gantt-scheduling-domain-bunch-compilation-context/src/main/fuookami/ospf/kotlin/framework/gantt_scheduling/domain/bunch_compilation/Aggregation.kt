@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 任务束编译聚合 / Bunch compilation aggregation */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
@@ -21,7 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  *
  * @param maximumReducedCost Current maximum reduced cost / 当前最大约简成本
  * @return Next reduced-cost cutoff value / 下一个约简成本阈值
- */
+*/
 private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
     val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
     return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
@@ -40,7 +41,7 @@ private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
  * @param executors List of executors / 执行器列表
  * @param lockCancelTasks Set of locked cancel tasks / 锁定取消任务集合
  * @param withExecutorLeisure Whether to include executor leisure / 是否包含执行器空闲
- */
+*/
 abstract class AbstractBunchCompilationAggregation<
         B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -72,7 +73,7 @@ abstract class AbstractBunchCompilationAggregation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
@@ -96,7 +97,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param newBunches 新任务束列表 / List of new bunches
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务束列表 / Deduplicated bunch list
-     */
+    */
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
@@ -133,7 +134,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param keptBunches 保留任务束集合 / Set of kept bunches
      * @param model 线性元模型 / Linear meta model
      * @return 更新后的最大约简成本 / Updated maximum reduced cost
-     */
+    */
     open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
@@ -175,7 +176,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 固定任务束集合 / Set of fixed bunches
-     */
+    */
     open fun extractFixedBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -190,7 +191,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 保留任务束集合 / Set of kept bunches
-     */
+    */
     open fun extractKeptBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -205,7 +206,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 任务束到比率的映射 / Map of bunch to ratio
-     */
+    */
     open fun extractKeptBunchesWithRatio(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -219,7 +220,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param executors 执行器列表 / List of executors
      * @param model 线性元模型 / Linear meta model
      * @return 隐藏执行器集合 / Set of hidden executors
-     */
+    */
     open fun extractHiddenExecutors(
         executors: List<E>,
         model: AbstractLinearMetaModel<Flt64>
@@ -241,7 +242,7 @@ abstract class AbstractBunchCompilationAggregation<
      *
      * @param fixedBunches 固定任务束集合 / Set of fixed bunches
      * @return 操作结果 / Operation result
-     */
+    */
     open fun globallyFix(fixedBunches: Set<B>): Try {
         for (bunch in fixedBunches) {
             assert(!removedBunches.contains(bunch))
@@ -260,7 +261,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param model 线性元模型 / Linear meta model
      * @param withFixNot 是否固定非选中项 / Whether to fix not-selected items
      * @return 新固定的任务束集合 / Set of newly fixed bunches
-     */
+    */
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
@@ -334,7 +335,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun logResult(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -358,7 +359,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun logBunchCost(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -387,7 +388,7 @@ abstract class AbstractBunchCompilationAggregation<
      * @param tasks 任务列表 / List of tasks
      * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
      * @return 操作结果 / Operation result
-     */
+    */
     fun flush(
         iteration: UInt64,
         tasks: List<T>,
@@ -420,6 +421,14 @@ abstract class AbstractBunchCompilationAggregation<
         return ok
     }
 
+/**
+ * Extracts bunches matching the given predicate from the solved model.
+ * 从已求解的模型中提取满足给定谓词的任务束。
+ * @param iteration Iteration number / 迭代编号
+ * @param model Solved linear meta model / 已求解的线性元模型
+ * @param predicate Filter predicate on the token result value / 对令牌结果值的过滤谓词
+ * @return Map of matching bunches to their solution values / 匹配的任务束到其解值的映射
+*/
     private fun extractBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>,
@@ -456,7 +465,7 @@ abstract class AbstractBunchCompilationAggregation<
  * @param executors 执行器列表 / List of executors
  * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
- */
+*/
 open class BunchCompilationAggregation<
         B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -489,7 +498,7 @@ open class BunchCompilationAggregation<
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  * @param redundancyRange 冗余范围 / Redundancy range
  * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
- */
+*/
 open class BunchCompilationAggregationWithTime<
         B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -530,7 +539,7 @@ open class BunchCompilationAggregationWithTime<
      * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
      * @param redundancyRange 冗余范围 / Redundancy range
      * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
@@ -560,7 +569,7 @@ open class BunchCompilationAggregationWithTime<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: MetaModel<Flt64>): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
@@ -608,7 +617,7 @@ open class BunchCompilationAggregationWithTime<
      * @param newBunches 新任务束列表 / List of new bunches
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务束列表 / Deduplicated bunch list
-     */
+    */
     override suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,

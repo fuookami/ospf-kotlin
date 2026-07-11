@@ -4,7 +4,7 @@
  *
  * 将 OSPF 自定义类型转换为 JDBC 兼容类型。
  * Converts OSPF custom types to JDBC-compatible types.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import java.math.BigDecimal
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * Converts custom types from the OSPF math library and kotlinx.datetime to standard JDBC-compatible types.
  * Called uniformly before expression translators (ScalarTranslator / BooleanTranslator / UpdateTranslator)
  * pass parameters, ensuring that MyBatis-Plus Wrapper receives only JDBC-driver-recognizable types.
- */
+*/
 object MybatisValueConverter {
 
     /**
@@ -52,7 +52,7 @@ object MybatisValueConverter {
      *
      * @param value 原始值 / Original value
      * @return JDBC 兼容值 / JDBC-compatible value
-     */
+    */
     fun convert(value: Any?): Any? {
         if (value == null) return null
         return when (value) {

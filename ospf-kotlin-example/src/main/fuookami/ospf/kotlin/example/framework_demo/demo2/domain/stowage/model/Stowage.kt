@@ -15,16 +15,38 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.*
 
+/**
+ * Stowage model managing the binary assignment variables between items and positions,
+ * including stowage decisions and adjustment decisions.
+ * 装载模型，管理货物与舱位之间的二元分配变量，包括装载决策和调整决策。
+*/
 class Stowage(
     private val items: List<Item>,
     private val positions: List<Position>,
 ) {
     companion object {
-        fun stowageNeeded(item: Item, position: Position): Boolean {
+
+    /**
+     * Checks whether stowage is needed for the given item-position pair.
+     * 检查给定货物-舱位对是否需要装载决策。
+     *
+     * @param item the cargo item / 货物
+     * @param position the stowage position / 舱位
+     * @return true if stowage is needed / 是否需要装载决策
+    */
+    fun stowageNeeded(item: Item, position: Position): Boolean {
             return item.status.stowageNeeded && position.status.stowageNeeded && position.enabled(item).ok
         }
 
-        fun adjustmentNeeded(item: Item, position: Position): Boolean {
+    /**
+     * Checks whether adjustment is needed for the given item-position pair.
+     * 检查给定货物-舱位对是否需要调整决策。
+     *
+     * @param item the cargo item / 货物
+     * @param position the stowage position / 舱位
+     * @return true if adjustment is needed / 是否需要调整决策
+    */
+    fun adjustmentNeeded(item: Item, position: Position): Boolean {
             if (!item.status.adjustmentNeeded) {
                 return false
             }
@@ -45,6 +67,13 @@ class Stowage(
     lateinit var stowage: LinearIntermediateSymbols2<Flt64>
     lateinit var loaded: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers all stowage variables and intermediate symbols into the model.
+     * 将所有装载变量和中间符号注册到模型中。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

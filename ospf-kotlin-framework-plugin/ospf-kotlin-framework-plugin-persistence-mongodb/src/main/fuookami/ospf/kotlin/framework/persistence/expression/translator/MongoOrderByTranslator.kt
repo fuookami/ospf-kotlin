@@ -4,7 +4,7 @@
  *
  * 将 SortBy 翻译为 MongoDB Bson 排序。
  * Translates SortBy to MongoDB Bson sort.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.mongodb.client.model.Sorts
@@ -19,17 +19,18 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  * Translates SortBy model to MongoDB sort expressions.
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
- */
+*/
 class MongoOrderByTranslator(
     private val resolveFieldName: MongoFieldNameResolver
 ) {
+
     /**
      * 翻译排序为 Bson
      * Translate sort to Bson
      *
      * @param sortBy 排序条件（可选）/ Sort conditions (optional)
      * @return Bson 排序表达式，为空时返回 null / Bson sort expression, or null if empty
-     */
+    */
     fun translate(sortBy: SortBy?): Bson? {
         if (sortBy == null || sortBy.isEmpty()) return null
 
@@ -45,7 +46,7 @@ class MongoOrderByTranslator(
      *
      * @param item 排序项 / Sort item
      * @return Bson 排序表达式，字段未解析时返回 null / Bson sort expression, or null if field unresolved
-     */
+    */
     private fun translateItem(item: SortItem): Bson? {
         val field = resolveFieldName(item.path) ?: return null
 

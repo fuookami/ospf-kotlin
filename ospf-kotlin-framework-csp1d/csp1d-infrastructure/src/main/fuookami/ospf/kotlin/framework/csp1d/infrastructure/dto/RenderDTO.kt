@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 
 /**
  * Render production type.
- * 中文渲染生产类型
- */
+ * 渲染生产类型
+*/
 enum class RenderProductionType {
     /** Product / 产品 */
     Product,
@@ -16,14 +16,14 @@ enum class RenderProductionType {
 
 /**
  * Render cutting plan production DTO.
- * 中文渲染切割方案生产项DTO
+ * 渲染切割方案生产项DTO
  *
  * @property x X coordinate / X坐标
  * @property width Width / 宽度
  * @property unitLength Unit length / 单位长度
  * @property productionType Production type / 生产类型
  * @property info Additional info / 附加信息
- */
+*/
 @Serializable
 data class RenderCuttingPlanProductionDTO(
     val name: String,
@@ -36,7 +36,7 @@ data class RenderCuttingPlanProductionDTO(
 
 /**
  * Render cutting plan DTO.
- * 中文渲染切割方案DTO
+ * 渲染切割方案DTO
  *
  * @property group Group identifiers / 分组标识
  * @property productions List of productions / 生产项列表
@@ -44,7 +44,7 @@ data class RenderCuttingPlanProductionDTO(
  * @property standardWidth Standard width / 标准宽度
  * @property amount Amount / 数量
  * @property info Additional info / 附加信息
- */
+*/
 @Serializable
 data class RenderCuttingPlanDTO(
     val group: List<String>,
@@ -57,11 +57,11 @@ data class RenderCuttingPlanDTO(
 
 /**
  * Render schema DTO.
- * 中文渲染方案DTO
+ * 渲染方案DTO
  *
  * @property kpi KPI metrics / KPI指标
  * @property cuttingPlans List of cutting plans / 切割方案列表
- */
+*/
 @Serializable
 data class RenderSchemaDTO(
     val kpi: Map<String, String>,

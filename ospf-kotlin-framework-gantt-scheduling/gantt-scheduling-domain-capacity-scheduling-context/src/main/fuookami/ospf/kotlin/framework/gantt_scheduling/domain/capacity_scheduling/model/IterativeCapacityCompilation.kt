@@ -8,7 +8,7 @@
  * 变量结构：每台设备的二维整型变量
  * Variable structure: 2D integer variable per executor
  * x[executor][iteration, columnIndex] -> amount
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -40,30 +40,31 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  *
  * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
- */
+*/
 class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : ProductionAction>(
+
     /**
      * 执行器列表
      * List of executors
-     */
+    */
     override val executors: List<E>,
 
     /**
      * 生产动作列表
      * List of production actions
-     */
+    */
     private val actions: List<A>,
 
     /**
      * 时隙列表
      * List of time slots
-     */
+    */
     private val slots: List<TimeSlot>,
 
     /**
      * 时间窗口
      * Time window
-     */
+    */
     private val timeWindow: TimeWindow<V>
 ) : Capacity<A> {
     private val valueZero = timeWindow.fromDouble(0.0)
@@ -81,7 +82,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 每台设备的列聚合（按迭代分组）
      * Column aggregation per executor (grouped by iteration)
-     */
+    */
     internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A, V>> =
         executors.associateWith { CapacityColumnAggregation() }
     private val executorByRef: Map<Executor, E> = executors.associateBy { it }
@@ -90,7 +91,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
      * 每台设备的二维整型变量
      * 2D integer variables per executor
      * x[executor][iteration, columnIndexInIteration] -> amount
-     */
+    */
     private val _x: MutableMap<E, UIntVariable2> = HashMap()
     val x: Map<E, UIntVariable2>
         get() = _x.toMap()
@@ -98,7 +99,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 成本表达式
      * Cost expression
-     */
+    */
     private var _cost: LinearIntermediateSymbol<Flt64>? = null
     val cost: LinearIntermediateSymbol<Flt64>?
         get() = _cost
@@ -112,7 +113,10 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 注册到模型
      * Register to model
-     */
+     *
+     * @param model Linear meta model to register variables and symbols into / 要注册变量和符号的线性元模型
+     * @return Success or failure of the registration / 注册操作的成功或失败
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         // Initialize variables for each executor
         // 为每个执行器初始化变量
@@ -234,7 +238,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
      * @param newColumns New columns to add / 要添加的新列
      * @param model Linear meta model / 线性元模型
      * @return Added columns (deduplicated) / 已添加的列（去重后）
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newColumns: List<CapacityColumn<E, A, V>>,
@@ -331,7 +335,11 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 定位列对应的决策变量位置
      * Locate decision variable position for a column
-     */
+     *
+     * @param iteration Iteration number in which the column was generated / 生成该列的迭代编号
+     * @param column Capacity column to locate / 要定位的产能列
+     * @return The 2D variable and column index pair, or null if not found / 二维变量与列索引对，未找到则返回 null
+    */
     fun locateColumnDecision(
         iteration: UInt64,
         column: CapacityColumn<E, A, V>
@@ -353,7 +361,10 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 计算列变量上界
      * Calculate upper bound for a column decision variable
-     */
+     *
+     * @param column Capacity column whose upper bound is being calculated / 正在计算上界的产能列
+     * @return Maximum number of times this column can be selected / 该列可被选择的最大次数
+    */
     private fun columnUpperBound(column: CapacityColumn<E, A, V>): UInt64 {
         if (column.slotIndex !in slots.indices) {
             return UInt64.zero
@@ -387,6 +398,11 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         }
     }
 
+/**
+ * Rebuilds cost, operationTime, and capacity symbols after columns are added.
+ * 在添加列后重建成本、操作时间和产能符号。
+ * @return Success or failure of the symbol rebuild / 符号重建的成功或失败
+*/
     private fun rebuildSymbols(): Try {
         if (_cost == null || !::operationTime.isInitialized || !::capacity.isInitialized) {
             return ok
@@ -459,7 +475,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
     /**
      * 解析解
      * Extract solution from model
-     */
+    */
     override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()

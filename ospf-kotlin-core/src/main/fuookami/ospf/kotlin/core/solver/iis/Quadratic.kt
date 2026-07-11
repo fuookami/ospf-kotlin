@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 二次模型 IIS 计算 / Quadratic model IIS computation */
 package fuookami.ospf.kotlin.core.solver.iis
 
@@ -19,7 +20,7 @@ import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
  * @param solver 二次求解器 / Quadratic solver
  * @param config IIS 配置 / IIS configuration
  * @return IIS 模型 / IIS model
- */
+*/
 @OptIn(ExperimentalTime::class)
 suspend fun computeIIS(
     model: QuadraticTetradModelView,
@@ -137,7 +138,7 @@ suspend fun computeIIS(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param slackVariables 松弛变量集合 / Set of slack variables
  * @return 关联的约束索引列表 / List of related constraint indices
- */
+*/
 private fun getRelatedConstraints(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -161,7 +162,7 @@ private fun getRelatedConstraints(
  * @property variable 关联的变量 / The related variable
  * @property lowerBound 变量下界（可空）/ Variable lower bound (nullable)
  * @property upperBound 变量上界（可空）/ Variable upper bound (nullable)
- */
+*/
 private data class RelatedVariable(
     val variable: Variable,
     val lowerBound: Flt64?,
@@ -176,7 +177,7 @@ private data class RelatedVariable(
  * @param index 变量索引 / Variable index
  * @param lowerBound 下界标记 / Lower bound mark
  * @param upperBound 上界标记 / Upper bound mark
- */
+*/
 private fun markVariable(
     marks: MutableMap<Int, Pair<Boolean, Boolean>>,
     index: Int,
@@ -197,7 +198,7 @@ private fun markVariable(
  * @param filter 过滤变量集合 / Set of filter variables
  * @param relatedConstraints 关联约束索引列表 / List of related constraint indices
  * @return 关联变量列表 / List of related variables
- */
+*/
 private fun getRelatedVariables(
     model: QuadraticTetradModelView,
     filter: Set<Variable>,
@@ -251,7 +252,7 @@ private fun getRelatedVariables(
  * @param rows 行索引列表 / List of row indices
  * @param oldToNewVariableIndexMap 旧索引到新索引的映射 / Map from old to new variable index
  * @return 过滤后的二次约束批处理 / Filtered quadratic constraint batch
- */
+*/
 private fun filterConstraintByRowIndex(
     constraints: QuadraticConstraintBatch,
     rows: List<Int>,
@@ -299,7 +300,7 @@ private fun filterConstraintByRowIndex(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param elasticFilter 弹性过滤结果映射 / Elastic filter result map
  * @return IIS 二次四元模型 / IIS quadratic tetrad model
- */
+*/
 private fun dump(
     model: QuadraticTetradModelView,
     elasticFilter: Map<Variable, Flt64>
@@ -314,7 +315,7 @@ private fun dump(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param slackVariables 松弛变量集合 / Set of slack variables
  * @return IIS 二次四元模型 / IIS quadratic tetrad model
- */
+*/
 private fun dump(
     model: QuadraticTetradModelView,
     slackVariables: Set<Variable>
@@ -394,7 +395,7 @@ private fun dump(
  * @param solver 二次求解器 / Quadratic solver
  * @param config IIS 配置 / IIS configuration
  * @return 是否找到不可行组件及松弛变量映射 / Whether infeasible components were found and the mapping of relaxed variables
- */
+*/
 private suspend fun performElasticFiltering(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -487,7 +488,7 @@ private suspend fun performElasticFiltering(
  * @param tolerance 松弛容差 / Slack tolerance
  * @param relaxCondition 判断变量是否应松弛的条件 / Condition to determine whether a variable should be relaxed
  * @return 是否找到可行解及松弛变量映射 / Whether a feasible solution was found and the mapping of relaxed variables
- */
+*/
 private suspend fun relaxSpecificComponents(
     elasticModel: QuadraticTetradModelView,
     solver: AbstractQuadraticSolver,
@@ -543,7 +544,7 @@ private suspend fun relaxSpecificComponents(
  * @param constraintAmount 约束数量 / Constraint amount
  * @param config IIS 配置 / IIS configuration
  * @return 活跃的松弛变量集合 / Set of active relaxed components
- */
+*/
 @OptIn(ExperimentalTime::class)
 private suspend fun performDeletionFiltering(
     elasticModel: QuadraticTetradModelView,
@@ -624,7 +625,7 @@ private suspend fun performDeletionFiltering(
  *
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @return 二次模型快照 / Snapshot of the quadratic model
- */
+*/
 private fun snapshotQuadraticModel(model: QuadraticTetradModelView): QuadraticTetradModel {
     return if (model is QuadraticTetradModel) {
         model.copy()

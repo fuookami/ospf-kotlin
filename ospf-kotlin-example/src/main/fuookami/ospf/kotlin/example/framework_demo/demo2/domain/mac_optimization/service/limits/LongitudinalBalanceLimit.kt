@@ -15,12 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model.*
 
 /**
- * 最小化按系数加权的所有 MAC 范围类型的纵向平衡松弛。Minimizes longitudinal balance slack across all MAC range types weighted by coefficients.
- *
- * @property aircraftModel 参数。
- * @property longitudinalBalance 参数。
- * @property coefficient 参数。
- */
+ * Minimizes longitudinal balance slack across all MAC range types weighted by coefficients.
+ * 最小化按系数加权的所有 MAC 范围类型的纵向平衡松弛。
+*/
 class LongitudinalBalanceLimit(
     private val aircraftModel: AircraftModel,
     private val longitudinalBalance: LongitudinalBalance,

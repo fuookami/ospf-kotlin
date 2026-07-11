@@ -24,16 +24,22 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 计算主甲板上的冗余（备用容量）并注册松弛变量用于优化。Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization.
+ * Computes redundancy (spare capacity) on the main deck and registers slack variables for optimization.
+ * 计算主甲板上的冗余（备用容量）并注册松弛变量用于优化。
  *
- * @property aircraftModel 参数。
- * @property flight 参数。
- * @property items 参数。
- * @property positions 参数。
- * @property stowage 参数。
- * @property load 参数。
- * @property payload 参数。
- */
+ * @property aircraftModel The aircraft model reference / 飞机模型引用
+ * @property flight The flight information / 航班信息
+ * @property items The list of cargo items / 货物项目列表
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property stowage The stowage assignment matrix / 装载分配矩阵
+ * @property load The load distribution data / 载荷分布数据
+ * @property payload The payload data / 载荷数据
+ * @property redundancy The redundancy intermediate symbol / 冗余中间符号
+ * @property predicateRedundancy The predicate redundancy intermediate symbol / 预测冗余中间符号
+ * @property redundancySlack The redundancy slack variable / 冗余松弛变量
+ * @property minRedundancy The minimum redundancy bound / 最小冗余边界
+ * @property maxRedundancy The maximum redundancy bound / 最大冗余边界
+*/
 class Redundancy(
     private val aircraftModel: AircraftModel,
     private val flight: Flight,
@@ -55,6 +61,13 @@ class Redundancy(
         TODO("not implemented yet")
     }
 
+    /**
+     * Registers redundancy intermediate symbols and slack variables into the optimization model.
+     * 将冗余中间符号和松弛变量注册到优化模型中。
+     *
+     * @param model The linear meta model to register into / 要注册到的线性元模型
+     * @return Success or failure result / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

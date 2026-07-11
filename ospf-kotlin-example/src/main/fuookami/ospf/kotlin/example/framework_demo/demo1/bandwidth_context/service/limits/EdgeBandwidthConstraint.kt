@@ -15,13 +15,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 当关联服务未分配到该边时将边带宽限制为零。Limits edge bandwidth to zero when the associated service is not assigned to that edge.
+ * Limits edge bandwidth to zero when the associated service is not assigned to that edge.
+ * 当关联服务未分配到该边时将边带宽限制为零。
  *
- * @property edges 参数。
- * @property services 参数。
- * @property assignment 参数。
- * @property edgeBandwidth 参数。
- */
+ * @property edges the list of network edges / 网络边列表
+ * @property services the list of services / 服务列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+*/
 class EdgeBandwidthConstraint(
     private val edges: List<Edge>,
     private val services: List<Service>,

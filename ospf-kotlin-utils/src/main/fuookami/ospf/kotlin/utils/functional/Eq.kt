@@ -13,7 +13,7 @@
  * 主要接口：
  * - [PartialEq]: 部分相等，结果可空（用于可能不可比较的值）
  * - [Eq]: 完全相等，结果确定
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -26,8 +26,9 @@ package fuookami.ospf.kotlin.utils.functional
  * 类似于 Haskell 的 Eq 类型类，支持部分比较。
  *
  * @param Self 实现此接口的类型 / The type implementing this interface
- */
+*/
 interface PartialEq<in Self> {
+
     /**
      * 部分相等比较
      *
@@ -37,7 +38,7 @@ interface PartialEq<in Self> {
      *
      * @param rhs 要比较的值 / The value to compare with
      * @return 相等则返回 true，不相等则返回 false，无法比较则返回 null / true if equal, false if not equal, null if not comparable
-     */
+    */
     infix fun partialEq(rhs: Self): Boolean?
 }
 
@@ -50,8 +51,9 @@ interface PartialEq<in Self> {
  * 扩展 [PartialEq] 并保证结果非空。
  *
  * @param Self 实现此接口的类型 / The type implementing this interface
- */
+*/
 interface Eq<in Self> : PartialEq<Self> {
+
     /**
      * 相等比较
      *
@@ -60,7 +62,7 @@ interface Eq<in Self> : PartialEq<Self> {
      *
      * @param rhs 要比较的值 / The value to compare with
      * @return 相等则返回 true，否则返回 false / true if equal, false otherwise
-     */
+    */
     infix fun eq(rhs: Self): Boolean {
         return (this partialEq rhs)!!
     }
@@ -73,7 +75,7 @@ interface Eq<in Self> : PartialEq<Self> {
      *
      * @param rhs 要比较的值 / The value to compare with
      * @return 不相等则返回 true，否则返回 false / true if not equal, false otherwise
-     */
+    */
     infix fun neq(rhs: Self): Boolean {
         return !(this eq rhs)
     }
@@ -88,7 +90,7 @@ interface Eq<in Self> : PartialEq<Self> {
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 如果 rhs 为 null 则返回 false，否则返回部分相等结果 / false if rhs is null, otherwise the partial equality result
- */
+*/
 @JvmName("notNullPartialEqNullable")
 infix fun <T : PartialEq<T>> T.partialEq(rhs: T?): Boolean? {
     return if (rhs == null) {
@@ -107,7 +109,7 @@ infix fun <T : PartialEq<T>> T.partialEq(rhs: T?): Boolean? {
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
  * @param rhs 要比较的非空值 / The non-null value to compare with
  * @return 如果此值为 null 则返回 false，否则返回部分相等结果 / false if this is null, otherwise the partial equality result
- */
+*/
 @JvmName("nullablePartialEqNotNull")
 infix fun <T : PartialEq<T>> T?.partialEq(rhs: T): Boolean? {
     return if (this == null) {
@@ -126,7 +128,7 @@ infix fun <T : PartialEq<T>> T?.partialEq(rhs: T): Boolean? {
  * @param T 实现 PartialEq 的类型 / The type implementing PartialEq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 两个值都为 null 则返回 true，一个为 null 则返回 false，否则返回部分相等结果 / true if both are null, false if one is null, otherwise the partial equality result
- */
+*/
 @JvmName("nullablePartialEqNullable")
 infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
     return if (this == null && rhs == null) {
@@ -147,7 +149,7 @@ infix fun <T : PartialEq<T>> T?.partialEq(rhs: T?): Boolean? {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 如果 rhs 为 null 则返回 false，否则返回相等结果 / false if rhs is null, otherwise the equality result
- */
+*/
 @JvmName("notNullEqNullable")
 infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
     return if (rhs == null) {
@@ -166,7 +168,7 @@ infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的非空值 / The non-null value to compare with
  * @return 如果此值为 null 则返回 false，否则返回相等结果 / false if this is null, otherwise the equality result
- */
+*/
 @JvmName("nullableEqNotNull")
 infix fun <T : Eq<T>> T?.eq(rhs: T): Boolean {
     return this?.eq(rhs) ?: false
@@ -181,7 +183,7 @@ infix fun <T : Eq<T>> T?.eq(rhs: T): Boolean {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 两个值都为 null 则返回 true，一个为 null 则返回 false，否则返回相等结果 / true if both are null, false if one is null, otherwise the equality result
- */
+*/
 @JvmName("nullableEqNullable")
 infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
     return if (this == null && rhs == null) {
@@ -202,7 +204,7 @@ infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的非空值 / The non-null value to compare with
  * @return 如果此值为 null 则返回 true，否则返回不相等结果 / true if this is null, otherwise the inequality result
- */
+*/
 @JvmName("nullableNeqNotNull")
 infix fun <T : Eq<T>> T?.neq(rhs: T): Boolean {
     return this?.neq(rhs) ?: true
@@ -217,7 +219,7 @@ infix fun <T : Eq<T>> T?.neq(rhs: T): Boolean {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 如果 rhs 为 null 则返回 true，否则返回不相等结果 / true if rhs is null, otherwise the inequality result
- */
+*/
 @JvmName("notNullNeqNullable")
 infix fun <T : Eq<T>> T.neq(rhs: T?): Boolean {
     return if (rhs == null) {
@@ -236,7 +238,7 @@ infix fun <T : Eq<T>> T.neq(rhs: T?): Boolean {
  * @param T 实现 Eq 的类型 / The type implementing Eq
  * @param rhs 要比较的可空值 / The nullable value to compare with
  * @return 两个值都为 null 则返回 false，一个为 null 则返回 true，否则返回不相等结果 / false if both are null, true if one is null, otherwise the inequality result
- */
+*/
 @JvmName("nullableNeqNullable")
 infix fun <T : Eq<T>> T?.neq(rhs: T?): Boolean {
     return if (this == null && rhs == null) {

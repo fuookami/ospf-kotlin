@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * 封装通用微分运算，自动填入 Flt64 的零值。
  * Provides Flt64 polynomial derivative, gradient, and Hessian convenience functions.
  * Wraps generic differentiation operations with Flt64 zero constant.
- */
+*/
 
 /**
  * 计算 Flt64 线性单项式对指定符号的导数
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
- */
+*/
 fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
@@ -38,7 +38,7 @@ fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
  *
  * @param symbol 微分变量 / Differentiation variable
  * @return 导数值 / Derivative value
- */
+*/
 fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
@@ -49,7 +49,7 @@ fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
  *
  * @param order 符号顺序 / Symbol order
  * @return 梯度值列表 / Gradient value list
- */
+*/
 fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
     return gradientLinear(order, zero = Flt64.zero)
 }
@@ -61,7 +61,7 @@ fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（线性多项式） / Derivative (linear polynomial)
- */
+*/
 fun QuadraticMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
@@ -81,7 +81,7 @@ fun QuadraticMonomial<Flt64>.derivative(
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（线性多项式） / Derivative (linear polynomial)
- */
+*/
 fun QuadraticPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
@@ -101,7 +101,7 @@ fun QuadraticPolynomial<Flt64>.derivative(
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 梯度（线性多项式列表） / Gradient (list of linear polynomials)
- */
+*/
 fun QuadraticPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -121,7 +121,7 @@ fun QuadraticPolynomial<Flt64>.gradient(
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 海森矩阵（二维 Double 数组） / Hessian matrix (2D Double array)
- */
+*/
 fun QuadraticPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -141,7 +141,7 @@ fun QuadraticPolynomial<Flt64>.hessian(
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（规范多项式） / Derivative (canonical polynomial)
- */
+*/
 fun CanonicalMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
@@ -161,7 +161,7 @@ fun CanonicalMonomial<Flt64>.derivative(
  * @param symbol 微分变量 / Differentiation variable
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 导数（规范多项式） / Derivative (canonical polynomial)
- */
+*/
 fun CanonicalPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
@@ -181,7 +181,7 @@ fun CanonicalPolynomial<Flt64>.derivative(
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 梯度（规范多项式列表） / Gradient (list of canonical polynomials)
- */
+*/
 fun CanonicalPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -202,7 +202,7 @@ fun CanonicalPolynomial<Flt64>.gradient(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 海森矩阵（二维 Double 数组） / Hessian matrix (2D Double array)
- */
+*/
 fun CanonicalPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,

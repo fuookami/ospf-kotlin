@@ -86,6 +86,10 @@ class GurobiLinearSolver(
     }
 }
 
+/**
+ * GurobiLinearSolverImpl class.
+ * GurobiLinearSolverImpl类。
+*/
 private class GurobiLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: GurobiLinearSolverCallBack? = null,
@@ -146,6 +150,13 @@ private class GurobiLinearSolverImpl(
         return Ok(output)
     }
 
+/**
+ * Dump the linear model into Gurobi variables, constraints, and objective.
+ * 将线性模型转储为 Gurobi 变量、约束和目标函数。
+ *
+ * @param model the linear model view to dump / 待转储的线性模型视图
+ * @return success if model was dumped, or failure on modeling error / 转储成功返回成功，建模错误返回失败
+*/
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("gurobi11", model.nonNullConstraintPriorityAmount())
@@ -264,6 +275,13 @@ private class GurobiLinearSolverImpl(
         }
     }
 
+/**
+ * Configure Gurobi solver parameters for the linear model.
+ * 为线性模型配置 Gurobi 求解器参数。
+ *
+ * @param model the linear model view to configure / 待配置的线性模型视图
+ * @return success if configuration was applied, or failure on error / 配置成功返回成功，出错返回失败
+*/
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -367,6 +385,12 @@ private class GurobiLinearSolverImpl(
         }
     }
 
+/**
+ * Analyze the Gurobi solving result and extract the solution output.
+ * 分析 Gurobi 求解结果并提取解输出。
+ *
+ * @return success if solution was extracted, or failure if solving failed / 成功时返回提取结果，求解失败时返回失败
+*/
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

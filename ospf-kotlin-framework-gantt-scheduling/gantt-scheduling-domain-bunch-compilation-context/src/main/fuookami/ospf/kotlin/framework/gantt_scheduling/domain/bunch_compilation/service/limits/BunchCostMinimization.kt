@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * @param A 分配策略类型 / Assignment policy type
  * @param compilation 任务束编译结果 / Bunch compilation result
  * @param name 管道名称 / Pipeline name
- */
+*/
 class BunchCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         V : RealNumber<V>,

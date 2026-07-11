@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [BinaryzationFunction]，使用 Big-M 方法将连续变量转换为二值变量。
  *
  * Provides [BinaryzationFunction] for converting continuous variables to binary using Big-M.
- */
+*/
 
 /**
  * 二值化函数：使用 Big-M 方法将连续变量转换为二值变量。
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class BinaryzationFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -87,7 +87,7 @@ class BinaryzationFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [BinaryzationFunction] 实例 / [BinaryzationFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,

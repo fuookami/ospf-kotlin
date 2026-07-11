@@ -7,7 +7,7 @@
  * Provides core implementation for converting polynomials and inequalities
  * to LaTeX format strings. Supports compact and expanded formats,
  * controlling whether to show coefficient 1, and whether to use cdot symbol.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * @property compact 是否使用紧凑格式（省略空格） / Whether to use compact format (omit spaces)
  * @property showOnes 是否显示系数 1 / Whether to show coefficient 1
  * @property useCdot 是否使用 \cdot 乘法符号 / Whether to use \cdot multiplication symbol
- */
+*/
 data class LatexOptions(
     val compact: Boolean = true,
     val showOnes: Boolean = false,
@@ -47,7 +47,7 @@ data class LatexOptions(
  * @property isNegative 判断值是否为负 / Predicate to check if a value is negative
  * @property abs 取绝对值 / Absolute value function
  * @property format 将值格式化为字符串 / Format a value to string
- */
+*/
 data class LatexNumberOps<T>(
     val isZero: (T) -> Boolean,
     val isOne: (T) -> Boolean,
@@ -58,11 +58,11 @@ data class LatexNumberOps<T>(
 
 /**
  * Signed term for LaTeX rendering.
- * 中文带符号的项。
+ * 带符号的项。
  *
  * @property body the term body string / 项体字符串
  * @property negative whether the term is negative / 项是否为负
- */
+*/
 private data class SignedTerm(
     val body: String,
     val negative: Boolean
@@ -70,21 +70,21 @@ private data class SignedTerm(
 
 /**
  * Get the LaTeX display name of a symbol, preferring displayName.
- * 中文获取符号的 LaTeX 显示名称，优先使用 displayName。
+ * 获取符号的 LaTeX 显示名称，优先使用 displayName。
  *
  * @return the display name string / 显示名称字符串
- */
+*/
 private fun Symbol.latexName(): String {
     return displayName ?: name
 }
 
 /**
  * Get multiplication symbol string based on options.
- * 中文根据选项获取乘法符号字符串。
+ * 根据选项获取乘法符号字符串。
  *
  * @param options LaTeX formatting options / LaTeX 格式化选项
  * @return the multiplication symbol string, or empty string if not using cdot / 乘法符号字符串，不使用 cdot 时为空字符串
- */
+*/
 private fun mulSymbol(options: LatexOptions): String {
     return if (options.useCdot) {
         if (options.compact) {
@@ -104,7 +104,7 @@ private fun mulSymbol(options: LatexOptions): String {
  * @param terms 带符号的项列表 / List of signed terms
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return 合并后的 LaTeX 字符串 / Merged LaTeX string
- */
+*/
 private fun mergeTerms(
     terms: List<SignedTerm>,
     options: LatexOptions
@@ -138,7 +138,7 @@ private fun mergeTerms(
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @param ops 数值运算接口 / Number operations interface
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 private fun <T> formatMonomialTerm(
     coefficient: T,
     variable: String,
@@ -169,7 +169,7 @@ private fun <T> formatMonomialTerm(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> LinearMonomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
@@ -189,7 +189,7 @@ fun <T> LinearMonomial<T>.toLatexString(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> QuadraticMonomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
@@ -227,7 +227,7 @@ fun <T> QuadraticMonomial<T>.toLatexString(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> CanonicalMonomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
@@ -258,7 +258,7 @@ fun <T> CanonicalMonomial<T>.toLatexString(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> LinearPolynomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
@@ -293,7 +293,7 @@ fun <T> LinearPolynomial<T>.toLatexString(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> QuadraticPolynomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
@@ -328,7 +328,7 @@ fun <T> QuadraticPolynomial<T>.toLatexString(
  * @param ops 数值运算接口 / Number operations interface
  * @param options LaTeX 格式化选项 / LaTeX formatting options
  * @return LaTeX 格式字符串 / LaTeX format string
- */
+*/
 fun <T> CanonicalPolynomial<T>.toLatexString(
     ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()

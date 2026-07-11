@@ -2,7 +2,7 @@
  * 并行展平映射操作
  *
  * Parallel flat-map operations with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数 / Flat-map extractor function
  * @return 展平后的结果列表 / Flattened result list
- */
+*/
 suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<Iterable<R>, T>
@@ -42,7 +42,7 @@ suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数（返回 Ret）/ Flat-map extractor function (returns Ret)
  * @return 展平后的结果列表或错误 / Flattened result list or error
- */
+*/
 suspend inline fun <R, T> Iterable<T>.tryFlatMapToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
@@ -61,7 +61,7 @@ suspend inline fun <R, T> Iterable<T>.tryFlatMapToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数（返回 Ret）/ Flat-map extractor function (returns Ret)
  * @return 展平后的结果列表或错误集合 / Flattened result list or error collection
- */
+*/
 suspend inline fun <R, T> Iterable<T>.exTryFlatMapToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
@@ -82,7 +82,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFlatMapToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数 / Flat-map extractor function
  * @return 目标集合 / Destination collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -107,7 +107,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数（返回 Ret）/ Flat-map extractor function (returns Ret)
  * @return 目标集合或错误 / Destination collection or error
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -138,7 +138,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToP
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 展平映射函数（返回 Ret）/ Flat-map extractor function (returns Ret)
  * @return 目标集合或错误集合 / Destination collection or error collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -177,7 +177,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapT
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数 / Indexed flat-map extractor function
  * @return 展平后的结果列表 / Flattened result list
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
@@ -197,7 +197,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret）/ Indexed flat-map extractor function (returns Ret)
  * @return 展平后的结果列表或错误 / Flattened result list or error
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
@@ -217,7 +217,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret）/ Indexed flat-map extractor function (returns Ret)
  * @return 展平后的结果列表或错误集合 / Flattened result list or error collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapIndexedToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
@@ -238,7 +238,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数 / Indexed flat-map extractor function
  * @return 目标集合 / Destination collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -263,7 +263,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret）/ Indexed flat-map extractor function (returns Ret)
  * @return 目标集合或错误 / Destination collection or error
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -294,7 +294,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret）/ Indexed flat-map extractor function (returns Ret)
  * @return 目标集合或错误集合 / Destination collection or error collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -333,7 +333,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（可能返回空值）/ Indexed flat-map extractor function (may return null)
  * @return 过滤空值后的展平结果列表 / Flattened result list with nulls filtered out
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<Iterable<R?>, T>
@@ -353,7 +353,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret，可能包含空值）/ Indexed flat-map extractor function (returns Ret, may contain null)
  * @return 过滤空值后的展平结果列表或错误 / Flattened result list with nulls filtered out or error
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedNotNullToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R?>, T>
@@ -373,7 +373,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret，可能包含空值）/ Indexed flat-map extractor function (returns Ret, may contain null)
  * @return 过滤空值后的展平结果列表或错误集合 / Flattened result list with nulls filtered out or error collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapIndexedNotNullToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R?>, T>
@@ -394,7 +394,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（可能返回空值）/ Indexed flat-map extractor function (may return null)
  * @return 目标集合 / Destination collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -421,7 +421,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret，可能包含空值）/ Indexed flat-map extractor function (returns Ret, may contain null)
  * @return 目标集合或错误 / Destination collection or error
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -454,7 +454,7 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 带索引的展平映射函数（返回 Ret，可能包含空值）/ Indexed flat-map extractor function (returns Ret, may contain null)
  * @return 目标集合或错误集合 / Destination collection or error collection
- */
+*/
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,

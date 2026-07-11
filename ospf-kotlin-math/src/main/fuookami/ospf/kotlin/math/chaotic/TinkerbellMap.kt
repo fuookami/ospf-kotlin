@@ -9,7 +9,7 @@
  * The Tinkerbell map is a two-dimensional map with a chaotic attractor.
  * This map is named after Tinker Bell from the Peter Pan story, exhibiting beautiful chaotic trajectories.
  * Commonly used for chaos theory research and chaotic graphics visualization.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c / System parameter c
  * @property d 系统参数 d / System parameter d
- */
+*/
 data class TinkerbellMap<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -60,7 +60,7 @@ data class TinkerbellMap<V : FloatingNumber<V>>(
          * @param c 系统参数 c / System parameter c
          * @param d 系统参数 d / System parameter d
          * @return 一个新的丁克贝尔映射 / A new Tinkerbell map
-         */
+        */
         operator fun invoke(
             a: Flt64 = Flt64(0.9),
             b: Flt64 = Flt64(-0.6013),
@@ -78,7 +78,7 @@ data class TinkerbellMap<V : FloatingNumber<V>>(
  *
  * @property tinkerbellMap 用于生成的丁克贝尔映射实例 / The Tinkerbell map instance used for generation
  * @property _x 当前状态点 / The current state point
- */
+*/
 data class TinkerbellMapGenerator(
     val tinkerbellMap: TinkerbellMap<Flt64> = TinkerbellMap(),
     private var _x: Point<Dim2, Flt64> = point2(
@@ -96,7 +96,7 @@ data class TinkerbellMapGenerator(
          * @param d 系统参数 d / System parameter d
          * @param x 初始状态点 / Initial state point
          * @return 一个新的 Tinkerbell 映射生成器 / A new Tinkerbell map generator
-         */
+        */
         operator fun invoke(
             a: Flt64,
             b: Flt64,

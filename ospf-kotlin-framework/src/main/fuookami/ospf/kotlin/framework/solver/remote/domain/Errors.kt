@@ -1,13 +1,13 @@
 /**
  * 远程求解错误模型
  * Remote solve error models
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
 /**
  * 远程求解错误码。
  * Remote solve error code.
- */
+*/
 enum class RemoteSolverErrorCode {
     /** 参数无效 / Invalid argument */
     INVALID_ARGUMENT,
@@ -64,7 +64,7 @@ enum class RemoteSolverErrorCode {
  *
  * @property code 错误码 / Error code
  * @property metadata 元数据 / Metadata
- */
+*/
 class RemoteSolverException(
     val code: RemoteSolverErrorCode,
     override val message: String,
@@ -86,7 +86,7 @@ class RemoteSolverException(
  * @property taskId 任务 ID（可选）/ Task ID (optional)
  * @property sliceId 切片 ID（可选）/ Slice ID (optional)
  * @property requestId 请求 ID（可选）/ Request ID (optional)
- */
+*/
 data class RemoteSolverFailureDetail(
     val code: RemoteSolverErrorCode,
     val message: String,
@@ -96,31 +96,37 @@ data class RemoteSolverFailureDetail(
     val sliceId: String? = null,
     val requestId: String? = null
 ) {
+
     /**
-     * 转换为 API 错误码字符串。
      * Convert to API error code string.
-     */
+     * 转换为 API 错误码字符串。
+     *
+     * @return the API error code string / API 错误码字符串
+    */
     fun toApiCode(): String = code.name
 
     /**
-     * 转换为原因码字符串。
      * Convert to reason code string.
-     */
+     * 转换为原因码字符串。
+     *
+     * @return the reason code string / 原因码字符串
+    */
     fun toReasonCode(): String = code.name
 }
 
 /**
  * 远程求解错误映射器。
  * Remote solve error mapper.
- */
+*/
 object RemoteSolverErrorMapper {
+
     /**
      * 归一化异常。
      * Normalize exception.
      *
      * @param throwable 原始异常 / Original throwable
      * @return 远程求解异常 / Remote solve exception
-     */
+    */
     fun normalize(throwable: Throwable): RemoteSolverException {
         if (throwable is RemoteSolverException) {
             return throwable
@@ -145,7 +151,7 @@ object RemoteSolverErrorMapper {
      *
      * @param throwable 异常 / Throwable
      * @return API 错误码 / API error code
-     */
+    */
     fun apiCodeOf(throwable: Throwable): String = normalize(throwable).code.name
 
     /**
@@ -154,6 +160,6 @@ object RemoteSolverErrorMapper {
      *
      * @param code 错误码 / Error code
      * @return 原因码 / Reason code
-     */
+    */
     fun reasonCodeOf(code: RemoteSolverErrorCode): String = code.name
 }

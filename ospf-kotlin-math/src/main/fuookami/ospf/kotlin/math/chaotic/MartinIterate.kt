@@ -1,7 +1,7 @@
 /**
  * Martin 迭代
  * Martin Iterate
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c / System parameter c
- */
+*/
 data class MartinIterate<V : FloatingNumber<V>>(val a: V, val b: V, val c: V) :
     Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
@@ -50,7 +50,7 @@ data class MartinIterate<V : FloatingNumber<V>>(val a: V, val b: V, val c: V) :
  * Martin Iterate Generator
  *
  * @property map Martin 迭代实例 / Martin Iterate instance
- */
+*/
 data class MartinIterateGenerator(
     val map: MartinIterate<Flt64> = MartinIterate(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -54,7 +54,7 @@
  * ```
  * @see MultiArray
  * @see StorageOrder
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 import kotlin.ConsistentCopyVisibility
@@ -66,7 +66,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 维度不匹配异常
  * Dimension mismatching exception
- */
+*/
 class DimensionMismatchingException(
     val dimension: Int,
     val vectorDimension: Int
@@ -77,7 +77,7 @@ class DimensionMismatchingException(
 /**
  * 形状越界异常
  * Out of shape exception
- */
+*/
 class OutOfShapeException(
     val dimension: Int,
     val length: Int,
@@ -89,7 +89,7 @@ class OutOfShapeException(
 /**
  * 未知虚拟索引类型异常
  * Unknown dummy index type exception
- */
+*/
 class UnknownDummyIndexTypeException(
     val cls: KClass<*>
 ) : Throwable() {
@@ -104,7 +104,7 @@ class UnknownDummyIndexTypeException(
  *   Row-major (C style), last dimension varies fastest
  * - ColumnMajor: 列主序（Fortran 风格），第一个维度变化最快
  *   Column-major (Fortran style), first dimension varies fastest
- */
+*/
 enum class StorageOrder {
     RowMajor,
     ColumnMajor;
@@ -120,54 +120,55 @@ enum class StorageOrder {
  *
  * 定义多维数组形状的基本操作。
  * Defines basic operations for multi-dimensional array shapes.
- */
+*/
 interface Shape {
+
     /**
      * 维度数量
      * Number of dimensions
-     */
+    */
     val dimension: Int
 
     /**
      * 维度数量（无符号）
      * Number of dimensions (unsigned)
-     */
+    */
     val udimension: ULong get() = dimension.toULong()
 
     /**
      * 元素总数
      * Total number of elements
-     */
+    */
     val size: Int
 
     /**
      * 元素总数（无符号）
      * Total number of elements (unsigned)
-     */
+    */
     val usize: ULong get() = size.toULong()
 
     /**
      * 维度索引范围
      * Dimension index range
-     */
+    */
     val indices: IntRange get() = 0 until dimension
 
     /**
      * 存储顺序
      * Storage order
-     */
+    */
     val storageOrder: StorageOrder get() = StorageOrder.Default
 
     /**
      * 各维度的步长
      * Strides for each dimension
-     */
+    */
     val offsets: IntArray
 
     /**
      * 获取指定维度的长度
      * Get the length of the specified dimension
-     */
+    */
     operator fun get(index: Int): Int
 
     /**
@@ -176,7 +177,7 @@ interface Shape {
      *
      * @param vector 向量索引 / Vector index
      * @return 线性索引结果 / Linear index result
-     */
+    */
     fun index(vector: IntArray): Ret<Int>
 
     /**
@@ -185,7 +186,7 @@ interface Shape {
      *
      * @param vector 向量索引 / Vector index
      * @return 线性索引结果 / Linear index result
-     */
+    */
     fun indexSafe(vector: IntArray): Ret<Int> {
         return index(vector)
     }
@@ -196,7 +197,7 @@ interface Shape {
      *
      * @param vector 向量索引 / Vector index
      * @return 线性索引，如果越界则返回 null / Linear index, or null if out of bounds
-     */
+    */
     fun indexOrNull(vector: IntArray): Int? {
         return index(vector).value
     }
@@ -207,7 +208,7 @@ interface Shape {
      *
      * @param index 线性索引 / Linear index
      * @return 向量索引结果 / Vector index result
-     */
+    */
     fun vector(index: Int): Ret<IntArray>
 
     /**
@@ -216,7 +217,7 @@ interface Shape {
      *
      * @param index 线性索引 / Linear index
      * @return 向量索引结果 / Vector index result
-     */
+    */
     fun vectorSafe(index: Int): Ret<IntArray> {
         return vector(index)
     }
@@ -227,7 +228,7 @@ interface Shape {
      *
      * @param index 线性索引 / Linear index
      * @return 向量索引，如果越界则返回 null / Vector index, or null if out of bounds
-     */
+    */
     fun vectorOrNull(index: Int): IntArray? {
         return vector(index).value
     }
@@ -237,7 +238,7 @@ interface Shape {
      * Check if empty
      *
      * @return 如果元素总数为零则返回 true / True if total number of elements is zero
-     */
+    */
     fun isEmpty(): Boolean = size == 0
 
     /**
@@ -246,7 +247,7 @@ interface Shape {
      *
      * @param vector 当前向量索引
      * @return 下一个向量索引，如果已到达末尾则返回 null
-     */
+    */
     fun next(vector: IntArray): IntArray? {
         val temp = vector.copyOf()
         var i = dimension - 1
@@ -268,7 +269,7 @@ interface Shape {
      *
      * @param dimension 维度索引 / Dimension index
      * @return 步长结果 / Stride result
-     */
+    */
     fun offset(dimension: Int): Ret<Int> {
         return offsetSafe(dimension)
     }
@@ -279,7 +280,7 @@ interface Shape {
      *
      * @param dimension 维度索引 / Dimension index
      * @return 步长结果 / Stride result
-     */
+    */
     fun offsetSafe(dimension: Int): Ret<Int> {
         if (dimension >= this.dimension || dimension < 0) {
             return Failed(
@@ -296,7 +297,7 @@ interface Shape {
      *
      * @param dimension 维度索引 / Dimension index
      * @return 步长，如果维度越界则返回 null / Stride, or null if dimension is out of bounds
-     */
+    */
     fun offsetOrNull(dimension: Int): Int? {
         return offsetSafe(dimension).value
     }
@@ -311,7 +312,7 @@ interface Shape {
      * @param dimension 维度索引
      * @param index 原始索引
      * @return 实际索引，如果越界则返回 null
-     */
+    */
     fun actualIndex(dimension: Int, index: Int): Int? {
         val len = try {
             this[dimension]
@@ -331,7 +332,7 @@ interface Shape {
      * Create zero vector
      *
      * @return 各维度均为零的向量 / Vector with all dimensions set to zero
-     */
+    */
     fun zero(): IntArray = IntArray(dimension)
 
     /**
@@ -340,7 +341,7 @@ interface Shape {
      *
      * @param dummyVector 虚拟向量 / Dummy vector
      * @return 迭代器向量 / Iterator vector
-     */
+    */
     fun dummyToIteratorVector(dummyVector: DummyVector): IteratorVector {
         return dummyVector.mapIndexed { i, dummy -> dummy.iteratorOf(this, i) }
     }
@@ -351,7 +352,7 @@ interface Shape {
      *
      * @param dummyVector 虚拟向量 / Dummy vector
      * @return 映射向量 / Map vector
-     */
+    */
     fun dummyToMapVector(dummyVector: DummyVector): MapVector {
         return dummyVector.mapIndexed { index, dummy ->
             MapIndex.Dummy(dummy)
@@ -364,7 +365,7 @@ interface Shape {
      *
      * @param mapVector 映射向量 / Map vector
      * @return 迭代器向量 / Iterator vector
-     */
+    */
     fun mapToIteratorVector(mapVector: MapVector): IteratorVector {
         return mapVector.mapIndexed { i, mapIndex ->
             when (mapIndex) {
@@ -383,7 +384,7 @@ interface Shape {
      *
      * @param v 虚拟索引参数 / Dummy index arguments
      * @return 虚拟向量结果 / Dummy vector result
-     */
+    */
     fun dummyVector(vararg v: Any): Ret<DummyVector> {
         return dummyVectorSafe(*v)
     }
@@ -394,7 +395,7 @@ interface Shape {
      *
      * @param v 虚拟索引参数 / Dummy index arguments
      * @return 虚拟向量结果 / Dummy vector result
-     */
+    */
     fun dummyVectorSafe(vararg v: Any): Ret<DummyVector> {
         if (v.size != dimension) {
             return Failed(
@@ -442,7 +443,7 @@ interface Shape {
      *
      * @param v 虚拟索引参数 / Dummy index arguments
      * @return 虚拟向量，如果创建失败则返回 null / Dummy vector, or null if creation failed
-     */
+    */
     fun dummyVectorOrNull(vararg v: Any): DummyVector? {
         return dummyVectorSafe(*v).value
     }
@@ -455,7 +456,7 @@ interface Shape {
  * @param dimension 期望维度 / Expected dimension
  * @param vectorDimension 实际维度 / Actual dimension
  * @return 失败的 Ret 结果 / Failed Ret result
- */
+*/
 private fun <T> dimensionMismatchingFailure(
     dimension: Int,
     vectorDimension: Int
@@ -474,7 +475,7 @@ private fun <T> dimensionMismatchingFailure(
  * @param length 维度长度 / Dimension length
  * @param vectorIndex 实际索引 / Actual index
  * @return 失败的 Ret 结果 / Failed Ret result
- */
+*/
 private fun <T> outOfShapeFailure(
     dimension: Int,
     length: Int,
@@ -493,7 +494,7 @@ private fun <T> outOfShapeFailure(
  * @param index 实际索引 / Actual index
  * @param size 数组大小 / Array size
  * @return 失败的 Ret 结果 / Failed Ret result
- */
+*/
 private fun <T> linearIndexOutOfBoundsFailure(
     index: Int,
     size: Int
@@ -510,7 +511,7 @@ private fun <T> linearIndexOutOfBoundsFailure(
  *
  * @param vector 向量索引 / Vector index
  * @return 线性索引；仅应在调用方已保证索引合法时使用 / Linear index; use only when caller has guaranteed validity
- */
+*/
 fun Shape.indexUnchecked(vector: IntArray): Int {
     return indexOrNull(vector) ?: -1
 }
@@ -521,7 +522,7 @@ fun Shape.indexUnchecked(vector: IntArray): Int {
  *
  * @param index 线性索引 / Linear index
  * @return 向量索引；仅应在调用方已保证索引合法时使用 / Vector index; use only when caller has guaranteed validity
- */
+*/
 fun Shape.vectorUnchecked(index: Int): IntArray {
     return vectorOrNull(index) ?: IntArray(dimension)
 }
@@ -532,7 +533,7 @@ fun Shape.vectorUnchecked(index: Int): IntArray {
  *
  * @param v 虚拟索引参数 / Dummy index arguments
  * @return 虚拟向量；仅应在调用方已保证参数合法时使用 / Dummy vector; use only when caller has guaranteed validity
- */
+*/
 fun Shape.dummyVectorUnchecked(vararg v: Any): DummyVector {
     return dummyVectorOrNull(*v) ?: emptyList()
 }
@@ -543,7 +544,7 @@ fun Shape.dummyVectorUnchecked(vararg v: Any): DummyVector {
  *
  * @property d1 第一维度长度 / Length of the first dimension
  * @property storageOrder 存储顺序 / Storage order
- */
+*/
 @ConsistentCopyVisibility
 data class Shape1 private constructor(
     private val d1: Int,
@@ -556,7 +557,7 @@ data class Shape1 private constructor(
          *
          * @param d1 第一维度长度 / Length of the first dimension
          * @return 一维形状实例 / 1D shape instance
-         */
+        */
         operator fun invoke(d1: Int): Shape1 = Shape1(d1, StorageOrder.Default)
 
         /**
@@ -565,7 +566,7 @@ data class Shape1 private constructor(
          *
          * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
          * @return 一维形状实例 / 1D shape instance
-         */
+        */
         operator fun invoke(d1: ULong): Shape1 = Shape1(d1.toInt(), StorageOrder.Default)
 
         /**
@@ -574,7 +575,7 @@ data class Shape1 private constructor(
          *
          * @param d1 用于推断维度大小的集合 / Collection used to infer dimension size
          * @return 一维形状实例 / 1D shape instance
-         */
+        */
         operator fun invoke(d1: Collection<*>): Shape1 = Shape1(d1.size, StorageOrder.Default)
 
         /**
@@ -584,7 +585,7 @@ data class Shape1 private constructor(
          * @param d1 第一维度长度 / Length of the first dimension
          * @param order 存储顺序 / Storage order
          * @return 一维形状实例 / 1D shape instance
-         */
+        */
         fun withOrder(d1: Int, order: StorageOrder): Shape1 = Shape1(d1, order)
 
         /**
@@ -594,7 +595,7 @@ data class Shape1 private constructor(
          * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
          * @param order 存储顺序 / Storage order
          * @return 一维形状实例 / 1D shape instance
-         */
+        */
         fun withOrder(d1: ULong, order: StorageOrder): Shape1 = Shape1(d1.toInt(), order)
     }
 
@@ -647,7 +648,7 @@ data class Shape1 private constructor(
      *
      * @param order 存储顺序 / Storage order
      * @return 使用指定存储顺序的一维形状副本 / 1D shape copy with specified storage order
-     */
+    */
     fun withStorageOrder(order: StorageOrder): Shape1 = Shape1(d1, order)
 }
 
@@ -658,7 +659,7 @@ data class Shape1 private constructor(
  * @property d1 第一维度长度 / Length of the first dimension
  * @property d2 第二维度长度 / Length of the second dimension
  * @property storageOrder 存储顺序 / Storage order
- */
+*/
 @ConsistentCopyVisibility
 data class Shape2 private constructor(
     private val d1: Int,
@@ -673,7 +674,7 @@ data class Shape2 private constructor(
          * @param d1 第一维度长度 / Length of the first dimension
          * @param d2 第二维度长度 / Length of the second dimension
          * @return 二维形状实例 / 2D shape instance
-         */
+        */
         operator fun invoke(d1: Int, d2: Int): Shape2 = Shape2(d1, d2, StorageOrder.Default)
 
         /**
@@ -683,7 +684,7 @@ data class Shape2 private constructor(
          * @param d1 第一维度长度（ULong） / Length of the first dimension (ULong)
          * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
          * @return 二维形状实例 / 2D shape instance
-         */
+        */
         operator fun invoke(d1: ULong, d2: ULong): Shape2 = Shape2(d1.toInt(), d2.toInt(), StorageOrder.Default)
 
         /**
@@ -693,7 +694,7 @@ data class Shape2 private constructor(
          * @param d1 用于推断第一维度大小的集合 / Collection used to infer first dimension size
          * @param d2 用于推断第二维度大小的集合 / Collection used to infer second dimension size
          * @return 二维形状实例 / 2D shape instance
-         */
+        */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>): Shape2 = Shape2(d1.size, d2.size, StorageOrder.Default)
 
         /**
@@ -704,7 +705,7 @@ data class Shape2 private constructor(
          * @param d2 第二维度长度 / Length of the second dimension
          * @param order 存储顺序 / Storage order
          * @return 二维形状实例 / 2D shape instance
-         */
+        */
         fun withOrder(d1: Int, d2: Int, order: StorageOrder): Shape2 = Shape2(d1, d2, order)
 
         /**
@@ -715,7 +716,7 @@ data class Shape2 private constructor(
          * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
          * @param order 存储顺序 / Storage order
          * @return 二维形状实例 / 2D shape instance
-         */
+        */
         fun withOrder(d1: ULong, d2: ULong, order: StorageOrder): Shape2 = Shape2(d1.toInt(), d2.toInt(), order)
     }
 
@@ -791,7 +792,7 @@ data class Shape2 private constructor(
      *
      * @param order 存储顺序 / Storage order
      * @return 使用指定存储顺序的二维形状副本 / 2D shape copy with specified storage order
-     */
+    */
     fun withStorageOrder(order: StorageOrder): Shape2 = Shape2(d1, d2, order)
 }
 
@@ -803,7 +804,7 @@ data class Shape2 private constructor(
  * @property d2 第二维度长度 / Length of the second dimension
  * @property d3 第三维度长度 / Length of the third dimension
  * @property storageOrder 存储顺序 / Storage order
- */
+*/
 @ConsistentCopyVisibility
 data class Shape3 private constructor(
     private val d1: Int,
@@ -820,7 +821,7 @@ data class Shape3 private constructor(
          * @param d2 第二维度长度 / Length of the second dimension
          * @param d3 第三维度长度 / Length of the third dimension
          * @return 三维形状实例 / 3D shape instance
-         */
+        */
         operator fun invoke(d1: Int, d2: Int, d3: Int): Shape3 = Shape3(d1, d2, d3, StorageOrder.Default)
 
         /**
@@ -831,7 +832,7 @@ data class Shape3 private constructor(
          * @param d2 第二维度长度（ULong） / Length of the second dimension (ULong)
          * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
          * @return 三维形状实例 / 3D shape instance
-         */
+        */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), StorageOrder.Default)
 
         /**
@@ -842,7 +843,7 @@ data class Shape3 private constructor(
          * @param d2 用于推断第二维度大小的集合 / Collection used to infer second dimension size
          * @param d3 用于推断第三维度大小的集合 / Collection used to infer third dimension size
          * @return 三维形状实例 / 3D shape instance
-         */
+        */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>): Shape3 = Shape3(d1.size, d2.size, d3.size, StorageOrder.Default)
 
         /**
@@ -854,7 +855,7 @@ data class Shape3 private constructor(
          * @param d3 第三维度长度 / Length of the third dimension
          * @param order 存储顺序 / Storage order
          * @return 三维形状实例 / 3D shape instance
-         */
+        */
         fun withOrder(d1: Int, d2: Int, d3: Int, order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
 
         /**
@@ -866,7 +867,7 @@ data class Shape3 private constructor(
          * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
          * @param order 存储顺序 / Storage order
          * @return 三维形状实例 / 3D shape instance
-         */
+        */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, order: StorageOrder): Shape3 = Shape3(d1.toInt(), d2.toInt(), d3.toInt(), order)
     }
 
@@ -956,7 +957,7 @@ data class Shape3 private constructor(
      *
      * @param order 存储顺序 / Storage order
      * @return 使用指定存储顺序的三维形状副本 / 3D shape copy with specified storage order
-     */
+    */
     fun withStorageOrder(order: StorageOrder): Shape3 = Shape3(d1, d2, d3, order)
 }
 
@@ -969,7 +970,7 @@ data class Shape3 private constructor(
  * @property d3 第三维度长度 / Length of the third dimension
  * @property d4 第四维度长度 / Length of the fourth dimension
  * @property storageOrder 存储顺序 / Storage order
- */
+*/
 @ConsistentCopyVisibility
 data class Shape4 private constructor(
     private val d1: Int,
@@ -988,7 +989,7 @@ data class Shape4 private constructor(
          * @param d3 第三维度长度 / Length of the third dimension
          * @param d4 第四维度长度 / Length of the fourth dimension
          * @return 四维形状实例 / 4D shape instance
-         */
+        */
         operator fun invoke(d1: Int, d2: Int, d3: Int, d4: Int): Shape4 = Shape4(d1, d2, d3, d4, StorageOrder.Default)
 
         /**
@@ -1000,7 +1001,7 @@ data class Shape4 private constructor(
          * @param d3 第三维度长度（ULong） / Length of the third dimension (ULong)
          * @param d4 第四维度长度（ULong） / Length of the fourth dimension (ULong)
          * @return 四维形状实例 / 4D shape instance
-         */
+        */
         operator fun invoke(d1: ULong, d2: ULong, d3: ULong, d4: ULong): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), StorageOrder.Default)
 
         /**
@@ -1012,7 +1013,7 @@ data class Shape4 private constructor(
          * @param d3 用于推断第三维度大小的集合 / Collection used to infer third dimension size
          * @param d4 用于推断第四维度大小的集合 / Collection used to infer fourth dimension size
          * @return 四维形状实例 / 4D shape instance
-         */
+        */
         operator fun invoke(d1: Collection<*>, d2: Collection<*>, d3: Collection<*>, d4: Collection<*>): Shape4 = Shape4(d1.size, d2.size, d3.size, d4.size, StorageOrder.Default)
 
         /**
@@ -1025,7 +1026,7 @@ data class Shape4 private constructor(
          * @param d4 第四维度长度 / Length of the fourth dimension
          * @param order 存储顺序 / Storage order
          * @return 四维形状实例 / 4D shape instance
-         */
+        */
         fun withOrder(d1: Int, d2: Int, d3: Int, d4: Int, order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
 
         /**
@@ -1038,7 +1039,7 @@ data class Shape4 private constructor(
          * @param d4 第四维度长度（ULong） / Length of the fourth dimension (ULong)
          * @param order 存储顺序 / Storage order
          * @return 四维形状实例 / 4D shape instance
-         */
+        */
         fun withOrder(d1: ULong, d2: ULong, d3: ULong, d4: ULong, order: StorageOrder): Shape4 = Shape4(d1.toInt(), d2.toInt(), d3.toInt(), d4.toInt(), order)
     }
 
@@ -1137,7 +1138,7 @@ data class Shape4 private constructor(
      *
      * @param order 存储顺序 / Storage order
      * @return 使用指定存储顺序的四维形状副本 / 4D shape copy with specified storage order
-     */
+    */
     fun withStorageOrder(order: StorageOrder): Shape4 = Shape4(d1, d2, d3, d4, order)
 }
 
@@ -1147,7 +1148,7 @@ data class Shape4 private constructor(
  *
  * @property shape 各维度长度的数组 / Array of dimension lengths
  * @property storageOrder 存储顺序 / Storage order
- */
+*/
 @ConsistentCopyVisibility
 data class DynShape private constructor(
     private val shape: IntArray,
@@ -1160,7 +1161,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度长度的数组 / Array of dimension lengths
          * @return 所有维度长度的乘积 / Product of all dimension lengths
-         */
+        */
         @JvmStatic
         private fun calculateTotalSize(shape: IntArray): Int {
             var ret = 1
@@ -1177,7 +1178,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度长度的数组 / Array of dimension lengths
          * @return 行主序偏移量数组 / Row-major offset array
-         */
+        */
         @JvmStatic
         private fun calculateOffsetsRowMajor(shape: IntArray): IntArray {
             if (shape.isEmpty()) return intArrayOf()
@@ -1195,7 +1196,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度长度的数组 / Array of dimension lengths
          * @return 列主序偏移量数组 / Column-major offset array
-         */
+        */
         @JvmStatic
         private fun calculateOffsetsColumnMajor(shape: IntArray): IntArray {
             if (shape.isEmpty()) return intArrayOf()
@@ -1213,7 +1214,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度长度的数组 / Array of dimension lengths
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         operator fun invoke(shape: IntArray): DynShape {
             // Defensive copy to prevent external mutation / 防御性拷贝以防止外部修改
             return DynShape(shape.copyOf(), StorageOrder.Default)
@@ -1225,7 +1226,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度长度的 ULong 可迭代对象 / Iterable of ULong dimension lengths
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         @JvmName("constructByULongList")
         operator fun invoke(shape: Iterable<ULong>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), StorageOrder.Default)
 
@@ -1235,7 +1236,7 @@ data class DynShape private constructor(
          *
          * @param shape 各维度大小的集合可迭代对象 / Iterable of collections for dimension sizes
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         @JvmName("constructByCollectionList")
         operator fun invoke(shape: Iterable<Collection<*>>): DynShape = DynShape(shape.map { it.size }.toIntArray(), StorageOrder.Default)
 
@@ -1246,7 +1247,7 @@ data class DynShape private constructor(
          * @param shape 各维度长度的数组 / Array of dimension lengths
          * @param order 存储顺序 / Storage order
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         fun withOrder(shape: IntArray, order: StorageOrder): DynShape {
             // Defensive copy / 防御性拷贝
             return DynShape(shape.copyOf(), order)
@@ -1259,7 +1260,7 @@ data class DynShape private constructor(
          * @param shape 各维度长度的 ULong 可迭代对象 / Iterable of ULong dimension lengths
          * @param order 存储顺序 / Storage order
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         @JvmName("withOrderFromULongList")
         fun withOrder(shape: Iterable<ULong>, order: StorageOrder): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), order)
 
@@ -1270,7 +1271,7 @@ data class DynShape private constructor(
          * @param shape 各维度大小的集合可迭代对象 / Iterable of collections for dimension sizes
          * @param order 存储顺序 / Storage order
          * @return 动态形状实例 / Dynamic shape instance
-         */
+        */
         @JvmName("withOrderFromCollectionList")
         fun withOrder(shape: Iterable<Collection<*>>, order: StorageOrder): DynShape = DynShape(shape.map { it.size }.toIntArray(), order)
     }
@@ -1349,7 +1350,7 @@ data class DynShape private constructor(
      *
      * @param order 存储顺序 / Storage order
      * @return 使用指定存储顺序的动态形状副本 / Dynamic shape copy with specified storage order
-     */
+    */
     fun withStorageOrder(order: StorageOrder): DynShape = DynShape(shape.copyOf(), order)
 
     override fun equals(other: Any?): Boolean {

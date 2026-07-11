@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 interface BunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         B : AbstractTaskBunch<T, E, A, V>,
@@ -38,7 +38,7 @@ interface BunchCompilationContext<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
@@ -74,7 +74,7 @@ interface BunchCompilationContext<
      * @param newBunches 新任务束列表 / List of new bunches
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务束列表 / Deduplicated bunch list
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
@@ -111,7 +111,7 @@ interface BunchCompilationContext<
      * @param keptBunches 保留任务束集合 / Set of kept bunches
      * @param model 线性元模型 / Linear meta model
      * @return 更新后的最大约简成本 / Updated maximum reduced cost
-     */
+    */
     fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
@@ -137,7 +137,7 @@ interface BunchCompilationContext<
      * @param model 线性元模型 / Linear meta model
      * @param shadowPrices 对偶解 / Dual solution
      * @return 操作结果 / Operation result
-     */
+    */
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
@@ -166,7 +166,7 @@ interface BunchCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 固定任务束集合 / Set of fixed bunches
-     */
+    */
     fun extractFixedBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -180,7 +180,7 @@ interface BunchCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 保留任务束集合 / Set of kept bunches
-     */
+    */
     fun extractKeptBunches(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -194,7 +194,7 @@ interface BunchCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 任务束到比率的映射 / Map of bunch to ratio
-     */
+    */
     fun extractKeptBunchesWithRatio(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -208,7 +208,7 @@ interface BunchCompilationContext<
      * @param executors 执行器列表 / List of executors
      * @param model 线性元模型 / Linear meta model
      * @return 隐藏执行器集合 / Set of hidden executors
-     */
+    */
     fun extractHiddenExecutors(
         executors: List<E>,
         model: AbstractLinearMetaModel<Flt64>
@@ -224,7 +224,7 @@ interface BunchCompilationContext<
      * @param shadowPriceMap 影子价格映射 / Shadow price map
      * @param model 线性元模型 / Linear meta model
      * @return 空闲执行器集合 / Set of free executors
-     */
+    */
     fun <Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>> selectFreeExecutors(
         fixedBunches: Set<B>,
         hiddenExecutors: Set<E>,
@@ -237,7 +237,7 @@ interface BunchCompilationContext<
      *
      * @param fixedBunches 固定任务束集合 / Set of fixed bunches
      * @return 操作结果 / Operation result
-     */
+    */
     fun globallyFix(fixedBunches: Set<B>): Try {
         return aggregation.globallyFix(fixedBunches)
     }
@@ -250,7 +250,7 @@ interface BunchCompilationContext<
      * @param fixedBunches 固定任务束集合 / Set of fixed bunches
      * @param model 线性元模型 / Linear meta model
      * @return 新固定的任务束集合 / Set of newly fixed bunches
-     */
+    */
     fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
@@ -271,7 +271,7 @@ interface BunchCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logResult(
             iteration = iteration,
@@ -285,7 +285,7 @@ interface BunchCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun logBunchCost(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logBunchCost(
             iteration = iteration,
@@ -298,7 +298,7 @@ interface BunchCompilationContext<
      *
      * @param iteration 迭代次数 / Iteration count
      * @return 操作结果 / Operation result
-     */
+    */
     fun flush(iteration: UInt64): Try {
         return aggregation.flush(
             iteration = iteration,
@@ -314,7 +314,7 @@ interface BunchCompilationContext<
      * @param model 线性元模型 / Linear meta model
      * @param solution 解向量 / Solution vector
      * @return 任务解 / Task solution
-     */
+    */
     fun analyzeTaskSolution(
         iteration: UInt64,
         tasks: List<T>,
@@ -339,7 +339,7 @@ interface BunchCompilationContext<
      * @param model 线性元模型 / Linear meta model
      * @param solution 解向量 / Solution vector
      * @return 任务束解 / Bunch solution
-     */
+    */
     fun analyzeBunchSolution(
         iteration: UInt64,
         tasks: List<T>,
@@ -365,7 +365,7 @@ interface BunchCompilationContext<
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 interface ExtractBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         B : AbstractTaskBunch<T, E, A, V>,
@@ -376,20 +376,49 @@ interface ExtractBunchCompilationContext<
         > {
     val baseContext: BunchCompilationContext<Args, B, V, T, E, A>
 
+/**
+ * Registers the extract context to the meta model.
+ * 将提取上下文注册到元模型。
+ * @param model Meta model to register into / 要注册的元模型
+ * @return Success or failure of the registration / 注册操作的成功或失败
+*/
     fun register(model: MetaModel<Flt64>): Try
 
+/**
+ * Adds new bunch columns to the model in the extract context.
+ * 在提取上下文中向模型添加新的任务束列。
+ * @param iteration Iteration number / 迭代编号
+ * @param newBunches New bunches to add as columns / 要作为列添加的新任务束列表
+ * @param model Linear meta model / 线性元模型
+ * @return Success or failure of the column addition / 列添加操作的成功或失败
+*/
     fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
         model: AbstractLinearMetaModel<Flt64>
     ): Try
 
+/**
+ * Extracts shadow prices from the dual solution in the extract context.
+ * 在提取上下文中从对偶解提取影子价格。
+ * @param shadowPriceMap Shadow price map to populate / 要填充的影子价格映射
+ * @param model Solved linear meta model / 已求解的线性元模型
+ * @param shadowPrices Dual solution from the solver / 求解器的对偶解
+ * @return Success or failure of the extraction / 提取操作的成功或失败
+*/
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try
 
+/**
+ * Logs the current iteration result in the extract context.
+ * 在提取上下文中记录当前迭代结果。
+ * @param iteration Iteration number / 迭代编号
+ * @param model Solved linear meta model / 已求解的线性元模型
+ * @return Success or failure of the logging / 日志记录操作的成功或失败
+*/
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return ok
     }

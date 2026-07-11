@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * @property maxPlans 最大方案数（提前终止）/ Max plans (early termination)
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
- */
+*/
 class NSameGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
@@ -149,6 +149,17 @@ class NSameGenerator<V : RealNumber<V>>(
         )
     }
 
+/**
+ * Generates cutting plans for a single material by iterating over all demands and product widths.
+ * 遍历所有需求和产品宽度，为单个物料生成切割方案。
+ * @param material the raw material to generate cutting plans for / 待生成切割方案的原料
+ * @param demands the list of product demands to satisfy / 需满足的产品需求列表
+ * @param machines the list of machines for feasibility checking / 用于可行性检查的机器列表
+ * @param planIndex atomic counter for generating unique plan IDs / 用于生成唯一方案ID的原子计数器
+ * @param collector collects and prunes generated cutting plans / 收集并剪枝已生成的切割方案
+ * @param quantityCache cache for quantity arithmetic operations / 数量算术运算的缓存
+ * @param widthCheck optional custom width feasibility check function / 可选的自定义宽度可行性检查函数
+*/
     private fun generateMaterial(
         material: Material<V>,
         demands: List<ProductDemand<V>>,
@@ -238,6 +249,15 @@ class NSameGenerator<V : RealNumber<V>>(
         }
     }
 
+/**
+ * Computes the maximum number of times a product width can repeat within the material's width bound and knife count constraint.
+ * 计算产品宽度在物料宽度上限和刀数约束下可重复的最大次数。
+ * @param productWidth the width of the product to repeat / 待重复的产品宽度
+ * @param material the raw material providing the width bound / 提供宽度上限的原料
+ * @param product the product being cut / 正在切割的产品
+ * @param quantityCache cache for width arithmetic operations / 宽度算术运算的缓存
+ * @return the maximum repeat count, or zero if infeasible / 最大重复次数，不可行时返回零
+*/
     private fun computeMaxAmount(
         productWidth: Quantity<V>,
         material: Material<V>,
@@ -267,6 +287,15 @@ class NSameGenerator<V : RealNumber<V>>(
         return maxAmount
     }
 
+/**
+ * Checks whether a set of slices satisfies all configured cutting plan constraints.
+ * 检查一组切片是否满足所有已配置的切割方案约束。
+ * @param slices the cutting plan slices to validate / 待验证的切割方案切片
+ * @param totalWidth the total width consumed by the slices / 切片消耗的总宽度
+ * @param upperBound the material's upper width bound / 物料的宽度上限
+ * @param material the raw material being cut / 正在切割的原料
+ * @return true if all constraints are satisfied, false otherwise / 所有约束均满足时返回true，否则返回false
+*/
     private fun satisfiesConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,

@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [QuadraticLinearFunction]，将二次多项式包装为二次中间符号。
  *
  * Provides [QuadraticLinearFunction] for wrapping a quadratic polynomial as a quadratic intermediate symbol.
- */
+*/
 
 /**
  * 二次线性函数：将 QuadraticPolynomial 包装为二次中间符号。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class QuadraticLinearFunction<V>(
     private val _polynomial: QuadraticPolynomial<V>,
     private val converter: IntoValue<V>,
@@ -84,7 +84,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -106,7 +106,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -133,7 +133,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -154,7 +154,7 @@ class QuadraticLinearFunction<V>(
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -180,7 +180,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -202,8 +202,9 @@ class QuadraticLinearFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 结果列表求值（始终返回 null）。
      * Evaluate with Flt64 results list (always returns null).
@@ -212,8 +213,9 @@ class QuadraticLinearFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 值映射求值（始终返回 null）。
      * Evaluate with Flt64 value map (always returns null).
@@ -222,7 +224,7 @@ class QuadraticLinearFunction<V>(
      * @param tokenList 可选的 Flt64 token 列表 / optional Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -247,6 +249,7 @@ class QuadraticLinearFunction<V>(
             evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
+
     /**
      * 使用 Flt64 结果列表进行求解器求值。
      * Evaluate solver with Flt64 results list.
@@ -256,11 +259,12 @@ class QuadraticLinearFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /**
      * 使用 Flt64 值映射进行求解器求值。
      * Evaluate solver with Flt64 value map.
@@ -270,7 +274,7 @@ class QuadraticLinearFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -281,7 +285,7 @@ class QuadraticLinearFunction<V>(
     /**
      * 将辅助变量 y 注册到 token 集合中（仅当为二次时）。
      * Register helper variable y with the token collection (only if quadratic).
-     */
+    */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         if (!isLinear && y != null) {
             return when (val result = tokens.add(listOf(y!!))) {
@@ -296,7 +300,7 @@ class QuadraticLinearFunction<V>(
     /**
      * 注册二次等式约束 y = polynomial（仅当为二次时）。
      * Register the quadratic equality constraint y = polynomial (only if quadratic).
-     */
+    */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         if (!isLinear && y != null) {
             val yMon = QuadraticMonomial.linear(converter.one, y!!)

@@ -1,7 +1,7 @@
 /**
  * Zaslavskii 映射
  * Zaslavskii Map
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property r 系统参数 r / System parameter r
  * @property mu 预计算参数 mu = (1 - exp(-r)) / r / Precomputed parameter
  * @property twoPi 常量 2*pi / Constant 2*pi
- */
+*/
 data class ZaslavskiiMap<V : FloatingNumber<V>>(val epsilon: V, val upsilon: V, val r: V, val mu: V, val twoPi: V) :
     Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     @Suppress("UNCHECKED_CAST")
@@ -49,7 +49,7 @@ data class ZaslavskiiMap<V : FloatingNumber<V>>(val epsilon: V, val upsilon: V, 
  * Zaslavskii Map Generator
  *
  * @property map Zaslavskii 映射实例 / Zaslavskii map instance
- */
+*/
 data class ZaslavskiiMapGenerator(
     val map: ZaslavskiiMap<Flt64> = ZaslavskiiMap(),
     private var _x: Point<Dim2, Flt64> = point2(

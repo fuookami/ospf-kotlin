@@ -14,7 +14,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param _tasksIteration 任务迭代列表 / Task iteration list
  * @param _tasks 任务列表 / Task list
  * @param _removedTasks 已移除任务集合 / Removed tasks set
- */
+ * @property tasksIteration 任务迭代列表 / Task iteration list
+ * @property tasks 任务列表 / Task list
+ * @property removedTasks 已移除任务集合 / Removed tasks set
+ * @property lastIterationTasks 最后一轮迭代的任务列表 / Task list from the last iteration
+*/
 data class TaskAggregation<
         T : IterativeAbstractTask<E, A>,
         out E : Executor,
@@ -35,7 +39,7 @@ data class TaskAggregation<
      *
      * @param newTasks 新任务列表 / List of new tasks
      * @return 去重后的新任务列表 / Deduplicated list of new tasks
-     */
+    */
     suspend fun addColumns(newTasks: List<T>): List<T> {
         val unduplicatedNewTasks = ArrayList<T>()
         for (task in newTasks) {
@@ -72,7 +76,7 @@ data class TaskAggregation<
      * 移除列 / Remove column
      *
      * @param task 要移除的任务 / Task to remove
-     */
+    */
     fun removeColumn(task: T) {
         if (!_removedTasks.contains(task)) {
             _removedTasks.add(task)

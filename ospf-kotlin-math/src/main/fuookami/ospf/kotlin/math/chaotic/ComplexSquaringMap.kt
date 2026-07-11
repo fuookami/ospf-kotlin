@@ -9,7 +9,7 @@
  * The complex squaring map is a simple iterative map that squares complex numbers, serving as the foundation for Julia set theory research.
  * This map generates escaping or converging dynamical behavior through repeated squaring of complex numbers, forming unique fractal boundaries.
  * Commonly used for fractal geometry research, chaos visualization, and complex dynamics analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
 /**
  * 复平方映射
  * Complex Squaring Map
- */
+*/
 data object ComplexSquaringMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
     override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
         val complexNumber = pow(complex(x[0].value, x[1].value), complex(2.0, 0.0))
@@ -36,7 +36,7 @@ data object ComplexSquaringMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64
 /**
  * 复平方映射生成器
  * Complex Squaring Map Generator
- */
+*/
 data class ComplexSquaringMapGenerator(
     val complexSquaringMap: ComplexSquaringMap = ComplexSquaringMap,
     private var _x: Point<Dim2, Flt64> = point2(

@@ -15,14 +15,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 /**
- * 约束项目排序使得有序项目对不能放置在反向位置对中。Constrains item ordering so that ordered item pairs cannot be placed in reverse position pairs.
+ * Constrains item ordering so that ordered item pairs cannot be placed in reverse position pairs.
+ * 约束项目排序使得有序项目对不能放置在反向位置对中。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property orderedItems 参数。
- * @property orderedPositions 参数。
- * @property stowage 参数。
- */
+ * @property items The list of cargo items / 货物项目列表
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property orderedItems The list of ordered item pairs / 有序项目对列表
+ * @property orderedPositions The list of ordered position pairs / 有序位置对列表
+ * @property stowage The stowage assignment matrix / 装载分配矩阵
+*/
 class ItemOrderLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

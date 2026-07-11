@@ -1,7 +1,7 @@
 /**
  * 子目标对象
  * Sub-objective object
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.symbol.monomial.*
@@ -19,12 +19,16 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
  * @param V 数值类型 / The numeric type
  * @property category 目标分类 / The objective category
  * @property name     子目标名称 / The sub-objective name
- */
+*/
 sealed class SubObject<V : RealNumber<V>>(
     val category: ObjectCategory,
     val name: String = ""
 ) {
+
+    /** The list of cells (coefficient-token pairs) that compose this sub-objective. 中文构成此子目标的单元格（系数-标记对）列表。 */
     abstract val cells: List<Cell<V>>
+
+    /** The constant term of this sub-objective. 中文此子目标的常数项。 */
     abstract val constant: V
 
     /**
@@ -32,7 +36,7 @@ sealed class SubObject<V : RealNumber<V>>(
      * Evaluate using the tokens' known results.
      *
      * @return 求值结果（含常数项），若任一单元格结果未知则返回 null / The evaluation result (including the constant), or null if any cell result is unknown
-     */
+    */
     abstract fun evaluate(): V?
 
     /**
@@ -41,7 +45,7 @@ sealed class SubObject<V : RealNumber<V>>(
      *
      * @param results 解向量，索引对应标记在标记表中的位置 / The solution vector whose indices correspond to token positions in the token table
      * @return 求值结果（含常数项），若任一单元格结果未知则返回 null / The evaluation result (including the constant), or null if any cell result is unknown
-     */
+    */
     abstract fun evaluate(results: List<V>): V?
 }
 
@@ -53,7 +57,7 @@ sealed class SubObject<V : RealNumber<V>>(
  * @property cells 线性单元格列表 / List of linear cells
  * @param _constant 常数项 / Constant term
  * @param name 子目标名称 / Sub-objective name
- */
+*/
 class LinearSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<LinearCell<V>>,
@@ -67,7 +71,7 @@ class LinearSubObject<V : RealNumber<V>>(
      * Extract all linear terms as a list of (coefficient, variable) pairs.
      *
      * @return 线性项列表，每项包含系数和对应的变量 / A list of linear terms, each containing a coefficient and its corresponding variable
-     */
+    */
     fun linearTerms(): List<Pair<V, AbstractVariableItem<*, *>>> {
         return cells.map { it.coefficient to it.token.variable }
     }
@@ -89,6 +93,17 @@ class LinearSubObject<V : RealNumber<V>>(
     }
 
     companion object {
+        /**
+         * Creates a linear sub-objective from flatten data and a token table.
+         * 从展平数据和符号表创建线性子目标。
+         *
+         * @param category The objective category / 目标分类
+         * @param flattenData The flattened linear data / 展平的线性数据
+         * @param tokens The token table for cell lookup / 用于单元格查找的符号表
+         * @param name The sub-objective name / 子目标名称
+         * @param converter The value converter / 值转换器
+         * @return A new LinearSubObject / 新的线性子目标
+        */
         operator fun <V> invoke(
             category: ObjectCategory,
             flattenData: LinearFlattenData<V>,
@@ -119,7 +134,7 @@ class LinearSubObject<V : RealNumber<V>>(
  * @property cells 二次单元格列表 / List of quadratic cells
  * @param _constant 常数项 / Constant term
  * @param name 子目标名称 / Sub-objective name
- */
+*/
 class QuadraticSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<QuadraticCell<V>>,
@@ -133,7 +148,7 @@ class QuadraticSubObject<V : RealNumber<V>>(
      * Extract all quadratic terms as a list of (coefficient, variable1, variable2) triples.
      *
      * @return 二次项列表，每项包含系数和两个变量（第二个可能为 null） / A list of quadratic terms, each containing a coefficient and two variables (the second may be null)
-     */
+    */
     fun quadraticTerms(): List<Triple<V, AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>> {
         return cells.map { cell ->
             Triple(cell.coefficient, cell.token1.variable, cell.token2?.variable)

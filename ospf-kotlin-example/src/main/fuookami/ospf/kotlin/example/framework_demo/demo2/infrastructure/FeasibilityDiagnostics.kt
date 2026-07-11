@@ -3,10 +3,21 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 import kotlin.math.abs
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.RequestDTO
 
+/**
+ * Feasibility diagnostics utility for detecting infeasible or near-critical constraint conditions in the stowage problem.
+ * 可行性诊断工具，用于检测配载问题中不可行或接近临界的约束条件。
+*/
 object FeasibilityDiagnostics {
     private const val CRITICAL_RATIO = 0.98
     private const val EPS = 1e-6
 
+    /**
+     * Appends core feasibility diagnostic notes for the given request, checking envelope ranges, payload bounds, and cargo-position compatibility.
+     * 为给定请求追加核心可行性诊断信息，检查包络范围、业载边界和货物-舱位兼容性。
+     *
+     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
+     * @param notes Mutable list for collecting diagnostic notes. / 收集诊断信息的可变列表
+    */
     fun appendCoreFeasibilityDiagnostics(request: RequestDTO, notes: MutableList<String>) {
         val totalCapacity = request.positions.sumOf { it.maxWeight }
         val totalCargoWeight = request.cargos.sumOf { it.weight }
@@ -59,6 +70,15 @@ object FeasibilityDiagnostics {
         }
     }
 
+    /**
+     * Appends critical constraint notes by evaluating the solution against capacity, payload, envelope, lateral imbalance, and redundancy constraints.
+     * 通过评估解与容量、业载、包络、横向不平衡和余度约束的关系，追加关键约束诊断信息。
+     *
+     * @param request The request DTO containing problem input data. / 包含问题输入数据的请求 DTO
+     * @param xIdx Index mapping from cargo-position pairs to solution variable indices. / 从货物-舱位对到解变量索引的映射
+     * @param solution The solution variable values as a double array. / 解变量值数组
+     * @param notes Mutable list for collecting diagnostic notes. / 收集诊断信息的可变列表
+    */
     fun appendCriticalConstraintNotes(
         request: RequestDTO,
         xIdx: List<List<Int>>,

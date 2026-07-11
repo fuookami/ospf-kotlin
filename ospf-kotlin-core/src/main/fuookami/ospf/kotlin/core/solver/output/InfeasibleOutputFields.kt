@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 不可行输出统一字段 / Infeasible output unified fields */
 package fuookami.ospf.kotlin.core.solver.output
 
@@ -14,7 +15,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property bestBound 最优界（可选）/ Best bound (optional)
  * @property mipGap MIP 间隙（可选）/ MIP gap (optional)
  * @property solveTime 求解时间 / Solve time
- */
+*/
 data class InfeasibleUnifiedFields(
     val iterations: UInt64?,
     val nodeCount: UInt64?,
@@ -30,7 +31,7 @@ data class InfeasibleUnifiedFields(
  * @param latestStatus 最新求解状态（可选）/ Latest solving status (optional)
  * @param fallbackSolveTime 回退求解时间 / Fallback solve time
  * @return 不可行统一字段 / Infeasible unified fields
- */
+*/
 fun resolveInfeasibleUnifiedFields(
     latestStatus: SolvingStatus?,
     fallbackSolveTime: Duration

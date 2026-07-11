@@ -1,7 +1,7 @@
 /**
  * Cylinder shape contract.
  * 圆柱形状契约。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 圆柱能力路径状态。
  * Cylinder capability path status.
- */
+*/
 enum class CylinderCapabilityStatus {
     /** 仅长方体路径。 / Cuboid-only path. */
     CuboidOnly,
@@ -45,79 +45,102 @@ enum class CylinderCapabilityStatus {
  * @property source 调用来源 / call source
  * @property status 能力状态 / capability status
  * @property pathPredicate 仅长方体路径描述 / cuboid-only path predicate
- */
+*/
 enum class CylinderCapabilityPath(
     val source: String,
     val status: CylinderCapabilityStatus,
     val pathPredicate: String? = null
 ) {
+    /** Default layer candidate generation path / 默认层候选生成路径 */
     DefaultLayerCandidate(
         source = "LayerGeneration.defaultCandidate",
         status = CylinderCapabilityStatus.VerticalCandidateOnly
     ),
+    /** Circle packing candidate generation path / 圆形排列候选生成路径 */
     CirclePackingCandidate(
         source = "CirclePackingLayerGenerator",
         status = CylinderCapabilityStatus.AxisAwareCandidate
     ),
+    /** Application layer placement candidate path / 应用层放置候选路径 */
     ApplicationLayerPlacementCandidate(
         source = "LayerPlacementAdapter.toLayerPlacement",
         status = CylinderCapabilityStatus.VerifiedGeneratedPlacement
     ),
+    /** Pile support candidate generation path / 堆叠支撑候选生成路径 */
     PileSupportCandidate(
         source = "PileLayerGenerator",
         status = CylinderCapabilityStatus.UprightVerticalSupportOnly
     ),
+    /** Package attribute support path / 包装属性支撑路径 */
     PackageAttributeSupport(
         source = "PackageAttribute.supportPackingShape",
         status = CylinderCapabilityStatus.UprightVerticalSupportOnly
     ),
+    /** Simple block candidate generation path / 简单块候选生成路径 */
     SimpleBlockCandidate(
         source = "SimpleBlockGenerator",
         status = CylinderCapabilityStatus.VerticalCandidateOnly
     ),
+    /** DFS/MLHS cuboid search path / DFS/MLHS 长方体搜索路径 */
     DfsMlhsCuboidSearch(
         source = "DFS/MLHS",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "DFS/MLHS space-splitting path is"
     ),
+    /** Item merge path / 物品合并路径 */
     ItemMerge(
         source = "ItemMerger.merge",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "item merge paths are"
     ),
+    /** Item merge piles path / 物品合并堆路径 */
     ItemMergePiles(
         source = "ItemMerger.mergePiles",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "item merge paths are"
     ),
+
+    /** Item merge blocks path / 物品合并块路径 */
     ItemMergeBlocks(
         source = "ItemMerger.mergeBlocks",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "item merge paths are"
     ),
+
+    /** Item merge pattern blocks path / 物品合并模式块路径 */
     ItemMergePatternBlocks(
         source = "ItemMerger.mergePatternBlocks",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "item merge paths are"
     ),
+
+    /** Item merge hollow square blocks path / 物品合并空心方块路径 */
     ItemMergeHollowSquareBlocks(
         source = "ItemMerger.mergeHollowSquareBlocks",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "item merge paths are"
     ),
+
+    /** Pattern placement path / 模式放置路径 */
     PatternPlacement(
         source = "Pattern",
         status = CylinderCapabilityStatus.CuboidOnly,
         pathPredicate = "pattern placement paths are"
     ),
+
+    /** Known-coordinate final packing path / 已知坐标最终装箱路径 */
     KnownCoordinateFinalPacking(
         source = "known-coordinate final packing",
         status = CylinderCapabilityStatus.KnownCoordinateFinalValidation
     ),
+
+    /** Renderer final packing path / 渲染器最终装箱路径 */
     RendererFinalPacking(
         source = "renderer final packing",
         status = CylinderCapabilityStatus.KnownCoordinateFinalValidation
     ),
+
+    /** Depth boundary final validation path / 深度边界最终校验路径 */
     DepthBoundaryFinalValidation(
         source = "DepthBoundaryLayerOrientationPolicy",
         status = CylinderCapabilityStatus.DepthBoundaryFinalValidation
@@ -131,7 +154,7 @@ enum class CylinderCapabilityPath(
  * @param source 调用来源 / call source
  * @param axis 实际轴向 / actual axis
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedCylinderAxisMessage(source: String, axis: Axis3): String {
     return "Unsupported cylinder axis in $source: only Axis3.Y is allowed, but got $axis."
 }
@@ -142,7 +165,7 @@ fun unsupportedCylinderAxisMessage(source: String, axis: Axis3): String {
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String {
     return "Unsupported horizontal cylinder in $source: only verified axis-aware generated candidates are allowed."
 }
@@ -155,7 +178,7 @@ fun unsupportedGeneratedHorizontalCylinderSourceMessage(source: String): String 
  * @param verifiedAxisAwareCandidate 是否为已验证轴向感知候选 / whether it is a verified axis-aware candidate
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireVerifiedGeneratedCylinderCandidate(
     shape: PackingShape3<FltX>,
     verifiedAxisAwareCandidate: Boolean,
@@ -176,7 +199,7 @@ fun requireVerifiedGeneratedCylinderCandidate(
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedCylinderOrientationMessage(source: String): String {
     return "Unsupported cylinder orientation in $source: only upright orientations are allowed."
 }
@@ -187,7 +210,7 @@ fun unsupportedCylinderOrientationMessage(source: String): String {
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedCylinderTopLayerPolicyMessage(source: String): String {
     return "Unsupported cylinder top-layer policy in $source: side/lie stacking is not allowed."
 }
@@ -198,7 +221,7 @@ fun unsupportedCylinderTopLayerPolicyMessage(source: String): String {
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedCylinderStackingSupportMessage(source: String): String {
     return "Unsupported coordinate-less cylinder stacking and hanging support in $source: only upright Axis3.Y items are allowed; horizontal cylinders require verified 3D placement support coverage."
 }
@@ -209,7 +232,7 @@ fun unsupportedCylinderStackingSupportMessage(source: String): String {
  *
  * @param source 调用来源 / call source
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): String {
     return "Unsupported continuous cylinder radius optimization in $source: radiusWeightFunctionKey requires a concrete selected radius result for final actual-radius validation."
 }
@@ -219,7 +242,7 @@ fun unsupportedContinuousCylinderRadiusOptimizationMessage(source: String): Stri
  * Continuous-radius optimization gap.
  *
  * @property detail 缺口说明 / gap detail
- */
+*/
 enum class ContinuousCylinderRadiusOptimizationGap(
     val detail: String
 ) {
@@ -251,7 +274,7 @@ enum class ContinuousCylinderRadiusOptimizationGap(
  * @property source 调用来源 / call source
  * @property radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
  * @property gaps 缺口列表 / gap list
- */
+*/
 data class ContinuousCylinderRadiusOptimizationGapReport(
     val source: String,
     val radiusWeightFunctionKey: String?,
@@ -272,7 +295,7 @@ data class ContinuousCylinderRadiusOptimizationGapReport(
      *
      * @param rowDescription 行描述（可选） / row description (optional)
      * @return 错误信息 / error message
-     */
+    */
     fun message(rowDescription: String? = null): String {
         val keyText = radiusWeightFunctionKey
             ?.takeIf { it.isNotBlank() }
@@ -299,7 +322,7 @@ data class ContinuousCylinderRadiusOptimizationGapReport(
  * @param hasContinuousRadiusInterval 是否存在未离散化的半径区间 / whether an undiscretized radius interval exists
  * @param hasContinuousDiameterInterval 是否存在未离散化的直径区间 / whether an undiscretized diameter interval exists
  * @return 缺口报告；无缺口时返回 null / gap report, or null when there is no gap
- */
+*/
 fun continuousCylinderRadiusOptimizationGapReport(
     source: String,
     radiusWeightFunctionKey: String?,
@@ -341,7 +364,7 @@ private val ContinuousRadiusVariableTokenRegex = Regex("[^A-Za-z0-9]+")
  *
  * @param fallback 空字符串时的回退值 / fallback value when string is empty
  * @return 连续半径变量 token / continuous-radius variable token
- */
+*/
 private fun String.continuousRadiusVariableToken(fallback: String): String {
     val token = trim()
         .replace(ContinuousRadiusVariableTokenRegex, "_")
@@ -357,7 +380,7 @@ private fun String.continuousRadiusVariableToken(fallback: String): String {
  * @param radiusWeightFunctionKey 半径权重函数键（可选） / radius weight function key (optional)
  * @param axis 圆柱轴向 / cylinder axis
  * @return 连续半径变量名 / continuous-radius variable name
- */
+*/
 private fun continuousRadiusVariableName(
     source: String,
     radiusWeightFunctionKey: String?,
@@ -376,7 +399,7 @@ private fun continuousRadiusVariableName(
  *
  * @param radiusUnitSource 目标单位参考量（可选） / target unit reference quantity (optional)
  * @return 成功时返回半径量，单位不兼容时返回错误 / returns the radius quantity on success, or error when units are incompatible
- */
+*/
 private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
     radiusUnitSource: Quantity<FltX>?
 ): Ret<Quantity<FltX>> {
@@ -391,7 +414,7 @@ private fun Quantity<FltX>.toContinuousRadiusBoundFromDiameterSafe(
  * Convert a radius quantity to text representation.
  *
  * @return 半径文本表示 / radius text representation
- */
+*/
 private fun Quantity<FltX>.radiusValueText(): String {
     return "${value.toDouble()} ${unit.symbol}"
 }
@@ -408,7 +431,7 @@ private fun Quantity<FltX>.radiusValueText(): String {
  * @property radiusUpperBound 半径上界（可选） / radius upper bound (optional)
  * @property initialRadius 初始或已选择半径（可选） / initial or selected radius (optional)
  * @property gaps 当前生产闭环缺口 / current production closure gaps
- */
+*/
 data class ContinuousCylinderRadiusSolverPrototype(
     val source: String,
     val radiusWeightFunctionKey: String?,
@@ -487,7 +510,7 @@ data class ContinuousCylinderRadiusSolverPrototype(
      * PWL path allows MissingSelectedRadius gap (PWL is about letting the solver choose the radius,
      * no pre-selected radius needed), but requires radiusWeightFunctionKey to ensure the production
      * writeback path is available.
-     */
+    */
     val isPWLRegisterable: Boolean get() = gaps.all {
         it == ContinuousCylinderRadiusOptimizationGap.SolverNativeRadiusIntervalUnsupported
                 || it == ContinuousCylinderRadiusOptimizationGap.SolverNativeDiameterIntervalUnsupported
@@ -500,7 +523,7 @@ data class ContinuousCylinderRadiusSolverPrototype(
      * Convert to error message suffix.
      *
      * @return 错误信息后缀 / error message suffix
-     */
+    */
     fun messageSuffix(): String {
         val keyText = radiusWeightFunctionKey
             ?.let { ", key=$it" }
@@ -533,7 +556,7 @@ data class ContinuousCylinderRadiusSolverPrototype(
  * @param hasDiscreteRadiusCandidates 是否存在离散半径候选 / whether discrete radius candidates exist
  * @param hasDiscreteRadiusStep 是否存在离散半径或直径步长 / whether discrete radius or diameter step exists
  * @return solver 原生变量原型；未请求连续半径语义时返回 null / solver-native variable prototype, or null when no continuous-radius semantics are requested
- */
+*/
 fun continuousCylinderRadiusSolverPrototype(
     source: String,
     radiusWeightFunctionKey: String?,
@@ -658,7 +681,7 @@ fun continuousCylinderRadiusSolverPrototype(
  * @property numSegments PWL 分段数 / number of PWL segments
  * @property isWithinEnvelope 是否在保守 envelope 范围内 / whether within conservative envelope range
  * @property selectionSource 选择来源（"pwl"）/ selection source ("pwl")
- */
+*/
 data class PWLRadiusSelectionMetadata(
     val solverRadiusSquared: FltX,
     val actualRadiusSquared: FltX,
@@ -681,7 +704,7 @@ data class PWLRadiusSelectionMetadata(
      * @param height 圆柱高度 / cylinder height
      * @param pi 圆周率 / pi
      * @return 真实圆柱体积 / actual cylinder volume
-     */
+    */
     fun actualVolume(height: FltX, pi: FltX): FltX {
         return pi * actualRadiusSquared * height
     }
@@ -693,7 +716,7 @@ data class PWLRadiusSelectionMetadata(
      * @param height 圆柱高度 / cylinder height
      * @param pi 圆周率 / pi
      * @return PWL 近似体积 / PWL approximate volume
-     */
+    */
     fun pwlVolume(height: FltX, pi: FltX): FltX {
         return pi * solverRadiusSquared * height
     }
@@ -710,7 +733,7 @@ data class PWLRadiusSelectionMetadata(
  * @property axis 圆柱轴向 / cylinder axis
  * @property radiusMin 半径下界（可选） / radius lower bound (optional)
  * @property radiusMax 半径上界（可选） / radius upper bound (optional)
- */
+*/
 data class CylinderRadiusSelectionResult(
     val key: String,
     val selectedRadius: Quantity<FltX>,
@@ -719,6 +742,7 @@ data class CylinderRadiusSelectionResult(
     val radiusMax: Quantity<FltX>? = null,
     val variableName: String? = null,
     val source: String? = null,
+
     /** PWL 近似元数据（仅当通过 PWL 路径选择半径时非空） / PWL approximation metadata (non-null only when radius is selected via PWL path) */
     val pwlMetadata: PWLRadiusSelectionMetadata? = null
 ) {
@@ -748,7 +772,7 @@ data class CylinderRadiusSelectionResult(
  *
  * @param item 货物 / item
  * @return solver 原型来源 / solver prototype source
- */
+*/
 fun continuousCylinderRadiusSolverSource(item: Item): String {
     val itemId = when (item) {
         is ActualItem -> item.id
@@ -766,7 +790,7 @@ fun continuousCylinderRadiusSolverSource(item: Item): String {
  * Get selected continuous-radius result.
  *
  * @return 已选择半径结果；未使用连续半径 key 时返回 null / selected radius result, or null when no continuous-radius key is used
- */
+*/
 fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): CylinderRadiusSelectionResult? {
     val key = radiusWeightFunctionKey ?: return null
     return CylinderRadiusSelectionResult(
@@ -784,7 +808,7 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSelectionResult(): Cylinde
  *
  * @param source 调用来源 / call source
  * @return solver 原生变量原型；未使用连续半径 key 时返回 null / solver-native variable prototype, or null when no continuous-radius key is used
- */
+*/
 fun PackageShapeSpec.VerticalCylinder.continuousRadiusSolverPrototype(
     source: String = "PackageShapeSpec.VerticalCylinder"
 ): Ret<ContinuousCylinderRadiusSolverPrototype?> {
@@ -810,7 +834,7 @@ fun PackageShapeSpec.VerticalCylinder.continuousRadiusSolverPrototype(
  * @param source 调用来源 / call source
  * @param pathPredicate 路径谓词描述 / path predicate description
  * @return 错误信息 / error message
- */
+*/
 fun unsupportedCylinderCuboidOnlyPathMessage(source: String, pathPredicate: String): String {
     return "Unsupported cylinder in $source: $pathPredicate cuboid-only and does not provide verified cylinder geometry yet."
 }
@@ -821,7 +845,7 @@ fun unsupportedCylinderCuboidOnlyPathMessage(source: String, pathPredicate: Stri
  *
  * @param items 待检查物品 / items to check
  * @return 是否包含圆柱 / whether a cylinder exists
- */
+*/
 fun hasCylinderItem(items: Iterable<Item>): Boolean {
     return items.any { item ->
         item.packingShape is CylinderPackingShape3
@@ -834,7 +858,7 @@ fun hasCylinderItem(items: Iterable<Item>): Boolean {
  *
  * @param spec 包装形状规格 / package shape spec
  * @return 是否请求连续半径优化 / whether continuous radius optimization is requested
- */
+*/
 fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
     return spec is PackageShapeSpec.VerticalCylinder && spec.radiusWeightFunctionKey != null
 }
@@ -846,7 +870,7 @@ fun hasContinuousCylinderRadiusOptimization(spec: PackageShapeSpec): Boolean {
  * @param spec 包装形状规格 / package shape spec
  * @param source 调用来源 / call source
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireConcreteCylinderRadiusProductionMetadata(
     spec: PackageShapeSpec,
     source: String
@@ -872,7 +896,7 @@ fun requireConcreteCylinderRadiusProductionMetadata(
  * @param shape 装箱形状 / packing shape
  * @param source 调用来源 / call source
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
     source: String
@@ -890,7 +914,7 @@ fun requireVerticalCylinderAxis(
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireVerticalCylinderAxis(
     shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
@@ -911,7 +935,7 @@ fun requireVerticalCylinderAxis(
  * @param shape 装箱形状 / packing shape
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireAxisAwareCylinderCandidate(
     shape: PackingShape3<FltX>,
     path: CylinderCapabilityPath
@@ -934,7 +958,7 @@ fun requireAxisAwareCylinderCandidate(
  * @param orientation 物品朝向 / item orientation
  * @param source 调用来源 / call source
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
     orientation: Orientation,
@@ -954,7 +978,7 @@ fun requireUprightVerticalCylinderSupport(
  * @param orientation 物品朝向 / item orientation
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireUprightVerticalCylinderSupport(
     shape: PackingShape3<FltX>,
     orientation: Orientation,
@@ -977,7 +1001,7 @@ fun requireUprightVerticalCylinderSupport(
  * @param item 物品 / item
  * @param source 调用来源 / call source
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try {
     val shape = item.packingShape
     if (shape !is CylinderPackingShape3) {
@@ -1005,7 +1029,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, source: String): Try 
  * @param item 物品 / item
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabilityPath): Try {
     require(path == CylinderCapabilityPath.SimpleBlockCandidate) {
         "Cylinder capability path ${path.name} is not the simple block candidate path."
@@ -1024,7 +1048,7 @@ fun requireSupportedCylinderItemForSimpleBlock(item: Item, path: CylinderCapabil
  * @param source 调用来源 / call source
  * @param pathPredicate 路径谓词描述 / path predicate description
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,
     source: String,
@@ -1049,7 +1073,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
  * @param items 待检查物品 / items to check
  * @param path 能力路径 / capability path
  * @return 成功或错误信息 / success or error information
- */
+*/
 fun requireNoCylinderItemsForCuboidOnlyPath(
     items: Iterable<Item>,
     path: CylinderCapabilityPath
@@ -1071,7 +1095,7 @@ fun requireNoCylinderItemsForCuboidOnlyPath(
  * @receiver 连续半径 solver 原生变量原型 / continuous-radius solver variable prototype
  * @param solverRadius solver 选出的半径 / solver-selected radius
  * @return 已选择半径结果 / selected radius result
- */
+*/
 fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
     solverRadius: Quantity<FltX>
 ): CylinderRadiusSelectionResult {
@@ -1097,7 +1121,7 @@ fun ContinuousCylinderRadiusSolverPrototype.withSolverSelectedRadius(
  * @param solverRadius solver 选出的半径 r / solver-selected radius r
  * @param pwlMetadata PWL 近似元数据 / PWL approximation metadata
  * @return 已选择半径结果（包含 PWL 元数据）/ selected radius result (with PWL metadata)
- */
+*/
 fun ContinuousCylinderRadiusSolverPrototype.withPWLSolverSelectedRadius(
     solverRadius: Quantity<FltX>,
     pwlMetadata: PWLRadiusSelectionMetadata

@@ -1,7 +1,7 @@
 /**
  * Quantity demand statistics model.
  * 泛型需求统计模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -13,18 +13,42 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 /**
  * 泛型需求键。
  * Quantity demand key.
- */
+*/
 sealed interface QuantityBpp3dDemandKey<V : FloatingNumber<V>> {
+
+/**
+ * Item data class.
+ * Item数据类。
+ *
+ * @property item the item property / item属性
+*/
     data class Item<V : FloatingNumber<V>>(val item: QuantityItem<V>) : QuantityBpp3dDemandKey<V>
+
+/**
+ * Material data class.
+ * Material数据类。
+ *
+ * @property material the material property / material属性
+*/
     data class Material<V : FloatingNumber<V>>(val material: MaterialKey) : QuantityBpp3dDemandKey<V>
 }
 
 /**
  * 泛型需求值。
  * Quantity demand value.
- */
+*/
 sealed interface QuantityBpp3dDemandValue<V : FloatingNumber<V>> {
+
+/**
+ * Amount data class.
+ * Amount数据类。
+*/
     data class Amount<V : FloatingNumber<V>>(val value: UInt64) : QuantityBpp3dDemandValue<V>
+
+/**
+ * Weight data class.
+ * Weight数据类。
+*/
     data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : QuantityBpp3dDemandValue<V>
 }
 

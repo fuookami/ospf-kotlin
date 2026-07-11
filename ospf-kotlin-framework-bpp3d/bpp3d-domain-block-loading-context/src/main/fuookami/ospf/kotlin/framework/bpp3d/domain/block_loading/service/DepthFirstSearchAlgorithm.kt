@@ -1,7 +1,7 @@
 /**
  * 深度优先搜索算法。
  * Depth-first search algorithm.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import kotlinx.coroutines.*
@@ -16,7 +16,14 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-
+/**
+ * infraPoint3.
+ * infraPoint3。
+ * @param x x-coordinate / X 坐标
+ * @param y y-coordinate / Y 坐标
+ * @param z z-coordinate / Z 坐标
+ * @return 3D point / 三维点
+*/
 private fun infraPoint3(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -25,6 +32,13 @@ private fun infraPoint3(
     return Point(x, y, z)
 }
 
+/**
+ * fitness.
+ * fitness。
+ * @param space available packing space / 可用装箱空间
+ * @param block block to evaluate / 待评估的块
+ * @return fitness value (lower is better) / 适应度值（越小越好）
+*/
 internal fun fitness(space: Space, block: Block): Quantity<FltX> {
     return when (space.forwardLink?.first ?: Side) {
         is Front -> {
@@ -41,6 +55,13 @@ internal fun fitness(space: Space, block: Block): Quantity<FltX> {
     }
 }
 
+/**
+ * compareWithFitness.
+ * compareWithFitness。
+ * @param space available packing space / 可用装箱空间
+ * @param lhs left-hand block / 左侧块 fitness evaluation function / 适应度评估函数
+ * @return comparison result / 比较结果
+*/
 internal fun compareWithFitness(
     space: Space,
     lhs: Block,
@@ -52,6 +73,14 @@ internal fun compareWithFitness(
     return lhsValue ord rhsValue
 }
 
+/**
+ * 按空间位置比较（先 z，再 x，再 y）。
+ * Compare spaces by position (z first, then x, then y).
+ *
+ * @param lhs left-hand space / 左侧空间
+ * @param rhs right-hand space / 右侧空间
+ * @return comparison result (z, then x, then y) / 比较结果（先 z，再 x，再 y）
+*/
 private fun compareSpace(lhs: Space, rhs: Space): Order {
     when (val result = lhs.position[2] ord rhs.position[2]) {
         Order.Equal -> {}
@@ -68,11 +97,19 @@ private fun compareSpace(lhs: Space, rhs: Space): Order {
     return lhs.position[1] ord rhs.position[1]
 }
 
+/**
+ * DepthFirstSearchAlgorithm class.
+ * DepthFirstSearchAlgorithm类。
+*/
 class DepthFirstSearchAlgorithm(
     val config: Config
 ) {
     private val logger = logger()
 
+/**
+ * Config data class.
+ * Config数据类。
+*/
     data class Config(
         val blockComparator: (Space, Block, Block) -> Order = { space, lhs, rhs ->
             compareWithFitness(space, lhs, rhs) { spc, block -> fitness(spc, block) }
@@ -252,6 +289,16 @@ class DepthFirstSearchAlgorithm(
         )
     }
 
+/**
+ * pack.
+ * pack。
+ * @param promise channel for sending packing results / 用于发送装箱结果的通道
+ * @param items item-to-quantity map / 货物到数量的映射
+ * @param shape container shape / 容器形状
+ * @param fixedSpaces pre-occupied spaces / 已固定的空间列表
+ * @param blockTable available blocks for packing / 可用块表
+ * @param branch maximum branching factor / 最大分支因子
+*/
     @JvmName("packBlockTable")
         private suspend fun pack(
         promise: Channel<List<Space>>,
@@ -428,6 +475,15 @@ class DepthFirstSearchAlgorithm(
         return
     }
 
+/**
+ * pack.
+ * pack。
+ * @param promise channel for sending packing results / 用于发送装箱结果的通道
+ * @param items item-to-quantity map / 货物到数量的映射
+ * @param shape container shape / 容器形状
+ * @param blocks ordered block sequence to place / 待放置的有序块序列
+ * @param fixedSpaces pre-occupied spaces / 已固定的空间列表
+*/
         @JvmName("packBlockSequence")
     private suspend fun pack(
         promise: Channel<List<Space>>,
@@ -500,6 +556,14 @@ class DepthFirstSearchAlgorithm(
         return
     }
 
+/**
+ * generateEnabledSpaces.
+ * generateEnabledSpaces。
+ * @param index index in the sequence / 序列中的索引
+ * @param block block to place / 待放置的块
+ * @param enabledSpaces candidate spaces for placement / 候选放置空间列表
+ * @return list of (index, used-space, next-spaces) triples / (索引, 已用空间, 下一空间列表) 三元组列表
+*/
     private suspend fun generateEnabledSpaces(
         index: Int,
         block: Block,
@@ -534,6 +598,12 @@ class DepthFirstSearchAlgorithm(
         }
     }
 
+/**
+ * finished.
+ * finished。
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @return whether all items are packed / 所有货物是否已装完
+*/
     private fun finished(restItems: Map<Item, UInt64>): Boolean {
         for ((_, amount) in restItems) {
             if (amount != UInt64.zero) {
@@ -543,6 +613,14 @@ class DepthFirstSearchAlgorithm(
         return true
     }
 
+/**
+ * 检查剩余货物是否足够装下指定块。
+ * Check whether remaining items are sufficient for the block.
+ *
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @param block block to check / 待检查的块
+ * @return whether all items in the block are available / 剩余货物是否足够
+*/
     private fun enough(
         restItems: Map<Item, UInt64>,
         block: Block
@@ -561,7 +639,7 @@ class DepthFirstSearchAlgorithm(
      *
      * @param spaces 待合并的空间列表
      * @return 合并后的空间列表
-     */
+    */
     private fun merge(spaces: List<Space>): List<Space> {
         val mergedSpaces = spaces.sortedWith(compareBy { it.z.toDouble() }).withIndex().toMutableList()
         for ((i, space) in mergedSpaces.withIndex()) {

@@ -8,7 +8,7 @@
  * A canonical polynomial is a linear combination of canonical monomials,
  * supporting polynomial expressions of any degree.
  * It is the most general form of polynomial representation.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -30,11 +30,12 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  *
  * @property monomials 规范单项式列表 / List of canonical monomials
  * @property constant 常数项 / Constant term
- */
+*/
 data class CanonicalPolynomial<T : Ring<T>>(
     val monomials: List<CanonicalMonomial<T>> = emptyList(),
     val constant: T
 ) : ToCanonicalPolynomial<T>, TryToLinearPolynomial<T>, TryToQuadraticPolynomial<T> {
+
     /**
      * 表达式类型分类
      * Expression type category
@@ -47,7 +48,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
      * - 0 or 1: Linear
      * - 2: Quadratic
      * - Greater than 2: Nonlinear
-     */
+    */
     val category: Category
         get() = when (monomials.maxOfOrNull { it.degree } ?: 0) {
             0, 1 -> Linear
@@ -60,7 +61,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
      * Converts to a canonical polynomial (self)
      *
      * @return 自身 / Self
-     */
+    */
     override fun toCanonicalPolynomial(): CanonicalPolynomial<T> = this
 
     /**
@@ -71,7 +72,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
      * Returns the corresponding linear polynomial if all monomials have degree at most 1; otherwise returns null.
      *
      * @return 线性多项式或 null / Linear polynomial or null
-     */
+    */
     override fun toLinearPolynomialOrNull(): LinearPolynomial<T>? {
         val linearMonomials = ArrayList<LinearMonomial<T>>(monomials.size)
         var canonicalConstant = constant
@@ -97,7 +98,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
      * Returns the corresponding quadratic polynomial if all monomials have degree at most 2; otherwise returns null.
      *
      * @return 二次多项式或 null / Quadratic polynomial or null
-     */
+    */
     override fun toQuadraticPolynomialOrNull(): QuadraticPolynomial<T>? {
         val quadraticMonomials = ArrayList<QuadraticMonomial<T>>(monomials.size)
         var canonicalConstant = constant
@@ -121,7 +122,7 @@ data class CanonicalPolynomial<T : Ring<T>>(
  *
  * @receiver 规范多项式 / Canonical polynomial
  * @return 所有项取负后的规范多项式 / Canonical polynomial with all terms negated
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.unaryMinus(): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials.map { -it }, -constant)
 }
@@ -133,7 +134,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.unaryMinus(): CanonicalPolynom
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
  * @return 合并后的规范多项式 / Combined canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalMonomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials + rhs, constant)
 }
@@ -145,7 +146,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalMonomial<T>
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 规范多项式 / Canonical polynomial
  * @return 合并后的规范多项式 / Combined canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalMonomial<T>.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(listOf(this) + rhs.monomials, rhs.constant)
 }
@@ -157,7 +158,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.plus(rhs: CanonicalPolynomial<T>
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
  * @return 差值规范多项式 / Difference canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalMonomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials + (-rhs), constant)
 }
@@ -169,7 +170,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalMonomial<T
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 规范多项式 / Canonical polynomial
  * @return 差值规范多项式 / Difference canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalMonomial<T>.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(listOf(this) + rhs.monomials.map { -it }, -rhs.constant)
 }
@@ -181,7 +182,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.minus(rhs: CanonicalPolynomial<T
  * @receiver 左侧规范多项式 / Left-hand canonical polynomial
  * @param rhs 右侧规范多项式 / Right-hand canonical polynomial
  * @return 合并后的规范多项式 / Combined canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials + rhs.monomials, constant + rhs.constant)
 }
@@ -193,7 +194,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalPolynomial<
  * @receiver 左侧规范多项式 / Left-hand canonical polynomial
  * @param rhs 右侧规范多项式 / Right-hand canonical polynomial
  * @return 差值规范多项式 / Difference canonical polynomial
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials + rhs.monomials.map { -it }, constant - rhs.constant)
 }
@@ -205,7 +206,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalPolynomial
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数乘以标量后的规范多项式 / Canonical polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.times(rhs: T): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials.map { it * rhs }, constant * rhs)
 }
@@ -217,7 +218,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.times(rhs: T): CanonicalPolyno
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial
  * @return 所有系数乘以标量后的规范多项式 / Canonical polynomial with all coefficients multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> T.times(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return rhs * this
 }
@@ -229,7 +230,7 @@ operator fun <T : Ring<T>> T.times(rhs: CanonicalPolynomial<T>): CanonicalPolyno
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
  * @return 所有系数除以标量后的规范多项式 / Canonical polynomial with all coefficients divided by scalar
- */
+*/
 operator fun <T : Field<T>> CanonicalPolynomial<T>.div(rhs: T): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials.map { it / rhs }, constant / rhs)
 }
@@ -241,7 +242,7 @@ operator fun <T : Field<T>> CanonicalPolynomial<T>.div(rhs: T): CanonicalPolynom
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项增加标量后的规范多项式 / Canonical polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: T): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials, constant + rhs)
 }
@@ -253,7 +254,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.plus(rhs: T): CanonicalPolynom
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial
  * @return 常数项增加标量后的规范多项式 / Canonical polynomial with constant increased by scalar
- */
+*/
 operator fun <T : Ring<T>> T.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(rhs.monomials, this + rhs.constant)
 }
@@ -265,7 +266,7 @@ operator fun <T : Ring<T>> T.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynom
  * @receiver 规范多项式 / Canonical polynomial
  * @param rhs 标量值 / Scalar value
  * @return 常数项减少标量后的规范多项式 / Canonical polynomial with constant decreased by scalar
- */
+*/
 operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: T): CanonicalPolynomial<T> {
     return CanonicalPolynomial(monomials, constant - rhs)
 }
@@ -277,7 +278,7 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: T): CanonicalPolyno
  * @receiver 标量值 / Scalar value
  * @param rhs 规范多项式 / Canonical polynomial
  * @return 从标量减去多项式后的规范多项式 / Canonical polynomial representing scalar minus polynomial
- */
+*/
 operator fun <T : Ring<T>> T.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(rhs.monomials.map { -it }, this - rhs.constant)
 }

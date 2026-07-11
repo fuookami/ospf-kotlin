@@ -8,7 +8,7 @@
  * Source: SI derived units
  * - Volt: V = W/A, SI derived unit for voltage
  * - 1 volt = 1 watt / 1 ampere
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Voltage
  *
  * 来源：SI 导出单位，电压的国际单位，以亚历山大·伏特命名
  * Source: SI derived unit, international unit for voltage, named after Alessandro Volta
- */
+*/
 object Volt : DerivedPhysicalUnit(Watt / Ampere) {
     override val name = "volt"
     override val symbol = "V"
@@ -52,7 +52,7 @@ object Volt : DerivedPhysicalUnit(Watt / Ampere) {
  *
  * 来源：SI 电压单位，常用于精密电子测量
  * Source: SI voltage unit, commonly used in precision electronic measurements
- */
+*/
 object Microvolt : DerivedPhysicalUnit(Volt * Scale.micro) {
     override val name = "microvolt"
     override val symbol = "µV"
@@ -75,7 +75,7 @@ object Microvolt : DerivedPhysicalUnit(Volt * Scale.micro) {
  *
  * 来源：SI 电压单位，常用于电子电路和传感器
  * Source: SI voltage unit, commonly used in electronic circuits and sensors
- */
+*/
 object Millivolt : DerivedPhysicalUnit(Volt * Scale.milli) {
     override val name = "millivolt"
     override val symbol = "mV"
@@ -98,7 +98,7 @@ object Millivolt : DerivedPhysicalUnit(Volt * Scale.milli) {
  *
  * 来源：SI 电压单位，常用于电力输配电
  * Source: SI voltage unit, commonly used in power transmission and distribution
- */
+*/
 object Kilovolt : DerivedPhysicalUnit(Volt * Scale.kilo) {
     override val name = "kilovolt"
     override val symbol = "kV"
@@ -121,7 +121,7 @@ object Kilovolt : DerivedPhysicalUnit(Volt * Scale.kilo) {
  *
  * 来源：SI 电压单位，常用于高压电力系统
  * Source: SI voltage unit, commonly used in high-voltage power systems
- */
+*/
 object Megavolt : DerivedPhysicalUnit(Volt * Scale.mega) {
     override val name = "megavolt"
     override val symbol = "MV"

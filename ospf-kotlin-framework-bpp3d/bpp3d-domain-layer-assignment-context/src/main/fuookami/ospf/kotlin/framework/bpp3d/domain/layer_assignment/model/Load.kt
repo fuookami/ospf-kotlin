@@ -1,7 +1,7 @@
 /**
  * Layer assignment load model.
  * 层分配负载模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import kotlin.math.ceil
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * BPP3D demand domain.
  * BPP3D 需求域。
- */
+*/
 enum class Bpp3dDemandDomain {
     /** 离散域 / discrete domain */
     Discrete,
@@ -32,7 +32,15 @@ enum class Bpp3dDemandDomain {
     Continuous
 }
 
+/** 需求计数单位对象 / Demand count unit object */
 private object DemandCountUnit : PhysicalUnit() {
+
+    /**
+     * 获取需求域。
+     * Gets the demand domain.
+     *
+     * @return the domain string / 域字符串
+    */
     @Suppress("unused")
     fun getDomain(): String = "Discrete"
 
@@ -42,6 +50,13 @@ private object DemandCountUnit : PhysicalUnit() {
     override val conversionRule = UnitConversionRule.Linear(Scale())
 }
 
+/**
+ * 解析需求域。
+ * Parse the demand domain from a raw value.
+ *
+ * @param raw the raw value to parse / 待解析的原始值
+ * @return the parsed demand domain, or null if invalid / 解析后的需求域，无效时返回 null
+*/
 private fun parseDemandDomain(raw: Any?): Bpp3dDemandDomain? {
     val token = when (raw) {
         null -> null
@@ -55,6 +70,14 @@ private fun parseDemandDomain(raw: Any?): Bpp3dDemandDomain? {
     }
 }
 
+/**
+ * 通过反射调用目标对象的 getter 方法。
+ * Invoke a getter method on the target object via reflection.
+ *
+ * @param target the target object / 目标对象
+ * @param methodName the getter method name / getter 方法名
+ * @return the getter result, or null on failure / getter 结果，失败时返回 null
+*/
 private fun invokeGetter(target: Any?, methodName: String): Any? {
     if (target == null) {
         return null
@@ -66,12 +89,24 @@ private fun invokeGetter(target: Any?, methodName: String): Any? {
     }.getOrNull()
 }
 
+/**
+ * 解析物理单位对应的需求域。
+ * Resolve the demand domain from a physical unit.
+ *
+ * @param unit the physical unit / 物理单位
+ * @param fallback the fallback domain / 回退域
+ * @return the resolved demand domain / 解析后的需求域
+*/
 private fun resolveUnitDomain(unit: PhysicalUnit, fallback: Bpp3dDemandDomain): Bpp3dDemandDomain {
     parseDemandDomain(invokeGetter(unit, "getDomain"))?.let { return it }
     parseDemandDomain(invokeGetter(invokeGetter(unit, "getQuantity"), "getDomain"))?.let { return it }
     return fallback
 }
 
+/** 返回默认需求单位 / Returns the default demand unit
+ *
+ * @return the default demand unit / 默认需求单位
+*/
 private fun defaultDemandUnit(): PhysicalUnit {
     return DemandCountUnit
 }
@@ -81,12 +116,15 @@ private fun defaultDemandUnit(): PhysicalUnit {
  * 货物需求接口。
  *
  * @param V 数值类型 / numeric type
- */
+*/
 interface ItemDemand<V : FloatingNumber<V>> {
+
     /** 货物 / item */
     val item: Item
+
     /** 需求量 / quantity */
     val quantity: Quantity<V>
+
     /** 需求模式 / demand mode */
     val mode: Bpp3dDemandMode
 }
@@ -96,12 +134,15 @@ interface ItemDemand<V : FloatingNumber<V>> {
  * 物料需求接口。
  *
  * @param V 数值类型 / numeric type
- */
+*/
 interface MaterialDemand<V : FloatingNumber<V>> {
+
     /** 物料键 / material key */
     val material: MaterialKey
+
     /** 需求量 / quantity */
     val quantity: Quantity<V>
+
     /** 需求模式 / demand mode */
     val mode: Bpp3dDemandMode
 }
@@ -116,7 +157,7 @@ interface MaterialDemand<V : FloatingNumber<V>> {
  * @property demand 需求值 / demand value
  * @property demandRange 需求值域 / demand value range
  * @property quantityUnit 量纲单位 / quantity unit
- */
+*/
 data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
@@ -128,6 +169,13 @@ data class Bpp3dDemandEntry<V : FloatingNumber<V>>(
         get() = resolveUnitDomain(quantityUnit, Bpp3dDemandDomain.Continuous)
 }
 
+/**
+ * defaultDemandValue.
+ * defaultDemandValue。
+ *
+ * @param domain the demand domain / 需求域
+ * @return the default demand value / 默认需求值
+*/
 private fun defaultDemandValue(
     domain: Bpp3dDemandDomain = Bpp3dDemandDomain.Discrete
 ): Bpp3dDemandValue {
@@ -138,6 +186,13 @@ private fun defaultDemandValue(
     }
 }
 
+/**
+ * 将数量值转换为离散数量。
+ * Convert a quantity value to a discrete amount.
+ *
+ * @param value the quantity value to convert / 待转换的数量值
+ * @return the discrete amount / 离散数量
+*/
 private fun toDiscreteAmount(value: Quantity<FltX>): UInt64 {
     val rounded = ceil(value.value.toDouble()).toLong()
     return if (rounded <= 0L) {
@@ -147,6 +202,13 @@ private fun toDiscreteAmount(value: Quantity<FltX>): UInt64 {
     }
 }
 
+/**
+ * 检查物理单位是否为离散需求单位。
+ * Check whether the physical unit represents a discrete demand unit.
+ *
+ * @param unit the physical unit to check / 待检查的物理单位
+ * @return whether the unit represents a discrete demand / 是否为离散需求单位
+*/
 private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
     return resolveUnitDomain(unit, Bpp3dDemandDomain.Continuous) == Bpp3dDemandDomain.Discrete
 }
@@ -156,7 +218,7 @@ private fun isDiscreteDemandUnit(unit: PhysicalUnit): Boolean {
  * 货物需求数据类。
  *
  * @param V 数值类型 / numeric type
- */
+*/
 data class Bpp3dItemDemand<V : FloatingNumber<V>>(
     override val item: Item,
     override val quantity: Quantity<V>,
@@ -168,7 +230,7 @@ data class Bpp3dItemDemand<V : FloatingNumber<V>>(
  * Material demand data class.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
     override val material: MaterialKey,
     override val quantity: Quantity<V>,
@@ -181,7 +243,7 @@ data class Bpp3dMaterialDemand<V : FloatingNumber<V>>(
  *
  * @param mode 待校验的需求模式 / demand mode to validate
  * @return 成功时返回合法的货物需求模式，失败时返回错误 / valid item demand mode on success, error on failure
- */
+*/
 private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Item,
@@ -198,7 +260,7 @@ private fun resolveItemDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
  *
  * @param mode 待校验的需求模式 / demand mode to validate
  * @return 成功时返回合法的物料需求模式，失败时返回错误 / valid material demand mode on success, error on failure
- */
+*/
 private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMode> {
     return when (mode) {
         is Bpp3dDemandMode.Material,
@@ -209,6 +271,14 @@ private fun resolveMaterialDemandMode(mode: Bpp3dDemandMode): Ret<Bpp3dDemandMod
     }
 }
 
+/**
+ * 从数量值提取需求值。
+ * Extract the demand value from a quantity.
+ *
+ * @param quantity the quantity value / 数量值
+ * @param demandValueAdapter the demand value adapter / 需求值适配器
+ * @return the demand value in solver representation / 求解器表示的需求值
+*/
 private fun demandValueFromQuantity(
     quantity: Quantity<FltX>,
     demandValueAdapter: Bpp3dSolverValueAdapter
@@ -220,7 +290,12 @@ private fun demandValueFromQuantity(
     }
 }
 
-/** 精确需求范围 / Exact demand range */
+/**
+ * 精确需求范围 / Exact demand range
+ *
+ * @param value the demand value / 需求值
+ * @return the exact value range / 精确值范围
+*/
 private fun exactDemandRange(value: FltX): ValueRange<FltX> {
     return ValueRange(
         value,
@@ -238,7 +313,7 @@ private fun exactDemandRange(value: FltX): ValueRange<FltX> {
  * @param items 货物与数量的配对列表 / list of item-quantity pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromItemDemands(
     items: List<Pair<Item, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -262,7 +337,7 @@ fun demandEntriesFromItemDemands(
  * @param items 带标签的货物需求列表 / list of labeled item demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
- */
+*/
 fun demandEntriesFromLabeledItemDemands(
     items: List<ItemDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -293,7 +368,7 @@ fun demandEntriesFromLabeledItemDemands(
  * @param items 货物与数量的配对列表 / list of item-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromItems(
     items: List<Pair<Item, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -317,7 +392,7 @@ fun demandEntriesFromItems(
  * @param items 货物、数量和范围的三元组列表 / list of item-amount-range triples
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromItemRanges(
     items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -340,7 +415,7 @@ fun demandEntriesFromItemRanges(
  * @param materials 物料需求列表 / list of material demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
- */
+*/
 private fun demandEntriesFromMaterialDemandsByKey(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -371,7 +446,7 @@ private fun demandEntriesFromMaterialDemandsByKey(
  * @param materials 物料与数量的配对列表 / list of material-quantity pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromMaterialDemands(
     materials: List<Pair<Material<FltX>, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -395,7 +470,7 @@ fun demandEntriesFromMaterialDemands(
  * @param materials 带标签的物料需求列表 / list of labeled material demands
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 成功时返回需求条目列表，失败时返回错误 / demand entry list on success, error on failure
- */
+*/
 fun demandEntriesFromLabeledMaterialDemands(
     materials: List<MaterialDemand<FltX>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -413,7 +488,7 @@ fun demandEntriesFromLabeledMaterialDemands(
  * @param materials 物料键与数量的配对列表 / list of material key-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 private fun demandEntriesFromMaterialAmountsByKey(
     materials: List<Pair<MaterialKey, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -437,7 +512,7 @@ private fun demandEntriesFromMaterialAmountsByKey(
  * @param materials 物料与数量的配对列表 / list of material-amount pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromMaterialAmounts(
     materials: List<Pair<Material<FltX>, UInt64>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -455,7 +530,7 @@ fun demandEntriesFromMaterialAmounts(
  * @param materials 物料键与重量的配对列表 / list of material key-weight pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 private fun demandEntriesFromMaterialWeightsByKey(
     materials: List<Pair<MaterialKey, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -479,7 +554,7 @@ private fun demandEntriesFromMaterialWeightsByKey(
  * @param materials 物料与重量的配对列表 / list of material-weight pairs
  * @param demandValueAdapter 需求值适配器 / demand value adapter
  * @return 需求条目列表 / list of demand entries
- */
+*/
 fun demandEntriesFromMaterialWeights(
     materials: List<Pair<Material<FltX>, Quantity<FltX>>>,
     demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
@@ -495,21 +570,27 @@ fun demandEntriesFromMaterialWeights(
  * Load interface, manages symbolic expressions for demand constraints.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 interface Load<V : FloatingNumber<V>> {
+
     /** 需求条目列表 / demand entry list */
     val demandEntries: List<Bpp3dDemandEntry<V>>
+
     /** 需求值适配器 / demand value adapter */
     val demandValueAdapter: Bpp3dSolverValueAdapter
+
     /** 负载符号 / load symbols */
     val load: LinearIntermediateSymbols1<FltX>
+
     /** 超载符号 / over-load symbols */
     val overLoad: LinearIntermediateSymbols1<FltX>
+
     /** 欠载符号 / less-load symbols */
     val lessLoad: LinearIntermediateSymbols1<FltX>
 
     /** 是否启用超载 / whether over-load is enabled */
     val overEnabled: Boolean
+
     /** 是否启用欠载 / whether less-load is enabled */
     val lessEnabled: Boolean
 }
@@ -517,11 +598,18 @@ interface Load<V : FloatingNumber<V>> {
 /**
  * 抽象负载基类，提供超载和欠载符号的注册。
  * Abstract load base class, provides registration of over-load and less-load symbols.
- */
+*/
 abstract class AbstractLoad : Load<FltX> {
     override lateinit var overLoad: LinearIntermediateSymbols1<FltX>
     override lateinit var lessLoad: LinearIntermediateSymbols1<FltX>
 
+    /**
+     * 向元模型注册超载和欠载符号。
+     * Register over-load and less-load symbols into the meta model.
+     *
+     * @param model the meta model to register into / 要注册的元模型
+     * @return the operation result / 操作结果
+    */
     open fun register(model: MetaModel<FltX>): Try {
         if (overEnabled && !::overLoad.isInitialized) {
             overLoad = LinearIntermediateSymbols1<FltX>(
@@ -572,7 +660,7 @@ abstract class AbstractLoad : Load<FltX> {
      * @param layer 层 / layer
      * @param demand 需求条目 / demand entry
      * @return 负载系数 / load coefficient
-     */
+    */
     protected fun loadCoefficient(
         layer: BinLayer,
         demand: Bpp3dDemandEntry<FltX>
@@ -596,7 +684,7 @@ abstract class AbstractLoad : Load<FltX> {
  * @property overEnabled 是否启用超载 / whether over-load is enabled
  * @property lessEnabled 是否启用欠载 / whether less-load is enabled
  * @property demandValueAdapter 需求值适配器 / demand value adapter
- */
+*/
 class ImpreciseLoad(
     override val demandEntries: List<Bpp3dDemandEntry<FltX>>,
     private val assignment: ImpreciseAssignment,
@@ -605,6 +693,17 @@ class ImpreciseLoad(
     override val demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
  ) : AbstractLoad() {
     companion object {
+        /**
+         * 从货物-数量对列表创建不精确负载。
+         * Create an imprecise load from item-amount pairs.
+         *
+         * @param items the item-amount pairs / 货物-数量配对列表
+         * @param assignment the imprecise assignment / 不精确赋值
+         * @param overEnabled whether over-load is enabled / 是否启用超载
+         * @param lessEnabled whether less-load is enabled / 是否启用欠载
+         * @param demandValueAdapter the demand value adapter / 需求值适配器
+         * @return the imprecise load instance / 不精确负载实例
+        */
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
             assignment: ImpreciseAssignment,
@@ -621,6 +720,17 @@ class ImpreciseLoad(
             )
         }
 
+        /**
+         * 从货物-数量-范围三元组列表创建不精确负载。
+         * Create an imprecise load from item-amount-range triples.
+         *
+         * @param items the item-amount-range triples / 货物-数量-范围三元组列表
+         * @param assignment the imprecise assignment / 不精确赋值
+         * @param overEnabled whether over-load is enabled / 是否启用超载
+         * @param lessEnabled whether less-load is enabled / 是否启用欠载
+         * @param demandValueAdapter the demand value adapter / 需求值适配器
+         * @return the imprecise load instance / 不精确负载实例
+        */
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             assignment: ImpreciseAssignment,
@@ -659,6 +769,15 @@ class ImpreciseLoad(
         return super.register(model)
     }
 
+    /**
+     * 向模型添加新列。
+     * Add new columns to the model.
+     *
+     * @param iteration the current iteration / 当前迭代
+     * @param newLayers the new layers to add / 要添加的新层列表
+     * @param model the abstract linear meta model / 抽象线性元模型
+     * @return the added layers on success, error on failure / 成功时返回添加的层列表，失败时返回错误
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
@@ -693,7 +812,7 @@ class ImpreciseLoad(
  * @property overEnabled 是否启用超载 / whether over-load is enabled
  * @property lessEnabled 是否启用欠载 / whether less-load is enabled
  * @property demandValueAdapter 需求值适配器 / demand value adapter
- */
+*/
 class PreciseLoad(
     override val demandEntries: List<Bpp3dDemandEntry<FltX>>,
     private val layers: List<BinLayer>,
@@ -703,6 +822,18 @@ class PreciseLoad(
     override val demandValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
  ) : AbstractLoad() {
     companion object {
+        /**
+         * 从货物-数量对列表创建精确负载。
+         * Create a precise load from item-amount pairs.
+         *
+         * @param items the item-amount pairs / 货物-数量配对列表
+         * @param layers the layer list / 层列表
+         * @param assignment the precise assignment / 精确赋值
+         * @param overEnabled whether over-load is enabled / 是否启用超载
+         * @param lessEnabled whether less-load is enabled / 是否启用欠载
+         * @param demandValueAdapter the demand value adapter / 需求值适配器
+         * @return the precise load instance / 精确负载实例
+        */
         fun fromItems(
             items: List<Pair<Item, UInt64>>,
             layers: List<BinLayer>,
@@ -721,6 +852,18 @@ class PreciseLoad(
             )
         }
 
+        /**
+         * 从货物-数量-范围三元组列表创建精确负载。
+         * Create a precise load from item-amount-range triples.
+         *
+         * @param items the item-amount-range triples / 货物-数量-范围三元组列表
+         * @param layers the layer list / 层列表
+         * @param assignment the precise assignment / 精确赋值
+         * @param overEnabled whether over-load is enabled / 是否启用超载
+         * @param lessEnabled whether less-load is enabled / 是否启用欠载
+         * @param demandValueAdapter the demand value adapter / 需求值适配器
+         * @return the precise load instance / 精确负载实例
+        */
         fun fromItemRanges(
             items: List<Triple<Item, UInt64, ValueRange<UInt64>>>,
             layers: List<BinLayer>,

@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [AbsFunction]，实现 y = |x| 的线性化建模。
  *
  * Provides [AbsFunction] for linearized modeling of y = |x|.
- */
+*/
 
 /**
  * 绝对值函数 / Absolute value function
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class AbsFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -125,7 +125,7 @@ class AbsFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [AbsFunction] 实例 / [AbsFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,

@@ -7,7 +7,7 @@
  * 单位常量来源 / Unit constant sources:
  * - KilogramPerCubicMeter: SI导出单位 / SI derived unit
  * - KilogramPerLiter: 1 kg/L = 1000 kg/m³
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.MassDensity
@@ -20,10 +20,12 @@ import fuookami.ospf.kotlin.quantities.dimension.MassDensity
  *
  * 符号 / Symbol: kg/m³
  * 换算关系 / Conversion: 1 kg/m³ = 1 kg/m³（基本单位）/ 1 kg/m³ = 1 kg/m³ (base unit)
- */
+*/
 object KilogramPerCubicMeter : DerivedPhysicalUnit(Kilogram / CubicMeter) {
+
     /** 单位名称：kilogram per cubic meter / Unit name: kilogram per cubic meter */
     override val name = "kilogram per cubic meter"
+
     /** 单位符号：kg/m³ / Unit symbol: kg/m³ */
     override val symbol = "kgpm3"
 
@@ -39,10 +41,12 @@ object KilogramPerCubicMeter : DerivedPhysicalUnit(Kilogram / CubicMeter) {
  *
  * 符号 / Symbol: kg/L
  * 换算关系 / Conversion: 1 kg/L = 1000 kg/m³
- */
+*/
 object KilogramPerLiter : DerivedPhysicalUnit(Kilogram / Liter) {
+
     /** 单位名称：kilogram per liter / Unit name: kilogram per liter */
     override val name = "kilogram per liter"
+
     /** 单位符号：kg/L / Unit symbol: kg/L */
     override val symbol = "kgpL"
 
@@ -58,10 +62,12 @@ object KilogramPerLiter : DerivedPhysicalUnit(Kilogram / Liter) {
  *
  * 符号 / Symbol: kg/cm³
  * 换算关系 / Conversion: 1 kg/cm³ = 10⁶ kg/m³
- */
+*/
 object KilogramPerCubicCentimeter : DerivedPhysicalUnit(Kilogram / CubicCentimeter) {
+
     /** 单位名称：kilogram per cubic centimeter / Unit name: kilogram per cubic centimeter */
     override val name = "kilogram per cubic meter"
+
     /** 单位符号：kg/cm³ / Unit symbol: kg/cm³ */
     override val symbol = "kgpm3"
 
@@ -77,10 +83,12 @@ object KilogramPerCubicCentimeter : DerivedPhysicalUnit(Kilogram / CubicCentimet
  *
  * 符号 / Symbol: g/cm³
  * 换算关系 / Conversion: 1 g/cm³ = 1000 kg/m³
- */
+*/
 object GramPerCubicCentimeter : DerivedPhysicalUnit(Gram / CubicCentimeter) {
+
     /** 单位名称：gram per cubic centimeter / Unit name: gram per cubic centimeter */
     override val name = "gram per cubic meter"
+
     /** 单位符号：g/cm³ / Unit symbol: g/cm³ */
     override val symbol = "gpm3"
 

@@ -9,6 +9,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
 
+/**
+ * Yield context unit tests.
+ * 产出上下文单元测试
+ */
 class YieldContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
@@ -20,6 +24,13 @@ class YieldContextTest {
         return analyze(produce, demands).value ?: fail("yield analysis should succeed")
     }
 
+    /**
+     * Create a test product with the given ID.
+     * 创建指定 ID 的测试产品
+     *
+     * @param id Product identifier / 产品标识
+     * @return Test product instance / 测试产品实例
+     */
     private fun product(id: String = "p"): Product<Flt64> {
         return Product(
             id = ProductIdImpl(id),
@@ -28,6 +39,13 @@ class YieldContextTest {
         )
     }
 
+    /**
+     * Create a test material with default dimensions.
+     * 创建默认尺寸的测试物料
+     *
+     * @param id Material identifier / 物料标识
+     * @return Test material instance / 测试物料实例
+     */
     private fun material(id: String = "m"): Material<Flt64> {
         return Material(
             id = materialIdOf(id),
@@ -43,6 +61,14 @@ class YieldContextTest {
         )
     }
 
+    /**
+     * Create a test cutting plan with the given demand contributions.
+     * 创建带指定需求贡献的测试切割方案
+     *
+     * @param id Cutting plan identifier / 切割方案标识
+     * @param contributions Demand contributions for the plan / 方案的需求贡献列表
+     * @return Test cutting plan instance / 测试切割方案实例
+     */
     private fun cuttingPlan(
         id: String = "cp",
         contributions: List<CuttingPlanDemandContribution<Flt64>>

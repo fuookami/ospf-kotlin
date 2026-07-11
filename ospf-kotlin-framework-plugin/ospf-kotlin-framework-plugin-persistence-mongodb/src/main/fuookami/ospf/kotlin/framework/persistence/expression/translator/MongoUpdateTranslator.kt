@@ -4,7 +4,7 @@
  *
  * 将 UpdateAssignment 翻译为 MongoDB Bson 更新操作。
  * Translates UpdateAssignment to MongoDB Bson update operations.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.mongodb.client.model.Updates
@@ -20,17 +20,18 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  * Translates UpdateAssignments to MongoDB update operations.
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
- */
+*/
 class MongoUpdateTranslator(
     private val resolveFieldName: MongoFieldNameResolver
 ) {
+
     /**
      * 翻译更新为 Bson
      * Translate update to Bson
      *
      * @param assignments 更新赋值列表 / Update assignment list
      * @return Bson 更新表达式，为空时返回 null / Bson update expression, or null if empty
-     */
+    */
     fun translate(assignments: UpdateAssignments): Bson? {
         if (assignments.isEmpty()) return null
 
@@ -46,7 +47,7 @@ class MongoUpdateTranslator(
      *
      * @param item 更新赋值项 / Update assignment item
      * @return Bson 更新表达式 / Bson update expression
-     */
+    */
     private fun translateItem(item: UpdateAssignment): Bson? {
         return when (item) {
             is SetValue -> translateSetValue(item)
@@ -61,7 +62,7 @@ class MongoUpdateTranslator(
      *
      * @param item 设置值赋值项 / Set-value assignment item
      * @return Bson 更新表达式 / Bson update expression
-     */
+    */
     private fun translateSetValue(item: SetValue): Bson? {
         val field = resolveFieldName(item.path) ?: return null
         return Updates.set(field, item.value)
@@ -73,7 +74,7 @@ class MongoUpdateTranslator(
      *
      * @param item 设置空值赋值项 / Set-null assignment item
      * @return Bson 更新表达式 / Bson update expression
-     */
+    */
     private fun translateSetNull(item: SetNull): Bson? {
         val field = resolveFieldName(item.path) ?: return null
         return Updates.set(field, null)
@@ -85,7 +86,7 @@ class MongoUpdateTranslator(
      *
      * @param item 表达式赋值项 / Set-from-expression assignment item
      * @return Bson 更新表达式 / Bson update expression
-     */
+    */
     private fun translateSetFromExpression(item: SetFromExpression): Bson? {
         val field = resolveFieldName(item.path) ?: return null
 

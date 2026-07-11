@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [ModFunction]，实现 y = x mod d 的线性化建模。
  *
  * Provides [ModFunction] for linearized modeling of y = x mod d.
- */
+*/
 
 /**
  * 取模函数：y = x mod d。
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class ModFunction<V>(
     val x: LinearPolynomial<V>,
     val d: V,

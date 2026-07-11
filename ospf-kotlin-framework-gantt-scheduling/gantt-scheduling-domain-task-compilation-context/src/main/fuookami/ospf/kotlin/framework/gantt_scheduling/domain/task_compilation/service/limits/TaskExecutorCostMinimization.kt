@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param compilation 编译结果 / Compilation result
  * @param costCalculator 任务执行器成本计算器 / Task-executor cost calculator
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskExecutorCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

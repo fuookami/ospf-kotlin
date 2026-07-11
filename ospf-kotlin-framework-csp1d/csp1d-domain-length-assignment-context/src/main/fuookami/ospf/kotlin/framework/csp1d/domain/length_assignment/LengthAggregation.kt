@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param V Numeric value type / 数值类型
  * @property config Length assignment modeling configuration / 长度分配建模配置
  * @property demands Demand list / 需求列表
- */
+*/
 class LengthAggregation<V : RealNumber<V>>(
     val config: LengthAssignmentModelingConfig<V>,
     val demands: List<ProductDemand<V>>
@@ -61,7 +61,7 @@ class LengthAggregation<V : RealNumber<V>>(
 
     /**
      * 注册到元模型 / Register to meta model
-     */
+    */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         for (var_ in assignedLength.filterNotNull()) {
             when (val result = model.add(var_)) {
@@ -81,8 +81,12 @@ class LengthAggregation<V : RealNumber<V>>(
     }
 
     /**
-     * 提取长度分配建模结果 / Extract length assignment modeling result
-     */
+     * Extract length assignment modeling result from solver solution.
+     * 从求解器解中提取长度分配建模结果
+     *
+     * @param model Solved linear meta model / 求解后的线性元模型
+     * @return Length assignment modeling result, or null if no length variables exist / 长度分配建模结果，若无长度变量则为 null
+    */
     fun extractResult(model: AbstractLinearMetaModel<Flt64>): LengthAssignmentModelingResult<V>? {
         if (!hasAny) return null
 

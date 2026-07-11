@@ -14,7 +14,7 @@
  * 使用示例 / Usage example:
  * val a = 5
  * val b = -a  // b = -5
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -29,9 +29,9 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 负运算的结果类型
  *
- * @param Ret The result type of the negation operation
- */
+*/
 interface Neg<out Ret> {
+
     /**
      * 一元负号运算符，返回相反数
      * Unary negation operator, returns the opposite number
@@ -39,6 +39,6 @@ interface Neg<out Ret> {
      * @return 当前值的相反敌
      *
      * @return The opposite of the current value
-     */
+    */
     operator fun unaryMinus(): Ret
 }

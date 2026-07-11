@@ -1,7 +1,7 @@
 /**
  * 多层启发式搜索算法。
  * Multi-layer heuristic search algorithm.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import kotlinx.coroutines.*
@@ -14,7 +14,10 @@ import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-
+/**
+ * MultiLayerHeuristicSearchAlgorithm class.
+ * MultiLayerHeuristicSearchAlgorithm类。
+*/
 class MultiLayerHeuristicSearchAlgorithm(
     val config: Config
 ) {
@@ -27,6 +30,10 @@ class MultiLayerHeuristicSearchAlgorithm(
         )
     )
 
+/**
+ * Config data class.
+ * Config数据类。
+*/
     data class Config(
         val layer: UInt64 = UInt64.two,
         val depth: UInt64 = UInt64.two,
@@ -153,6 +160,12 @@ class MultiLayerHeuristicSearchAlgorithm(
         return ChannelGuard(promise)
     }
 
+/**
+ * finished.
+ * finished。
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @return whether all items are packed / 所有货物是否已装完
+*/
     private fun finished(restItems: Map<Item, UInt64>): Boolean {
         for ((_, amount) in restItems) {
             if (amount != UInt64.zero) {
@@ -162,6 +175,13 @@ class MultiLayerHeuristicSearchAlgorithm(
         return true
     }
 
+/**
+ * enough.
+ * enough。
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @param block block to check / 待检查的块
+ * @return whether remaining items are sufficient / 剩余货物是否足够
+*/
     private fun enough(
         restItems: Map<Item, UInt64>,
         block: Block
@@ -188,7 +208,7 @@ class MultiLayerHeuristicSearchAlgorithm(
      * List of fixed spaces already placed
      * @param blockTable 可用块表
      * Available block table
-     */
+    */
     private suspend fun pack(
         promise: Channel<List<Space>>,
         items: Map<Item, UInt64>,

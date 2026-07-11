@@ -4,7 +4,7 @@
  *
  * 定义三维几何空间中的放置操作，将形状放置在指定 (x, y, z) 位置。
  * Defines placement operation in 3D geometric space, placing a shape at a specified (x, y, z) position.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -23,13 +23,14 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property y Y 坐标 / Y coordinate
  * @property z Z 坐标 / Z coordinate
  * @property shape 放置的三维形状 / The 3D shape being placed
- */
+*/
 data class Placement3<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
     val z: V,
     val shape: Shape3<V>
 ) {
+
     /** 包围盒 / Bounding box */
     val box: Box3<V>
         get() = Box3(
@@ -41,14 +42,19 @@ data class Placement3<V : FloatingNumber<V>>(
 
     /** 宽度 / Width */
     val width: V get() = box.width
+
     /** 高度 / Height */
     val height: V get() = box.height
+
     /** 深度 / Depth */
     val depth: V get() = box.depth
+
     /** X 轴最大值 / Maximum X value */
     val maxX: V get() = box.maxX
+
     /** Y 轴最大值 / Maximum Y value */
     val maxY: V get() = box.maxY
+
     /** Z 轴最大值 / Maximum Z value */
     val maxZ: V get() = box.maxZ
 
@@ -63,7 +69,7 @@ data class Placement3<V : FloatingNumber<V>>(
      * @param withUpperBound 是否包含上界 / Whether to include the upper bound
      * @param withBorder 是否包含边界 / Whether to include the border
      * @return 点是否在放置区域内 / Whether the point is inside the placement region
-     */
+    */
     fun contains(
         x: V,
         y: V,
@@ -88,7 +94,7 @@ data class Placement3<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个放置 / The other placement
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     fun overlapped(rhs: Placement3<V>): Ret<Boolean> = box.overlapped(rhs.box)
 
     /**
@@ -97,7 +103,7 @@ data class Placement3<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个放置 / The other placement
      * @return 交集放置，无交集返回 null / The intersection placement, or null if no overlap
-     */
+    */
     fun intersect(rhs: Placement3<V>): Ret<Placement3<V>?> {
         val intersected = when (val result = box.intersect(rhs.box)) {
             is Ok -> result.value

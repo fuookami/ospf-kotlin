@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 /**
  * 求解器类型。
  * Solver type.
- */
+*/
 @Serializable
 enum class SolverType {
     /** SCIP 求解器 / SCIP solver */
@@ -32,7 +32,7 @@ enum class SolverType {
  * @property sliceId 切片 ID / Slice ID
  * @property nodeId 节点 ID / Node ID
  * @property startedAt 启动时间戳 / Started timestamp
- */
+*/
 @Serializable
 data class ExecutionHandle(
     val handleId: HandleId,
@@ -55,7 +55,7 @@ data class ExecutionHandle(
  * @property gap 最优间隙 / Optimality gap
  * @property elapsed 耗时 / Elapsed
  * @property message 结果消息 / Result message
- */
+*/
 @Serializable
 data class SliceResult(
     val sliceId: SliceId,
@@ -82,7 +82,7 @@ data class SliceResult(
  * @property resultRef 结果对象引用 / Result object reference
  * @property message 结果消息 / Result message
  * @property extension 扩展字段 / Extension fields
- */
+*/
 @Serializable
 data class SolveResult(
     val feasible: Boolean,

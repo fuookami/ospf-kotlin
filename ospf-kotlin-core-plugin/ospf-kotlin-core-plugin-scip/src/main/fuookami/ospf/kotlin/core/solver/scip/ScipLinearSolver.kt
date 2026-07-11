@@ -21,7 +21,7 @@ import jscip.*
 /**
  * SCIP linear solver
  *
- * 中文: SCIP 线性求解器
+ : SCIP 线性求解器
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
@@ -30,15 +30,16 @@ class ScipLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack? = null
 ) : LinearSolver {
+
     /** Companion object providing library loading utility / 伴生对象，提供库加载工具 */
     companion object {
         /**
          * Load SCIP native library from JAR package
          *
-         * 中文: 从 JAR 包中加载 SCIP 原生库
+         * 中文从 JAR 包中加载 SCIP 原生库
          *
-         * @return operation result / 操作结果
-         */
+         * @return the load result as Try / 以Try包装的加载结果
+        */
         @JvmStatic
         fun loadLibraryInJar(): Try {
             return ScipSolver.loadLibraryInJar()
@@ -115,12 +116,12 @@ class ScipLinearSolver(
 /**
  * SCIP linear solver implementation
  *
- * 中文: SCIP 线性求解器实现
+ * SCIP 线性求解器实现
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
  * @property statusCallBack solving status callback / 求解状态回调
- */
+*/
 private class ScipLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: ScipSolverCallBack? = null,
@@ -175,11 +176,11 @@ private class ScipLinearSolverImpl(
     /**
      * Dump the linear model into SCIP
      *
-     * 中文: 将线性模型导出到 SCIP
+     * 将线性模型导出到 SCIP
      *
      * @param model linear triad model view / 线性三元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun dump(model: LinearTriadModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
@@ -344,11 +345,11 @@ private class ScipLinearSolverImpl(
     /**
      * Configure SCIP solver parameters
      *
-     * 中文: 配置 SCIP 求解器参数
+     * 配置 SCIP 求解器参数
      *
      * @param model linear triad model view / 线性三元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun configure(model: LinearTriadModelView): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toSolverDouble("linear.config.gap"))
@@ -454,11 +455,11 @@ private class ScipLinearSolverImpl(
     /**
      * Analyze the solving result and extract solution
      *
-     * 中文: 分析求解结果并提取解
+     * 分析求解结果并提取解
      *
      * @param model linear triad model view / 线性三元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun analyzeSolution(model: LinearTriadModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol

@@ -7,7 +7,7 @@
  * Provides a mutable version of quadratic polynomials, supporting in-place modifications.
  * Used for scenarios requiring incremental building or modification of polynomials,
  * and can be converted to an immutable QuadraticPolynomial after construction.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property _monomials 内部可变的二次单项式列表 / Internal mutable list of quadratic monomials
  * @property _constant 内部可变的常数项 / Internal mutable constant term
- */
+*/
 class MutableQuadraticPolynomial<T : NumberField<T>>(
     monomials: List<QuadraticMonomial<T>> = emptyList(),
     constant: T
@@ -38,13 +38,13 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
     /**
      * 二次单项式列表（只读）
      * List of quadratic monomials (read-only)
-     */
+    */
     val monomials: List<QuadraticMonomial<T>> get() = _monomials.toList()
 
     /**
      * 常数项
      * Constant term
-     */
+    */
     val constant: T get() = _constant
 
     /**
@@ -53,7 +53,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      *
      * 如果包含真正的二次项，则返回 Quadratic；否则返回 Linear。
      * Returns Quadratic if there are true quadratic terms; otherwise returns Linear.
-     */
+    */
     val category: Category
         get() = if (_monomials.any { it.isQuadratic }) Quadratic else Linear
 
@@ -63,7 +63,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
          * Creates a zero polynomial (constant = 0)
          *
          * @return 零多项式 / Zero polynomial
-         */
+        */
         inline fun <reified T> zero(): Ret<MutableQuadraticPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableQuadraticPolynomial.zero").mapResolved { constants ->
                 MutableQuadraticPolynomial(emptyList(), constants.zero)
@@ -75,7 +75,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
          * Creates a constant polynomial with value 1
          *
          * @return 值为 1 的多项式 / Polynomial with value 1
-         */
+        */
         inline fun <reified T> one(): Ret<MutableQuadraticPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableQuadraticPolynomial.one").mapResolved { constants ->
                 MutableQuadraticPolynomial(emptyList(), constants.one)
@@ -88,7 +88,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
          *
          * @param value 常数值 / Constant value
          * @return 常数多项式 / Constant polynomial
-         */
+        */
         fun <T : NumberField<T>> fromConstant(value: T): MutableQuadraticPolynomial<T> {
             return MutableQuadraticPolynomial(emptyList(), value)
         }
@@ -99,7 +99,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Adds a quadratic monomial
      *
      * @param monomial 要添加的二次单项式 / The quadratic monomial to add
-     */
+    */
     fun addMonomial(monomial: QuadraticMonomial<T>) {
         _monomials.add(monomial)
     }
@@ -109,7 +109,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Adds a linear monomial (converted to quadratic monomial form)
      *
      * @param monomial 要添加的线性单项式 / The linear monomial to add
-     */
+    */
     fun addLinearMonomial(monomial: LinearMonomial<T>) {
         _monomials.add(QuadraticMonomial.linear(monomial.coefficient, monomial.symbol))
     }
@@ -119,7 +119,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Adds to the constant term
      *
      * @param value 要增加的值 / The value to add
-     */
+    */
     fun addConstant(value: T) {
         _constant += value
     }
@@ -129,7 +129,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Sets the constant term
      *
      * @param value 新的常数项值 / The new constant term value
-     */
+    */
     fun setConstant(value: T) {
         _constant = value
     }
@@ -137,7 +137,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
     /**
      * 清除所有单项式
      * Clears all monomials
-     */
+    */
     fun clear() {
         _monomials.clear()
     }
@@ -147,7 +147,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Converts to an immutable quadratic polynomial
      *
      * @return 不可变的二次多项式 / Immutable quadratic polynomial
-     */
+    */
     fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
         return QuadraticPolynomial(_monomials.toList(), _constant)
     }
@@ -157,7 +157,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
      * Converts to immutable form
      *
      * @return 不可变的二次多项式 / Immutable quadratic polynomial
-     */
+    */
     fun toImmutable(): QuadraticPolynomial<T> = toQuadraticPolynomial()
 
     override fun toString(): String {
@@ -183,7 +183,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
  *
  * @receiver 不可变二次多项式 / Immutable quadratic polynomial
  * @return 可变二次多项式 / Mutable quadratic polynomial
- */
+*/
 fun <T : NumberField<T>> QuadraticPolynomial<T>.toMutable(): MutableQuadraticPolynomial<T> {
     return MutableQuadraticPolynomial(monomials, constant)
 }
@@ -194,7 +194,7 @@ fun <T : NumberField<T>> QuadraticPolynomial<T>.toMutable(): MutableQuadraticPol
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @return 不可变二次多项式 / Immutable quadratic polynomial
- */
+*/
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.toImmutable(): QuadraticPolynomial<T> {
     return this.toQuadraticPolynomial()
 }
@@ -205,7 +205,7 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.toImmutable(): QuadraticP
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @return 所有项取负后的可变二次多项式 / Mutable quadratic polynomial with all terms negated
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.unaryMinus(): MutableQuadraticPolynomial<T> {
     return MutableQuadraticPolynomial(monomials.map { -it }, -constant)
 }
@@ -216,7 +216,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.unaryMinus(): Mu
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 二次单项式 / Quadratic monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: QuadraticMonomial<T>) {
     addMonomial(rhs)
 }
@@ -227,7 +227,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 线性单项式 / Linear monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: LinearMonomial<T>) {
     addLinearMonomial(rhs)
 }
@@ -238,7 +238,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 二次多项式 / Quadratic polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: QuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -250,7 +250,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 可变二次多项式 / Mutable quadratic polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: MutableQuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -262,7 +262,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 线性多项式 / Linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: LinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) })
     _constant = _constant + rhs.constant
@@ -274,7 +274,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: T) {
     _constant = _constant + rhs
 }
@@ -285,7 +285,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 二次单项式 / Quadratic monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: QuadraticMonomial<T>) {
     _monomials.add(-rhs)
 }
@@ -296,7 +296,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 线性单项式 / Linear monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: LinearMonomial<T>) {
     _monomials.add(QuadraticMonomial.linear(-rhs.coefficient, rhs.symbol))
 }
@@ -307,7 +307,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 二次多项式 / Quadratic polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: QuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant -= rhs.constant
@@ -319,7 +319,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 可变二次多项式 / Mutable quadratic polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: MutableQuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant -= rhs.constant
@@ -331,7 +331,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 线性多项式 / Linear polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: LinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { QuadraticMonomial.linear(-it.coefficient, it.symbol) })
     _constant -= rhs.constant
@@ -343,7 +343,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: T) {
     _constant -= rhs
 }
@@ -354,7 +354,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.timesAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] * rhs
@@ -368,7 +368,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.timesAssign(rhs:
  *
  * @receiver 可变二次多项式 / Mutable quadratic polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.divAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] / rhs

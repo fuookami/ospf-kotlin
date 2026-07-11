@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * @property length Length assignment aggregation / 长度分配聚合
  * @property config Length assignment modeling configuration / 长度分配建模配置
  * @property demands Demand list / 需求列表
- */
+*/
 class LengthConstraintPipeline<V : RealNumber<V>>(
     private val length: LengthAggregation<V>,
     private val config: LengthAssignmentModelingConfig<V>,

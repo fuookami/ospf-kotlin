@@ -1,7 +1,7 @@
 /**
  * 四涡卷超混沌吸引子
  * Four-Scroll Hyper-Chaotic Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c 系统参数 c / System parameter c
  * @property d 系统参数 d / System parameter d
  * @property h 时间步长 / Time step size
- */
+*/
 data class FourScrollHyperChaoticAttractor<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val d: V, val h: V) :
     Extractor<Point<Dim4, V>, Point<Dim4, V>> {
     override operator fun invoke(p: Point<Dim4, V>): Point<Dim4, V> {
@@ -49,7 +49,7 @@ data class FourScrollHyperChaoticAttractor<V : FloatingNumber<V>>(val a: V, val 
 /**
  * 四涡卷超混沌吸引子生成器
  * Four-Scroll Hyper-Chaotic Attractor Generator
- */
+*/
 data class FourScrollHyperChaoticAttractorGenerator(
     val attractor: FourScrollHyperChaoticAttractor<Flt64> = FourScrollHyperChaoticAttractor(),
     private var _x: Point<Dim4, Flt64> = point4(

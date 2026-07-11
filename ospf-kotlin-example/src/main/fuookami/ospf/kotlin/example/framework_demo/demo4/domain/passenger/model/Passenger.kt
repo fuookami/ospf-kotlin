@@ -11,8 +11,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 /**
  * 具有数量和航段列表的乘客（每个航段分配一个舱位）。A passenger with an amount and a list of flight legs, each assigned a passenger class.
  *
- * @property id 参数。
- */
+ * @property id Unique identifier / 唯一标识符
+*/
 class Passenger(
     val id: String = UUID.randomUUID().toString(),
     val amount: UInt64,
@@ -48,20 +48,20 @@ class Passenger(
 
     /**
      * 检查此乘客是否在给定的航班任务上。Checks whether this passenger is on the given flight task.
- *
-     * @param task 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param task The flight task to check / 要检查的航班任务
+     * @return Whether the passenger is on the task / 乘客是否在该任务上
+    */
     operator fun contains(task: FlightTask): Boolean {
         return task.key in flightTaskKeys
     }
 
     /**
      * 返回给定航班任务的乘客舱位，如果不在该航班上则返回null。Returns the passenger class for the given flight task, or null if not on that flight.
- *
-     * @param task 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param task The flight task to query / 要查询的航班任务
+     * @return The passenger class for the task, or null / 该任务的乘客舱位，或null
+    */
     operator fun get(task: FlightTask): PassengerClass? {
         return flightTaskKeys[task.key]
     }
@@ -70,10 +70,10 @@ class Passenger(
 /**
  * 将乘客链接到特定航班的乘客-航班关联（具有可选前一航段）。A passenger-flight association linking a passenger to a specific flight with optional previous leg.
  *
- * @property flight 参数。
- * @property passenger 参数。
- * @property prev 参数。
- */
+ * @property flight The flight task / 航班任务
+ * @property passenger The passenger / 乘客
+ * @property prev Previous flight-passenger leg / 前一航段乘客关联
+*/
 data class FlightPassenger(
     val flight: FlightTask,
     val passenger: Passenger,

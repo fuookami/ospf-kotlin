@@ -1,7 +1,7 @@
 /**
  * 姜饼人映射
  * Gingerbreadman Map
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * Gingerbreadman Map
  *
  * @property one 常量 1 / Constant 1
- */
+*/
 data class GingerbreadmanMap<V : FloatingNumber<V>>(val one: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
         val x = p[0];
@@ -34,7 +34,7 @@ data class GingerbreadmanMap<V : FloatingNumber<V>>(val one: V) : Extractor<Poin
  * Gingerbreadman Map Generator
  *
  * @property map 姜饼人映射实例 / Gingerbreadman map instance
- */
+*/
 data class GingerbreadmanMapGenerator(
     val map: GingerbreadmanMap<Flt64> = GingerbreadmanMap(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -21,7 +21,7 @@
  * - SI: International System of Units (meter, kilogram, second, ampere, kelvin, mole, candela)
  * - MKS: 米-千克-秒单位制 / Meter-Kilogram-Second system
  * - CGS: 厘米-克-秒单位制 / Centimeter-Gram-Second system
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import java.util.concurrent.ConcurrentHashMap
@@ -37,12 +37,13 @@ import fuookami.ospf.kotlin.quantities.dimension.*
  *
  * 单位制定义了基本单位，导出单位通过懒加载自动推导。
  * Unit systems define base units, derived units are lazily computed.
- */
+*/
 interface UnitSystem {
+
     /**
      * 单位制名称
      * Unit system name
-     */
+    */
     val name: String
 
     /**
@@ -51,7 +52,7 @@ interface UnitSystem {
      *
      * 将基本量纲映射到对应的基本单位。
      * Maps fundamental dimensions to their corresponding base units.
-     */
+    */
     val baseUnits: Map<FundamentalQuantityDimension, PhysicalUnit>
 
     /**
@@ -60,7 +61,7 @@ interface UnitSystem {
      *
      * 允许用户为特定量纲指定非默认的标准单位。
      * Allows users to specify non-default standard units for specific dimensions.
-     */
+    */
     val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit>
 
     /**
@@ -69,7 +70,7 @@ interface UnitSystem {
      *
      * 缓存已推导的导出单位，避免重复计算。
      * Caches derived units to avoid repeated computation.
-     */
+    */
     val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit>
 
     /**
@@ -81,7 +82,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 标准单位，如果不支持该量纲返回 null / Standard unit, or null if dimension is not supported
-     */
+    */
     fun standardUnitForDimension(quantity: DerivedQuantity): PhysicalUnit? {
         // 1. 首先检查用户是否指定了标准单位
         // First check if user has specified a standard unit
@@ -103,7 +104,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @param unit 标准单位 / Standard unit
-     */
+    */
     fun setStandardUnit(quantity: DerivedQuantity, unit: PhysicalUnit) {
         standardUnits[quantity] = unit
     }
@@ -114,7 +115,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 如果成功移除返回 true，如果不存在返回 false / Returns true if removed, false if not found
-     */
+    */
     fun removeStandardUnit(quantity: DerivedQuantity): Boolean {
         return standardUnits.remove(quantity) != null
     }
@@ -125,7 +126,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 单位，如果不支持该量纲返回 null / Unit, or null if dimension is not supported
-     */
+    */
     fun unitForDimension(quantity: DerivedQuantity): PhysicalUnit? {
         // 1. 检查是否是基本量纲
         // Check if it's a fundamental dimension
@@ -164,7 +165,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 推导的单位，如果不支持返回 null / Derived unit, or null if not supported
-     */
+    */
     fun deriveUnit(quantity: DerivedQuantity): PhysicalUnit? {
         var resultScale = Scale()
         val symbolParts = mutableListOf<String>()
@@ -219,7 +220,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 转换比例，如果不支持返回 null / Conversion scale, or null if not supported
-     */
+    */
     fun conversionToStandard(quantity: DerivedQuantity): Scale? {
         val unit = unitForDimension(quantity) ?: return null
         return unit.scale
@@ -231,7 +232,7 @@ interface UnitSystem {
      *
      * @param quantity 量纲 / Dimension
      * @return 如果支持返回 true，否则返回 false / Returns true if supported, false otherwise
-     */
+    */
     fun supportsQuantity(quantity: DerivedQuantity): Boolean {
         return unitForDimension(quantity) != null
     }
@@ -245,7 +246,7 @@ interface UnitSystem {
  * @param baseUnits 基本单位映射 / Base units mapping
  * @param standardUnits 用户指定的标准单位 / User-specified standard units
  * @param derivedCache 导出单位缓存 / Derived units cache
- */
+*/
 data class ConcreteUnitSystem(
     override val name: String,
     override val baseUnits: Map<FundamentalQuantityDimension, PhysicalUnit>,
@@ -267,7 +268,7 @@ data class ConcreteUnitSystem(
  * - withDerivedUnit(): 添加导出单位 / Add derived unit
  * - withStandardUnit(): 设置标准单位 / Set standard unit
  * - build(): 构建单位制 / Build unit system
- */
+*/
 class UnitSystemBuilder {
     private val name: String
     private var prototype: UnitSystem? = null
@@ -280,7 +281,7 @@ class UnitSystemBuilder {
      * Create new unit system builder
      *
      * @param name 单位制名称 / Unit system name
-     */
+    */
     constructor(name: String) {
         this.name = name
         this.prototype = null
@@ -295,7 +296,7 @@ class UnitSystemBuilder {
      *
      * @param name 单位制名称 / Unit system name
      * @param prototype 原型单位制 / Prototype unit system
-     */
+    */
     constructor(name: String, prototype: UnitSystem) {
         this.name = name
         this.prototype = prototype
@@ -311,7 +312,7 @@ class UnitSystemBuilder {
      * @param dimension 基本量纲 / Fundamental dimension
      * @param unit 基本单位 / Base unit
      * @return 构建器实例 / Builder instance
-     */
+    */
     fun withBaseUnit(dimension: FundamentalQuantityDimension, unit: PhysicalUnit): UnitSystemBuilder {
         baseUnits[dimension] = unit
         return this
@@ -324,7 +325,7 @@ class UnitSystemBuilder {
      * @param quantity 量纲 / Dimension
      * @param unit 导出单位 / Derived unit
      * @return 构建器实例 / Builder instance
-     */
+    */
     fun withDerivedUnit(quantity: DerivedQuantity, unit: PhysicalUnit): UnitSystemBuilder {
         derivedUnits[quantity] = unit
         return this
@@ -340,7 +341,7 @@ class UnitSystemBuilder {
      * @param quantity 量纲 / Dimension
      * @param unit 标准单位 / Standard unit
      * @return 构建器实例 / Builder instance
-     */
+    */
     fun withStandardUnit(quantity: DerivedQuantity, unit: PhysicalUnit): UnitSystemBuilder {
         standardUnits[quantity] = unit
         return this
@@ -351,7 +352,7 @@ class UnitSystemBuilder {
      * Build unit system
      *
      * @return 构建的单位制实例 / Built unit system instance
-     */
+    */
     fun build(): UnitSystem {
         val system = ConcreteUnitSystem(
             name = name,
@@ -382,7 +383,7 @@ class UnitSystemBuilder {
  * - 信息: 比特 (bit) / Information: bit (bit)
  * - 平面角: 弧度 (rad) / Plane angle: radian (rad)
  * - 立体角: 球面度 (sr) / Solid angle: steradian (sr)
- */
+*/
 object SI : UnitSystem {
     override val name: String = "SI"
 
@@ -447,7 +448,7 @@ object SI : UnitSystem {
  * - 长度: 米 (m) / Length: meter (m)
  * - 质量: 千克 (kg) / Mass: kilogram (kg)
  * - 时间: 秒 (s) / Time: second (s)
- */
+*/
 object MKS : UnitSystem {
     override val name: String = "MKS"
 
@@ -481,7 +482,7 @@ object MKS : UnitSystem {
  * - 长度: 厘米 (cm) / Length: centimeter (cm)
  * - 质量: 克 (g) / Mass: gram (g)
  * - 时间: 秒 (s) / Time: second (s)
- */
+*/
 object CGS : UnitSystem {
     override val name: String = "CGS"
 

@@ -5,7 +5,7 @@
  *
  * 每台设备在每个时隙的总产能不超过可用时长。
  * Total capacity per executor per slot should not exceed available duration.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -29,20 +29,21 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @property slots 时隙列表 / List of time slots
  * @property timeWindow 时间窗口 / Time window
  * @property name 约束名称 / Constraint name
- */
+*/
 class ExecutorCapacityConstraint<V : RealNumber<V>, A : ProductionAction>(
     private val capacity: Capacity<A>,
     private val slots: List<TimeSlot>,
     private val timeWindow: TimeWindow<V>,
     val name: String = "executor_capacity"
 ) {
+
     /**
      * 应用约束到模型
      * Apply constraint to model
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         for ((e, executor) in capacity.executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {

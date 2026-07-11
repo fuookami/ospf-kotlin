@@ -18,7 +18,7 @@
  * - DivAssign: 除法赋值接口，支持 a /= b
  * - IntDiv: 整数除法接口，支挌a intDiv b
  * - IntDivAssign: 整数除法赋值接口，支持 a intDivAssign b
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -34,10 +34,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（除数）的类垌
  * @param Ret 返回值（商）的类垌
  *
- * @param Rhs The type of the right operand (divisor)
- * @param Ret The type of the return value (quotient)
- */
+*/
 interface Div<in Rhs, out Ret> {
+
     /**
      * 除法运算符，计算啌
      * Division operator, calculates the quotient
@@ -45,9 +44,8 @@ interface Div<in Rhs, out Ret> {
      * @param rhs 除数
      * @return 啌
      *
-     * @param rhs Divisor
      * @return Quotient
-     */
+    */
     operator fun div(rhs: Rhs): Ret
 }
 
@@ -63,17 +61,16 @@ interface Div<in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（除数）的类垌
  *
- * @param Rhs The type of the right operand (divisor)
- */
+*/
 interface DivAssign<in Rhs> {
+
     /**
      * 除法赋值运算符，将商赋值给左操作数
      * Division assignment operator, assigns the quotient to the left operand
      *
      * @param rhs 除数
      *
-     * @param rhs Divisor
-     */
+    */
     operator fun divAssign(rhs: Rhs)
 }
 
@@ -90,10 +87,9 @@ interface DivAssign<in Rhs> {
  * @param Rhs 右操作数（除数）的类垌
  * @param Ret 返回值（整数商）的类垌
  *
- * @param Rhs The type of the right operand (divisor)
- * @param Ret The type of the return value (integer quotient)
- */
+*/
 interface IntDiv<in Rhs, out Ret> {
+
     /**
      * 整数除法运算符，计算整数啌
      * Integer division operator, calculates the integer quotient
@@ -101,9 +97,8 @@ interface IntDiv<in Rhs, out Ret> {
      * @param rhs 除数
      * @return 整数啌
      *
-     * @param rhs Divisor
      * @return Integer quotient
-     */
+    */
     infix fun intDiv(rhs: Rhs): Ret
 }
 
@@ -119,16 +114,15 @@ interface IntDiv<in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（除数）的类垌
  *
- * @param Rhs The type of the right operand (divisor)
- */
+*/
 interface IntDivAssign<in Rhs> {
+
     /**
      * 整数除法赋值运算符，将整数商赋值给左操作数
      * Integer division assignment operator, assigns the integer quotient to the left operand
      *
      * @param rhs 除数
      *
-     * @param rhs Divisor
-     */
+    */
     infix fun intDivAssign(rhs: Rhs)
 }

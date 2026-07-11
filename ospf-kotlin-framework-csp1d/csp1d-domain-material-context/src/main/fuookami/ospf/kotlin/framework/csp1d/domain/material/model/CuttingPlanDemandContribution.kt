@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param V 数值类型 / Numeric value type
  * @property product 产品 / Product
  * @property quantity 贡献值 / Contribution quantity
- */
+*/
 data class CuttingPlanDemandContribution<V : RealNumber<V>>(
     val product: Product<V>,
     val quantity: Quantity<V>
@@ -27,7 +27,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
          * @param length 贡献长度覆盖值 / Contribution length override
          * @return 需求贡献 / Demand contribution
-         */
+        */
         fun <V : RealNumber<V>> fromDemand(
             demand: ProductDemand<V>,
             width: Quantity<V>,
@@ -58,7 +58,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
          * @param length 贡献长度覆盖值 / Contribution length override
          * @return 需求贡献 / Demand contribution
-         */
+        */
         fun <V : RealNumber<V>> of(
             product: Product<V>,
             width: Quantity<V>,
@@ -92,7 +92,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
          * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
          * @param length 贡献长度覆盖值 / Contribution length override
          * @return 贡献值 / Contribution quantity
-         */
+        */
         fun <V : RealNumber<V>> quantityOf(
             product: Product<V>,
             width: Quantity<V>,
@@ -136,7 +136,7 @@ data class CuttingPlanDemandContribution<V : RealNumber<V>>(
  * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @param length 贡献长度覆盖值 / Contribution length override
  * @return 需求贡献 / Demand contribution
- */
+*/
 fun <V : RealNumber<V>> ProductDemand<V>.contribution(
     width: Quantity<V>,
     amount: UInt64,

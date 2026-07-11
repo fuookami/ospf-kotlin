@@ -1,7 +1,7 @@
 /**
  * Lotka-Volterra 系统（捕食者-猎物模型）
  * Lotka-Volterra System (Predator-Prey Model)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c 捕食者死亡率 / Predator death rate
  * @property d 捕食者增长效率 / Predator growth efficiency
  * @property h 时间步长 / Time step size
- */
+*/
 data class LotkaVolterraSystem<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val d: V, val h: V) :
     Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
@@ -48,7 +48,7 @@ data class LotkaVolterraSystem<V : FloatingNumber<V>>(val a: V, val b: V, val c:
  *
  * @property attractor the Lotka-Volterra system instance / Lotka-Volterra 系统实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class LotkaVolterraSystemGenerator(
     val attractor: LotkaVolterraSystem<Flt64> = LotkaVolterraSystem(),
     private var _x: Point<Dim2, Flt64> = point2(

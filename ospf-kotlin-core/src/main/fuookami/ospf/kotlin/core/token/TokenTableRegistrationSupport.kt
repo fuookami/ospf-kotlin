@@ -4,7 +4,7 @@
  *
  * 负责符号依赖分层注册、aux token 准备与 flatten/range/value 缓存写入。
  * Handles layered registration by symbol dependencies, auxiliary-token preparation, and flatten/range/value cache writes.
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import kotlinx.coroutines.*
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
  *
  * 非目标：不承担函数约束建模与求解流程控制，这些职责在 MetaModel/MechanismModel 与 solver 侧完成。
  * Non-goal: function-constraint modeling and solve-flow orchestration are out of scope and handled by MetaModel/MechanismModel and solver side.
- */
+*/
 
 /**
  * 为中间符号注册辅助 token，委托给 SolverBoundaryCasts。
@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
  *
  * @param tokens 可添加 token 的集合 / Token-addable collection
  * @return 操作结果 / Operation result
- */
+*/
 private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
     return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)
 }
@@ -46,7 +46,7 @@ private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenColl
  * @param fixedValues 固定值映射，可为 null / Fixed values map, may be null
  * @param tokenTable Flt64 token 表 / Flt64 token table
  * @return 求解器边界值，无结果返回 null / Solver-boundary value, or null if none
- */
+*/
 private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<Flt64>
@@ -59,7 +59,7 @@ private fun IntermediateSymbol<*>.prepareStar(
  * Write flatten and range data for an intermediate symbol into cache contexts.
  *
  * @param symbol 中间符号 / Intermediate symbol
- */
+*/
 private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
@@ -79,7 +79,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
  * Batch write flatten and range data for intermediate symbols into cache contexts.
  *
  * @param symbols 中间符号集合 / Intermediate symbol collection
- */
+*/
 private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
@@ -93,7 +93,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<Inte
  * @param fixedValues 固定值映射 / Fixed values map
  * @param callBack 注册状态回调 / Registration status callback
  * @return 操作结果 / Operation result
- */
+*/
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: MutableTokenTable<Flt64>,
@@ -179,7 +179,7 @@ fun Collection<IntermediateSymbol<*>>.register(
  * @param fixedValues 固定值映射 / Fixed values map
  * @param callBack 注册状态回调 / Registration status callback
  * @return 操作结果 / Operation result
- */
+*/
 @Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: ConcurrentMutableTokenTable<Flt64>,

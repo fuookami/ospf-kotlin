@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
  * @property dominanceStrategy dominance 剪枝策略 / Dominance pruning strategy
- */
+*/
 data class GenerationConstraints<V : RealNumber<V>>(
     val maxKnifeCount: UInt64? = null,
     val minKnifeCount: UInt64? = null,
@@ -32,7 +32,7 @@ data class GenerationConstraints<V : RealNumber<V>>(
          * 返回所有限制均禁用的无约束生成配置。
          *
          * @return unconstrained generation constraints / 无约束的生成配置
-         */
+        */
         fun <V : RealNumber<V>> unconstrained(): GenerationConstraints<V> = GenerationConstraints()
     }
 
@@ -44,7 +44,9 @@ data class GenerationConstraints<V : RealNumber<V>>(
      * - [MinKnifeCountConstraint]（当 minKnifeCount 非空时）
      * - [MaxOverProduceLengthConstraint]（当 maxOverProduceLength 非空时）
      * - [WidthUpperBoundConstraint]（始终包含，由生成器根据物料上界传入 context）
-     */
+     *
+     * @return list of cutting plan constraint predicates derived from this configuration / 由当前配置生成的切割方案约束谓词列表
+    */
     fun toConstraints(): List<CuttingPlanConstraint<V>> {
         val constraints = mutableListOf<CuttingPlanConstraint<V>>()
         maxKnifeCount?.let { constraints.add(MaxKnifeCountConstraint(it)) }
@@ -60,7 +62,7 @@ data class GenerationConstraints<V : RealNumber<V>>(
  *
  * - [SameContribution]：按精确需求贡献分组，只比较相同贡献的方案余宽（当前默认行为）
  * - [CrossContribution]：按产品集合分组，贡献超集 + 余宽更优的方案 dominate 旧方案
- */
+*/
 enum class DominanceStrategy {
     SameContribution,
     CrossContribution

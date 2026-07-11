@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [BivariateLinearPiecewiseFunction]，使用三角剖分实现双变量分段线性近似。
  *
  * Provides [BivariateLinearPiecewiseFunction] for bivariate piecewise linear approximation using triangulation.
- */
+*/
 
 /**
  * 双变量分段线性函数：使用三角形插值的两变量分段线性函数。
@@ -55,13 +55,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property x 第一个输入线性多项式 / first input linear polynomial
  * @property y 第二个输入线性多项式 / second input linear polynomial
- * @property triangles 三角形列表，顶点为三维点 / triangle list with 3D point vertices
- * @property lambdaVars lambda 变量列表 / lambda variable list
- * @property zVars 三角形选择二值变量 / triangle selection binary variables
- * @param converter 值类型转换器 / value type converter
- * @property name 函数名称 / function name
- * @property displayName 可选显示名称 / optional display name
- */
+*/
 class BivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
@@ -101,7 +95,7 @@ class BivariateLinearPiecewiseFunction<V>(
      * 对每个三角形 i，顶点 p1, p2, p3：
      * For each triangle i, vertices p1, p2, p3:
      * result = sum over all i,j of (triangle_i.vertex_j.z * lambda_i_j)
-     */
+    */
     val result: LinearPolynomial<V> by lazy {
         val monos = mutableListOf<LinearMonomial<V>>()
         for (i in triangles.indices) {
@@ -145,7 +139,7 @@ class BivariateLinearPiecewiseFunction<V>(
      * @param px 点的 x 坐标 / x-coordinate of the point
      * @param py 点的 y 坐标 / y-coordinate of the point
      * @return 重心坐标 (u, v)，若三角形退化则返回 (null, null) / barycentric coordinates (u, v), or (null, null) if degenerate
-     */
+    */
     private fun calculateBarycentric(
         tri: Triangle<Point<Dim3, Flt64>, Dim3, Flt64>,
         px: Flt64,
@@ -262,7 +256,7 @@ class BivariateLinearPiecewiseFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [BivariateLinearPiecewiseFunction] 实例 / [BivariateLinearPiecewiseFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,

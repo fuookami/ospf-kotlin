@@ -1,7 +1,7 @@
 /**
  * Lorenz-Stenflo 吸引子（四维）
  * Lorenz-Stenflo Attractor (4D)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class LorenzStenfloAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -57,7 +57,7 @@ data class LorenzStenfloAttractor<V : FloatingNumber<V>>(
  *
  * @property attractor the Lorenz-Stenflo attractor instance / Lorenz-Stenflo 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class LorenzStenfloAttractorGenerator(
     val attractor: LorenzStenfloAttractor<Flt64> = LorenzStenfloAttractor(),
     private var _x: Point<Dim4, Flt64> = point4(

@@ -6,7 +6,7 @@
  * 向量是具有方向和大小的几何对象，支持内积空间运算。
  * Defines vector data structure in geometric space, supporting arbitrary dimensions and number types.
  * A vector is a geometric object with direction and magnitude, supporting inner product space operations.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.sumOf
  * @param V 数值类型 / The numeric type
  * @param value 向量计算结果 / The vector calculation result
  * @return 转换后的数值 / The casted numeric value
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> castVectorValue(value: Any?): V {
     // 安全不变量：向量范数/夹角结果与向量分量处于同一 V 数域。
@@ -35,7 +35,7 @@ private fun <V : FloatingNumber<V>> castVectorValue(value: Any?): V {
  * @param V 数值类型 / The numeric type
  * @param value 向量计算结果 / The vector calculation result
  * @return 转换后的数值（可空） / The casted numeric value (nullable)
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> castNullableVectorValue(value: Any?): V? {
     // 安全不变量：同上；null 分支保留，非 null 分支为 V 兼容值。
@@ -50,7 +50,7 @@ private fun <V : FloatingNumber<V>> castNullableVectorValue(value: Any?): V? {
  * @param V 浮点数类型 / Floating-point number type
  * @param vector 向量分量列表 / List of vector components
  * @return 向量的范数 / Norm of the vector
- */
+*/
 private fun <V : FloatingNumber<V>> normOf(vector: List<V>): V {
     val v = vector[0]
     return castVectorValue((vector.indices.sumOf(v.constants) { i -> vector[i].sqr() }).sqrt())
@@ -63,7 +63,7 @@ private fun <V : FloatingNumber<V>> normOf(vector: List<V>): V {
  * @param V 浮点数类型 / Floating-point number type
  * @param vector 向量分量列表 / List of vector components
  * @return 单位向量的分量列表 / List of unit vector components
- */
+*/
 private fun <V : FloatingNumber<V>> unitOf(vector: List<V>): List<V> {
     val norm = normOf(vector)
     return vector.map { it / norm }
@@ -77,7 +77,7 @@ private fun <V : FloatingNumber<V>> unitOf(vector: List<V>): List<V> {
  * @param lhs 左向量 / Left vector
  * @param rhs 右向量 / Right vector
  * @return 点积值 / Dot product value
- */
+*/
 private fun <V : FloatingNumber<V>> timesBetween(lhs: List<V>, rhs: List<V>): V {
     assert(lhs.size == rhs.size)
     val v = lhs[0]
@@ -97,7 +97,7 @@ private fun <V : FloatingNumber<V>> timesBetween(lhs: List<V>, rhs: List<V>): V 
  * @param V 数值类型 / Number type
  * @property vector 向量分量列表 / List of vector components
  * @property dim 维度信息 / Dimension information
- */
+*/
 open class Vector<D : Dimension, V : FloatingNumber<V>>(
     val vector: List<V>,
     val dim: D
@@ -109,7 +109,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          *
          * @param D 维度类型 / The dimension type
          * @return 二维维度类型 / The 2D dimension type
-         */
+        */
         @Suppress("UNCHECKED_CAST")
         private fun <D : Dimension> dim2AsType(): D {
             // 安全不变量：二维构造函数只在调用方期望 D=Dim2 时使用。
@@ -123,7 +123,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          *
          * @param D 维度类型 / The dimension type
          * @return 三维维度类型 / The 3D dimension type
-         */
+        */
         @Suppress("UNCHECKED_CAST")
         private fun <D : Dimension> dim3AsType(): D {
             // 安全不变量：三维构造函数只在调用方期望 D=Dim3 时使用。
@@ -140,7 +140,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          * @param x X 分量 / X component
          * @param y Y 分量 / Y component
          * @return 二维向量 / The 2D vector
-         */
+        */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Vector<D, V> {
             return Vector(listOf(x, y), dim2AsType())
         }
@@ -155,7 +155,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          * @param y Y 分量 / Y component
          * @param z Z 分量 / Z component
          * @return 三维向量 / The 3D vector
-         */
+        */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Vector<D, V> {
             return Vector(listOf(x, y, z), dim3AsType())
         }
@@ -167,7 +167,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          * @param x X 分量 / X component
          * @param y Y 分量 / Y component
          * @return 二维向量 / The 2D vector
-         */
+        */
         operator fun invoke(x: Flt64, y: Flt64): Vector<Dim2, Flt64> {
             return Vector(listOf(x, y), Dim2)
         }
@@ -180,7 +180,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
          * @param y Y 分量 / Y component
          * @param z Z 分量 / Z component
          * @return 三维向量 / The 3D vector
-         */
+        */
         operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Vector<Dim3, Flt64> {
             return Vector(listOf(x, y, z), Dim3)
         }
@@ -201,7 +201,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param i 索引值 / The index value
      * @return 对应位置的分量 / The component at the specified position
-     */
+    */
     @Throws(ArrayIndexOutOfBoundsException::class)
     operator fun get(i: Int): V {
         return vector[i]
@@ -221,7 +221,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 另一个向量 / The other vector
      * @return 点积值 / The dot product value
-     */
+    */
     operator fun times(rhs: Vector<D, V>) = dot(rhs)
 
     /**
@@ -230,7 +230,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 标量值 / The scalar value
      * @return 缩放后的向量 / The scaled vector
-     */
+    */
     operator fun times(rhs: V) = scale(rhs)
 
     /**
@@ -239,7 +239,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 点 / The point
      * @return 新点 / The new point
-     */
+    */
     operator fun plus(rhs: Point<D, V>) = Point(indices.map { this[it] + rhs[it] }, dim)
 
     override fun angle(rhs: Vector<D, V>): V? {
@@ -252,7 +252,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 目标向量 / The target vector
      * @return 投影向量，零向量时返回 null / The projection vector, or null if zero vector
-     */
+    */
     fun projectionOn(rhs: Vector<D, V>): Vector<D, V>? {
         return project(rhs)
     }
@@ -263,7 +263,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 目标向量 / The target vector
      * @return 正交分量向量，零向量时返回 null / The orthogonal component vector, or null if zero vector
-     */
+    */
     fun orthogonalComponentTo(rhs: Vector<D, V>): Vector<D, V>? {
         return orthogonalComponent(rhs)
     }
@@ -286,7 +286,7 @@ val Vector<Dim2, Flt64>.y get() = this[1]
  * @param x X 分量，默认为 0 / X component, defaults to 0
  * @param y Y 分量，默认为 0 / Y component, defaults to 0
  * @return 二维向量 / The 2D vector
- */
+*/
 fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector<Dim2, Flt64> {
     return Vector(listOf(x, y), Dim2)
 }
@@ -311,7 +311,7 @@ val Vector<Dim3, Flt64>.z get() = this[2]
  * @param y Y 分量，默认为 0 / Y component, defaults to 0
  * @param z Z 分量，默认为 0 / Z component, defaults to 0
  * @return 三维向量 / The 3D vector
- */
+*/
 fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector<Dim3, Flt64> {
     return Vector(listOf(x, y, z), Dim3)
 }
@@ -324,7 +324,7 @@ fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero)
  * @param V 数值类型 / The numeric type
  * @param rhs 向量 / The vector
  * @return 缩放后的向量 / The scaled vector
- */
+*/
 operator fun <D : Dimension, V : FloatingNumber<V>> V.times(rhs: Vector<D, V>): Vector<D, V> {
     return rhs * this
 }
@@ -335,7 +335,7 @@ operator fun <D : Dimension, V : FloatingNumber<V>> V.times(rhs: Vector<D, V>): 
  *
  * @param rhs 另一个向量 / The other vector
  * @return 叉积标量值 / The cross product scalar value
- */
+*/
 infix fun Vector<Dim2, Flt64>.cross(rhs: Vector<Dim2, Flt64>): Flt64 {
     return this.x * rhs.y - this.y * rhs.x
 }
@@ -346,7 +346,7 @@ infix fun Vector<Dim2, Flt64>.cross(rhs: Vector<Dim2, Flt64>): Flt64 {
  *
  * @param rhs 另一个向量 / The other vector
  * @return 叉积向量 / The cross product vector
- */
+*/
 infix fun Vector<Dim3, Flt64>.cross(rhs: Vector<Dim3, Flt64>): Vector<Dim3, Flt64> {
     return vector3(
         x = this.y * rhs.z - this.z * rhs.y,

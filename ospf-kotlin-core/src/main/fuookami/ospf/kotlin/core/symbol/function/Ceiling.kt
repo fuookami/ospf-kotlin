@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [CeilingFunction]，实现 y = ceil(x) 的线性化建模。
  *
  * Provides [CeilingFunction] for linearized modeling of y = ceil(x).
- */
+*/
 
 /**
  * 向上取整函数：y = ceil(x)。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param bigM 保留参数，当前取整约束不需要 Big-M / reserved parameter, Big-M is not needed by the current ceiling encoding
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class CeilingFunction<V>(
     val x: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -103,7 +103,7 @@ class CeilingFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [CeilingFunction] 实例 / [CeilingFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             converter: IntoValue<V>,

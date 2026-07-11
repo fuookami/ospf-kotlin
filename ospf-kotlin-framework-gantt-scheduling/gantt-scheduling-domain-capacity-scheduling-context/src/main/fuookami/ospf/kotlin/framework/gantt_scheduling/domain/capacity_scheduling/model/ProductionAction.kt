@@ -11,7 +11,7 @@
  * - **Discrete**: Has fixed batch duration, decision variable represents batch count
  * - **连续型**：无固定批次时长，决策变量表示时长单位数
  * - **Continuous**: No fixed batch duration, decision variable represents duration units
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -37,25 +37,26 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * 分为：
  * - **离散型**：有固定批次时长，决策变量表示批次数
  * - **连续型**：无固定批次时长，决策变量表示时长单位数
- */
+*/
 interface ProductionAction {
+
     /**
      * 动作唯一标识
      * Unique identifier for the action
-     */
+    */
     val id: ProductionActionId
 
     /**
      * 动作名称
      * Name of the action
-     */
+    */
     val name: String
     val displayName: String get() = name
 
     /**
      * 执行者
      * The executor that performs this action
-     */
+    */
     val executor: Executor
 
     /**
@@ -67,13 +68,13 @@ interface ProductionAction {
      *
      * - true: 离散型，x 表示批次数
      * - false: 连续型，x 表示时长单位数
-     */
+    */
     val discrete: Boolean
 
     /**
      * 批次时长（仅离散型有效）
      * Batch duration (only for discrete actions)
-     */
+    */
     val batchDuration: Duration? get() = null
 
     /**
@@ -82,7 +83,7 @@ interface ProductionAction {
      *
      * @param timeWindow Time window / 时间窗口
      * @return Unit capacity / 单位产能
-     */
+    */
     fun <V : RealNumber<V>> unitCapacity(timeWindow: TimeWindow<V>): V
 
     /**
@@ -92,7 +93,7 @@ interface ProductionAction {
      * @param time Time instant / 时间点
      * @param fromDouble Double 到 V 的转换函数 / Double to V converter
      * @return Unit cost / 单位成本
-     */
+    */
     fun <V : RealNumber<V>> unitCost(time: Instant, fromDouble: (Double) -> V): V
 
     /**
@@ -102,7 +103,7 @@ interface ProductionAction {
      * @param slot Time slot / 时隙
      * @param timeWindow Time window / 时间窗口
      * @return Upper bound value / 上界值
-     */
+    */
     fun <V : RealNumber<V>> upperBound(slot: TimeSlot, timeWindow: TimeWindow<V>): UInt64
 
     /**
@@ -112,7 +113,7 @@ interface ProductionAction {
      * @param timeWindow Time window / 时间窗口
      * @param unit 产能单位 / Capacity unit
      * @return Unit capacity as Quantity<V> / 单位产能物理量
-     */
+    */
     fun <V : RealNumber<V>> unitCapacityQuantity(
         timeWindow: TimeWindow<V>,
         unit: PhysicalUnit = NoneUnit
@@ -128,7 +129,7 @@ interface ProductionAction {
      * @param fromDouble Double 到 V 的转换函数 / Double to V converter
      * @param unit 成本单位 / Cost unit
      * @return Unit cost as Quantity<V> / 单位成本物理量
-     */
+    */
     fun <V : RealNumber<V>> unitCostQuantity(
         time: Instant,
         fromDouble: (Double) -> V,
@@ -142,7 +143,7 @@ interface ProductionAction {
      *
      * @param time Time instant / 时间点
      * @return Unit cost for solver / 求解器单位成本
-     */
+    */
     fun unitCostSolverValue(time: Instant): Flt64 {
         return unitCost(time) { Flt64(it) }
     }

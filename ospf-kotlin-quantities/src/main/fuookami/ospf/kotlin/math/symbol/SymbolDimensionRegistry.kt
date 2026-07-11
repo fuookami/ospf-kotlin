@@ -20,7 +20,7 @@
  * registry.validateAddSubDimension(listOf(x, y))  // OK: same dimension
  * registry.inferDimension(x, y, Operation.Multiply)  // Returns Length^2
  * ```
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 import java.util.concurrent.ConcurrentHashMap
@@ -34,26 +34,26 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 用于量纲推导时指定运算类型。
  * Used to specify operation type for dimension inference.
- */
+*/
 enum class Operation {
     /**
      * 加法 / Addition
-     */
+    */
     Add,
 
     /**
      * 减法 / Subtraction
-     */
+    */
     Subtract,
 
     /**
      * 乘法 / Multiplication
-     */
+    */
     Multiply,
 
     /**
      * 除法 / Division
-     */
+    */
     Divide
 }
 
@@ -66,7 +66,7 @@ enum class Operation {
  *
  * 使用 ConcurrentHashMap 保证线程安全。
  * Uses ConcurrentHashMap for thread safety.
- */
+*/
 class SymbolDimensionRegistry {
     private val symbolDimensions = ConcurrentHashMap<Symbol, DimensionedSymbol>()
 
@@ -81,7 +81,7 @@ class SymbolDimensionRegistry {
      * ```
      *
      * @param symbol 带量纲的符号 / Dimensioned symbol
-     */
+    */
     fun register(symbol: DimensionedSymbol) {
         symbolDimensions[symbol] = symbol
     }
@@ -98,7 +98,7 @@ class SymbolDimensionRegistry {
      *
      * @param symbol 符号 / Symbol
      * @return 带量纲的符号，或 null 如果未注册 / Dimensioned symbol, or null if not registered
-     */
+    */
     fun getDimension(symbol: Symbol): DimensionedSymbol? {
         return symbolDimensions[symbol]
     }
@@ -125,7 +125,7 @@ class SymbolDimensionRegistry {
      *
      * @param symbols 待校验的符号列表 / Symbols to validate
      * @return Try 成功返回 ok，量纲不匹配或未注册时返回 Failed / ok on success, Failed on dimension mismatch or unregistered symbol
-     */
+    */
     fun validateAddSubDimension(symbols: List<Symbol>): Try {
         if (symbols.isEmpty()) return ok
 
@@ -171,7 +171,7 @@ class SymbolDimensionRegistry {
      * @param operation 运算类型 / Operation type
      * @return 结果量纲 / Result dimension
      * @return Ret<DerivedQuantity> 成功返回 ok(dimension)，量纲不匹配或未注册时返回 Failed / ok(dimension) on success, Failed on mismatch or unregistered
-     */
+    */
     fun inferDimension(
         symbol1: Symbol,
         symbol2: Symbol,
@@ -209,7 +209,7 @@ class SymbolDimensionRegistry {
      *
      * @param symbol 符号 / Symbol
      * @return 是否已注册 / Whether registered
-     */
+    */
     fun isRegistered(symbol: Symbol): Boolean {
         return symbolDimensions.containsKey(symbol)
     }
@@ -225,7 +225,7 @@ class SymbolDimensionRegistry {
      *
      * @param symbol 符号 / Symbol
      * @return 是否成功移除 / Whether successfully removed
-     */
+    */
     fun unregister(symbol: Symbol): Boolean {
         return symbolDimensions.remove(symbol) != null
     }
@@ -238,7 +238,7 @@ class SymbolDimensionRegistry {
      * ```kotlin
      * registry.clear()
      * ```
-     */
+    */
     fun clear() {
         symbolDimensions.clear()
     }

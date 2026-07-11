@@ -9,7 +9,7 @@
  * 本模块定义了浮点数的类型系统，包括 Flt32、Flt64 和 FltX（任意精度浮点数）。
  * 这些类型提供了完整的算术运算、比较操作、类型转换以及各种数学函数支持，
  * 包括三角函数、双曲函数、指数函数、对数函数等。
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.number
 
 import java.math.*
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.orderOf
  *             有理数构造函数
  * @return The rational number value
  *         有理数值
- */
+*/
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,
     converter1: (String) -> I,
@@ -85,7 +85,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
  *              The floating-point number value to round
  * @return 舍入后的浮点数值
  *         The rounded floating-point number value
- */
+*/
 private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
     val fractional = value - value.floor()
 
@@ -116,7 +116,7 @@ private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
  *
  * @param Self 实现此接口的具体类型
  *             The concrete type implementing this interface
- */
+*/
 interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
     override infix fun neq(rhs: Self) = !this.eq(rhs)
@@ -143,7 +143,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *              The value to cast
      * @return 转换后的 Self 值
      *         The cast Self value
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castFloatingToSelf(value: Any?): Self {
         return value as Self
@@ -160,7 +160,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *              The nullable value to cast
      * @return 转换后的 Self 值或 null
      *         The cast Self value or null
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castNullableFloatingToSelf(value: Any?): Self? {
         return value as Self?
@@ -168,6 +168,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
 
     /** 计算平方根 / Compute square root */
     override fun sqrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.two))
+
     /** 计算立方根 / Compute cube root */
     override fun cbrt(): Self? = castNullableFloatingToSelf(pow(constants.one / constants.three))
 
@@ -194,39 +195,43 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *
      * @return 向下取整后的值
      *         The floored value
-     */
+    */
     fun floor(): Self
+
     /**
      * 向上取整
      * Ceiling
      *
      * @return 向上取整后的值
      *         The ceiled value
-     */
+    */
     fun ceil(): Self
+
     /**
      * 四舍五入
      * Round half up
      *
      * @return 四舍五入后的值
      *         The rounded value
-     */
+    */
     fun round(): Self
+
     /**
      * 截断小数部分
      * Truncate fractional part
      *
      * @return 截断后的值
      *         The truncated value
-     */
+    */
     fun trunc(): Self
+
     /**
      * 银行家舍入（四舍六入五成双）
      * Banker's rounding (round half to even)
      *
      * @return 银行家舍入后的值
      *         The banker-rounded value
-     */
+    */
     fun bankerRound(): Self
 
     /**
@@ -237,8 +242,9 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *                  The number of decimal places
      * @return 舍入后的值
      *         The rounded value
-     */
+    */
     fun floorTo(precision: Int = this.constants.decimalDigits!!): Self
+
     /**
      * 向上取整到指定精度
      * Ceil to specified precision
@@ -247,8 +253,9 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *                  The number of decimal places
      * @return 舍入后的值
      *         The rounded value
-     */
+    */
     fun ceilTo(precision: Int = this.constants.decimalDigits!!): Self
+
     /**
      * 四舍五入到指定精度
      * Round to specified precision
@@ -257,8 +264,9 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *                  The number of decimal places
      * @return 舍入后的值
      *         The rounded value
-     */
+    */
     fun roundTo(precision: Int = this.constants.decimalDigits!!): Self
+
     /**
      * 截断到指定精度
      * Truncate to specified precision
@@ -267,8 +275,9 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *                  The number of decimal places
      * @return 舍入后的值
      *         The rounded value
-     */
+    */
     fun truncTo(precision: Int = this.constants.decimalDigits!!): Self
+
     /**
      * 银行家舍入到指定精度
      * Banker's round to specified precision
@@ -277,7 +286,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
      *                  The number of decimal places
      * @return 舍入后的值
      *         The rounded value
-     */
+    */
     fun bankerRoundTo(precision: Int = this.constants.decimalDigits!!): Self
 }
 
@@ -287,7 +296,7 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
  *
  * 用于 Flt32 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Flt32 type in the Kotlin serialization framework.
- */
+*/
 data object Flt32Serializer : KSerializer<Flt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt32", PrimitiveKind.DOUBLE)
 
@@ -306,15 +315,16 @@ data object Flt32Serializer : KSerializer<Flt32> {
  *
  * 定义了转换为 Float 的能力。
  * Defines the ability to convert to Float.
- */
+*/
 interface Flt32Interface {
+
     /**
      * 转换为 Float 值
      * Convert to Float value
      *
      * @return Float 值
      *         The Float value
-     */
+    */
     fun toFloat(): Float
 }
 
@@ -332,17 +342,18 @@ interface Flt32Interface {
  *
  * @property value 内部的 Float 值
  *                 The internal Float value
- */
+*/
 @JvmInline
 @Serializable(with = Flt32Serializer::class)
 value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt32>, Copyable<Flt32> {
+
     /**
      * Flt32 常量对象
      * Flt32 Constants Object
      *
      * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
      * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
-     */
+    */
     companion object : FloatingNumberConstants<Flt32> {
         @JvmStatic
         override val zero: Flt32 get() = Flt32(0.0F)
@@ -417,8 +428,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: Flt32) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -427,13 +439,15 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: Flt32) = (value.compareTo(rhs.value) == 0)
 
     /** 取负 / Negation */
     override operator fun unaryMinus() = Flt32(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = Flt32(abs(value))
+
     /** 倒数 / Reciprocal */
     override fun reciprocal() = Flt32(1.0F / value)
 
@@ -445,8 +459,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: Flt32) = Flt32(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -455,8 +470,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: Flt32) = Flt32(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -465,8 +481,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: Flt32) = Flt32(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -475,8 +492,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: Flt32) = Flt32(value / rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -485,8 +503,9 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: Flt32) = Flt32(value - value % rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -495,7 +514,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: Flt32) = Flt32(value % rhs.value)
 
     /**
@@ -506,7 +525,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *             The logarithm base
      * @return 对数结果；当基数不支持时返回 null
      *         The logarithm result; null if the base is unsupported
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt32(log(value, base.value))
@@ -523,7 +542,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *              The integer exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     override fun pow(index: Int) = pow(copy(), index, Flt32)
 
     /**
@@ -534,7 +553,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> Flt32(value.pow(index.value))
@@ -545,6 +564,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 平方根 / Square root */
     override fun sqrt() = Flt32(sqrt(value))
+
     /** 立方根 / Cube root */
     override fun cbrt() = Flt32(value.toDouble().pow(1.0 / 3.0).toFloat())
 
@@ -553,8 +573,10 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 正弦 / Sine */
     override fun sin() = Flt32(sin(value))
+
     /** 余弦 / Cosine */
     override fun cos() = Flt32(cos(value))
+
     /** 正割；当余弦为零时返回 null / Secant; null when cosine is zero */
     override fun sec(): Flt32? {
         val temp = this.cos()
@@ -633,6 +655,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 反正切 / Arctangent */
     override fun atan() = Flt32(atan(value))
+
     /** 反余切；当值为零时返回 null / Arccotangent; null when value is zero */
     override fun acot(): Flt32? {
         return if (this eq zero) {
@@ -644,10 +667,13 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = Flt32(sinh(value))
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = Flt32(cosh(value))
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech() = this.cosh().reciprocal()
+
     /** 双曲余割；当值为零时返回 null / Hyperbolic cosecant; null when value is zero */
     override fun csch(): Flt32? {
         return if (this eq zero) {
@@ -659,6 +685,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = Flt32(tanh(value))
+
     /** 双曲余切；当值为零时返回 null / Hyperbolic cotangent; null when value is zero */
     override fun coth(): Flt32? {
         return if (this eq zero) {
@@ -670,6 +697,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = Flt32(asinh(value))
+
     /** 反双曲余弦；当值小于 1 时返回 null / Inverse hyperbolic cosine; null when value is less than 1 */
     override fun acosh(): Flt32? {
         return if (this ls one) {
@@ -717,54 +745,73 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toInt().toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toInt().toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toString())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toUInt().toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toUInt().toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toString())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = copy()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toDouble())
 
     /** 转换为原始 Float 值 / Convert to raw Float value */
     override fun toFloat() = value
+
     /** 向下取整 / Floor */
     override fun floor() = Flt32(floor(value))
+
     /** 向上取整 / Ceiling */
     override fun ceil() = Flt32(ceil(value))
+
     /** 四舍五入 / Round half up */
     override fun round() = Flt32(round(value))
+
     /** 截断小数部分 / Truncate fractional part */
     override fun trunc() = Flt32(truncate(value))
+
     /** 银行家舍入 / Banker's rounding */
     override fun bankerRound() = bankerRound(this)
 
     /** 向下取整到指定精度 / Floor to specified precision */
     override fun floorTo(precision: Int) = Flt32(floor(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+
     /** 向上取整到指定精度 / Ceil to specified precision */
     override fun ceilTo(precision: Int) = Flt32(ceil(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+
     /** 四舍五入到指定精度 / Round to specified precision */
     override fun roundTo(precision: Int) = Flt32(round(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+
     /** 截断到指定精度 / Truncate to specified precision */
     override fun truncTo(precision: Int) = Flt32(truncate(value * 10.0F.pow(precision)) / 10.0F.pow(precision))
+
     /** 银行家舍入到指定精度 / Banker's round to specified precision */
     override fun bankerRoundTo(precision: Int) = bankerRound(Flt32(value * 10.0F.pow(precision))) / Flt32(10.0F.pow(precision))
 }
@@ -775,7 +822,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
  *
  * 用于 Flt64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the Flt64 type in the Kotlin serialization framework.
- */
+*/
 data object Flt64Serializer : KSerializer<Flt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt64", PrimitiveKind.DOUBLE)
 
@@ -794,15 +841,16 @@ data object Flt64Serializer : KSerializer<Flt64> {
  *
  * 定义了转换为 Double 的能力。
  * Defines the ability to convert to Double.
- */
+*/
 interface Flt64Interface {
+
     /**
      * 转换为 Double 值
      * Convert to Double value
      *
      * @return Double 值
      *         The Double value
-     */
+    */
     fun toDouble(): Double
 }
 
@@ -820,17 +868,18 @@ interface Flt64Interface {
  *
  * @property value 内部的 Double 值
  *                 The internal Double value
- */
+*/
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
 value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt64>, Copyable<Flt64> {
+
     /**
      * 从 Int 构造 Flt64 的构造函数
      * Constructor for Flt64 from Int
      *
      * @param value Int 值
      *              The Int value
-     */
+    */
     constructor(value: Int) : this(value.toDouble())
 
     /**
@@ -839,7 +888,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *
      * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
      * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
-     */
+    */
     companion object : FloatingNumberConstants<Flt64>, Flt64ValueConverter<Flt64> {
         @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
@@ -917,8 +966,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: Flt64) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -927,13 +977,15 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: Flt64) = (value.compareTo(rhs.value) == 0)
 
     /** 取负 / Negation */
     override operator fun unaryMinus() = Flt64(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = Flt64(abs(value))
+
     /** 倒数 / Reciprocal */
     override fun reciprocal() = Flt64(1.0 / value)
 
@@ -945,8 +997,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: Flt64) = Flt64(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -955,8 +1008,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: Flt64) = Flt64(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -965,8 +1019,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: Flt64) = Flt64(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -975,8 +1030,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: Flt64) = Flt64(value / rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -985,8 +1041,9 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: Flt64) = Flt64(value - value % rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -995,7 +1052,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: Flt64) = Flt64(value % rhs.value)
 
     /**
@@ -1006,7 +1063,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *             The logarithm base
      * @return 对数结果；当基数不支持时返回 null
      *         The logarithm result; null if the base is unsupported
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> Flt64(log(value, base.value.toDouble()))
@@ -1023,7 +1080,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *              The integer exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     override fun pow(index: Int) = pow(copy(), index, Flt64)
 
     /**
@@ -1034,7 +1091,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> Flt64(value.pow(index.value.toDouble()))
@@ -1045,6 +1102,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 平方根 / Square root */
     override fun sqrt() = Flt64(sqrt(value))
+
     /** 立方根 / Cube root */
     override fun cbrt() = Flt64(value.pow(1.0 / 3.0))
 
@@ -1053,8 +1111,10 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 正弦 / Sine */
     override fun sin() = Flt64(sin(value))
+
     /** 余弦 / Cosine */
     override fun cos() = Flt64(cos(value))
+
     /** 正割；当余弦为零时返回 null / Secant; null when cosine is zero */
     override fun sec(): Flt64? {
         val temp = this.cos()
@@ -1133,6 +1193,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 反正切 / Arctangent */
     override fun atan() = Flt64(atan(value))
+
     /** 反余切；当值为零时返回 null / Arccotangent; null when value is zero */
     override fun acot(): Flt64? {
         return if (this eq zero) {
@@ -1144,10 +1205,13 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = Flt64(sinh(value))
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = Flt64(cosh(value))
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech() = this.cosh().reciprocal()
+
     /** 双曲余割；当值为零时返回 null / Hyperbolic cosecant; null when value is zero */
     override fun csch(): Flt64? {
         return if (this eq zero) {
@@ -1159,6 +1223,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = Flt64(tanh(value))
+
     /** 双曲余切；当值为零时返回 null / Hyperbolic cotangent; null when value is zero */
     override fun coth(): Flt64? {
         return if (this eq zero) {
@@ -1170,6 +1235,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = Flt64(asinh(value))
+
     /** 反双曲余弦；当值小于 1 时返回 null / Inverse hyperbolic cosine; null when value is less than 1 */
     override fun acosh(): Flt64? {
         return if (this ls one) {
@@ -1217,54 +1283,73 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toInt().toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toInt().toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toString())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toUInt().toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toUInt().toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toString())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = copy()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value)
 
     /** 转换为原始 Double 值 / Convert to raw Double value */
     override fun toDouble() = value
+
     /** 向下取整 / Floor */
     override fun floor() = Flt64(floor(value))
+
     /** 向上取整 / Ceiling */
     override fun ceil() = Flt64(ceil(value))
+
     /** 四舍五入 / Round half up */
     override fun round() = Flt64(round(value))
+
     /** 截断小数部分 / Truncate fractional part */
     override fun trunc() = Flt64(truncate(value))
+
     /** 银行家舍入 / Banker's rounding */
     override fun bankerRound() = bankerRound(this)
 
     /** 向下取整到指定精度 / Floor to specified precision */
     override fun floorTo(precision: Int) = Flt64(floor(value * 10.0.pow(precision)) / 10.0.pow(precision))
+
     /** 向上取整到指定精度 / Ceil to specified precision */
     override fun ceilTo(precision: Int) = Flt64(ceil(value * 10.0.pow(precision)) / 10.0.pow(precision))
+
     /** 四舍五入到指定精度 / Round to specified precision */
     override fun roundTo(precision: Int) = Flt64(round(value * 10.0.pow(precision)) / 10.0.pow(precision))
+
     /** 截断到指定精度 / Truncate to specified precision */
     override fun truncTo(precision: Int) = Flt64(truncate(value * 10.0.pow(precision)) / 10.0.pow(precision))
+
     /** 银行家舍入到指定精度 / Banker's round to specified precision */
     override fun bankerRoundTo(precision: Int) = bankerRound(Flt64(value * 10.0.pow(precision))) / Flt64(10.0.pow(precision))
 }
@@ -1278,7 +1363,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
  *
  * Serializer for the FltX (arbitrary precision floating-point number) type in the Kotlin serialization framework.
  * Uses string format for serialization and deserialization to support floating-point numbers of arbitrary precision.
- */
+*/
 data object FltXSerializer : KSerializer<FltX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FltX", PrimitiveKind.STRING)
 
@@ -1297,7 +1382,7 @@ data object FltXSerializer : KSerializer<FltX> {
  *
  * 用于 FltX 类型的 JSON 格式序列化器，专门用于 JSON 序列化场景。
  * Serializer for the FltX type in JSON format, specifically designed for JSON serialization scenarios.
- */
+*/
 data object FltXJsonSerializer : KSerializer<FltX> {
     @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
     override val descriptor: SerialDescriptor = SerialDescriptor("FltX", JsonElement::class.serializer().descriptor)
@@ -1323,7 +1408,7 @@ data object FltXJsonSerializer : KSerializer<FltX> {
  *
  * 定义了转换为 BigDecimal 的能力。
  * Defines the ability to convert to BigDecimal.
- */
+*/
 interface FltXInterface {
 
     /**
@@ -1332,7 +1417,7 @@ interface FltXInterface {
      *
      * @return BigDecimal 值
      *         The BigDecimal value
-     */
+    */
     fun toDecimal(): BigDecimal
 
     /**
@@ -1341,7 +1426,7 @@ interface FltXInterface {
      *
      * @return Double 值
      *         The Double value
-     */
+    */
     fun toDouble(): Double
 }
 
@@ -1359,19 +1444,20 @@ interface FltXInterface {
  *
  * @property value 内部的 BigDecimal 值
  *                 The internal BigDecimal value
- */
+*/
 @JvmInline
 @Serializable(with = FltXSerializer::class)
 value class FltX(internal val value: BigDecimal) :
     FltXInterface, FloatingImpl<FltX>, Copyable<FltX>,
     LogP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>> {
+
     /**
      * FltX 常量对象
      * FltX Constants Object
      *
      * 提供常用的数值常量，包括数学常数（pi、e）等。
      * Provides common numeric constants, including mathematical constants (pi, e), etc.
-     */
+    */
     companion object : FloatingNumberConstants<FltX>, Flt64ValueConverter<FltX> {
         @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
@@ -1433,7 +1519,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The number of decimal places, defaults to 18
      * @param roundingMode 舍入模式，默认为 HALF_UP
      *                     The rounding mode, defaults to HALF_UP
-     */
+    */
     constructor(value: Double, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
 
     /**
@@ -1446,7 +1532,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The number of decimal places, defaults to 0
      * @param roundingMode 舍入模式，默认为 HALF_UP
      *                     The rounding mode, defaults to HALF_UP
-     */
+    */
     constructor(value: Long, scale: Int = 0, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
 
     /**
@@ -1459,7 +1545,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The number of decimal places, defaults to 18
      * @param roundingMode 舍入模式，默认为 HALF_UP
      *                     The rounding mode, defaults to HALF_UP
-     */
+    */
     constructor(value: String, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal(value).setScale(scale, roundingMode))
 
     /**
@@ -1471,7 +1557,7 @@ value class FltX(internal val value: BigDecimal) :
      *
      * @return 移除尾部零后的 FltX 值
      *         The FltX value with trailing zeros removed
-     */
+    */
     fun stripTrailingZeros() = if (value.scale() < 0) {
         FltX(value.setScale(0, RoundingMode.HALF_UP))
     } else if (value.scale() > 0) {
@@ -1491,7 +1577,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The number of decimal places
      * @return 设置小数位数后的 FltX 值
      *         The FltX value with the specified scale
-     */
+    */
     fun withScale(scale: Int) = FltX(value.setScale(scale))
 
     /**
@@ -1507,7 +1593,7 @@ value class FltX(internal val value: BigDecimal) :
      *                     The rounding mode
      * @return 设置小数位数后的 FltX 值
      *         The FltX value with the specified scale
-     */
+    */
     fun withScale(scale: Int, roundingMode: RoundingMode) = FltX(value.setScale(scale, roundingMode))
 
     override val constants: FloatingNumberConstants<FltX> get() = Companion
@@ -1520,21 +1606,23 @@ value class FltX(internal val value: BigDecimal) :
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 转换为工程计数法字符串
      * Convert to engineering notation string
      *
      * @return 工程计数法字符串表示
      *         The engineering notation string representation
-     */
+    */
     fun toEngineeringString(): String = value.stripTrailingZeros().toEngineeringString()
+
     /**
      * 转换为普通字符串（无科学计数法）
      * Convert to plain string (no scientific notation)
      *
      * @return 普通字符串表示
      *         The plain string representation
-     */
+    */
     fun toPlainString(): String = value.stripTrailingZeros().toPlainString()
 
     /**
@@ -1545,8 +1633,9 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: FltX) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -1555,13 +1644,15 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: FltX) = (value.compareTo(rhs.value) == 0)
 
     /** 取负 / Negation */
     override operator fun unaryMinus() = FltX(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = FltX(value.abs())
+
     /** 倒数 / Reciprocal */
     override fun reciprocal() = FltX(one.value / value)
 
@@ -1573,8 +1664,9 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: FltX) = FltX(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -1583,8 +1675,9 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: FltX) = FltX(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -1593,8 +1686,9 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: FltX) = FltX(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -1603,7 +1697,7 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: FltX) = FltX(
         value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
                 / rhs.value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
@@ -1617,8 +1711,9 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: FltX) = FltX(value - value % rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -1627,7 +1722,7 @@ value class FltX(internal val value: BigDecimal) :
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     /**
@@ -1638,7 +1733,7 @@ value class FltX(internal val value: BigDecimal) :
      *             The logarithm base
      * @return 对数结果；当基数不支持时返回 null
      *         The logarithm result; null if the base is unsupported
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FltX? = when (base) {
         is Flt32 -> log(base, decimalDigits)
@@ -1672,7 +1767,7 @@ value class FltX(internal val value: BigDecimal) :
      *               The number of decimal places
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     fun log(
         base: FloatingNumber<*>,
         digits: Int
@@ -1694,7 +1789,7 @@ value class FltX(internal val value: BigDecimal) :
      *                  The calculation precision
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(
         base: FloatingNumber<*>,
@@ -1724,7 +1819,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The integer exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     override fun pow(index: Int) = pow(copy(), index, FltX)
 
     /**
@@ -1735,7 +1830,7 @@ value class FltX(internal val value: BigDecimal) :
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     override fun pow(index: FloatingNumber<*>): FltX? = when (index) {
         is Flt32 -> pow(index, decimalDigits)
         is Flt64 -> pow(index, decimalDigits)
@@ -1768,7 +1863,7 @@ value class FltX(internal val value: BigDecimal) :
      *               The number of decimal places
      * @return 幂运算结果
      *         The power result
-     */
+    */
     fun pow(
         index: FloatingNumber<*>,
         digits: Int
@@ -1790,7 +1885,7 @@ value class FltX(internal val value: BigDecimal) :
      *                  The calculation precision
      * @return 幂运算结果
      *         The power result
-     */
+    */
     fun pow(
         index: FloatingNumber<*>,
         digits: Int,
@@ -1821,7 +1916,7 @@ value class FltX(internal val value: BigDecimal) :
      *               The number of decimal places
      * @return 指数运算结果
      *         The exponential result
-     */
+    */
     fun exp(digits: Int) = exp(
         index = this,
         constants = FltX,
@@ -1839,7 +1934,7 @@ value class FltX(internal val value: BigDecimal) :
      *                  The calculation precision
      * @return 指数运算结果
      *         The exponential result
-     */
+    */
     override fun exp(
         digits: Int,
         precision: FloatingNumber<*>
@@ -1851,87 +1946,118 @@ value class FltX(internal val value: BigDecimal) :
 
     /** 正弦 / Sine */
     override fun sin() = toFlt64().sin().toFltX()
+
     /** 余弦 / Cosine */
     override fun cos() = toFlt64().cos().toFltX()
+
     /** 正割 / Secant */
     override fun sec() = toFlt64().sec()?.toFltX()
+
     /** 余割 / Cosecant */
     override fun csc() = toFlt64().csc()?.toFltX()
+
     /** 正切 / Tangent */
     override fun tan() = toFlt64().tan()?.toFltX()
+
     /** 余切 / Cotangent */
     override fun cot() = toFlt64().cot()?.toFltX()
 
     /** 反正弦 / Arcsine */
     override fun asin() = toFlt64().asin()?.toFltX()
+
     /** 反余弦 / Arccosine */
     override fun acos() = toFlt64().acos()?.toFltX()
+
     /** 反正割 / Arcsecant */
     override fun asec() = toFlt64().asec()?.toFltX()
+
     /** 反余割 / Arccosecant */
     override fun acsc() = toFlt64().acsc()?.toFltX()
+
     /** 反正切 / Arctangent */
     override fun atan() = toFlt64().atan().toFltX()
+
     /** 反余切 / Arccotangent */
     override fun acot() = toFlt64().acot()?.toFltX()
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = toFlt64().sinh().toFltX()
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = toFlt64().cosh().toFltX()
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech() = toFlt64().sech().toFltX()
+
     /** 双曲余割 / Hyperbolic cosecant */
     override fun csch() = toFlt64().csch()?.toFltX()
+
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = toFlt64().tanh().toFltX()
+
     /** 双曲余切 / Hyperbolic cotangent */
     override fun coth() = toFlt64().coth()?.toFltX()
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = toFlt64().asinh().toFltX()
+
     /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh() = toFlt64().acosh()?.toFltX()
+
     /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech() = toFlt64().asech()?.toFltX()
+
     /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch() = toFlt64().acsch()?.toFltX()
+
     /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh() = toFlt64().atanh()?.toFltX()
+
     /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth() = toFlt64().acoth()?.toFltX()
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toInt().toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toInt().toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(toPlainString())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toInt().toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toInt().toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toLong().toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toLong().toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(toPlainString())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = copy()
 
     /** 转换为 Double 值 / Convert to Double value */
     override fun toDouble() = value.toDouble()
+
     /** 转换为 BigDecimal 值 / Convert to BigDecimal value */
     override fun toDecimal() = value
 
@@ -2014,7 +2140,7 @@ value class FltX(internal val value: BigDecimal) :
  *
  * @return 如果为 true 则返回 Flt64.one，否则返回 Flt64.zero
  *         Returns Flt64.one if true, otherwise Flt64.zero
- */
+*/
 fun Boolean.toFlt64() = if (this) {
     Flt64.one
 } else {
@@ -2027,7 +2153,7 @@ fun Boolean.toFlt64() = if (this) {
  *
  * @return Flt32 值
  *         The Flt32 value
- */
+*/
 fun String.toFlt32() = Flt32(toFloat())
 
 /**
@@ -2036,7 +2162,7 @@ fun String.toFlt32() = Flt32(toFloat())
  *
  * @return Flt32 值或 null
  *         The Flt32 value or null
- */
+*/
 fun String.toFlt32OrNull() = toFloatOrNull()?.let { Flt32(it) }
 
 /**
@@ -2045,7 +2171,7 @@ fun String.toFlt32OrNull() = toFloatOrNull()?.let { Flt32(it) }
  *
  * @return Flt64 值
  *         The Flt64 value
- */
+*/
 fun String.toFlt64() = Flt64(toDouble())
 
 /**
@@ -2054,7 +2180,7 @@ fun String.toFlt64() = Flt64(toDouble())
  *
  * @return Flt64 值或 null
  *         The Flt64 value or null
- */
+*/
 fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
 
 /**
@@ -2063,7 +2189,7 @@ fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
  *
  * @return FltX 值
  *         The FltX value
- */
+*/
 fun String.toFltX() = FltX(toBigDecimal())
 
 /**
@@ -2072,5 +2198,5 @@ fun String.toFltX() = FltX(toBigDecimal())
  *
  * @return FltX 值或 null
  *         The FltX value or null
- */
+*/
 fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }

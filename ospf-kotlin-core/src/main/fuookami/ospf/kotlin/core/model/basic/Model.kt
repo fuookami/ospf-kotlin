@@ -1,7 +1,7 @@
 /**
  * 模型核心接口与类型定义
  * Core model interfaces and type definitions
- */
+*/
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 /**
  * 模型核心接口
  * Core model interfaces
- */
+*/
 
 /** 解决方案类型别名 / Solution type alias */
 typealias Solution<V> = List<V>
@@ -30,7 +30,7 @@ typealias Solution<V> = List<V>
  * Core model interface defining capabilities for variable registration, objective setting, and constraint addition.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory
 
@@ -39,7 +39,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      * Remove variable.
      *
      * @param item 要移除的变量项 / The variable item to remove
-     */
+    */
     fun remove(item: AbstractVariableItem<*, *>)
 
     /**
@@ -47,7 +47,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the nested variable item lists / 嵌套的变量项列表
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVariablesLists")
     fun add(items: Iterable<Iterable<AbstractVariableItem<*, *>>>): Try {
@@ -59,7 +59,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the variable item map / 变量项映射
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapVariables")
     fun <K> add(items: Map<K, AbstractVariableItem<*, *>>): Try {
@@ -71,7 +71,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the variable item list map / 变量项列表映射
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapVariablesLists")
     fun <K> add(items: Map<K, Iterable<AbstractVariableItem<*, *>>>): Try {
@@ -83,7 +83,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the two-level map of variable items / 二级映射变量项
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2Variables")
     fun <K1, K2> add(items: MultiMap2<K1, K2, AbstractVariableItem<*, *>>): Try {
@@ -95,7 +95,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the two-level map of variable item lists / 二级映射变量项列表
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2VariableLists")
     fun <K1, K2> add(items: MultiMap2<K1, K2, Iterable<AbstractVariableItem<*, *>>>): Try {
@@ -107,7 +107,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the three-level map of variable items / 三级映射变量项
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3Variables")
     fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, AbstractVariableItem<*, *>>): Try {
@@ -119,42 +119,67 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      *
      * @param items the three-level map of variable item lists / 三级映射变量项列表
      * @return the operation result / 操作结果
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3VariableLists")
     fun <K1, K2, K3> add(items: MultiMap3<K1, K2, K3, Iterable<AbstractVariableItem<*, *>>>): Try {
         return add(items.values.flatMap { it.values }.flatMap { it.values }.flatten())
     }
 
-    /** 添加四级映射变量 / Add four-level map variables */
+    /**
+     * 添加四级映射变量 / Add four-level map variables
+     *
+     * @param items the four-level map of variable items / 四级映射变量项
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4Variables")
     fun <K1, K2, K3, K4> add(items: MultiMap4<K1, K2, K3, K4, AbstractVariableItem<*, *>>): Try {
         return add(items.values.flatMap { it.values }.flatMap { it.values }.flatMap { it.values })
     }
 
-    /** 添加四级映射变量列表 / Add four-level map variable lists */
+    /**
+     * 添加四级映射变量列表 / Add four-level map variable lists
+     *
+     * @param items the four-level map of variable item lists / 四级映射变量项列表
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4VariableLists")
     fun <K1, K2, K3, K4> add(items: MultiMap4<K1, K2, K3, K4, Iterable<AbstractVariableItem<*, *>>>): Try {
         return add(items.values.flatMap { it.values }.flatMap { it.values }.flatMap { it.values }.flatten())
     }
 
-    /** 添加数量包装的变量 / Add quantity-wrapped variable */
+    /**
+     * 添加数量包装的变量 / Add quantity-wrapped variable
+     *
+     * @param item the quantity-wrapped variable item / 数量包装的变量项
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityVariable")
     fun add(item: Quantity<AbstractVariableItem<*, *>>): Try {
         return add(item.value)
     }
 
-    /** 添加数量包装的变量列表 / Add quantity-wrapped variable list */
+    /**
+     * 添加数量包装的变量列表 / Add quantity-wrapped variable list
+     *
+     * @param items the quantity-wrapped variable item list / 数量包装的变量项列表
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityVariables")
     fun add(items: Iterable<Quantity<AbstractVariableItem<*, *>>>): Try {
         return add(items.map { it.value })
     }
 
-    /** 添加数量包装的中间符号 / Add quantity-wrapped intermediate symbol */
+    /**
+     * 添加数量包装的中间符号 / Add quantity-wrapped intermediate symbol
+     *
+     * @param item the quantity-wrapped intermediate symbol / 数量包装的中间符号
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityIntermediateSymbol")
     fun add(item: Quantity<IntermediateSymbol<*>>): Try {
@@ -171,7 +196,12 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         }
     }
 
-    /** 添加数量包装的中间符号列表 / Add quantity-wrapped intermediate symbol list */
+    /**
+     * 添加数量包装的中间符号列表 / Add quantity-wrapped intermediate symbol list
+     *
+     * @param items the quantity-wrapped intermediate symbol list / 数量包装的中间符号列表
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantityIntermediateSymbols")
     fun add(items: Iterable<Quantity<IntermediateSymbol<*>>>): Try {
@@ -185,14 +215,24 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         return ok
     }
 
-    /** 添加映射形式的中间符号 / Add intermediate symbols as a map */
+    /**
+     * 添加映射形式的中间符号 / Add intermediate symbols as a map
+     *
+     * @param symbols the map of quantity-wrapped intermediate symbols / 数量包装的中间符号映射
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapQuantityIntermediateSymbols")
     fun <K> add(symbols: Map<K, Quantity<IntermediateSymbol<*>>>): Try {
         return add(symbols.values)
     }
 
-    /** 添加映射形式的中间符号列表 / Add intermediate symbol lists as a map */
+    /**
+     * 添加映射形式的中间符号列表 / Add intermediate symbol lists as a map
+     *
+     * @param symbols the map of quantity-wrapped intermediate symbol lists / 数量包装的中间符号列表映射
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapQuantityIntermediateSymbolLists")
     fun <K> add(symbols: Map<K, Iterable<Quantity<IntermediateSymbol<*>>>>): Try {
@@ -206,7 +246,11 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         return ok
     }
 
-    /** 移除数量包装的变量 / Remove quantity-wrapped variable */
+    /**
+     * 移除数量包装的变量 / Remove quantity-wrapped variable
+     *
+     * @param item the quantity-wrapped variable item to remove / 要移除的数量包装变量项
+    */
     fun remove(item: Quantity<AbstractVariableItem<*, *>>) {
         return remove(item.value)
     }
@@ -220,7 +264,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -237,7 +281,7 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun <T : RealNumber<T>> addObject(
         category: ObjectCategory,
         constant: T,
@@ -245,7 +289,14 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         displayName: String? = null
     ): Try
 
-    /** 添加目标（最小化）/ Add objective (minimize) */
+    /**
+     * 添加目标（最小化）/ Add objective (minimize)
+     *
+     * @param variable the objective variable / 目标变量
+     * @param name the objective name (nullable) / 目标名称（可为 null）
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     fun minimize(
         variable: AbstractVariableItem<*, *>,
         name: String? = null,
@@ -259,7 +310,14 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         )
     }
 
-    /** 添加目标（最大化）/ Add objective (maximize) */
+    /**
+     * 添加目标（最大化）/ Add objective (maximize)
+     *
+     * @param variable the objective variable / 目标变量
+     * @param name the objective name (nullable) / 目标名称（可为 null）
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     fun maximize(
         variable: AbstractVariableItem<*, *>,
         name: String? = null,
@@ -273,7 +331,14 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         )
     }
 
-    /** 添加目标（最小化常量）/ Add objective (minimize constant) */
+    /**
+     * 添加目标（最小化常量）/ Add objective (minimize constant)
+     *
+     * @param constant the constant value / 常量值
+     * @param name the objective name (nullable) / 目标名称（可为 null）
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     fun <T : RealNumber<T>> minimize(
         constant: T,
         name: String? = null,
@@ -287,7 +352,14 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
         )
     }
 
-    /** 添加目标（最大化常量）/ Add objective (maximize constant) */
+    /**
+     * 添加目标（最大化常量）/ Add objective (maximize constant)
+     *
+     * @param constant the constant value / 常量值
+     * @param name the objective name (nullable) / 目标名称（可为 null）
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     fun <T : RealNumber<T>> maximize(
         constant: T,
         name: String? = null,
@@ -306,15 +378,17 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
      * Set solution as a list of values.
      *
      * @param solution 解值列表 / The list of solution values
-     */
+    */
     fun setSolution(solution: List<V>)
+
     /**
      * 设置解决方案（变量-值映射形式）。
      * Set solution as a variable-to-value map.
      *
      * @param solution 变量到值的映射 / The variable-to-value map
-     */
+    */
     fun setSolution(solution: Map<AbstractVariableItem<*, *>, V>)
+
     /** 清除解决方案 / Clear the current solution */
     fun clearSolution()
 }
@@ -324,13 +398,22 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
  * Linear model interface adding linear constraint and objective capabilities on top of Model.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
 
     // ========== addConstraint convenience overloads ==========
 
-    /** 添加约束（基于变量）/ Add constraint (by variable) */
+    /**
+     * 添加约束（基于变量）/ Add constraint (by variable)
+     *
+     * @param constraint the constraint variable / 约束变量
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @param withRangeSet whether to include range set / 是否包含范围集
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintVariable")
     fun addConstraint(
@@ -351,7 +434,16 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加约束（基于线性单项式）/ Add constraint (by LinearMonomial) */
+    /**
+     * 添加约束（基于线性单项式）/ Add constraint (by LinearMonomial)
+     *
+     * @param constraint the linear monomial constraint / 线性单项式约束
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @param withRangeSet whether to include range set / 是否包含范围集
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintLinearMonomial")
     fun addConstraint(
@@ -372,7 +464,16 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加约束（基于线性多项式）/ Add constraint (by LinearPolynomial) */
+    /**
+     * 添加约束（基于线性多项式）/ Add constraint (by LinearPolynomial)
+     *
+     * @param constraint the linear polynomial constraint / 线性多项式约束
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @param withRangeSet whether to include range set / 是否包含范围集
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintLinearPolynomial")
     fun addConstraint(
@@ -392,7 +493,16 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加约束（基于线性中间符号）/ Add constraint (by LinearIntermediateSymbol) */
+    /**
+     * 添加约束（基于线性中间符号）/ Add constraint (by LinearIntermediateSymbol)
+     *
+     * @param constraint the linear intermediate symbol constraint / 线性中间符号约束
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @param withRangeSet whether to include range set / 是否包含范围集
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintLinearSymbol")
     fun addConstraint(
@@ -423,7 +533,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param displayName  约束显示名称（可为 null） / The constraint display name (nullable)
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         relation: LinearInequality<V>,
         lazy: Boolean = false,
@@ -434,7 +544,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
 
     // ========== partition overloads ==========
 
-    /** 分区约束（基于变量）/ Partition constraint (by variables) */
+    /**
+     * 分区约束（基于变量）/ Partition constraint (by variables)
+     *
+     * @param variables the partition variables / 分区变量集合
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -454,7 +572,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 分区约束（基于线性中间符号）/ Partition constraint (by LinearIntermediateSymbol) */
+    /**
+     * 分区约束（基于线性中间符号）/ Partition constraint (by LinearIntermediateSymbol)
+     *
+     * @param symbols the linear intermediate symbols / 线性中间符号集合
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
@@ -474,7 +600,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 分区约束（基于线性单项式）/ Partition constraint (by LinearMonomial) */
+    /**
+     * 分区约束（基于线性单项式）/ Partition constraint (by LinearMonomial)
+     *
+     * @param monomials the linear monomials / 线性单项式集合
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearMonomials")
     fun partition(
@@ -491,7 +625,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 分区约束（基于线性多项式）/ Partition constraint (by LinearPolynomial) */
+    /**
+     * 分区约束（基于线性多项式）/ Partition constraint (by LinearPolynomial)
+     *
+     * @param polynomial the linear polynomial / 线性多项式
+     * @param lazy whether lazy evaluation / 是否延迟求值
+     * @param name the constraint name (nullable) / 约束名称（可为 null）
+     * @param displayName the constraint display name (nullable) / 约束显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearPolynomial")
     fun partition(
@@ -511,7 +653,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
 
     // ========== addObject overloads ==========
 
-    /** 添加线性目标（基于变量）/ Add linear objective (by variable) */
+    /**
+     * 添加线性目标（基于变量）/ Add linear objective (by variable)
+     *
+     * @param category the objective category (minimize/maximize) / 目标类别（最小化/最大化）
+     * @param variable the objective variable / 目标变量
+     * @param name the objective name / 目标名称
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     override fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -526,7 +676,15 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    /** 添加线性目标（基于常量）/ Add linear objective (by constant) */
+    /**
+     * 添加线性目标（基于常量）/ Add linear objective (by constant)
+     *
+     * @param category the objective category (minimize/maximize) / 目标类别（最小化/最大化）
+     * @param constant the constant value / 常量值
+     * @param name the objective name / 目标名称
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     override fun <T : RealNumber<T>> addObject(
         category: ObjectCategory,
         constant: T,
@@ -550,7 +708,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称 / The objective name
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addObject(
         category: ObjectCategory,
         flattenData: LinearFlattenData<V>,
@@ -560,7 +718,14 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
 
     // ========== math.symbol type overloads ==========
 
-    /** 添加目标（最小化线性多项式）/ Add objective (minimize LinearPolynomial) */
+    /**
+     * 添加目标（最小化线性多项式）/ Add objective (minimize LinearPolynomial)
+     *
+     * @param polynomial the linear polynomial / 线性多项式
+     * @param name the objective name (nullable) / 目标名称（可为 null）
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     fun minimize(
         polynomial: LinearPolynomial<V>,
         name: String? = null,
@@ -582,7 +747,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         polynomial: LinearPolynomial<V>,
         name: String? = null,
@@ -604,7 +769,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         monomial: LinearMonomial<V>,
         name: String? = null,
@@ -626,7 +791,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         monomial: LinearMonomial<V>,
         name: String? = null,
@@ -650,7 +815,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         symbol: LinearIntermediateSymbol<V>,
         name: String? = null,
@@ -673,7 +838,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         symbol: LinearIntermediateSymbol<V>,
         name: String? = null,
@@ -694,8 +859,9 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
  * Quadratic model interface adding quadratic constraint and objective capabilities on top of LinearModel.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 添加二次约束（使用数学 QuadraticInequality）。
      * Add constraint using math QuadraticInequality.
@@ -706,7 +872,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param displayName  约束显示名称（可为 null） / The constraint display name (nullable)
      * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         lazy: Boolean = false,
@@ -715,7 +881,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         withRangeSet: Boolean? = null
     ): Try
 
-    /** 添加二次目标（基于变量）/ Add quadratic objective (by variable) */
+    /**
+     * 添加二次目标（基于变量）/ Add quadratic objective (by variable)
+     *
+     * @param category the objective category (minimize/maximize) / 目标类别（最小化/最大化）
+     * @param variable the objective variable / 目标变量
+     * @param name the objective name / 目标名称
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     override fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -730,7 +904,15 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    /** 添加二次目标（基于常量）/ Add quadratic objective (by constant) */
+    /**
+     * 添加二次目标（基于常量）/ Add quadratic objective (by constant)
+     *
+     * @param category the objective category (minimize/maximize) / 目标类别（最小化/最大化）
+     * @param constant the constant value / 常量值
+     * @param name the objective name / 目标名称
+     * @param displayName the objective display name (nullable) / 目标显示名称（可为 null）
+     * @return the operation result / 操作结果
+    */
     override fun <T : RealNumber<T>> addObject(
         category: ObjectCategory,
         constant: T,
@@ -754,7 +936,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称 / The objective name
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addObject(
         category: ObjectCategory,
         flattenData: QuadraticFlattenData<V>,
@@ -772,7 +954,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         polynomial: QuadraticPolynomial<V>,
         name: String? = null,
@@ -794,7 +976,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         polynomial: QuadraticPolynomial<V>,
         name: String? = null,
@@ -816,7 +998,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         monomial: QuadraticMonomial<V>,
         name: String? = null,
@@ -838,7 +1020,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         monomial: QuadraticMonomial<V>,
         name: String? = null,
@@ -862,7 +1044,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun minimize(
         symbol: QuadraticIntermediateSymbol<V>,
         name: String? = null,
@@ -885,7 +1067,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        目标名称（可为 null） / The objective name (nullable)
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun maximize(
         symbol: QuadraticIntermediateSymbol<V>,
         name: String? = null,
@@ -912,7 +1094,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticMonomial")
     fun addConstraint(
@@ -943,7 +1125,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticPolynomial")
     fun addConstraint(
@@ -973,7 +1155,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @param withRangeSet 是否包含范围集（可为 null） / Whether to include range set (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintQuadraticSymbol")
     fun addConstraint(
@@ -1005,7 +1187,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
@@ -1034,7 +1216,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticMonomials")
     fun partition(
@@ -1060,7 +1242,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * @param name        约束名称（可为 null） / The constraint name (nullable)
      * @param displayName 约束显示名称（可为 null） / The constraint display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticPolynomial")
     fun partition(

@@ -1,7 +1,7 @@
 /**
  * Pattern model, defining the interface and common logic for pattern placement and generation.
  * 模式模型，定义模式放置和生成的接口与公共逻辑。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
@@ -20,15 +20,26 @@ import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemHeightCombinator
 
-/** 将数值转换为标量值 / Convert a number to a scalar value */
+/**
+ * 将数值转换为标量值 / Convert a number to a scalar value
+ *
+ * @param value 数值 / numeric value
+ * @return 标量值 / scalar value
+*/
 private fun patternScalar(value: Number): FltX = FltX(value.toDouble())
-/** 将无符号长整数转换为标量值 / Convert an unsigned long integer to a scalar value */
+
+/**
+ * 将无符号长整数转换为标量值 / Convert an unsigned long integer to a scalar value
+ *
+ * @param value 无符号长整数 / unsigned long integer
+ * @return 标量值 / scalar value
+*/
 private fun patternScalar(value: ULong): FltX = FltX(value.toDouble())
 
 /**
  * 模式项信息，包含项及其数量。
  * Pattern item information, containing an item and its amount.
- */
+*/
 private data class PatternItemInfo(
     val item: Item,
     var amount: UInt64,
@@ -39,15 +50,16 @@ private data class PatternItemInfo(
 /**
  * 抽象模式模型，定义模式放置和生成的接口与公共逻辑。
  * Abstract pattern model, defining the interface and common logic for pattern placement and generation.
- */
+*/
 abstract class Pattern {
+
     /**
      * 模式步骤，定义每个放置位置的朝向和下一位置提取器。
      * Pattern step, defining the orientation for each placement position and the next point extractor.
      *
      * @property lengthOrientation 长度方向 / Length orientation
      * @property nextPointExtractor 下一位置提取函数 / Next point extraction function
-     */
+    */
     data class Step(
         val lengthOrientation: ProjectivePlane,
         val nextPointExtractor: ((projection: Projection<Item, FltX, Bottom>, placements: List<QuantityPlacement2<Item, FltX, Bottom>>) -> QuantityPoint2<FltX>)?
@@ -60,7 +72,7 @@ abstract class Pattern {
          * @param placements 已有放置列表 / Existing placements
          * @param i 当前步骤索引 / Current step index
          * @return 生成的放置 / The generated placement
-         */
+        */
         fun generatePlacement(
             projection: Projection<Item, FltX, Bottom>,
             placements: List<QuantityPlacement2<Item, FltX, Bottom>>,
@@ -83,7 +95,7 @@ abstract class Pattern {
          *
          * @param items 项列表 / List of items
          * @return 多堆叠投影结果 / Multi-pile projection result
-         */
+        */
         fun generateMultiPileProjection(items: List<Item>): Result<MultiPileProjection<Item, FltX, Bottom>?, ErrorCode, Error<ErrorCode>> {
             var projection: MultiPileProjection<Item, FltX, Bottom>? = null
             val views = ArrayList<ItemView>()
@@ -117,7 +129,7 @@ abstract class Pattern {
          *
          * @param item 项 / Item
          * @return 视图结果 / View result
-         */
+        */
         fun getPatternView(item: Item): Result<ItemView?, ErrorCode, Error<ErrorCode>> {
             for (orientation in item.enabledOrientations) {
                 val view = item.view(orientation)
@@ -149,7 +161,7 @@ abstract class Pattern {
      *
      * @property withPiling 最大堆叠层数 / Maximum number of piling layers
      * @property withRemainder 是否允许剩余 / Whether to allow remainder
-     */
+    */
     data class Config(
         val withPiling: UInt64 = UInt64.maximum,
         val withRemainder: Boolean = false,
@@ -167,7 +179,7 @@ abstract class Pattern {
          * @param withPiling 最大堆叠层数 / Maximum number of piling layers
          * @param withRemainder 是否允许剩余 / Whether to allow remainder
          * @return 新配置 / New configuration
-         */
+        */
         fun new(
             withPiling: UInt64? = null,
             withRemainder: Boolean? = null
@@ -184,7 +196,7 @@ abstract class Pattern {
          *
          * @param builder 配置构建器 / Configuration builder
          * @return 新配置 / New configuration
-         */
+        */
         fun new(builder: ConfigBuilder): Config {
             return new(
                 withPiling = builder.withPiling,
@@ -199,7 +211,7 @@ abstract class Pattern {
      *
      * @property withPiling 最大堆叠层数 / Maximum number of piling layers
      * @property withRemainder 是否允许剩余 / Whether to allow remainder
-     */
+    */
     data class ConfigBuilder(
         var withPiling: UInt64? = null,
         var withRemainder: Boolean? = null
@@ -224,7 +236,7 @@ abstract class Pattern {
          *
          * @param builder 配置构建器 lambda / Configuration builder lambda
          * @return 配置构建器 / Configuration builder
-         */
+        */
         fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
             val config = ConfigBuilder()
             builder(config)
@@ -430,7 +442,7 @@ abstract class Pattern {
      * @param config 配置 / Configuration
      * @param scope 协程作用域 / Coroutine scope
      * @return 通道保护器 / Channel guard
-     */
+    */
     private fun generatePlanePlacements(
         originItems: List<PatternItemInfo>,
         itemsGroup: Map<FltX, List<PatternItemInfo>>,
@@ -480,7 +492,7 @@ abstract class Pattern {
      * @param pattern 单个模式步骤列表 / Single pattern step list
      * @param config 配置 / Configuration
      * @param promise 结果通道 / Result channel
-     */
+    */
     private suspend fun generatePlanePlacements(
         originItems: List<PatternItemInfo>,
         itemsGroup: Map<FltX, List<PatternItemInfo>>,

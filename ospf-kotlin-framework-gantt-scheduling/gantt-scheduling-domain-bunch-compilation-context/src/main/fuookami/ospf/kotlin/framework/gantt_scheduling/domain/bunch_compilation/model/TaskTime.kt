@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 任务束时间模型 / Bunch time model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
@@ -31,7 +32,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param withPositive 是否包含正松弛 / Whether to include positive slack
  * @param name 名称 / Name
  * @return 线性函数符号适配器 / Linear function symbol adapter
- */
+*/
 private fun slackSymbol(
     x: ToLinearPolynomial<Flt64>,
     y: Flt64,
@@ -58,6 +59,7 @@ private fun slackSymbol(
  * 任务束调度时间 / Bunch scheduling task time
  *
  * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
@@ -65,7 +67,7 @@ private fun slackSymbol(
  * @param tasks 任务列表 / List of tasks
  * @param compilation 任务束编译结果 / Bunch compilation result
  * @param redundancyRange 冗余范围 / Redundancy range
- */
+*/
 open class BunchSchedulingTaskTime<
         B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -78,6 +80,7 @@ open class BunchSchedulingTaskTime<
     override val compilation: BunchCompilation<B, V, T, E, A>,
     private val redundancyRange: Duration? = null,
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
+
     /**
      * 通过 solver 时间窗口边界创建任务束调度时间 / Create bunch scheduling task time from a solver time-window boundary
      *
@@ -85,7 +88,7 @@ open class BunchSchedulingTaskTime<
      * @param tasks 任务列表 / List of tasks
      * @param compilation 任务束编译结果 / Bunch compilation result
      * @param redundancyRange 冗余范围 / Redundancy range
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
@@ -119,7 +122,7 @@ open class BunchSchedulingTaskTime<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             if (!::estRedundancy.isInitialized) {
@@ -298,7 +301,7 @@ open class BunchSchedulingTaskTime<
      * @param bunches 任务束列表 / List of bunches
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun addColumns(
         iteration: UInt64,
         bunches: List<B>,

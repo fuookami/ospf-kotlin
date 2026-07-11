@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto.*
  * @param productionType 生产类型 / Production type
  * @param info 附加信息 / Additional info
  * @return 渲染 DTO / Render DTO
- */
+*/
 fun <V : RealNumber<V>> Product<V>.toRenderDto(
     x: FltX,
     productionType: RenderProductionType = RenderProductionType.Product,

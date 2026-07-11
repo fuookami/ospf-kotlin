@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 迭代状态快照 / Iteration state snapshot */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.model
 
@@ -25,7 +26,7 @@ typealias IterationObjectiveQuantity<V> = Quantity<V>
  * @property slowLpImprovementStep LP 改进缓慢步长 / Slow LP improvement step
  * @property optimalRate 最优率，无量纲 / Optimal rate, dimensionless
  * @property isImprovementSlow 是否改进缓慢 / Whether improvement is slow
- */
+*/
 data class IterationSnapshot<V : RealNumber<V>>(
     val iteration: UInt64,
     val runTime: Duration,

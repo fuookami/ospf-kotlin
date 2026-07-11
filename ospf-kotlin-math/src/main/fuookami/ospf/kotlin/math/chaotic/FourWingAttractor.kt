@@ -1,7 +1,7 @@
 /**
  * 四翼吸引子
  * Four-Wing Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property kappa 系统参数 kappa / System parameter kappa
  * @property h 时间步长 / Time step size
- */
+*/
 data class FourWingAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -55,7 +55,7 @@ data class FourWingAttractor<V : FloatingNumber<V>>(
 /**
  * 四翼吸引子生成器
  * Four-Wing Attractor Generator
- */
+*/
 data class FourWingAttractorGenerator(
     val attractor: FourWingAttractor<Flt64> = FourWingAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

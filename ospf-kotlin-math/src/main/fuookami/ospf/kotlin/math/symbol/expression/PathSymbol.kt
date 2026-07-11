@@ -9,7 +9,7 @@
  * - `name = path.value` / Symbol name equals path value
  * - `symbolId = "path:${path.value}"` / Unique identifier format
  * - 支持丌`PropertyPath` 双向转换 / Supports bidirectional conversion with `PropertyPath`
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.*
  * Wraps a property path as a symbol for referencing fields or properties in the expression system.
  *
  * @property path 属性路後/ Property path
- */
+*/
 data class PathSymbol(
     val path: PropertyPath
 ) : Symbol, IdentifiedSymbol {
@@ -30,19 +30,19 @@ data class PathSymbol(
     /**
      * 符号名称，等于路径倌
      * Symbol name, equals path value
-     */
+    */
     override val name: String = path.value
 
     /**
      * 显示名称，默认为路径倌
      * Display name, defaults to path value
-     */
+    */
     override val displayName: String? = path.value
 
     /**
      * 符号唯一标识，格式为 `path:${path.value}`
      * Symbol unique identifier, format is `path:${path.value}`
-     */
+    */
     override val symbolId: String = "path:${path.value}"
 
     override fun toString(): String = "PathSymbol($path)"
@@ -54,7 +54,7 @@ data class PathSymbol(
          *
          * @param path 属性路後/ Property path
          * @return 路径符号 / Path symbol
-         */
+        */
         fun from(path: PropertyPath): PathSymbol = PathSymbol(path)
 
         /**
@@ -63,7 +63,7 @@ data class PathSymbol(
          *
          * @param path 路径字符丌/ Path string
          * @return 路径符号 / Path symbol
-         */
+        */
         fun from(path: String): PathSymbol = PathSymbol(PropertyPath.parse(path))
 
         /**
@@ -72,7 +72,7 @@ data class PathSymbol(
          *
          * @param segments 路径分段 / Path segments
          * @return 路径符号 / Path symbol
-         */
+        */
         fun of(vararg segments: String): PathSymbol = PathSymbol(PropertyPath.of(*segments))
     }
 }
@@ -82,7 +82,7 @@ data class PathSymbol(
  * Extension function: PropertyPath to PathSymbol
  *
  * @return 路径符号 / Path symbol
- */
+*/
 fun PropertyPath.toPathSymbol(): PathSymbol = PathSymbol.from(this)
 
 /**
@@ -90,7 +90,7 @@ fun PropertyPath.toPathSymbol(): PathSymbol = PathSymbol.from(this)
  * Extension function: String to PathSymbol
  *
  * @return 路径符号 / Path symbol
- */
+*/
 fun String.toPathSymbol(): PathSymbol = PathSymbol.from(this)
 
 /**
@@ -101,7 +101,7 @@ fun String.toPathSymbol(): PathSymbol = PathSymbol.from(this)
  * Only works for `PathSymbol` type, returns null for other types.
  *
  * @return 属性路径，非 PathSymbol 时返回 null / Property path, null if not PathSymbol
- */
+*/
 fun Symbol.toPropertyPathOrNull(): PropertyPath? {
     return when (this) {
         is PathSymbol -> path
@@ -114,7 +114,7 @@ fun Symbol.toPropertyPathOrNull(): PropertyPath? {
  * Extension function: Symbol is PathSymbol
  *
  * @return 是否是路径符号 / Whether it is a path symbol
- */
+*/
 fun Symbol.isPathSymbol(): Boolean = this is PathSymbol
 
 /**
@@ -125,7 +125,7 @@ fun Symbol.isPathSymbol(): Boolean = this is PathSymbol
  * Parses based on symbolId format `path:${value}`.
  *
  * @return 属性路径，解析失败时返回 null / Property path, null on failure
- */
+*/
 fun IdentifiedSymbol.toPropertyPathFromIdOrNull(): PropertyPath? {
     val id = symbolId
     if (!id.startsWith("path:")) return null

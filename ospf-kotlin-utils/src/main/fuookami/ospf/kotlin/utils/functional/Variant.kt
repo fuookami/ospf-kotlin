@@ -21,7 +21,7 @@
  * - vN 属性用于安全提取值（如果不是预期类型则返回 null）
  * - ifN 函数用于模式匹配
  * - VariantNMatcher 类用于流式模式匹配 API
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlin.reflect.KClass
@@ -35,8 +35,9 @@ import fuookami.ospf.kotlin.utils.concept.*
  *
  * @param T1 第一种可能类型的类型 / The type of the first possible type
  * @param T2 第二种可能类型的类型 / The type of the second possible type
- */
+*/
 sealed class Variant2<T1, T2>() {
+
     /**
      * V1 子类 - 第一种类型的变体
      *
@@ -44,7 +45,7 @@ sealed class Variant2<T1, T2>() {
      * 表示类型 T1 的值。
      *
      * @param value 携带的 T1 类型值 / The carried value of type T1
-     */
+    */
     data class V1<T1, T2>(val value: T1) : Variant2<T1, T2>() {}
 
     /**
@@ -54,7 +55,7 @@ sealed class Variant2<T1, T2>() {
      * 表示类型 T2 的值。
      *
      * @param value 携带的 T2 类型值 / The carried value of type T2
-     */
+    */
     data class V2<T1, T2>(val value: T2) : Variant2<T1, T2>() {}
 
     /**
@@ -62,7 +63,7 @@ sealed class Variant2<T1, T2>() {
      *
      * Returns true if this is a V1 value.
      * 如果是 V1 值则返回 true。
-     */
+    */
     val is1 get() = this is V1
 
     /**
@@ -70,7 +71,7 @@ sealed class Variant2<T1, T2>() {
      *
      * Returns the T1 value if this is V1, otherwise null.
      * 如果是 V1 则返回 T1 值，否则返回 null。
-     */
+    */
     val v1
         get() = when (this) {
             is V1 -> {
@@ -91,7 +92,7 @@ sealed class Variant2<T1, T2>() {
      * @param Ret 返回值类型 / The return type
      * @param callBack V1 值的处理函数 / The handler function for V1 value
      * @return Variant2 匹配器 / A Variant2 matcher
-     */
+    */
     fun <Ret> if1(callBack: (T1) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if1(callBack)
 
     /**
@@ -99,7 +100,7 @@ sealed class Variant2<T1, T2>() {
      *
      * Returns true if this is a V2 value.
      * 如果是 V2 值则返回 true。
-     */
+    */
     val is2 get() = this is V2
 
     /**
@@ -107,7 +108,7 @@ sealed class Variant2<T1, T2>() {
      *
      * Returns the T2 value if this is V2, otherwise null.
      * 如果是 V2 则返回 T2 值，否则返回 null。
-     */
+    */
     val v2
         get() = when (this) {
             is V2 -> {
@@ -128,7 +129,7 @@ sealed class Variant2<T1, T2>() {
      * @param Ret 返回值类型 / The return type
      * @param callBack V2 值的处理函数 / The handler function for V2 value
      * @return Variant2 匹配器 / A Variant2 matcher
-     */
+    */
     fun <Ret> if2(callBack: (T2) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if2(callBack)
 
 }
@@ -143,7 +144,7 @@ sealed class Variant2<T1, T2>() {
  * @param T2 第二种可能类型的类型 / The type of the second possible type
  * @param Ret 返回值类型 / The return type
  * @param value 要匹配的 Variant2 值 / The Variant2 value to match
- */
+*/
 data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -156,7 +157,7 @@ data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
      *
      * @param callBack T1 值的处理函数 / The handler function for T1 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if1(callBack: (T1) -> Ret): Variant2Matcher<T1, T2, Ret> {
         callBack1 = callBack
         return this
@@ -170,7 +171,7 @@ data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
      *
      * @param callBack T2 值的处理函数 / The handler function for T2 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if2(callBack: (T2) -> Ret): Variant2Matcher<T1, T2, Ret> {
         callBack2 = callBack
         return this
@@ -184,7 +185,7 @@ data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
      *
      * @return 匹配结果 / The matching result
      * @throws NullPointerException 如果未设置相应的回调 / If the corresponding callback is not set
-     */
+    */
     @Throws(NullPointerException::class)
     operator fun invoke() = when (value) {
         is Variant2.V1 -> {
@@ -206,28 +207,31 @@ data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
  * @param T1 第一种可能类型的类型 / The type of the first possible type
  * @param T2 第二种可能类型的类型 / The type of the second possible type
  * @param T3 第三种可能类型的类型 / The type of the third possible type
- */
+*/
 sealed class Variant3<T1, T2, T3>() {
+
     /**
      * V1 子类 - 第一种类型的变体
      *
      * Represents a value of type T1.
      * 表示类型 T1 的值。
-     */
+    */
     data class V1<T1, T2, T3>(val value: T1) : Variant3<T1, T2, T3>() {}
+
     /**
      * V2 子类 - 第二种类型的变体
      *
      * Represents a value of type T2.
      * 表示类型 T2 的值。
-     */
+    */
     data class V2<T1, T2, T3>(val value: T2) : Variant3<T1, T2, T3>() {}
+
     /**
      * V3 子类 - 第三种类型的变体
      *
      * Represents a value of type T3.
      * 表示类型 T3 的值。
-     */
+    */
     data class V3<T1, T2, T3>(val value: T3) : Variant3<T1, T2, T3>() {}
 
     /** 是否为 V1 类型 / Returns true if this is a V1 value */
@@ -291,25 +295,40 @@ sealed class Variant3<T1, T2, T3>() {
  *
  * Matcher class for pattern matching on Variant3 values.
  * 用于 Variant3 值模式匹配的匹配器类。
- */
+*/
 data class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
     private lateinit var callBack3: (T3) -> Ret
 
-    /** 第1种类型的模式匹配 / Pattern match for type T1 */
+    /**
+     * 第1种类型的模式匹配 / Pattern match for type T1
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 第2种类型的模式匹配 / Pattern match for type T2 */
+    /**
+     * 第2种类型的模式匹配 / Pattern match for type T2
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 第3种类型的模式匹配 / Pattern match for type T3 */
+    /**
+     * 第3种类型的模式匹配 / Pattern match for type T3
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant3Matcher<T1, T2, T3, Ret> {
         callBack3 = callBack
         return this
@@ -337,14 +356,18 @@ data class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, 
  *
  * Sealed class representing a value that can be one of four types.
  * 密封类，表示可以是四种类型之一的值。
- */
+*/
 sealed class Variant4<T1, T2, T3, T4>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4>(val value: T1) : Variant4<T1, T2, T3, T4>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4>(val value: T2) : Variant4<T1, T2, T3, T4>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4>(val value: T3) : Variant4<T1, T2, T3, T4>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4>(val value: T4) : Variant4<T1, T2, T3, T4>() {}
 
@@ -427,32 +450,52 @@ sealed class Variant4<T1, T2, T3, T4>() {
  *
  * Matcher class for pattern matching on Variant4 values.
  * 用于 Variant4 值模式匹配的匹配器类。
- */
+*/
 data class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T3, T4>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
     private lateinit var callBack3: (T3) -> Ret
     private lateinit var callBack4: (T4) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant4Matcher<T1, T2, T3, T4, Ret> {
         callBack4 = callBack
         return this
@@ -484,16 +527,21 @@ data class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, 
  *
  * Sealed class representing a value that can be one of five types.
  * 密封类，表示可以是五种类型之一的值。
- */
+*/
 sealed class Variant5<T1, T2, T3, T4, T5>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5>(val value: T1) : Variant5<T1, T2, T3, T4, T5>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4, T5>(val value: T2) : Variant5<T1, T2, T3, T4, T5>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4, T5>(val value: T3) : Variant5<T1, T2, T3, T4, T5>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4, T5>(val value: T4) : Variant5<T1, T2, T3, T4, T5>() {}
+
     /** V5 子类 - 第5种类型的变体 / Represents a value of type T5 */
     data class V5<T1, T2, T3, T4, T5>(val value: T5) : Variant5<T1, T2, T3, T4, T5>() {}
 
@@ -594,7 +642,7 @@ sealed class Variant5<T1, T2, T3, T4, T5>() {
  *
  * Matcher class for pattern matching on Variant5 values.
  * 用于 Variant5 值模式匹配的匹配器类。
- */
+*/
 data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T2, T3, T4, T5>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -602,31 +650,56 @@ data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<
     private lateinit var callBack4: (T4) -> Ret
     private lateinit var callBack5: (T5) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant5Matcher<T1, T2, T3, T4, T5, Ret> {
         callBack5 = callBack
         return this
@@ -662,18 +735,24 @@ data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<
  *
  * Sealed class representing a value that can be one of six types.
  * 密封类，表示可以是六种类型之一的值。
- */
+*/
 sealed class Variant6<T1, T2, T3, T4, T5, T6>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6>(val value: T1) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4, T5, T6>(val value: T2) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4, T5, T6>(val value: T3) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4, T5, T6>(val value: T4) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+
     /** V5 子类 - 第5种类型的变体 / Represents a value of type T5 */
     data class V5<T1, T2, T3, T4, T5, T6>(val value: T5) : Variant6<T1, T2, T3, T4, T5, T6>() {}
+
     /** V6 子类 - 第6种类型的变体 / Represents a value of type T6 */
     data class V6<T1, T2, T3, T4, T5, T6>(val value: T6) : Variant6<T1, T2, T3, T4, T5, T6>() {}
 
@@ -792,7 +871,7 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6>() {
  *
  * Matcher class for pattern matching on Variant6 values.
  * 用于 Variant6 值模式匹配的匹配器类。
- */
+*/
 data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T1, T2, T3, T4, T5, T6>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -801,37 +880,67 @@ data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Varia
     private lateinit var callBack5: (T5) -> Ret
     private lateinit var callBack6: (T6) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret> {
         callBack6 = callBack
         return this
@@ -871,20 +980,27 @@ data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Varia
  *
  * Sealed class representing a value that can be one of seven types.
  * 密封类，表示可以是七种类型之一的值。
- */
+*/
 sealed class Variant7<T1, T2, T3, T4, T5, T6, T7>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7>(val value: T1) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4, T5, T6, T7>(val value: T2) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4, T5, T6, T7>(val value: T3) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4, T5, T6, T7>(val value: T4) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V5 子类 - 第5种类型的变体 / Represents a value of type T5 */
     data class V5<T1, T2, T3, T4, T5, T6, T7>(val value: T5) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V6 子类 - 第6种类型的变体 / Represents a value of type T6 */
     data class V6<T1, T2, T3, T4, T5, T6, T7>(val value: T6) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
+
     /** V7 子类 - 第7种类型的变体 / Represents a value of type T7 */
     data class V7<T1, T2, T3, T4, T5, T6, T7>(val value: T7) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
 
@@ -1021,7 +1137,7 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7>() {
  *
  * Matcher class for pattern matching on Variant7 values.
  * 用于 Variant7 值模式匹配的匹配器类。
- */
+*/
 data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Variant7<T1, T2, T3, T4, T5, T6, T7>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -1031,37 +1147,67 @@ data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: V
     private lateinit var callBack6: (T6) -> Ret
     private lateinit var callBack7: (T7) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack6 = callBack
         return this
@@ -1073,7 +1219,7 @@ data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: V
      *
      * @param callBack T7 值的处理函数 / The handler function for T7 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if7(callBack: (T7) -> Ret): Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret> {
         callBack7 = callBack
         return this
@@ -1117,22 +1263,30 @@ data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: V
  *
  * Sealed class representing a value that can be one of eight types.
  * 密封类，表示可以是八种类型之一的值。
- */
+*/
 sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T1) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T2) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T3) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T4) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V5 子类 - 第5种类型的变体 / Represents a value of type T5 */
     data class V5<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T5) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V6 子类 - 第6种类型的变体 / Represents a value of type T6 */
     data class V6<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T6) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V7 子类 - 第7种类型的变体 / Represents a value of type T7 */
     data class V7<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T7) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
+
     /** V8 子类 - 第8种类型的变体 / Represents a value of type T8 */
     data class V8<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T8) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
 
@@ -1287,7 +1441,7 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {
  *
  * Matcher class for pattern matching on Variant8 values.
  * 用于 Variant8 值模式匹配的匹配器类。
- */
+*/
 data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -1304,7 +1458,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T1 值的处理函数 / The handler function for T1 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if1(callBack: (T1) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack1 = callBack
         return this
@@ -1316,7 +1470,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T2 值的处理函数 / The handler function for T2 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if2(callBack: (T2) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack2 = callBack
         return this
@@ -1328,7 +1482,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T3 值的处理函数 / The handler function for T3 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if3(callBack: (T3) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack3 = callBack
         return this
@@ -1340,7 +1494,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T4 值的处理函数 / The handler function for T4 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if4(callBack: (T4) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack4 = callBack
         return this
@@ -1352,7 +1506,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T5 值的处理函数 / The handler function for T5 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if5(callBack: (T5) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack5 = callBack
         return this
@@ -1364,7 +1518,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T6 值的处理函数 / The handler function for T6 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if6(callBack: (T6) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack6 = callBack
         return this
@@ -1376,7 +1530,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T7 值的处理函数 / The handler function for T7 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if7(callBack: (T7) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack7 = callBack
         return this
@@ -1388,7 +1542,7 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
      *
      * @param callBack T8 值的处理函数 / The handler function for T8 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if8(callBack: (T8) -> Ret): Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret> {
         callBack8 = callBack
         return this
@@ -1436,24 +1590,33 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
  *
  * Sealed class representing a value that can be one of nine types.
  * 密封类，表示可以是九种类型之一的值。
- */
+*/
 sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T1) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V2 子类 - 第2种类型的变体 / Represents a value of type T2 */
     data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T2) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V3 子类 - 第3种类型的变体 / Represents a value of type T3 */
     data class V3<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T3) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V4 子类 - 第4种类型的变体 / Represents a value of type T4 */
     data class V4<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T4) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V5 子类 - 第5种类型的变体 / Represents a value of type T5 */
     data class V5<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T5) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V6 子类 - 第6种类型的变体 / Represents a value of type T6 */
     data class V6<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T6) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V7 子类 - 第7种类型的变体 / Represents a value of type T7 */
     data class V7<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T7) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V8 子类 - 第8种类型的变体 / Represents a value of type T8 */
     data class V8<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T8) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
+
     /** V9 子类 - 第9种类型的变体 / Represents a value of type T9 */
     data class V9<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T9) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
 
@@ -1626,7 +1789,7 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {
  *
  * Matcher class for pattern matching on Variant9 values.
  * 用于 Variant9 值模式匹配的匹配器类。
- */
+*/
 data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -1644,7 +1807,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T1 值的处理函数 / The handler function for T1 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if1(callBack: (T1) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack1 = callBack
         return this
@@ -1656,7 +1819,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T2 值的处理函数 / The handler function for T2 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if2(callBack: (T2) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack2 = callBack
         return this
@@ -1668,7 +1831,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T3 值的处理函数 / The handler function for T3 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if3(callBack: (T3) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack3 = callBack
         return this
@@ -1680,7 +1843,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T4 值的处理函数 / The handler function for T4 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if4(callBack: (T4) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack4 = callBack
         return this
@@ -1692,7 +1855,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T5 值的处理函数 / The handler function for T5 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if5(callBack: (T5) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack5 = callBack
         return this
@@ -1704,7 +1867,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T6 值的处理函数 / The handler function for T6 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if6(callBack: (T6) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack6 = callBack
         return this
@@ -1716,7 +1879,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T7 值的处理函数 / The handler function for T7 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if7(callBack: (T7) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack7 = callBack
         return this
@@ -1728,7 +1891,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T8 值的处理函数 / The handler function for T8 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if8(callBack: (T8) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack8 = callBack
         return this
@@ -1740,7 +1903,7 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
      *
      * @param callBack T9 值的处理函数 / The handler function for T9 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if9(callBack: (T9) -> Ret): Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> {
         callBack9 = callBack
         return this
@@ -1792,8 +1955,9 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
  *
  * Sealed class representing a value that can be one of ten types.
  * 密封类，表示可以是十种类型之一的值。
- */
+*/
 sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T1) :
         Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
@@ -2031,7 +2195,7 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {
  *
  * Matcher class for pattern matching on Variant10 values.
  * 用于 Variant10 值模式匹配的匹配器类。
- */
+*/
 data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -2050,7 +2214,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T1 值的处理函数 / The handler function for T1 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if1(callBack: (T1) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack1 = callBack
         return this
@@ -2062,7 +2226,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T2 值的处理函数 / The handler function for T2 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if2(callBack: (T2) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack2 = callBack
         return this
@@ -2074,7 +2238,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T3 值的处理函数 / The handler function for T3 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if3(callBack: (T3) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack3 = callBack
         return this
@@ -2086,7 +2250,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T4 值的处理函数 / The handler function for T4 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if4(callBack: (T4) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack4 = callBack
         return this
@@ -2098,7 +2262,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T5 值的处理函数 / The handler function for T5 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if5(callBack: (T5) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack5 = callBack
         return this
@@ -2110,7 +2274,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T6 值的处理函数 / The handler function for T6 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if6(callBack: (T6) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack6 = callBack
         return this
@@ -2122,7 +2286,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T7 值的处理函数 / The handler function for T7 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if7(callBack: (T7) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack7 = callBack
         return this
@@ -2134,7 +2298,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T8 值的处理函数 / The handler function for T8 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if8(callBack: (T8) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack8 = callBack
         return this
@@ -2146,7 +2310,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T9 值的处理函数 / The handler function for T9 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if9(callBack: (T9) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack9 = callBack
         return this
@@ -2158,7 +2322,7 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
      *
      * @param callBack T10 值的处理函数 / The handler function for T10 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if10(callBack: (T10) -> Ret): Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> {
         callBack10 = callBack
         return this
@@ -2214,8 +2378,9 @@ data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(privat
  *
  * Sealed class representing a value that can be one of eleven types.
  * 密封类，表示可以是十一种类型之一的值。
- */
+*/
 sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>(val value: T1) :
         Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {}
@@ -2476,7 +2641,7 @@ sealed class Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>() {
  *
  * Matcher for fluent pattern matching on Variant11.
  * 用于 Variant11 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(private val value: Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -2496,7 +2661,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T1 值的处理函数 / The handler function for T1 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if1(callBack: (T1) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack1 = callBack
         return this
@@ -2508,7 +2673,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T2 值的处理函数 / The handler function for T2 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if2(callBack: (T2) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack2 = callBack
         return this
@@ -2520,7 +2685,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T3 值的处理函数 / The handler function for T3 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if3(callBack: (T3) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack3 = callBack
         return this
@@ -2532,7 +2697,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T4 值的处理函数 / The handler function for T4 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if4(callBack: (T4) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack4 = callBack
         return this
@@ -2544,7 +2709,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T5 值的处理函数 / The handler function for T5 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if5(callBack: (T5) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack5 = callBack
         return this
@@ -2556,7 +2721,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T6 值的处理函数 / The handler function for T6 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if6(callBack: (T6) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack6 = callBack
         return this
@@ -2568,7 +2733,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T7 值的处理函数 / The handler function for T7 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if7(callBack: (T7) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack7 = callBack
         return this
@@ -2580,7 +2745,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T8 值的处理函数 / The handler function for T8 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if8(callBack: (T8) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack8 = callBack
         return this
@@ -2592,7 +2757,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T9 值的处理函数 / The handler function for T9 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if9(callBack: (T9) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack9 = callBack
         return this
@@ -2604,7 +2769,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T10 值的处理函数 / The handler function for T10 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if10(callBack: (T10) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack10 = callBack
         return this
@@ -2616,7 +2781,7 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
      *
      * @param callBack T11 值的处理函数 / The handler function for T11 value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun if11(callBack: (T11) -> Ret): Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> {
         callBack11 = callBack
         return this
@@ -2676,8 +2841,9 @@ data class Variant11Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret>(p
  *
  * Sealed class representing a value that can be one of twelve types.
  * 密封类，表示可以是十二种类型之一的值。
- */
+*/
 sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>(val value: T1) :
         Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {}
@@ -2961,7 +3127,7 @@ sealed class Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>() {
  *
  * Matcher for fluent pattern matching on Variant12.
  * 用于 Variant12 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret>(private val value: Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -2976,73 +3142,133 @@ data class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R
     private lateinit var callBack11: (T11) -> Ret
     private lateinit var callBack12: (T12) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> {
         callBack12 = callBack
         return this
@@ -3106,8 +3332,9 @@ data class Variant12Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, R
  *
  * Sealed class representing a value that can be one of thirteen types.
  * 密封类，表示可以是十三种类型之一的值。
- */
+*/
 sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>(val value: T1) :
         Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>() {}
@@ -3414,7 +3641,7 @@ sealed class Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>()
  *
  * Matcher for fluent pattern matching on Variant13.
  * 用于 Variant13 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret>(private val value: Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -3430,79 +3657,144 @@ data class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack12: (T12) -> Ret
     private lateinit var callBack13: (T13) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 设置 V13 分支的回调 / Sets the callback for the V13 branch */
+    /**
+     * 设置 V13 分支的回调 / Sets the callback for the V13 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> {
         callBack13 = callBack
         return this
@@ -3570,8 +3862,9 @@ data class Variant13Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of fourteen types.
  * 密封类，表示可以是十四种类型之一的值。
- */
+*/
 sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>(val value: T1) :
         Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>() {}
@@ -3901,7 +4194,7 @@ sealed class Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant14.
  * 用于 Variant14 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret>(private val value: Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -3918,85 +4211,155 @@ data class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack13: (T13) -> Ret
     private lateinit var callBack14: (T14) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 设置 V13 分支的回调 / Sets the callback for the V13 branch */
+    /**
+     * 设置 V13 分支的回调 / Sets the callback for the V13 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 设置 V14 分支的回调 / Sets the callback for the V14 branch */
+    /**
+     * 设置 V14 分支的回调 / Sets the callback for the V14 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> {
         callBack14 = callBack
         return this
@@ -4068,8 +4431,9 @@ data class Variant14Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of fifteen types.
  * 密封类，表示可以是十五种类型之一的值。
- */
+*/
 sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>(val value: T1) :
         Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>() {}
@@ -4422,7 +4786,7 @@ sealed class Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant15.
  * 用于 Variant15 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret>(private val value: Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -4440,91 +4804,166 @@ data class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack14: (T14) -> Ret
     private lateinit var callBack15: (T15) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 设置 V13 分支的回调 / Sets the callback for the V13 branch */
+    /**
+     * 设置 V13 分支的回调 / Sets the callback for the V13 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 设置 V14 分支的回调 / Sets the callback for the V14 branch */
+    /**
+     * 设置 V14 分支的回调 / Sets the callback for the V14 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 设置 V15 分支的回调 / Sets the callback for the V15 branch */
+    /**
+     * 设置 V15 分支的回调 / Sets the callback for the V15 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> {
         callBack15 = callBack
         return this
@@ -4600,8 +5039,9 @@ data class Variant15Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of sixteen types.
  * 密封类，表示可以是十六种类型之一的值。
- */
+*/
 sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>(val value: T1) :
         Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>() {}
@@ -4977,7 +5417,7 @@ sealed class Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant16.
  * 用于 Variant16 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>(private val value: Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -4996,97 +5436,177 @@ data class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack15: (T15) -> Ret
     private lateinit var callBack16: (T16) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 设置 V13 分支的回调 / Sets the callback for the V13 branch */
+    /**
+     * 设置 V13 分支的回调 / Sets the callback for the V13 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 设置 V14 分支的回调 / Sets the callback for the V14 branch */
+    /**
+     * 设置 V14 分支的回调 / Sets the callback for the V14 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 设置 V15 分支的回调 / Sets the callback for the V15 branch */
+    /**
+     * 设置 V15 分支的回调 / Sets the callback for the V15 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack15 = callBack
         return this
     }
 
-    /** 设置 V16 分支的回调 / Sets the callback for the V16 branch */
+    /**
+     * 设置 V16 分支的回调 / Sets the callback for the V16 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if16(callBack: (T16) -> Ret): Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> {
         callBack16 = callBack
         return this
@@ -5166,8 +5686,9 @@ data class Variant16Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of seventeen types.
  * 密封类，表示可以是十七种类型之一的值。
- */
+*/
 sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>(val value: T1) :
         Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>() {}
@@ -5600,7 +6121,7 @@ sealed class Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant17.
  * 用于 Variant17 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret>(private val value: Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>) {
     private lateinit var callBack1: (T1) -> Ret
     private lateinit var callBack2: (T2) -> Ret
@@ -5620,103 +6141,188 @@ data class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack16: (T16) -> Ret
     private lateinit var callBack17: (T17) -> Ret
 
-    /** 设置 V1 分支的回调 / Sets the callback for the V1 branch */
+    /**
+     * 设置 V1 分支的回调 / Sets the callback for the V1 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 设置 V2 分支的回调 / Sets the callback for the V2 branch */
+    /**
+     * 设置 V2 分支的回调 / Sets the callback for the V2 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 设置 V3 分支的回调 / Sets the callback for the V3 branch */
+    /**
+     * 设置 V3 分支的回调 / Sets the callback for the V3 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 设置 V4 分支的回调 / Sets the callback for the V4 branch */
+    /**
+     * 设置 V4 分支的回调 / Sets the callback for the V4 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 设置 V5 分支的回调 / Sets the callback for the V5 branch */
+    /**
+     * 设置 V5 分支的回调 / Sets the callback for the V5 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 设置 V6 分支的回调 / Sets the callback for the V6 branch */
+    /**
+     * 设置 V6 分支的回调 / Sets the callback for the V6 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 设置 V7 分支的回调 / Sets the callback for the V7 branch */
+    /**
+     * 设置 V7 分支的回调 / Sets the callback for the V7 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 设置 V8 分支的回调 / Sets the callback for the V8 branch */
+    /**
+     * 设置 V8 分支的回调 / Sets the callback for the V8 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 设置 V9 分支的回调 / Sets the callback for the V9 branch */
+    /**
+     * 设置 V9 分支的回调 / Sets the callback for the V9 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 设置 V10 分支的回调 / Sets the callback for the V10 branch */
+    /**
+     * 设置 V10 分支的回调 / Sets the callback for the V10 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 设置 V11 分支的回调 / Sets the callback for the V11 branch */
+    /**
+     * 设置 V11 分支的回调 / Sets the callback for the V11 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 设置 V12 分支的回调 / Sets the callback for the V12 branch */
+    /**
+     * 设置 V12 分支的回调 / Sets the callback for the V12 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 设置 V13 分支的回调 / Sets the callback for the V13 branch */
+    /**
+     * 设置 V13 分支的回调 / Sets the callback for the V13 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 设置 V14 分支的回调 / Sets the callback for the V14 branch */
+    /**
+     * 设置 V14 分支的回调 / Sets the callback for the V14 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 设置 V15 分支的回调 / Sets the callback for the V15 branch */
+    /**
+     * 设置 V15 分支的回调 / Sets the callback for the V15 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack15 = callBack
         return this
     }
 
-    /** 设置 V16 分支的回调 / Sets the callback for the V16 branch */
+    /**
+     * 设置 V16 分支的回调 / Sets the callback for the V16 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if16(callBack: (T16) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack16 = callBack
         return this
     }
 
-    /** 设置 V17 分支的回调 / Sets the callback for the V17 branch */
+    /**
+     * 设置 V17 分支的回调 / Sets the callback for the V17 branch
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if17(callBack: (T17) -> Ret): Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> {
         callBack17 = callBack
         return this
@@ -5800,8 +6406,9 @@ data class Variant17Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of eighteen types.
  * 密封类，表示可以是十八种类型之一的值。
- */
+*/
 sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>(val value: T1) :
         Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>() {}
@@ -6259,11 +6866,11 @@ sealed class Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant18.
  * 用于 Variant18 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret>(
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     private val value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -6285,109 +6892,199 @@ data class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack17: (T17) -> Ret
     private lateinit var callBack18: (T18) -> Ret
 
-    /** 第1种类型的模式匹配 / Pattern match for type T1 */
+    /**
+     * 第1种类型的模式匹配 / Pattern match for type T1
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 第2种类型的模式匹配 / Pattern match for type T2 */
+    /**
+     * 第2种类型的模式匹配 / Pattern match for type T2
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 第3种类型的模式匹配 / Pattern match for type T3 */
+    /**
+     * 第3种类型的模式匹配 / Pattern match for type T3
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 第4种类型的模式匹配 / Pattern match for type T4 */
+    /**
+     * 第4种类型的模式匹配 / Pattern match for type T4
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 第5种类型的模式匹配 / Pattern match for type T5 */
+    /**
+     * 第5种类型的模式匹配 / Pattern match for type T5
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 第6种类型的模式匹配 / Pattern match for type T6 */
+    /**
+     * 第6种类型的模式匹配 / Pattern match for type T6
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 第7种类型的模式匹配 / Pattern match for type T7 */
+    /**
+     * 第7种类型的模式匹配 / Pattern match for type T7
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 第8种类型的模式匹配 / Pattern match for type T8 */
+    /**
+     * 第8种类型的模式匹配 / Pattern match for type T8
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 第9种类型的模式匹配 / Pattern match for type T9 */
+    /**
+     * 第9种类型的模式匹配 / Pattern match for type T9
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 第10种类型的模式匹配 / Pattern match for type T10 */
+    /**
+     * 第10种类型的模式匹配 / Pattern match for type T10
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 第11种类型的模式匹配 / Pattern match for type T11 */
+    /**
+     * 第11种类型的模式匹配 / Pattern match for type T11
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 第12种类型的模式匹配 / Pattern match for type T12 */
+    /**
+     * 第12种类型的模式匹配 / Pattern match for type T12
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 第13种类型的模式匹配 / Pattern match for type T13 */
+    /**
+     * 第13种类型的模式匹配 / Pattern match for type T13
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 第14种类型的模式匹配 / Pattern match for type T14 */
+    /**
+     * 第14种类型的模式匹配 / Pattern match for type T14
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 第15种类型的模式匹配 / Pattern match for type T15 */
+    /**
+     * 第15种类型的模式匹配 / Pattern match for type T15
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack15 = callBack
         return this
     }
 
-    /** 第16种类型的模式匹配 / Pattern match for type T16 */
+    /**
+     * 第16种类型的模式匹配 / Pattern match for type T16
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if16(callBack: (T16) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack16 = callBack
         return this
     }
 
-    /** 第17种类型的模式匹配 / Pattern match for type T17 */
+    /**
+     * 第17种类型的模式匹配 / Pattern match for type T17
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if17(callBack: (T17) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack17 = callBack
         return this
     }
 
-    /** 第18种类型的模式匹配 / Pattern match for type T18 */
+    /**
+     * 第18种类型的模式匹配 / Pattern match for type T18
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if18(callBack: (T18) -> Ret): Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> {
         callBack18 = callBack
         return this
@@ -6475,8 +7172,9 @@ data class Variant18Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of nineteen types.
  * 密封类，表示可以是十九种类型之一的值。
- */
+*/
 sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>(val value: T1) :
         Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>() {}
@@ -6959,11 +7657,11 @@ sealed class Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant19.
  * 用于 Variant19 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret>(
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     private val value: Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -6986,115 +7684,210 @@ data class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack18: (T18) -> Ret
     private lateinit var callBack19: (T19) -> Ret
 
-    /** 第1种类型的模式匹配 / Pattern match for type T1 */
+    /**
+     * 第1种类型的模式匹配 / Pattern match for type T1
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 第2种类型的模式匹配 / Pattern match for type T2 */
+    /**
+     * 第2种类型的模式匹配 / Pattern match for type T2
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 第3种类型的模式匹配 / Pattern match for type T3 */
+    /**
+     * 第3种类型的模式匹配 / Pattern match for type T3
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 第4种类型的模式匹配 / Pattern match for type T4 */
+    /**
+     * 第4种类型的模式匹配 / Pattern match for type T4
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 第5种类型的模式匹配 / Pattern match for type T5 */
+    /**
+     * 第5种类型的模式匹配 / Pattern match for type T5
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 第6种类型的模式匹配 / Pattern match for type T6 */
+    /**
+     * 第6种类型的模式匹配 / Pattern match for type T6
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 第7种类型的模式匹配 / Pattern match for type T7 */
+    /**
+     * 第7种类型的模式匹配 / Pattern match for type T7
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 第8种类型的模式匹配 / Pattern match for type T8 */
+    /**
+     * 第8种类型的模式匹配 / Pattern match for type T8
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 第9种类型的模式匹配 / Pattern match for type T9 */
+    /**
+     * 第9种类型的模式匹配 / Pattern match for type T9
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 第10种类型的模式匹配 / Pattern match for type T10 */
+    /**
+     * 第10种类型的模式匹配 / Pattern match for type T10
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 第11种类型的模式匹配 / Pattern match for type T11 */
+    /**
+     * 第11种类型的模式匹配 / Pattern match for type T11
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 第12种类型的模式匹配 / Pattern match for type T12 */
+    /**
+     * 第12种类型的模式匹配 / Pattern match for type T12
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 第13种类型的模式匹配 / Pattern match for type T13 */
+    /**
+     * 第13种类型的模式匹配 / Pattern match for type T13
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 第14种类型的模式匹配 / Pattern match for type T14 */
+    /**
+     * 第14种类型的模式匹配 / Pattern match for type T14
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 第15种类型的模式匹配 / Pattern match for type T15 */
+    /**
+     * 第15种类型的模式匹配 / Pattern match for type T15
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack15 = callBack
         return this
     }
 
-    /** 第16种类型的模式匹配 / Pattern match for type T16 */
+    /**
+     * 第16种类型的模式匹配 / Pattern match for type T16
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if16(callBack: (T16) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack16 = callBack
         return this
     }
 
-    /** 第17种类型的模式匹配 / Pattern match for type T17 */
+    /**
+     * 第17种类型的模式匹配 / Pattern match for type T17
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if17(callBack: (T17) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack17 = callBack
         return this
     }
 
-    /** 第18种类型的模式匹配 / Pattern match for type T18 */
+    /**
+     * 第18种类型的模式匹配 / Pattern match for type T18
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if18(callBack: (T18) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack18 = callBack
         return this
     }
 
-    /** 第19种类型的模式匹配 / Pattern match for type T19 */
+    /**
+     * 第19种类型的模式匹配 / Pattern match for type T19
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if19(callBack: (T19) -> Ret): Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> {
         callBack19 = callBack
         return this
@@ -7186,8 +7979,9 @@ data class Variant19Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
  *
  * Sealed class representing a value that can be one of twenty types.
  * 密封类，表示可以是二十种类型之一的值。
- */
+*/
 sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {
+
     /** V1 子类 - 第1种类型的变体 / Represents a value of type T1 */
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>(val value: T1) :
         Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>() {}
@@ -7695,11 +8489,11 @@ sealed class Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T
  *
  * Matcher for fluent pattern matching on Variant20.
  * 用于 Variant20 值流式模式匹配的匹配器类。
- */
+*/
 data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret>(
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     private val value: Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>
 ) {
     private lateinit var callBack1: (T1) -> Ret
@@ -7723,121 +8517,221 @@ data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
     private lateinit var callBack19: (T19) -> Ret
     private lateinit var callBack20: (T20) -> Ret
 
-    /** 第1种类型的模式匹配 / Pattern match for type T1 */
+    /**
+     * 第1种类型的模式匹配 / Pattern match for type T1
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if1(callBack: (T1) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack1 = callBack
         return this
     }
 
-    /** 第2种类型的模式匹配 / Pattern match for type T2 */
+    /**
+     * 第2种类型的模式匹配 / Pattern match for type T2
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if2(callBack: (T2) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack2 = callBack
         return this
     }
 
-    /** 第3种类型的模式匹配 / Pattern match for type T3 */
+    /**
+     * 第3种类型的模式匹配 / Pattern match for type T3
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if3(callBack: (T3) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack3 = callBack
         return this
     }
 
-    /** 第4种类型的模式匹配 / Pattern match for type T4 */
+    /**
+     * 第4种类型的模式匹配 / Pattern match for type T4
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if4(callBack: (T4) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack4 = callBack
         return this
     }
 
-    /** 第5种类型的模式匹配 / Pattern match for type T5 */
+    /**
+     * 第5种类型的模式匹配 / Pattern match for type T5
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if5(callBack: (T5) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack5 = callBack
         return this
     }
 
-    /** 第6种类型的模式匹配 / Pattern match for type T6 */
+    /**
+     * 第6种类型的模式匹配 / Pattern match for type T6
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if6(callBack: (T6) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack6 = callBack
         return this
     }
 
-    /** 第7种类型的模式匹配 / Pattern match for type T7 */
+    /**
+     * 第7种类型的模式匹配 / Pattern match for type T7
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if7(callBack: (T7) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack7 = callBack
         return this
     }
 
-    /** 第8种类型的模式匹配 / Pattern match for type T8 */
+    /**
+     * 第8种类型的模式匹配 / Pattern match for type T8
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if8(callBack: (T8) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack8 = callBack
         return this
     }
 
-    /** 第9种类型的模式匹配 / Pattern match for type T9 */
+    /**
+     * 第9种类型的模式匹配 / Pattern match for type T9
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if9(callBack: (T9) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack9 = callBack
         return this
     }
 
-    /** 第10种类型的模式匹配 / Pattern match for type T10 */
+    /**
+     * 第10种类型的模式匹配 / Pattern match for type T10
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if10(callBack: (T10) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack10 = callBack
         return this
     }
 
-    /** 第11种类型的模式匹配 / Pattern match for type T11 */
+    /**
+     * 第11种类型的模式匹配 / Pattern match for type T11
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if11(callBack: (T11) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack11 = callBack
         return this
     }
 
-    /** 第12种类型的模式匹配 / Pattern match for type T12 */
+    /**
+     * 第12种类型的模式匹配 / Pattern match for type T12
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if12(callBack: (T12) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack12 = callBack
         return this
     }
 
-    /** 第13种类型的模式匹配 / Pattern match for type T13 */
+    /**
+     * 第13种类型的模式匹配 / Pattern match for type T13
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if13(callBack: (T13) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack13 = callBack
         return this
     }
 
-    /** 第14种类型的模式匹配 / Pattern match for type T14 */
+    /**
+     * 第14种类型的模式匹配 / Pattern match for type T14
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if14(callBack: (T14) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack14 = callBack
         return this
     }
 
-    /** 第15种类型的模式匹配 / Pattern match for type T15 */
+    /**
+     * 第15种类型的模式匹配 / Pattern match for type T15
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if15(callBack: (T15) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack15 = callBack
         return this
     }
 
-    /** 第16种类型的模式匹配 / Pattern match for type T16 */
+    /**
+     * 第16种类型的模式匹配 / Pattern match for type T16
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if16(callBack: (T16) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack16 = callBack
         return this
     }
 
-    /** 第17种类型的模式匹配 / Pattern match for type T17 */
+    /**
+     * 第17种类型的模式匹配 / Pattern match for type T17
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if17(callBack: (T17) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack17 = callBack
         return this
     }
 
-    /** 第18种类型的模式匹配 / Pattern match for type T18 */
+    /**
+     * 第18种类型的模式匹配 / Pattern match for type T18
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if18(callBack: (T18) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack18 = callBack
         return this
     }
 
-    /** 第19种类型的模式匹配 / Pattern match for type T19 */
+    /**
+     * 第19种类型的模式匹配 / Pattern match for type T19
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if19(callBack: (T19) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack19 = callBack
         return this
     }
 
-    /** 第20种类型的模式匹配 / Pattern match for type T20 */
+    /**
+     * 第20种类型的模式匹配 / Pattern match for type T20
+     *
+     * @param callBack the callback function / 回调函数
+     * @return this matcher for chaining / 此匹配器用于链式调用
+    */
     fun if20(callBack: (T20) -> Ret): Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> {
         callBack20 = callBack
         return this
@@ -7930,23 +8824,27 @@ data class Variant20Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T
 
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+         *
+         * @property value the variant value / 变体值
+         *
+         * @property clazz the Kotlin class of the value / 值的Kotlin类
+        */
 class Variant(val value: Any, val clazz: KClass<*>) {
     companion object {
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
         inline fun <reified T : Any> make(value: T) = Variant(value, T::class)
     }
 
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     inline fun <reified T : Any> isA() = clazz == T::class
 
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     inline fun <reified T : Any> get() = if (isA<T>()) {
         value as T
     } else {
@@ -7955,11 +8853,11 @@ class Variant(val value: Any, val clazz: KClass<*>) {
 
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
     inline fun <reified T : Any, Ret> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
         /**
          * 获取被包装的值 / Get the wrapped value
-         */
+        */
         val ret = VariantMatcher<Ret>(this)
         return ret.ifIs(callBack)
     }
@@ -7967,16 +8865,17 @@ class Variant(val value: Any, val clazz: KClass<*>) {
 
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
 class VariantMatcher<Ret>(private val value: Variant) {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val callBacks: MutableMap<KClass<*>, (Any) -> Ret> = hashMapOf()
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
     inline fun <reified T : Any> ifIs(noinline callBack: (T) -> Ret): VariantMatcher<Ret> {
         callBacks[T::class] = { value: Any -> callBack(value as T) }
         return this
@@ -7988,34 +8887,36 @@ class VariantMatcher<Ret>(private val value: Variant) {
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, Ret> match(value: Variant2<T1, T2>, callBack1: (T1) -> Ret, callBack2: (T2) -> Ret): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher = value.if1(callBack1).if2(callBack2)
     return matcher()
 }
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, Ret> match(
     value: Variant3<T1, T2, T3>,
     callBack1: (T1) -> Ret,
     callBack2: (T2) -> Ret,
     callBack3: (T3) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3)
     return matcher()
 }
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, Ret> match(
     value: Variant4<T1, T2, T3, T4>,
     callBack1: (T1) -> Ret,
@@ -8023,16 +8924,17 @@ fun <T1, T2, T3, T4, Ret> match(
     callBack3: (T3) -> Ret,
     callBack4: (T4) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4)
     return matcher()
 }
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, Ret> match(
     value: Variant5<T1, T2, T3, T4, T5>,
     callBack1: (T1) -> Ret,
@@ -8041,16 +8943,17 @@ fun <T1, T2, T3, T4, T5, Ret> match(
     callBack4: (T4) -> Ret,
     callBack5: (T5) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5)
     return matcher()
 }
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, Ret> match(
     value: Variant6<T1, T2, T3, T4, T5, T6>,
     callBack1: (T1) -> Ret,
@@ -8060,16 +8963,17 @@ fun <T1, T2, T3, T4, T5, T6, Ret> match(
     callBack5: (T5) -> Ret,
     callBack6: (T6) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher = value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6)
     return matcher()
 }
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
     value: Variant7<T1, T2, T3, T4, T5, T6, T7>,
     callBack1: (T1) -> Ret,
@@ -8080,9 +8984,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
     callBack6: (T6) -> Ret,
     callBack7: (T7) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
     return matcher()
@@ -8090,7 +8995,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
     value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>,
     callBack1: (T1) -> Ret,
@@ -8102,9 +9007,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
     callBack7: (T7) -> Ret,
     callBack8: (T8) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8)
@@ -8113,7 +9019,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
     value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>,
     callBack1: (T1) -> Ret,
@@ -8126,9 +9032,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
     callBack8: (T8) -> Ret,
     callBack9: (T9) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9)
@@ -8137,7 +9044,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
     value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>,
     callBack1: (T1) -> Ret,
@@ -8151,9 +9058,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
     callBack9: (T9) -> Ret,
     callBack10: (T10) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10)
@@ -8162,7 +9070,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
     value: Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>,
     callBack1: (T1) -> Ret,
@@ -8177,9 +9085,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
     callBack10: (T10) -> Ret,
     callBack11: (T11) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11)
@@ -8188,7 +9097,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
     value: Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>,
     callBack1: (T1) -> Ret,
@@ -8204,9 +9113,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
     callBack11: (T11) -> Ret,
     callBack12: (T12) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12)
@@ -8215,7 +9125,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
     value: Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>,
     callBack1: (T1) -> Ret,
@@ -8232,9 +9142,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
     callBack12: (T12) -> Ret,
     callBack13: (T13) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8243,7 +9154,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     value: Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>,
     callBack1: (T1) -> Ret,
@@ -8261,9 +9172,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
     callBack13: (T13) -> Ret,
     callBack14: (T14) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8273,7 +9185,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, Ret> match(
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> match(
     value: Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>,
     callBack1: (T1) -> Ret,
@@ -8292,9 +9204,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> matc
     callBack14: (T14) -> Ret,
     callBack15: (T15) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8304,7 +9217,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, Ret> matc
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret> match(
     value: Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>,
     callBack1: (T1) -> Ret,
@@ -8324,9 +9237,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>
     callBack15: (T15) -> Ret,
     callBack16: (T16) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8336,7 +9250,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, Ret>
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, Ret> match(
     value: Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>,
     callBack1: (T1) -> Ret,
@@ -8357,9 +9271,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack16: (T16) -> Ret,
     callBack17: (T17) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8369,7 +9284,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, Ret> match(
     value: Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>,
     callBack1: (T1) -> Ret,
@@ -8391,9 +9306,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack17: (T17) -> Ret,
     callBack18: (T18) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8403,7 +9319,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, Ret> match(
     value: Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>,
     callBack1: (T1) -> Ret,
@@ -8426,9 +9342,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack18: (T18) -> Ret,
     callBack19: (T19) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8438,7 +9355,7 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
 
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20, Ret> match(
     value: Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>,
     callBack1: (T1) -> Ret,
@@ -8462,9 +9379,10 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
     callBack19: (T19) -> Ret,
     callBack20: (T20) -> Ret
 ): Ret {
+
     /**
      * 获取被包装的值 / Get the wrapped value
-     */
+    */
     val matcher =
         value.if1(callBack1).if2(callBack2).if3(callBack3).if4(callBack4).if5(callBack5).if6(callBack6).if7(callBack7)
             .if8(callBack8).if9(callBack9).if10(callBack10).if11(callBack11).if12(callBack12).if13(callBack13)
@@ -8474,18 +9392,20 @@ fun <T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17,
 }
 
 @JvmName("Variant2Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>> Variant2<T1, T2>.copy(): Variant2<T1, T2> = when (this) {
     is Variant2.V1 -> Variant2.V1(this.value.copy())
     is Variant2.V2 -> Variant2.V2(this.value.copy())
 }
 
 @JvmName("Variant3Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>> Variant3<T1, T2, T3>.copy(): Variant3<T1, T2, T3> =
     when (this) {
         is Variant3.V1 -> Variant3.V1(this.value.copy())
@@ -8494,9 +9414,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>> Variant3<T1, T2, T
     }
 
 @JvmName("Variant4Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>> Variant4<T1, T2, T3, T4>.copy(): Variant4<T1, T2, T3, T4> =
     when (this) {
         is Variant4.V1 -> Variant4.V1(this.value.copy())
@@ -8506,9 +9427,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>>
     }
 
 @JvmName("Variant5Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>> Variant5<T1, T2, T3, T4, T5>.copy(): Variant5<T1, T2, T3, T4, T5> =
     when (this) {
         is Variant5.V1 -> Variant5.V1(this.value.copy())
@@ -8519,9 +9441,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant6Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>> Variant6<T1, T2, T3, T4, T5, T6>.copy(): Variant6<T1, T2, T3, T4, T5, T6> =
     when (this) {
         is Variant6.V1 -> Variant6.V1(this.value.copy())
@@ -8533,9 +9456,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant7Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>> Variant7<T1, T2, T3, T4, T5, T6, T7>.copy(): Variant7<T1, T2, T3, T4, T5, T6, T7> =
     when (this) {
         is Variant7.V1 -> Variant7.V1(this.value.copy())
@@ -8548,9 +9472,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant8Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>> Variant8<T1, T2, T3, T4, T5, T6, T7, T8>.copy(): Variant8<T1, T2, T3, T4, T5, T6, T7, T8> =
     when (this) {
         is Variant8.V1 -> Variant8.V1(this.value.copy())
@@ -8564,9 +9489,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant9Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>> Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>.copy(): Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> =
     when (this) {
         is Variant9.V1 -> Variant9.V1(this.value.copy())
@@ -8581,9 +9507,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant10Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>> Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.copy(): Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> =
     when (this) {
         is Variant10.V1 -> Variant10.V1(this.value.copy())
@@ -8599,9 +9526,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant11Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>> Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.copy(): Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> =
     when (this) {
         is Variant11.V1 -> Variant11.V1(this.value.copy())
@@ -8618,9 +9546,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant12Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>> Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.copy(): Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> =
     when (this) {
         is Variant12.V1 -> Variant12.V1(this.value.copy())
@@ -8638,9 +9567,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant13Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>> Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.copy(): Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> =
     when (this) {
         is Variant13.V1 -> Variant13.V1(this.value.copy())
@@ -8659,9 +9589,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant14Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>> Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.copy(): Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> =
     when (this) {
         is Variant14.V1 -> Variant14.V1(this.value.copy())
@@ -8681,9 +9612,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant15Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>> Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.copy(): Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> =
     when (this) {
         is Variant15.V1 -> Variant15.V1(this.value.copy())
@@ -8704,9 +9636,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant16Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>> Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.copy(): Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> =
     when (this) {
         is Variant16.V1 -> Variant16.V1(this.value.copy())
@@ -8728,9 +9661,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant17Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>> Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>.copy(): Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> =
     when (this) {
         is Variant17.V1 -> Variant17.V1(this.value.copy())
@@ -8753,9 +9687,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant18Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>> Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>.copy(): Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> =
     when (this) {
         is Variant18.V1 -> Variant18.V1(this.value.copy())
@@ -8779,9 +9714,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant19Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>, T19 : Copyable<T19>> Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>.copy(): Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> =
     when (this) {
         is Variant19.V1 -> Variant19.V1(this.value.copy())
@@ -8806,9 +9742,10 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant20Copy")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>, T5 : Copyable<T5>, T6 : Copyable<T6>, T7 : Copyable<T7>, T8 : Copyable<T8>, T9 : Copyable<T9>, T10 : Copyable<T10>, T11 : Copyable<T11>, T12 : Copyable<T12>, T13 : Copyable<T13>, T14 : Copyable<T14>, T15 : Copyable<T15>, T16 : Copyable<T16>, T17 : Copyable<T17>, T18 : Copyable<T18>, T19 : Copyable<T19>, T20 : Copyable<T20>> Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>.copy(): Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> =
     when (this) {
         is Variant20.V1 -> Variant20.V1(this.value.copy())
@@ -8834,18 +9771,20 @@ fun <T1 : Copyable<T1>, T2 : Copyable<T2>, T3 : Copyable<T3>, T4 : Copyable<T4>,
     }
 
 @JvmName("Variant2Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>> Variant2<T1, T2>.move(): Variant2<T1, T2> = when (this) {
     is Variant2.V1 -> Variant2.V1(this.value.move())
     is Variant2.V2 -> Variant2.V2(this.value.move())
 }
 
 @JvmName("Variant3Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>> Variant3<T1, T2, T3>.move(): Variant3<T1, T2, T3> =
     when (this) {
         is Variant3.V1 -> Variant3.V1(this.value.move())
@@ -8854,9 +9793,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>> Variant3<T1, T2, T3>.
     }
 
 @JvmName("Variant4Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>> Variant4<T1, T2, T3, T4>.move(): Variant4<T1, T2, T3, T4> =
     when (this) {
         is Variant4.V1 -> Variant4.V1(this.value.move())
@@ -8866,9 +9806,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>> Var
     }
 
 @JvmName("Variant5Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>> Variant5<T1, T2, T3, T4, T5>.move(): Variant5<T1, T2, T3, T4, T5> =
     when (this) {
         is Variant5.V1 -> Variant5.V1(this.value.move())
@@ -8879,9 +9820,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant6Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>> Variant6<T1, T2, T3, T4, T5, T6>.move(): Variant6<T1, T2, T3, T4, T5, T6> =
     when (this) {
         is Variant6.V1 -> Variant6.V1(this.value.move())
@@ -8893,9 +9835,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant7Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>> Variant7<T1, T2, T3, T4, T5, T6, T7>.move(): Variant7<T1, T2, T3, T4, T5, T6, T7> =
     when (this) {
         is Variant7.V1 -> Variant7.V1(this.value.move())
@@ -8908,9 +9851,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant8Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>> Variant8<T1, T2, T3, T4, T5, T6, T7, T8>.move(): Variant8<T1, T2, T3, T4, T5, T6, T7, T8> =
     when (this) {
         is Variant8.V1 -> Variant8.V1(this.value.move())
@@ -8924,9 +9868,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant9Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>> Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>.move(): Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9> =
     when (this) {
         is Variant9.V1 -> Variant9.V1(this.value.move())
@@ -8941,9 +9886,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant10Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>> Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>.move(): Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> =
     when (this) {
         is Variant10.V1 -> Variant10.V1(this.value.move())
@@ -8959,9 +9905,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant11Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>> Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11>.move(): Variant11<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11> =
     when (this) {
         is Variant11.V1 -> Variant11.V1(this.value.move())
@@ -8978,9 +9925,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant12Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>> Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12>.move(): Variant12<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12> =
     when (this) {
         is Variant12.V1 -> Variant12.V1(this.value.move())
@@ -8998,9 +9946,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant13Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>> Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13>.move(): Variant13<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13> =
     when (this) {
         is Variant13.V1 -> Variant13.V1(this.value.move())
@@ -9019,9 +9968,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant14Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>> Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14>.move(): Variant14<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14> =
     when (this) {
         is Variant14.V1 -> Variant14.V1(this.value.move())
@@ -9041,9 +9991,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant15Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>> Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15>.move(): Variant15<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15> =
     when (this) {
         is Variant15.V1 -> Variant15.V1(this.value.move())
@@ -9064,9 +10015,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant16Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>> Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16>.move(): Variant16<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16> =
     when (this) {
         is Variant16.V1 -> Variant16.V1(this.value.move())
@@ -9088,9 +10040,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant17Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>> Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17>.move(): Variant17<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17> =
     when (this) {
         is Variant17.V1 -> Variant17.V1(this.value.move())
@@ -9113,9 +10066,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant18Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>> Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18>.move(): Variant18<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18> =
     when (this) {
         is Variant18.V1 -> Variant18.V1(this.value.move())
@@ -9139,9 +10093,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant19Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>, T19 : Movable<T19>> Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19>.move(): Variant19<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19> =
     when (this) {
         is Variant19.V1 -> Variant19.V1(this.value.move())
@@ -9166,9 +10121,10 @@ fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 
     }
 
 @JvmName("Variant20Move")
+
 /**
  * Variant 操作 / Variant operation
- */
+*/
 fun <T1 : Movable<T1>, T2 : Movable<T2>, T3 : Movable<T3>, T4 : Movable<T4>, T5 : Movable<T5>, T6 : Movable<T6>, T7 : Movable<T7>, T8 : Movable<T8>, T9 : Movable<T9>, T10 : Movable<T10>, T11 : Movable<T11>, T12 : Movable<T12>, T13 : Movable<T13>, T14 : Movable<T14>, T15 : Movable<T15>, T16 : Movable<T16>, T17 : Movable<T17>, T18 : Movable<T18>, T19 : Movable<T19>, T20 : Movable<T20>> Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20>.move(): Variant20<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, T11, T12, T13, T14, T15, T16, T17, T18, T19, T20> =
     when (this) {
         is Variant20.V1 -> Variant20.V1(this.value.move())

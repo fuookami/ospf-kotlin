@@ -18,7 +18,7 @@
  *
  * 注意：取余运算结果的符号取决于实现，应参考具体类型的文档。
  * Note: The sign of the remainder result depends on the implementation; refer to specific type documentation.
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -34,10 +34,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（除数）的类垌
  * @param Ret 返回值（余数）的类型
  *
- * @param Rhs The type of the right operand (divisor)
- * @param Ret The type of the return value (remainder)
- */
+*/
 interface Rem<in Rhs, out Ret> {
+
     /**
      * 取余运算符，计算余数
      * Remainder operator, calculates the remainder
@@ -45,9 +44,8 @@ interface Rem<in Rhs, out Ret> {
      * @param rhs 除数
      * @return 余数
      *
-     * @param rhs Divisor
      * @return Remainder
-     */
+    */
     operator fun rem(rhs: Rhs): Ret
 
     /**
@@ -57,9 +55,8 @@ interface Rem<in Rhs, out Ret> {
      * @param rhs 除数
      * @return 余数
      *
-     * @param rhs Divisor
      * @return Remainder
-     */
+    */
     infix fun mod(rhs: Rhs) = this % rhs
 }
 
@@ -75,16 +72,15 @@ interface Rem<in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（除数）的类垌
  *
- * @param Rhs The type of the right operand (divisor)
- */
+*/
 interface RemAssign<in Rhs> {
+
     /**
      * 取余赋值运算符，将余数赋值给左操作数
      * Remainder assignment operator, assigns the remainder to the left operand
      *
      * @param rhs 除数
      *
-     * @param rhs Divisor
-     */
+    */
     operator fun remAssign(rhs: Rhs)
 }

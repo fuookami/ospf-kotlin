@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * Provides Flt64 polynomial quick constructors (LinearPolynomial/QuadraticPolynomial factory functions),
  * aggregation functions (sumVars/sum/qsumVars/qsum), and arithmetic operator overloads
  * for symbols and polynomials.
- */
+*/
 
 // ========== LinearPolynomial quick constructors ==========
 // 线性多项式快捷构造函数 / Linear polynomial quick constructors
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * Create an empty Flt64 linear polynomial (zero polynomial)
  *
  * @return 零线性多项式 / Zero linear polynomial
- */
+*/
 @JvmName("quickLinearPolynomialZero")
 fun LinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), Flt64.zero)
@@ -39,7 +39,7 @@ fun LinearPolynomial(): LinearPolynomial<Flt64> {
  *
  * @param constant 常数值 / Constant value
  * @return 线性多项式 / Linear polynomial
- */
+*/
 @JvmName("quickLinearPolynomialFromConstant")
 fun LinearPolynomial(constant: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), constant)
@@ -51,7 +51,7 @@ fun LinearPolynomial(constant: Flt64): LinearPolynomial<Flt64> {
  *
  * @param monomial 线性单项式 / Linear monomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 @JvmName("quickLinearPolynomialFromMonomial")
 fun LinearPolynomial(monomial: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(monomial), Flt64.zero)
@@ -63,7 +63,7 @@ fun LinearPolynomial(monomial: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
  *
  * @param symbol 变量符号 / Variable symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 @JvmName("quickLinearPolynomialFromSymbol")
 fun LinearPolynomial(symbol: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, symbol)), Flt64.zero)
@@ -74,7 +74,7 @@ fun LinearPolynomial(symbol: Symbol): LinearPolynomial<Flt64> {
  * Create an empty Flt64 mutable linear polynomial (zero polynomial)
  *
  * @return 零可变线性多项式 / Zero mutable linear polynomial
- */
+*/
 @JvmName("quickMutableLinearPolynomialZero")
 fun MutableLinearPolynomial(): MutableLinearPolynomial<Flt64> {
     return MutableLinearPolynomial(emptyList(), Flt64.zero)
@@ -86,7 +86,7 @@ fun MutableLinearPolynomial(): MutableLinearPolynomial<Flt64> {
  *
  * @param monomial 线性单项式 / Linear monomial
  * @return 可变线性多项式 / Mutable linear polynomial
- */
+*/
 @JvmName("quickMutableLinearPolynomialFromMonomial")
 fun MutableLinearPolynomial(monomial: LinearMonomial<Flt64>): MutableLinearPolynomial<Flt64> {
     return MutableLinearPolynomial(listOf(monomial), Flt64.zero)
@@ -99,7 +99,7 @@ fun MutableLinearPolynomial(monomial: LinearMonomial<Flt64>): MutableLinearPolyn
  * Create an empty Flt64 quadratic polynomial (zero polynomial)
  *
  * @return 零二次多项式 / Zero quadratic polynomial
- */
+*/
 @JvmName("quickQuadraticPolynomialZero")
 fun QuadraticPolynomial(): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(emptyList(), Flt64.zero)
@@ -111,7 +111,7 @@ fun QuadraticPolynomial(): QuadraticPolynomial<Flt64> {
  *
  * @param constant 常数值 / Constant value
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 @JvmName("quickQuadraticPolynomialFromConstant")
 fun QuadraticPolynomial(constant: Flt64): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(emptyList(), constant)
@@ -123,7 +123,7 @@ fun QuadraticPolynomial(constant: Flt64): QuadraticPolynomial<Flt64> {
  *
  * @param monomial 二次单项式 / Quadratic monomial
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 @JvmName("quickQuadraticPolynomialFromQuadraticMonomial")
 fun QuadraticPolynomial(monomial: QuadraticMonomial<Flt64>): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(listOf(monomial), Flt64.zero)
@@ -135,7 +135,7 @@ fun QuadraticPolynomial(monomial: QuadraticMonomial<Flt64>): QuadraticPolynomial
  *
  * @param monomial 线性单项式 / Linear monomial
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 @JvmName("quickQuadraticPolynomialFromLinearMonomial")
 fun QuadraticPolynomial(monomial: LinearMonomial<Flt64>): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(listOf(QuadraticMonomial.linear(monomial.coefficient, monomial.symbol)), Flt64.zero)
@@ -147,7 +147,7 @@ fun QuadraticPolynomial(monomial: LinearMonomial<Flt64>): QuadraticPolynomial<Fl
  *
  * @param symbol 变量符号 / Variable symbol
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 @JvmName("quickQuadraticPolynomialFromSymbol")
 fun QuadraticPolynomial(symbol: Symbol): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(listOf(QuadraticMonomial.linear(Flt64.one, symbol)), Flt64.zero)
@@ -158,7 +158,7 @@ fun QuadraticPolynomial(symbol: Symbol): QuadraticPolynomial<Flt64> {
  * Create an empty Flt64 mutable quadratic polynomial (zero polynomial)
  *
  * @return 零可变二次多项式 / Zero mutable quadratic polynomial
- */
+*/
 @JvmName("quickMutableQuadraticPolynomialZero")
 fun MutableQuadraticPolynomial(): MutableQuadraticPolynomial<Flt64> {
     return MutableQuadraticPolynomial(emptyList(), Flt64.zero)
@@ -174,7 +174,7 @@ fun MutableQuadraticPolynomial(): MutableQuadraticPolynomial<Flt64> {
  * @param items 元素集合 / Collection of elements
  * @param selector 从元素提取符号的函数 / Function to extract symbol from element
  * @return 线性多项式之和 / Sum as linear polynomial
- */
+*/
 @JvmName("quickSumVars")
 fun <E> sumVars(
     items: Iterable<E>,
@@ -190,7 +190,7 @@ fun <E> sumVars(
  *
  * @param symbols 符号集合 / Collection of symbols
  * @return 线性多项式之和 / Sum as linear polynomial
- */
+*/
 @JvmName("quickSumSymbols")
 fun sum(symbols: Iterable<Symbol>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
@@ -209,7 +209,7 @@ fun sum(symbols: Iterable<Symbol>): LinearPolynomial<Flt64> {
  * @param items 元素集合 / Collection of elements
  * @param selector 从元素提取符号的函数 / Function to extract symbol from element
  * @return 二次多项式之和 / Sum as quadratic polynomial
- */
+*/
 @JvmName("quickQSumVars")
 fun <E> qsumVars(
     items: Iterable<E>,
@@ -225,7 +225,7 @@ fun <E> qsumVars(
  *
  * @param symbols 符号集合 / Collection of symbols
  * @return 二次多项式之和 / Sum as quadratic polynomial
- */
+*/
 @JvmName("quickQSumSymbols")
 fun qsum(symbols: Iterable<Symbol>): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial(
@@ -239,19 +239,19 @@ fun qsum(symbols: Iterable<Symbol>): QuadraticPolynomial<Flt64> {
 
 /**
  * Negate a symbol.
- * 中文取负。
- */
+ * 取负。
+*/
 operator fun Symbol.unaryMinus(): LinearMonomial<Flt64> {
     return LinearMonomial(-Flt64.one, this)
 }
 
 /**
  * Add two symbols.
- * 中文两个符号相加。
+ * 两个符号相加。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this), LinearMonomial(Flt64.one, rhs)),
@@ -261,11 +261,11 @@ operator fun Symbol.plus(rhs: Symbol): LinearPolynomial<Flt64> {
 
 /**
  * Subtract two symbols.
- * 中文两个符号相减。
+ * 两个符号相减。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this), LinearMonomial(-Flt64.one, rhs)),
@@ -275,11 +275,11 @@ operator fun Symbol.minus(rhs: Symbol): LinearPolynomial<Flt64> {
 
 /**
  * Add a symbol and a monomial.
- * 中文符号加单项式。
+ * 符号加单项式。
  *
  * @param rhs the right-hand linear monomial / 右侧线性单项式
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.plus(rhs: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this), rhs),
@@ -289,11 +289,11 @@ operator fun Symbol.plus(rhs: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
 
 /**
  * Subtract a monomial from a symbol.
- * 中文符号减单项式。
+ * 符号减单项式。
  *
  * @param rhs the right-hand linear monomial / 右侧线性单项式
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.minus(rhs: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this), LinearMonomial(-rhs.coefficient, rhs.symbol)),
@@ -303,11 +303,11 @@ operator fun Symbol.minus(rhs: LinearMonomial<Flt64>): LinearPolynomial<Flt64> {
 
 /**
  * Add a monomial and a symbol.
- * 中文单项式加符号。
+ * 单项式加符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun LinearMonomial<Flt64>.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(this, LinearMonomial(Flt64.one, rhs)),
@@ -317,11 +317,11 @@ operator fun LinearMonomial<Flt64>.plus(rhs: Symbol): LinearPolynomial<Flt64> {
 
 /**
  * Subtract a symbol from a monomial.
- * 中文单项式减符号。
+ * 单项式减符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun LinearMonomial<Flt64>.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(this, LinearMonomial(-Flt64.one, rhs)),
@@ -331,11 +331,11 @@ operator fun LinearMonomial<Flt64>.minus(rhs: Symbol): LinearPolynomial<Flt64> {
 
 /**
  * Add a symbol and a polynomial.
- * 中文符号加多项式。
+ * 符号加多项式。
  *
  * @param rhs the right-hand linear polynomial / 右侧线性多项式
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this)) + rhs.monomials,
@@ -345,11 +345,11 @@ operator fun Symbol.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> 
 
 /**
  * Subtract a polynomial from a symbol.
- * 中文符号减多项式。
+ * 符号减多项式。
  *
  * @param rhs the right-hand linear polynomial / 右侧线性多项式
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, this)) + rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -359,11 +359,11 @@ operator fun Symbol.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64>
 
 /**
  * Add a polynomial and a symbol.
- * 中文多项式加符号。
+ * 多项式加符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun LinearPolynomial<Flt64>.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials + LinearMonomial(Flt64.one, rhs),
@@ -373,11 +373,11 @@ operator fun LinearPolynomial<Flt64>.plus(rhs: Symbol): LinearPolynomial<Flt64> 
 
 /**
  * Subtract a symbol from a polynomial.
- * 中文多项式减符号。
+ * 多项式减符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun LinearPolynomial<Flt64>.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         monomials + LinearMonomial(-Flt64.one, rhs),
@@ -390,44 +390,44 @@ operator fun LinearPolynomial<Flt64>.minus(rhs: Symbol): LinearPolynomial<Flt64>
 
 /**
  * Add a symbol and an Int.
- * 中文符号加 Int。
+ * 符号加 Int。
  *
  * @param rhs the right-hand integer / 右侧整数
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.plus(rhs: Int): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64(rhs.toDouble()))
 }
 
 /**
  * Subtract an Int from a symbol.
- * 中文符号减 Int。
+ * 符号减 Int。
  *
  * @param rhs the right-hand integer / 右侧整数
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.minus(rhs: Int): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64(-rhs.toDouble()))
 }
 
 /**
  * Add a symbol and a Double.
- * 中文符号加 Double。
+ * 符号加 Double。
  *
  * @param rhs the right-hand floating-point value / 右侧浮点数
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.plus(rhs: Double): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64(rhs))
 }
 
 /**
  * Subtract a Double from a symbol.
- * 中文符号减 Double。
+ * 符号减 Double。
  *
  * @param rhs the right-hand floating-point value / 右侧浮点数
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Symbol.minus(rhs: Double): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64(-rhs))
 }
@@ -437,22 +437,22 @@ operator fun Symbol.minus(rhs: Double): LinearPolynomial<Flt64> {
 
 /**
  * Add an Int and a symbol.
- * 中文Int 加符号。
+ * Int 加符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Int.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, rhs)), Flt64(this.toDouble()))
 }
 
 /**
  * Subtract a symbol from an Int.
- * 中文Int 减符号。
+ * Int 减符号。
  *
  * @param rhs the right-hand symbol / 右侧符号
  * @return the linear polynomial / 线性多项式
- */
+*/
 operator fun Int.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(-Flt64.one, rhs)),
@@ -465,7 +465,7 @@ operator fun Int.minus(rhs: Symbol): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Double.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, rhs)), Flt64(this))
 }
@@ -475,7 +475,7 @@ operator fun Double.plus(rhs: Symbol): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Double.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(-Flt64.one, rhs)),
@@ -491,7 +491,7 @@ operator fun Double.minus(rhs: Symbol): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Int.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(rhs.monomials, Flt64(this.toDouble()) + rhs.constant)
 }
@@ -501,7 +501,7 @@ operator fun Int.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Int.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -514,7 +514,7 @@ operator fun Int.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Int.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     val scalar = Flt64(this.toDouble())
     return LinearPolynomial(
@@ -528,7 +528,7 @@ operator fun Int.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Double.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(rhs.monomials, Flt64(this) + rhs.constant)
 }
@@ -538,7 +538,7 @@ operator fun Double.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> 
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Double.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -551,7 +551,7 @@ operator fun Double.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun Double.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     val scalar = Flt64(this)
     return LinearPolynomial(
@@ -568,7 +568,7 @@ operator fun Double.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧整数 / Right-hand integer
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.plus(rhs: Int): LinearPolynomial<Flt64> {
     return LinearPolynomial(monomials, constant + Flt64(rhs.toDouble()))
 }
@@ -578,7 +578,7 @@ operator fun LinearPolynomial<Flt64>.plus(rhs: Int): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧整数 / Right-hand integer
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.minus(rhs: Int): LinearPolynomial<Flt64> {
     return LinearPolynomial(monomials, constant - Flt64(rhs.toDouble()))
 }
@@ -588,7 +588,7 @@ operator fun LinearPolynomial<Flt64>.minus(rhs: Int): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧整数 / Right-hand integer
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.times(rhs: Int): LinearPolynomial<Flt64> {
     val scalar = Flt64(rhs.toDouble())
     return LinearPolynomial(
@@ -602,7 +602,7 @@ operator fun LinearPolynomial<Flt64>.times(rhs: Int): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧浮点数 / Right-hand floating-point value
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.plus(rhs: Double): LinearPolynomial<Flt64> {
     return LinearPolynomial(monomials, constant + Flt64(rhs))
 }
@@ -612,7 +612,7 @@ operator fun LinearPolynomial<Flt64>.plus(rhs: Double): LinearPolynomial<Flt64> 
  *
  * @param rhs 右侧浮点数 / Right-hand floating-point value
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.minus(rhs: Double): LinearPolynomial<Flt64> {
     return LinearPolynomial(monomials, constant - Flt64(rhs))
 }
@@ -622,7 +622,7 @@ operator fun LinearPolynomial<Flt64>.minus(rhs: Double): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧浮点数 / Right-hand floating-point value
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun LinearPolynomial<Flt64>.times(rhs: Double): LinearPolynomial<Flt64> {
     val scalar = Flt64(rhs)
     return LinearPolynomial(
@@ -639,7 +639,7 @@ operator fun LinearPolynomial<Flt64>.times(rhs: Double): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun UInt64.minus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(-Flt64.one, rhs)),
@@ -652,7 +652,7 @@ operator fun UInt64.minus(rhs: Symbol): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun UInt64.plus(rhs: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(
         listOf(LinearMonomial(Flt64.one, rhs)),
@@ -665,7 +665,7 @@ operator fun UInt64.plus(rhs: Symbol): LinearPolynomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun UInt64.times(rhs: Symbol): LinearMonomial<Flt64> {
     return LinearMonomial(this.toFlt64(), rhs)
 }
@@ -675,7 +675,7 @@ operator fun UInt64.times(rhs: Symbol): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧 UInt64 / Right-hand UInt64
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Symbol.times(rhs: UInt64): LinearMonomial<Flt64> {
     return LinearMonomial(rhs.toFlt64(), this)
 }
@@ -685,7 +685,7 @@ operator fun Symbol.times(rhs: UInt64): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun UInt64.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     val scalar = this.toFlt64()
     return LinearPolynomial(
@@ -699,7 +699,7 @@ operator fun UInt64.times(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun UInt64.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     val scalar = this.toFlt64()
     return LinearPolynomial(
@@ -713,7 +713,7 @@ operator fun UInt64.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64>
  *
  * @param rhs 右侧线性多项式 / Right-hand linear polynomial
  * @return 线性多项式 / Linear polynomial
- */
+*/
 operator fun UInt64.plus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return LinearPolynomial(rhs.monomials, this.toFlt64() + rhs.constant)
 }

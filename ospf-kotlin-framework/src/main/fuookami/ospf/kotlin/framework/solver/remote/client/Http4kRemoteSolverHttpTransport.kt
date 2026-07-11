@@ -1,7 +1,7 @@
 /**
  * HTTP4K 远程求解 HTTP 传输
  * HTTP4K remote solver HTTP transport
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import org.http4k.client.ApacheClient
@@ -13,7 +13,7 @@ import org.http4k.core.*
  *
  * @property http HTTP4K 处理器 / HTTP4K handler
  * @property config HTTP 传输配置 / HTTP transport config
- */
+*/
 class Http4kRemoteSolverHttpTransport(
     private val http: HttpHandler = ApacheClient(),
     private val config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
@@ -37,7 +37,7 @@ class Http4kRemoteSolverHttpTransport(
 /**
  * HTTP4K HTTP 传输插件。
  * HTTP4K HTTP transport plugin.
- */
+*/
 object Http4kRemoteSolverHttpTransportPlugin : RemoteSolverHttpTransportPlugin {
     override val name: String = "http4k"
 

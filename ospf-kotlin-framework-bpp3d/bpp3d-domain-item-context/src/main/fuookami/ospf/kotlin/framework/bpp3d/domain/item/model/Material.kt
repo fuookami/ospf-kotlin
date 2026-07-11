@@ -1,7 +1,7 @@
 /**
  * Material model.
  * 物料模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -9,13 +9,20 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.Kilogram
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-
+/**
+ * MaterialType enumeration.
+ * MaterialType枚举。
+*/
 enum class MaterialType {
     RawMaterial,
     SemiFinishedProduct,
     FinishedProduct
 }
 
+/**
+ * MaterialKey class.
+ * MaterialKey类。
+*/
 open class MaterialKey(
     open val no: MaterialNo,
     val type: MaterialType,
@@ -48,6 +55,10 @@ private fun <V : FloatingNumber<V>> defaultMaterialWeight(): Quantity<V> {
     return Quantity(FltX.zero, Kilogram) as Quantity<V>
 }
 
+/**
+ * Material class.
+ * Material类。
+*/
 open class Material<V : FloatingNumber<V>>(
     open val no: MaterialNo,
     val type: MaterialType,

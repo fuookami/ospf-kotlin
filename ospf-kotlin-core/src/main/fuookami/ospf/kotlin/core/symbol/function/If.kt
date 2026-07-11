@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [IfFunction]，实现 y = (condition > 0 ? 1 : 0) 的线性化建模。
  *
  * Provides [IfFunction] for linearized modeling of y = 1 if condition > 0, else y = 0.
- */
+*/
 
 /**
  * 条件函数：当 condition > 0 时 y = 1，否则 y = 0。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class IfFunction<V>(
     val condition: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -81,7 +81,7 @@ class IfFunction<V>(
      * Build the list of condition indicator constraints.
      *
      * @return 线性不等式约束列表 / list of linear inequality constraints
-     */
+    */
     private fun buildConstraints(): List<LinearInequality<V>> {
         val zero = converter.zero
         val one = converter.one
@@ -117,7 +117,7 @@ class IfFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [IfFunction] 实例 / [IfFunction] instance
-         */
+        */
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             converter: IntoValue<V>,
@@ -138,7 +138,7 @@ class IfFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
-         */
+        */
         fun <V> from(
             inequality: LinearConstraintInput<V>,
             converter: IntoValue<V>,

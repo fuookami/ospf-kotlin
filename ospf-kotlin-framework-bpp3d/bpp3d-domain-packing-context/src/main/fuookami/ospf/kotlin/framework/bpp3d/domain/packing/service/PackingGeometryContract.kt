@@ -1,7 +1,7 @@
 /**
  * 终态装箱几何契约。
  * Final packing geometry contract.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.math.geometry.Axis3
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
  * @param itemIndex 物品序号 / item index
  * @param diagnostic 形状诊断信息 / shape diagnostic
  * @return 错误信息 / error message
- */
+*/
 internal fun unsupportedHorizontalCylinderSupportMessage(
     source: String,
     binName: String,
@@ -34,7 +34,7 @@ internal fun unsupportedHorizontalCylinderSupportMessage(
  * @param itemIndex 物品序号 / item index
  * @param diagnostic 形状诊断信息 / shape diagnostic
  * @return 错误信息 / error message
- */
+*/
 internal fun unsupportedOutsideBinGeometryMessage(
     source: String,
     binName: String,
@@ -55,7 +55,7 @@ internal fun unsupportedOutsideBinGeometryMessage(
  * @param rhsIndex 右侧物品序号 / right item index
  * @param rhsDiagnostic 右侧形状诊断信息 / right shape diagnostic
  * @return 错误信息 / error message
- */
+*/
 internal fun unsupportedPlacementOverlapMessage(
     source: String,
     binName: String,
@@ -75,7 +75,7 @@ internal fun unsupportedPlacementOverlapMessage(
  * @param layerIndex 层序号 / layer index
  * @param axes 轴向集合 / axis set
  * @return 错误信息 / error message
- */
+*/
 internal fun unsupportedMixedCylinderAxesInLayerMessage(
     source: String,
     layerIndex: Int,

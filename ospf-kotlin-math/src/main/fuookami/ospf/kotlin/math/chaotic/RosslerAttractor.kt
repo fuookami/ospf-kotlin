@@ -1,7 +1,7 @@
 /**
  * Rossler 吸引子
  * Rossler Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class RosslerAttractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val zeta: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -49,7 +49,7 @@ data class RosslerAttractor<V : FloatingNumber<V>>(
  *
  * @property attractor Rossler 吸引子实例 / Rossler attractor instance
  * @property _x 当前状态向量（内部可变，通过 x 属性只读暴露） / Current state vector (mutable internally, exposed read-only via x property)
- */
+*/
 data class RosslerAttractorGenerator(
     val attractor: RosslerAttractor<Flt64> = RosslerAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

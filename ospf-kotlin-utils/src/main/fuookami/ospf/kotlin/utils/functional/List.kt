@@ -3,7 +3,7 @@
  *
  * Multi-dimensional list type aliases and extension functions.
  * 多维列表类型别名和扩展函数。
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -11,7 +11,7 @@ package fuookami.ospf.kotlin.utils.functional
  *
  * Type alias for a 2-dimensional list (List of List).
  * 二维列表的类型别名（列表的列表）。
- */
+*/
 typealias List2<T> = List<List<T>>
 
 /**
@@ -19,7 +19,7 @@ typealias List2<T> = List<List<T>>
  *
  * Type alias for a 2-dimensional mutable list.
  * 二维可变列表的类型别名。
- */
+*/
 typealias MutableList2<T> = MutableList<MutableList<T>>
 
 /**
@@ -27,7 +27,7 @@ typealias MutableList2<T> = MutableList<MutableList<T>>
  *
  * Type alias for a 3-dimensional list.
  * 三维列表的类型别名。
- */
+*/
 typealias List3<T> = List<List<List<T>>>
 
 /**
@@ -35,7 +35,7 @@ typealias List3<T> = List<List<List<T>>>
  *
  * Type alias for a 3-dimensional mutable list.
  * 三维可变列表的类型别名。
- */
+*/
 typealias MutableList3<T> = MutableList<MutableList<MutableList<T>>>
 
 /**
@@ -48,7 +48,7 @@ typealias MutableList3<T> = MutableList<MutableList<MutableList<T>>>
  * @param i 第一维索引 / The first dimension index
  * @param j 第二维索引 / The second dimension index
  * @return 位于 (i, j) 位置的元素 / The element at position (i, j)
- */
+*/
 operator fun <T> List<List<T>>.get(i: Int, j: Int): T {
     return this[i][j]
 }
@@ -63,7 +63,7 @@ operator fun <T> List<List<T>>.get(i: Int, j: Int): T {
  * @param i 第一维索引 / The first dimension index
  * @param j 第二维索引 / The second dimension index
  * @return 位于 (i, j) 位置的元素，如果索引越界则返回 null / The element at position (i, j), or null if indices are out of bounds
- */
+*/
 fun <T> List<List<T>>.getOrNull(i: Int, j: Int): T? {
     return this.getOrNull(i)?.getOrNull(j)
 }
@@ -78,7 +78,7 @@ fun <T> List<List<T>>.getOrNull(i: Int, j: Int): T? {
  * @param i 第一维索引 / The first dimension index
  * @param j 第二维索引 / The second dimension index
  * @param value 要设置的值 / The value to set
- */
+*/
 operator fun <T> List<MutableList<T>>.set(i: Int, j: Int, value: T) {
     this[i][j] = value
 }
@@ -94,7 +94,7 @@ operator fun <T> List<MutableList<T>>.set(i: Int, j: Int, value: T) {
  * @param j 第二维索引 / The second dimension index
  * @param k 第三维索引 / The third dimension index
  * @return 位于 (i, j, k) 位置的元素 / The element at position (i, j, k)
- */
+*/
 operator fun <T> List3<T>.get(i: Int, j: Int, k: Int): T {
     return this[i][j][k]
 }
@@ -110,7 +110,7 @@ operator fun <T> List3<T>.get(i: Int, j: Int, k: Int): T {
  * @param j 第二维索引 / The second dimension index
  * @param k 第三维索引 / The third dimension index
  * @return 位于 (i, j, k) 位置的元素，如果索引越界则返回 null / The element at position (i, j, k), or null if indices are out of bounds
- */
+*/
 fun <T> List3<T>.getOrNull(i: Int, j: Int, k: Int): T? {
     return this.getOrNull(i)?.getOrNull(j)?.getOrNull(k)
 }
@@ -126,7 +126,7 @@ fun <T> List3<T>.getOrNull(i: Int, j: Int, k: Int): T? {
  * @param j 第二维索引 / The second dimension index
  * @param k 第三维索引 / The third dimension index
  * @param value 要设置的值 / The value to set
- */
+*/
 operator fun <T> List<List<MutableList<T>>>.set(i: Int, j: Int, k: Int, value: T) {
     this[i][j][k] = value
 }
@@ -140,11 +140,12 @@ operator fun <T> List<List<MutableList<T>>>.set(i: Int, j: Int, k: Int, value: T
  * @param T 列表元素的类型 / The type of list elements
  * @param self 源可变列表 / The source mutable list
  * @param result 查找到的元素，如果没有找到则为 null / The found element, or null if not found
- */
+*/
 data class ListFindResult<T>(
     val self: MutableList<T>,
     val result: T?
 ) {
+
     /**
      * 如果找到则返回结果，否则添加默认值并返回
      *
@@ -153,7 +154,7 @@ data class ListFindResult<T>(
      *
      * @param default 默认值提供者 / The default value provider
      * @return 找到的元素或新添加的默认值 / The found element or the newly added default value
-     */
+    */
     fun add(default: () -> T): T {
         return if (result != null) {
             result
@@ -172,7 +173,7 @@ data class ListFindResult<T>(
      *
      * @param default 默认值提供者 / The default value provider
      * @return 找到的元素或默认值 / The found element or the default value
-     */
+    */
     fun default(default: () -> T): T {
         return result ?: default()
     }
@@ -187,7 +188,7 @@ data class ListFindResult<T>(
  * @param T 列表元素的类型 / The type of list elements
  * @param predicate 查找谓词 / The search predicate
  * @return 包含列表和查找结果的 ListFindResult / A ListFindResult containing the list and search result
- */
+*/
 fun <T> MutableList<T>.findOr(predicate: (T) -> Boolean): ListFindResult<T> {
     return ListFindResult(this, this.find(predicate))
 }

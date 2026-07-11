@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * 提供 Flt64/Int/Double 与符号和线性单项式之间的乘除运算符重载。
  * Provides multiplication and division operator overloads between
  * Flt64/Int/Double and symbols/linear monomials.
- */
+*/
 
 // ========== Flt64 arithmetic ==========
 // Flt64 算术运算 / Flt64 arithmetic operators
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Flt64.times(rhs: Symbol): LinearMonomial<Flt64> {
     return LinearMonomial(this, rhs)
 }
@@ -33,7 +33,7 @@ operator fun Flt64.times(rhs: Symbol): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧 Flt64 / Right-hand Flt64
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Symbol.times(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(rhs, this)
 }
@@ -43,7 +43,7 @@ operator fun Symbol.times(rhs: Flt64): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Flt64.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
     return LinearMonomial(this * rhs.coefficient, rhs.symbol)
 }
@@ -53,7 +53,7 @@ operator fun Flt64.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧 Flt64 / Right-hand Flt64
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.times(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient * rhs, symbol)
 }
@@ -63,7 +63,7 @@ operator fun LinearMonomial<Flt64>.times(rhs: Flt64): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 二次单项式 / Quadratic monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.times(rhs: Symbol): QuadraticMonomial<Flt64> {
     return QuadraticMonomial(coefficient, symbol, rhs)
 }
@@ -73,7 +73,7 @@ operator fun LinearMonomial<Flt64>.times(rhs: Symbol): QuadraticMonomial<Flt64> 
  *
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
  * @return 二次单项式 / Quadratic monomial
- */
+*/
 operator fun Symbol.times(rhs: LinearMonomial<Flt64>): QuadraticMonomial<Flt64> {
     return QuadraticMonomial(rhs.coefficient, this, rhs.symbol)
 }
@@ -83,7 +83,7 @@ operator fun Symbol.times(rhs: LinearMonomial<Flt64>): QuadraticMonomial<Flt64> 
  *
  * @param rhs 右侧 Flt64 除数 / Right-hand Flt64 divisor
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.div(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient / rhs, symbol)
 }
@@ -96,7 +96,7 @@ operator fun LinearMonomial<Flt64>.div(rhs: Flt64): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Int.times(rhs: Symbol): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(this.toDouble()), rhs)
 }
@@ -106,7 +106,7 @@ operator fun Int.times(rhs: Symbol): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧整数 / Right-hand integer
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Symbol.times(rhs: Int): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(rhs.toDouble()), this)
 }
@@ -116,7 +116,7 @@ operator fun Symbol.times(rhs: Int): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Int.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(this.toDouble()) * rhs.coefficient, rhs.symbol)
 }
@@ -126,7 +126,7 @@ operator fun Int.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧整数 / Right-hand integer
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.times(rhs: Int): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient * Flt64(rhs.toDouble()), symbol)
 }
@@ -136,7 +136,7 @@ operator fun LinearMonomial<Flt64>.times(rhs: Int): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧整数除数 / Right-hand integer divisor
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.div(rhs: Int): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient / Flt64(rhs.toDouble()), symbol)
 }
@@ -149,7 +149,7 @@ operator fun LinearMonomial<Flt64>.div(rhs: Int): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧符号 / Right-hand symbol
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Double.times(rhs: Symbol): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(this), rhs)
 }
@@ -159,7 +159,7 @@ operator fun Double.times(rhs: Symbol): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧浮点数 / Right-hand floating-point value
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Symbol.times(rhs: Double): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(rhs), this)
 }
@@ -169,7 +169,7 @@ operator fun Symbol.times(rhs: Double): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧线性单项式 / Right-hand linear monomial
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun Double.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
     return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
 }
@@ -179,7 +179,7 @@ operator fun Double.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧浮点数 / Right-hand floating-point value
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.times(rhs: Double): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient * Flt64(rhs), symbol)
 }
@@ -189,7 +189,7 @@ operator fun LinearMonomial<Flt64>.times(rhs: Double): LinearMonomial<Flt64> {
  *
  * @param rhs 右侧浮点数除数 / Right-hand floating-point divisor
  * @return 线性单项式 / Linear monomial
- */
+*/
 operator fun LinearMonomial<Flt64>.div(rhs: Double): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient / Flt64(rhs), symbol)
 }

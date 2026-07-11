@@ -303,7 +303,11 @@ private class Demo4ResourceUsage(
     }
 }
 
-/** 生产/消耗建模的演示物料。Demo material for production/consumption modeling. */
+/** Demo material for production/consumption modeling.
+ * 生产/消耗建模的演示物料。
+ *
+ * @property label The display label for the material / 物料的显示标签
+*/
 private data class Demo4Material(
     override val index: Int,
     val label: String
@@ -345,7 +349,7 @@ private class Demo4Consumption(material: AbstractMaterial) : Consumption {
  * @param value 值 / Value
  * @param size 大小 / Size
  * @return 线性中间符号一维数组 / 1D linear intermediate symbols
- */
+*/
 private fun constantSymbols(
     name: String,
     value: Flt64,

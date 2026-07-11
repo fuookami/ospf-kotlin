@@ -9,7 +9,7 @@
  * The Chen-Celikovsky attractor is a variant of the Chen system proposed by Chen and Celikovsky.
  * This system builds a bridge between the Lorenz system and the Chen system, exhibiting unique chaotic dynamical properties.
  * Commonly used for chaotic system research, control theory, and nonlinear dynamics analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property delta 系统参数 delta / System parameter delta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChenCelikovskyAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -56,7 +56,7 @@ data class ChenCelikovskyAttractor<V : FloatingNumber<V>>(
 /**
  * Chen-Celikovsky 吸引子生成器
  * Chen-Celikovsky Attractor Generator
- */
+*/
 data class ChenCelikovskyAttractorGenerator(
     val chenCelikovskyAttractor: ChenCelikovskyAttractor<Flt64> = ChenCelikovskyAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

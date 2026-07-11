@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
  *
  * @property config 求解器配置 / solver configuration
  * @property linearCallBack 线性求解器回调 / linear solver callback
- */
+*/
 class CplexLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack()
@@ -227,7 +227,7 @@ class CplexLinearBendersDecompositionSolver(
  * @property config 求解器配置 / solver configuration
  * @property linearCallBack 线性求解器回调 / linear solver callback
  * @property quadraticCallBack 二次求解器回调 / quadratic solver callback
- */
+*/
 class CoptLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: CoptLinearSolverCallBack = CoptLinearSolverCallBack(),
@@ -245,7 +245,7 @@ class CoptLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -271,7 +271,7 @@ class CoptLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend fun solveMaster(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
@@ -355,7 +355,7 @@ class CoptLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 子问题求解结果 / sub problem solving result
-     */
+    */
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -387,7 +387,7 @@ class CoptLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 二次子问题求解结果 / quadratic sub problem solving result
-     */
+    */
     override suspend fun solveSub(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,

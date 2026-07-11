@@ -7,7 +7,7 @@
  * Provides core implementation for compiling polynomials into efficient evaluation functions.
  * Supports compiling evaluation and gradient functions,
  * using pre-computed index mapping to avoid runtime lookup overhead.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -27,11 +27,11 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
  * Compiled linear monomial.
- * 中文编译后的线性单项式。
+ * 编译后的线性单项式。
  *
  * @property coefficient the coefficient / 系数
  * @property symbolIndex the index of the symbol in the order / 符号在顺序中的索引
- */
+*/
 private data class CompiledLinearMonomial<T>(
     val coefficient: T,
     val symbolIndex: Int
@@ -39,12 +39,12 @@ private data class CompiledLinearMonomial<T>(
 
 /**
  * Compiled quadratic monomial.
- * 中文编译后的二次单项式。
+ * 编译后的二次单项式。
  *
  * @property coefficient the coefficient / 系数
  * @property symbol1Index the index of the first symbol in the order / 第一个符号在顺序中的索引
  * @property symbol2Index the index of the second symbol in the order, null for pure linear terms / 第二个符号在顺序中的索引，纯线性项时为 null
- */
+*/
 private data class CompiledQuadraticMonomial<T>(
     val coefficient: T,
     val symbol1Index: Int,
@@ -53,11 +53,11 @@ private data class CompiledQuadraticMonomial<T>(
 
 /**
  * Compiled canonical monomial.
- * 中文编译后的规范单项式。
+ * 编译后的规范单项式。
  *
  * @property coefficient the coefficient / 系数
  * @property powers list of symbol index and exponent pairs / 符号索引与指数的列表
- */
+*/
 private data class CompiledCanonicalMonomial<T>(
     val coefficient: T,
     val powers: List<Pair<Int, Int32>>  // (symbolIndex, exponent)
@@ -65,11 +65,11 @@ private data class CompiledCanonicalMonomial<T>(
 
 /**
  * Compiled canonical gradient monomial.
- * 中文编译后的规范梯度单项式。
+ * 编译后的规范梯度单项式。
  *
  * @property coefficient the coefficient / 系数
  * @property factorCounts list of symbol index and factor count pairs / 符号索引与因子次数的列表
- */
+*/
 private data class CompiledCanonicalGradientMonomial<T>(
     val coefficient: T,
     val factorCounts: List<Pair<Int, Int32>>
@@ -81,7 +81,7 @@ private data class CompiledCanonicalGradientMonomial<T>(
  *
  * @param order 符号顺序列表 / Ordered list of symbols
  * @return 符号到索引的映射结果 / Result containing map from symbol to its index
- */
+*/
 private fun compileOrderIndex(order: List<Symbol>): Ret<Map<Symbol, Int>> {
     if (order.toSet().size != order.size) {
         return Failed(ErrorCode.IllegalArgument, "Symbol order contains duplicated symbols.")
@@ -95,7 +95,7 @@ private fun compileOrderIndex(order: List<Symbol>): Ret<Map<Symbol, Int>> {
  *
  * @param values 值列表 / Value list
  * @param expectedSize 预期大小 / Expected size
- */
+*/
 private fun requireValuesSize(
     values: List<*>,
     expectedSize: Int
@@ -112,7 +112,7 @@ private fun requireValuesSize(
  * @param symbol 目标符号 / Target symbol
  * @param indexOfSymbol 符号-索引映射 / Symbol-to-index map
  * @return 符号在顺序中的索引 / Index of the symbol in the order
- */
+*/
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>
@@ -131,7 +131,7 @@ private fun requireSymbolIndex(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
- */
+*/
 fun <T> LinearPolynomial<T>.compileEvalLinear(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -184,7 +184,7 @@ fun <T> LinearPolynomial<T>.compileEvalLinear(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
- */
+*/
 fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -256,7 +256,7 @@ fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @param one 乘法单位元 / The multiplicative identity
  * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
- */
+*/
 fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -325,7 +325,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 接受值列表并返回求值结果的函数 / Function accepting a value list and returning the evaluation result
- */
+*/
 fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -355,7 +355,7 @@ fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
  * @param amount 缩放倍数（非负） / Scale amount (non-negative)
  * @param zero 类型零值 / Zero value for the type
  * @return 缩放后的值 / Scaled result
- */
+*/
 private fun <T> scaleByInt(
     value: T,
     amount: Int,
@@ -378,7 +378,7 @@ private fun <T> scaleByInt(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
- */
+*/
 fun <T> LinearPolynomial<T>.compileGradientLinear(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -422,7 +422,7 @@ fun <T> LinearPolynomial<T>.compileGradientLinear(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
- */
+*/
 fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -496,7 +496,7 @@ fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 接受值列表并返回梯度向量的函数 / Function accepting a value list and returning the gradient vector
- */
+*/
 fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,

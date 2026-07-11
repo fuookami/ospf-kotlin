@@ -15,11 +15,12 @@ import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 跨服务的每边带宽分配的决策变量和中间符号。Decision variables and intermediate symbols for per-edge bandwidth allocation across services.
+ * Decision variables and intermediate symbols for per-edge bandwidth allocation across services.
+ * 跨服务的每边带宽分配的决策变量和中间符号。
  *
- * @property edges 边列表 / Edge list
- * @property services 服务列表 / Service list
- */
+ * @property edges the list of edges / 边列表
+ * @property services the list of services / 服务列表
+*/
 class EdgeBandwidth(
     private val edges: List<Edge>,
     private val services: List<Service>
@@ -28,11 +29,12 @@ class EdgeBandwidth(
     lateinit var bandwidth: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * 注册决策变量和中间符号到模型中。Register decision variables and intermediate symbols into the model.
+     * Registers decision variables and intermediate symbols into the model.
+     * 注册决策变量和中间符号到模型中。
      *
-     * @param model 线性元模型 / Linear meta model
-     * @return 注册结果 / Registration result
-     */
+     * @param model the linear meta model / 线性元模型
+     * @return the registration result / 注册结果
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = UIntVariable2("y", Shape2(edges.size, services.size))

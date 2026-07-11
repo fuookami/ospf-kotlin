@@ -9,7 +9,7 @@
  * The exponential map is a complex dynamics chaotic map based on the exponential function.
  * This map is defined on the complex plane, generating chaotic behavior through exponential operations.
  * Commonly used for complex dynamics research and fractal graphics generation.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * 公式 / Formula: z_{n+1} = exp(z) + c
  *
  * @property c 系统参数 c / System parameter c
- */
+*/
 data class ExponentialMap<V : FloatingNumber<V>>(
     val c: V
 ) : Extractor<V, V> {
@@ -46,7 +46,7 @@ data class ExponentialMap<V : FloatingNumber<V>>(
 /**
  * 指数映射生成器
  * Exponential Map Generator
- */
+*/
 data class ExponentialMapGenerator(
     val exponentialMap: ExponentialMap<Flt64> = ExponentialMap(),
     private var _z: Flt64 = Random.nextFlt64(Flt64.zero, Flt64.one)

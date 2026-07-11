@@ -14,11 +14,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 最小化所有普通边的总带宽成本。Minimizes the total bandwidth cost across all normal edges.
+ * Minimizes the total bandwidth cost across all normal edges.
+ * 最小化所有普通边的总带宽成本。
  *
- * @property edges 参数。
- * @property edgeBandwidth 参数。
- */
+ * @property edges the list of network edges / 网络边列表
+ * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+*/
 class BandwidthCostObjective(
     private val edges: List<Edge>,
     private val edgeBandwidth: EdgeBandwidth,

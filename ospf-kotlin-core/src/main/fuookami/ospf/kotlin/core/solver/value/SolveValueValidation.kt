@@ -1,7 +1,7 @@
 /**
  * 求解值验证函数
  * Solve value validation functions
- */
+*/
 package fuookami.ospf.kotlin.core.solver.value
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
  * @param policy 转换策略 / Conversion policy
  * @param fieldName 字段名称（用于错误信息）/ Field name (for error messages)
  * @return 验证结果 / Validation result
- */
+*/
 fun validateSolverFlt64Value(
     value: Flt64,
     policy: SolveValueConversionPolicy,
@@ -43,7 +43,7 @@ fun validateSolverFlt64Value(
  * @param policy 转换策略 / Conversion policy
  * @param fieldName 字段名称（用于错误信息）/ Field name (for error messages)
  * @return 验证结果 / Validation result
- */
+*/
 fun validateSolverFlt64Bound(
     value: Flt64,
     policy: SolveValueConversionPolicy,
@@ -73,7 +73,7 @@ fun validateSolverFlt64Bound(
  * @param model 线性三元模型视图 / Linear triad model view
  * @param policy 转换策略 / Conversion policy
  * @return 验证结果 / Validation result
- */
+*/
 fun validateLinearModelValueConversion(
     model: LinearTriadModelView,
     policy: SolveValueConversionPolicy
@@ -166,7 +166,7 @@ fun validateLinearModelValueConversion(
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param policy 转换策略 / Conversion policy
  * @return 验证结果 / Validation result
- */
+*/
 fun validateQuadraticModelValueConversion(
     model: QuadraticTetradModelView,
     policy: SolveValueConversionPolicy

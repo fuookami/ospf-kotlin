@@ -6,7 +6,7 @@
  * 点是几何空间中的基本元素，表示空间中的一个位置。
  * Defines point data structure in geometric space, supporting arbitrary dimensions and number types.
  * A point is a fundamental element in geometric space, representing a position.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.functional.Eq
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.operator.*
  * @param V 数值类型 / Number type
  * @property position 点的坐标列表 / List of coordinates of the point
  * @property dim 维度信息 / Dimension information
- */
+*/
 data class Point<D : Dimension, V : FloatingNumber<V>>(
     val position: List<V>,
     val dim: D
@@ -39,7 +39,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          *
          * @param D 维度类型 / The dimension type
          * @return 二维维度类型 / The 2D dimension type
-         */
+        */
         @Suppress("UNCHECKED_CAST")
         private fun <D : Dimension> dim2AsType(): D {
             // 安全不变量：二维构造函数只在调用方期望 D=Dim2 时使用。
@@ -53,7 +53,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          *
          * @param D 维度类型 / The dimension type
          * @return 三维维度类型 / The 3D dimension type
-         */
+        */
         @Suppress("UNCHECKED_CAST")
         private fun <D : Dimension> dim3AsType(): D {
             // 安全不变量：三维构造函数只在调用方期望 D=Dim3 时使用。
@@ -70,7 +70,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          * @param x X 坐标 / X coordinate
          * @param y Y 坐标 / Y coordinate
          * @return 二维点 / The 2D point
-         */
+        */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Point<D, V> {
             return Point(listOf(x, y), dim2AsType())
         }
@@ -85,7 +85,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          * @param y Y 坐标 / Y coordinate
          * @param z Z 坐标 / Z coordinate
          * @return 三维点 / The 3D point
-         */
+        */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Point<D, V> {
             return Point(listOf(x, y, z), dim3AsType())
         }
@@ -98,7 +98,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          * @param V 数值类型 / The numeric type
          * @param vector 向量 / The vector
          * @return 点 / The point
-         */
+        */
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(vector: Vector<D, V>): Point<D, V> {
             return Point(vector.vector, vector.dim)
         }
@@ -110,7 +110,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          * @param x X 坐标 / X coordinate
          * @param y Y 坐标 / Y coordinate
          * @return 二维点 / The 2D point
-         */
+        */
         operator fun invoke(x: Flt64, y: Flt64): Point<Dim2, Flt64> {
             return Point(listOf(x, y), Dim2)
         }
@@ -123,7 +123,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
          * @param y Y 坐标 / Y coordinate
          * @param z Z 坐标 / Z coordinate
          * @return 三维点 / The 3D point
-         */
+        */
         operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Point<Dim3, Flt64> {
             return Point(listOf(x, y, z), Dim3)
         }
@@ -142,7 +142,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param i 索引值 / The index value
      * @return 对应位置的坐标 / The coordinate at the specified position
-     */
+    */
     @Throws(ArrayIndexOutOfBoundsException::class)
     operator fun get(i: Int): V {
         return position[i]
@@ -154,7 +154,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 另一个点 / The other point
      * @return 欧几里得距离 / The Euclidean distance
-     */
+    */
     infix fun distance(rhs: Point<D, V>): V = Distance.Euclidean(this, rhs)
 
     /**
@@ -164,7 +164,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      * @param rhs 另一个点 / The other point
      * @param type 距离度量策略，默认为欧几里得距离 / The distance metric, defaults to Euclidean
      * @return 两点间的距离 / The distance between the two points
-     */
+    */
     fun distanceBetween(rhs: Point<D, V>, type: Distance = Distance.Euclidean): V = type(this, rhs)
 
     override fun plus(rhs: Point<D, V>) = Point(indices.map { this[it] + rhs[it] }, dim)
@@ -195,7 +195,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 另一个点 / The other point
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     infix fun approxEq(rhs: Point<D, V>): Boolean {
         if (dim != rhs.dim) {
             return false
@@ -216,7 +216,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      * @param rhs 另一个点 / The other point
      * @param epsilon 容差值 / The tolerance value
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     fun approxEq(rhs: Point<D, V>, epsilon: V): Boolean {
         if (dim != rhs.dim) {
             return false
@@ -235,7 +235,7 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
      *
      * @param rhs 另一个点 / The other point
      * @return 中点 / The midpoint
-     */
+    */
     infix fun midpoint(rhs: Point<D, V>): Point<D, V> {
         val v = this[0]
         val two = v.constants.two
@@ -266,7 +266,7 @@ val originPoint2 = point2()
  * @param x X 坐标，默认为 0 / X coordinate, defaults to 0
  * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0
  * @return 二维点 / The 2D point
- */
+*/
 fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point<Dim2, Flt64> {
     return Point(listOf(x, y), Dim2)
 }
@@ -297,7 +297,7 @@ val originPoint3 = point3()
  * @param y Y 坐标，默认为 0 / Y coordinate, defaults to 0
  * @param z Z 坐标，默认为 0 / Z coordinate, defaults to 0
  * @return 三维点 / The 3D point
- */
+*/
 fun point3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Point<Dim3, Flt64> {
     return Point(listOf(x, y, z), Dim3)
 }
@@ -330,7 +330,7 @@ val originPoint4 = point4()
  * @param z Z 坐标，默认为 0 / Z coordinate, defaults to 0
  * @param w W 坐标，默认为 0 / W coordinate, defaults to 0
  * @return 四维点 / The 4D point
- */
+*/
 fun point4(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero, w: Flt64 = Flt64.zero): Point<Dim4, Flt64> {
     return Point(listOf(x, y, z, w), Dim4)
 }

@@ -12,7 +12,7 @@ import kotlinx.serialization.Serializable
  * @property path 存储路径 / Storage path
  * @property version 版本标识 / Version identifier
  * @property etag 实体标签 / Entity tag
- */
+*/
 @Serializable
 data class ObjectRef(
     val path: ObjectPath,
@@ -28,7 +28,7 @@ data class ObjectRef(
          * @param version 对象版本 / Object version
          * @param etag 对象 ETag / Object ETag
          * @return 对象引用 / Object reference
-         */
+        */
         fun of(
             path: String,
             version: String? = null,
@@ -51,7 +51,7 @@ data class ObjectRef(
  * @property bytes 对象字节 / Object bytes
  * @property metadata 元数据 / Metadata
  * @property createdAt 创建时间戳 / Created timestamp
- */
+*/
 data class StoredObject(
     val ref: ObjectRef,
     val bytes: ByteArray,
@@ -88,7 +88,7 @@ data class StoredObject(
  * @property sliceId 切片 ID / Slice ID
  * @property ref 检查点引用 / Checkpoint reference
  * @property createdAt 创建时间戳 / Created timestamp
- */
+*/
 @Serializable
 data class CheckpointMetadata(
     val taskId: TaskId,

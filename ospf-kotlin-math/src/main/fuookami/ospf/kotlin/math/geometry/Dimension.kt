@@ -14,7 +14,7 @@
  *
  * 应用场景：几何算法的维度约束、类型安全的点/向量定义。
  * Applications: dimension constraints for geometric algorithms, type-safe point/vector definitions.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 /**
@@ -25,10 +25,12 @@ package fuookami.ospf.kotlin.math.geometry
  * Defines the dimension size of geometric space, used for type-safe geometric calculations.
  *
  * @property size 维度大小 / Dimension size
- */
+*/
 interface Dimension {
+
     /** 维度大小 / Dimension size */
     val size: Int
+
     /** 维度索引范围 / Dimension index range */
     val indices get() = 0 until size
 }
@@ -39,7 +41,7 @@ interface Dimension {
  *
  * 表示一维空间（直线），维度大小为 1。
  * Represents 1D space (line), with dimension size 1.
- */
+*/
 data object Dim1 : Dimension {
     override val size = 1
 }
@@ -50,7 +52,7 @@ data object Dim1 : Dimension {
  *
  * 表示二维空间（平面），维度大小为 2。
  * Represents 2D space (plane), with dimension size 2.
- */
+*/
 data object Dim2 : Dimension {
     override val size = 2
 }
@@ -61,7 +63,7 @@ data object Dim2 : Dimension {
  *
  * 表示三维空间（立体），维度大小为 3。
  * Represents 3D space (solid), with dimension size 3.
- */
+*/
 data object Dim3 : Dimension {
     override val size = 3
 }
@@ -72,7 +74,7 @@ data object Dim3 : Dimension {
  *
  * 表示四维空间，维度大小为 4。常用于超混沌系统和时空动力学建模。
  * Represents 4D space, with dimension size 4. Commonly used for hyperchaotic systems and spacetime dynamics modeling.
- */
+*/
 data object Dim4 : Dimension {
     override val size = 4
 }

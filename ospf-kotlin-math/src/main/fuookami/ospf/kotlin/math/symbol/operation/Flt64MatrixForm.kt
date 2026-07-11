@@ -6,7 +6,7 @@
  * 封装通用矩阵形式运算，使用 Double 数组表示系数矩阵和向量。
  * Provides conversion between Flt64 polynomials and Double array matrix forms.
  * Wraps generic matrix form operations using Double arrays for coefficient matrices and vectors.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property c 系数向量 / Coefficient vector
  * @property d 常数项 / Constant term
  * @property order 符号顺序 / Symbol order
- */
+*/
 data class Flt64LinearMatrixForm(
     val c: DoubleArray,
     val d: Flt64,
@@ -45,7 +45,7 @@ data class Flt64LinearMatrixForm(
  * @property c 一次项系数向量 / Linear coefficient vector
  * @property d 常数项 / Constant term
  * @property order 符号顺序 / Symbol order
- */
+*/
 data class Flt64QuadraticMatrixForm(
     val q: Array<DoubleArray>,
     val c: DoubleArray,
@@ -60,7 +60,7 @@ data class Flt64QuadraticMatrixForm(
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return Flt64 线性矩阵形式 / Flt64 linear matrix form
- */
+*/
 fun LinearPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -92,7 +92,7 @@ fun LinearPolynomial<Flt64>.toFlt64MatrixForm(
  * @param d 常数项 / Constant term
  * @param order 符号顺序 / Symbol order
  * @return 线性多项式 / Linear polynomial
- */
+*/
 fun flt64LinearPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
@@ -113,7 +113,7 @@ fun flt64LinearPolynomialFromMatrixForm(
  *
  * @param form Flt64 线性矩阵形式 / Flt64 linear matrix form
  * @return 线性多项式 / Linear polynomial
- */
+*/
 fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPolynomial<Flt64> {
     return flt64LinearPolynomialFromMatrixForm(
         c = form.c,
@@ -129,7 +129,7 @@ fun flt64LinearPolynomialFromMatrixForm(form: Flt64LinearMatrixForm): LinearPoly
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return Flt64 二次矩阵形式 / Flt64 quadratic matrix form
- */
+*/
 fun QuadraticPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -166,7 +166,7 @@ fun QuadraticPolynomial<Flt64>.toFlt64MatrixForm(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return Flt64 二次矩阵形式 / Flt64 quadratic matrix form
- */
+*/
 fun CanonicalPolynomial<Flt64>.toFlt64MatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -206,7 +206,7 @@ fun CanonicalPolynomial<Flt64>.toFlt64MatrixForm(
  * @param d 常数项 / Constant term
  * @param order 符号顺序 / Symbol order
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 fun flt64QuadraticPolynomialFromMatrixForm(
     q: Array<DoubleArray>,
     c: DoubleArray,
@@ -230,7 +230,7 @@ fun flt64QuadraticPolynomialFromMatrixForm(
  *
  * @param form Flt64 二次矩阵形式 / Flt64 quadratic matrix form
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 fun flt64QuadraticPolynomialFromMatrixForm(form: Flt64QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
     return flt64QuadraticPolynomialFromMatrixForm(
         q = form.q,

@@ -32,7 +32,7 @@ typealias TaskTimeQuantity<V> = Quantity<V>
  * @param result 约束输入结果 / Constraint input result
  * @param onFailure 失败时的回调函数 / Callback function on failure
  * @return 成功时返回约束输入，失败时返回 null / Constraint input on success, null on failure
- */
+*/
 private fun captureLinearConstraintInput(
     result: Ret<LinearConstraintInput<Flt64>>,
     onFailure: (Try) -> Unit
@@ -61,7 +61,7 @@ private fun captureLinearConstraintInput(
  * @param withPositive 是否包含正松弛 / Whether to include positive slack
  * @param name 名称 / Name
  * @return 线性函数符号适配器 / Linear function symbol adapter
- */
+*/
 private fun slackSymbol(
     x: ToLinearPolynomial<Flt64>,
     y: Flt64,
@@ -86,25 +86,53 @@ private fun slackSymbol(
 
 /** 任务时间接口 / Task time interface */
 interface TaskTime {
+
+    /** Whether delay time tracking is enabled / 是否启用延迟时间跟踪 */
     val delayEnabled: Boolean
+
+    /** Whether over-max-delay time tracking is enabled / 是否启用超最大延迟时间跟踪 */
     val overMaxDelayEnabled: Boolean
+
+    /** Whether advance time tracking is enabled / 是否启用提前时间跟踪 */
     val advanceEnabled: Boolean
+
+    /** Whether over-max-advance time tracking is enabled / 是否启用超最大提前时间跟踪 */
     val overMaxAdvanceEnabled: Boolean
 
+    /** Whether delay last-end-time tracking is enabled / 是否启用延迟最晚结束时间跟踪 */
     val delayLastEndTimeEnabled: Boolean
+
+    /** Whether advance earliest-end-time tracking is enabled / 是否启用提前最早结束时间跟踪 */
     val advanceEarliestEndTimeEnabled: Boolean
 
+    /** Estimated start time intermediate symbols / 预估开始时间中间符号 */
     val estimateStartTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Estimated end time intermediate symbols / 预估结束时间中间符号 */
     val estimateEndTime: LinearIntermediateSymbols1<Flt64>
 
+    /** Delay time intermediate symbols / 延迟时间中间符号 */
     val delayTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Advance time intermediate symbols / 提前时间中间符号 */
     val advanceTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Over-max-delay time intermediate symbols / 超最大延迟时间中间符号 */
     val overMaxDelayTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Over-max-advance time intermediate symbols / 超最大提前时间中间符号 */
     val overMaxAdvanceTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Delay last-end-time intermediate symbols / 延迟最晚结束时间中间符号 */
     val delayLastEndTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Advance earliest-end-time intermediate symbols / 提前最早结束时间中间符号 */
     val advanceEarliestEndTime: LinearIntermediateSymbols1<Flt64>
 
+    /** On-time indicator intermediate symbols / 准时指示中间符号 */
     val onTime: LinearIntermediateSymbols1<Flt64>
+
+    /** Not-on-time indicator intermediate symbols / 非准时指示中间符号 */
     val notOnTime: LinearIntermediateSymbols1<Flt64>
 
     /**
@@ -112,7 +140,7 @@ interface TaskTime {
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: MetaModel<Flt64>): Try
 
     /**
@@ -127,7 +155,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 预估开始时间物理量 / Estimate start time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -158,7 +186,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 预估结束时间物理量 / Estimate end time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -189,7 +217,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 延迟时间物理量 / Delay time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -220,7 +248,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 提前时间物理量 / Advance time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -251,7 +279,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 延迟最晚结束时间物理量 / Delay last-end-time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -282,7 +310,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 提前最早结束时间物理量 / Advance earliest-end-time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -313,7 +341,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 超最大延迟时间物理量 / Over-max-delay time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -344,7 +372,7 @@ interface TaskTime {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 超最大提前时间物理量 / Over-max-advance time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -385,7 +413,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.quantityOf(
  * @param A 分配策略类型 / Assignment policy type
  * @param timeWindow 时间窗口 / Time window
  * @param tasks 任务列表 / List of tasks
- */
+*/
 abstract class TaskTimeImpl<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -425,7 +453,7 @@ abstract class TaskTimeImpl<
      * @param slackName 松弛名称 / Slack name
      * @param symbolName 输出符号名称 / Output symbol name
      * @return 带掩码的中间符号 / Masked intermediate symbol
-     */
+    */
     private fun maskedSlackResult(
         model: MetaModel<Flt64>,
         task: @UnsafeVariance T,
@@ -1269,7 +1297,7 @@ abstract class TaskTimeImpl<
  * @param overMaxAdvanceEnabled 是否启用超最大提前 / Whether over-max advance is enabled
  * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
  * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
- */
+*/
 class TaskSchedulingTaskTime<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -1286,6 +1314,7 @@ class TaskSchedulingTaskTime<
     override val delayLastEndTimeEnabled: Boolean = false,
     override val advanceEarliestEndTimeEnabled: Boolean = false
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
+
     /**
      * 通过 solver 时间窗口边界创建任务调度时间 / Create task scheduling time from a solver time-window boundary
      *
@@ -1299,7 +1328,7 @@ class TaskSchedulingTaskTime<
      * @param overMaxAdvanceEnabled 是否启用超最大提前 / Whether over-max advance is enabled
      * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
      * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
@@ -1551,7 +1580,7 @@ class TaskSchedulingTaskTime<
  * @param tasks 任务列表 / List of tasks
  * @param compilation 迭代任务编译结果 / Iterative task compilation result
  * @param redundancyRange 冗余范围 / Redundancy range
- */
+*/
 open class IterativeTaskSchedulingTaskTime<
         IT : IterativeAbstractTask<E, A>,
         out T : AbstractTask<E, A>,
@@ -1563,6 +1592,7 @@ open class IterativeTaskSchedulingTaskTime<
     override val compilation: IterativeTaskCompilation<IT, T, E, A>,
     private val redundancyRange: Duration? = null
 ) : TaskTimeImpl<T, E, A>(timeWindow, tasks) {
+
     /**
      * 通过 solver 时间窗口边界创建迭代任务调度时间 / Create iterative task scheduling time from a solver time-window boundary
      *
@@ -1570,7 +1600,7 @@ open class IterativeTaskSchedulingTaskTime<
      * @param tasks 任务列表 / List of tasks
      * @param compilation 迭代任务编译结果 / Iterative task compilation result
      * @param redundancyRange 冗余范围 / Redundancy range
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
@@ -1723,6 +1753,14 @@ open class IterativeTaskSchedulingTaskTime<
         return super.register(model)
     }
 
+/**
+ * Add new iterative task columns for the given iteration, updating estimate start/end time polynomials.
+ * 为给定迭代添加新的迭代任务列，更新预估开始/结束时间多项式。
+ * @param iteration Current iteration index / 当前迭代索引
+ * @param newTasks New iterative tasks to add as columns / 要添加为新列的迭代任务列表
+ * @param model Linear meta model to add columns into / 要添加列的线性元模型
+ * @return Operation result / 操作结果
+*/
     open fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,

@@ -1,7 +1,7 @@
 /**
  * Newton-Leipnik 吸引子
  * Newton-Leipnik Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c10 常量 10 / Constant 10
  * @property c5 常量 5 / Constant 5
  * @property c04 常量 0.4 / Constant 0.4
- */
+*/
 data class NewtonLeipnikAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -51,7 +51,7 @@ data class NewtonLeipnikAttractor<V : FloatingNumber<V>>(
  * Newton-Leipnik Attractor Generator
  *
  * @property attractor Newton-Leipnik 吸引子实例 / Newton-Leipnik attractor instance
- */
+*/
 data class NewtonLeipnikAttractorGenerator(
     val attractor: NewtonLeipnikAttractor<Flt64> = NewtonLeipnikAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

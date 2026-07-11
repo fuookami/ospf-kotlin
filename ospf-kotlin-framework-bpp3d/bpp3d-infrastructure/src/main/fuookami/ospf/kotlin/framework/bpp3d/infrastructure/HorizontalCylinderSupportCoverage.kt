@@ -1,7 +1,7 @@
 /**
  * 水平圆柱支撑覆盖区域。
  * Horizontal cylinder support coverage.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import kotlin.math.*
@@ -21,7 +21,7 @@ const val HorizontalCylinderSupportCoverageTolerance: Double = 1e-7
  * @property minZ Z 轴最小坐标 / minimum Z coordinate
  * @property maxZ Z 轴最大坐标 / maximum Z coordinate
  * @property isCylinder 是否为圆柱 / whether the geometry is a cylinder
- */
+*/
 data class HorizontalCylinderSupportGeometry(
     val minX: Double,
     val maxX: Double,
@@ -31,13 +31,14 @@ data class HorizontalCylinderSupportGeometry(
     val maxZ: Double,
     val isCylinder: Boolean = false
 ) {
+
     /**
      * 获取指定轴向最小坐标。
      * Get minimum coordinate on the given axis.
      *
      * @param axis 轴向 / axis
      * @return 最小坐标 / minimum coordinate
-     */
+    */
     fun min(axis: Axis3): Double {
         return when (axis) {
             Axis3.X -> minX
@@ -52,7 +53,7 @@ data class HorizontalCylinderSupportGeometry(
      *
      * @param axis 轴向 / axis
      * @return 最大坐标 / maximum coordinate
-     */
+    */
     fun max(axis: Axis3): Double {
         return when (axis) {
             Axis3.X -> maxX
@@ -67,7 +68,7 @@ data class HorizontalCylinderSupportGeometry(
      *
      * @param axis 轴向 / axis
      * @return 中心坐标 / center coordinate
-     */
+    */
     fun center(axis: Axis3): Double {
         return (min(axis) + max(axis)) / 2.0
     }
@@ -79,7 +80,7 @@ data class HorizontalCylinderSupportGeometry(
  *
  * @param axis 圆柱轴向 / cylinder axis
  * @return 支撑线径向轴 / radial axis for the support line
- */
+*/
 fun horizontalCylinderSupportRadialAxis(axis: Axis3): Axis3 {
     return when (axis) {
         Axis3.X -> Axis3.Z
@@ -97,7 +98,7 @@ fun horizontalCylinderSupportRadialAxis(axis: Axis3): Axis3 {
  * @param intervals 候选覆盖区间 / candidate coverage intervals
  * @param tolerance 容差 / tolerance
  * @return 是否完整覆盖 / whether the target span is fully covered
- */
+*/
 fun intervalsCoverSpan(
     targetMin: Double,
     targetMax: Double,
@@ -132,7 +133,7 @@ fun intervalsCoverSpan(
  * @param supports 候选支撑几何 / candidate support geometries
  * @param tolerance 容差 / tolerance
  * @return 是否具备完整支撑覆盖 / whether full support coverage exists
- */
+*/
 fun horizontalCylinderCuboidSupportCoverage(
     cylinder: HorizontalCylinderSupportGeometry,
     axis: Axis3,

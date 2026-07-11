@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.model.*
  *
  * Safely narrows constraint args to the target shadow-price key type.
  * The pipeline construction path owns the runtime key-type invariant.
- */
+*/
 internal inline fun <reified K : ShadowPriceKey> shadowPriceKeyOf(args: Any?): K? {
     return args as? K
 }

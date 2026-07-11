@@ -25,7 +25,7 @@ enum class GurobiVariable {
          *
          * @param type 内部变量类型 / internal variable type
          * @return Gurobi 变量类型 / Gurobi variable type
-         */
+        */
         operator fun invoke(type: VariableType<*>): GurobiVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.variable.Binary -> {
@@ -47,6 +47,6 @@ enum class GurobiVariable {
      * 转换为 Gurobi 变量类型字符 / Convert to Gurobi variable type character
      *
      * @return Gurobi 变量类型字符 / Gurobi variable type character
-     */
+    */
     abstract fun toGurobiVar(): Char
 }

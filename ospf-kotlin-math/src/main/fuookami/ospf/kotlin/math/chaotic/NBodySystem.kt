@@ -9,7 +9,7 @@
  * The N-body system is a multi-body gravitational interaction model in classical mechanics.
  * This system calculates gravitational forces between multiple celestial bodies using Newton's law of universal gravitation, producing complex chaotic orbits.
  * Commonly used for celestial mechanics research, galaxy simulation, and chaotic orbit analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property m 各天体质量列表 / List of body masses
  * @property G 万有引力常数 / Gravitational constant
  * @property h 时间步长 / Time step size
- */
+*/
 data class NBodySystem(
     val m: List<Flt64>,
     val G: Flt64 = Flt64(6.67e-11),
@@ -86,7 +86,7 @@ data class NBodySystem(
          * @param G 万有引力常数 / Gravitational constant
          * @param h 时间步长 / Time step size
          * @return 二维 N 体系统实例 / 2D N-body system instance
-         */
+        */
         fun plane(
             m: List<Flt64>,
             G: Flt64 = Flt64(6.67e-11),
@@ -104,7 +104,7 @@ data class NBodySystem(
  * @property m 各天体质量列表 / List of body masses
  * @property G 万有引力常数 / Gravitational constant
  * @property h 时间步长 / Time step size
- */
+*/
 data class NBodySystemPlane(
     val m: List<Flt64>,
     val G: Flt64 = Flt64(6.67e-11),
@@ -143,7 +143,7 @@ data class NBodySystemPlane(
 /**
  * N 体系统生成器
  * N-Body System Generator
- */
+*/
 data class NBodySystemGenerator(
     val nBodySystem: NBodySystem = NBodySystem(listOf(Flt64.one, Flt64.one, Flt64.one)),
     private var _state: List<Pair<Point<Dim3, Flt64>, Point<Dim3, Flt64>>> = nBodySystem.m.map {

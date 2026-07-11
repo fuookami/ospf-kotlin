@@ -30,13 +30,14 @@ import fuookami.ospf.kotlin.utils.min
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
  * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
- */
+*/
 abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: ResourceId,
     override val name: String,
     override val capacities: List<C>,
     override val initialQuantityValue: V
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算任务间连接在指定时间范围内的资源消耗量 / Calculate resource consumption of a task connection in the given time range
      *
@@ -47,7 +48,7 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 当前任务 / Current task
      * @param time 时间范围 / Time range
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: T?,
         task: T?,
@@ -89,7 +90,7 @@ abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
  * @param resource 资源 / Resource
  * @param resourceCapacity 资源容量 / Resource capacity
  * @param indexInRule 规则内索引 / Index in rule
- */
+*/
 data class ConnectionResourceTimeSlot<
         R : ConnectionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -101,6 +102,7 @@ data class ConnectionResourceTimeSlot<
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C, V>, AutoIndexed(ConnectionResourceTimeSlot::class)
         where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算任务间连接在此时槽的资源消耗量 / Calculate resource consumption of a task connection at this time slot
      *
@@ -109,7 +111,7 @@ data class ConnectionResourceTimeSlot<
      * @param prevTask 前驱任务 / Previous task
      * @param task 当前任务 / Current task
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -157,7 +159,7 @@ typealias ConnectionResourceUsage<R, C, V> = ResourceUsage<ConnectionResourceTim
  * @param resources 资源列表 / List of resources
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
- */
+*/
 abstract class AbstractConnectionResourceUsage<
         R : ConnectionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -234,7 +236,7 @@ abstract class AbstractConnectionResourceUsage<
  * @param name 名称 / Name
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
- */
+*/
 class TaskSchedulingConnectionResourceUsage<
         R : ConnectionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -308,7 +310,7 @@ class TaskSchedulingConnectionResourceUsage<
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
  * @param name 名称 / Name
- */
+*/
 class BunchSchedulingConnectionResourceUsage<
         R : ConnectionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -403,7 +405,7 @@ class BunchSchedulingConnectionResourceUsage<
      * @param bunches 任务束列表 / List of task bunches
      * @param compilation 编译对象 / Compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     fun <
             B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,

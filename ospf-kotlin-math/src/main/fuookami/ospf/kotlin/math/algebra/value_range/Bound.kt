@@ -4,7 +4,7 @@
  *
  * 定义值范围的边界，包含一个值和对应的区间类型，支持算术运算、比较操作和复制。
  * Defines the boundary of a value range, containing a value and its corresponding interval type, with support for arithmetic operations, comparison operations, and copying.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property value 边界值的包装噌
  * @property interval 边界的区间类型（开区间或闭区间）。当值为无穷大时，自动设置为开区间
  *   Interval type of the bound (open or closed). Automatically set to Open when the value is infinity.
- */
+*/
 class Bound<T>(
     val value: ValueWrapper<T>,
     interval: Interval
@@ -35,13 +35,14 @@ class Bound<T>(
     Plus<Bound<T>, Bound<T>?>, Minus<Bound<T>, Bound<T>?>,
     Times<Bound<T>, Bound<T>?>, Div<Bound<T>, Bound<T>?>
         where T : RealNumber<T>, T : NumberField<T> {
+
     /**
      * 边界的区间类垌
      * Interval type of the bound
      *
      * 如果值为无穷大（正无穷或负无穷），则区间类型自动设置为开区间。
      * If the value is infinity (positive or negative), the interval type is automatically set to Open.
-     */
+    */
     val interval: Interval = if (value.isInfinityOrNegativeInfinity) {
         Interval.Open
     } else {
@@ -53,7 +54,7 @@ class Bound<T>(
      * Copies the bound
      *
      * @return 新的边界副本
-     */
+    */
     override fun copy(): Bound<T> {
         return Bound(value.copy(), interval)
     }
@@ -64,7 +65,7 @@ class Bound<T>(
      *
      * @param rhs 要比较的数倌
      * @return 是否相等且为闭区闌
-     */
+    */
     fun eq(rhs: T): Boolean = value eq rhs && interval == Interval.Closed
 
     /**
@@ -76,7 +77,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 是否相等，或无法确定时返囌null
-     */
+    */
     override fun partialEq(rhs: Bound<T>): Boolean? = (value partialEq rhs.value)?.let {
         it && interval == rhs.interval
     }
@@ -90,7 +91,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 比较结果（Less、Equal 戌Greater），或无法确定时返回 null
-     */
+    */
     override fun partialOrd(rhs: Bound<T>): Order? = when (val result = value partialOrd rhs.value) {
         Order.Equal -> {
             if (interval outer rhs.interval) {
@@ -111,7 +112,7 @@ class Bound<T>(
      *
      * @param rhs 要添加的数倌
      * @return 新的边界（区间类型保持不变）
-     */
+    */
     operator fun plus(rhs: T): Bound<T>? = (value + rhs)?.let { Bound(it, interval) }
 
     /**
@@ -123,7 +124,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 新的边界
-     */
+    */
     override fun plus(rhs: Bound<T>): Bound<T>? {
         return (value + rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
     }
@@ -134,7 +135,7 @@ class Bound<T>(
      *
      * @param rhs 要减去的数倌
      * @return 新的边界（区间类型保持不变）
-     */
+    */
     operator fun minus(rhs: T): Bound<T>? = (value - rhs)?.let { Bound(it, interval) }
 
     /**
@@ -146,7 +147,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 新的边界
-     */
+    */
     override fun minus(rhs: Bound<T>): Bound<T>? {
         return (value - rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
     }
@@ -157,7 +158,7 @@ class Bound<T>(
      *
      * @param rhs 要乘的数倌
      * @return 新的边界（区间类型保持不变）
-     */
+    */
     operator fun times(rhs: T): Bound<T>? = (value * rhs)?.let { Bound(it, interval) }
 
     /**
@@ -169,7 +170,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 新的边界
-     */
+    */
     override fun times(rhs: Bound<T>): Bound<T>? {
         return (value * rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
     }
@@ -180,7 +181,7 @@ class Bound<T>(
      *
      * @param rhs 要除的数倌
      * @return 新的边界（区间类型保持不变）
-     */
+    */
     operator fun div(rhs: T): Bound<T>? = (value / rhs)?.let { Bound(it, interval) }
 
     /**
@@ -192,7 +193,7 @@ class Bound<T>(
      *
      * @param rhs 另一个边界
      * @return 新的边界
-     */
+    */
     override fun div(rhs: Bound<T>): Bound<T>? {
         return (value / rhs.value)?.let { Bound(it, interval intersect rhs.interval) }
     }
@@ -202,7 +203,7 @@ class Bound<T>(
      * Converts to Flt64 typed bound
      *
      * @return Flt64 类型的新边界
-     */
+    */
     fun toFlt64(): Bound<Flt64> {
         return Bound(
             ValueWrapper(
@@ -218,7 +219,7 @@ class Bound<T>(
      * Gets string representation
      *
      * @return 边界的字符串形式
-     */
+    */
     override fun toString(): String {
         return "Bound($value, $interval)"
     }
@@ -229,7 +230,7 @@ class Bound<T>(
  * Negation operation for Flt32 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundFlt32")
 operator fun Bound<Flt32>.unaryMinus() = Bound(-value, interval)
 
@@ -238,7 +239,7 @@ operator fun Bound<Flt32>.unaryMinus() = Bound(-value, interval)
  * Negation operation for Flt64 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundFlt64")
 operator fun Bound<Flt64>.unaryMinus() = Bound(-value, interval)
 
@@ -247,7 +248,7 @@ operator fun Bound<Flt64>.unaryMinus() = Bound(-value, interval)
  * Negation operation for FltX typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundFltX")
 operator fun Bound<FltX>.unaryMinus() = Bound(-value, interval)
 
@@ -256,7 +257,7 @@ operator fun Bound<FltX>.unaryMinus() = Bound(-value, interval)
  * Negation operation for Int8 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundInt8")
 operator fun Bound<Int8>.unaryMinus() = Bound(-value, interval)
 
@@ -265,7 +266,7 @@ operator fun Bound<Int8>.unaryMinus() = Bound(-value, interval)
  * Negation operation for Int16 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundInt16")
 operator fun Bound<Int16>.unaryMinus() = Bound(-value, interval)
 
@@ -274,7 +275,7 @@ operator fun Bound<Int16>.unaryMinus() = Bound(-value, interval)
  * Negation operation for Int32 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundInt32")
 operator fun Bound<Int32>.unaryMinus() = Bound(-value, interval)
 
@@ -283,7 +284,7 @@ operator fun Bound<Int32>.unaryMinus() = Bound(-value, interval)
  * Negation operation for Int64 typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundInt64")
 operator fun Bound<Int64>.unaryMinus() = Bound(-value, interval)
 
@@ -292,6 +293,6 @@ operator fun Bound<Int64>.unaryMinus() = Bound(-value, interval)
  * Negation operation for IntX typed bound
  *
  * @return 取负后的新边界
- */
+*/
 @JvmName("negBoundIntX")
 operator fun Bound<IntX>.unaryMinus() = Bound(-value, interval)

@@ -5,7 +5,7 @@
  * Similar to Result but with two generic types for both branches.
  * Either 类型，表示可以是 Left 或 Right 的值。
  * 类似于 Result 但两个分支都有泛型类型。
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 import kotlinx.serialization.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.concept.*
  * @param R Right 值的类型 / The type of Right value
  * @param leftSerializer Left 值的序列化器 / The serializer for Left value
  * @param rightSerializer Right 值的序列化器 / The serializer for Right value
- */
+*/
 data class EitherSerializer<L, R>(
     val leftSerializer: KSerializer<L>,
     val rightSerializer: KSerializer<R>,
@@ -80,8 +80,9 @@ data class EitherSerializer<L, R>(
  *
  * @param L Left 值的类型 / The type of Left value
  * @param R Right 值的类型 / The type of Right value
- */
+*/
 sealed class Either<L, R> {
+
     /**
      * Left 子类
      *
@@ -89,7 +90,7 @@ sealed class Either<L, R> {
      * 表示 Either 的 Left 分支，通常用于错误或失败情况。
      *
      * @param value Left 分支携带的值 / The value carried by the Left branch
-     */
+    */
     data class Left<L, R>(val value: L) : Either<L, R>() {
         override fun hashCode(): Int = value.hashCode()
         override fun equals(other: Any?): Boolean {
@@ -111,7 +112,7 @@ sealed class Either<L, R> {
      * 表示 Either 的 Right 分支，通常用于成功或有效情况。
      *
      * @param value Right 分支携带的值 / The value carried by the Right branch
-     */
+    */
     data class Right<L, R>(val value: R) : Either<L, R>() {
         override fun hashCode(): Int = value.hashCode()
         override fun equals(other: Any?): Boolean {
@@ -131,7 +132,7 @@ sealed class Either<L, R> {
      *
      * Returns true if this is a Left value.
      * 如果是 Left 值则返回 true。
-     */
+    */
     val isLeft get() = this is Left
 
     /**
@@ -139,7 +140,7 @@ sealed class Either<L, R> {
      *
      * Returns true if this is a Right value.
      * 如果是 Right 值则返回 true。
-     */
+    */
     val isRight get() = this is Right
 
     /**
@@ -147,7 +148,7 @@ sealed class Either<L, R> {
      *
      * Returns the Left value if present, otherwise null.
      * 如果存在 Left 值则返回，否则返回 null。
-     */
+    */
     val left: L?
         get() = when (this) {
             is Left -> {
@@ -164,7 +165,7 @@ sealed class Either<L, R> {
      *
      * Returns the Right value if present, otherwise null.
      * 如果存在 Right 值则返回，否则返回 null。
-     */
+    */
     val right: R?
         get() = when (this) {
             is Right -> {
@@ -185,7 +186,7 @@ sealed class Either<L, R> {
      * @param Ret 返回值类型 / The return type
      * @param extractor Left 值的提取函数 / The extraction function for Left value
      * @return Either 匹配器 / An Either matcher
-     */
+    */
     fun <Ret> ifLeft(extractor: Extractor<Ret, L>) = EitherMatcher<L, R, Ret>(this).ifLeft(extractor)
 
     /**
@@ -197,7 +198,7 @@ sealed class Either<L, R> {
      * @param Ret 返回值类型 / The return type
      * @param extractor Right 值的提取函数 / The extraction function for Right value
      * @return Either 匹配器 / An Either matcher
-     */
+    */
     fun <Ret> ifRight(extractor: Extractor<Ret, R>) = EitherMatcher<L, R, Ret>(this).ifRight(extractor)
 
     /**
@@ -209,7 +210,7 @@ sealed class Either<L, R> {
      * @param Ret 映射后的类型 / The mapped type
      * @param extractor Left 值的映射函数 / The mapping function for Left value
      * @return 映射后的 Either / The mapped Either
-     */
+    */
     @JvmName("mapLeft")
     fun <Ret> map(extractor: Extractor<Ret, L>): Either<Ret, R> {
         return when (this) {
@@ -232,7 +233,7 @@ sealed class Either<L, R> {
      * @param Ret 映射后的类型 / The mapped type
      * @param extractor Right 值的映射函数 / The mapping function for Right value
      * @return 映射后的 Either / The mapped Either
-     */
+    */
     @JvmName("mapRight")
     fun <Ret> map(extractor: Extractor<Ret, R>): Either<L, Ret> {
         return when (this) {
@@ -257,7 +258,7 @@ sealed class Either<L, R> {
      * @param extractor1 Left 值的映射函数 / The mapping function for Left value
      * @param extractor2 Right 值的映射函数 / The mapping function for Right value
      * @return 映射后的 Either / The mapped Either
-     */
+    */
     fun <Ret1, Ret2> map(extractor1: Extractor<Ret1, L>, extractor2: Extractor<Ret2, R>): Either<Ret1, Ret2> {
         return when (this) {
             is Left -> {
@@ -281,7 +282,7 @@ sealed class Either<L, R> {
  * @param R Right 值的类型 / The type of Right value
  * @param Ret 返回值类型 / The return type
  * @param value 要匹配的 Either 值 / The Either value to match
- */
+*/
 class EitherMatcher<L, R, Ret>(
     private val value: Either<L, R>
 ) {
@@ -296,7 +297,7 @@ class EitherMatcher<L, R, Ret>(
      *
      * @param callBack Left 值的处理函数 / The handler function for Left value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun ifLeft(callBack: (L) -> Ret): EitherMatcher<L, R, Ret> {
         leftCallBack = callBack
         return this
@@ -310,7 +311,7 @@ class EitherMatcher<L, R, Ret>(
      *
      * @param callBack Right 值的处理函数 / The handler function for Right value
      * @return 匹配器本身 / The matcher itself
-     */
+    */
     fun ifRight(callBack: (R) -> Ret): EitherMatcher<L, R, Ret> {
         rightCallBack = callBack
         return this
@@ -324,7 +325,7 @@ class EitherMatcher<L, R, Ret>(
      *
      * @return 匹配结果 / The matching result
      * @throws NullPointerException 如果未设置相应的回调 / If the corresponding callback is not set
-     */
+    */
     @Throws(NullPointerException::class)
     operator fun invoke(): Ret = when (value) {
         is Either.Left -> {
@@ -349,7 +350,7 @@ class EitherMatcher<L, R, Ret>(
  * @param rightCallBack Right 分支的回调 / The callback for Right branch
  * @return 匹配结果 / The matching result
  * @throws NullPointerException 如果未设置相应的回调 / If the corresponding callback is not set
- */
+*/
 @Throws(NullPointerException::class)
 fun <L, R, Ret> match(
     value: Either<L, R>,
@@ -370,7 +371,7 @@ fun <L, R, Ret> match(
  * @param R Right 值的类型，必须实现 Copyable / The type of Right value, must implement Copyable
  * @param value 要复制的 Either 值 / The Either value to copy
  * @return 复制后的 Either / The copied Either
- */
+*/
 fun <L : Copyable<L>, R : Copyable<R>> Either<L, R>.copy(
     value: Either<L, R>
 ): Either<L, R> {
@@ -395,7 +396,7 @@ fun <L : Copyable<L>, R : Copyable<R>> Either<L, R>.copy(
  * @param R Right 值的类型，必须实现 Movable / The type of Right value, must implement Movable
  * @param value 要移动的 Either 值 / The Either value to move
  * @return 移动后的 Either / The moved Either
- */
+*/
 fun <L : Movable<L>, R : Movable<R>> Either<L, R>.move(
     value: Either<L, R>
 ): Either<L, R> {

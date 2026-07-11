@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.MaterialId
 
 /**
  * 超产面积度量口径 / Over-production area measure policy
- */
+*/
 enum class OverProductionAreaMeasure {
     /** 使用产品最大宽度代理: over_i * product.maxWidth() / Use product max width proxy: over_i * product.maxWidth() */
     ProductMaxWidthProxy
@@ -13,7 +13,7 @@ enum class OverProductionAreaMeasure {
 
 /**
  * 余料度量口径 / Rest material measure policy
- */
+*/
 enum class RestMaterialMeasure {
     /** 使用余宽乘物料长度代理: restWidth * material.length / Use rest width by material length proxy: restWidth * material.length */
     RestWidthByMaterialLengthProxy
@@ -32,7 +32,7 @@ enum class RestMaterialMeasure {
  * @property restMaterialPenalty 余料惩罚权重（每单位余料面积代理）/ Rest material penalty weight (per unit of rest material area proxy)
  * @property overProductionAreaMeasure 超产面积度量口径 / Over-production area measure policy
  * @property restMaterialMeasure 余料度量口径 / Rest material measure policy
- */
+*/
 data class WasteMinimizationConfig<V : RealNumber<V>>(
     val trimWidthPenalty: V? = null,
     val materialCostPenalty: Map<MaterialId, V> = emptyMap(),
@@ -54,7 +54,7 @@ data class WasteMinimizationConfig<V : RealNumber<V>>(
  * @property totalRestMaterial 总余料面积代理 / Total rest material area proxy
  * @property overProductionAreaMeasure 超产面积度量口径 / Over-production area measure policy
  * @property restMaterialMeasure 余料度量口径 / Rest material measure policy
- */
+*/
 data class WasteMinimizationResult<V : RealNumber<V>>(
     val totalTrimWidth: V? = null,
     val materialCosts: List<ModeledMaterialCost<V>> = emptyList(),
@@ -70,7 +70,7 @@ data class WasteMinimizationResult<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property materialId 物料 ID / Material id
  * @property cost 成本值 / Cost value
- */
+*/
 data class ModeledMaterialCost<V : RealNumber<V>>(
     val materialId: MaterialId,
     val cost: V

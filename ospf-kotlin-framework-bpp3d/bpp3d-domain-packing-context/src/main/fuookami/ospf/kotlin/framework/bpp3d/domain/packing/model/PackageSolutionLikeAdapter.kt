@@ -1,7 +1,7 @@
 /**
  * Package solution like adapter.
  * 包装解决方案适配器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -13,15 +13,16 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * Sealed interface representing the quantity of a package solution, which can be by amount, weight, or both.
  * 密封接口，表示包装解决方案的数量，可按数量、重量或两者混合。
- */
+*/
 sealed interface PackageSolutionLikeQuantity {
+
     /**
      * Quantity specified by item amount.
      * 按物品数量指定的数量。
      *
      * @property value The amount value.
      * 数量值。
-     */
+    */
     data class Amount(val value: UInt64) : PackageSolutionLikeQuantity
 
     /**
@@ -30,7 +31,7 @@ sealed interface PackageSolutionLikeQuantity {
      *
      * @property value The weight value.
      * 重量值。
-     */
+    */
     data class Weight<V : FloatingNumber<V>>(val value: Quantity<V>) : PackageSolutionLikeQuantity
 
     /**
@@ -41,7 +42,7 @@ sealed interface PackageSolutionLikeQuantity {
      * 数量值。
      * @property weight The weight value.
      * 重量值。
-     */
+    */
     data class AmountAndWeight<V : FloatingNumber<V>>(
         val amount: UInt64,
         val weight: Quantity<V>
@@ -56,7 +57,7 @@ sealed interface PackageSolutionLikeQuantity {
  * 标识物料的物料键。
  * @property quantity The quantity of the material.
  * 物料的数量。
- */
+*/
 data class PackageSolutionLikeMaterialItem(
     val material: MaterialKey,
     val quantity: PackageSolutionLikeQuantity
@@ -69,7 +70,7 @@ data class PackageSolutionLikeMaterialItem(
  * @property shape 包装形状 / package shape
  * @property materialItems 物料项列表 / list of material items
  * @property children 子节点列表 / list of child nodes
- */
+*/
 data class PackageSolutionLikeNode(
     val shape: PackageShape<FltX>,
     val materialItems: List<PackageSolutionLikeMaterialItem> = emptyList(),
@@ -83,7 +84,7 @@ data class PackageSolutionLikeNode(
  * @param lhs 已有的物料值，可为空 / existing material value, nullable
  * @param rhs 待合并的物料值 / material value to merge
  * @return 合并后的物料值，可能失败 / merged material value, may fail
- */
+*/
 private fun mergeMaterialValue(
     lhs: PackingProgramMaterialValue?,
     rhs: PackingProgramMaterialValue
@@ -96,7 +97,7 @@ private fun mergeMaterialValue(
  * Convert the package solution like quantity to a packing program material value.
  *
  * @return 装箱程序物料值 / packing program material value
- */
+*/
 private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMaterialValue {
     return when (this) {
         is PackageSolutionLikeQuantity.Amount -> PackingProgramMaterialValue(amount = value)
@@ -113,7 +114,7 @@ private fun PackageSolutionLikeQuantity.toMaterialValue(): PackingProgramMateria
  * Recursively convert the package solution node tree into a packing program. Processes child nodes recursively and merges all material values.
  *
  * @return 装箱程序，可能失败 / packing program, may fail
- */
+*/
 fun PackageSolutionLikeNode.toPackingProgram(): Ret<PackingProgram<FltX>> {
     val childPrograms = ArrayList<PackingProgram<FltX>>()
     for (child in children) {

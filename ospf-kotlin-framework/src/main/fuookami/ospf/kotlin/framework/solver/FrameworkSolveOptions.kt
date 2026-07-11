@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
  * @property valueConversionPolicy 值转换策略，可为 null / Value conversion policy, nullable
  * @property bendersIterationLimit Benders 迭代次数限制，可为 null / Benders iteration limit, nullable
  * @property bendersStallIterationLimit Benders 停滞迭代次数限制，可为 null / Benders stall iteration limit, nullable
- */
+*/
 data class FrameworkSolveOptions(
     val name: String? = null,
     val toLogModel: Boolean = false,
@@ -31,6 +31,7 @@ data class FrameworkSolveOptions(
     val bendersIterationLimit: UInt64? = null,
     val bendersStallIterationLimit: UInt64? = null
 ) {
+
     /** 生效的值转换策略，默认为 Strict / Effective value conversion policy, defaults to Strict */
     val effectiveValueConversionPolicy: SolveValueConversionPolicy
         get() = valueConversionPolicy ?: SolveValueConversionPolicy.Strict
@@ -41,7 +42,7 @@ data class FrameworkSolveOptions(
      *
      * @param defaultName 默认名称 / Default name
      * @return 有效求解名称 / Effective solve name
-     */
+    */
     fun solveName(defaultName: String): String = name ?: defaultName
 
     /**
@@ -49,7 +50,7 @@ data class FrameworkSolveOptions(
      * Convert to core-level solve options
      *
      * @return 核心层求解选项 / Core-level solve options
-     */
+    */
     fun toCoreSolveOptions(): SolveOptions {
         return SolveOptions(
             solutionAmount = solutionAmount,
@@ -62,24 +63,32 @@ data class FrameworkSolveOptions(
     /**
      * 构建器
      * Builder
-     */
+    */
     class Builder {
         /** 求解名称 / Solve name */
         var name: String? = null
+
         /** 是否输出模型日志 / Whether to log the model */
         var toLogModel: Boolean = false
+
         /** 解数量 / Solution amount */
         var solutionAmount: UInt64? = null
+
         /** 模型构建状态回调 / Model building status callback */
         var modelBuildingStatusCallBack: ModelBuildingStatusCallBack? = null
+
         /** 注册状态回调 / Registration status callback */
         var registrationStatusCallBack: RegistrationStatusCallBack? = null
+
         /** 求解状态回调 / Solving status callback */
         var solvingStatusCallBack: SolvingStatusCallBack? = null
+
         /** 值转换策略 / Value conversion policy */
         var valueConversionPolicy: SolveValueConversionPolicy? = null
+
         /** Benders 迭代次数限制 / Benders iteration limit */
         var bendersIterationLimit: UInt64? = null
+
         /** Benders 停滞迭代次数限制 / Benders stall iteration limit */
         var bendersStallIterationLimit: UInt64? = null
 
@@ -88,7 +97,7 @@ data class FrameworkSolveOptions(
          * Build solve options
          *
          * @return 框架求解选项 / Framework solve options
-         */
+        */
         fun build(): FrameworkSolveOptions {
             return FrameworkSolveOptions(
                 name = name,
@@ -110,7 +119,7 @@ data class FrameworkSolveOptions(
          * Create builder
          *
          * @return 新构建器实例 / New builder instance
-         */
+        */
         fun builder(): Builder = Builder()
 
         /**
@@ -119,7 +128,7 @@ data class FrameworkSolveOptions(
          *
          * @param block 构建器配置块 / Builder configuration block
          * @return 框架求解选项 / Framework solve options
-         */
+        */
         fun build(block: Builder.() -> Unit): FrameworkSolveOptions {
             return Builder().apply(block).build()
         }

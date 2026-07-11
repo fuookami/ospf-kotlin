@@ -4,7 +4,7 @@
  *
  * 提供 MongoDB 客户端的初始化、管理和扩展函数。
  * Provides MongoDB client initialization, management, and extension functions.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import kotlinx.serialization.*
@@ -18,7 +18,7 @@ import org.bson.Document
  *
  * @property name 客户端名称 / Client name
  * @property database 数据库名称 / Database name
- */
+*/
 data class MongoClientKey(
     val name: String,
     val database: String
@@ -33,7 +33,7 @@ data class MongoClientKey(
  * @property database 数据库名称 / Database name
  * @property userName 用户名 / Username
  * @property password 密码 / Password
- */
+*/
 data class MongoDBConfigBuilder(
     var urls: List<String>? = null,
     var name: String? = null,
@@ -41,12 +41,13 @@ data class MongoDBConfigBuilder(
     var userName: String? = null,
     var password: String? = null
 ) {
+
     /**
      * 构建 MongoDB 配置
      * Build MongoDB configuration
      *
      * @return 配置实例，参数不完整时返回 null / Configuration instance, or null if parameters are incomplete
-     */
+    */
     operator fun invoke(): MongoDBConfig? {
         return try {
             MongoDBConfig(
@@ -71,7 +72,7 @@ data class MongoDBConfigBuilder(
  * @property database 数据库名称 / Database name
  * @property userName 用户名 / Username
  * @property password 密码 / Password
- */
+*/
 @Serializable
 data class MongoDBConfig(
     val urls: List<String>,
@@ -80,10 +81,11 @@ data class MongoDBConfig(
     val userName: String,
     val password: String
 ) {
+
     /**
      * 获取客户端键
      * Get client key
-     */
+    */
     val key get() = MongoClientKey(name = name, database = database)
 }
 
@@ -93,12 +95,13 @@ data class MongoDBConfig(
  *
  * 管理多个 MongoDB 客户端实例，按名称和数据库索引。
  * Manages multiple MongoDB client instances, indexed by name and database.
- */
+*/
 object MongoDB {
+
     /**
      * 已注册的 MongoDB 客户端映射
      * Registered MongoDB client mapping
-     */
+    */
     @get:Synchronized
     private val clients: MutableMap<MongoClientKey, MongoClient> = HashMap()
 
@@ -108,7 +111,7 @@ object MongoDB {
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return MongoDB 客户端实例，初始化失败时返回 null / MongoDB client instance, or null if initialization fails
-     */
+    */
     @Synchronized
     fun init(builder: MongoDBConfigBuilder.() -> Unit): MongoClient? {
         val config = MongoDBConfigBuilder()
@@ -122,7 +125,7 @@ object MongoDB {
      *
      * @param config MongoDB 配置 / MongoDB configuration
      * @return MongoDB 客户端实例，创建失败时返回 null / MongoDB client instance, or null if creation fails
-     */
+    */
     @Synchronized
     operator fun invoke(config: MongoDBConfig): MongoClient? {
         if (clients.containsKey(config.key)) {
@@ -159,7 +162,7 @@ object MongoDB {
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(key: MongoClientKey? = null): MongoClient? {
         return if (key != null) {
@@ -177,7 +180,7 @@ object MongoDB {
      * @param name 客户端名称 / Client name
      * @param dataBase 数据库名称（可选）/ Database name (optional)
      * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(name: String, dataBase: String? = null): MongoClient? {
         return if (dataBase != null) {
@@ -194,7 +197,7 @@ object MongoDB {
      *
      * @param dataBase 数据库名称 / Database name
      * @return MongoDB 客户端实例，未找到时返回 null / MongoDB client instance, or null if not found
-     */
+    */
     @Synchronized
     fun get(dataBase: String): MongoClient? {
         return clients.filterKeys { it.database == dataBase }.entries.firstOrNull()?.value
@@ -208,7 +211,7 @@ object MongoDB {
  * @param T 数据类型 / Data type
  * @param collection 集合名称 / Collection name
  * @param data 要插入的数据 / Data to insert
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
     insert(
@@ -226,7 +229,7 @@ inline fun <reified T : Any> MongoDatabase.insert(collection: String, data: T) {
  * @param collection 集合名称 / Collection name
  * @param serializer 序列化器 / Serializer
  * @param data 要插入的数据 / Data to insert
- */
+*/
 fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, data: T) {
     val json = Json {
         ignoreUnknownKeys = true
@@ -246,7 +249,7 @@ fun <T> MongoDatabase.insert(collection: String, serializer: KSerializer<T>, dat
  * @param collection 集合名称 / Collection name
  * @param serializer 序列化函数 / Serialization function
  * @param data 要插入的数据 / Data to insert
- */
+*/
 @Synchronized
 fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data: T) {
     this.getCollection(collection)
@@ -261,7 +264,7 @@ fun <T> MongoDatabase.insert(collection: String, serializer: (T) -> String, data
  * @param collectionName 集合名称 / Collection name
  * @param query 查询条件 / Query conditions
  * @return 查询结果列表 / Query result list
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Map<String, String>): List<T> {
     return get(
@@ -280,7 +283,7 @@ inline fun <reified T : Any> MongoDatabase.get(collectionName: String, query: Ma
  * @param deserializer 反序列化器 / Deserializer
  * @param query 查询条件 / Query conditions
  * @return 查询结果列表 / Query result list
- */
+*/
 fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, query: Map<String, String>): List<T> {
     val json = Json {
         ignoreUnknownKeys = true
@@ -301,7 +304,7 @@ fun <T> MongoDatabase.get(collectionName: String, deserializer: KSerializer<T>, 
  * @param deserializer 反序列化函数 / Deserialization function
  * @param query 查询条件 / Query conditions
  * @return 查询结果列表 / Query result list
- */
+*/
 @Synchronized
 fun <T> MongoDatabase.get(collectionName: String, deserializer: (String) -> T, query: Map<String, String>): List<T> {
     val collection = this.getCollection(collectionName)

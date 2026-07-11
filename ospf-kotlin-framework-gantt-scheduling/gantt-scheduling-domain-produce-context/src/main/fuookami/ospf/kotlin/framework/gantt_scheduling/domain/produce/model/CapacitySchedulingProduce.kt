@@ -3,7 +3,7 @@
  *
  * 本文件定义产能调度场景下产品产量管理的通用框架抽象基类。
  * This file defines the abstract base class for the common framework of product quantity management in capacity scheduling scenarios.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
  *
  * 提供产能调度场景下产品产量计算的通用框架
  * Provides a common framework for product quantity calculation in capacity scheduling scenarios
- */
+*/
 abstract class CapacitySchedulingProduce<
         A : ProductionAction,
         P : AbstractMaterial,
@@ -73,7 +73,7 @@ abstract class CapacitySchedulingProduce<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
@@ -82,7 +82,7 @@ abstract class CapacitySchedulingProduce<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     protected fun addQuantityToModel(model: LinearMetaModel<Flt64>): Try {
         if (products.isNotEmpty()) {
             when (val result = model.add(quantity)) {

@@ -19,14 +19,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 符号化线性不等式 / Symbolic linear inequality
  *
  * @property inequality 符号化不等式 / The symbolic inequality
- */
+*/
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
 /**
  * 符号化二次不等式 / Symbolic quadratic inequality
  *
  * @property inequality 符号化不等式 / The symbolic inequality
- */
+*/
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
 /**
@@ -35,14 +35,26 @@ class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequali
  *
  * @param V 数值类型 / The numeric type
  * @param P 约束类别 / The constraint category
- */
+*/
 interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Category {
+
+    /** Left-hand side cells of the constraint / 约束左端项单元列表 */
     val lhs: List<Cell<V>>
+
+    /** Constraint relation sign (e.g., less-or-equal, greater-or-equal) / 约束关系符号（如小于等于、大于等于） */
     val sign: ConstraintRelation
+
+    /** Right-hand side value of the constraint / 约束右端项值 */
     val rhs: V
+
+    /** Whether this is a lazy constraint / 是否为惰性约束 */
     val lazy: Boolean
     val name: String
+
+    /** Originating math constraint, if any / 原始数学约束，若存在 */
     val origin: MathConstraint?
+
+    /** Associated intermediate symbol and direction / 关联的中间符号及方向 */
     val from: Pair<IntermediateSymbol<*>, Boolean>?
 
     /**
@@ -50,15 +62,16 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Cate
      * Checks whether the constraint is satisfied.
      *
      * @return 约束是否成立，若无法求值则返回 null / Whether the constraint holds, or null if evaluation is not possible
-     */
+    */
     fun isTrue(): Boolean?
+
     /**
      * 使用给定求解结果判定约束是否成立。
      * Checks whether the constraint is satisfied using the given solution results.
      *
      * @param results 求解结果列表 / The solution result values
      * @return 约束是否成立，若无法求值则返回 null / Whether the constraint holds, or null if evaluation is not possible
-     */
+    */
     fun isTrue(results: List<V>): Boolean?
 }
 
@@ -68,7 +81,7 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Cate
  *
  * @property constraints 按数学约束分组的对偶价格 / Dual prices grouped by math constraint
  * @property symbols     按中间符号分组的对偶价格 / Dual prices grouped by intermediate symbol
- */
+*/
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
@@ -79,7 +92,7 @@ data class MetaDualSolution(
  * Converts a map of linear constraint dual solutions to a meta dual solution.
  *
  * @return 元对偶解 / The meta dual solution
- */
+*/
 @JvmName("linearDualSolutionToMetaDualSolution")
 fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
@@ -99,7 +112,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualS
  * Converts a map of quadratic constraint dual solutions to a meta dual solution.
  *
  * @return 元对偶解 / The meta dual solution
- */
+*/
 @JvmName("quadraticDualSolutionToMetaDualSolution")
 fun Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
@@ -126,7 +139,7 @@ fun Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
  * @property name 约束名称 / The constraint name
  * @property origin 原始数学约束 / The originating math constraint
  * @property from  关联的中间符号及方向 / The associated intermediate symbol and direction
- */
+*/
 sealed class ConstraintImpl<V, P : Category>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
@@ -160,7 +173,7 @@ sealed class ConstraintImpl<V, P : Category>(
  * Linear constraint implementation representing the left-hand side with a list of linear cells.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 class LinearConstraintImpl<V>(
     override val lhs: List<LinearCell<V>>,
     sign: ConstraintRelation,
@@ -215,7 +228,7 @@ class LinearConstraintImpl<V>(
  * Quadratic constraint implementation representing the left-hand side with a list of quadratic cells.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 class QuadraticConstraintImpl<V>(
     override val lhs: List<QuadraticCell<V>>,
     sign: ConstraintRelation,
@@ -265,6 +278,15 @@ class QuadraticConstraintImpl<V>(
     }
 }
 
+/**
+ * Creates linear cells from monomials using the token table and value converter.
+ * 使用符号表和值转换器从单项式创建线性单元列表。
+ *
+ * @param monomials Linear monomials with Flt64 coefficients / Flt64 系数的线性单项式列表
+ * @param tokens Token table for variable lookup / 用于变量查找的符号表
+ * @param converter Value converter from Flt64 to V / 从 Flt64 到 V 的值转换器
+ * @return ArrayList of linear cells / 线性单元列表
+*/
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>,
@@ -281,6 +303,15 @@ internal fun <V> createLinearCells(
     return cells
 }
 
+/**
+ * Creates quadratic cells from monomials using the token table and value converter.
+ * 使用符号表和值转换器从单项式创建二次单元列表。
+ *
+ * @param monomials Quadratic monomials with Flt64 coefficients / Flt64 系数的二次单项式列表
+ * @param tokens Token table for variable lookup / 用于变量查找的符号表
+ * @param converter Value converter from Flt64 to V / 从 Flt64 到 V 的值转换器
+ * @return ArrayList of quadratic cells / 二次单元列表
+*/
 internal fun <V> createQuadraticCells(
     monomials: List<QuadraticMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>,

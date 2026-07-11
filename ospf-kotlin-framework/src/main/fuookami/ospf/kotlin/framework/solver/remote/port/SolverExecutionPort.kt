@@ -1,7 +1,7 @@
 /**
  * 远程求解执行端口
  * Remote solve execution port
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.port
 
 import kotlin.time.Duration
@@ -11,8 +11,9 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * 求解器执行端口。
  * Solver execution port.
- */
+*/
 interface SolverExecutionPort {
+
     /**
      * 启动新求解任务。
      * Start a new solve task.
@@ -23,7 +24,7 @@ interface SolverExecutionPort {
      * @param nodeId 节点 ID / Node ID
      * @param tenantId 租户 ID / Tenant ID
      * @return 执行句柄 / Execution handle
-     */
+    */
     suspend fun start(
         payload: SolvePayload,
         taskId: TaskId,
@@ -43,7 +44,7 @@ interface SolverExecutionPort {
      * @param nodeId 节点 ID / Node ID
      * @param tenantId 租户 ID / Tenant ID
      * @return 执行句柄 / Execution handle
-     */
+    */
     suspend fun resume(
         payload: SolvePayload,
         checkpoint: ObjectRef,
@@ -60,7 +61,7 @@ interface SolverExecutionPort {
      * @param handle 执行句柄 / Execution handle
      * @param quantum 时间片 / Quantum
      * @return 切片结果 / Slice result
-     */
+    */
     suspend fun awaitSliceEnd(handle: ExecutionHandle, quantum: Duration): Ret<SliceResult>
 
     /**
@@ -69,7 +70,7 @@ interface SolverExecutionPort {
      *
      * @param handle 执行句柄 / Execution handle
      * @return 检查点引用 / Checkpoint reference
-     */
+    */
     suspend fun exportCheckpoint(handle: ExecutionHandle): Ret<ObjectRef?>
 
     /**
@@ -78,7 +79,7 @@ interface SolverExecutionPort {
      *
      * @param handle 执行句柄 / Execution handle
      * @return 最终结果 / Final result
-     */
+    */
     suspend fun fetchFinalResult(handle: ExecutionHandle): Ret<SolveResult?>
 
     /**
@@ -87,6 +88,6 @@ interface SolverExecutionPort {
      *
      * @param handle 执行句柄 / Execution handle
      * @return 是否停止成功 / Whether stopped
-     */
+    */
     suspend fun stop(handle: ExecutionHandle): Ret<Boolean>
 }

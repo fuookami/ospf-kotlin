@@ -5,7 +5,19 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.value.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.shared.model.*
 
-/** 物品订单限制，用于定义特定字段值下订单物品的上下界约束 / Item order limit, used to define upper and lower bound constraints for order items under specific field values */
+/**
+ * Item order limit, used to define upper and lower bound constraints for order items under specific field values.
+ * 物品订单限制，用于定义特定字段值下订单物品的上下界约束。
+ *
+ * @property palletItem The pallet item this limit applies to. / 此限制适用的托盘物品
+ * @property field The field name used for matching. / 用于匹配的字段名
+ * @property fieldValue The field value used for matching. / 用于匹配的字段值
+ * @property isHard Whether this is a hard constraint. / 是否为硬约束
+ * @property upperBoundValue The upper bound value, if defined. / 上界值，如果已定义
+ * @property upperBoundLimit The upper bound constraint details, if defined. / 上界约束详情，如果已定义
+ * @property lowerBoundValue The lower bound value, if defined. / 下界值，如果已定义
+ * @property lowerBoundLimit The lower bound constraint details, if defined. / 下界约束详情，如果已定义
+*/
 data class ItemOrderLimit(
     val palletItem: PalletItem,
     val field: String,
@@ -16,14 +28,29 @@ data class ItemOrderLimit(
     val lowerBoundValue: Double? = null,
     val lowerBoundLimit: LowerBound? = null,
 ) {
-    /** 上界 / Upper bound */
+
+    /**
+     * Upper bound constraint for an item order limit.
+     * 物品订单限制的上界约束。
+     *
+     * @property value The bound value. / 约束值
+     * @property sign The constraint comparison sign. / 约束比较符号
+     * @property limit The limit threshold. / 限制阈值
+    */
     data class UpperBound(
         val value: Double,
         val sign: ConstraintSign,
         val limit: Double,
     )
 
-    /** 下界 / Lower bound */
+    /**
+     * Lower bound constraint for an item order limit.
+     * 物品订单限制的下界约束。
+     *
+     * @property value The bound value. / 约束值
+     * @property sign The constraint comparison sign. / 约束比较符号
+     * @property limit The limit threshold. / 限制阈值
+    */
     data class LowerBound(
         val value: Double,
         val sign: ConstraintSign,
@@ -32,11 +59,13 @@ data class ItemOrderLimit(
 }
 
 /**
- * 从托盘物品中获取对应的物品订单限制 / Get the corresponding item order limit from a pallet item
- * @param field 限制字段 / The constraint field
- * @param itemOrderLimits 物品订单限制列表 / The list of item order limits
- * @return 匹配的物品订单限制，如果未找到则返回 null / The matching item order limit, or null if not found
- */
+ * Gets the corresponding item order limit from a pallet item.
+ * 从托盘物品中获取对应的物品订单限制。
+ *
+ * @param field The constraint field. / 约束字段
+ * @param itemOrderLimits The list of item order limits. / 物品订单限制列表
+ * @return The matching item order limit, or null if not found. / 匹配的物品订单限制，如果未找到则返回 null
+*/
 fun PalletItem.palletItem(
     field: String,
     itemOrderLimits: List<ItemOrderLimit>,
@@ -47,10 +76,12 @@ fun PalletItem.palletItem(
 }
 
 /**
- * 获取物品订单限制关联的托盘物品 / Get the pallet item associated with the item order limit
- * @param palletItems 托盘物品列表 / The list of pallet items
- * @return 关联的托盘物品，如果未找到则返回 null / The associated pallet item, or null if not found
- */
+ * Gets the pallet item associated with the item order limit.
+ * 获取物品订单限制关联的托盘物品。
+ *
+ * @param palletItems The list of pallet items. / 托盘物品列表
+ * @return The associated pallet item, or null if not found. / 关联的托盘物品，如果未找到则返回 null
+*/
 fun ItemOrderLimit.palletItem(
     palletItems: List<PalletItem>,
 ): PalletItem? {
@@ -60,26 +91,32 @@ fun ItemOrderLimit.palletItem(
 }
 
 /**
- * 获取物品订单限制的上界 / Get the upper bound of the item order limit
- * @return 上界对象，如果未定义则返回 null / The upper bound object, or null if not defined
- */
+ * Gets the upper bound of the item order limit.
+ * 获取物品订单限制的上界。
+ *
+ * @return The upper bound object, or null if not defined. / 上界对象，如果未定义则返回 null
+*/
 fun ItemOrderLimit.upperBound(): ItemOrderLimit.UpperBound? {
     return this.upperBoundLimit
 }
 
 /**
- * 获取物品订单限制的下界 / Get the lower bound of the item order limit
- * @return 下界对象，如果未定义则返回 null / The lower bound object, or null if not defined
- */
+ * Gets the lower bound of the item order limit.
+ * 获取物品订单限制的下界。
+ *
+ * @return The lower bound object, or null if not defined. / 下界对象，如果未定义则返回 null
+*/
 fun ItemOrderLimit.lowerBound(): ItemOrderLimit.LowerBound? {
     return this.lowerBoundLimit
 }
 
 /**
- * 生成物品订单限制的上界表达式 / Generate the upper bound expression for the item order limit
- * @param fieldValues 字段值映射 / The field value mapping
- * @return 上界表达式，如果未定义则返回 null / The upper bound expression, or null if not defined
- */
+ * Generates the upper bound expression for the item order limit.
+ * 生成物品订单限制的上界表达式。
+ *
+ * @param fieldValues The field value mapping. / 字段值映射
+ * @return The upper bound expression, or null if not defined. / 上界表达式，如果未定义则返回 null
+*/
 fun ItemOrderLimit.upperBoundExpression(
     fieldValues: Map<String, List<FieldValue>>,
 ): Expression? {
@@ -91,10 +128,12 @@ fun ItemOrderLimit.upperBoundExpression(
 }
 
 /**
- * 生成物品订单限制的下界表达式 / Generate the lower bound expression for the item order limit
- * @param fieldValues 字段值映射 / The field value mapping
- * @return 下界表达式，如果未定义则返回 null / The lower bound expression, or null if not defined
- */
+ * Generates the lower bound expression for the item order limit.
+ * 生成物品订单限制的下界表达式。
+ *
+ * @param fieldValues The field value mapping. / 字段值映射
+ * @return The lower bound expression, or null if not defined. / 下界表达式，如果未定义则返回 null
+*/
 fun ItemOrderLimit.lowerBoundExpression(
     fieldValues: Map<String, List<FieldValue>>,
 ): Expression? {
@@ -106,28 +145,34 @@ fun ItemOrderLimit.lowerBoundExpression(
 }
 
 /**
- * 获取物品订单限制上界的约束符号 / Get the constraint sign for the upper bound of the item order limit
- * @return 约束符号，如果未定义则返回 null / The constraint sign, or null if not defined
- */
+ * Gets the constraint sign for the upper bound of the item order limit.
+ * 获取物品订单限制上界的约束符号。
+ *
+ * @return The constraint sign, or null if not defined. / 约束符号，如果未定义则返回 null
+*/
 fun ItemOrderLimit.upperBoundSign(): ConstraintSign? {
     return this.upperBoundLimit?.sign
 }
 
 /**
- * 获取物品订单限制下界的约束符号 / Get the constraint sign for the lower bound of the item order limit
- * @return 约束符号，如果未定义则返回 null / The constraint sign, or null if not defined
- */
+ * Gets the constraint sign for the lower bound of the item order limit.
+ * 获取物品订单限制下界的约束符号。
+ *
+ * @return The constraint sign, or null if not defined. / 约束符号，如果未定义则返回 null
+*/
 fun ItemOrderLimit.lowerBoundSign(): ConstraintSign? {
     return this.lowerBoundLimit?.sign
 }
 
 /**
- * 生成物品订单限制的约束 / Generate the constraint for the item order limit
- * @param fieldValues 字段值映射 / The field value mapping
- * @param itemOrderLimits 物品订单限制列表 / The list of item order limits
- * @param palletItems 托盘物品列表 / The list of pallet items
- * @return 生成的约束列表 / The list of generated constraints
- */
+ * Generates the constraint for the item order limit.
+ * 生成物品订单限制的约束。
+ *
+ * @param fieldValues The field value mapping. / 字段值映射
+ * @param itemOrderLimits The list of item order limits. / 物品订单限制列表
+ * @param palletItems The list of pallet items. / 托盘物品列表
+ * @return The list of generated constraints. / 生成的约束列表
+*/
 fun ItemOrderLimit.limitConstraint(
     fieldValues: Map<String, List<FieldValue>>,
     itemOrderLimits: List<ItemOrderLimit>,

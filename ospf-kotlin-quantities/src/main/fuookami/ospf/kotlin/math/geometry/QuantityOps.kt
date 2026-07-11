@@ -4,7 +4,7 @@
  *
  * 提供物理量的加减、比较、取极值、限制范围和获取零值等内部辅助函数。
  * Provides internal helper functions for quantity addition, subtraction, comparison, clamping, and zero value retrieval.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @param rhs 右操作数 / Right operand
  * @param V 数值类型 / Number type
  * @return 相加结果 / Sum result
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityPlusSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value + rhs.value, lhs.unit))
@@ -54,7 +54,7 @@ internal fun <V : FloatingNumber<V>> quantityPlusSafe(lhs: Quantity<V>, rhs: Qua
  * @param rhs 右操作数 / Right operand
  * @param V 数值类型 / Number type
  * @return 相加结果，失败时返回 null / Sum result, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityPlusOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
     return quantityPlusSafe(lhs, rhs).value
 }
@@ -67,7 +67,7 @@ internal fun <V : FloatingNumber<V>> quantityPlusOrNull(lhs: Quantity<V>, rhs: Q
  * @param rhs 右操作数 / Right operand
  * @param V 数值类型 / Number type
  * @return 相减结果 / Difference result
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinusSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value - rhs.value, lhs.unit))
@@ -95,7 +95,7 @@ internal fun <V : FloatingNumber<V>> quantityMinusSafe(lhs: Quantity<V>, rhs: Qu
  * @param rhs 右操作数 / Right operand
  * @param V 数值类型 / Number type
  * @return 相减结果，失败时返回 null / Difference result, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinusOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
     return quantityMinusSafe(lhs, rhs).value
 }
@@ -119,7 +119,7 @@ internal fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: V): 
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 比较结果 / Comparison result
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
     return lhs.partialOrd(rhs)?.let { ok(it) }
         ?: Failed(
@@ -138,7 +138,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quan
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 比较结果，失败时返回 null / Comparison result, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order? {
     return quantityOrdSafe(lhs, rhs, axis).value
 }
@@ -152,7 +152,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Qu
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 较大值 / Maximum value
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
     return quantityOrdSafe(lhs, rhs, axis).map {
         when (it) {
@@ -171,7 +171,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quan
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 较大值，失败时返回 null / Maximum value, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
     return quantityMaxSafe(lhs, rhs, axis).value
 }
@@ -185,7 +185,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Qu
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 较小值 / Minimum value
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
     return quantityOrdSafe(lhs, rhs, axis).map {
         when (it) {
@@ -204,7 +204,7 @@ internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: Quantity<V>, rhs: Quan
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 较小值，失败时返回 null / Minimum value, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
     return quantityMinSafe(lhs, rhs, axis).value
 }
@@ -219,7 +219,7 @@ internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Qu
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 限制后的物理量 / Clamped quantity
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityClampSafe(
     value: Quantity<V>,
     lb: Quantity<V>,
@@ -252,7 +252,7 @@ internal fun <V : FloatingNumber<V>> quantityClampSafe(
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 限制后的物理量，失败时返回 null / Clamped quantity, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityClampOrNull(
     value: Quantity<V>,
     lb: Quantity<V>,
@@ -274,7 +274,7 @@ internal fun <V : FloatingNumber<V>> quantityClampOrNull(
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 是否在范围内 / Whether in range
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityContainsInRangeSafe(
     value: Quantity<V>,
     lb: Quantity<V>,
@@ -318,7 +318,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeSafe(
  * @param axis 轴名称（用于错误信息）/ Axis name (for error messages)
  * @param V 数值类型 / Number type
  * @return 是否在范围内，失败时返回 null / Whether in range, or null on failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityContainsInRangeOrNull(
     value: Quantity<V>,
     lb: Quantity<V>,
@@ -344,7 +344,7 @@ internal fun <V : FloatingNumber<V>> quantityContainsInRangeOrNull(
  * @param quantity 参考物理量 / Reference quantity
  * @param V 数值类型 / Number type
  * @return 同单位的零值物理量 / Zero-valued quantity with the same unit
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityZeroOf(quantity: Quantity<V>): Quantity<V> {
     return quantity.value.constants.zero * quantity.unit
 }

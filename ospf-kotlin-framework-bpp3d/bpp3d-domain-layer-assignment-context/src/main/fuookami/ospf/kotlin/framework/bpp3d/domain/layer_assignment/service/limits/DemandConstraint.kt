@@ -1,7 +1,7 @@
 /**
  * Demand constraint and shadow price extraction.
  * 需求约束与影子价格提取。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -28,7 +28,7 @@ private val shadowPriceConverter = IntoValue.fromConverter(FltX)
  * @property mode 需求模式 / demand mode
  * @property key 需求键 / demand key
  * @property quantityUnit 量纲单位（可选） / quantity unit (optional)
- */
+*/
 data class DemandShadowPriceKey(
     val mode: Bpp3dDemandMode,
     val key: Bpp3dDemandKey,
@@ -38,7 +38,10 @@ data class DemandShadowPriceKey(
 /**
  * Symbol linear polynomial construction.
  * 符号线性多项式构造。
- */
+ *
+ * @param symbol linear symbol to convert / 待转换的线性符号
+ * @return linear polynomial with the symbol as single monomial / 以该符号为单项的线性多项式
+*/
 private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
     return LinearPolynomial(
         monomials = listOf(LinearMonomial(layerAssignmentOne(), symbol)),
@@ -49,7 +52,10 @@ private fun asLinearPolynomial(symbol: Symbol): LinearPolynomial<FltX> {
 /**
  * Constant polynomial construction.
  * 常量多项式构造。
- */
+ *
+ * @param value constant value / 常量值
+ * @return constant-only linear polynomial / 仅含常量的线性多项式
+*/
 private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
     return LinearPolynomial(emptyList(), value)
 }
@@ -57,7 +63,10 @@ private fun constantPolynomial(value: FltX): LinearPolynomial<FltX> {
 /**
  * Demand mode tag.
  * 需求模式标签。
- */
+ *
+ * @param mode demand mode / 需求模式
+ * @return short tag string for the mode / 模式的短标签字符串
+*/
 private fun modeTag(mode: Bpp3dDemandMode): String {
     return when (mode) {
         is Bpp3dDemandMode.Item -> "item"
@@ -72,7 +81,10 @@ private fun modeTag(mode: Bpp3dDemandMode): String {
 /**
  * Demand domain tag.
  * 需求域标签。
- */
+ *
+ * @param domain demand domain / 需求域
+ * @return short tag string for the domain / 域的短标签字符串
+*/
 private fun domainTag(domain: Bpp3dDemandDomain): String {
     return when (domain) {
         Bpp3dDemandDomain.Discrete -> "discrete"
@@ -88,7 +100,11 @@ private fun domainTag(domain: Bpp3dDemandDomain): String {
  * Any 等价且更通用，减少 domain 层对基础设施层几何兼容类型的绑定。
  * Uses Any parameter instead of the infrastructure wildcard Cuboid type: when-dispatch is runtime type checking,
  * Any is equivalent and more general, reducing domain-layer binding to infrastructure geometry compatibility types.
- */
+ *
+ * @param cuboid packing unit to compute statistics for / 待计算统计的装箱单元
+ * @param mode demand mode / 需求模式
+ * @return short tag string for the mode / 模式的短标签字符串
+*/
 private fun demandStatistics(
     cuboid: Any,
     mode: Bpp3dDemandMode
@@ -117,7 +133,7 @@ private fun demandStatistics(
  * @property demandEntries 需求条目列表 / demand entry list
  * @property shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
  * @property name 约束名称 / constraint name
- */
+*/
 open class DemandConstraint<
         Args : AbstractBPP3DShadowPriceArguments<FltX, T>,
         T : Cuboid<T, FltX>
@@ -127,13 +143,14 @@ open class DemandConstraint<
     private val shadowPriceExtractor: ((Args) -> FltX?)? = null,
     override val name: String = "demand"
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
+
     /**
      * Retrieve the load symbol by index, returning an error instead of throwing on out-of-bounds.
      * 按索引获取负载符号，越界时返回错误而非抛出异常。
      *
      * @param index 符号索引 / symbol index
      * @return 成功时返回符号，索引越界时返回错误 / symbol on success, error if index is out of bounds
-     */
+    */
     private fun symbolAt(index: Int): Ret<Symbol> {
         return runCatching { load.load[index] as Symbol }.getOrNull()?.let { ok(it) }
             ?: Failed(ErrorCode.IllegalArgument, "Missing load symbol at index $index")
@@ -147,7 +164,7 @@ open class DemandConstraint<
      * index 符号索引。
      * @return The upper bound symbol.
      * 返回上界符号。
-     */
+    */
     private fun upperSymbolAt(index: Int): Symbol {
         return runCatching { load.overLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
@@ -160,7 +177,7 @@ open class DemandConstraint<
      * index 符号索引。
      * @return The lower bound symbol.
      * 返回下界符号。
-     */
+    */
     private fun lowerSymbolAt(index: Int): Symbol {
         return runCatching { load.lessLoad[index] as Symbol }.getOrDefault(symbolAt(index).value!!)
     }
@@ -177,7 +194,7 @@ open class DemandConstraint<
      * concreteMode 具体需求模式。
      * @return The resolved shadow price.
      * 返回解析的影子价格。
-     */
+    */
     private fun resolveShadowPrice(
         map: AbstractShadowPriceMap<Args, AbstractBPP3DShadowPriceMap<Args, FltX, T>>,
         demand: Bpp3dDemandEntry<FltX>,
@@ -349,7 +366,7 @@ open class DemandConstraint<
  * @param shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
  * @param name 约束名称 / constraint name
  * @return Item 专用需求约束 / item-only demand constraint
- */
+*/
 fun itemDemandConstraint(
     load: Load<FltX>,
     demandEntries: List<Bpp3dDemandEntry<FltX>> = load.demandEntries,
@@ -372,7 +389,7 @@ fun itemDemandConstraint(
  * @property demandEntries 需求条目列表 / demand entry list
  * @property shadowPriceExtractor 自定义影子价格提取器（可选） / custom shadow price extractor (optional)
  * @property name 约束名称 / constraint name
- */
+*/
 class ItemDemandConstraint(
     load: Load<FltX>,
     demandEntries: List<Bpp3dDemandEntry<FltX>> = load.demandEntries,

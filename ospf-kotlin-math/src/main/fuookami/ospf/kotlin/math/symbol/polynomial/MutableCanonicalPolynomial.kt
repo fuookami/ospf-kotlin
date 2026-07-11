@@ -7,7 +7,7 @@
  * Provides a mutable version of canonical polynomials, supporting in-place modifications.
  * Used for scenarios requiring incremental building or modification of polynomials,
  * and can be converted to an immutable CanonicalPolynomial after construction.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property _monomials 内部可变的规范单项式列表 / Internal mutable list of canonical monomials
  * @property _constant 内部可变的常数项 / Internal mutable constant term
- */
+*/
 class MutableCanonicalPolynomial<T : NumberField<T>>(
     monomials: List<CanonicalMonomial<T>> = emptyList(),
     constant: T
@@ -38,13 +38,13 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
     /**
      * 规范单项式列表（只读）
      * List of canonical monomials (read-only)
-     */
+    */
     val monomials: List<CanonicalMonomial<T>> get() = _monomials.toList()
 
     /**
      * 常数项
      * Constant term
-     */
+    */
     val constant: T get() = _constant
 
     /**
@@ -53,7 +53,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      *
      * 根据单项式的最高次数返回对应的分类。
      * Returns the corresponding category based on the maximum degree of monomials.
-     */
+    */
     val category: Category
         get() = when (_monomials.maxOfOrNull { it.degree } ?: 0) {
             0, 1 -> Linear
@@ -67,7 +67,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
          * Creates a zero polynomial (constant = 0)
          *
          * @return 零多项式 / Zero polynomial
-         */
+        */
         inline fun <reified T> zero(): Ret<MutableCanonicalPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableCanonicalPolynomial.zero").mapResolved { constants ->
                 MutableCanonicalPolynomial(emptyList(), constants.zero)
@@ -79,7 +79,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
          * Creates a constant polynomial with value 1
          *
          * @return 值为 1 的多项式 / Polynomial with value 1
-         */
+        */
         inline fun <reified T> one(): Ret<MutableCanonicalPolynomial<T>> where T : NumberField<T>, T : Arithmetic<T> {
             return resolveArithmeticConstantsSafe<T>("MutableCanonicalPolynomial.one").mapResolved { constants ->
                 MutableCanonicalPolynomial(emptyList(), constants.one)
@@ -92,7 +92,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
          *
          * @param value 常数值 / Constant value
          * @return 常数多项式 / Constant polynomial
-         */
+        */
         fun <T : NumberField<T>> fromConstant(value: T): MutableCanonicalPolynomial<T> {
             return MutableCanonicalPolynomial(emptyList(), value)
         }
@@ -103,7 +103,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      * Adds a canonical monomial
      *
      * @param monomial 要添加的规范单项式 / The canonical monomial to add
-     */
+    */
     fun addMonomial(monomial: CanonicalMonomial<T>) {
         _monomials.add(monomial)
     }
@@ -113,7 +113,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      * Adds to the constant term
      *
      * @param value 要增加的值 / The value to add
-     */
+    */
     fun addConstant(value: T) {
         _constant = _constant + value
     }
@@ -123,7 +123,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      * Sets the constant term
      *
      * @param value 新的常数项值 / The new constant term value
-     */
+    */
     fun setConstant(value: T) {
         _constant = value
     }
@@ -131,7 +131,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
     /**
      * 清除所有单项式
      * Clears all monomials
-     */
+    */
     fun clear() {
         _monomials.clear()
     }
@@ -141,7 +141,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      * Converts to an immutable canonical polynomial
      *
      * @return 不可变的规范多项式 / Immutable canonical polynomial
-     */
+    */
     fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
         return CanonicalPolynomial(_monomials.toList(), _constant)
     }
@@ -151,7 +151,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
      * Converts to immutable form
      *
      * @return 不可变的规范多项式 / Immutable canonical polynomial
-     */
+    */
     fun toImmutable(): CanonicalPolynomial<T> = toCanonicalPolynomial()
 
     override fun toString(): String {
@@ -177,7 +177,7 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
  *
  * @receiver 不可变规范多项式 / Immutable canonical polynomial
  * @return 可变规范多项式 / Mutable canonical polynomial
- */
+*/
 fun <T : NumberField<T>> CanonicalPolynomial<T>.toMutable(): MutableCanonicalPolynomial<T> {
     return MutableCanonicalPolynomial(monomials, constant)
 }
@@ -188,7 +188,7 @@ fun <T : NumberField<T>> CanonicalPolynomial<T>.toMutable(): MutableCanonicalPol
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @return 不可变规范多项式 / Immutable canonical polynomial
- */
+*/
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.toImmutable(): CanonicalPolynomial<T> {
     return this.toCanonicalPolynomial()
 }
@@ -199,7 +199,7 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.toImmutable(): CanonicalP
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @return 所有项取负后的可变规范多项式 / Mutable canonical polynomial with all terms negated
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.unaryMinus(): MutableCanonicalPolynomial<T> {
     return MutableCanonicalPolynomial(monomials.map { -it }, -constant)
 }
@@ -210,7 +210,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.unaryMinus(): Mu
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: CanonicalMonomial<T>) {
     addMonomial(rhs)
 }
@@ -221,7 +221,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 规范多项式 / Canonical polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: CanonicalPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -233,7 +233,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 可变规范多项式 / Mutable canonical polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: MutableCanonicalPolynomial<T>) {
     _monomials.addAll(rhs.monomials)
     _constant = _constant + rhs.constant
@@ -245,7 +245,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: T) {
     _constant = _constant + rhs
 }
@@ -256,7 +256,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.plusAssign(rhs: 
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 规范单项式 / Canonical monomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs: CanonicalMonomial<T>) {
     _monomials.add(-rhs)
 }
@@ -267,7 +267,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 规范多项式 / Canonical polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs: CanonicalPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
@@ -279,7 +279,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 可变规范多项式 / Mutable canonical polynomial
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs: MutableCanonicalPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
     _constant = _constant - rhs.constant
@@ -291,7 +291,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs: T) {
     _constant = _constant - rhs
 }
@@ -302,7 +302,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssign(rhs:
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.timesAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] * rhs
@@ -316,7 +316,7 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.timesAssign(rhs:
  *
  * @receiver 可变规范多项式 / Mutable canonical polynomial
  * @param rhs 标量值 / Scalar value
- */
+*/
 operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.divAssign(rhs: T) {
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] / rhs

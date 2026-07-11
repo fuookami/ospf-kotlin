@@ -12,7 +12,7 @@
  * - AstronomicalUnit: 1 AU = 149597870700 m（精确值，IAU 2012）/ 1 AU = 149597870700 m (exact, IAU 2012)
  * - Parsec: 1 pc = 648000/π AU ≈ 206265 AU（IAU 2015 Resolution B2）/ 1 pc = 648000/π AU ≈ 206265 AU (IAU 2015 Resolution B2)
  * - LightYear: 1 ly = c × 365.25 × 86400 s（儒略年）/ 1 ly = c × 365.25 × 86400 s (Julian year)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -26,15 +26,18 @@ import fuookami.ospf.kotlin.quantities.dimension.Length
  *
  * 符号 / Symbol: m
  * 换算关系 / Conversion: 1 m = 1 m（基本单位 / base unit）
- */
+*/
 object Meter : PhysicalUnit() {
+
     /** 单位名称：meter / Unit name: meter */
     override val name = "meter"
+
     /** 单位符号：m / Unit symbol: m */
     override val symbol = "m"
 
     /** 对应物理量：长度 / Corresponding quantity: Length */
     override val quantity = Length
+
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
     override val conversionRule = UnitConversionRule.Linear(Scale())
 }
@@ -47,10 +50,12 @@ object Meter : PhysicalUnit() {
  *
  * 符号 / Symbol: pm
  * 换算关系 / Conversion: 1 pm = 10⁻¹² m
- */
+*/
 object Picometer : DerivedPhysicalUnit(Meter * Scale.pico) {
+
     /** 单位名称：picometer / Unit name: picometer */
     override val name = "picometer"
+
     /** 单位符号：pm / Unit symbol: pm */
     override val symbol = "pm"
 
@@ -66,10 +71,12 @@ object Picometer : DerivedPhysicalUnit(Meter * Scale.pico) {
  *
  * 符号 / Symbol: nm
  * 换算关系 / Conversion: 1 nm = 10⁻⁹ m
- */
+*/
 object Nanometer : DerivedPhysicalUnit(Meter * Scale.nano) {
+
     /** 单位名称：nanometer / Unit name: nanometer */
     override val name = "nanometer"
+
     /** 单位符号：nm / Unit symbol: nm */
     override val symbol = "nm"
 
@@ -85,10 +92,12 @@ object Nanometer : DerivedPhysicalUnit(Meter * Scale.nano) {
  *
  * 符号 / Symbol: µm
  * 换算关系 / Conversion: 1 µm = 10⁻⁶ m
- */
+*/
 object Micrometer : DerivedPhysicalUnit(Meter * Scale.micro) {
+
     /** 单位名称：micrometer / Unit name: micrometer */
     override val name = "micrometer"
+
     /** 单位符号：µm / Unit symbol: µm */
     override val symbol = "µm"
 
@@ -104,10 +113,12 @@ object Micrometer : DerivedPhysicalUnit(Meter * Scale.micro) {
  *
  * 符号 / Symbol: mm
  * 换算关系 / Conversion: 1 mm = 10⁻³ m
- */
+*/
 object Millimeter : DerivedPhysicalUnit(Meter * Scale.milli) {
+
     /** 单位名称：millimeter / Unit name: millimeter */
     override val name = "millimeter"
+
     /** 单位符号：mm / Unit symbol: mm */
     override val symbol = "mm"
 
@@ -123,10 +134,12 @@ object Millimeter : DerivedPhysicalUnit(Meter * Scale.milli) {
  *
  * 符号 / Symbol: cm
  * 换算关系 / Conversion: 1 cm = 10⁻² m
- */
+*/
 object Centimeter : DerivedPhysicalUnit(Meter * Scale.centi) {
+
     /** 单位名称：centimeter / Unit name: centimeter */
     override val name = "centimeter"
+
     /** 单位符号：cm / Unit symbol: cm */
     override val symbol = "cm"
 
@@ -142,10 +155,12 @@ object Centimeter : DerivedPhysicalUnit(Meter * Scale.centi) {
  *
  * 符号 / Symbol: dm
  * 换算关系 / Conversion: 1 dm = 10⁻¹ m
- */
+*/
 object Decimeter : DerivedPhysicalUnit(Meter * Scale.deci) {
+
     /** 单位名称：decimeter / Unit name: decimeter */
     override val name = "decimeter"
+
     /** 单位符号：dm / Unit symbol: dm */
     override val symbol = "dm"
 
@@ -161,10 +176,12 @@ object Decimeter : DerivedPhysicalUnit(Meter * Scale.deci) {
  *
  * 符号 / Symbol: dam
  * 换算关系 / Conversion: 1 dam = 10¹ m = 10 m
- */
+*/
 object Decameter : DerivedPhysicalUnit(Meter * Scale.deca) {
+
     /** 单位名称：decameter / Unit name: decameter */
     override val name = "decameter"
+
     /** 单位符号：dam / Unit symbol: dam */
     override val symbol = "dam"
 
@@ -180,10 +197,12 @@ object Decameter : DerivedPhysicalUnit(Meter * Scale.deca) {
  *
  * 符号 / Symbol: hm
  * 换算关系 / Conversion: 1 hm = 10² m = 100 m
- */
+*/
 object Hectometer : DerivedPhysicalUnit(Meter * Scale.hecto) {
+
     /** 单位名称：hectometer / Unit name: hectometer */
     override val name = "hectometer"
+
     /** 单位符号：hm / Unit symbol: hm */
     override val symbol = "hm"
 
@@ -199,10 +218,12 @@ object Hectometer : DerivedPhysicalUnit(Meter * Scale.hecto) {
  *
  * 符号 / Symbol: km
  * 换算关系 / Conversion: 1 km = 10³ m = 1000 m
- */
+*/
 object Kilometer : DerivedPhysicalUnit(Meter * Scale.kilo) {
+
     /** 单位名称：kilometer / Unit name: kilometer */
     override val name = "kilometer"
+
     /** 单位符号：km / Unit symbol: km */
     override val symbol = "km"
 
@@ -218,10 +239,12 @@ object Kilometer : DerivedPhysicalUnit(Meter * Scale.kilo) {
  *
  * 符号 / Symbol: nmi
  * 换算关系 / Conversion: 1 nmi = 1.852 km（精确值）/ 1 nmi = 1.852 km (exact)
- */
+*/
 object NauticalMile : DerivedPhysicalUnit(Kilometer * 1.852) {
+
     /** 单位名称：nautical mile / Unit name: nautical mile */
     override val name = "nautical mile"
+
     /** 单位符号：nmi / Unit symbol: nmi */
     override val symbol = "nmi"
 
@@ -237,10 +260,12 @@ object NauticalMile : DerivedPhysicalUnit(Kilometer * 1.852) {
  *
  * 符号 / Symbol: fr.nmi
  * 换算关系 / Conversion: 1 fr.nmi ≈ 1.85327 km
- */
+*/
 object FRNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85327) {
+
     /** 单位名称：fra nautical mile / Unit name: fra nautical mile */
     override val name = "fra nautical mile"
+
     /** 单位符号：fr.nmi / Unit symbol: fr.nmi */
     override val symbol = "fr.nmi"
 
@@ -256,10 +281,12 @@ object FRNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85327) {
  *
  * 符号 / Symbol: uk.nmi
  * 换算关系 / Conversion: 1 uk.nmi ≈ 1.85455 km
- */
+*/
 object UKNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85455) {
+
     /** 单位名称：uk nautical mile / Unit name: uk nautical mile */
     override val name = "uk nautical mile"
+
     /** 单位符号：uk.nmi / Unit symbol: uk.nmi */
     override val symbol = "uk.nmi"
 
@@ -275,10 +302,12 @@ object UKNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85455) {
  *
  * 符号 / Symbol: ru.nmi
  * 换算关系 / Conversion: 1 ru.nmi ≈ 1.85578 km
- */
+*/
 object RUNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85578) {
+
     /** 单位名称：rus nautical mile / Unit name: rus nautical mile */
     override val name = "rus nautical mile"
+
     /** 单位符号：ru.nmi / Unit symbol: ru.nmi */
     override val symbol = "ru.nmi"
 
@@ -294,10 +323,12 @@ object RUNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85578) {
  *
  * 符号 / Symbol: us.nmi
  * 换算关系 / Conversion: 1 us.nmi ≈ 1.85101 km
- */
+*/
 object USNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85101) {
+
     /** 单位名称：usa nautical mile / Unit name: usa nautical mile */
     override val name = "usa nautical mile"
+
     /** 单位符号：us.nmi / Unit symbol: us.nmi */
     override val symbol = "us.nmi"
 
@@ -313,10 +344,12 @@ object USNauticalMile : DerivedPhysicalUnit(Kilometer * 1.85101) {
  *
  * 符号 / Symbol: fm
  * 换算关系 / Conversion: 1 fm = 1/1000 nmi = 1.852 m
- */
+*/
 object Fathom : DerivedPhysicalUnit(NauticalMile * Scale(10, -3)) {
+
     /** 单位名称：fathom / Unit name: fathom */
     override val name = "fathom"
+
     /** 单位符号：fm / Unit symbol: fm */
     override val symbol = "fm"
 
@@ -332,10 +365,12 @@ object Fathom : DerivedPhysicalUnit(NauticalMile * Scale(10, -3)) {
  *
  * 符号 / Symbol: cab
  * 换算关系 / Conversion: 1 cab = 1/10 nmi = 185.2 m
- */
+*/
 object Cable : DerivedPhysicalUnit(NauticalMile * Scale(10, -1)) {
+
     /** 单位名称：cable / Unit name: cable */
     override val name = "cable"
+
     /** 单位符号：cab / Unit symbol: cab */
     override val symbol = "cab"
 
@@ -351,10 +386,12 @@ object Cable : DerivedPhysicalUnit(NauticalMile * Scale(10, -1)) {
  *
  * 符号 / Symbol: in
  * 换算关系 / Conversion: 1 in = 2.54 cm（精确值）/ 1 in = 2.54 cm (exact)
- */
+*/
 object Inch : DerivedPhysicalUnit(Centimeter * 2.54) {
+
     /** 单位名称：inch / Unit name: inch */
     override val name = "inch"
+
     /** 单位符号：in / Unit symbol: in */
     override val symbol = "in"
 
@@ -370,10 +407,12 @@ object Inch : DerivedPhysicalUnit(Centimeter * 2.54) {
  *
  * 符号 / Symbol: ft
  * 换算关系 / Conversion: 1 ft = 12 in = 30.48 cm
- */
+*/
 object Foot : DerivedPhysicalUnit(Inch * 12) {
+
     /** 单位名称：foot / Unit name: foot */
     override val name = "foot"
+
     /** 单位符号：ft / Unit symbol: ft */
     override val symbol = "ft"
 
@@ -389,10 +428,12 @@ object Foot : DerivedPhysicalUnit(Inch * 12) {
  *
  * 符号 / Symbol: yd
  * 换算关系 / Conversion: 1 yd = 3 ft = 0.9144 m
- */
+*/
 object Yard : DerivedPhysicalUnit(Foot * 3) {
+
     /** 单位名称：yard / Unit name: yard */
     override val name = "yard"
+
     /** 单位符号：yd / Unit symbol: yd */
     override val symbol = "yd"
 
@@ -408,10 +449,12 @@ object Yard : DerivedPhysicalUnit(Foot * 3) {
  *
  * 符号 / Symbol: ch
  * 换算关系 / Conversion: 1 ch = 22 yd = 20.1168 m
- */
+*/
 object Chain : DerivedPhysicalUnit(Yard * 22) {
+
     /** 单位名称：chain / Unit name: chain */
     override val name = "chain"
+
     /** 单位符号：ch / Unit symbol: ch */
     override val symbol = "ch"
 
@@ -427,10 +470,12 @@ object Chain : DerivedPhysicalUnit(Yard * 22) {
  *
  * 符号 / Symbol: rd
  * 换算关系 / Conversion: 1 rd = 5.0292 m
- */
+*/
 object Rod : DerivedPhysicalUnit(Meter * 5.0292) {
+
     /** 单位名称：rod / Unit name: rod */
     override val name = "rod"
+
     /** 单位符号：rd / Unit symbol: rd */
     override val symbol = "rd"
 
@@ -446,10 +491,12 @@ object Rod : DerivedPhysicalUnit(Meter * 5.0292) {
  *
  * 符号 / Symbol: mi
  * 换算关系 / Conversion: 1 mi = 1760 yd = 1609.344 m
- */
+*/
 object Mile : DerivedPhysicalUnit(Yard * 1760) {
+
     /** 单位名称：mile / Unit name: mile */
     override val name = "mile"
+
     /** 单位符号：mi / Unit symbol: mi */
     override val symbol = "mi"
 
@@ -465,10 +512,12 @@ object Mile : DerivedPhysicalUnit(Yard * 1760) {
  *
  * 符号 / Symbol: au
  * 换算关系 / Conversion: 1 au = 149597870700 m（精确值，IAU 2012）/ 1 au = 149597870700 m (exact, IAU 2012)
- */
+*/
 object AstronomicalUnit : DerivedPhysicalUnit(Meter * 149597870700.0) {
+
     /** 单位名称：astronomical unit / Unit name: astronomical unit */
     override val name = "astronomical unit"
+
     /** 单位符号：au / Unit symbol: au */
     override val symbol = "au"
 
@@ -484,10 +533,12 @@ object AstronomicalUnit : DerivedPhysicalUnit(Meter * 149597870700.0) {
  *
  * 符号 / Symbol: lsc
  * 换算关系 / Conversion: 1 lsc = 299792458 m（精确值）/ 1 lsc = 299792458 m (exact)
- */
+*/
 object LightSecond : DerivedPhysicalUnit(Meter * 299792458) {
+
     /** 单位名称：light second / Unit name: light second */
     override val name = "light second"
+
     /** 单位符号：lsc / Unit symbol: lsc */
     override val symbol = "lsc"
 
@@ -503,10 +554,12 @@ object LightSecond : DerivedPhysicalUnit(Meter * 299792458) {
  *
  * 符号 / Symbol: lmn
  * 换算关系 / Conversion: 1 lmn = 60 lsc = 17987547480 m
- */
+*/
 object LightMinute : DerivedPhysicalUnit(LightSecond * 60) {
+
     /** 单位名称：light minute / Unit name: light minute */
     override val name = "light minute"
+
     /** 单位符号：lmn / Unit symbol: lmn */
     override val symbol = "lmn"
 
@@ -522,10 +575,12 @@ object LightMinute : DerivedPhysicalUnit(LightSecond * 60) {
  *
  * 符号 / Symbol: lhr
  * 换算关系 / Conversion: 1 lhr = 60 lmn = 1079252848800 m
- */
+*/
 object LightHour : DerivedPhysicalUnit(LightMinute * 60) {
+
     /** 单位名称：light hour / Unit name: light hour */
     override val name = "light hour"
+
     /** 单位符号：lhr / Unit symbol: lhr */
     override val symbol = "lhr"
 
@@ -541,10 +596,12 @@ object LightHour : DerivedPhysicalUnit(LightMinute * 60) {
  *
  * 符号 / Symbol: ldy
  * 换算关系 / Conversion: 1 ldy = 24 lhr = 25902068371200 m
- */
+*/
 object LightDay : DerivedPhysicalUnit(LightHour * 24) {
+
     /** 单位名称：light day / Unit name: light day */
     override val name = "light day"
+
     /** 单位符号：ldy / Unit symbol: ldy */
     override val symbol = "ldy"
 
@@ -560,10 +617,12 @@ object LightDay : DerivedPhysicalUnit(LightHour * 24) {
  *
  * 符号 / Symbol: ly
  * 换算关系 / Conversion: 1 ly = 365.25 ldy ≈ 9.461 × 10¹⁵ m
- */
+*/
 object LightYear : DerivedPhysicalUnit(LightDay * 365.25) {
+
     /** 单位名称：light year / Unit name: light year */
     override val name = "light year"
+
     /** 单位符号：ly / Unit symbol: ly */
     override val symbol = "ly"
 
@@ -579,10 +638,12 @@ object LightYear : DerivedPhysicalUnit(LightDay * 365.25) {
  *
  * 符号 / Symbol: pc
  * 换算关系 / Conversion: 1 pc ≈ 3.086 × 10¹⁶ m ≈ 3.26 ly
- */
+*/
 object Parsec : DerivedPhysicalUnit(Meter * 30856775814913673.0) {
+
     /** 单位名称：parsec / Unit name: parsec */
     override val name = "parsec"
+
     /** 单位符号：pc / Unit symbol: pc */
     override val symbol = "pc"
 
@@ -598,10 +659,12 @@ object Parsec : DerivedPhysicalUnit(Meter * 30856775814913673.0) {
  *
  * 符号 / Symbol: kpc
  * 换算关系 / Conversion: 1 kpc = 10³ pc
- */
+*/
 object Kiloparsec : DerivedPhysicalUnit(Parsec * Scale.kilo) {
+
     /** 单位名称：kiloparsec / Unit name: kiloparsec */
     override val name = "kiloparsec"
+
     /** 单位符号：kpc / Unit symbol: kpc */
     override val symbol = "kpc"
 
@@ -617,10 +680,12 @@ object Kiloparsec : DerivedPhysicalUnit(Parsec * Scale.kilo) {
  *
  * 符号 / Symbol: Mpc
  * 换算关系 / Conversion: 1 Mpc = 10⁶ pc
- */
+*/
 object Megaparsec : DerivedPhysicalUnit(Parsec * Scale.mega) {
+
     /** 单位名称：megaparsec / Unit name: megaparsec */
     override val name = "megaparsec"
+
     /** 单位符号：Mpc / Unit symbol: Mpc */
     override val symbol = "Mpc"
 
@@ -636,10 +701,12 @@ object Megaparsec : DerivedPhysicalUnit(Parsec * Scale.mega) {
  *
  * 符号 / Symbol: Gpc
  * 换算关系 / Conversion: 1 Gpc = 10⁹ pc
- */
+*/
 object Gigaparsec : DerivedPhysicalUnit(Parsec * Scale.giga) {
+
     /** 单位名称：gigaparsec / Unit name: gigaparsec */
     override val name = "gigaparsec"
+
     /** 单位符号：Gpc / Unit symbol: Gpc */
     override val symbol = "Gpc"
 

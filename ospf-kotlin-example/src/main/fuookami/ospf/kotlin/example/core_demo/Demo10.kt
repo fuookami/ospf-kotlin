@@ -32,13 +32,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Traveling Salesman Problem: find the shortest route visiting all cities exactly once.
  *
  * @see https://fuookami.github.io/ospf/examples/example10.html
- */
+*/
 data object Demo10 {
+
     /**
      * TSP 路线中的城市。A city in the TSP route.
      *
      * @property name 城市名称 / City name
-     */
+    */
     data class City(
         val name: String
     ) : AutoIndexed(City::class)
@@ -102,7 +103,7 @@ data object Demo10 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -124,7 +125,7 @@ data object Demo10 {
      * 初始化二元路线变量和整数子环消除变量。/ Initializes binary route variables and integer subtour elimination variables.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = BinVariable2("x", Shape2(cities.size, cities.size))
         for (city1 in cities) {
@@ -156,7 +157,7 @@ data object Demo10 {
      * 创建距离、出发和到达表达式符号。/ Creates distance, departure, and arrival expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         distance = LinearExpressionSymbol(
             sum(cities.flatMap { city1 ->
@@ -194,7 +195,7 @@ data object Demo10 {
      * 设置目标函数以最小化总旅行距离。/ Sets the objective to minimize total travel distance.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(distance, "distance")
         return ok
@@ -204,7 +205,7 @@ data object Demo10 {
      * 添加到达/出发和子环消除（MTZ）约束。/ Adds arrival/departure and subtour elimination (MTZ) constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (city in cities) {
             metaModel.addConstraint(
@@ -244,7 +245,7 @@ data object Demo10 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -267,7 +268,7 @@ data object Demo10 {
      * 从解中提取最优路线作为城市到城市的映射。/ Extracts the optimal route as a city-to-city mapping from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val route: MutableMap<City, City> = hashMapOf()
         for (token in metaModel.tokens.tokens) {

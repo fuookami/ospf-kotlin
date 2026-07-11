@@ -1,7 +1,7 @@
 /**
  * Layer model.
  * 层模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlin.reflect.KClass
@@ -10,7 +10,10 @@ import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-
+/**
+ * PlaneLayer class.
+ * PlaneLayer类。
+*/
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
     override val shape: AbstractContainer2Shape<P>,
@@ -54,6 +57,10 @@ class PlaneLayer<P : ProjectivePlane>(
     )
 }
 
+/**
+ * BinLayer class.
+ * BinLayer类。
+*/
 class BinLayer(
     val iteration: Int64,
     val from: KClass<*>,
@@ -124,6 +131,10 @@ class BinLayer(
     }
 }
 
+/**
+ * PalletLayer class.
+ * PalletLayer类。
+*/
 class PalletLayer(
     val iteration: Int64,
     val from: KClass<*>,

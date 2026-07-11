@@ -26,6 +26,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Load model managing load weight variables, load amount symbols, and derived
+ * torque and index calculations for each stowage position.
+ * 装载模型，管理每个配载位置的装载重量变量、装载量符号以及派生的力矩和指数计算。
+*/
 class Load(
     private val aircraftModel: AircraftModel,
     private val formula: Formula,
@@ -52,6 +57,14 @@ class Load(
     lateinit var loadCLIM: QuantityLinearIntermediateSymbols1<Flt64>
     lateinit var loadIndex: QuantityLinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Computes the load amount symbol for items matching the given predicate at a specific position.
+     * 计算特定位置上匹配给定谓词的货物的装载量符号。
+     *
+     * @param position the stowage position / 配载位置
+     * @param predicate the item filter predicate / 货物过滤谓词
+     * @return the linear intermediate symbol representing the load amount / 表示装载量的线性中间符号
+    */
     fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbol<Flt64> {
         val j = positions.indexOf(position)
         val poly = sum(items.mapIndexedNotNull { i, item ->
@@ -67,6 +80,13 @@ class Load(
         )
     }
 
+    /**
+     * Registers all load-related variables and intermediate symbols into the model.
+     * 将所有装载相关的变量和中间符号注册到模型中。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

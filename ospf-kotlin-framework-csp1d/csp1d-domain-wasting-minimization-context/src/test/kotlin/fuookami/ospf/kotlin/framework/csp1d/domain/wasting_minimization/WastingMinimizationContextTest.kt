@@ -8,6 +8,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
+/**
+ * Wasting minimization context unit tests.
+ * 浪费最小化上下文单元测试
+ */
 class WastingMinimizationContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
@@ -18,6 +22,12 @@ class WastingMinimizationContextTest {
         return analyze(selectedPlans).value ?: fail("waste analysis should succeed")
     }
 
+    /**
+     * Create a test material with default dimensions.
+     * 创建默认尺寸的测试物料
+     *
+     * @return Test material instance / 测试物料实例
+     */
     private fun material(): Material<Flt64> {
         return Material(
             id = MaterialIdImpl("m1"),
@@ -33,6 +43,15 @@ class WastingMinimizationContextTest {
         )
     }
 
+    /**
+     * Create a test cutting plan with optional slices and rest width.
+     * 创建带可选切片和余宽的测试切割方案
+     *
+     * @param id Cutting plan identifier / 切割方案标识
+     * @param slices Slices in the plan / 方案中的切片
+     * @param restWidth Rest width override / 余宽覆盖值
+     * @return Test cutting plan instance / 测试切割方案实例
+     */
     private fun cuttingPlan(
         id: String = "cp",
         slices: List<CuttingPlanSlice<Flt64>> = emptyList(),

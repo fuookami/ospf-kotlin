@@ -17,7 +17,7 @@
  * 接口说明 / Interface descriptions:
  * - Exp: 基本指数运算接口
  * - ExpP: 带精度参数的指数运算接口，支持指定精度计箌
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -32,17 +32,16 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 指数运算的结果类垌
  *
- * @param Ret The result type of the exponential operation
- */
+*/
 interface Exp<out Ret> {
+
     /**
      * 计算指数倌eˣ
      * Calculates the exponential value eˣ
      *
      * @return e 的当前值次幌
      *
-     * @return e raised to the power of the current value
-     */
+    */
     fun exp(): Ret
 }
 
@@ -58,9 +57,9 @@ interface Exp<out Ret> {
  *
  * @param Ret 指数运算的结果类垌
  *
- * @param Ret The result type of the exponential operation
- */
+*/
 interface ExpP<Ret> : Exp<Ret> {
+
     /**
      * 计算指数倌eˣ，带精度参数
      * Calculates the exponential value eˣ with precision parameters
@@ -69,10 +68,7 @@ interface ExpP<Ret> : Exp<Ret> {
      * @param precision 精度倌
      * @return e 的当前值次幌
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
-     * @return e raised to the power of the current value
-     */
+    */
     fun exp(digits: Int, precision: Ret): Ret {
         return exp()
     }
@@ -87,11 +83,7 @@ interface ExpP<Ret> : Exp<Ret> {
  * @param base 指数（x 值）
  * @return e 皌base 次幂
  *
- * @param Base The base type, must implement the Exp interface
- * @param Ret The return type
- * @param base The exponent (x value)
- * @return e raised to the power of base
- */
+*/
 fun <Base : Exp<Ret>, Ret> exp(base: Base): Ret {
     return base.exp()
 }
@@ -107,13 +99,7 @@ fun <Base : Exp<Ret>, Ret> exp(base: Base): Ret {
  * @param precision 精度倌
  * @return e 皌base 次幂
  *
- * @param Base The base type, must implement the ExpP interface
- * @param Ret The return type
- * @param base The exponent (x value)
- * @param digits Number of significant digits
- * @param precision Precision value
- * @return e raised to the power of base
- */
+*/
 fun <Base : ExpP<Ret>, Ret> exp(
     base: Base,
     digits: Int,

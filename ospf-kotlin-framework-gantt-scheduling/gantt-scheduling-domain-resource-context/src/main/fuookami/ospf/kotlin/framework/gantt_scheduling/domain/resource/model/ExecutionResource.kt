@@ -30,13 +30,14 @@ import fuookami.ospf.kotlin.utils.min
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
  * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
- */
+*/
 abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
     override val id: ResourceId,
     override val name: String,
     override val capacities: List<C>,
     override val initialQuantityValue: V
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算任务在指定时间范围内的资源消耗量 / Calculate resource consumption of a task in the given time range
      *
@@ -45,7 +46,7 @@ abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时间范围 / Time range
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     abstract fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         task: AbstractTask<E, A>,
         time: TimeRange
@@ -74,7 +75,7 @@ abstract class ExecutionResource<C : AbstractResourceCapacity<V>, V>(
  * @param resource 资源 / Resource
  * @param resourceCapacity 资源容量 / Resource capacity
  * @param indexInRule 规则内索引 / Index in rule
- */
+*/
 data class ExecutionResourceTimeSlot<
         R : ExecutionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -86,6 +87,7 @@ data class ExecutionResourceTimeSlot<
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C, V>, AutoIndexed(ExecutionResourceTimeSlot::class)
         where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算任务在此时槽的资源消耗量 / Calculate resource consumption of a task at this time slot
      *
@@ -93,7 +95,7 @@ data class ExecutionResourceTimeSlot<
      * @param A 分配策略类型 / Assignment policy type
      * @param task 任务 / Task
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): V {
         return resource.usedBy(task, time)
     }
@@ -138,7 +140,7 @@ typealias ExecutionResourceUsage<R, C, V> = ResourceUsage<ExecutionResourceTimeS
  * @param resources 资源列表 / List of resources
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
- */
+*/
 abstract class AbstractExecutionResourceUsage<
         R : ExecutionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -215,7 +217,7 @@ abstract class AbstractExecutionResourceUsage<
  * @param name 名称 / Name
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
- */
+*/
 class TaskSchedulingExecutionResourceUsage<
         R : ExecutionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -289,7 +291,7 @@ class TaskSchedulingExecutionResourceUsage<
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
  * @param name 名称 / Name
- */
+*/
 class BunchSchedulingExecutionResourceUsage<
         R : ExecutionResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -384,7 +386,7 @@ class BunchSchedulingExecutionResourceUsage<
      * @param bunches 任务束列表 / List of task bunches
      * @param compilation 编译对象 / Compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     fun <
             B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,

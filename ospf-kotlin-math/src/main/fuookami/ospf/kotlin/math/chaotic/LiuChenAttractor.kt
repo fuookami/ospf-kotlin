@@ -1,7 +1,7 @@
 /**
  * Liu-Chen 吸引子
  * Liu-Chen Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property xi 系统参数 xi / System parameter xi
  * @property rho 系统参数 rho / System parameter rho
  * @property h 时间步长 / Time step size
- */
+*/
 data class LiuChenAttractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val epsilon: V, val zeta: V, val xi: V, val rho: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -57,7 +57,7 @@ data class LiuChenAttractor<V : FloatingNumber<V>>(
  *
  * @property attractor the Liu-Chen attractor instance / Liu-Chen 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class LiuChenAttractorGenerator(
     val attractor: LiuChenAttractor<Flt64> = LiuChenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

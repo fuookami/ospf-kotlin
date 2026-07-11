@@ -9,7 +9,7 @@
  * used for efficient like-term combination.
  * Supports two modes: dense mode (single IntArray) and sparse mode (two IntArrays),
  * automatically selecting the optimal mode based on sparsity.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Int32
  * Sparsity threshold: 0.5 (powers.size / totalSymbols)
  *
  * @property hash 预计算的哈希值 / Pre-computed hash value
- */
+*/
 class PowerVectorKey private constructor(
     private val denseVec: IntArray?,       // dense mode: [power0, power1, ...]
     private val sparseIndices: IntArray?,  // sparse mode: [symbolIndex0, symbolIndex1, ...]
@@ -44,7 +44,7 @@ class PowerVectorKey private constructor(
          *
          * 当 powers.size / totalSymbols < 阈值时使用稀疏模式。
          * When powers.size / totalSymbols < threshold, use sparse mode.
-         */
+        */
         const val SPARSITY_THRESHOLD = 0.5
 
         /**
@@ -56,7 +56,7 @@ class PowerVectorKey private constructor(
          *
          * @param vec 幂次数组 / Power array
          * @return 稠密模式的 PowerVectorKey / PowerVectorKey in dense mode
-         */
+        */
         fun dense(vec: IntArray): PowerVectorKey {
             return PowerVectorKey(
                 denseVec = vec,
@@ -79,7 +79,7 @@ class PowerVectorKey private constructor(
          * @param indices 符号索引数组（升序） / Symbol index array (ascending)
          * @param powers 对应的幂次数组 / Corresponding power array
          * @return 稀疏模式的 PowerVectorKey / PowerVectorKey in sparse mode
-         */
+        */
         fun sparse(indices: IntArray, powers: IntArray): PowerVectorKey {
             require(indices.size == powers.size) { "Indices and powers size mismatch" }
             var h = 1
@@ -103,7 +103,7 @@ class PowerVectorKey private constructor(
          * @param symbolIndex 符号到顺序索引的映射 / Map of symbol to its index in the order
          * @param totalSymbols 唯一符号总数 / Total number of unique symbols
          * @return 最优模式的 PowerVectorKey / PowerVectorKey with optimal mode
-         */
+        */
         fun create(
             powers: Map<Symbol, Int32>,
             symbolIndex: Map<Symbol, Int>,
@@ -135,7 +135,7 @@ class PowerVectorKey private constructor(
          * @param indices 符号索引数组 / Symbol index array
          * @param powers 对应的幂次数组 / Corresponding power array
          * @return 计算得到的哈希值 / The computed hash value
-         */
+        */
         private fun computeSparseHash(indices: IntArray, powers: IntArray): Int {
             var h = 1
             for (i in indices.indices) {
@@ -148,6 +148,7 @@ class PowerVectorKey private constructor(
 
     /** 是否为稠密模式 / Whether this key is in dense mode */
     val isDense: Boolean = denseVec != null
+
     /** 是否为稀疏模式 / Whether this key is in sparse mode */
     val isSparse: Boolean = sparseIndices != null
 
@@ -176,7 +177,7 @@ class PowerVectorKey private constructor(
      *
      * @param symbolList 索引到符号的映射列表 / Index to symbol mapping list
      * @return 符号到幂次的映射 / Map of symbol to power
-     */
+    */
     fun toPowers(symbolList: List<Symbol>): Map<Symbol, Int32> {
         return when {
             isDense -> {

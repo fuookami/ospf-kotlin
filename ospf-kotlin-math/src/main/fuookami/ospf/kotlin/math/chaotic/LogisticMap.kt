@@ -9,7 +9,7 @@
  * The logistic map is the most classic one-dimensional chaotic map, popularized by Robert May in 1976.
  * This map generates complex chaotic behavior through a simple quadratic function, serving as an introductory model for chaos theory.
  * Commonly used for chaos theory education, population dynamics modeling, and pseudo-random number generation.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * 公式 / Formula: x_{n+1} = a * x * (1 - x)
  *
  * @property a 系统参数 a，取值范围 (0, 4] / System parameter a, range (0, 4]
- */
+*/
 data class LogisticMap<V : FloatingNumber<V>>(
     val a: V
 ) : Extractor<V, V> {
@@ -45,7 +45,7 @@ data class LogisticMap<V : FloatingNumber<V>>(
 /**
  * 逻辑斯蒂映射生成器
  * Logistic Map Generator
- */
+*/
 data class LogisticMapGenerator(
     val logisticMap: LogisticMap<Flt64> = LogisticMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

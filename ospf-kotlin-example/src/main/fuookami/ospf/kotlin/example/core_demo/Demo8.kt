@@ -31,13 +31,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Production planning: maximize profit subject to equipment man-hour constraints.
  *
  * @see https://fuookami.github.io/ospf/examples/example8.html
- */
+*/
 data object Demo8 {
+
     /**
      * 具有利润值的产品。A product with a profit value.
      *
      * @property profit 利润值 / Profit value
-     */
+    */
     data class Product(
         val profit: Flt64
     ) : AutoIndexed(Product::class)
@@ -47,7 +48,7 @@ data object Demo8 {
      *
      * @property amount 设备数量 / Equipment amount
      * @property manHours 各产品工时 / Man-hours per product
-     */
+    */
     data class Equipment(
         val amount: UInt64,
         val manHours: Map<Product, Flt64>
@@ -115,7 +116,7 @@ data object Demo8 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -137,7 +138,7 @@ data object Demo8 {
      * 初始化产品数量的无符号整数变量。/ Initializes unsigned integer variables for product quantities.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(products.size))
         for (p in products) {
@@ -151,7 +152,7 @@ data object Demo8 {
      * 为每台设备创建利润和工时表达式符号。/ Creates profit and man-hour expression symbols per equipment.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         profit = LinearExpressionSymbol(
             sum(products.map { p ->
@@ -180,7 +181,7 @@ data object Demo8 {
      * 设置目标函数以最大化总利润。/ Sets the objective to maximize total profit.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit, "profit")
         return ok
@@ -190,7 +191,7 @@ data object Demo8 {
      * 添加设备工时容量约束。/ Adds equipment man-hour capacity constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (e in equipments) {
             metaModel.addConstraint(
@@ -205,7 +206,7 @@ data object Demo8 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -228,7 +229,7 @@ data object Demo8 {
      * 从解中提取产品数量。/ Extracts the product quantities from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Product, UInt64>()
         for (token in metaModel.tokens.tokens) {

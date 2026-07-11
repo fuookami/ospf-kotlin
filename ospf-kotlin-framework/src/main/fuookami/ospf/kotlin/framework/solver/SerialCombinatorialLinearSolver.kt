@@ -4,7 +4,7 @@
  *
  * 将多个线性求解器串行运行，第一个成功即返回。
  * Runs multiple linear solvers serially, returning on first success.
- */
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import org.apache.logging.log4j.kotlin.logger
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property solvers 线性求解器列表（懒加载） / Linear solver list (lazy loaded)
  * @property stopErrorCode 遇到即停止的错误码 / Error codes that stop execution
- */
+*/
 class SerialCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
     private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)

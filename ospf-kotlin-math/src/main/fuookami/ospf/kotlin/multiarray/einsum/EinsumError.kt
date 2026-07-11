@@ -4,7 +4,7 @@
  *
  * 提供爱因斯坦求和操作的错误类型。
  * Provides error types for Einstein summation operations.
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 /**
@@ -21,7 +21,7 @@ package fuookami.ospf.kotlin.multiarray.einsum
  *     println(e.message)
  * }
  * ```
- */
+*/
 sealed class EinsumError(
     override val message: String
 ) : Exception(message) {
@@ -33,7 +33,7 @@ sealed class EinsumError(
      * @param expected 期望的维度数
      * @param actual 实际的维度数
      * @param description 描述信息
-     */
+    */
     data class DimensionMismatch(
         val expected: Int,
         val actual: Int,
@@ -50,7 +50,7 @@ sealed class EinsumError(
      * @param shape1 第一个张量的形状
      * @param shape2 第二个张量的形状
      * @param description 描述信息
-     */
+    */
     data class IncompatibleShapes(
         val shape1: List<Int>,
         val shape2: List<Int>,
@@ -65,7 +65,7 @@ sealed class EinsumError(
      * Duplicate indices error
      *
      * @param index 重复的索引ID
-     */
+    */
     data class DuplicateIndices(
         val index: Int
     ) : EinsumError(
@@ -77,7 +77,7 @@ sealed class EinsumError(
      * Unsupported operation error
      *
      * @param description 描述信息
-     */
+    */
     data class UnsupportedOperation(
         val description: String
     ) : EinsumError(
@@ -90,7 +90,7 @@ sealed class EinsumError(
      *
      * @param index 索引值
      * @param maxIndex 最大索引值
-     */
+    */
     data class IndexOutOfBounds(
         val index: Int,
         val maxIndex: Int
@@ -106,7 +106,7 @@ sealed class EinsumError(
      * @param expected 期望的长度
      * @param actual 实际的长度
      * @param description 描述信息
-     */
+    */
     data class IndexListLengthMismatch(
         val expected: Int,
         val actual: Int,

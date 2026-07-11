@@ -1,7 +1,7 @@
 /**
  * Thomas 循环对称吸引子
  * Thomas Cyclically Symmetric Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property b 系统参数 b / System parameter b
  * @property h 时间步长 / Time step size
- */
+*/
 data class ThomasCyclicallySymmetricAttractor<V : FloatingNumber<V>>(val b: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     @Suppress("UNCHECKED_CAST")
@@ -42,7 +42,7 @@ data class ThomasCyclicallySymmetricAttractor<V : FloatingNumber<V>>(val b: V, v
 /**
  * Thomas 循环对称吸引子生成器
  * Thomas Cyclically Symmetric Attractor Generator
- */
+*/
 data class ThomasCyclicallySymmetricAttractorGenerator(
     val attractor: ThomasCyclicallySymmetricAttractor<Flt64> = ThomasCyclicallySymmetricAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

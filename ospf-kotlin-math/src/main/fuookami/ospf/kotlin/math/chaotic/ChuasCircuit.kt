@@ -1,7 +1,7 @@
 /**
  * 蔡氏电路
  * Chua's Circuit
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c 系统参数 c / System parameter c
  * @property d 系统参数 d / System parameter d
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChuasCircuit<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val d: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -52,7 +52,7 @@ data class ChuasCircuit<V : FloatingNumber<V>>(val a: V, val b: V, val c: V, val
  *
  * @property attractor 蔡氏电路吸引子 / Chua's Circuit attractor
  * @property x 当前状态点 / Current state point
- */
+*/
 data class ChuasCircuitGenerator(
     val attractor: ChuasCircuit<Flt64> = ChuasCircuit(),
     private var _x: Point<Dim3, Flt64> = point3(

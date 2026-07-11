@@ -14,15 +14,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供领域数值下的 Quantity 加减运算，避免在领域模型中直接依赖 Flt64/FltX / Provides Quantity addition/subtraction under domain numerics, avoiding direct Flt64/FltX dependency in domain models
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface QuantityArithmetic<V : RealNumber<V>> {
+
     /**
      * 物理量加法 / Quantity addition
      *
      * @param a 左操作数 / Left operand
      * @param b 右操作数 / Right operand
      * @return 相加结果 / Addition result
-     */
+    */
     fun add(a: Quantity<V>, b: Quantity<V>): Ret<Quantity<V>>
 
     /**
@@ -31,7 +32,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      * @param a 左操作数 / Left operand
      * @param b 右操作数 / Right operand
      * @return 相减结果 / Subtraction result
-     */
+    */
     fun subtract(a: Quantity<V>, b: Quantity<V>): Ret<Quantity<V>>
 
     /**
@@ -39,7 +40,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      *
      * @param unit 物理单位 / Physical unit
      * @return 零值物理量 / Zero quantity
-     */
+    */
     fun zero(unit: PhysicalUnit): Quantity<V>
 
     /**
@@ -48,7 +49,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      * @param a 左操作数 / Left operand
      * @param b 右操作数 / Right operand
      * @return 相加结果，失败时返回 null / Addition result, or null on failure
-     */
+    */
     fun addOrNull(a: Quantity<V>, b: Quantity<V>): Quantity<V>? {
         return add(a, b).value
     }
@@ -59,7 +60,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      * @param a 左操作数 / Left operand
      * @param b 右操作数 / Right operand
      * @return 相减结果，失败时返回 null / Subtraction result, or null on failure
-     */
+    */
     fun subtractOrNull(a: Quantity<V>, b: Quantity<V>): Quantity<V>? {
         return subtract(a, b).value
     }
@@ -69,7 +70,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      *
      * @param q 物理量 / Quantity
      * @return 是否为正 / Whether positive
-     */
+    */
     fun isPositive(q: Quantity<V>): Boolean {
         return when (q.value partialOrd q.value.constants.zero) {
             is Order.Greater -> true
@@ -82,7 +83,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      *
      * @param q 物理量 / Quantity
      * @return 是否非负 / Whether non-negative
-     */
+    */
     fun isNonNegative(q: Quantity<V>): Boolean {
         return when (q.value partialOrd q.value.constants.zero) {
             is Order.Less -> false
@@ -95,7 +96,7 @@ interface QuantityArithmetic<V : RealNumber<V>> {
      *
      * @param q 物理量 / Quantity
      * @return 是否为零 / Whether zero
-     */
+    */
     fun isZero(q: Quantity<V>): Boolean {
         return q.value partialOrd q.value.constants.zero == Order.Equal
     }
@@ -120,15 +121,16 @@ private val defaultQuantityArithmeticX = object : QuantityArithmetic<FltX> {
  *
  * 通过领域数值样本解析对应的 QuantityArithmetic 实现，调用方只依赖泛型接口。
  * Resolves a QuantityArithmetic implementation from a domain value sample so callers depend only on the generic interface.
- */
+*/
 object DefaultQuantityArithmetic {
+
     /**
      * 根据领域数值样本解析算术策略 / Resolve arithmetic strategy from a domain value sample
      *
      * @param V 数值类型 / Numeric value type
      * @param sample 领域数值样本 / Domain value sample
      * @return 泛型物理量算术策略 / Quantity arithmetic strategy
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     fun <V : RealNumber<V>> resolveFor(sample: V): Ret<QuantityArithmetic<V>> {
         return when (sample) {

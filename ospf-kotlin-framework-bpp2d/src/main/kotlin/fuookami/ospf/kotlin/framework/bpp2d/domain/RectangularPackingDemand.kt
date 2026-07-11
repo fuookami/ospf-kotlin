@@ -12,60 +12,79 @@ import fuookami.ospf.kotlin.utils.functional.Order
 
 /** 二维矩形物料项 / 2D rectangle item
  * @param V 数值类型 / numeric type
- */
+*/
 data class RectangleItem2<V : FloatingNumber<V>>(
+
     /** 物料标识 / Item identifier */
     val id: String,
+
     /** 宽度 / Width */
     val width: Quantity<V>,
+
     /** 高度 / Height */
     val height: Quantity<V>,
+
     /** 是否允许旋转 / Whether rotation is allowed */
     val allowRotate: Boolean = false
 )
 
 /** 二维板材 / 2D sheet
  * @param V 数值类型 / numeric type
- */
+*/
 data class Sheet2<V : FloatingNumber<V>>(
+
     /** 板材标识 / Sheet identifier */
     val id: String,
+
     /** 宽度 / Width */
     val width: Quantity<V>,
+
     /** 高度 / Height */
     val height: Quantity<V>
 )
 
 /** 二维投影需求 / 2D projection need
  * @param V 数值类型 / numeric type
- */
+*/
 data class Projection2Need<V : FloatingNumber<V>>(
+
     /** 宽度 / Width */
     val width: Quantity<V>,
+
     /** 高度 / Height */
     val height: Quantity<V>
 ) {
+
     /** 面积 / Area */
     val area: Quantity<V> get() = quantityProduct(width, height)
 }
 
 /** 二维放置需求 / 2D placement need
  * @param V 数值类型 / numeric type
- */
+*/
 data class Placement2Need<V : FloatingNumber<V>>(
+
     /** X坐标 / X coordinate */
     val x: Quantity<V>,
+
     /** Y坐标 / Y coordinate */
     val y: Quantity<V>,
+
     /** 投影需求 / Projection need */
     val projection: Projection2Need<V>
 ) {
+
     /** 最大X坐标 / Maximum X coordinate */
     val maxX: Quantity<V> get() = quantityPlus(x, projection.width).value!!
+
     /** 最大Y坐标 / Maximum Y coordinate */
     val maxY: Quantity<V> get() = quantityPlus(y, projection.height).value!!
 
-    /** 转换为盒体需求 / Convert to box need */
+    /**
+     * 转换为盒体需求 / Convert to box need
+     *
+     * @return 盒体需求 / box need
+    */
     fun toBox2Need(): Box2Need<V> {
         return Box2Need(
             minX = x,
@@ -78,28 +97,35 @@ data class Placement2Need<V : FloatingNumber<V>>(
 
 /** 二维盒体需求 / 2D box need
  * @param V 数值类型 / numeric type
- */
+*/
 data class Box2Need<V : FloatingNumber<V>>(
+
     /** 最小X坐标 / Minimum X coordinate */
     val minX: Quantity<V>,
+
     /** 最小Y坐标 / Minimum Y coordinate */
     val minY: Quantity<V>,
+
     /** 最大X坐标 / Maximum X coordinate */
     val maxX: Quantity<V>,
+
     /** 最大Y坐标 / Maximum Y coordinate */
     val maxY: Quantity<V>
 ) {
+
     /** 宽度 / Width */
     val width: Quantity<V> get() = quantityMinus(maxX, minX).value!!
+
     /** 高度 / Height */
     val height: Quantity<V> get() = quantityMinus(maxY, minY).value!!
+
     /** 面积 / Area */
     val area: Quantity<V> get() = quantityProduct(width, height)
 
     /** 判断是否与另一盒体重叠 / Check whether this box overlaps with another
      * @param rhs 另一盒体 / Another box
      * @return 是否重叠 / Whether overlapping
-     */
+    */
     fun overlaps(rhs: Box2Need<V>): Boolean {
         if (quantityOrd(maxX, rhs.minX, "maxX-rhsMinX").value!! !is Order.Greater) {
             return false
@@ -119,7 +145,7 @@ data class Box2Need<V : FloatingNumber<V>>(
     /** 计算与另一盒体的交集 / Compute intersection with another box
      * @param rhs 另一盒体 / Another box
      * @return 交集盒体，无交集时返回null / Intersection box, or null if no intersection
-     */
+    */
     fun intersect(rhs: Box2Need<V>): Box2Need<V>? {
         val left = quantityMax(minX, rhs.minX, "left")
         val right = quantityMin(maxX, rhs.maxX, "right")
@@ -142,7 +168,7 @@ data class Box2Need<V : FloatingNumber<V>>(
     /** 判断是否完全位于另一盒体内部 / Check whether this box is entirely inside another
      * @param sheet 外部盒体 / Outer box
      * @return 是否完全位于内部 / Whether entirely inside
-     */
+    */
     fun inside(sheet: Box2Need<V>): Boolean {
         val minXOrd = quantityOrd(minX, sheet.minX, "sheet-minX").value!!
         val minYOrd = quantityOrd(minY, sheet.minY, "sheet-minY").value!!
@@ -157,20 +183,25 @@ data class Box2Need<V : FloatingNumber<V>>(
 
 /** 已规划的矩形放置 / Planned rectangle placement
  * @param V 数值类型 / numeric type
- */
+*/
 data class PlannedRectangle2<V : FloatingNumber<V>>(
+
     /** 矩形物料项 / Rectangle item */
     val item: RectangleItem2<V>,
+
     /** X坐标 / X coordinate */
     val x: Quantity<V>,
+
     /** Y坐标 / Y coordinate */
     val y: Quantity<V>,
+
     /** 是否已旋转 / Whether rotated */
     val rotated: Boolean = false
 ) {
+
     /** 转换为放置需求 / Convert to placement need
      * @return 放置需求 / Placement need
-     */
+    */
     fun toPlacement2Need(): Placement2Need<V> {
         val projection = if (rotated && item.allowRotate) {
             Projection2Need(
@@ -192,25 +223,28 @@ data class PlannedRectangle2<V : FloatingNumber<V>>(
 
     /** 转换为盒体需求 / Convert to box need
      * @return 盒体需求 / Box need
-     */
+    */
     fun toBox2Need(): Box2Need<V> = toPlacement2Need().toBox2Need()
 }
 
 /** 二维装箱场景 / 2D packing scene
  * @param V 数值类型 / numeric type
- */
+*/
 data class PackingScene2<V : FloatingNumber<V>>(
+
     /** 板材 / Sheet */
     val sheet: Sheet2<V>,
+
     /** 放置列表 / List of placements */
     val placements: List<PlannedRectangle2<V>>
 ) {
+
     /** 板材面积 / Sheet area */
     val sheetArea: Quantity<V> get() = quantityProduct(sheet.width, sheet.height)
 
     /** 获取板材对应的盒体需求 / Get box need for the sheet
      * @return 板材对应的盒体需求 / Box need corresponding to the sheet
-     */
+    */
     fun sheetBox2Need(): Box2Need<V> {
         val zeroX = quantityZeroOf(sheet.width)
         val zeroY = quantityZeroOf(sheet.height)
@@ -224,7 +258,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
 
     /** 检查所有放置是否都在板材内 / Check whether all placements are inside the sheet
      * @return 是否全部在板材内 / Whether all placements are inside the sheet
-     */
+    */
     fun allInsideSheet(): Boolean {
         val sheetBox = sheetBox2Need()
         return placements.all { it.toBox2Need().inside(sheetBox) }
@@ -232,7 +266,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
 
     /** 计算已使用面积 / Compute used area
      * @return 已使用面积 / Used area
-     */
+    */
     fun usedArea(): Quantity<V> {
         var acc = quantityZeroOf(sheetArea)
         for (placement in placements) {
@@ -243,14 +277,14 @@ data class PackingScene2<V : FloatingNumber<V>>(
 
     /** 计算剩余面积 / Compute remaining area
      * @return 剩余面积 / Remaining area
-     */
+    */
     fun remainingArea(): Quantity<V> {
         return quantityMinus(sheetArea, usedArea()).value!!
     }
 
     /** 计算板材利用率 / Compute sheet utilization ratio
      * @return 板材利用率，失败时返回错误 / Sheet utilization ratio, or error on failure
-     */
+    */
     fun utilization(): Ret<V> {
         val used = usedArea().convertTo(sheetArea.unit)
             ?: return Failed(ErrorCode.IllegalArgument, "Cannot convert used area to sheet area unit.")
@@ -259,7 +293,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
 
     /** 获取所有重叠的物料对 / Get all overlapping item pairs
      * @return 重叠的物料标识对列表 / List of overlapping item identifier pairs
-     */
+    */
     fun overlappedPairs(): List<Pair<String, String>> {
         val result = ArrayList<Pair<String, String>>()
         for (i in placements.indices) {
@@ -278,7 +312,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
 
     /** 获取非法重叠的物料对 / Get illegally overlapping item pairs
      * @return 非法重叠的物料标识对列表 / List of illegally overlapping item identifier pairs
-     */
+    */
     fun illegalOverlaps(): List<Pair<String, String>> {
         return overlappedPairs()
     }
@@ -288,7 +322,7 @@ data class PackingScene2<V : FloatingNumber<V>>(
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 加法结果 / Addition result
- */
+*/
 private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value + rhs.value, lhs.unit))
@@ -305,7 +339,7 @@ private fun <V : FloatingNumber<V>> quantityPlus(lhs: Quantity<V>, rhs: Quantity
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 减法结果 / Subtraction result
- */
+*/
 private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     if (lhs.unit == rhs.unit) {
         return ok(Quantity(lhs.value - rhs.value, lhs.unit))
@@ -322,7 +356,7 @@ private fun <V : FloatingNumber<V>> quantityMinus(lhs: Quantity<V>, rhs: Quantit
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 乘法结果 / Multiplication result
- */
+*/
 private fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V> {
     return Quantity(lhs.value * rhs.value, lhs.unit * rhs.unit)
 }
@@ -332,7 +366,7 @@ private fun <V : FloatingNumber<V>> quantityProduct(lhs: Quantity<V>, rhs: Quant
  * @param rhs 右操作数 / Right operand
  * @param axis 比较轴名称 / Axis name for comparison
  * @return 比较结果 / Comparison result
- */
+*/
 private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
     return lhs.partialOrd(rhs)?.let { ok(it) }
         ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
@@ -343,7 +377,7 @@ private fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<
  * @param rhs 右操作数 / Right operand
  * @param axis 比较轴名称 / Axis name for comparison
  * @return 较大的量值 / The larger quantity
- */
+*/
 private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater, Order.Equal -> lhs
@@ -356,7 +390,7 @@ private fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<
  * @param rhs 右操作数 / Right operand
  * @param axis 比较轴名称 / Axis name for comparison
  * @return 较小的量值 / The smaller quantity
- */
+*/
 private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return when (quantityOrd(lhs, rhs, axis).value!!) {
         is Order.Greater -> rhs
@@ -367,7 +401,7 @@ private fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<
 /** 获取量值的零值 / Get zero value for a quantity
  * @param quantity 参考量值 / Reference quantity
  * @return 零值量值 / Zero quantity
- */
+*/
 private fun <V : FloatingNumber<V>> quantityZeroOf(quantity: Quantity<V>): Quantity<V> {
     return quantity.value.constants.zero * quantity.unit
 }

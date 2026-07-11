@@ -6,7 +6,7 @@
  *
  * 单位常量来源 / Unit constant sources:
  * - KilogramMeterPerSecond: SI导出单位 / SI derived unit
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Momentum
@@ -19,10 +19,12 @@ import fuookami.ospf.kotlin.quantities.dimension.Momentum
  *
  * 符号 / Symbol: kg·m/s
  * 换算关系 / Conversion: 1 kg·m/s = 1 N·s（牛顿秒）/ 1 kg·m/s = 1 N·s (newton second)
- */
+*/
 object KilogramMeterPerSecond : DerivedPhysicalUnit(Kilogram * Meter / Second) {
+
     /** 单位名称：kilogram meter per second / Unit name: kilogram meter per second */
     override val name = "kilogram meter per second"
+
     /** 单位符号：kg·m/s / Unit symbol: kg·m/s */
     override val symbol = "kg·m/s"
 

@@ -3,7 +3,7 @@
  * Sinus Map
  *
  * 公式 / Formula: x_{n+1} = 2.3 * x^(2*sin(pi*x))
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
 /**
  * @property c23 常量 2.3 / Constant 2.3
  * @property c2 常量 2 / Constant 2
- */
+*/
 data class SinusMap<V : FloatingNumber<V>>(val c23: V, val c2: V) : Extractor<V, V> {
     @Suppress("UNCHECKED_CAST")
     override operator fun invoke(x: V): V {
@@ -32,7 +32,7 @@ data class SinusMap<V : FloatingNumber<V>>(val c23: V, val c2: V) : Extractor<V,
 /**
  * Sinus 映射生成器
  * Sinus Map Generator
- */
+*/
 data class SinusMapGenerator(
     val map: SinusMap<Flt64> = SinusMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

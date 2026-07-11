@@ -4,7 +4,7 @@
  *
  * 提供带编译期索引标记的张量包装类型。
  * Provides tensor wrapper types with compile-time index labels.
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 import kotlin.ConsistentCopyVisibility
@@ -36,49 +36,51 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param T 元素类型
  * @param S 形状类型
- */
+*/
 @ConsistentCopyVisibility
 data class TensorExpr<T : Any, S : Shape> private constructor(
+
     /**
      * 数据引用
      * Data reference
-     */
+    */
     val data: AbstractMultiArray<T, S>,
 
     /**
      * 索引列表
      * Index list
-     */
+    */
     val indices: IndexList
 ) {
+
     /**
      * 获取形状引用
      * Get shape reference
-     */
+    */
     val shape: S = data.shape
 
     /**
      * 获取索引列表名称
      * Get index list names
-     */
+    */
     val indexNames: String = indices.names
 
     /**
      * 获取索引列表 ID
      * Get index list IDs
-     */
+    */
     val indexIds: List<Int> = indices.ids
 
     /**
      * 获取数组长度（元素总数，
      * Get array length (total elements)
-     */
+    */
     val size: Int = data.size
 
     /**
      * 获取维度数
      * Get number of dimensions
-     */
+    */
     val dimension: Int = data.shape.dimension
 
     /** 工厂方法 / Factory methods */
@@ -90,7 +92,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
          * @param data 多维数组
          * @param indices 索引标签数组
          * @return 张量表达式或 null
-         */
+        */
         fun <T : Any, S : Shape> newOrNull(
             data: AbstractMultiArray<T, S>,
             indices: IndexList
@@ -105,7 +107,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
          * @param data 多维数组
          * @param indices 索引列表
          * @return 张量表达式结果
-         */
+        */
         fun <T : Any, S : Shape> newSafe(
             data: AbstractMultiArray<T, S>,
             indices: IndexList
@@ -126,7 +128,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
          * @param data 多维数组
          * @param indices 索引列表
          * @return 张量表达式结果
-         */
+        */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
             indices: IndexList
@@ -141,7 +143,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
          * @param data 多维数组
          * @param labels 索引标签数组
          * @return 张量表达式结果
-         */
+        */
         fun <T : Any, S : Shape> new(
             data: AbstractMultiArray<T, S>,
             labels: Array<IndexLabel>
@@ -155,7 +157,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
          *
          * @param data 多维数组
          * @return 张量表达式结果
-         */
+        */
         fun <T : Any, S : Shape> withDefaultIndices(
             data: AbstractMultiArray<T, S>
         ): Ret<TensorExpr<T, S>> {
@@ -182,7 +184,7 @@ data class TensorExpr<T : Any, S : Shape> private constructor(
  *
  * @param data 多维数组
  * @return 带默认索引的张量表达式
- */
+*/
 fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): Ret<TensorExpr<T, S>> {
     return TensorExpr.withDefaultIndices(data)
 }
@@ -201,7 +203,7 @@ fun <T : Any, S : Shape> tensorExpr(data: AbstractMultiArray<T, S>): Ret<TensorE
  * @param data 多维数组
  * @param indices 索引标签数组
  * @return 带指定索引的张量表达式
- */
+*/
 fun <T : Any, S : Shape> tensorExpr(
     data: AbstractMultiArray<T, S>,
     vararg indices: IndexLabel

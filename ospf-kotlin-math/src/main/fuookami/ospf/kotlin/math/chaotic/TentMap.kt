@@ -7,7 +7,7 @@
  *
  * The tent map is a piecewise linear one-dimensional chaotic map, named for its tent-shaped graph.
  * This map has a uniform invariant density distribution, commonly used for chaos theory research and pseudo-random number generation.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * x_{n+1} = mu * (1 - x),   if x >= 0.5
  *
  * @property mu 系统参数 mu，取值范围 (0, 2] / System parameter mu, range (0, 2]
- */
+*/
 data class TentMap<V : FloatingNumber<V>>(
     val mu: V
 ) : Extractor<V, V> {
@@ -50,7 +50,7 @@ data class TentMap<V : FloatingNumber<V>>(
 /**
  * 帐篷映射生成器
  * Tent Map Generator
- */
+*/
 data class TentMapGenerator(
     val tentMap: TentMap<Flt64> = TentMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  * @param task 任务 / Task
- */
+*/
 data class TaskCompilationShadowPriceKey<
         E : Executor,
         A : AssignmentPolicy<E>
@@ -32,7 +32,7 @@ data class TaskCompilationShadowPriceKey<
  * @param compilation 编译结果 / Compilation result
  * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskCompilationConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

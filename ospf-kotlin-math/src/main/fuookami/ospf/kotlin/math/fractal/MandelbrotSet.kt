@@ -17,7 +17,7 @@
  *
  * 应用场景：分形图形生成、复杂动力学研究、数学可视化等。
  * Applications: fractal graphics generation, complex dynamics research, mathematical visualization, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.fractal
 
 import fuookami.ospf.kotlin.utils.functional.Generator
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 /**
  * Mandelbrot 集迭代函敌
  * Mandelbrot Set iteration function
- */
+*/
 class MandelbrotSet<V : FloatingNumber<V>>(
     val c: Point<Dim2, V>
 ) {
@@ -49,7 +49,7 @@ class MandelbrotSet<V : FloatingNumber<V>>(
 /**
  * Mandelbrot 集序列生成器
  * Mandelbrot Set sequence generator
- */
+*/
 data class MandelbrotSetGenerator(
     val mandelbrotSet: MandelbrotSet<Flt64> = MandelbrotSet(Flt64.one, Flt64.one),
     private var _z: Point<Dim2, Flt64> = point2()

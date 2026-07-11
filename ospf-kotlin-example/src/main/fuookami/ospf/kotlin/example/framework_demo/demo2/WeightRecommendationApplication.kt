@@ -40,18 +40,20 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 /**
- * 重量推荐应用程序入口
- * Entry point for the weight recommendation application
- */
+ * Entry point for the weight recommendation application.
+ * 重量推荐应用程序入口。
+*/
 class WeightRecommendationApplication {
+
     /**
-     * Benders 分解的模型容器
-     * Container for Benders decomposition models
-     * @property masterModel Benders 主问题模型 / Master problem model
-     * @property subModel Benders 子问题模型 / Sub problem model
-     * @property objectVariable 目标变量 / Object variable
-     * @property fixedVariables 固定变量映射 / Fixed variables map
-     */
+     * Container for Benders decomposition models.
+     * Benders 分解的模型容器。
+     *
+     * @property masterModel Master problem model. / Benders 主问题模型
+     * @property subModel Sub problem model. / Benders 子问题模型
+     * @property objectVariable Object variable. / 目标变量
+     * @property fixedVariables Fixed variables map. / 固定变量映射
+    */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,
@@ -61,9 +63,9 @@ class WeightRecommendationApplication {
 }
 
 /**
- * 重量推荐算法实现
- * Implementation of the weight recommendation algorithm
- */
+ * Implementation of the weight recommendation algorithm.
+ * 重量推荐算法实现。
+*/
 private class WeightRecommendationAlgorithmImpl {
     lateinit var aircraftContext: AircraftContext
     lateinit var stowageContext: StowageContext
@@ -207,11 +209,12 @@ private class WeightRecommendationAlgorithmImpl {
     }
 
     /**
-     * 初始化所有领域上下文
-     * Initialize all domain contexts
-     * @param request 请求 DTO / Request DTO
-     * @return 初始化结果 / Initialization result
-     */
+     * Initialize all domain contexts.
+     * 初始化所有领域上下文。
+     *
+     * @param request Request DTO. / 请求 DTO
+     * @return Initialization result. / 初始化结果
+    */
     private fun init(request: RequestDTO): Try {
         when (val result = aircraftContext.init(
             input = request
@@ -309,16 +312,17 @@ private class WeightRecommendationAlgorithmImpl {
 
         return ok
     }
-    
+
     /**
-     * 使用 MILP 直接求解
-     * Solve directly using MILP
-     * @param id 请求 ID / Request ID
-     * @param parameter 求解参数 / Solving parameter
-     * @param startTime 开始时间 / Start time
-     * @param runningHeartBeatCallBack 运行心跳回调 / Running heartbeat callback
-     * @return 求解结果，包含配载方案 / Result containing the stowage solution
-     */
+     * Solve directly using MILP.
+     * 使用 MILP 直接求解。
+     *
+     * @param id Request ID. / 请求 ID
+     * @param parameter Solving parameter. / 求解参数
+     * @param startTime Start time. / 开始时间
+     * @param runningHeartBeatCallBack Running heartbeat callback. / 运行心跳回调
+     * @return Result containing the stowage solution. / 求解结果，包含配载方案
+    */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
@@ -446,12 +450,13 @@ private class WeightRecommendationAlgorithmImpl {
     }
 
     /**
-     * 注册所有领域上下文的约束与变量到模型中
-     * Register constraints and variables from all domain contexts into the model
-     * @param parameter 求解参数 / Solving parameter
-     * @param model 线性元模型 / Linear meta model
-     * @return 注册结果 / Registration result
-     */
+     * Register constraints and variables from all domain contexts into the model.
+     * 注册所有领域上下文的约束与变量到模型中。
+     *
+     * @param parameter Solving parameter. / 求解参数
+     * @param model Linear meta model. / 线性元模型
+     * @return Registration result. / 注册结果
+    */
     private fun register(
         parameter: Parameter,
         model: AbstractLinearMetaModel<Flt64>
@@ -534,14 +539,15 @@ private class WeightRecommendationAlgorithmImpl {
 
         return ok
     }
-    
+
     /**
-     * 使用 Benders 分解算法求解
-     * Solve using Benders decomposition algorithm
-     * @param request 请求 DTO / Request DTO
-     * @param notes 求解备注列表 / Solving notes list
-     * @return 求解结果，包含配载方案 / Result containing the stowage solution
-     */
+     * Solve using Benders decomposition algorithm.
+     * 使用 Benders 分解算法求解。
+     *
+     * @param request Request DTO. / 请求 DTO
+     * @param notes Solving notes list. / 求解备注列表
+     * @return Result containing the stowage solution. / 求解结果，包含配载方案
+    */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
@@ -648,10 +654,11 @@ private class WeightRecommendationAlgorithmImpl {
     }
 
     /**
-     * 构建 Benders 分解的主问题与子问题模型
-     * Build master and sub problem models for Benders decomposition
-     * @return Benders 模型容器 / Benders models container
-     */
+     * Build master and sub problem models for Benders decomposition.
+     * 构建 Benders 分解的主问题与子问题模型。
+     *
+     * @return Benders models container. / Benders 模型容器
+    */
     private fun buildBendersModels(): BendersModels {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_weight_recommendation_master",
@@ -691,14 +698,16 @@ private class WeightRecommendationAlgorithmImpl {
             fixedVariables = fixedVariables
         )
     }
+
     /**
-     * Benders 分解的模型容器
-     * Container for Benders decomposition models
-     * @property masterModel Benders 主问题模型 / Master problem model
-     * @property subModel Benders 子问题模型 / Sub problem model
-     * @property objectVariable 目标变量 / Object variable
-     * @property fixedVariables 固定变量映射 / Fixed variables map
-     */
+     * Container for Benders decomposition models.
+     * Benders 分解的模型容器。
+     *
+     * @property masterModel Master problem model. / Benders 主问题模型
+     * @property subModel Sub problem model. / Benders 子问题模型
+     * @property objectVariable Object variable. / 目标变量
+     * @property fixedVariables Fixed variables map. / 固定变量映射
+    */
     private data class BendersModels(
         val masterModel: LinearMetaModel<Flt64>,
         val subModel: LinearMetaModel<Flt64>,

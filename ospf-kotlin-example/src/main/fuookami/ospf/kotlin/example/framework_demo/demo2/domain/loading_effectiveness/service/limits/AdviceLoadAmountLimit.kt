@@ -14,6 +14,14 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Minimizes the advice load amount slack across positions with advisory load limits.
+ * 最小化具有建议装载限制的位置的建议装载数量松弛。
+ *
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property loading The advice loading model providing amount slack symbols. / 提供数量松弛符号的建议装载模型
+ * @property coefficient Function computing the penalty coefficient for each position. / 计算每个位置惩罚系数的函数
+*/
 class AdviceLoadAmountLimit(
     private val positions: List<Position>,
     private val loading: AdviceLoading,

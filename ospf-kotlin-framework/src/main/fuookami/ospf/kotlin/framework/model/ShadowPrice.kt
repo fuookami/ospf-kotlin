@@ -5,7 +5,7 @@
  * 定义影子价格键、价格和映射抽象，用于列生成和 Benders 分解的对偶信息管理。
  * Defines shadow price keys, prices, and map abstractions for managing dual information
  * in column generation and Benders decomposition.
- */
+*/
 package fuookami.ospf.kotlin.framework.model
 
 import kotlin.reflect.KClass
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.sumOf
  * Shadow price key
  *
  * @property limit 约束限制类型 / Constraint limit type
- */
+*/
 open class ShadowPriceKey(
     val limit: KClass<*>
 )
@@ -32,7 +32,7 @@ open class ShadowPriceKey(
  *
  * @property key 影子价格键 / Shadow price key
  * @property price 影子价格值 / Shadow price value
- */
+*/
 data class ShadowPrice(
     val key: ShadowPriceKey,
     val price: Flt64
@@ -48,7 +48,7 @@ data class ShadowPrice(
  *
  * @param Args 参数类型 / Argument type
  * @param M 映射类型 / Map type
- */
+*/
 typealias ShadowPriceExtractor<Args, M> = (AbstractShadowPriceMap<Args, M>, Args) -> Flt64
 
 /**
@@ -57,8 +57,9 @@ typealias ShadowPriceExtractor<Args, M> = (AbstractShadowPriceMap<Args, M>, Args
  *
  * @param Args 参数类型 / Argument type
  * @param M 映射自身类型 / Map self type
- */
+*/
 abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceMap<Args, M>> {
+
     /** 影子价格映射表 / Shadow price map */
     val map: Map<ShadowPriceKey, ShadowPrice> by ::_map
     private val _map = HashMap<ShadowPriceKey, ShadowPrice>()
@@ -70,7 +71,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      *
      * @param arg 参数 / Argument
      * @return 影子价格总和 / Shadow price sum
-     */
+    */
     open operator fun invoke(arg: Args) = _extractors.sumOf(Flt64) { it(this, arg) }
 
     /**
@@ -79,7 +80,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      *
      * @param key 影子价格键 / Shadow price key
      * @return 影子价格，不存在时返回 null / Shadow price, null if not found
-     */
+    */
     operator fun get(key: ShadowPriceKey): ShadowPrice? = _map[key]
 
     /**
@@ -88,7 +89,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      *
      * @param key 影子价格键 / Shadow price key
      * @param value 影子价格 / Shadow price
-     */
+    */
     operator fun set(key: ShadowPriceKey, value: ShadowPrice) {
         _map[key] = value
     }
@@ -98,7 +99,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      * Put shadow price
      *
      * @param price 影子价格 / Shadow price
-     */
+    */
     fun put(price: ShadowPrice) {
         _map[price.key] = price
     }
@@ -108,7 +109,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      * Put or add shadow price
      *
      * @param price 影子价格 / Shadow price
-     */
+    */
     fun putOrAdd(price: ShadowPrice) {
         _map[price.key] = ShadowPrice(price.key, (_map[price.key]?.price ?: Flt64.zero) + price.price)
     }
@@ -118,7 +119,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      * Register shadow price extractor
      *
      * @param extractor 影子价格提取器 / Shadow price extractor
-     */
+    */
     fun put(extractor: ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance M>) {
         _extractors.add(extractor)
     }
@@ -128,7 +129,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
      * Remove shadow price by key
      *
      * @param key 影子价格键 / Shadow price key
-     */
+    */
     fun remove(key: ShadowPriceKey) {
         _map.remove(key)
     }
@@ -136,7 +137,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
     /**
      * 收缩：移除零值影子价格
      * Shrink: remove zero-value shadow prices
-     */
+    */
     fun shrink() {
         _map.entries.removeIf { it.value.price eq Flt64.zero }
     }
@@ -154,7 +155,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
  * @param Model 模型类型 / Model type
  * @param Map 映射类型 / Map type
  * @return 操作结果 / Operation result
- */
+*/
 fun <
         Args : Any,
         Model : MetaModel<*>,
@@ -195,7 +196,7 @@ fun <
  * @param Args 参数类型 / Argument type
  * @param Map 映射类型 / Map type
  * @return 操作结果 / Operation result
- */
+*/
 fun <
         Args : Any,
         Map : AbstractShadowPriceMap<Args, Map>

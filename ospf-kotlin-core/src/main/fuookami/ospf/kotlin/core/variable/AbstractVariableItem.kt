@@ -1,7 +1,7 @@
 /**
  * 抽象变量项及其键、类型别名和物理单位扩展。
  * Abstract variable item, its key, type aliases, and physical unit extensions.
- */
+*/
 package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,15 +22,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property identifier 变量标识符 / Variable identifier
  * @property index 变量索引 / Variable index
- */
+*/
 data class VariableItemKey(
     val identifier: UInt64,
     val index: Int
 ) : Ord<VariableItemKey> {
+
     /**
      * @param rhs 右侧比较对象 / Right-hand comparison object
      * @return 偏序关系 / Partial order result
-     */
+    */
     override fun partialOrd(rhs: VariableItemKey): Order {
         return if (this.identifier < rhs.identifier) {
             Order.Less()
@@ -49,7 +50,7 @@ data class VariableItemKey(
     /**
      * @param other 待比较对象 / Object to compare
      * @return 是否相同 / Whether equal
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is VariableItemKey) return false
@@ -84,26 +85,32 @@ data class VariableItemKey(
  * @property lowerBound Flt64 下界 / Flt64 lower bound
  * @property upperBound Flt64 上界 / Flt64 upper bound
  * @property key 变量唯一键 / Variable unique key
- */
+*/
 abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     val type: Type,
     override var name: String,
     val constants: RealNumberConstants<T>
 ) : Symbol
         where T : RealNumber<T>, T : NumberField<T> {
+
     /** 变量维度 / Variable dimension */
     abstract val dimension: Int
+
     /** 变量标识符 / Variable identifier */
     abstract val identifier: UInt64
+
     /** 变量索引 / Variable index */
     abstract val index: Int
+
     /** 向量视图 / Vector view */
     abstract val vectorView: IntArray
+
     /** 显示名称 / Display name */
     override val displayName get() = name
 
     /** 无符号索引 / Unsigned index */
     val uindex get() = UInt64(index)
+
     /** 无符号向量 / Unsigned vector */
     val uvector by lazy { vectorView.map { UInt64(it) } }
 
@@ -112,6 +119,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 
     /** Flt64 下界 / Flt64 lower bound */
     val lowerBound: Bound<Flt64>? get() = range.lowerBound?.toFlt64()
+
     /** Flt64 上界 / Flt64 upper bound */
     val upperBound: Bound<Flt64>? get() = range.upperBound?.toFlt64()
 
@@ -124,7 +132,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
      *
      * @param item 另一个变量项 / Another variable item
      * @return 是否属于同一组 / Whether in the same group
-     */
+    */
     open infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return identifier == item.identifier
     }
@@ -135,7 +143,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
      *
      * @param combination 变量组合 / Variable combination
      * @return 是否属于该组合 / Whether belongs to the combination
-     */
+    */
     open infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return identifier == combination.identifier
     }
@@ -145,7 +153,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
      * Convert to linear inequality (variable = 1)
      *
      * @return 线性不等式 / Linear inequality
-     */
+    */
     fun toMathLinearInequality(): LinearInequality<Flt64> {
         val poly = LinearPolynomial(monomials = listOf(LinearMonomial(Flt64.one, this)), constant = Flt64.zero)
         return LinearInequality<Flt64>(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
@@ -156,7 +164,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
      * Convert to quadratic inequality (variable² = 1)
      *
      * @return 二次不等式 / Quadratic inequality
-     */
+    */
     fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
         val mono = QuadraticMonomial(Flt64.one, this, this)
         val poly = QuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
@@ -169,7 +177,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     /**
      * @param other 待比较对象 / Object to compare
      * @return 是否相同 / Whether equal
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is AbstractVariableItem<*, *>) return false
@@ -192,15 +200,16 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
  * Generates unique variable identifiers via an incrementing counter.
  *
  * @property next 下一个可用标识符 / Next available identifier
- */
+*/
 internal data object IdentifierGenerator {
+
     /** 下一个可用标识符 / Next available identifier */
     var next: UInt64 = UInt64.zero
 
     /**
      * 重置生成器
      * Reset the generator
-     */
+    */
     fun flush() {
         next = UInt64.zero
     }
@@ -210,7 +219,7 @@ internal data object IdentifierGenerator {
      * Generate the next identifier
      *
      * @return 新的唯一标识符 / New unique identifier
-     */
+    */
     fun gen(): UInt64 {
         val thisValue = next;
         ++next;
@@ -220,27 +229,37 @@ internal data object IdentifierGenerator {
 
 /** 变量项类型别名（按变量类型参数化）/ Variable item type alias (parameterized by variable type) */
 typealias VariableItem<Type> = AbstractVariableItem<*, Type>
+
 /** 二值变量 / Binary variable */
 typealias BinVariable = AbstractVariableItem<UInt8, Binary>
+
 /** 三值变量 / Ternary variable */
 typealias TernaryVariable = AbstractVariableItem<UInt8, Ternary>
+
 /** 平衡三值变量 / Balanced ternary variable */
 typealias BalancedTernaryVariable = AbstractVariableItem<Int8, BalancedTernary>
+
 /** 整数变量 / Integer variable */
 typealias IntVariable = AbstractVariableItem<Int64, Integer>
+
 /** 无符号整数变量 / Unsigned integer variable */
 typealias UIntVariable = AbstractVariableItem<UInt64, UInteger>
 
 /** 物理量变量项类型别名 / Quantity variable item type alias */
 typealias QuantityVariableItem<Type> = Quantity<AbstractVariableItem<*, Type>>
+
 /** 物理量二值变量 / Quantity binary variable */
 typealias QuantityBinVariable = Quantity<BinVariable>
+
 /** 物理量三值变量 / Quantity ternary variable */
 typealias QuantityTernaryVariable = Quantity<TernaryVariable>
+
 /** 物理量平衡三值变量 / Quantity balanced ternary variable */
 typealias QuantityBalancedTernaryVariable = Quantity<BalancedTernaryVariable>
+
 /** 物理量整数变量 / Quantity integer variable */
 typealias QuantityIntVariable = Quantity<IntVariable>
+
 /** 物理量无符号整数变量 / Quantity unsigned integer variable */
 typealias QuantityUIntVariable = Quantity<UIntVariable>
 
@@ -250,7 +269,7 @@ typealias QuantityUIntVariable = Quantity<UIntVariable>
  *
  * @param rhs 物理单位 / Physical unit
  * @return 物理量变量项 / Quantity variable item
- */
+*/
 operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
     return Quantity(this, rhs)
 }
@@ -261,7 +280,7 @@ operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<Abstr
  *
  * @param rhs 物理单位 / Physical unit
  * @return 物理量变量项（单位取倒数）/ Quantity variable item (reciprocal unit)
- */
+*/
 operator fun AbstractVariableItem<*, *>.div(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
     return Quantity(this, rhs.reciprocal())
 }

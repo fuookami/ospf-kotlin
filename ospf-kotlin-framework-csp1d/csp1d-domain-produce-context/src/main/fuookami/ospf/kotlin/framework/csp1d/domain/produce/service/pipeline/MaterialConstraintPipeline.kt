@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.framework.model.*
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
  * @property materials 物料列表 / Material list
- */
+*/
 class MaterialConstraintPipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val materials: List<Material<V>>

@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SatisfiedAmountFunction]，统计满足的不等式数量。
  *
  * Provides [SatisfiedAmountFunction] for counting how many inequalities are satisfied.
- */
+*/
 
 /**
  * 满足数量函数：统计列表中有多少不等式被满足。
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SatisfiedAmountFunction<V>(
     val inequalities: List<LinearInequality<V>>,
     val amount: UInt64? = null,
@@ -72,7 +72,7 @@ class SatisfiedAmountFunction<V>(
     /**
      * 结果多项式：sum(u[i]) - 满足的不等式数量。
      * Result polynomial: sum(u[i]) - the count of satisfied inequalities.
-     */
+    */
     val result: LinearPolynomial<V> by lazy {
         val one = converter.one
         val zero = converter.zero

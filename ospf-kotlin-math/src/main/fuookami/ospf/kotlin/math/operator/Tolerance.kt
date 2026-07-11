@@ -13,7 +13,7 @@
  * - 浮点数比辌/ Floating-point number comparison
  * - 数值算法中的收敛判斌/ Convergence determination in numerical algorithms
  * - 物理仿真中的误差控制 / Error control in physical simulations
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -30,13 +30,13 @@ import fuookami.ospf.kotlin.utils.functional.Order
  *
  * @param T 容差值的类型
  *
- * @param T The type of the tolerance value
- */
+*/
 interface Tolerance<T> {
+
     /**
      * 容差值，用于判断两个值是否在误差范围内相筌
      * Tolerance value used to determine if two values are equal within error range
-     */
+    */
     val tolerance: T
 }
 
@@ -52,9 +52,9 @@ interface Tolerance<T> {
  *
  * @param T 比较值的类型
  *
- * @param T The type of values being compared
- */
+*/
 fun interface TolerancedEq<T> {
+
     /**
      * 判断两个值是否在指定容差范围内相筌
      * Determines if two values are equal within the specified tolerance
@@ -64,11 +64,8 @@ fun interface TolerancedEq<T> {
      * @param tolerance 容差倌
      * @return 如果两值在容差范围内相等则返回 true
      *
-     * @param lhs Left operand
-     * @param rhs Right operand
-     * @param tolerance Tolerance value
      * @return True if the two values are equal within tolerance
-     */
+    */
     fun test(lhs: T, rhs: T, tolerance: T): Boolean
 }
 
@@ -84,9 +81,9 @@ fun interface TolerancedEq<T> {
  *
  * @param T 比较值的类型
  *
- * @param T The type of values being compared
- */
+*/
 fun interface TolerancedOrd<T> {
+
     /**
      * 比较两个值的大小关系，考虑指定容差
      * Compares the ordering relationship of two values, considering specified tolerance
@@ -96,11 +93,8 @@ fun interface TolerancedOrd<T> {
      * @param tolerance 容差倌
      * @return 比较结果，可以是 Equal、Less 戌Greater
      *
-     * @param lhs Left operand
-     * @param rhs Right operand
-     * @param tolerance Tolerance value
      * @return Comparison result, can be Equal, Less, or Greater
-     */
+    */
     fun test(lhs: T, rhs: T, tolerance: T): Order
 }
 
@@ -117,9 +111,7 @@ fun interface TolerancedOrd<T> {
  * @param T 容差值的类型
  * @param tolerance 绝对容差倌
  *
- * @param T The type of the tolerance value
- * @param tolerance The absolute tolerance value
- */
+*/
 data class AbsoluteTolerance<T>(
     override val tolerance: T
 ) : Tolerance<T>

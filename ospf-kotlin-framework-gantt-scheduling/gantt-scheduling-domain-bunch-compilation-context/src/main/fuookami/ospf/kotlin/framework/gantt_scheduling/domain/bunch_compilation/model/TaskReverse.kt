@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 任务反转模型 / Task reverse model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
@@ -14,7 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 open class TaskReverseBuilder<
         out B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -22,6 +23,7 @@ open class TaskReverseBuilder<
         out E : Executor,
         out A : AssignmentPolicy<E>
         > {
+
     /**
      * 构建任务反转 / Build task reverse
      *
@@ -30,7 +32,7 @@ open class TaskReverseBuilder<
      * @param timeLockedTasks 时间锁定任务集合 / Set of time-locked tasks
      * @param timeDifferenceLimit 时间差限制 / Time difference limit
      * @return 任务反转对象 / Task reverse object
-     */
+    */
     operator fun invoke(
         pairs: List<Pair<@UnsafeVariance T, @UnsafeVariance T>>,
         originBunches: List<@UnsafeVariance B>,
@@ -90,7 +92,7 @@ open class TaskReverseBuilder<
      * @param timeLockedTasks 时间锁定任务集合 / Set of time-locked tasks
      * @param timeDifferenceLimit 时间差限制 / Time difference limit
      * @return 是否启用反转 / Whether reverse is enabled
-     */
+    */
     open fun reverseEnabled(
         prevTask: @UnsafeVariance T,
         succTask: @UnsafeVariance T,
@@ -142,7 +144,7 @@ open class TaskReverseBuilder<
      * @param timeLockedTasks 时间锁定任务集合 / Set of time-locked tasks
      * @param timeDifferenceLimit 时间差限制 / Time difference limit
      * @return 是否对称 / Whether symmetrical
-     */
+    */
     open fun symmetrical(
         prevTask: @UnsafeVariance T,
         succTask: @UnsafeVariance T,
@@ -157,6 +159,15 @@ open class TaskReverseBuilder<
         ) && prevTask.executor == succTask.executor
     }
 
+/**
+ * Checks if a task pair is symmetrical within the context of origin bunches.
+ * 在原始任务束上下文中检查任务对是否对称。
+ * @param originBunches Original task bunches to check containment in / 要检查包含关系的原始任务束列表
+ * @param prevTask Predecessor task in the pair / 任务对中的前驱任务
+ * @param succTask Successor task in the pair / 任务对中的后继任务
+ * @param timeLockedTasks Set of time-locked tasks / 时间锁定任务集合
+ * @return Whether the task pair is symmetrical (both tasks in same bunch) / 任务对是否对称（两个任务在同一任务束中）
+*/
     protected open fun symmetrical(
         originBunches: List<@UnsafeVariance B>,
         prevTask: @UnsafeVariance T,
@@ -185,7 +196,7 @@ open class TaskReverseBuilder<
  * @param symmetricalPairs 对称任务对列表 / List of symmetrical pairs
  * @param leftMapper 左映射 / Left mapper
  * @param rightMapper 右映射 / Right mapper
- */
+*/
 class TaskReverse<
         out T : AbstractPlannedTask<*, E, A>,
         out E : Executor,
@@ -195,6 +206,7 @@ class TaskReverse<
     private val leftMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>,
     private val rightMapper: Map<TaskKey, List<ReversiblePair<T, E, A>>>
 ) {
+
     /**
      * 可反转任务对 / Reversible task pair
      *
@@ -204,7 +216,7 @@ class TaskReverse<
      * @param prevTask 前一个任务 / Previous task
      * @param succTask 后一个任务 / Successor task
      * @param symmetrical 是否对称 / Whether symmetrical
-     */
+    */
     data class ReversiblePair<
             out T : AbstractTask<E, A>,
             out E : Executor,
@@ -221,7 +233,7 @@ class TaskReverse<
      * @param prevTask 前一个任务 / Previous task
      * @param succTask 后一个任务 / Successor task
      * @return 是否包含 / Whether contains
-     */
+    */
     fun contains(prevTask: @UnsafeVariance T, succTask: @UnsafeVariance T): Boolean {
         return leftMapper[prevTask.key]?.any { it.succTask == succTask } ?: false
     }
@@ -232,7 +244,7 @@ class TaskReverse<
      * @param prevTask 前一个任务 / Previous task
      * @param succTask 后一个任务 / Successor task
      * @return 是否对称 / Whether symmetrical
-     */
+    */
     fun symmetrical(prevTask: @UnsafeVariance T, succTask: @UnsafeVariance T): Boolean {
         return leftMapper[prevTask.key]?.find { it.succTask.plan == succTask.plan }?.symmetrical ?: false
     }
@@ -242,7 +254,7 @@ class TaskReverse<
      *
      * @param flightTask 任务 / Task
      * @return 可反转任务对列表 / List of reversible pairs
-     */
+    */
     fun leftFind(flightTask: @UnsafeVariance T): List<ReversiblePair<T, E, A>> {
         return leftMapper[flightTask.key] ?: emptyList()
     }
@@ -252,7 +264,7 @@ class TaskReverse<
      *
      * @param flightTask 任务 / Task
      * @return 可反转任务对列表 / List of reversible pairs
-     */
+    */
     fun rightFind(flightTask: @UnsafeVariance T): List<ReversiblePair<T, E, A>> {
         return rightMapper[flightTask.key] ?: emptyList()
     }

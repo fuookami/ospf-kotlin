@@ -9,7 +9,7 @@
  * The Wang-Chen attractor is a four-dimensional hyperchaotic attractor system
  * that produces complex chaotic dynamics through nonlinear coupling terms.
  * Commonly used for hyperchaotic system analysis, encrypted communication, and complex dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property gamma 系统参数 gamma（x 与 z 之间非线性耦合系数）/ System parameter gamma (nonlinear coupling coefficient between x and z)
  * @property delta 系统参数 delta（z 方向耗散系数）/ System parameter delta (dissipation coefficient in z direction)
  * @property h 时间步长 / Time step size
- */
+*/
 data class WangChenAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -64,7 +64,7 @@ data class WangChenAttractor<V : FloatingNumber<V>>(
  * Wang-Chen Attractor Generator
  *
  * @property attractor 王-陈吸引子实例 / Wang-Chen attractor instance
- */
+*/
 data class WangChenAttractorGenerator(
     val attractor: WangChenAttractor<Flt64> = WangChenAttractor(),
     private var _x: Point<Dim4, Flt64> = point4(

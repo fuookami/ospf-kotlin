@@ -48,7 +48,7 @@ class GurobiLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -136,7 +136,7 @@ class GurobiLinearBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 线性子问题求解结果 / linear sub-problem result
-     */
+    */
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -384,7 +384,7 @@ class GurobiQuadraticBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 线性子问题求解结果 / linear sub-problem result
-     */
+    */
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -420,7 +420,7 @@ class GurobiQuadraticBendersDecompositionSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 线性子问题求解结果 / linear sub-problem result
-     */
+    */
     override suspend fun solveSub(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,

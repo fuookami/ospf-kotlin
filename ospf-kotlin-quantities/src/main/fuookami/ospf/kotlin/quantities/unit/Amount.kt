@@ -7,7 +7,7 @@
  *
  * SI 基本单位：摩尔 (mol)
  * SI base unit: mole (mol)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.quantities.dimension.AmountOfSubstance
  *
  * 定义：摩尔是包含精确 6.02214076×10²³ 个基本实体的物质的量。
  * Definition: The mole is the amount of substance containing exactly 6.02214076×10²³ elementary entities.
- */
+*/
 object Mole : PhysicalUnit() {
     override val name = "mole"
     override val symbol = "mol"

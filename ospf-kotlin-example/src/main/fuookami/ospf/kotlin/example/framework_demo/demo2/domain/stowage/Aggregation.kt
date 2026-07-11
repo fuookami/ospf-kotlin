@@ -13,6 +13,22 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Aggregation root for the stowage domain, assembling all sub-models
+ * (stowage, load, payload, totalWeight, maxLoadWeight, ballast) and
+ * providing registration entry points for the full model and Benders decomposition.
+ * 配载域的聚合根，组装所有子模型（装载、载量、业载、总重、最大装载重量、压舱）
+ * 并提供完整模型和 Benders 分解的注册入口。
+ *
+ * @property aircraftModel the aircraft model specification / 机型规格
+ * @property flight the flight information / 航班信息
+ * @property items the list of cargo items to be stowed / 待装载的货物项目列表
+ * @property positions the list of available stowage positions / 可用装载位置列表
+ * @property withMultiLoadingSchema whether multi-loading schema is enabled / 是否启用多装载方案
+ * @property appointment the appointment constraints between items and positions / 货物与舱位之间的预约约束
+ * @property biologicalLimit the biological cargo compatibility rules / 生物货物兼容性规则
+ * @property neighbours the adjacency relationships between positions / 舱位之间的邻接关系
+*/
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     formula: Formula,
@@ -83,6 +99,14 @@ class Aggregation(
         null
     }
 
+    /**
+     * Registers all sub-models into the given linear meta-model for full optimization.
+     * 将所有子模型注册到给定的线性元模型中以进行完整优化。
+     *
+     * @param stowageMode the stowage mode to use / 使用的装载模式
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -150,6 +174,13 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Registers sub-models for the Benders master problem (stowage assignment + load linking).
+     * 为 Benders 主问题注册子模型（装载分配 + 载量链接约束）。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -167,6 +198,14 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Registers sub-models for the Benders sub-problem (airworthiness constraints: payload, totalWeight, maxLoadWeight).
+     * 为 Benders 子问题注册子模型（适航约束：业载、总重、最大装载重量）。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @param solution the master problem solution used to fix variables / 用于固定变量的主问题解
+     * @return success or failure / 成功或失败
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
@@ -191,6 +230,14 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Flushes master problem variable values into the Benders sub-problem model.
+     * 将主问题变量值刷新到 Benders 子问题模型中。
+     *
+     * @param model the linear meta-model / 线性元模型
+     * @param solution the master problem solution / 主问题解
+     * @return success or failure / 成功或失败
+    */
     private fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

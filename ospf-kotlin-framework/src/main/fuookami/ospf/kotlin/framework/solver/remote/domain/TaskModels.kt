@@ -1,7 +1,7 @@
 /**
  * 远程求解任务模型
  * Remote solve task models
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
 import kotlin.time.Duration
@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 /**
  * 任务复杂度。
  * Task complexity.
- */
+*/
 @Serializable
 enum class TaskComplexity {
     /** 简单任务 / Simple task */
@@ -25,7 +25,7 @@ enum class TaskComplexity {
 /**
  * 时间敏感度。
  * Time sensitivity.
- */
+*/
 @Serializable
 enum class TimeSensitivity {
     /** 实时任务 / Realtime task */
@@ -38,7 +38,7 @@ enum class TimeSensitivity {
 /**
  * 任务状态。
  * Task status.
- */
+*/
 @Serializable
 enum class TaskStatus {
     /** 已创建 / Created */
@@ -78,7 +78,7 @@ enum class TaskStatus {
 /**
  * 切片状态。
  * Slice status.
- */
+*/
 @Serializable
 enum class SliceStatus {
     /** 已规划 / Planned */
@@ -112,7 +112,7 @@ enum class SliceStatus {
  * @property estimatedConstraintCount 预估约束数 / Estimated constraint count
  * @property historicalRuntime 历史运行时间 / Historical runtime
  * @property metadata 扩展元数据 / Extension metadata
- */
+*/
 @Serializable
 data class TaskMeta(
     val solverType: SolverTypeName? = null,
@@ -138,7 +138,7 @@ data class TaskMeta(
  * @property quadraticModel 内联二次模型 / Inline quadratic model
  * @property rawBytes 原始模型字节 / Raw model bytes
  * @property format 原始字节格式 / Raw bytes format
- */
+*/
 @Serializable
 data class ModelData(
     val ref: ObjectRef? = null,
@@ -147,6 +147,7 @@ data class ModelData(
     val rawBytes: ByteArray? = null,
     val format: String? = null
 ) {
+
     /** 是否引用模式 / Whether reference mode */
     val isReference: Boolean get() = ref != null
 
@@ -168,7 +169,7 @@ data class ModelData(
          *
          * @param ref 对象引用 / Object reference
          * @return 模型数据 / Model data
-         */
+        */
         fun reference(ref: ObjectRef): ModelData {
             return ModelData(ref = ref)
         }
@@ -179,7 +180,7 @@ data class ModelData(
          *
          * @param model 线性模型 / Linear model
          * @return 模型数据 / Model data
-         */
+        */
         fun linear(model: SerializedLinearModel): ModelData {
             return ModelData(linearModel = model)
         }
@@ -190,7 +191,7 @@ data class ModelData(
          *
          * @param model 二次模型 / Quadratic model
          * @return 模型数据 / Model data
-         */
+        */
         fun quadratic(model: SerializedQuadraticModel): ModelData {
             return ModelData(quadraticModel = model)
         }
@@ -202,7 +203,7 @@ data class ModelData(
          * @param bytes 字节内容 / Bytes
          * @param format 字节格式 / Bytes format
          * @return 模型数据 / Model data
-         */
+        */
         fun raw(bytes: ByteArray, format: String): ModelData {
             return ModelData(rawBytes = bytes, format = format)
         }
@@ -243,7 +244,7 @@ data class ModelData(
  * @property mipGapTolerance MIP gap 容忍度 / MIP gap tolerance
  * @property threads 线程数 / Thread count
  * @property solverParams 求解器参数 / Solver params
- */
+*/
 @Serializable
 data class SolverConfig(
     @SerialName("timeLimitMs")
@@ -265,7 +266,7 @@ data class SolverConfig(
  * @property snapshotRef 快照引用 / Snapshot reference
  * @property taskMeta 任务元数据 / Task metadata
  * @property extension 扩展字段 / Extension fields
- */
+*/
 @Serializable
 data class SolvePayload(
     val modelData: ModelData,
@@ -275,10 +276,11 @@ data class SolvePayload(
     val taskMeta: TaskMeta = TaskMeta(),
     val extension: Map<String, String> = emptyMap()
 ) {
+
     /**
      * 引用模式便捷构造器。
      * Reference mode convenience constructor.
-     */
+    */
     constructor(
         modelRef: ObjectRef,
         configRef: ObjectRef? = null,
@@ -296,7 +298,7 @@ data class SolvePayload(
     /**
      * 内联线性模型便捷构造器。
      * Inline linear model convenience constructor.
-     */
+    */
     constructor(
         linearModel: SerializedLinearModel,
         config: SolverConfig? = null,

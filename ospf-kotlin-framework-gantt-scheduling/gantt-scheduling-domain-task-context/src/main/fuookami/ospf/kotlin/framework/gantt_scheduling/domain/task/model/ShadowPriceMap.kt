@@ -1,6 +1,6 @@
 /**
  * 甘特调度影子价格映射及相关类型 / Gantt scheduling shadow price map and related types
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -14,13 +14,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param E 执行者类型 / The executor type
  * @param A 分配策略类型 / The assignment policy type
- */
+*/
 interface AbstractGanttSchedulingShadowPriceArguments<
         out E : Executor,
         out A : AssignmentPolicy<E>
         > {
+
     /** 执行者 / The executor */
     val executor: E
+
     /** 任务 / The task */
     val task: AbstractTask<E, A>?
 }
@@ -32,7 +34,7 @@ interface AbstractGanttSchedulingShadowPriceArguments<
  * @param A 分配策略类型 / The assignment policy type
  * @property executor 执行者 / The executor
  * @property task 任务 / The task
- */
+*/
 open class TaskGanttSchedulingShadowPriceArguments<
         out E : Executor,
         out A : AssignmentPolicy<E>
@@ -49,7 +51,7 @@ open class TaskGanttSchedulingShadowPriceArguments<
  * @property executor 执行者 / The executor
  * @property task 任务 / The task
  * @property prevTask 前一个任务 / The previous task
- */
+*/
 open class BunchGanttSchedulingShadowPriceArguments<
         out E : Executor,
         out A : AssignmentPolicy<E>
@@ -65,7 +67,7 @@ open class BunchGanttSchedulingShadowPriceArguments<
  * @param Args 参数类型 / The arguments type
  * @param E 执行者类型 / The executor type
  * @param A 分配策略类型 / The assignment policy type
- */
+*/
 open class AbstractGanttSchedulingShadowPriceMap<
         out Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         out E : Executor,
@@ -87,7 +89,7 @@ typealias GanttSchedulingShadowPriceMap<E, A> = AbstractGanttSchedulingShadowPri
  * @param A 分配策略类型 / The assignment policy type
  * @param bunch 任务束 / The task bunch
  * @return 缩减成本 / The reduced cost
- */
+*/
 inline fun <
         reified V : RealNumber<V>,
         T : AbstractTask<E, A>,

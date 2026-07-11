@@ -1,22 +1,22 @@
 /**
  * Inequality serialization data models.
- * 中文不等式序列化数据模型。
+ * 不等式序列化数据模型。
  *
  * Defines serialization data structures for canonical, linear, and quadratic inequalities.
- * 中文定义规范、线性和二次不等式的序列化数据结构。
- */
+ * 定义规范、线性和二次不等式的序列化数据结构。
+*/
 package fuookami.ospf.kotlin.math.symbol.serde
 
 import kotlinx.serialization.Serializable
 
 /**
  * Canonical inequality serialization data.
- * 中文规范不等式序列化数据。
+ * 规范不等式序列化数据。
  *
  * @property lhs Left-hand side canonical polynomial data / 左侧规范多项式数据
  * @property rhs Right-hand side canonical polynomial data / 右侧规范多项式数据
  * @property comparison Comparison operator string / 比较运算符字符串
- */
+*/
 @Serializable
 data class CanonicalInequalityData(
     val lhs: CanonicalPolynomialData,
@@ -26,14 +26,14 @@ data class CanonicalInequalityData(
 
 /**
  * Linear inequality serialization data.
- * 中文线性不等式序列化数据。
+ * 线性不等式序列化数据。
  *
  * @property lhs Left-hand side linear polynomial data / 左侧线性多项式数据
  * @property rhs Right-hand side linear polynomial data / 右侧线性多项式数据
  * @property comparison Comparison operator string / 比较运算符字符串
  * @property name Inequality name / 不等式名称
  * @property displayName Inequality display name / 不等式显示名称
- */
+*/
 @Serializable
 data class LinearInequalityData(
     val lhs: LinearPolynomialData,
@@ -45,14 +45,14 @@ data class LinearInequalityData(
 
 /**
  * Quadratic inequality serialization data.
- * 中文二次不等式序列化数据。
+ * 二次不等式序列化数据。
  *
  * @property lhs Left-hand side quadratic polynomial data / 左侧二次多项式数据
  * @property rhs Right-hand side quadratic polynomial data / 右侧二次多项式数据
  * @property comparison Comparison operator string / 比较运算符字符串
  * @property name Inequality name / 不等式名称
  * @property displayName Inequality display name / 不等式显示名称
- */
+*/
 @Serializable
 data class QuadraticInequalityData(
     val lhs: QuadraticPolynomialData,

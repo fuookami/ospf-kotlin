@@ -1,7 +1,7 @@
 /**
  * Rucklidge 吸引子
  * Rucklidge Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property kappa 系统参数 kappa / System parameter kappa
  * @property h 时间步长 / Time step size
- */
+*/
 data class RucklidgeAttractor<V : FloatingNumber<V>>(val alpha: V, val kappa: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -46,7 +46,7 @@ data class RucklidgeAttractor<V : FloatingNumber<V>>(val alpha: V, val kappa: V,
  *
  * @property attractor the Rucklidge attractor instance / Rucklidge 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class RucklidgeAttractorGenerator(
     val attractor: RucklidgeAttractor<Flt64> = RucklidgeAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

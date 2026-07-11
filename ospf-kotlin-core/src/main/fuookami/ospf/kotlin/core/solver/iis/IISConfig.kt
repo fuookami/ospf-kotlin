@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** IIS 计算配置 / IIS computation configuration */
 package fuookami.ospf.kotlin.core.solver.iis
 
@@ -16,7 +17,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property computingStatusCallBack 计算状态回调 / Computing status callback
  * @property slackTolerance 松弛容忍度 / Slack tolerance
  * @property extraConfig 额外配置 / Extra configuration
- */
+*/
 data class IISConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = if (Runtime.getRuntime().availableProcessors() <= 16) {

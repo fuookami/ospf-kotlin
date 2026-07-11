@@ -10,7 +10,7 @@
  * x? are symbol variables, and n? are the corresponding powers.
  * It is the basic building block for canonical polynomials,
  * supporting polynomials of any degree.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.monomial
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -33,11 +33,12 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  *
  * @property coefficient 系数 / The coefficient
  * @property powers 符号到幂次的映射 / Mapping from symbols to their powers
- */
+*/
 data class CanonicalMonomial<T : Ring<T>>(
     val coefficient: T,
     val powers: Map<Symbol, Int32> = emptyMap()
 ) : ToCanonicalPolynomial<T> {
+
     /**
      * 使用符号列表创建规范单项式
      * Creates a canonical monomial using a list of symbols
@@ -48,7 +49,7 @@ data class CanonicalMonomial<T : Ring<T>>(
      *
      * @param coefficient 系数 / The coefficient
      * @param factors 符号列表 / List of symbols
-     */
+    */
     constructor(
         coefficient: T,
         factors: List<Symbol>
@@ -63,7 +64,7 @@ data class CanonicalMonomial<T : Ring<T>>(
      *
      * 返回展开后的符号列表，每个符号按其幂次重复出现。
      * Returns the expanded list of symbols, where each symbol appears according to its power.
-     */
+    */
     val factors: List<Symbol>
         get() = powers.entries
             .flatMap { (symbol, exp) -> List(exp.toInt()) { symbol } }
@@ -74,7 +75,7 @@ data class CanonicalMonomial<T : Ring<T>>(
      *
      * 返回所有幂次的和，即单项式的总次数。
      * Returns the sum of all powers, which is the total degree of the monomial.
-     */
+    */
     val degree: Int
         get() = powers.values.sum().toInt()
 
@@ -90,7 +91,7 @@ data class CanonicalMonomial<T : Ring<T>>(
      * - 0 or 1: Linear
      * - 2: Quadratic
      * - Greater than 2: Nonlinear
-     */
+    */
     val category: Category
         get() = when (degree) {
             0, 1 -> Linear
@@ -109,7 +110,7 @@ data class CanonicalMonomial<T : Ring<T>>(
  *
  * @receiver 规范单项式 / Canonical monomial
  * @return 系数取负后的规范单项式 / Canonical monomial with negated coefficient
- */
+*/
 operator fun <T : Ring<T>> CanonicalMonomial<T>.unaryMinus(): CanonicalMonomial<T> {
     return copy(coefficient = -coefficient)
 }
@@ -121,7 +122,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.unaryMinus(): CanonicalMonomial<
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 标量值 / Scalar value
  * @return 系数乘以标量后的规范单项式 / Canonical monomial with coefficient multiplied by scalar
- */
+*/
 operator fun <T : Ring<T>> CanonicalMonomial<T>.times(rhs: T): CanonicalMonomial<T> {
     return copy(coefficient = coefficient * rhs)
 }
@@ -133,7 +134,7 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.times(rhs: T): CanonicalMonomial
  * @receiver 规范单项式 / Canonical monomial
  * @param rhs 标量值 / Scalar value
  * @return 系数除以标量后的规范单项式 / Canonical monomial with coefficient divided by scalar
- */
+*/
 operator fun <T : Field<T>> CanonicalMonomial<T>.div(rhs: T): CanonicalMonomial<T> {
     return copy(coefficient = coefficient / rhs)
 }

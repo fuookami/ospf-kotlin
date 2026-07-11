@@ -1,7 +1,7 @@
 /**
  * 机制模型转储支持
  * Mechanism model dump support
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import kotlinx.coroutines.*
@@ -54,7 +54,7 @@ private fun <V> notifyDumpingConstraintsCompleted(
  * @param onProgress 进度回调 / Progress callback
  * @param transform 转换函数 / Transform function
  * @return 转储结果列表 / List of dumped results
- */
+*/
 internal suspend fun <T, R> dumpItemsAsync(
     items: List<T>,
     scope: CoroutineScope,
@@ -118,7 +118,7 @@ internal suspend fun <T, R> dumpItemsAsync(
  * @param createConstraint 约束创建函数 / Constraint creation function
  * @param createSubObject 子目标创建函数 / Sub-objective creation function
  * @return 约束和子目标对 / Pair of constraints and sub-objectives
- */
+*/
 internal suspend fun <V, RC, SO, C, S> dumpMechanismPartsAsync(
     metaModel: MetaModel<V>,
     relationConstraints: List<RC>,

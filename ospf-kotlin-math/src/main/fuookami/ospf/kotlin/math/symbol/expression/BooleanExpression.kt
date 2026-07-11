@@ -6,7 +6,7 @@
  * Defines the expression AST for boolean values,
  * including boolean constant, comparison, set membership, pattern match, null check,
  * logical combination, and custom expressions.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -19,19 +19,19 @@ import fuookami.ospf.kotlin.math.Trivalent
  * 表示布尔值的表达式，支持比较操作和完整的逻辑组合（and/or/not）。
  * Represents an expression for boolean values,
  * supporting comparison operations and full logical combination (and/or/not).
- */
+*/
 sealed interface BooleanExpression {
 
     /**
      * 表达式类型名秌
      * Expression type name
-     */
+    */
     val typeName: String
 
     /**
      * 子表达式列表
      * Child expressions list
-     */
+    */
     val children: List<BooleanExpression>
 
     /**
@@ -39,7 +39,7 @@ sealed interface BooleanExpression {
      * 判断表达式是否是常量。
      *
      * @return true if the expression evaluates to a constant / 如果表达式求值为常量则返回 true
-     */
+    */
     fun isConstant(): Boolean = when (this) {
         is BooleanConstant -> true
         is Comparison<*> -> left.isConstant() && right.isConstant()
@@ -57,7 +57,7 @@ sealed interface BooleanExpression {
      * 判断表达式是否是纯逻辑表达式（不含比较等）。
      *
      * @return true if the expression contains only logical operators / 如果表达式仅包含逻辑操作符则返回 true
-     */
+    */
     fun isPureLogical(): Boolean = when (this) {
         is BooleanConstant -> true
         is Comparison<*>, is InExpression<*>, is PatternMatch<*>, is NullCheck -> false
@@ -72,7 +72,7 @@ sealed interface BooleanExpression {
      * 获取表达式中的所有引用路径。
      *
      * @return the set of all property paths referenced / 所有引用的属性路径集合
-     */
+    */
     fun collectReferences(): Set<PropertyPath> {
         val refs = mutableSetOf<PropertyPath>()
         collectReferencesInto(refs)
@@ -82,7 +82,9 @@ sealed interface BooleanExpression {
     /**
      * 将引用路径收集到指定集合
      * Collect reference paths into specified collection
-     */
+     *
+     * @param refs the mutable set to collect reference paths into / 用于收集引用路径的可变集合
+    */
     fun collectReferencesInto(refs: MutableSet<PropertyPath>) {
         when (this) {
             is Comparison<*> -> {
@@ -119,7 +121,7 @@ sealed interface BooleanExpression {
      * 获取逻辑操作符数量。
      *
      * @return the count of logical operators / 逻辑操作符数量
-     */
+    */
     fun logicalOperatorCount(): Int = when (this) {
         is BooleanConstant, is Comparison<*>, is InExpression<*>, is PatternMatch<*>, is NullCheck -> 0
         is AndExpression -> operands.size + operands.sumOf { it.logicalOperatorCount() }
@@ -133,7 +135,7 @@ sealed interface BooleanExpression {
      * 获取表达式深度。
      *
      * @return the depth of the expression / 表达式深度
-     */
+    */
     fun depth(): Int = when (this) {
         is BooleanConstant, is Comparison<*>, is InExpression<*>, is PatternMatch<*>, is NullCheck -> 1
         is AndExpression -> 1 + (operands.maxOfOrNull { it.depth() } ?: 0)
@@ -151,7 +153,7 @@ sealed interface BooleanExpression {
  * Represents a boolean constant value, supporting three-valued logic (True/False/Unknown).
  *
  * @property value 三值逻辑的值 / Three-valued logic value
- */
+*/
 data class BooleanConstant(
     val value: Trivalent
 ) : BooleanExpression {
@@ -161,19 +163,19 @@ data class BooleanConstant(
     /**
      * 判断是否为真
      * Check if value is true
-     */
+    */
     val isTrue: Boolean get() = value == Trivalent.True
 
     /**
      * 判断是否为假
      * Check if value is false
-     */
+    */
     val isFalse: Boolean get() = value == Trivalent.False
 
     /**
      * 判断是否为未知（null，
      * Check if value is unknown (null)
-     */
+    */
     val isUnknown: Boolean get() = value == Trivalent.Unknown
 
     override fun toString(): String = when (value) {
@@ -188,7 +190,7 @@ data class BooleanConstant(
          * 创建 true 常量。
          *
          * @return true boolean constant / true 布尔常量
-         */
+        */
         fun true_(): BooleanConstant = BooleanConstant(Trivalent.True)
 
         /**
@@ -196,7 +198,7 @@ data class BooleanConstant(
          * 创建 false 常量。
          *
          * @return false boolean constant / false 布尔常量
-         */
+        */
         fun false_(): BooleanConstant = BooleanConstant(Trivalent.False)
 
         /**
@@ -204,7 +206,7 @@ data class BooleanConstant(
          * 创建 unknown 常量。
          *
          * @return unknown boolean constant / unknown 布尔常量
-         */
+        */
         fun unknown(): BooleanConstant = BooleanConstant(Trivalent.Unknown)
     }
 }
@@ -219,7 +221,7 @@ data class BooleanConstant(
  * @property operator 比较操作符 / Comparison operator
  * @property left 左操作数（标量表达式） / Left operand (scalar expression)
  * @property right 右操作数（标量表达式） / Right operand (scalar expression)
- */
+*/
 data class Comparison<T>(
     val operator: ComparisonOperator,
     val left: ScalarExpression<T>,
@@ -242,7 +244,7 @@ data class Comparison<T>(
  * @property value 要检查的标量表达式 / Scalar expression to check
  * @property candidates 候选值列表 / List of candidate values
  * @property negated 是否取反（not in） / Whether negated (not in)
- */
+*/
 data class InExpression<T>(
     val value: ScalarExpression<T>,
     val candidates: List<ScalarExpression<T>>,
@@ -254,7 +256,7 @@ data class InExpression<T>(
     /**
      * 判断是否是否定形式（not in，
      * Check if this is negated form (not in)
-     */
+    */
     val isNegated: Boolean get() = negated
 
     override fun toString(): String = if (negated) {
@@ -275,7 +277,7 @@ data class InExpression<T>(
  * @property pattern 模式标量表达式 / Pattern scalar expression
  * @property mode 匹配模式 / Match mode
  * @property negated 是否取反 / Whether negated
- */
+*/
 data class PatternMatch<T>(
     val value: ScalarExpression<T>,
     val pattern: ScalarExpression<T>,
@@ -302,7 +304,7 @@ data class PatternMatch<T>(
  * @property path 属性路径 / Property path
  * @property type 空值检查类型 / Null check type
  * @property symbol 路径符号，默认从 path 转换 / Path symbol, defaults to conversion from path
- */
+*/
 data class NullCheck(
     val path: PropertyPath,
     val type: NullCheckType,
@@ -314,13 +316,13 @@ data class NullCheck(
     /**
      * 判断是否检查空倌
      * Check if this checks for null
-     */
+    */
     val isNull: Boolean get() = type == NullCheckType.IsNull
 
     /**
      * 判断是否检查非穌
      * Check if this checks for not null
-     */
+    */
     val isNotNull: Boolean get() = type == NullCheckType.IsNotNull
 
     override fun toString(): String = "${path.value} ${OperatorSymbols.nullCheck(type)}"
@@ -334,7 +336,7 @@ data class NullCheck(
  * Represents logical AND combination of multiple boolean expressions.
  *
  * @property operands 操作数列表（至少一个） / List of operands (at least one)
- */
+*/
 data class AndExpression(
     val operands: List<BooleanExpression>
 ) : BooleanExpression {
@@ -356,7 +358,7 @@ data class AndExpression(
  * Represents logical OR combination of multiple boolean expressions.
  *
  * @property operands 操作数列表（至少一个） / List of operands (at least one)
- */
+*/
 data class OrExpression(
     val operands: List<BooleanExpression>
 ) : BooleanExpression {
@@ -378,7 +380,7 @@ data class OrExpression(
  * Represents logical NOT of a boolean expression.
  *
  * @property operand 被取反的布尔表达式 / Boolean expression to negate
- */
+*/
 data class NotExpression(
     val operand: BooleanExpression
 ) : BooleanExpression {
@@ -397,7 +399,7 @@ data class NotExpression(
  *
  * @property value 自定义值 / Custom value
  * @property description 可选描述 / Optional description
- */
+*/
 data class BooleanCustom(
     val value: Any,
     val description: String? = null
@@ -414,33 +416,40 @@ data class BooleanCustom(
  *
  * 提供便捷的布尔表达式构造方法。
  * Provides convenient boolean expression construction methods.
- */
+*/
 object BooleanExpressionFactory {
+
     /**
      * 创建布尔常量
      * Create boolean constant
      *
      * @param value 三值逻辑值 / Three-valued logic value
      * @return 布尔常量 / Boolean constant
-     */
+    */
     fun constant(value: Trivalent): BooleanConstant = BooleanConstant(value)
 
     /**
      * 创建布尔常量（true，
      * Create boolean constant (true)
-     */
+     *
+     * @return the true boolean constant / true 布尔常量
+    */
     fun trueConstant(): BooleanConstant = BooleanConstant.true_()
 
     /**
      * 创建布尔常量（false，
      * Create boolean constant (false)
-     */
+     *
+     * @return the false boolean constant / false 布尔常量
+    */
     fun falseConstant(): BooleanConstant = BooleanConstant.false_()
 
     /**
      * 创建布尔常量（unknown/null，
      * Create boolean constant (unknown/null)
-     */
+     *
+     * @return the unknown boolean constant / unknown 布尔常量
+    */
     fun unknownConstant(): BooleanConstant = BooleanConstant.unknown()
 
     /**
@@ -451,7 +460,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 比较表达式 / Comparison expression
-     */
+    */
     fun <T> comparison(
         operator: ComparisonOperator,
         left: ScalarExpression<T>,
@@ -465,7 +474,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 等于比较表达式 / Equal comparison expression
-     */
+    */
     fun <T> eq(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Eq, left, right)
 
@@ -476,7 +485,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 不等于比较表达式 / Not equal comparison expression
-     */
+    */
     fun <T> ne(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Ne, left, right)
 
@@ -487,7 +496,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 小于比较表达式 / Less than comparison expression
-     */
+    */
     fun <T> lt(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Lt, left, right)
 
@@ -498,7 +507,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 小于等于比较表达式 / Less than or equal comparison expression
-     */
+    */
     fun <T> le(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Le, left, right)
 
@@ -509,7 +518,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 大于比较表达式 / Greater than comparison expression
-     */
+    */
     fun <T> gt(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Gt, left, right)
 
@@ -520,7 +529,7 @@ object BooleanExpressionFactory {
      * @param left 左操作数 / Left operand
      * @param right 右操作数 / Right operand
      * @return 大于等于比较表达式 / Greater than or equal comparison expression
-     */
+    */
     fun <T> ge(left: ScalarExpression<T>, right: ScalarExpression<T>): Comparison<T> =
         comparison(ComparisonOperator.Ge, left, right)
 
@@ -532,7 +541,7 @@ object BooleanExpressionFactory {
      * @param candidates 候选值列表 / List of candidate values
      * @param negated 是否取反 / Whether negated
      * @return In 表达式 / In expression
-     */
+    */
     fun <T> inExpr(
         value: ScalarExpression<T>,
         candidates: List<ScalarExpression<T>>,
@@ -546,7 +555,7 @@ object BooleanExpressionFactory {
      * @param value 要检查的表达式 / Expression to check
      * @param candidates 候选值列表 / List of candidate values
      * @return Not In 表达式 / Not In expression
-     */
+    */
     fun <T> notIn(
         value: ScalarExpression<T>,
         candidates: List<ScalarExpression<T>>
@@ -561,7 +570,7 @@ object BooleanExpressionFactory {
      * @param mode 匹配模式 / Match mode
      * @param negated 是否取反 / Whether negated
      * @return 模式匹配表达式 / Pattern match expression
-     */
+    */
     fun <T> patternMatch(
         value: ScalarExpression<T>,
         pattern: ScalarExpression<T>,
@@ -575,7 +584,7 @@ object BooleanExpressionFactory {
      *
      * @param path 属性路径 / Property path
      * @return 空值检查表达式 / Null check expression
-     */
+    */
     fun isNull(path: PropertyPath): NullCheck = NullCheck(path, NullCheckType.IsNull)
 
     /**
@@ -584,7 +593,7 @@ object BooleanExpressionFactory {
      *
      * @param path 属性路径 / Property path
      * @return 非空检查表达式 / Not null check expression
-     */
+    */
     fun isNotNull(path: PropertyPath): NullCheck = NullCheck(path, NullCheckType.IsNotNull)
 
     /**
@@ -593,7 +602,7 @@ object BooleanExpressionFactory {
      *
      * @param operands 操作数列表 / List of operands
      * @return 逻辑与表达式 / Logical AND expression
-     */
+    */
     fun and(operands: List<BooleanExpression>): AndExpression = AndExpression(operands)
 
     /**
@@ -604,7 +613,7 @@ object BooleanExpressionFactory {
      * @param second 第二个操作数 / Second operand
      * @param rest 其余操作数 / Remaining operands
      * @return 逻辑与表达式 / Logical AND expression
-     */
+    */
     fun and(first: BooleanExpression, second: BooleanExpression, vararg rest: BooleanExpression): AndExpression =
         AndExpression(listOf(first, second) + rest.toList())
 
@@ -614,7 +623,7 @@ object BooleanExpressionFactory {
      *
      * @param operands 操作数列表 / List of operands
      * @return 逻辑或表达式 / Logical OR expression
-     */
+    */
     fun or(operands: List<BooleanExpression>): OrExpression = OrExpression(operands)
 
     /**
@@ -625,7 +634,7 @@ object BooleanExpressionFactory {
      * @param second 第二个操作数 / Second operand
      * @param rest 其余操作数 / Remaining operands
      * @return 逻辑或表达式 / Logical OR expression
-     */
+    */
     fun or(first: BooleanExpression, second: BooleanExpression, vararg rest: BooleanExpression): OrExpression =
         OrExpression(listOf(first, second) + rest.toList())
 
@@ -635,6 +644,6 @@ object BooleanExpressionFactory {
      *
      * @param operand 被取反的表达式 / Expression to negate
      * @return 逻辑非表达式 / Logical NOT expression
-     */
+    */
     fun not(operand: BooleanExpression): NotExpression = NotExpression(operand)
 }

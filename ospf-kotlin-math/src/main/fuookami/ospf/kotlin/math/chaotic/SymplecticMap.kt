@@ -1,7 +1,7 @@
 /**
  * 辛映射
  * Symplectic Map
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * Symplectic Map
  *
  * @property h 时间步长 / Time step size
- */
+*/
 data class SymplecticMap<V : FloatingNumber<V>>(val h: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
         val x = p[0];
@@ -37,7 +37,7 @@ data class SymplecticMap<V : FloatingNumber<V>>(val h: V) : Extractor<Point<Dim2
  * Symplectic Map Generator
  *
  * @property map 辛映射实例 / Symplectic map instance
- */
+*/
 data class SymplecticMapGenerator(
     val map: SymplecticMap<Flt64> = SymplecticMap(),
     private var _x: Point<Dim2, Flt64> = point2(

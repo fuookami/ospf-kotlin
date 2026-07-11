@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [FloorFunction]，实现 y = floor(x) 的线性化建模。
  *
  * Provides [FloorFunction] for linearized modeling of y = floor(x).
- */
+*/
 
 /**
  * 向下取整函数：y = floor(x)。
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param bigM 保留参数，当前取整约束不需要 Big-M / reserved parameter, Big-M is not needed by the current floor encoding
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class FloorFunction<V>(
     val x: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -108,7 +108,7 @@ class FloorFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [FloorFunction] 实例 / [FloorFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             converter: IntoValue<V>,

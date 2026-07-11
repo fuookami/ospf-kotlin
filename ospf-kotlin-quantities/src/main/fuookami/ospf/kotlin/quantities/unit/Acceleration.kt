@@ -8,7 +8,7 @@
  * 来源：SI 基本单位定义
  * Source: SI base unit definitions
  * - Standard gravity (g): 9.80665 m/s² (ISO 80000-3)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Acceleration
  *
  * 来源：SI 导出单位，加速度的国际单位
  * Source: SI derived unit, international unit for acceleration
- */
+*/
 object MeterPerSecondSquared : DerivedPhysicalUnit(MeterPerSecond / Second) {
     override val name = "meter per second squared"
     override val symbol = "mps2"
@@ -52,7 +52,7 @@ object MeterPerSecondSquared : DerivedPhysicalUnit(MeterPerSecond / Second) {
  *
  * 来源：SI 导出加速度单位，常用于精密测量
  * Source: SI derived acceleration unit, commonly used in precision measurements
- */
+*/
 object CentimeterPerSecondSquared : DerivedPhysicalUnit(CentimeterPerSecond / Second) {
     override val name = "centimeter per second squared"
     override val symbol = "cmps2"
@@ -75,7 +75,7 @@ object CentimeterPerSecondSquared : DerivedPhysicalUnit(CentimeterPerSecond / Se
  *
  * 来源：SI 导出加速度单位，常用于航天领域
  * Source: SI derived acceleration unit, commonly used in aerospace
- */
+*/
 object KilometerPerSecondSquared : DerivedPhysicalUnit(KilometerPerSecond / Second) {
     override val name = "kilometer per second squared"
     override val symbol = "kmps2"
@@ -98,7 +98,7 @@ object KilometerPerSecondSquared : DerivedPhysicalUnit(KilometerPerSecond / Seco
  *
  * 来源：英制加速度单位
  * Source: Imperial acceleration unit
- */
+*/
 object InchPerSecondSquared : DerivedPhysicalUnit(InchPerSecond / Second) {
     override val name = "inch per second squared"
     override val symbol = "ips2"
@@ -121,7 +121,7 @@ object InchPerSecondSquared : DerivedPhysicalUnit(InchPerSecond / Second) {
  *
  * 来源：英制加速度单位，常用于美国工程领域
  * Source: Imperial acceleration unit, commonly used in US engineering
- */
+*/
 object FootPerSecondSquared : DerivedPhysicalUnit(FootPerSecond / Second) {
     override val name = "foot per second squared"
     override val symbol = "fps2"
@@ -144,7 +144,7 @@ object FootPerSecondSquared : DerivedPhysicalUnit(FootPerSecond / Second) {
  *
  * 来源：ISO 80000-3 标准重力加速度定义，地球表面的平均重力加速度
  * Source: ISO 80000-3 standard gravity definition, average gravitational acceleration at Earth's surface
- */
+*/
 object StandardGravity : DerivedPhysicalUnit(MeterPerSecondSquared * FltX(9.80665)) {
     override val name = "standard gravity"
     override val symbol = "g"

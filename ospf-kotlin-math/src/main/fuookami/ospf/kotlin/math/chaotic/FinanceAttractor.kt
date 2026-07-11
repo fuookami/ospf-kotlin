@@ -1,7 +1,7 @@
 /**
  * 金融吸引子
  * Finance Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class FinanceAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -45,7 +45,7 @@ data class FinanceAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, va
 /**
  * 金融吸引子生成器
  * Finance Attractor Generator
- */
+*/
 data class FinanceAttractorGenerator(
     val attractor: FinanceAttractor<Flt64> = FinanceAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

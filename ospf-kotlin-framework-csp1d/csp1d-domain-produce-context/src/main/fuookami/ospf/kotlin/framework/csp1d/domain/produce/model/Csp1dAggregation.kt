@@ -17,8 +17,9 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.CuttingPlan
  * managing its own variable set.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dAggregation<V : RealNumber<V>> {
+
     /**
      * 注册到元模型 / Register to meta model
      *
@@ -27,11 +28,11 @@ interface Csp1dAggregation<V : RealNumber<V>> {
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
      * 聚合根管理的切割方案列表 / Cutting plans managed by this aggregation
-     */
+    */
     val cuttingPlans: List<CuttingPlan<V>>
 }

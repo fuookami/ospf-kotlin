@@ -19,7 +19,7 @@
  * - 映射器：转换值的函数
  * - 比较器：比较两个值的函数
  * - 生成器：生成可选值的函数
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -27,7 +27,7 @@ package fuookami.ospf.kotlin.utils.functional
  *
  * Type alias for a predicate function that takes a value and returns a Boolean.
  * 接受一个值并返回 Boolean 的谓词函数类型别名。
- */
+*/
 typealias Predicate<T> = (T) -> Boolean
 
 /**
@@ -35,7 +35,7 @@ typealias Predicate<T> = (T) -> Boolean
  *
  * Type alias for a predicate function that may fail and return a Result.
  * 可能失败并返回 Result 的谓词函数类型别名。
- */
+*/
 typealias TryPredicate<T> = (T) -> Ret<Boolean>
 
 /**
@@ -43,7 +43,7 @@ typealias TryPredicate<T> = (T) -> Ret<Boolean>
  *
  * Type alias for a suspend predicate function.
  * 挂起谓词函数类型别名。
- */
+*/
 typealias SuspendPredicate<T> = suspend (T) -> Boolean
 
 /**
@@ -51,7 +51,7 @@ typealias SuspendPredicate<T> = suspend (T) -> Boolean
  *
  * Type alias for a suspend predicate function that may fail.
  * 可能失败的挂起谓词函数类型别名。
- */
+*/
 typealias SuspendTryPredicate<T> = suspend (T) -> Ret<Boolean>
 
 /**
@@ -59,7 +59,7 @@ typealias SuspendTryPredicate<T> = suspend (T) -> Ret<Boolean>
  *
  * Type alias for a predicate function that takes an index and a value.
  * 接受索引和值的谓词函数类型别名。
- */
+*/
 typealias IndexedPredicate<T> = (Int, T) -> Boolean
 
 /**
@@ -67,7 +67,7 @@ typealias IndexedPredicate<T> = (Int, T) -> Boolean
  *
  * Type alias for an indexed predicate function that may fail.
  * 可能失败的带索引谓词函数类型别名。
- */
+*/
 typealias TryIndexedPredicate<T> = (Int, T) -> Ret<Boolean>
 
 /**
@@ -75,7 +75,7 @@ typealias TryIndexedPredicate<T> = (Int, T) -> Ret<Boolean>
  *
  * Type alias for a suspend indexed predicate function.
  * 挂起的带索引谓词函数类型别名。
- */
+*/
 typealias SuspendIndexedPredicate<T> = suspend (Int, T) -> Boolean
 
 /**
@@ -83,7 +83,7 @@ typealias SuspendIndexedPredicate<T> = suspend (Int, T) -> Boolean
  *
  * Type alias for a suspend indexed predicate function that may fail.
  * 可能失败的挂起带索引谓词函数类型别名。
- */
+*/
 typealias SuspendTryIndexedPredicate<T> = suspend (Int, T) -> Ret<Boolean>
 
 /**
@@ -91,7 +91,7 @@ typealias SuspendTryIndexedPredicate<T> = suspend (Int, T) -> Ret<Boolean>
  *
  * Type alias for a function that extracts a value of type R from type T.
  * 从类型 T 中提取类型 R 值的函数类型别名。
- */
+*/
 typealias Extractor<R, T> = (T) -> R
 
 /**
@@ -99,7 +99,7 @@ typealias Extractor<R, T> = (T) -> R
  *
  * Type alias for an extractor function that may fail.
  * 可能失败的提取器函数类型别名。
- */
+*/
 typealias TryExtractor<R, T> = (T) -> Ret<R>
 
 /**
@@ -107,7 +107,7 @@ typealias TryExtractor<R, T> = (T) -> Ret<R>
  *
  * Type alias for a suspend extractor function.
  * 挂起的提取器函数类型别名。
- */
+*/
 typealias SuspendExtractor<R, T> = suspend (T) -> R
 
 /**
@@ -115,7 +115,7 @@ typealias SuspendExtractor<R, T> = suspend (T) -> R
  *
  * Type alias for a suspend extractor function that may fail.
  * 可能失败的挂起提取器函数类型别名。
- */
+*/
 typealias SuspendTryExtractor<R, T> = suspend (T) -> Ret<R>
 
 /**
@@ -123,7 +123,7 @@ typealias SuspendTryExtractor<R, T> = suspend (T) -> Ret<R>
  *
  * Type alias for an extractor function that takes an index and a value.
  * 接受索引和值的提取器函数类型别名。
- */
+*/
 typealias IndexedExtractor<R, T> = (Int, T) -> R
 
 /**
@@ -131,7 +131,7 @@ typealias IndexedExtractor<R, T> = (Int, T) -> R
  *
  * Type alias for an indexed extractor function that may fail.
  * 可能失败的带索引提取器函数类型别名。
- */
+*/
 typealias TryIndexedExtractor<R, T> = (Int, T) -> Ret<R>
 
 /**
@@ -139,7 +139,7 @@ typealias TryIndexedExtractor<R, T> = (Int, T) -> Ret<R>
  *
  * Type alias for a suspend indexed extractor function.
  * 挂起的带索引提取器函数类型别名。
- */
+*/
 typealias SuspendIndexedExtractor<R, T> = suspend (Int, T) -> R
 
 /**
@@ -147,7 +147,7 @@ typealias SuspendIndexedExtractor<R, T> = suspend (Int, T) -> R
  *
  * Type alias for a suspend indexed extractor function that may fail.
  * 可能失败的挂起带索引提取器函数类型别名。
- */
+*/
 typealias SuspendTryIndexedExtractor<R, T> = suspend (Int, T) -> Ret<R>
 
 /**
@@ -155,7 +155,7 @@ typealias SuspendTryIndexedExtractor<R, T> = suspend (Int, T) -> Ret<R>
  *
  * Type alias for a function that maps a value of type T to type R.
  * 将类型 T 的值映射到类型 R 的函数类型别名。
- */
+*/
 typealias Mapper<R, T> = (T) -> R
 
 /**
@@ -163,7 +163,7 @@ typealias Mapper<R, T> = (T) -> R
  *
  * Type alias for a mapper function that may fail.
  * 可能失败的映射器函数类型别名。
- */
+*/
 typealias TryMapper<R, T> = (T) -> Ret<R>
 
 /**
@@ -171,7 +171,7 @@ typealias TryMapper<R, T> = (T) -> Ret<R>
  *
  * Type alias for Kotlin's standard Comparator interface.
  * Kotlin 标准 Comparator 接口的类型别名。
- */
+*/
 typealias KComparator<T> = kotlin.Comparator<T>
 
 /**
@@ -179,7 +179,7 @@ typealias KComparator<T> = kotlin.Comparator<T>
  *
  * Type alias for a comparator function that returns true if first is less than second.
  * 比较器函数类型别名，如果第一个参数小于第二个参数则返回 true。
- */
+*/
 typealias Comparator<T> = (T, T) -> Boolean
 
 /**
@@ -187,7 +187,7 @@ typealias Comparator<T> = (T, T) -> Boolean
  *
  * Type alias for a partial comparator function that may return null if values cannot be compared.
  * 部分比较器函数类型别名，如果值无法比较则可能返回 null。
- */
+*/
 typealias PartialComparator<T> = (T, T) -> Boolean?
 
 /**
@@ -195,7 +195,7 @@ typealias PartialComparator<T> = (T, T) -> Boolean?
  *
  * Type alias for a comparator function that may fail.
  * 可能失败的比较器函数类型别名。
- */
+*/
 typealias TryComparator<T> = (T, T) -> Ret<Boolean>
 
 /**
@@ -203,7 +203,7 @@ typealias TryComparator<T> = (T, T) -> Ret<Boolean>
  *
  * Type alias for a generator function that produces an optional value.
  * 生成可选值的生成器函数类型别名。
- */
+*/
 typealias Generator<R> = () -> R?
 
 /**
@@ -211,7 +211,7 @@ typealias Generator<R> = () -> R?
  *
  * Type alias for a three-way comparator function that returns an Order.
  * 返回 Order 的三路比较器函数类型别名。
- */
+*/
 typealias ThreeWayComparator<T> = (T, T) -> Order
 
 /**
@@ -219,7 +219,7 @@ typealias ThreeWayComparator<T> = (T, T) -> Order
  *
  * Type alias for a partial three-way comparator that may return null if values cannot be compared.
  * 部分三路比较器类型别名，如果值无法比较则可能返回 null。
- */
+*/
 typealias PartialThreeWayComparator<T> = (T, T) -> Order?
 
 /**
@@ -227,7 +227,7 @@ typealias PartialThreeWayComparator<T> = (T, T) -> Order?
  *
  * Type alias for a three-way comparator function that may fail.
  * 可能失败的三路比较器函数类型别名。
- */
+*/
 typealias TryThreeWayComparator<T> = (T, T) -> Ret<Order>
 
 /**
@@ -240,7 +240,7 @@ typealias TryThreeWayComparator<T> = (T, T) -> Ret<Order>
  * @param U 输入类型的子类型 / The subtype of input type
  * @param rhs 右侧谓词 / The right-hand side predicate
  * @return 组合后的谓词 / The combined predicate
- */
+*/
 inline infix fun <T, U : T> Predicate<T>.and(crossinline rhs: Predicate<U>) = { it: U -> this(it as T) and rhs(it) }
 
 /**
@@ -253,7 +253,7 @@ inline infix fun <T, U : T> Predicate<T>.and(crossinline rhs: Predicate<U>) = { 
  * @param U 输入类型的子类型 / The subtype of input type
  * @param rhs 右侧谓词 / The right-hand side predicate
  * @return 组合后的谓词 / The combined predicate
- */
+*/
 inline infix fun <T, U : T> Predicate<T>.or(crossinline rhs: Predicate<U>) = { it: U -> this(it as T) or rhs(it) }
 
 /**
@@ -266,7 +266,7 @@ inline infix fun <T, U : T> Predicate<T>.or(crossinline rhs: Predicate<U>) = { i
  * @param U 输入类型的子类型 / The subtype of input type
  * @param rhs 右侧谓词 / The right-hand side predicate
  * @return 组合后的谓词 / The combined predicate
- */
+*/
 inline infix fun <T, U : T> Predicate<T>.xor(crossinline rhs: Predicate<U>) = { it: U -> this(it as T) xor rhs(it) }
 
 /**
@@ -277,7 +277,7 @@ inline infix fun <T, U : T> Predicate<T>.xor(crossinline rhs: Predicate<U>) = { 
  *
  * @param T 输入类型 / The input type
  * @return 取反后的谓词 / The negated predicate
- */
+*/
 operator fun <T> Predicate<T>.not(): Predicate<T> = { it: T -> !this(it) }
 
 /**
@@ -288,7 +288,7 @@ operator fun <T> Predicate<T>.not(): Predicate<T> = { it: T -> !this(it) }
  *
  * @param T 输入类型 / The input type
  * @return 取反后的三路比较器 / The negated three-way comparator
- */
+*/
 operator fun <T> ThreeWayComparator<T>.not(): ThreeWayComparator<T> = { lhs, rhs: T -> orderOf(-this(lhs, rhs).value) }
 
 /**
@@ -299,7 +299,7 @@ operator fun <T> ThreeWayComparator<T>.not(): ThreeWayComparator<T> = { lhs, rhs
  *
  * @param T 输入类型 / The input type
  * @return 转换后的三路比较器 / The converted three-way comparator
- */
+*/
 fun <T> kotlin.Comparator<T>.threeWay(): ThreeWayComparator<T> {
     return { lhs, rhs -> orderOf(this.compare(lhs, rhs)) }
 }

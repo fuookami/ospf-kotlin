@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @property assignedTaskCount 已分配任务数 / Assigned task count
  * @property canceledTaskCount 已取消任务数 / Canceled task count
  * @property totalTaskCount 总任务数 / Total task count
- */
+*/
 data class TaskSolutionSummary(
     val assignedTaskCount: UInt64,
     val canceledTaskCount: UInt64,
@@ -25,7 +25,9 @@ data class TaskSolutionSummary(
  * @param A 分配策略类型 / Assignment policy type
  * @param assignedTasks 已分配任务列表 / List of assigned tasks
  * @param canceledTasks 已取消任务列表 / List of canceled tasks
- */
+ * @property assignedTasks 已分配任务列表 / List of assigned tasks
+ * @property canceledTasks 已取消任务列表 / List of canceled tasks
+*/
 data class TaskSolution<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -34,6 +36,8 @@ data class TaskSolution<
     val assignedTasks: List<T>,
     val canceledTasks: List<T>
 ) {
+
+    /** 伴生对象 / Companion object */
     companion object {}
 
     /** 解汇总 / Solution summary */

@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * 提供基于 Flt64ValueConverter 的泛型快捷 DSL，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
  * Provides generic quick DSL based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
- */
+*/
 
 /**
  * 泛型快捷 DSL
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
  * @property converter Flt64 到 V 的转换器 / Flt64 to V converter
- */
+*/
 class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
     // ========== LinearPolynomial constructors ==========
     // 线性多项式构造函数 / Linear polynomial constructors
@@ -34,7 +34,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * 创建空的线性多项式（零多项式） / Create empty linear polynomial (zero polynomial)
      *
      * @return 空的线性多项式 / Empty linear polynomial
-     */
+    */
     fun LinearPolynomial(): LinearPolynomial<V> =
         LinearPolynomial(emptyList(), converter.zero)
 
@@ -43,7 +43,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param constant Flt64 常数 / Flt64 constant value
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     fun LinearPolynomial(constant: Flt64): LinearPolynomial<V> =
         LinearPolynomial(emptyList(), converter.intoValue(constant))
 
@@ -52,7 +52,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param constant V 类型常数 / V-type constant value
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     fun LinearPolynomial(constant: V): LinearPolynomial<V> =
         LinearPolynomial(emptyList(), constant)
 
@@ -61,7 +61,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param monomial 线性单项式 / Linear monomial
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     fun LinearPolynomial(monomial: LinearMonomial<V>): LinearPolynomial<V> =
         LinearPolynomial(listOf(monomial), converter.zero)
 
@@ -70,7 +70,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param symbol 符号 / Symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     fun LinearPolynomial(symbol: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, symbol)), converter.zero)
 
@@ -78,7 +78,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * 创建空的可变线性多项式 / Create empty mutable linear polynomial
      *
      * @return 空的可变线性多项式 / Empty mutable linear polynomial
-     */
+    */
     fun MutableLinearPolynomial(): MutableLinearPolynomial<V> =
         MutableLinearPolynomial(emptyList(), converter.zero)
 
@@ -89,7 +89,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * 创建空的二次多项式（零多项式） / Create empty quadratic polynomial (zero polynomial)
      *
      * @return 空的二次多项式 / Empty quadratic polynomial
-     */
+    */
     fun QuadraticPolynomial(): QuadraticPolynomial<V> =
         QuadraticPolynomial(emptyList(), converter.zero)
 
@@ -98,7 +98,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param constant Flt64 常数 / Flt64 constant value
      * @return 二次多项式 / Quadratic polynomial
-     */
+    */
     fun QuadraticPolynomial(constant: Flt64): QuadraticPolynomial<V> =
         QuadraticPolynomial(emptyList(), converter.intoValue(constant))
 
@@ -107,7 +107,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param constant V 类型常数 / V-type constant value
      * @return 二次多项式 / Quadratic polynomial
-     */
+    */
     fun QuadraticPolynomial(constant: V): QuadraticPolynomial<V> =
         QuadraticPolynomial(emptyList(), constant)
 
@@ -116,7 +116,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param monomial 二次单项式 / Quadratic monomial
      * @return 二次多项式 / Quadratic polynomial
-     */
+    */
     fun QuadraticPolynomial(monomial: QuadraticMonomial<V>): QuadraticPolynomial<V> =
         QuadraticPolynomial(listOf(monomial), converter.zero)
 
@@ -125,7 +125,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param symbol 符号 / Symbol
      * @return 二次多项式 / Quadratic polynomial
-     */
+    */
     fun QuadraticPolynomial(symbol: Symbol): QuadraticPolynomial<V> =
         QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, symbol)), converter.zero)
 
@@ -133,7 +133,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * 创建空的可变二次多项式 / Create empty mutable quadratic polynomial
      *
      * @return 空的可变二次多项式 / Empty mutable quadratic polynomial
-     */
+    */
     fun MutableQuadraticPolynomial(): MutableQuadraticPolynomial<V> =
         MutableQuadraticPolynomial(emptyList(), converter.zero)
 
@@ -147,7 +147,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * @param items 元素集合 / Collection of elements
      * @param selector 从元素提取符号的函数 / Function to extract symbol from element
      * @return 线性多项式之和 / Sum as linear polynomial
-     */
+    */
     fun <E> sumVars(items: Iterable<E>, selector: (E) -> Symbol?): LinearPolynomial<V> {
         val monomials = items.mapNotNull(selector).map { LinearMonomial(converter.one, it) }
         return LinearPolynomial(monomials, converter.zero)
@@ -159,7 +159,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param symbols 符号集合 / Collection of symbols
      * @return 线性多项式之和 / Sum as linear polynomial
-     */
+    */
     fun sum(symbols: Iterable<Symbol>): LinearPolynomial<V> =
         LinearPolynomial(symbols.map { LinearMonomial(converter.one, it) }, converter.zero)
 
@@ -173,7 +173,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      * @param items 元素集合 / Collection of elements
      * @param selector 从元素提取符号的函数 / Function to extract symbol from element
      * @return 二次多项式之和 / Sum as quadratic polynomial
-     */
+    */
     fun <E> qsumVars(items: Iterable<E>, selector: (E) -> Symbol?): QuadraticPolynomial<V> {
         val monomials = items.mapNotNull(selector).map { QuadraticMonomial.linear(converter.one, it) }
         return QuadraticPolynomial(monomials, converter.zero)
@@ -185,7 +185,7 @@ class QuickDsl<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param symbols 符号集合 / Collection of symbols
      * @return 二次多项式之和 / Sum as quadratic polynomial
-     */
+    */
     fun qsum(symbols: Iterable<Symbol>): QuadraticPolynomial<V> =
         QuadraticPolynomial(symbols.map { QuadraticMonomial.linear(converter.one, it) }, converter.zero)
 }

@@ -1,7 +1,7 @@
 /**
  * Block model.
  * 块模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.service.ItemMerger
  * Base class for Block, representing a block composed of multiple item placement units.
  *
  * @property units 物品放置单元列表 / List of item placement units
- */
+*/
 sealed class Block(
     // inherited from Container3<Block>
     final override val units: List<QuantityPlacement3<Item, FltX>>,
@@ -45,7 +45,7 @@ sealed class Block(
 /**
  * 通用块，无特殊约束的 Block 实现。
  * Common block, a Block implementation with no special constraints.
- */
+*/
 class CommonBlock(
     units: List<QuantityPlacement3<Item, FltX>>
 ) : Block(units) {
@@ -60,7 +60,7 @@ class CommonBlock(
  * @property itemView 物品视图 / Item view
  * @property itemOrientation 物品方向 / Item orientation
  * @property layer 层数 / Number of layers
- */
+*/
 class SimpleBlock(
     units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
@@ -96,7 +96,7 @@ class SimpleBlock(
  * @property itemRotationView 旋转后的物品视图 / Rotated item view
  * @property itemRotatedOrientation 旋转后的物品方向 / Rotated item orientation
  * @property layer 层数 / Number of layers
- */
+*/
 class HollowSquareBlock(
     units: List<QuantityPlacement3<Item, FltX>>,
 ) : Block(units) {
@@ -165,7 +165,7 @@ class HollowSquareBlock(
  * @property topItemOrientation 顶部物品方向 / Top item orientation
  * @property bottomLayer 底部层数 / Bottom layer count
  * @property topLayer 顶部层数 / Top layer count
- */
+*/
 class Pile(
     val itemViews: List<ItemView>
 ) : Block(dump(itemViews)) {
@@ -176,7 +176,7 @@ class Pile(
          *
          * @param items 物品视图列表 / List of item views
          * @return 放置单元列表 / List of placement units
-         */
+        */
         private fun dump(items: List<ItemView>): List<QuantityPlacement3<Item, FltX>> {
             val units = ArrayList<QuantityPlacement3<Item, FltX>>()
             var y = FltX.zero * items.first().height.unit
@@ -203,7 +203,7 @@ class Pile(
          * @param item 物品 / Item
          * @param bottomItems 底部物品列表 / List of bottom items
          * @return 层数和高度 / Layer count and height
-         */
+        */
         fun layer(
             item: Item,
             bottomItems: List<Item>,
@@ -218,7 +218,7 @@ class Pile(
          * @param item 物品视图 / Item view
          * @param bottomItems 底部物品视图列表 / List of bottom item views
          * @return 层数和高度 / Layer count and height
-         */
+        */
         fun layer(
             item: ItemView,
             bottomItems: List<ItemView>,
@@ -287,7 +287,7 @@ class Pile(
  * @property topItemOrientation 顶部物品方向 / Top item orientation
  * @property bottomLayer 底部层数 / Bottom layer count
  * @property topLayer 顶部层数 / Top layer count
- */
+*/
 class LayeredBlock(
     // inherited from Container3<Block>
     val blocks: List<SimpleBlock>
@@ -299,7 +299,7 @@ class LayeredBlock(
          *
          * @param blocks 简单块列表 / List of simple blocks
          * @return 放置单元列表 / List of placement units
-         */
+        */
         private fun dump(blocks: List<SimpleBlock>): List<QuantityPlacement3<Item, FltX>> {
             var y = FltX.zero * blocks.first().height.unit
             val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
@@ -346,7 +346,7 @@ class LayeredBlock(
  * Complex block, composed of multiple sub-blocks placed in 3D space.
  *
  * @property blocks 子块放置列表 / List of sub-block placements
- */
+*/
 class ComplexBlock(
     // inherited from Container3<Block>
     val blocks: List<QuantityPlacement3<Block, FltX>>
@@ -358,7 +358,7 @@ class ComplexBlock(
          *
          * @param blocks 块放置列表 / List of block placements
          * @return 物品放置单元列表 / List of item placement units
-         */
+        */
         private fun dump(blocks: List<QuantityPlacement3<Block, FltX>>): List<QuantityPlacement3<Item, FltX>> {
             val placements = ArrayList<QuantityPlacement3<Item, FltX>>()
             for (block in blocks) {

@@ -12,10 +12,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.servi
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 生成用于模型构建的冗余约束管线。Generates the pipeline of redundancy constraints for model construction.
+ * Generates the pipeline of redundancy constraints for model construction.
+ * 生成用于模型构建的冗余约束管线。
  *
- * @property aggregation 参数。
- */
+ * @property aggregation The aggregation containing redundancy and balance data / 包含冗余和平衡数据的聚合
+*/
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

@@ -14,6 +14,11 @@ import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 
+/**
+ * Maximum load weight model for each position, supporting both constant
+ * and piecewise-linear maximum load weight limits based on zero-fuel weight.
+ * 每个位置的最大装载重量模型，支持基于零油重的常量和分段线性最大装载重量限制。
+*/
 class MaxLoadWeight(
     private val aircraftModel: AircraftModel,
     private val fuselage: Fuselage,
@@ -23,6 +28,13 @@ class MaxLoadWeight(
 ) {
     lateinit var maxLoadWeight: QuantityLinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers the maximum load weight symbols into the model.
+     * 将最大装载重量符号注册到模型中。
+     *
+     * @param model the linear meta-model to register into / 要注册到的线性元模型
+     * @return success or failure / 成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

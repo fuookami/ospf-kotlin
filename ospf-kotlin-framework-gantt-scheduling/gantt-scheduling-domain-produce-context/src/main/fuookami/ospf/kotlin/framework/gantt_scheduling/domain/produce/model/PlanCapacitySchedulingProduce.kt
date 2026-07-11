@@ -3,7 +3,7 @@
  *
  * 本文件定义 PlanCapacitySchedulingProduce 类，用于非列生成场景下的产品产量管理。
  * This file defines PlanCapacitySchedulingProduce class for product output management in non-column generation scenarios.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
  *
  * @param products 产品列表及其需求 / Product list with demands
  * @param compilation Capacity 编译对象 / Capacity compilation object
- */
+*/
 class PlanCapacitySchedulingProduce<
         A : ProductionAction,
         P : AbstractMaterial,

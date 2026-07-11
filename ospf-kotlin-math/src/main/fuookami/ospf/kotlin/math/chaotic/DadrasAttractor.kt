@@ -1,7 +1,7 @@
 /**
  * 达德拉斯吸引子
  * Dadras Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property rho 系统参数 rho / System parameter rho
  * @property sigma 系统参数 sigma / System parameter sigma
  * @property h 时间步长 / Time step size
- */
+*/
 data class DadrasAttractor<V : FloatingNumber<V>>(
     val gamma: V, val epsilon: V, val zeta: V,
     val rho: V, val sigma: V, val h: V
@@ -49,7 +49,7 @@ data class DadrasAttractor<V : FloatingNumber<V>>(
  * Dadras Attractor Generator
  *
  * @property attractor 达德拉斯吸引子实例 / Dadras attractor instance
- */
+*/
 data class DadrasAttractorGenerator(
     val attractor: DadrasAttractor<Flt64> = DadrasAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

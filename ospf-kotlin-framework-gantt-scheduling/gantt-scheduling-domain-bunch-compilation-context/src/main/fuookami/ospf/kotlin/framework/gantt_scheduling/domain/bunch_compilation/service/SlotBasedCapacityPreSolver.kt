@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 分时隙产能预求解服务 / Slot-based capacity pre-solving service */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
@@ -13,7 +14,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
-
+/**
+ * Type alias for CapacityPreSolveSolver.
+ * CapacityPreSolveSolver的类型别名。
+*/
 typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
 
 /**
@@ -23,7 +27,10 @@ typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> R
  * Normalizes wildcard errors to ErrorCode errors.
  * The pre-solve pipeline expects solver errors to use ErrorCode; if not,
  * it degrades to Unknown while preserving original error details.
- */
+ *
+ * @param error Solver error to normalize / 要规范化的求解器错误
+ * @return Error normalized to ErrorCode type / 规范化为 ErrorCode 类型的错误
+*/
 private fun errorCodeErrorOf(error: Error<*>): Error<ErrorCode> {
     val code = error.code as? ErrorCode
     return if (code != null) {
@@ -41,6 +48,12 @@ private fun errorCodeErrorOf(error: Error<*>): Error<ErrorCode> {
     }
 }
 
+/**
+ * Normalizes a list of wildcard errors to ErrorCode errors.
+ * 将通配符错误列表规范化为 ErrorCode 错误列表。
+ * @param errors List of errors to normalize / 要规范化的错误列表
+ * @return List of errors normalized to ErrorCode type / 规范化为 ErrorCode 类型的错误列表
+*/
 private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
     return errors.map(::errorCodeErrorOf)
 }
@@ -71,72 +84,73 @@ private fun errorCodeErrorsOf(errors: List<Error<*>>): List<Error<ErrorCode>> {
  * @property unitConsumptionOfAction 计算动作单位操作时间的原料消耗 / Calculate material consumption per unit operation time for action
  * @property unitResourceUsageOfAction 计算动作在时隙内单位操作时间的资源使用量 / Calculate resource usage per unit operation time for action in slot
  * @property materials 原料列表 / Material list
- */
+*/
 class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
+
     /**
      * 生产动作列表
      * List of production actions
-     */
+    */
     private val actions: List<A>,
 
     /**
      * 执行器列表
      * List of executors
-     */
+    */
     private val executors: List<E>,
 
     /**
      * 时隙列表
      * List of time slots
-     */
+    */
     private val slots: List<TimeSlot>,
 
     /**
      * 时间窗口
      * Time window
-     */
+    */
     private val timeWindow: TimeWindow<V>,
 
     /**
      * 产品列表及其需求量
      * Products with their demand quantities
-     */
+    */
     private val products: List<Pair<M, Quantity<V>>> = emptyList(),
 
     /**
      * 资源容量列表
      * List of resource capacities
-     */
+    */
     private val resourceCapacities: List<R> = emptyList(),
 
     /**
      * 是否使用列生成
      * Whether to use column generation
-     */
+    */
     private val useColumnGeneration: Boolean = false,
 
     /**
      * 计算动作单位操作时间的产品产量
      * Calculate product produce per unit operation time for action
-     */
+    */
     private val unitProduceOfAction: ((A, M) -> V)? = null,
 
     /**
      * 计算动作单位操作时间的原料消耗
      * Calculate material consumption per unit operation time for action
-     */
+    */
     private val unitConsumptionOfAction: ((A, M) -> V)? = null,
 
     /**
      * 计算动作在时隙内单位操作时间的资源使用量
      * Calculate resource usage per unit operation time for action in slot
-     */
+    */
     private val unitResourceUsageOfAction: ((A, R, TimeSlot) -> V)? = null,
 
     /**
      * 原料列表
      * Material list
-     */
+    */
     private val materials: List<M> = emptyList()
 ) where V : RealNumber<V>, V : PlusGroup<V> {
     private val solverTimeWindow = timeWindow.toFlt64Boundary()
@@ -144,7 +158,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
     /**
      * 产能编译对象
      * Capacity compilation object
-     */
+    */
     private val capacityCompilation: CapacityCompilation<Flt64, A>? = if (!useColumnGeneration) {
         CapacityCompilation(
             actions = actions,
@@ -179,7 +193,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         return if (useColumnGeneration) {
             iterativeCompilation!!.register(model)
@@ -196,7 +210,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
      * @param columns Columns to add / 待添加列
      * @param model Linear meta model / 线性元模型
      * @return Added columns / 实际添加的列
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A, Flt64>>,
@@ -222,7 +236,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
      * @param solver Solver / 求解器
      * @param initialColumnsByIteration Initial columns grouped by iteration / 按迭代分组的初始列
      * @return Intermediate values / 中间值
-     */
+    */
     suspend fun solve(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver,
@@ -261,7 +275,7 @@ class SlotBasedCapacityPreSolver<V, E : Executor, A : ProductionAction, M, R>(
      *
      * @param model Solved linear meta model / 已求解的线性元模型
      * @return Intermediate values / 中间值
-     */
+    */
     fun extractIntermediateValues(
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<CapacityIntermediateValues<A, M, R, V>> {

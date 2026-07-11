@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
 
 /** 任务束上下文任务解分析器 / Task solution analyzer in bunch context */
 data object TaskSolutionAnalyzer {
+
     /**
      * 从任务束编译 solver 解中提取任务解 / Extract task solution from a bunch-compilation solver solution
      *
@@ -33,7 +34,7 @@ data object TaskSolutionAnalyzer {
      * @param model solver 模型边界 / Solver model boundary
      * @param solution 可选 solver 解向量 / Optional solver solution vector
      * @return 任务解 / Task solution
-     */
+    */
     operator fun <
             B : AbstractTaskBunch<T, E, A, V>,
             V : RealNumber<V>,

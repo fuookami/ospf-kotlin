@@ -1,7 +1,7 @@
 /**
  * 二次四元模型转储构建器
  * Quadratic tetrad model dump builders
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -20,7 +20,7 @@ import kotlinx.coroutines.*
  *
  * @param rows 二次约束单元格行列表 / The list of quadratic constraint cell rows
  * @return 稀疏二次矩阵 / The sparse quadratic matrix
- */
+*/
 internal fun buildQuadraticSparseLhs(rows: List<List<QuadraticConstraintCell>>): SparseQuadraticMatrix {
     val matrix = SparseQuadraticMatrix()
     for (row in rows) {
@@ -40,7 +40,7 @@ internal fun buildQuadraticSparseLhs(rows: List<List<QuadraticConstraintCell>>):
  * @param tokenIndexes 标记到列索引的映射 / The mapping from tokens to column indices
  * @param bounds       标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @return 求解器变量列表 / The list of solver variables
- */
+*/
 internal fun dumpQuadraticTetradVariables(
     tokenIndexes: Map<Token<Flt64>, Int>,
     bounds: Map<Token<Flt64>, List<Quadruple<QuadraticConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
@@ -90,7 +90,7 @@ internal fun dumpQuadraticTetradVariables(
  * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 二次约束批次 / The quadratic constraint batch
- */
+*/
 internal fun dumpQuadraticTetradConstraints(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -179,7 +179,7 @@ internal fun dumpQuadraticTetradConstraints(
  * @param bounds         标记到边界约束列表的映射 / The mapping from tokens to bound constraint lists
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 二次约束批次 / The quadratic constraint batch
- */
+*/
 internal suspend fun dumpQuadraticTetradConstraintsAsync(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,
@@ -355,7 +355,7 @@ internal suspend fun dumpQuadraticTetradConstraintsAsync(
  * @param tokenIndexes   标记到列索引的映射 / The mapping from tokens to column indices
  * @param fixedVariables 固定变量映射（可为 null） / The fixed variables mapping (nullable)
  * @return 二次目标 / The quadratic objective
- */
+*/
 internal fun dumpQuadraticTetradObjectives(
     model: QuadraticMechanismModel<Flt64>,
     tokenIndexes: Map<Token<Flt64>, Int>,

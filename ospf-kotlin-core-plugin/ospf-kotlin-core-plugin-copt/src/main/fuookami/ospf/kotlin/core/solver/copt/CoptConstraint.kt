@@ -31,7 +31,7 @@ enum class CoptConstraintSign {
          *
          * @param sign 内部约束关系 / internal constraint relation
          * @return COPT 约束符号 / COPT constraint sign
-         */
+        */
         operator fun invoke(sign: ConstraintRelation): CoptConstraintSign {
             return when (sign) {
                 ConstraintRelation.GreaterEqual -> {
@@ -53,6 +53,6 @@ enum class CoptConstraintSign {
      * 转换为 COPT 约束符号字符 / Convert to COPT constraint sign character
      *
      * @return COPT 约束符号字符 / COPT constraint sign character
-     */
+    */
     abstract fun toCoptConstraintSign(): Char
 }

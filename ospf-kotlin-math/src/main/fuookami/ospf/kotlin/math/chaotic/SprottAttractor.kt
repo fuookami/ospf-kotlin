@@ -9,7 +9,7 @@
  * The Sprott attractor is a class of simple chaotic attractor systems
  * that produce chaotic dynamics through minimal nonlinear terms.
  * Commonly used for chaotic dynamics research, simple chaotic system analysis, and time series generation.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c / System parameter c
  * @property h 时间步长 / Time step size
- */
+*/
 data class SprottAttractor<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -59,7 +59,7 @@ data class SprottAttractor<V : FloatingNumber<V>>(
  * Sprott Attractor Generator
  *
  * @property attractor Sprott 吸引子实例 / Sprott attractor instance
- */
+*/
 data class SprottAttractorGenerator(
     val attractor: SprottAttractor<Flt64> = SprottAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

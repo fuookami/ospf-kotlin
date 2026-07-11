@@ -9,7 +9,7 @@
  * The Anishchenko-Astakhov attractor is a three-dimensional chaotic system proposed by Anishchenko and Astakhov.
  * This system introduces nonlinearity through a switching function and exhibits rich chaotic dynamical properties.
  * Commonly used for chaotic circuit simulation and dynamics research of switching systems.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property mu 系统参数 mu / System parameter mu
  * @property eta 系统参数 eta / System parameter eta
  * @property h 时间步长 / Time step size
- */
+*/
 data class AnishchenkoAstakhovAttractor<V : FloatingNumber<V>>(
     val mu: V,
     val eta: V,
@@ -59,7 +59,7 @@ data class AnishchenkoAstakhovAttractor<V : FloatingNumber<V>>(
 /**
  * Anishchenko-Astakhov 吸引子生成器
  * Anishchenko-Astakhov Attractor Generator
- */
+*/
 data class AnishchenkoAstakhovAttractorGenerator(
     val anishchenkoAstakhovAttractor: AnishchenkoAstakhovAttractor<Flt64> = AnishchenkoAstakhovAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

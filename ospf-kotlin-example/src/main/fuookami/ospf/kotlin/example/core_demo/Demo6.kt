@@ -31,15 +31,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Bounded knapsack: maximize cargo value with quantity limits per item.
  *
  * @see https://fuookami.github.io/ospf/examples/example6.html
- */
+*/
 data object Demo6 {
+
     /**
      * 具有重量、价值和可用数量的货物项。A cargo item with weight, value, and available amount.
      *
      * @property weight 重量 / Weight
      * @property value 价值 / Value
      * @property amount 数量 / Amount
-     */
+    */
     data class Cargo(
         val weight: UInt64,
         val value: UInt64,
@@ -73,7 +74,7 @@ data object Demo6 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -95,7 +96,7 @@ data object Demo6 {
      * 初始化货物数量的无符号整数决策变量。/ Initializes unsigned integer decision variables for cargo quantities.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(cargos.size))
         for (c in cargos) {
@@ -109,7 +110,7 @@ data object Demo6 {
      * 创建货物价值和重量表达式符号。/ Creates cargo value and weight expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         cargoValue = LinearExpressionSymbol(
             sum(cargos) { c -> c.value * x[c] },
@@ -130,7 +131,7 @@ data object Demo6 {
      * 设置目标函数以最大化总货物价值。/ Sets the objective to maximize total cargo value.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.maximize(cargoValue, "value")
         return ok
@@ -140,7 +141,7 @@ data object Demo6 {
      * 添加每项数量限制和重量容量约束。/ Adds per-item amount limits and weight capacity constraint.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (c in cargos) {
             x[c].range.ls(c.amount)
@@ -157,7 +158,7 @@ data object Demo6 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -180,7 +181,7 @@ data object Demo6 {
      * 从解中提取货物数量。/ Extracts the cargo quantities from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Cargo, UInt64>()
         for (token in metaModel.tokens.tokens) {

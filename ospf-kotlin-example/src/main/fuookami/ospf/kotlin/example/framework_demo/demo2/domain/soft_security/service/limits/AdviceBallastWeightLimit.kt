@@ -19,6 +19,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Minimizes the deviation of ballast weight from the advised ballast weight using a slack variable.
+ * 使用松弛变量最小化压舱物重量与建议压舱物重量的偏差。
+ *
+ * @property aircraftModel The aircraft model reference / 飞机模型引用
+ * @property ballast The ballast data with advice weight / 带有建议重量的压舱物数据
+ * @property coefficient The weight coefficient for the slack minimization / 松弛最小化的权重系数
+*/
 class AdviceBallastWeightLimit(
     private val aircraftModel: AircraftModel,
     private val ballast: Ballast,

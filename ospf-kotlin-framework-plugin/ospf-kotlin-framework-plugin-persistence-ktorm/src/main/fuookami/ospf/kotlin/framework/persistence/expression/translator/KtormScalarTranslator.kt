@@ -4,7 +4,7 @@
  *
  * 将通用 ScalarExpression 翻译为 Ktorm 标量 SQL 表达式。
  * Translates generic ScalarExpression to Ktorm scalar SQL expressions.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.ktorm.expression.ArgumentExpression
@@ -31,18 +31,19 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class KtormScalarTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+
     /**
      * 翻译标量表达式为 Ktorm 标量 SQL 表达式
      * Translate scalar expression to Ktorm scalar SQL expression
      *
      * @param expr 标量表达式 / Scalar expression
      * @return Ktorm 标量表达式，不支持时返回 null / Ktorm scalar expression, or null if unsupported
-     */
+    */
     fun translate(expr: ScalarExpression<*>): Ret<KtormScalarExpression<*>?> {
         return when (expr) {
             is ScalarReference<*> -> {
@@ -64,7 +65,7 @@ class KtormScalarTranslator(
      *
      * @param value 常量值 / Constant value
      * @return Ktorm 参数表达式 / Ktorm argument expression
-     */
+    */
     private fun translateConstant(value: Any?): Ret<KtormScalarExpression<*>?> {
         if (value == null) {
             return unsupported("Null scalar constants are not supported in predicates")
@@ -80,7 +81,7 @@ class KtormScalarTranslator(
      *
      * @param expr 一元标量表达式 / Unary scalar expression
      * @return Ktorm 一元表达式 / Ktorm unary expression
-     */
+    */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<KtormScalarExpression<*>?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         val type = when (expr.operator) {
@@ -99,7 +100,7 @@ class KtormScalarTranslator(
      *
      * @param expr 二元标量表达式 / Binary scalar expression
      * @return Ktorm 二元表达式 / Ktorm binary expression
-     */
+    */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<KtormScalarExpression<*>?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value ?: return Ok(null)
@@ -122,7 +123,7 @@ class KtormScalarTranslator(
      *
      * @param expr 标量函数表达式 / Scalar function expression
      * @return Ktorm 函数表达式 / Ktorm function expression
-     */
+    */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<KtormScalarExpression<*>?> {
         val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
@@ -174,7 +175,7 @@ class KtormScalarTranslator(
      *
      * @param value Kotlin 值 / Kotlin value
      * @return 对应的 Ktorm SQL 类型 / Corresponding Ktorm SQL type
-     */
+    */
     private fun inferSqlType(value: Any): SqlType<*> {
         return when (value) {
             is Int -> IntSqlType
@@ -191,7 +192,7 @@ class KtormScalarTranslator(
      *
      * @param reason 不支持的原因 / Reason why the expression is unsupported
      * @return 根据策略返回失败或 null / Returns failure or null depending on the policy
-     */
+    */
     private fun unsupported(reason: String): Ret<KtormScalarExpression<*>?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

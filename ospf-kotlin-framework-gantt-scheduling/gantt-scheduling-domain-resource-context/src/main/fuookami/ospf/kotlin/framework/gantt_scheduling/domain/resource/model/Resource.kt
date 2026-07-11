@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param range 表达式范围 / Expression range
  * @param upperBound 上界 / Upper bound
  * @return 是否设置成功 / Whether the upper bound was set
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun setResourceSlackUpperBoundAsFlt64(
     range: ExpressionRange<*>,
@@ -74,15 +74,29 @@ internal fun <V> resourceQuantityZero(capacities: List<AbstractResourceCapacity<
  * @property name 名称 / Name
  * @property lessEnabled 是否启用不足 / Whether less quantity is enabled
  * @property overEnabled 是否启用超量 / Whether over quantity is enabled
- */
+*/
 interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V> {
+
+    /** Time range for this capacity / 此容量的时间范围 */
     val time: TimeRange
+
+    /** Quantity range value / 数量范围物理量 */
     val quantityRangeValue: ResourceQuantityRange<V>
+
+    /** Less quantity value / 不足数量物理量 */
     val lessQuantityValue: ResourceQuantity<V>? get() = null
+
+    /** Over quantity value / 超量数量物理量 */
     val overQuantityValue: ResourceQuantity<V>? get() = null
+
+    /** Time interval / 时间间隔 */
     val interval: Duration
     val name: String? get() = null
+
+    /** Whether less quantity is enabled / 是否启用不足量 */
     val lessEnabled: Boolean get() = lessQuantityValue != null
+
+    /** Whether over quantity is enabled / 是否启用超量 */
     val overEnabled: Boolean get() = overQuantityValue != null
 
     /**
@@ -90,7 +104,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      *
      * @param unit 数量单位 / Quantity unit
      * @return 数量范围物理量 / Quantity range quantity
-     */
+    */
     fun quantityRange(unit: PhysicalUnit = NoneUnit): ResourceQuantityRange<V> {
         return Quantity(quantityRangeValue.value, unit)
     }
@@ -100,7 +114,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      *
      * @param unit 数量单位 / Quantity unit
      * @return 不足数量物理量 / Less quantity
-     */
+    */
     fun lessQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
         return lessQuantityValue?.let { Quantity(it.value, unit) }
     }
@@ -110,7 +124,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
      *
      * @param unit 数量单位 / Quantity unit
      * @return 超量数量物理量 / Over quantity
-     */
+    */
     fun overQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V>? {
         return overQuantityValue?.let { Quantity(it.value, unit) }
     }
@@ -126,7 +140,7 @@ interface AbstractResourceCapacity<V> where V : RealNumber<V>, V : NumberField<V
  * @property overQuantityValue 超量数量物理量 / Over quantity value
  * @property interval 时间间隔 / Time interval
  * @property name 名称 / Name
- */
+*/
 open class ResourceCapacity<V>(
     override val time: TimeRange,
     override val quantityRangeValue: ResourceQuantityRange<V>,
@@ -147,7 +161,7 @@ open class ResourceCapacity<V>(
  * @property name 资源名称 / Resource name
  * @property capacities 容量列表 / List of capacities
  * @property initialQuantityValue 初始数量裸值 / Initial quantity raw value
- */
+*/
 abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapacity<V>, V : RealNumber<V>, V : NumberField<V> {
     abstract val id: ResourceId
     abstract val name: String
@@ -157,7 +171,7 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * 初始数量裸值 / Initial quantity raw value
      *
      * 子类应 override 此属性提供初始数量裸值 / Subclasses should override this property to provide the initial quantity raw value
-     */
+    */
     abstract val initialQuantityValue: V
 
     /**
@@ -170,7 +184,7 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      * @param time 时间范围 / Time range
      * @param unit 数量单位 / Quantity unit
      * @return 使用量物理量 / Used quantity
-     */
+    */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange,
@@ -182,7 +196,7 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
      *
      * @param unit 数量单位 / Quantity unit
      * @return 初始数量物理量 / Initial quantity
-     */
+    */
     fun initialQuantity(unit: PhysicalUnit = NoneUnit): ResourceQuantity<V> {
         return Quantity(initialQuantityValue, unit)
     }
@@ -198,16 +212,24 @@ abstract class Resource<C, V> : ManualIndexed() where C : AbstractResourceCapaci
  * @property resource 资源 / Resource
  * @property resourceCapacity 资源容量 / Resource capacity
  * @property indexInRule 规则内索引 / Index in rule
- */
+*/
 interface ResourceTimeSlot<
         R : Resource<C, V>,
         C : AbstractResourceCapacity<V>,
         V
         > : TimeSlot, Indexed where V : RealNumber<V>, V : NumberField<V> {
+
+    /** Origin time slot / 原始时间槽 */
     val origin: TimeSlot
+
+    /** Associated resource / 关联的资源 */
     val resource: R
+
+    /** Resource capacity for this slot / 此时槽对应的资源容量 */
     val resourceCapacity: C
     override val time: TimeRange get() = origin.time
+
+    /** Index within the rule / 规则内索引 */
     val indexInRule: UInt64
 
     /**
@@ -218,7 +240,7 @@ interface ResourceTimeSlot<
      * @param prevTask 前驱任务 / Previous task
      * @param task 当前任务 / Current task
      * @return 是否相关 / Whether related
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> relatedTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -235,7 +257,7 @@ interface ResourceTimeSlot<
      * @param prevTask 前驱任务 / Previous task
      * @param task 当前任务 / Current task
      * @return 关联量 / Relation quantity
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
@@ -251,7 +273,7 @@ interface ResourceTimeSlot<
      * @param A 分配策略类型 / Assignment policy type
      * @param bunch 任务束 / Task bunch
      * @return 资源使用量裸值 / Resource usage raw value
-     */
+    */
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> invoke(
         bunch: AbstractTaskBunch<T, E, A, V>
     ): V {
@@ -273,7 +295,7 @@ interface ResourceTimeSlot<
  * @property lessQuantity 不足量变量 / Less quantity variables
  * @property overEnabled 是否启用超量 / Whether over quantity is enabled
  * @property lessEnabled 是否启用不足 / Whether less quantity is enabled
- */
+*/
 interface ResourceUsage<
         S : ResourceTimeSlot<R, C, V>,
         R : Resource<C, V>,
@@ -282,12 +304,22 @@ interface ResourceUsage<
         > where V : RealNumber<V>, V : NumberField<V> {
     val name: String
 
+    /** List of time slots / 时间槽列表 */
     val timeSlots: List<S>
+
+    /** Quantity variables / 数量变量 */
     val quantity: LinearIntermediateSymbols1<Flt64>
+
+    /** Over quantity variables / 超量变量 */
     val overQuantity: LinearIntermediateSymbols1<Flt64>
+
+    /** Less quantity variables / 不足量变量 */
     val lessQuantity: LinearIntermediateSymbols1<Flt64>
 
+    /** Whether over quantity is enabled / 是否启用超量 */
     val overEnabled: Boolean
+
+    /** Whether less quantity is enabled / 是否启用不足量 */
     val lessEnabled: Boolean
 
     /**
@@ -295,7 +327,7 @@ interface ResourceUsage<
      *
      * @param model 元模型 / Meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     fun register(model: MetaModel<Flt64>): Try
 
     /**
@@ -307,7 +339,7 @@ interface ResourceUsage<
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 资源使用量物理量 / Resource usage quantity
-     */
+    */
     fun <W : RealNumber<W>> solvedQuantity(
         slot: S,
         model: MetaModel<Flt64>,
@@ -330,7 +362,7 @@ interface ResourceUsage<
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 资源超量物理量 / Resource over-quantity
-     */
+    */
     fun <W : RealNumber<W>> solvedOverQuantity(
         slot: S,
         model: MetaModel<Flt64>,
@@ -353,7 +385,7 @@ interface ResourceUsage<
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 资源不足量物理量 / Resource less-quantity
-     */
+    */
     fun <W : RealNumber<W>> solvedLessQuantity(
         slot: S,
         model: MetaModel<Flt64>,
@@ -376,7 +408,7 @@ interface ResourceUsage<
  * @param adapter solver 数值适配器 / Solver value adapter
  * @param unit 数量单位 / Quantity unit
  * @return 资源数量物理量，求解失败时返回 null / Resource quantity, or null if evaluation fails
- */
+*/
 private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantityOf(
     model: MetaModel<Flt64>,
     adapter: SchedulingSolverValueAdapter<V>,
@@ -397,7 +429,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.resourceQuantity
  * @param R 资源类型 / Resource type
  * @param C 资源容量类型 / Resource capacity type
  * @param V 值类型 / Value type
- */
+*/
 abstract class AbstractResourceUsage<
         S : ResourceTimeSlot<R, C, V>,
         R : Resource<C, V>,
@@ -510,7 +542,7 @@ abstract class AbstractResourceUsage<
      * @param shadowPriceMap 影子价格表 / Shadow price map
      * @param shadowPrices 原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
      * @return 成功与否 / Success or failure
-     */
+    */
     fun <Map : AbstractShadowPriceMap<*, Map>> refresh(
         shadowPriceMap: Map,
         shadowPrices: MetaDualSolution

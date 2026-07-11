@@ -26,16 +26,17 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param V 数值类型 / Numeric value type
  * @property domainValueSample 领域数值样本，用于 solver 值显式转换 / Domain value sample for explicit solver value conversion
  * @property cgPipelines 列生成管线列表，用于提取影子价格 / CG pipeline list for shadow price extraction
- */
+*/
 class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
     private val domainValueSample: V,
     private val cgPipelines: List<CGPipeline<AbstractCsp1dShadowPriceArguments, AbstractLinearMetaModel<Flt64>, AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>>> = emptyList()
 ) {
+
     /**
      * 框架兼容影子价格映射 / Framework-compatible shadow price map
      *
      * 在 extract 阶段填充，可供 CGPipeline 体系或 extractor 消费。
-     */
+    */
     val frameworkShadowPriceMap: AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments> =
         Csp1dDefaultShadowPriceMap()
 
@@ -51,7 +52,7 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
      * @param model 元模型 / Meta model
      * @param dualSolution LP 对偶解 / LP dual solution
      * @return 轻量级影子价格映射（pricing 消费） / Lightweight shadow price map (for pricing consumption)
-     */
+    */
     fun extractFromDualSolution(
         model: AbstractLinearMetaModel<Flt64>,
         dualSolution: Map<Constraint<Flt64, Linear>, Flt64>
@@ -80,7 +81,7 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
      *
      * @param dualValue Dual value from LP solution / LP 对偶值
      * @return Domain value / 领域数值
-     */
+    */
     fun convertDualValue(dualValue: Flt64): V = (convertSolverValue(domainValueSample, dualValue) as Ok).value
 }
 
@@ -89,6 +90,6 @@ class Csp1dShadowPriceLifecycle<V : RealNumber<V>>(
  *
  * 框架 AbstractShadowPriceMap 的具体实现，用于统一承载 LP 对偶值。
  * Concrete implementation of framework AbstractShadowPriceMap for unified LP dual value hosting.
- */
+*/
 class Csp1dDefaultShadowPriceMap
     : AbstractCsp1dShadowPriceMap<AbstractCsp1dShadowPriceArguments>()

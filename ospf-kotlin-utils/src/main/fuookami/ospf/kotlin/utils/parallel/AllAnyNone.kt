@@ -2,7 +2,7 @@
  * 并行判断操作
  *
  * Parallel predicate operations (all, any, none) with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 是否所有元素都满足条件 / Whether all elements satisfy the predicate
- */
+*/
 suspend inline fun <T> Iterable<T>.allParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -36,7 +36,7 @@ suspend inline fun <T> Iterable<T>.allParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误 / Boolean result or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryAllParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -60,7 +60,7 @@ suspend inline fun <T> Iterable<T>.tryAllParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误集合 / Boolean result or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryAllParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -84,7 +84,7 @@ suspend inline fun <T> Iterable<T>.exTryAllParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 是否存在元素满足条件 / Whether any element satisfies the predicate
- */
+*/
 suspend inline fun <T> Iterable<T>.anyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -104,7 +104,7 @@ suspend inline fun <T> Iterable<T>.anyParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误 / Boolean result or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -128,7 +128,7 @@ suspend inline fun <T> Iterable<T>.tryAnyParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误集合 / Boolean result or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryAnyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -152,7 +152,7 @@ suspend inline fun <T> Iterable<T>.exTryAnyParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 是否没有元素满足条件 / Whether no element satisfies the predicate
- */
+*/
 suspend inline fun <T> Iterable<T>.noneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -170,7 +170,7 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误 / Boolean result or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryNoneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -192,7 +192,7 @@ suspend inline fun <T> Iterable<T>.tryNoneParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 判断结果或错误集合 / Boolean result or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryNoneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>

@@ -7,7 +7,7 @@
  * Provides core operation functions for linear and quadratic polynomials.
  * Includes combining like terms, evaluation, ordered evaluation,
  * and partial evaluation, based on Ring type constraints.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -31,17 +31,19 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @property symbol1 the first symbol / 第一个符号
  * @property symbol2 the second symbol (null for linear terms in quadratic form) / 第二个符号（二次形式中的线性项为 null）
- */
+*/
 internal class QuadraticTermKey private constructor(
     val symbol1: Symbol,
     val symbol2: Symbol?,
     private val hash: Int
 ) {
+
     /**
      * Companion object providing factory methods for QuadraticTermKey.
      * 提供 QuadraticTermKey 工厂方法的伴生对象。
-     */
+    */
     companion object {
+
 /**
  * Creates a normalized key for a quadratic term, ensuring consistent symbol ordering.
  * 为二次项创建规范化的键，确保符号顺序一致。
@@ -50,7 +52,7 @@ internal class QuadraticTermKey private constructor(
  * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
  * @param comparator the comparator for symbol ordering / 符号排序比较器
  * @return the normalized QuadraticTermKey / 规范化后的二次项键
- */
+*/
 fun normalized(
             symbol1: Symbol,
             symbol2: Symbol?,
@@ -73,7 +75,7 @@ fun normalized(
          * @param symbol1 the first symbol / 第一个符号
          * @param symbol2 the second symbol (nullable) / 第二个符号（可为 null）
          * @return the combined hash code / 组合哈希值
-         */
+        */
         private fun hashOf(symbol1: Symbol, symbol2: Symbol?): Int {
             var result = symbol1.hashCode()
             result = 31 * result + (symbol2?.hashCode() ?: 0)
@@ -101,7 +103,7 @@ fun normalized(
  * @param zero the zero value for the coefficient type / 系数类型的零值
  * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
  * @return the list of combined linear monomials / 合并后的线性单项式列表
- */
+*/
 internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
@@ -128,7 +130,7 @@ internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
  * @param isZero predicate to check if a value is zero / 判断值是否为零的谓词
  * @param symbolComparator comparator for symbol ordering (optional) / 符号排序比较器（可选）
  * @return the list of combined quadratic monomials / 合并后的二次单项式列表
- */
+*/
 internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -163,7 +165,7 @@ internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
  * @param valuesSize 值列表大小，需与 order 大小一致 / Size of values list, must match order size
  * @return 符号到索引的映射 / Map from symbol to index
  * @throws IllegalArgumentException 若大小不匹配或存在重复符号 / If sizes mismatch or duplicate symbols exist
- */
+*/
 private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Ret<Map<Symbol, Int>> {
     if (order.size != valuesSize) {
         return Failed(
@@ -191,7 +193,7 @@ private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Ret<M
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 合并同类项后的线性多项式 / Linear polynomial with like terms combined
- */
+*/
 fun <T> LinearPolynomial<T>.combineLinearTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
@@ -207,7 +209,7 @@ fun <T> LinearPolynomial<T>.combineLinearTerms(
  * @param values 符号到值的映射 / Map of symbol to value
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
  * @return 求值结果，若存在未提供值的符号则返回 null / Evaluation result, or null if a symbol has no value
- */
+*/
 fun <T> LinearPolynomial<T>.evaluateLinear(
     values: Map<Symbol, T>,
     onMissing: ((Symbol) -> T?)? = null
@@ -229,7 +231,7 @@ fun <T> LinearPolynomial<T>.evaluateLinear(
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
  * @return 求值结果 / Evaluation result
- */
+*/
 fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
     order: List<Symbol>,
     values: List<T>
@@ -259,7 +261,7 @@ fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 部分求值后的线性多项式 / Partially evaluated linear polynomial
- */
+*/
 fun <T> LinearPolynomial<T>.partialEvaluateLinear(
     values: Map<Symbol, T>,
     zero: T,
@@ -293,7 +295,7 @@ fun <T> LinearPolynomial<T>.partialEvaluateLinear(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 合并同类项后的二次多项式 / Quadratic polynomial with like terms combined
- */
+*/
 fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -314,7 +316,7 @@ fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
  * @param values 符号到值的映射 / Map of symbol to value
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
  * @return 求值结果，若存在未提供值的符号则返回 null / Evaluation result, or null if a symbol has no value
- */
+*/
 fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
     values: Map<Symbol, T>,
     onMissing: ((Symbol) -> T?)? = null
@@ -339,7 +341,7 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadratic(
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
  * @return 求值结果 / Evaluation result
- */
+*/
 fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
     order: List<Symbol>,
     values: List<T>
@@ -376,7 +378,7 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 部分求值后的二次多项式 / Partially evaluated quadratic polynomial
- */
+*/
 fun <T> QuadraticPolynomial<T>.partialEvaluateQuadratic(
     values: Map<Symbol, T>,
     zero: T,

@@ -16,7 +16,7 @@
  * - Minus: 减法运算符接口，支持 a - b
  * - MinusAssign: 减法赋值接口，支持 a -= b
  * - Dec: 自减运算符接口，支持 --a 戌a--
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -32,10 +32,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（减数）的类垌
  * @param Ret 返回值（差）的类垌
  *
- * @param Rhs The type of the right operand (subtrahend)
- * @param Ret The type of the return value (difference)
- */
+*/
 interface Minus<in Rhs, out Ret> {
+
     /**
      * 减法运算符，计算巌
      * Subtraction operator, calculates the difference
@@ -43,9 +42,8 @@ interface Minus<in Rhs, out Ret> {
      * @param rhs 减数
      * @return 巌
      *
-     * @param rhs Subtrahend
      * @return Difference
-     */
+    */
     operator fun minus(rhs: Rhs): Ret
 }
 
@@ -61,17 +59,16 @@ interface Minus<in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（减数）的类垌
  *
- * @param Rhs The type of the right operand (subtrahend)
- */
+*/
 interface MinusAssign<in Rhs> {
+
     /**
      * 减法赋值运算符，将差赋值给左操作数
      * Subtraction assignment operator, assigns the difference to the left operand
      *
      * @param rhs 减数
      *
-     * @param rhs Subtrahend
-     */
+    */
     operator fun minusAssign(rhs: Rhs)
 }
 
@@ -87,9 +84,9 @@ interface MinusAssign<in Rhs> {
  *
  * @param Self 自减运算后返回的类型
  *
- * @param Self The type returned after decrement operation
- */
+*/
 interface Dec<Self> {
+
     /**
      * 自减运算符，将值减 1
      * Decrement operator, reduces the value by 1
@@ -97,6 +94,6 @@ interface Dec<Self> {
      * @return 自减后的新实侌
      *
      * @return New instance after decrement
-     */
+    */
     operator fun dec(): Dec<Self>
 }

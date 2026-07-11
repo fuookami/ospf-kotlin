@@ -1,7 +1,7 @@
 /**
  * Lorenz 吸引子（物理参数命名别名）
  * Lorenz Attractor (physics parameter naming alias)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.geometry.*
  * @property beta 系统参数 beta / System parameter beta
  * @property h 时间步长 / Time step size
  * @property inner 内部洛伦兹系统实例 / Internal Lorenz system instance
- */
+*/
 data class LorenzAttractor<V : FloatingNumber<V>>(val sigma: V, val rho: V, val beta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     private val inner = LorenzSystem(sigma, beta, rho, h)

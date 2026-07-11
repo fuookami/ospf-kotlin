@@ -16,7 +16,7 @@
  * - Times: 乘法运算符接口，支持 a * b
  * - TimesAssign: 乘法赋值接口，支持 a *= b
  * - Cross: 叉积运算符接口，支持 a x b（主要用于向量运算）
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -32,10 +32,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（乘数）的类垌
  * @param Ret 返回值（积）的类垌
  *
- * @param Rhs The type of the right operand (multiplier)
- * @param Ret The type of the return value (product)
- */
+*/
 interface Times<in Rhs, out Ret> {
+
     /**
      * 乘法运算符，计算秌
      * Multiplication operator, calculates the product
@@ -43,9 +42,8 @@ interface Times<in Rhs, out Ret> {
      * @param rhs 乘数
      * @return 秌
      *
-     * @param rhs Multiplier
      * @return Product
-     */
+    */
     operator fun times(rhs: Rhs): Ret
 }
 
@@ -61,17 +59,16 @@ interface Times<in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（乘数）的类垌
  *
- * @param Rhs The type of the right operand (multiplier)
- */
+*/
 interface TimesAssign<in Rhs> {
+
     /**
      * 乘法赋值运算符，将积赋值给左操作数
      * Multiplication assignment operator, assigns the product to the left operand
      *
      * @param rhs 乘数
      *
-     * @param rhs Multiplier
-     */
+    */
     operator fun timesAssign(rhs: Rhs)
 }
 
@@ -88,10 +85,9 @@ interface TimesAssign<in Rhs> {
  * @param Rhs 右操作数的类垌
  * @param Ret 返回值（叉积结果）的类型
  *
- * @param Rhs The type of the right operand
- * @param Ret The type of the return value (cross product result)
- */
+*/
 interface Cross<in Rhs, out Ret> {
+
     /**
      * 叉积运算符，计算叉积
      * Cross product operator, calculates the cross product
@@ -99,8 +95,7 @@ interface Cross<in Rhs, out Ret> {
      * @param rhs 右向里
      * @return 叉积结果向量
      *
-     * @param rhs Right vector
      * @return Cross product result vector
-     */
+    */
     infix fun x(rhs: Rhs): Ret
 }

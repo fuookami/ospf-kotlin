@@ -9,7 +9,7 @@
  * The Chen system is a three-dimensional continuous-time chaotic system proposed by Guanrong Chen in 1999.
  * This system has a similar structure to the Lorenz system but exhibits different chaotic behavior, serving as an important model for chaos control research.
  * Commonly used for chaos control research, chaos synchronization, and chaos encryption applications.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c / System parameter c
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChenSystem<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -56,7 +56,7 @@ data class ChenSystem<V : FloatingNumber<V>>(
 /**
  * 陈氏系统生成器
  * Chen System Generator
- */
+*/
 data class ChenSystemGenerator(
     val chenSystem: ChenSystem<Flt64> = ChenSystem(),
     private var _x: Point<Dim3, Flt64> = point3(

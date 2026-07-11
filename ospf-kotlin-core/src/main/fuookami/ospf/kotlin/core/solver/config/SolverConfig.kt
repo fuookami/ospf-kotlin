@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 求解器通用配置 / Common solver configuration */
 package fuookami.ospf.kotlin.core.solver.config
 
@@ -21,7 +22,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property dumpIntermediateModelBounds 是否转储中间模型边界 / Whether to dump intermediate model bounds
  * @property dumpIntermediateModelForceBounds 是否强制转储中间模型边界 / Whether to force dump intermediate model bounds
  * @property extraConfig 额外配置 / Extra configuration
- */
+*/
 data class SolverConfig(
     val time: Duration = 30.seconds,
     val threadNum: UInt64 = if (Runtime.getRuntime().availableProcessors() <= 16) {

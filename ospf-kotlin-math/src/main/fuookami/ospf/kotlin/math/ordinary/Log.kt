@@ -17,7 +17,7 @@
  * Arbitrary-base logarithm log(x, base): uses change-of-base formula log(x, base) = ln(x) / ln(base).
  * Boundary cases: x <= 0 returns NaN (logarithm undefined); base <= 0 returns NaN.
  * Supports configurable precision via digits parameter and convergence threshold via precision parameter.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
@@ -44,7 +44,7 @@ private fun <T : FloatingNumber<T>> normalizeFltXScale(value: T, digits: Int): T
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 自然对数值，x <= 0 时返回 NaN / Natural logarithm value, or NaN if x <= 0
- */
+*/
 fun <T : FloatingNumber<T>> ln(
     x: T,
     constants: FloatingNumberConstants<T>,
@@ -86,6 +86,7 @@ fun <T : FloatingNumber<T>> ln(
         ln(m, constants)!! + k * constants.lg2
     }
 }
+
 /**
  * 计算自然对数 ln(x)（自动解析常量）
  * Compute natural logarithm ln(x) (auto-resolve constants)
@@ -94,7 +95,7 @@ fun <T : FloatingNumber<T>> ln(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 自然对数值，x <= 0 时返回 NaN / Natural logarithm value, or NaN if x <= 0
- */
+*/
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
     digits: Int = x.constants.decimalDigits!!,
@@ -119,7 +120,7 @@ inline fun <reified T : FloatingNumber<T>> ln(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 对数值，x <= 0 或 base <= 0 时返回 NaN / Logarithm value, or NaN if x <= 0 or base <= 0
- */
+*/
 fun <T : FloatingNumber<T>> log(
     x: T,
     base: T,
@@ -143,6 +144,7 @@ fun <T : FloatingNumber<T>> log(
         }
     } ?: constants.nan
 }
+
 /**
  * 计算任意底数对数 log(x, base)（自动解析常量）
  * Compute arbitrary-base logarithm log(x, base) (auto-resolve constants)
@@ -152,7 +154,7 @@ fun <T : FloatingNumber<T>> log(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 对数值，x <= 0 或 base <= 0 时返回 NaN / Logarithm value, or NaN if x <= 0 or base <= 0
- */
+*/
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,

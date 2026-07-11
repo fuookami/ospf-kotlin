@@ -11,7 +11,7 @@
  * 1. The input is an expression path (usually from PO/DTO field path), not a domain object auto-expansion rule.
  * 2. 插件只消费解析结果，不推断 Quantity 等领域模型的落库策略。
  * 2. Plugins only consume resolved fields and do not infer persistence strategy for domain models such as Quantity.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 /**
@@ -19,5 +19,5 @@ package fuookami.ospf.kotlin.framework.persistence.expression
  * Persistence field resolver function type
  *
  * @param C 字段容器类型 / Field container type
- */
+*/
 typealias PersistenceFieldResolver<C> = (String) -> C?

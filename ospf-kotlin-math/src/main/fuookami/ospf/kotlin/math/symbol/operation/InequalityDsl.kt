@@ -21,8 +21,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
  * @property converter Flt64 到 V 的转换器 / Flt64 to V converter
- */
+*/
 class InequalityDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
+
     /** 将符号转换为系数为 1 的线性多项式 / Convert a symbol to a linear polynomial with coefficient one
      * @return 系数为 1 的线性多项式 / Linear polynomial with coefficient one */
     private fun Symbol.asLinearPolynomial(): LinearPolynomial<V> =

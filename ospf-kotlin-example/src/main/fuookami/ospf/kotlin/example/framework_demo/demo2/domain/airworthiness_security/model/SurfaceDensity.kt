@@ -18,19 +18,28 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 计算每个货物位置的表面密度（单位面积重量）并将其注册到模型。Computes surface density (weight per unit area) for each cargo position and registers it with the model.
+ * Computes surface density (weight per unit area) for each cargo position and registers it with the model.
+ * 计算每个货物位置的表面密度（单位面积重量）并将其注册到模型。
  *
- * @property aircraftModel 参数。
- * @property limitsZones 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property limitsZones The list of surface density limit zones. / 表面密度限制区域列表
+*/
 class SurfaceDensity(
     private val aircraftModel: AircraftModel,
     val limitsZones: List<LimitZone>,
     private val positions: List<Position>,
     private val load: Load
 ) {
+
+    /**
+     * A zone with surface density limits.
+     * 具有表面密度限制的区域。
+     *
+     * @property name The name of the limit zone. / 限制区域名称
+     * @property locations The set of deck locations in this zone. / 此区域中的甲板位置集合
+     * @property frontArm The front arm of the zone. / 区域的前力臂
+     * @property backArm The back arm of the zone. / 区域的后力臂
+     * @property maxSurfaceDensity The maximum allowed surface density. / 最大允许表面密度
+    */
     data class LimitZone(
         val name: String,
         val locations: Set<DeckLocation>,
@@ -41,6 +50,13 @@ class SurfaceDensity(
 
     lateinit var surfaceDensity: QuantityLinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers the surface density symbols with the given model.
+     * 将表面密度符号注册到给定模型中。
+     *
+     * @param model The linear meta model to register with. / 要注册的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

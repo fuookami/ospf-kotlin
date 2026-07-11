@@ -1,7 +1,7 @@
 /**
  * 保守半径包络。
  * Conservative radius envelope.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.geometry.Axis3
  *
  * @property rMin 半径下界 / radius lower bound
  * @property rMax 半径上界 / radius upper bound
- */
+*/
 data class ConservativeRadiusEnvelope(
     val rMin: FltX,
     val rMax: FltX
@@ -30,12 +30,13 @@ data class ConservativeRadiusEnvelope(
     /**
      * The envelope radius, equal to the upper bound radius.
      * 包络半径，等于半径上界。
-     */
+    */
     val envelopeRadius: FltX get() = rMax
+
     /**
      * The envelope diameter, twice the upper bound radius.
      * 包络直径，等于半径上界的两倍。
-     */
+    */
     val envelopeDiameter: FltX get() = rMax * FltX(2.0)
 
     /**
@@ -48,7 +49,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：圆柱高度。
      * @return The footprint width.
      *         中文：占位宽度。
-     */
+    */
     fun footprintWidth(axis: Axis3, height: FltX): FltX {
         return when (axis) {
             Axis3.X -> height
@@ -67,7 +68,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：圆柱高度。
      * @return The footprint depth.
      *         中文：占位深度。
-     */
+    */
     fun footprintDepth(axis: Axis3, height: FltX): FltX {
         return when (axis) {
             Axis3.X -> envelopeDiameter
@@ -86,7 +87,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：圆柱高度。
      * @return The bounding width, same as footprint width.
      *         中文：包围宽度，与占位宽度相同。
-     */
+    */
     fun boundingWidth(axis: Axis3, height: FltX): FltX {
         return footprintWidth(axis, height)
     }
@@ -101,7 +102,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：圆柱高度。
      * @return The bounding height.
      *         中文：包围高度。
-     */
+    */
     fun boundingHeight(axis: Axis3, height: FltX): FltX {
         return when (axis) {
             Axis3.X -> envelopeDiameter
@@ -120,7 +121,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：圆柱高度。
      * @return The bounding depth, same as footprint depth.
      *         中文：包围深度，与占位深度相同。
-     */
+    */
     fun boundingDepth(axis: Axis3, height: FltX): FltX {
         return footprintDepth(axis, height)
     }
@@ -131,7 +132,7 @@ data class ConservativeRadiusEnvelope(
      *
      * @return The support coverage radius, equal to the envelope radius.
      *         中文：支撑覆盖半径，等于包络半径。
-     */
+    */
     fun supportCoverageRadius(): FltX {
         return envelopeRadius
     }
@@ -142,7 +143,7 @@ data class ConservativeRadiusEnvelope(
      *
      * @return The collision margin, equal to the envelope diameter.
      *         中文：碰撞余量，等于包络直径。
-     */
+    */
     fun collisionMargin(): FltX {
         return envelopeDiameter
     }
@@ -159,7 +160,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：实际半径。
      * @return The real footprint width.
      *         中文：真实占位宽度。
-     */
+    */
     fun realFootprintWidth(axis: Axis3, height: FltX, radius: FltX): FltX {
         return when (axis) {
             Axis3.X -> height
@@ -180,7 +181,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：实际半径。
      * @return The real footprint depth.
      *         中文：真实占位深度。
-     */
+    */
     fun realFootprintDepth(axis: Axis3, height: FltX, radius: FltX): FltX {
         return when (axis) {
             Axis3.X -> radius * FltX(2.0)
@@ -201,7 +202,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：实际半径。
      * @return The real bounding width, same as real footprint width.
      *         中文：真实包围宽度，与真实占位宽度相同。
-     */
+    */
     fun realBoundingWidth(axis: Axis3, height: FltX, radius: FltX): FltX {
         return realFootprintWidth(axis, height, radius)
     }
@@ -218,7 +219,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：实际半径。
      * @return The real bounding height.
      *         中文：真实包围高度。
-     */
+    */
     fun realBoundingHeight(axis: Axis3, height: FltX, radius: FltX): FltX {
         return when (axis) {
             Axis3.X -> radius * FltX(2.0)
@@ -239,7 +240,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：实际半径。
      * @return The real bounding depth, same as real footprint depth.
      *         中文：真实包围深度，与真实占位深度相同。
-     */
+    */
     fun realBoundingDepth(axis: Axis3, height: FltX, radius: FltX): FltX {
         return realFootprintDepth(axis, height, radius)
     }
@@ -252,7 +253,7 @@ data class ConservativeRadiusEnvelope(
      *               中文：待验证的半径。
      * @return True if the radius is valid, false otherwise.
      *         中文：半径有效则返回 true，否则返回 false。
-     */
+    */
     fun isRadiusValid(radius: FltX): Boolean {
         return radius >= rMin && radius <= rMax
     }

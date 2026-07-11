@@ -1,7 +1,7 @@
 /**
  * 本文件提供命名风格转换工具，支持在不同命名约定之间进行转换。
  * This file provides a name transfer utility for converting between different naming conventions.
- */
+*/
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.concurrent.ConcurrentHashMap
@@ -17,7 +17,7 @@ import java.util.concurrent.ConcurrentHashMap
  *
  * @property name          名称 / Name
  * @property abbreviations 缩写集合（排序后存储以保证一致性） / Abbreviations (stored sorted for consistency)
- */
+*/
 private data class NameTransferCacheKey(
     val name: String,
     val abbreviations: List<String>  // Use sorted List for deterministic hashCode/equals
@@ -31,7 +31,7 @@ private data class NameTransferCacheKey(
          * @param name              名称 / Name
          * @param abbreviations     缩写集合 / Abbreviation set
          * @return                  缓存键 / Cache key
-         */
+        */
         fun from(name: String, abbreviations: Set<String>): NameTransferCacheKey {
             return NameTransferCacheKey(name, abbreviations.sorted())
         }
@@ -46,11 +46,12 @@ private data class NameTransferCacheKey(
  * @property frontend       前端命名系统 / Frontend naming system
  * @property backend        后端命名系统 / Backend naming system
  * @property cache          转换结果缓存（线程安全） / Cache of transferring results (thread-safe)
- */
+*/
 private class NameTransferImpl(
     val frontend: NamingSystem,
     val backend: NamingSystem
 ) {
+
     /**
      * 线程安全的缓存
      *
@@ -65,7 +66,7 @@ private class NameTransferImpl(
      * 避免同进程混用不同缩写集时的缓存命中错误。
      * Fix for RVW-008: Cache key uses NameTransferCacheKey (name + abbreviations)
      * to prevent cache hit errors when mixing different abbreviation sets.
-     */
+    */
     val cache: ConcurrentHashMap<NameTransferCacheKey, String> = ConcurrentHashMap()
 
     /**
@@ -76,7 +77,7 @@ private class NameTransferImpl(
      * @param name              给定名称 / Given name
      * @param abbreviations     缩写集合 / Abbreviation set
      * @return                  对应后端命名系统的名称 / The name corresponding the backend naming system
-     */
+    */
     operator fun invoke(name: String, abbreviations: Set<String>): String {
         return cache.computeIfAbsent(NameTransferCacheKey.from(name, abbreviations)) {
             val il = frontend.frontend(name, abbreviations)
@@ -92,7 +93,7 @@ private class NameTransferImpl(
      * @param name              给定名称 / Given name
      * @param abbreviations     缩写集合 / Abbreviation set
      * @return                  对应前端命名系统的名称 / The name corresponding the frontend naming system
-     */
+    */
     fun reverse(name: String, abbreviations: Set<String> = emptySet()): String {
         return transfers[Pair(backend, frontend)]!!(name, abbreviations)
     }
@@ -105,7 +106,7 @@ private class NameTransferImpl(
  * @param frontend      前端命名系统 / Frontend naming system
  * @param backend       后端命名系统 / Backend naming system
  * @return              给定前端和后端命名系统的名称转换器 / Name transfer for given frontend and backend naming system
- */
+*/
 private fun nameTransferOf(
     frontend: NamingSystem,
     backend: NamingSystem
@@ -115,7 +116,7 @@ private fun nameTransferOf(
 
 /**
  * 名称转换器集合 / Name transfers set
- */
+*/
 private val transfers = mapOf(
     nameTransferOf(NamingSystem.SnakeCase, NamingSystem.UpperSnakeCase),
     nameTransferOf(NamingSystem.SnakeCase, NamingSystem.KebabCase),
@@ -152,7 +153,7 @@ private val transfers = mapOf(
  * @property backend            后端命名系统 / Backend naming system
  * @property abbreviations      缩写集合 / Abbreviation set
  * @property impl               实现 / Implementation
- */
+*/
 class NameTransfer(
     val frontend: NamingSystem,
     val backend: NamingSystem,
@@ -167,7 +168,7 @@ class NameTransfer(
      *
      * @param name              给定名称 / Given name
      * @return                  对应后端命名系统的名称 / The name corresponding the backend naming system
-     */
+    */
     operator fun invoke(name: String): String {
         return impl?.invoke(name, abbreviations) ?: name
     }
@@ -179,7 +180,7 @@ class NameTransfer(
      *
      * @param name              给定名称 / Given name
      * @return                  对应前端命名系统的名称 / The name corresponding the frontend naming system
-     */
+    */
     fun reverse(name: String): String {
         return impl?.reverse(name) ?: name
     }

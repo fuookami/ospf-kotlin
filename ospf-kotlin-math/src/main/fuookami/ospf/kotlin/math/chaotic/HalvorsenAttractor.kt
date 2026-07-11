@@ -1,7 +1,7 @@
 /**
  * Halvorsen 吸引子
  * Halvorsen Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property alpha 系统参数，控制吸引子的混沌行为 / System parameter controlling the chaotic behavior of the attractor
  * @property h 时间步长 / Time step size
- */
+*/
 data class HalvorsenAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -49,7 +49,7 @@ data class HalvorsenAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
  * The initial state is randomly generated; each invocation advances one step, returns the current state, and updates to the next state.
  *
  * @property attractor Halvorsen 吸引子实例 / Halvorsen attractor instance
- */
+*/
 data class HalvorsenAttractorGenerator(
     val attractor: HalvorsenAttractor<Flt64> = HalvorsenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

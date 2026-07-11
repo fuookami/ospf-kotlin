@@ -1,7 +1,7 @@
 /**
  * Lorenz 84 模型
  * Lorenz 84 Model
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property f 系统参数 f / System parameter f
  * @property g 系统参数 g / System parameter g
  * @property h 时间步长 / Time step size
- */
+*/
 data class Lorenz84Model<V : FloatingNumber<V>>(val a: V, val b: V, val f: V, val g: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -47,7 +47,7 @@ data class Lorenz84Model<V : FloatingNumber<V>>(val a: V, val b: V, val f: V, va
 /**
  * Lorenz 84 模型生成器
  * Lorenz 84 Model Generator
- */
+*/
 data class Lorenz84ModelGenerator(
     val attractor: Lorenz84Model<Flt64> = Lorenz84Model(),
     private var _x: Point<Dim3, Flt64> = point3(

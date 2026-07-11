@@ -15,21 +15,37 @@ typealias TaskShadowPriceArguments = BunchGanttSchedulingShadowPriceArguments<Ai
 /** 专门用于航班任务类型的影子价格映射的类型别名。Type alias for the shadow price map specialized with flight task types. */
 typealias ShadowPriceMap = GanttSchedulingShadowPriceMap<Aircraft, FlightTaskAssignment>
 
-/** 查找特定飞机的影子价格。Looks up the shadow price for a specific aircraft. */
+/** Looks up the shadow price for a specific aircraft.
+ * 查找特定飞机的影子价格。
+ *
+ * @param aircraft The aircraft whose shadow price is looked up / 要查找影子价格的飞机
+ * @return The shadow price value for the aircraft / 飞机的影子价格值
+*/
 operator fun ShadowPriceMap.invoke(
     aircraft: Aircraft,
 ): Flt64 {
     return invoke(TaskShadowPriceArguments(aircraft, null, null))
 }
 
-/** 查找特定航班任务的影子价格。Looks up the shadow price for a specific flight task. */
+/** Looks up the shadow price for a specific flight task.
+ * 查找特定航班任务的影子价格。
+ *
+ * @param task The flight task whose shadow price is looked up / 要查找影子价格的航班任务
+ * @return The shadow price value for the flight task / 航班任务的影子价格值
+*/
 operator fun ShadowPriceMap.invoke(
     task: FlightTask
 ): Flt64 {
     return invoke(TaskShadowPriceArguments(task.aircraft!!, task, null))
 }
 
-/** 查找任务对（前一个和当前）的影子价格。Looks up the shadow price for a task pair (previous and current). */
+/** Looks up the shadow price for a task pair (previous and current).
+ * 查找任务对（前一个和当前）的影子价格。
+ *
+ * @param prevTask The previous flight task, or null / 前一个航班任务，或 null
+ * @param task The current flight task, or null / 当前航班任务，或 null
+ * @return The shadow price value for the task pair / 任务对的影子价格值
+*/
 operator fun ShadowPriceMap.invoke(
     prevTask: FlightTask?,
     task: FlightTask?
@@ -41,7 +57,12 @@ operator fun ShadowPriceMap.invoke(
     return invoke(TaskShadowPriceArguments(task?.aircraft ?: prevTask!!.aircraft!!, task, prevTask))
 }
 
-/** 使用影子价格计算批次的缩减成本。Computes the reduced cost of a bunch using shadow prices. */
+/** Computes the reduced cost of a bunch using shadow prices.
+ * 使用影子价格计算批次的缩减成本。
+ *
+ * @param bunch The flight task bunch whose reduced cost is computed / 要计算缩减成本的航班任务束
+ * @return The reduced cost value for the bunch / 批次的缩减成本值
+*/
 fun ShadowPriceMap.reducedCost(
     bunch: FlightTaskBunch
 ): Flt64 {

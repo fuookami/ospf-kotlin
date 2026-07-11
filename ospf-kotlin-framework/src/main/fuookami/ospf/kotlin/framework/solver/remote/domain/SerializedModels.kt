@@ -1,7 +1,7 @@
 /**
  * 远程求解序列化模型
  * Remote solve serialized models
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.domain
 
 import kotlin.time.Duration
@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 /**
  * 序列化变量类型。
  * Serialized variable type.
- */
+*/
 @Serializable
 enum class SerializedVariableType {
     /** 连续变量 / Continuous variable */
@@ -34,7 +34,7 @@ enum class SerializedVariableType {
 /**
  * 序列化约束符号。
  * Serialized constraint sign.
- */
+*/
 @Serializable
 enum class SerializedConstraintSign {
     /** 小于等于 / Less than or equal */
@@ -50,7 +50,7 @@ enum class SerializedConstraintSign {
 /**
  * 序列化目标类型。
  * Serialized objective category.
- */
+*/
 @Serializable
 enum class SerializedObjectiveCategory {
     /** 最小化 / Minimize */
@@ -67,7 +67,7 @@ enum class SerializedObjectiveCategory {
  * @property rowIndex 行索引 / Row index
  * @property colIndex 列索引 / Column index
  * @property coefficient 系数 / Coefficient
- */
+*/
 @Serializable
 data class SerializedConstraintCell(
     val rowIndex: Int,
@@ -81,7 +81,7 @@ data class SerializedConstraintCell(
  *
  * @property colIndex 列索引 / Column index
  * @property coefficient 系数 / Coefficient
- */
+*/
 @Serializable
 data class SerializedObjectiveCell(
     val colIndex: Int,
@@ -97,7 +97,7 @@ data class SerializedObjectiveCell(
  * @property lowerBound 下界 / Lower bound
  * @property upperBound 上界 / Upper bound
  * @property type 变量类型 / Variable type
- */
+*/
 @Serializable
 data class SerializedVariable(
     val index: Int,
@@ -115,7 +115,7 @@ data class SerializedVariable(
  * @property sign 约束符号 / Constraint sign
  * @property rhs 右端值 / Right-hand side
  * @property name 约束名 / Constraint name
- */
+*/
 @Serializable
 data class SerializedConstraint(
     val cells: List<SerializedConstraintCell>,
@@ -131,7 +131,7 @@ data class SerializedConstraint(
  * @property category 目标类型 / Objective category
  * @property cells 目标单元 / Objective cells
  * @property constant 常数项 / Constant term
- */
+*/
 @Serializable
 data class SerializedObjective(
     val category: SerializedObjectiveCategory,
@@ -147,7 +147,7 @@ data class SerializedObjective(
  * @property variables 变量列表 / Variables
  * @property constraints 约束列表 / Constraints
  * @property objective 目标函数 / Objective
- */
+*/
 @Serializable
 data class SerializedLinearModel(
     val name: String,
@@ -155,6 +155,7 @@ data class SerializedLinearModel(
     val constraints: List<SerializedConstraint>,
     val objective: SerializedObjective
 ) {
+
     /** 变量数量 / Variable count */
     val variableCount: Int get() = variables.size
 
@@ -166,7 +167,7 @@ data class SerializedLinearModel(
      * Export LP format.
      *
      * @return LP 格式文本 / LP format text
-     */
+    */
     fun toLpFormat(): String {
         val builder = StringBuilder()
         builder.append("${objective.category.toLpString()}\n")
@@ -249,7 +250,7 @@ data class SerializedLinearModel(
          *
          * @param name 模型名 / Model name
          * @return 空线性模型 / Empty linear model
-         */
+        */
         fun empty(name: String = "empty"): SerializedLinearModel {
             return SerializedLinearModel(
                 name = name,
@@ -274,7 +275,7 @@ data class SerializedLinearModel(
  * @property linearConstraints 线性约束 / Linear constraints
  * @property quadraticConstraints 二次约束 / Quadratic constraints
  * @property objective 二次目标 / Quadratic objective
- */
+*/
 @Serializable
 data class SerializedQuadraticModel(
     val name: String,
@@ -283,6 +284,7 @@ data class SerializedQuadraticModel(
     val quadraticConstraints: List<SerializedQuadraticConstraint>,
     val objective: SerializedQuadraticObjective
 ) {
+
     /** 变量数量 / Variable count */
     val variableCount: Int get() = variables.size
 
@@ -301,7 +303,7 @@ data class SerializedQuadraticModel(
  * @property colIndex1 第一列索引 / First column index
  * @property colIndex2 第二列索引 / Second column index
  * @property coefficient 系数 / Coefficient
- */
+*/
 @Serializable
 data class SerializedQuadraticConstraintCell(
     val rowIndex: Int,
@@ -319,7 +321,7 @@ data class SerializedQuadraticConstraintCell(
  * @property sign 约束符号 / Constraint sign
  * @property rhs 右端值 / Right-hand side
  * @property name 约束名 / Constraint name
- */
+*/
 @Serializable
 data class SerializedQuadraticConstraint(
     val linearCells: List<SerializedConstraintCell>,
@@ -336,7 +338,7 @@ data class SerializedQuadraticConstraint(
  * @property colIndex1 第一列索引 / First column index
  * @property colIndex2 第二列索引 / Second column index
  * @property coefficient 系数 / Coefficient
- */
+*/
 @Serializable
 data class SerializedQuadraticObjectiveCell(
     val colIndex1: Int,
@@ -352,7 +354,7 @@ data class SerializedQuadraticObjectiveCell(
  * @property linearCells 线性目标单元 / Linear objective cells
  * @property quadraticCells 二次目标单元 / Quadratic objective cells
  * @property constant 常数项 / Constant term
- */
+*/
 @Serializable
 data class SerializedQuadraticObjective(
     val category: SerializedObjectiveCategory,
@@ -373,7 +375,7 @@ data class SerializedQuadraticObjective(
  * @property elapsed 耗时 / Elapsed
  * @property solverStatus 求解器状态 / Solver status
  * @property message 结果消息 / Result message
- */
+*/
 @Serializable
 data class SerializedSolution(
     val feasible: Boolean,
@@ -394,7 +396,7 @@ data class SerializedSolution(
          *
          * @param message 结果消息 / Result message
          * @return 不可行解 / Infeasible solution
-         */
+        */
         fun infeasible(message: String? = null): SerializedSolution {
             return SerializedSolution(
                 feasible = false,
@@ -409,7 +411,7 @@ data class SerializedSolution(
          *
          * @param message 结果消息 / Result message
          * @return 无界解 / Unbounded solution
-         */
+        */
         fun unbounded(message: String? = null): SerializedSolution {
             return SerializedSolution(
                 feasible = false,
@@ -424,7 +426,7 @@ data class SerializedSolution(
          *
          * @param message 错误消息 / Error message
          * @return 错误解 / Error solution
-         */
+        */
         fun error(message: String): SerializedSolution {
             return SerializedSolution(
                 feasible = false,
@@ -440,7 +442,7 @@ data class SerializedSolution(
  * Convert to LP constraint sign.
  *
  * @return LP 约束符号 / LP constraint sign
- */
+*/
 fun SerializedConstraintSign.toLpString(): String {
     return when (this) {
         SerializedConstraintSign.LESS_EQUAL -> "<="
@@ -454,7 +456,7 @@ fun SerializedConstraintSign.toLpString(): String {
  * Convert to LP objective category.
  *
  * @return LP 目标类型 / LP objective category
- */
+*/
 fun SerializedObjectiveCategory.toLpString(): String {
     return when (this) {
         SerializedObjectiveCategory.MINIMIZE -> "Minimize"
@@ -462,6 +464,15 @@ fun SerializedObjectiveCategory.toLpString(): String {
     }
 }
 
+/**
+ * Appends a linear term to the string builder.
+ * 将线性项追加到字符串构建器。
+ *
+ * @param builder the string builder / 字符串构建器
+ * @param first whether this is the first term / 是否为第一项
+ * @param coefficient the coefficient value / 系数值
+ * @param variableName the variable name / 变量名
+*/
 private fun appendLinearTerm(
     builder: StringBuilder,
     first: Boolean,

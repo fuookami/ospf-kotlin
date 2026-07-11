@@ -12,11 +12,12 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model.*
 
 /**
- * 最小化按系数加权的冗余松弛。Minimizes the redundancy slack weighted by a coefficient.
+ * Minimizes the redundancy slack weighted by a coefficient.
+ * 最小化按系数加权的冗余松弛。
  *
- * @property redundancy 参数。
- * @property coefficient 参数。
- */
+ * @property redundancy The redundancy model containing slack variables / 包含松弛变量的冗余模型
+ * @property coefficient The weight coefficient function for the objective / 目标函数的权重系数函数
+*/
 class RedundancyLimit(
     private val redundancy: Redundancy,
     private val coefficient: () -> Flt64,

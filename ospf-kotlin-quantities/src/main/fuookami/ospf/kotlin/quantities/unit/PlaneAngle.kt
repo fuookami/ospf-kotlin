@@ -8,7 +8,7 @@
  * - Radian: SI导出单位，定义为弧长等于半径的圆心角 / SI derived unit, defined as the angle subtended by an arc equal in length to the radius
  * - Degree: 1° = π/180 rad
  * - Gradian: 1 gon = π/200 rad
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -24,15 +24,18 @@ import fuookami.ospf.kotlin.quantities.dimension.PlaneAngle
  *
  * 符号 / Symbol: rad
  * 换算关系 / Conversion: 1 rad = 1 rad（基本单位）/ 1 rad = 1 rad (base unit)
- */
+*/
 object Radian : PhysicalUnit() {
+
     /** 单位名称：radian / Unit name: radian */
     override val name = "radian"
+
     /** 单位符号：rad / Unit symbol: rad */
     override val symbol = "rad"
 
     /** 对应物理量：平面角 / Corresponding quantity: PlaneAngle */
     override val quantity = PlaneAngle
+
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
     override val conversionRule = UnitConversionRule.Linear(Scale())
 }
@@ -45,10 +48,12 @@ object Radian : PhysicalUnit() {
  *
  * 符号 / Symbol: mrad
  * 换算关系 / Conversion: 1 mrad = 10⁻³ rad
- */
+*/
 object Milliradian : DerivedPhysicalUnit(Radian * Scale.milli) {
+
     /** 单位名称：milliradian / Unit name: milliradian */
     override val name = "milliradian"
+
     /** 单位符号：mrad / Unit symbol: mrad */
     override val symbol = "mrad"
 
@@ -64,10 +69,12 @@ object Milliradian : DerivedPhysicalUnit(Radian * Scale.milli) {
  *
  * 符号 / Symbol: round angle
  * 换算关系 / Conversion: 1 round angle = 2π rad = 360°
- */
+*/
 object RoundAngle : DerivedPhysicalUnit(Radian * (FltX.two * FltX.pi)) {
+
     /** 单位名称：round angle / Unit name: round angle */
     override val name = "round angle"
+
     /** 单位符号：round angle / Unit symbol: round angle */
     override val symbol = "round angle"
 
@@ -83,10 +90,12 @@ object RoundAngle : DerivedPhysicalUnit(Radian * (FltX.two * FltX.pi)) {
  *
  * 符号 / Symbol: right angle
  * 换算关系 / Conversion: 1 right angle = π/2 rad = 90°
- */
+*/
 object RightAngle : DerivedPhysicalUnit(Radian / FltX(4.0)) {
+
     /** 单位名称：right angle / Unit name: right angle */
     override val name = "right angle"
+
     /** 单位符号：right angle / Unit symbol: right angle */
     override val symbol = "right angle"
 
@@ -102,10 +111,12 @@ object RightAngle : DerivedPhysicalUnit(Radian / FltX(4.0)) {
  *
  * 符号 / Symbol: °
  * 换算关系 / Conversion: 1° = π/180 rad ≈ 0.01745 rad
- */
+*/
 object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
+
     /** 单位名称：degree / Unit name: degree */
     override val name = "degree"
+
     /** 单位符号：° / Unit symbol: ° */
     override val symbol = "°"
 
@@ -121,10 +132,12 @@ object Degree : DerivedPhysicalUnit(RoundAngle / FltX(360.0)) {
  *
  * 符号 / Symbol: '
  * 换算关系 / Conversion: 1' = 1/60° = π/10800 rad
- */
+*/
 object ArcMinute : DerivedPhysicalUnit(Degree / FltX(60.0)) {
+
     /** 单位名称：arc minute / Unit name: arc minute */
     override val name = "arc minute"
+
     /** 单位符号：' / Unit symbol: ' */
     override val symbol = "'"
 
@@ -140,10 +153,12 @@ object ArcMinute : DerivedPhysicalUnit(Degree / FltX(60.0)) {
  *
  * 符号 / Symbol: ''
  * 换算关系 / Conversion: 1'' = 1/60' = 1/3600° = π/648000 rad
- */
+*/
 object ArcSecond : DerivedPhysicalUnit(ArcMinute / FltX(60.0)) {
+
     /** 单位名称：arc second / Unit name: arc second */
     override val name = "arc second"
+
     /** 单位符号：'' / Unit symbol: '' */
     override val symbol = "''"
 
@@ -159,10 +174,12 @@ object ArcSecond : DerivedPhysicalUnit(ArcMinute / FltX(60.0)) {
  *
  * 符号 / Symbol: gon
  * 换算关系 / Conversion: 1 gon = 1/100 right angle = π/200 rad = 0.9°
- */
+*/
 object Gradian : DerivedPhysicalUnit(RightAngle / FltX(100.0)) {
+
     /** 单位名称：gradian / Unit name: gradian */
     override val name = "gradian"
+
     /** 单位符号：gon / Unit symbol: gon */
     override val symbol = "gon"
 

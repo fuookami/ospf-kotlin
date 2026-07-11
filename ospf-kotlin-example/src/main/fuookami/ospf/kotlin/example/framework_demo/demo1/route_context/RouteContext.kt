@@ -12,19 +12,20 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.PipelineListGenerator
 
-/** Builds the route network graph from input data and manages route-related model construction.
- * 表示从输入数据构建路由网络图并管理路由相关模型构建。
- */
+/**
+ * Builds the route network graph from input data and manages route-related model construction.
+ * 从输入数据构建路由网络图并管理路由相关模型构建。
+*/
 class RouteContext {
     lateinit var aggregation: Aggregation
 
     /**
      * Initializes the route context by building the network graph, services, and assignment from input data.
-     * 表示通过从输入数据构建网络图、服务和分配来初始化路由上下文。
+     * 通过从输入数据构建网络图、服务和分配来初始化路由上下文。
      *
      * @param input the aggregated input data / 聚合输入数据
      * @return the initialization result / 初始化结果
-     */
+    */
     fun init(input: Input): Try {
         var totalDemand = UInt64(0U)
         for (node in input.clientNodes) {
@@ -88,22 +89,22 @@ class RouteContext {
 
     /**
      * Registers route-related decision variables and constraints into the model.
-     * 表示将路由相关决策变量与约束注册到模型中。
+     * 将路由相关决策变量与约束注册到模型中。
      *
      * @param model the linear meta model / 线性元模型
      * @return the registration result / 注册结果
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
     }
 
     /**
      * Constructs route model constraints and pipelines.
-     * 表示构建路由模型约束与管线。
+     * 构建路由模型约束与管线。
      *
      * @param model the linear meta model / 线性元模型
      * @return the construction result / 构建结果
-     */
+    */
     fun construct(model: LinearMetaModel<Flt64>): Try {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelinesRet = generator()) {

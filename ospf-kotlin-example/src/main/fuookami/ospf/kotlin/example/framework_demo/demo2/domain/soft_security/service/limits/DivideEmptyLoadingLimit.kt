@@ -14,6 +14,16 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Minimizes empty loading patterns between adjacent positions with configurable coefficients.
+ * 使用可配置系数最小化相邻位置之间的空载模式。
+ *
+ * @property adjacentPositions The list of adjacent position pairs / 相邻位置对列表
+ * @property divideEmptyLoading The divide-empty-loading model with intermediate symbols / 带有中间符号的空载分割模型
+ * @property emptyBetweenCargoCoefficient Coefficient function for empty-between-cargo penalties / 货物之间空位惩罚的系数函数
+ * @property emptyCargoBetweenCargoCoefficient Coefficient function for empty-cargo-between-cargo penalties / 货物之间空货惩罚的系数函数
+ * @property emptyBetweenEmptyCargoCoefficient Coefficient function for empty-between-empty-cargo penalties / 空货之间空位惩罚的系数函数
+*/
 class DivideEmptyLoadingLimit(
     private val adjacentPositions: List<PositionPair>,
     private val divideEmptyLoading: DivideEmptyLoading,

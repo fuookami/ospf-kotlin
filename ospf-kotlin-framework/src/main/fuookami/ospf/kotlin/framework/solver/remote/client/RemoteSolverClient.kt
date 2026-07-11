@@ -1,7 +1,7 @@
 /**
  * 远程求解器客户端
  * Remote solver client
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Duration
@@ -16,10 +16,11 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Remote solver client.
  *
  * @property executionPort 求解执行端口 / Solve execution port
- */
+*/
 class RemoteSolverClient(
     private val executionPort: SolverExecutionPort
 ) {
+
     /**
      * 执行远程求解。
      * Execute remote solve.
@@ -33,7 +34,7 @@ class RemoteSolverClient(
      * @param maxRounds 最大轮数 / Maximum rounds
      * @param exportCheckpointEachRound 是否每轮导出检查点 / Whether export checkpoint each round
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solve(
         payload: SolvePayload,
         taskId: TaskId,

@@ -21,7 +21,7 @@
  * - [Failed]: 失败结果，包含错误
  * - [Fatal]: 致命结果，包含多个错误
  * - [Warn]: 警告结果，同时包含值和警告
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -35,12 +35,15 @@ import fuookami.ospf.kotlin.utils.error.*
  * @param T 值的类型 / The type of the success value
  * @param C 错误码的类型 / The type of the error code
  * @param E 错误的类型 / The type of the error
- */
+*/
 sealed interface Result<out T, C : Any, out E : Error<C>> {
+
     /** 是否为成功结果 / Whether this is a successful result */
     val ok: Boolean get() = false
+
     /** 是否为失败结果 / Whether this is a failed result */
     val failed: Boolean get() = false
+
     /** 成功值，失败时为 null / The success value, or null if failed */
     val value: T? get() = null
 
@@ -52,7 +55,7 @@ sealed interface Result<out T, C : Any, out E : Error<C>> {
      *
      * @param transform 值转换函数 / The transformation function
      * @return 包含转换后值的新结果 / A new result containing the transformed value
-     */
+    */
     fun <U> map(transform: (T) -> U): Result<U, C, E>
 }
 
@@ -65,14 +68,18 @@ sealed interface Result<out T, C : Any, out E : Error<C>> {
  * @param T 值的类型 / The type of the success value
  * @param C 错误码的类型 / The type of the error code
  * @param E 错误的类型 / The type of the error
- */
+*/
 sealed interface ExResult<out T, C : Any, out E : Error<C>> {
+
     /** 是否为成功结果 / Whether this is a successful result */
     val ok: Boolean get() = false
+
     /** 是否为失败结果 / Whether this is a failed result */
     val failed: Boolean get() = false
+
     /** 是否为警告结果 / Whether this is a warned result */
     val warned: Boolean get() = false
+
     /** 成功值，失败时为 null / The success value, or null if failed */
     val value: T? get() = null
 
@@ -84,7 +91,7 @@ sealed interface ExResult<out T, C : Any, out E : Error<C>> {
      *
      * @param transform 值转换函数 / The transformation function
      * @return 包含转换后值的新扩展结果 / A new ExResult containing the transformed value
-     */
+    */
     fun <U> map(transform: (T) -> U): ExResult<U, C, E>
 }
 
@@ -99,12 +106,14 @@ sealed interface ExResult<out T, C : Any, out E : Error<C>> {
  * @param C 错误码的类型 / The type of the error code
  * @param E 错误的类型 / The type of the error
  * @property value 成功值 / The success value
- */
+*/
 class Ok<out T, C : Any, out E : Error<C>>(
     override val value: T
 ) : Result<T, C, E>, ExResult<T, C, E> {
+
     /** 始终为 true / Always true for Ok */
     override val ok: Boolean get() = true
+
     /** 始终为 false / Always false for Ok */
     override val failed: Boolean get() = false
 
@@ -116,7 +125,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
      *
      * @param U 目标类型 / The target type
      * @return 转换后的值，类型不匹配时返回 null / The cast value, or null if the type doesn't match
-     */
+    */
     inline fun <reified U> getAs(): U? {
         return value as? U
     }
@@ -129,7 +138,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
      *
      * @param transform 值转换函数 / The transformation function
      * @return 包含转换后值的新 Ok 实例 / A new Ok instance containing the transformed value
-     */
+    */
     override fun <U> map(transform: (T) -> U): Ok<U, C, E> {
         return Ok(transform(value))
     }
@@ -146,7 +155,7 @@ class Ok<out T, C : Any, out E : Error<C>>(
  * @param C 错误码的类型 / The type of the error code
  * @param E 错误的类型 / The type of the error
  * @property error 错误信息 / The error information
- */
+*/
 class Failed<out T, C : Any, out E : Error<C>>(
     val error: E
 ) : Result<T, C, E>, ExResult<T, C, E> {
@@ -184,18 +193,22 @@ class Failed<out T, C : Any, out E : Error<C>>(
 
     /** 始终为 false / Always false for Failed */
     override val ok: Boolean get() = false
+
     /** 始终为 true / Always true for Failed */
     override val failed: Boolean get() = true
+
     /** 始终为 null / Always null for Failed */
     override val value: T? get() = null
 
     /** 错误码 / The error code */
     val code by error::code
+
     /** 错误消息 / The error message */
     val message by error::message
 
     /** 是否包含附加值 / Whether the error contains an additional value */
     val withValue by error::withValue
+
     /** 错误附加值 / The additional value attached to the error */
     val errValue by error::value
 
@@ -207,7 +220,7 @@ class Failed<out T, C : Any, out E : Error<C>>(
      *
      * @param transform 值转换函数（未使用）/ The transformation function (unused)
      * @return 包含相同错误的新 Failed / A new Failed with the same error
-     */
+    */
     override fun <U> map(transform: (T) -> U): Failed<U, C, E> {
         return Failed(error)
     }
@@ -224,7 +237,7 @@ class Failed<out T, C : Any, out E : Error<C>>(
  * @param C 错误码的类型 / The type of the error code
  * @param E 错误的类型 / The type of the error
  * @property errors 错误列表 / The list of errors
- */
+*/
 class Fatal<out T, C : Any, out E : Error<C>>(
     val errors: List<E>
 ) : Result<T, C, E>, ExResult<T, C, E> {
@@ -267,15 +280,19 @@ class Fatal<out T, C : Any, out E : Error<C>>(
 
     /** 始终为 false / Always false for Fatal */
     override val ok: Boolean get() = false
+
     /** 始终为 true / Always true for Fatal */
     override val failed: Boolean get() = true
+
     /** 始终为 null / Always null for Fatal */
     override val value: T? get() = null
 
     /** 第一个错误，列表为空时为 null / The first error, or null if the list is empty */
     val firstError: E? get() = errors.firstOrNull()
+
     /** 错误数量 / The number of errors */
     val size: Int get() = errors.size
+
     /** 错误列表是否为空 / Whether the error list is empty */
     val isEmpty: Boolean get() = errors.isEmpty()
 
@@ -287,7 +304,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
      *
      * @param transform 值转换函数（未使用）/ The transformation function (unused)
      * @return 包含相同错误的新 Fatal / A new Fatal with the same errors
-     */
+    */
     override fun <U> map(transform: (T) -> U): Fatal<U, C, E> {
         return Fatal(errors)
     }
@@ -300,7 +317,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
      *
      * @param other 要合并的另一个 Fatal / The other Fatal to merge with
      * @return 包含所有错误的新 Fatal / A new Fatal containing all errors
-     */
+    */
     fun <U : Error<C>> merge(other: Fatal<*, C, U>): Fatal<T, C, Error<C>> {
         return Fatal(errors + other.errors)
     }
@@ -312,7 +329,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
      * 遍历所有错误，执行给定的操作。
      *
      * @param action 对每个错误执行的操作 / The action to perform on each error
-     */
+    */
     inline fun forEach(action: (E) -> Unit) {
         errors.forEach(action)
     }
@@ -330,7 +347,7 @@ class Fatal<out T, C : Any, out E : Error<C>>(
  * @param E 错误的类型 / The type of the error
  * @property value 成功值 / The success value
  * @property warnings 警告列表 / The list of warnings
- */
+*/
 class Warn<out T, C : Any, out E : Error<C>>(
     override val value: T,
     val warnings: List<E>
@@ -369,25 +386,31 @@ class Warn<out T, C : Any, out E : Error<C>>(
 
     /** 始终为 false / Always false for Warn */
     override val ok: Boolean get() = false
+
     /** 始终为 false / Always false for Warn */
     override val failed: Boolean get() = false
+
     /** 始终为 true / Always true for Warn */
     override val warned: Boolean get() = true
 
     /** 第一个警告，列表为空时为 null / The first warning, or null if the list is empty */
     val firstWarning: E? get() = warnings.firstOrNull()
+
     /** 警告数量 / The number of warnings */
     val size: Int get() = warnings.size
+
     /** 警告列表是否为空 / Whether the warning list is empty */
     val isEmpty: Boolean get() = warnings.isEmpty()
 
     /** 第一个警告的错误码 / The error code of the first warning */
     val code get() = firstWarning?.code
+
     /** 第一个警告的消息 / The message of the first warning */
     val warningMessage get() = firstWarning?.message
 
     /** 第一个警告是否包含附加值 / Whether the first warning contains an additional value */
     val withWarningValue get() = firstWarning?.withValue ?: false
+
     /** 第一个警告的附加值 / The additional value of the first warning */
     val warningValue get() = firstWarning?.value
 
@@ -399,7 +422,7 @@ class Warn<out T, C : Any, out E : Error<C>>(
      *
      * @param U 目标类型 / The target type
      * @return 转换后的值，类型不匹配时返回 null / The cast value, or null if the type doesn't match
-     */
+    */
     inline fun <reified U> getAs(): U? {
         return value as? U
     }
@@ -412,7 +435,7 @@ class Warn<out T, C : Any, out E : Error<C>>(
      *
      * @param transform 值转换函数 / The transformation function
      * @return 包含转换后值和相同警告的新 Warn / A new Warn with the transformed value and same warnings
-     */
+    */
     override fun <U> map(transform: (T) -> U): Warn<U, C, E> {
         return Warn(transform(value), warnings)
     }
@@ -423,7 +446,7 @@ class Warn<out T, C : Any, out E : Error<C>>(
  *
  * Marker class for successful operations without a return value.
  * 用于标记没有返回值的成功操作的标记类。
- */
+*/
 class Success
 
 /**
@@ -431,7 +454,7 @@ class Success
  *
  * Global singleton instance of Success for use in Try results.
  * 用于 Try 结果的全局单例 Success 实例。
- */
+*/
 val success = Success()
 
 /**
@@ -444,7 +467,7 @@ val success = Success()
  * @param E 错误的类型 / The type of the error
  * @param func Ok 结果的处理函数 / The handler function for Ok result
  * @return 未改变的结果 / The unchanged result
- */
+*/
 inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifOk(crossinline func: Ok<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Ok) func(this)
     return this
@@ -460,7 +483,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifOk(crossinline func: Ok<
  * @param E 错误的类型 / The type of the error
  * @param func Failed 结果的处理函数 / The handler function for Failed result
  * @return 未改变的结果 / The unchanged result
- */
+*/
 inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFailed(crossinline func: Failed<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Failed) func(this)
     return this
@@ -476,7 +499,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFailed(crossinline func:
  * @param E 错误的类型 / The type of the error
  * @param func Fatal 结果的处理函数 / The handler function for Fatal result
  * @return 未改变的结果 / The unchanged result
- */
+*/
 inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFatal(crossinline func: Fatal<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Fatal) func(this)
     return this
@@ -493,7 +516,7 @@ inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFatal(crossinline func: 
  * @param E 错误的类型 / The type of the error
  * @param func Ok 结果的处理函数 / The handler function for Ok result
  * @return 未改变的扩展结果 / The unchanged ExResult
- */
+*/
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifOk(crossinline func: Ok<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Ok) func(this)
     return this
@@ -509,7 +532,7 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifOk(crossinline func: O
  * @param E 错误的类型 / The type of the error
  * @param func Failed 结果的处理函数 / The handler function for Failed result
  * @return 未改变的扩展结果 / The unchanged ExResult
- */
+*/
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFailed(crossinline func: Failed<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Failed) func(this)
     return this
@@ -525,7 +548,7 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFailed(crossinline fun
  * @param E 错误的类型 / The type of the error
  * @param func Fatal 结果的处理函数 / The handler function for Fatal result
  * @return 未改变的扩展结果 / The unchanged ExResult
- */
+*/
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFatal(crossinline func: Fatal<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Fatal) func(this)
     return this
@@ -541,7 +564,7 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFatal(crossinline func
  * @param E 错误的类型 / The type of the error
  * @param func Warn 结果的处理函数 / The handler function for Warn result
  * @return 未改变的结果 / The unchanged result
- */
+*/
 inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifWarned(crossinline func: Warn<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Warn) func(this)
     return this
@@ -552,14 +575,15 @@ inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifWarned(crossinline fun
  *
  * Type alias for Result without a meaningful return value.
  * 无有意义返回值的 Result 类型别名。
- */
+*/
 typealias Try = Result<Success, ErrorCode, Error<ErrorCode>>
+
 /**
  * 自定义错误码的无返回值 Result 类型别名
  *
  * Type alias for Result without a meaningful return value and custom error code.
  * 自定义错误码的无有意义返回值的 Result 类型别名。
- */
+*/
 typealias TryOf<C> = Result<Success, C, Error<C>>
 
 /**
@@ -567,14 +591,15 @@ typealias TryOf<C> = Result<Success, C, Error<C>>
  *
  * Type alias for Try with a custom error type.
  * 自定义错误类型的 Try 类型别名。
- */
+*/
 typealias TryWith<E> = Result<Success, ErrorCode, E>
+
 /**
  * 自定义错误码和错误类型的 Try 类型别名
  *
  * Type alias for Try with custom error code and error type.
  * 自定义错误码和错误类型的 Try 类型别名。
- */
+*/
 typealias TryWithOf<C, E> = Result<Success, C, E>
 
 /**
@@ -582,14 +607,15 @@ typealias TryWithOf<C, E> = Result<Success, C, E>
  *
  * Type alias for Result with a return value type.
  * 带返回值类型的 Result 类型别名。
- */
+*/
 typealias Ret<T> = Result<T, ErrorCode, Error<ErrorCode>>
+
 /**
  * 自定义错误码的带返回值 Result 类型别名
  *
  * Type alias for Result with a return value type and custom error code.
  * 自定义错误码的带返回值类型的 Result 类型别名。
- */
+*/
 typealias RetOf<T, C> = Result<T, C, Error<C>>
 
 /**
@@ -597,7 +623,7 @@ typealias RetOf<T, C> = Result<T, C, Error<C>>
  *
  * Global Ok instance for Try results.
  * 用于 Try 结果的全局 Ok 实例。
- */
+*/
 val ok = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
@@ -605,7 +631,7 @@ val ok = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
  *
  * Factory function to create an Ok instance with custom error type.
  * 创建自定义错误类型 Ok 实例的工厂函数。
- */
+*/
 fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
 
 /**
@@ -617,7 +643,7 @@ fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
  * @param T 值的类型 / The type of the value
  * @param value 成功值 / The success value
  * @return 成功结果 / The successful result
- */
+*/
 fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
 
 /**
@@ -629,7 +655,7 @@ fun <T> ok(value: T) = Ok<T, ErrorCode, Error<ErrorCode>>(value)
  * @param T 值的类型 / The type of the value (never used)
  * @param error 错误 / The error
  * @return 失败结果 / The failed result
- */
+*/
 fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<ErrorCode>>(error)
 
 /**
@@ -641,7 +667,7 @@ fun <T> failed(error: Error<ErrorCode>): Ret<T> = Failed<T, ErrorCode, Error<Err
  * @param T 值的类型 / The type of the value (never used)
  * @param error 错误 / The error
  * @return 致命结果 / The fatal result
- */
+*/
 fun <T> fatal(error: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(listOf(error))
 
 /**
@@ -653,7 +679,7 @@ fun <T> fatal(error: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<Error
  * @param T 值的类型 / The type of the value (never used)
  * @param errors 错误列表 / The errors
  * @return 致命结果 / The fatal result
- */
+*/
 fun <T> fatal(vararg errors: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Error<ErrorCode>>(errors.toList())
 
 /**
@@ -666,7 +692,7 @@ fun <T> fatal(vararg errors: Error<ErrorCode>): Ret<T> = Fatal<T, ErrorCode, Err
  * @param value 成功值 / The success value
  * @param warning 警告 / The warning
  * @return 带警告的结果 / The warned result
- */
+*/
 fun <T> warn(value: T, warning: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, listOf(warning))
 
 /**
@@ -679,7 +705,7 @@ fun <T> warn(value: T, warning: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode,
  * @param value 成功值 / The success value
  * @param warnings 警告列表 / The warnings
  * @return 带警告的结果 / The warned result
- */
+*/
 fun <T> warn(value: T, vararg warnings: Error<ErrorCode>): ExRet<T> = Warn<T, ErrorCode, Error<ErrorCode>>(value, warnings.toList())
 
 /**
@@ -690,7 +716,7 @@ fun <T> warn(value: T, vararg warnings: Error<ErrorCode>): ExRet<T> = Warn<T, Er
  *
  * @param blocks 要执行的操作块 / The operation blocks to execute
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 fun run(
     vararg blocks: () -> Try
 ): Try {
@@ -712,7 +738,7 @@ fun run(
  *
  * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 suspend fun syncRun(
     vararg blocks: suspend () -> Try
 ): Try {
@@ -734,7 +760,7 @@ suspend fun syncRun(
  *
  * @param blocks 包含操作块的 Iterable / The Iterable containing operation blocks
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 fun run(
     blocks: Iterable<() -> Try>
 ): Try {
@@ -756,7 +782,7 @@ fun run(
  *
  * @param blocks 包含异步操作块的 Iterable / The Iterable containing suspend operation blocks
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 suspend fun syncRun(
     blocks: Iterable<suspend () -> Try>
 ): Try {
@@ -780,7 +806,7 @@ suspend fun syncRun(
  * @param blocks 要执行的操作块 / The operation blocks to execute
  * @param lastBlock 最终返回结果的操作块 / The operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 fun <T> run(
     vararg blocks: () -> Try,
     lastBlock: () -> Ret<T>
@@ -805,7 +831,7 @@ fun <T> run(
  * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
  * @param lastBlock 最终返回结果的异步操作块 / The suspend operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 suspend fun <T> syncRun(
     vararg blocks: suspend () -> Try,
     lastBlock: suspend () -> Ret<T>
@@ -830,7 +856,7 @@ suspend fun <T> syncRun(
  * @param blocks 包含操作块的 Iterable / The Iterable containing operation blocks
  * @param lastBlock 最终返回结果的操作块 / The operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 fun <T> run(
     blocks: Iterable<() -> Try>,
     lastBlock: () -> Ret<T>
@@ -855,7 +881,7 @@ fun <T> run(
  * @param blocks 包含异步操作块的 Iterable / The Iterable containing suspend operation blocks
  * @param lastBlock 最终返回结果的异步操作块 / The suspend operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 suspend fun <T> syncRun(
     blocks: Iterable<suspend () -> Try>,
     lastBlock: suspend () -> Ret<T>
@@ -875,14 +901,15 @@ suspend fun <T> syncRun(
  *
  * Type alias for ExResult without a meaningful return value.
  * 无有意义返回值的 ExResult 类型别名。
- */
+*/
 typealias ExTry = ExResult<Success, ErrorCode, Error<ErrorCode>>
+
 /**
  * 自定义错误码的无返回值 ExResult 类型别名
  *
  * Type alias for ExResult without a meaningful return value and custom error code.
  * 自定义错误码的无有意义返回值的 ExResult 类型别名。
- */
+*/
 typealias ExTryWithCode<C> = ExResult<Success, C, Error<C>>
 
 /**
@@ -890,7 +917,7 @@ typealias ExTryWithCode<C> = ExResult<Success, C, Error<C>>
  *
  * Type alias for ExTry with a custom error type.
  * 自定义错误类型的 ExTry 类型别名。
- */
+*/
 typealias ExTryWith<E> = ExResult<Success, ErrorCode, E>
 
 /**
@@ -898,14 +925,15 @@ typealias ExTryWith<E> = ExResult<Success, ErrorCode, E>
  *
  * Type alias for ExResult with a return value type.
  * 带返回值类型的 ExResult 类型别名。
- */
+*/
 typealias ExRet<T> = ExResult<T, ErrorCode, Error<ErrorCode>>
+
 /**
  * 自定义错误码的带返回值 ExResult 类型别名
  *
  * Type alias for ExResult with a return value type and custom error code.
  * 自定义错误码的带返回值类型的 ExResult 类型别名。
- */
+*/
 typealias ExRetWithCode<T, C> = ExResult<T, C, Error<C>>
 
 /**
@@ -913,7 +941,7 @@ typealias ExRetWithCode<T, C> = ExResult<T, C, Error<C>>
  *
  * Global Ok instance for ExTry results.
  * 用于 ExTry 结果的全局 Ok 实例。
- */
+*/
 val exOk = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
@@ -921,7 +949,7 @@ val exOk = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
  *
  * Factory function to create an Ok instance with custom error type for ExResult.
  * 创建自定义错误类型 ExOk 实例的工厂函数。
- */
+*/
 fun <E : Error<ErrorCode>> exOk(): ExResult<Success, ErrorCode, E> = Ok(success)
 
 /**
@@ -933,7 +961,7 @@ fun <E : Error<ErrorCode>> exOk(): ExResult<Success, ErrorCode, E> = Ok(success)
  *
  * @param blocks 要执行的操作块 / The operation blocks to execute
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 fun exRun(
     vararg blocks: () -> ExTry
 ): ExTry {
@@ -957,7 +985,7 @@ fun exRun(
  *
  * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 suspend fun exSyncRun(
     vararg blocks: suspend () -> ExTry
 ): ExTry {
@@ -981,7 +1009,7 @@ suspend fun exSyncRun(
  *
  * @param blocks 包含操作块的 Iterable / The Iterable containing operation blocks
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 fun exRun(
     blocks: Iterable<() -> ExTry>
 ): ExTry {
@@ -1005,7 +1033,7 @@ fun exRun(
  *
  * @param blocks 包含异步操作块的 Iterable / The Iterable containing suspend operation blocks
  * @return 第一个失败结果或 Ok / The first failure result or Ok
- */
+*/
 suspend fun exSyncRun(
     blocks: Iterable<suspend () -> ExTry>
 ): ExTry {
@@ -1031,7 +1059,7 @@ suspend fun exSyncRun(
  * @param blocks 要执行的操作块 / The operation blocks to execute
  * @param lastBlock 最终返回结果的操作块 / The operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 fun <T> exRun(
     vararg blocks: () -> ExTry,
     lastBlock: () -> ExRet<T>
@@ -1058,7 +1086,7 @@ fun <T> exRun(
  * @param blocks 要执行的异步操作块 / The suspend operation blocks to execute
  * @param lastBlock 最终返回结果的异步操作块 / The suspend operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 suspend fun <T> exSyncRun(
     vararg blocks: suspend () -> ExTry,
     lastBlock: suspend () -> ExRet<T>
@@ -1085,7 +1113,7 @@ suspend fun <T> exSyncRun(
  * @param blocks 包含操作块的 Iterable / The Iterable containing operation blocks
  * @param lastBlock 最终返回结果的操作块 / The operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 fun <T> exRun(
     blocks: Iterable<() -> ExTry>,
     lastBlock: () -> ExRet<T>
@@ -1112,7 +1140,7 @@ fun <T> exRun(
  * @param blocks 包含异步操作块的 Iterable / The Iterable containing suspend operation blocks
  * @param lastBlock 最终返回结果的异步操作块 / The suspend operation block that returns the final result
  * @return 最后一个块的结果或第一个失败 / The result of the last block or the first failure
- */
+*/
 suspend fun <T> exSyncRun(
     blocks: Iterable<suspend () -> ExTry>,
     lastBlock: suspend () -> ExRet<T>

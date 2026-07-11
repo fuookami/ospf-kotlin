@@ -1,7 +1,7 @@
 /**
  * Dequan Li 吸引子
  * Dequan Li Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property rho 系统参数 rho / System parameter rho
  * @property h 时间步长 / Time step size
- */
+*/
 data class DequanLiAttractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val epsilon: V, val zeta: V, val rho: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -55,7 +55,7 @@ data class DequanLiAttractor<V : FloatingNumber<V>>(
  *
  * @property attractor Dequan Li 吸引子实例 / Dequan Li Attractor instance
  * @property _x 初始状态向量 / Initial state vector
- */
+*/
 data class DequanLiAttractorGenerator(
     val attractor: DequanLiAttractor<Flt64> = DequanLiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

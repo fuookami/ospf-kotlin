@@ -1,7 +1,7 @@
 /**
  * Tail bin assignment constraint.
  * 尾箱分配约束。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -20,19 +20,20 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
  * @property bins 箱子列表 / bin list
  * @property assignment 精确赋值 / precise assignment
  * @property name 约束名称 / constraint name
- */
+*/
 class TailBinAssignmentConstraint(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val assignment: PreciseAssignment,
     val name: String = "tail_bin_assignment_constraint"
 ) {
+
     /**
      * Add constraint to model.
      * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun invoke(model: MetaModel<FltX>): Try {
         val linearModel = model as AbstractLinearMetaModel<FltX>
         for ((i, bin) in bins.withIndex()) {

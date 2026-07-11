@@ -1,7 +1,7 @@
 /**
  * Hadley 吸引子
  * Hadley Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class HadleyAttractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val zeta: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -48,7 +48,7 @@ data class HadleyAttractor<V : FloatingNumber<V>>(
 /**
  * Hadley 吸引子生成器
  * Hadley Attractor Generator
- */
+*/
 data class HadleyAttractorGenerator(
     val attractor: HadleyAttractor<Flt64> = HadleyAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

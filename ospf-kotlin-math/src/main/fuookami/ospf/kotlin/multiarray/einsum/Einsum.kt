@@ -33,7 +33,7 @@
  * // Method 3: Using DSL
  * val c3 = einsteinDouble(a, b).matmul()
  * ```
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 // ============================================================================

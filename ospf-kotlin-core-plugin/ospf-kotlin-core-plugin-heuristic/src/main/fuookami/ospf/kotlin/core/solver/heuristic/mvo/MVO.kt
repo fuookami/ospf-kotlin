@@ -32,12 +32,13 @@ typealias Universe<ObjValue, V> = SolutionWithFitness<ObjValue, V>
 /** 多元宇宙优化器策略接口 / Multi-Verse Optimizer policy interface */
 interface AbstractMVOPolicy<ObjValue, V> :
     AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 计算虫洞存在概率（WEP）/ Calculate Wormhole Existence Probability (WEP)
      *
      * @param iteration 当前迭代 / current iteration
      * @return 虫洞存在概率 / wormhole existence probability
-     */
+    */
     fun wep(iteration: Iteration): Flt64
 
     /**
@@ -45,7 +46,7 @@ interface AbstractMVOPolicy<ObjValue, V> :
      *
      * @param iteration 当前迭代 / current iteration
      * @return 旅行距离率 / travelling distance rate
-     */
+    */
     fun tdr(iteration: Iteration): Flt64
 
     /**
@@ -54,7 +55,7 @@ interface AbstractMVOPolicy<ObjValue, V> :
      * @param model 回调模型 / callback model
      * @param objs 目标值列表 / objective value list
      * @return 白洞概率列表 / white hole rate list
-     */
+    */
     fun whiteHoleRates(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>
@@ -70,7 +71,7 @@ interface AbstractMVOPolicy<ObjValue, V> :
      * @param wep 虫洞存在概率 / wormhole existence probability
      * @param tdr 旅行距离率 / travelling distance rate
      * @return 变换后的解列表 / transformed solution list
-     */
+    */
     fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution<V>,
@@ -99,7 +100,7 @@ interface AbstractMVOPolicy<ObjValue, V> :
  * @property whiteHoleSelector 白洞选择器 / white hole selector
  * @property whiteHoleRateCalculator 白洞概率计算器 / white hole rate calculator
  * @property randomGenerator 随机数生成器 / random number generator
- */
+*/
 open class MVOPolicy<ObjValue, V>(
     val minWEP: Flt64 = Flt64(0.2),
     val maxWEP: Flt64 = Flt64(1.0),
@@ -115,6 +116,7 @@ open class MVOPolicy<ObjValue, V>(
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractMVOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 创建默认多元宇宙优化器策略 / Create default MVO policy
      *
@@ -125,7 +127,7 @@ open class MVOPolicy<ObjValue, V>(
      * @param timeLimit 时间上限 / time limit
      * @param randomGenerator 随机数生成器 / random number generator
      * @return 默认 MVO 策略实例 / default MVO policy instance
-     */
+    */
     companion object {
         operator fun invoke(
             minWEP: Flt64 = Flt64(0.2),
@@ -229,7 +231,7 @@ open class MVOPolicy<ObjValue, V>(
      * @param upperBound 上界 / upper bound
      * @param tdr 旅行距离率 / travelling distance rate
      * @return 变换后的值 / transformed value
-     */
+    */
     private fun applyWormhole(
         bestSolutionFlt64: List<Flt64>,
         dimension: Int,
@@ -247,6 +249,7 @@ open class MVOPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+
 /**
  * 多元宇宙优化器
  *
@@ -263,19 +266,20 @@ open class MVOPolicy<ObjValue, V>(
  * @property population 种群构建参数列表 / population builder list
  * @property solutionAmount 期望解的数量 / desired number of solutions
  * @property policy 多元宇宙优化器策略 / MVO policy
- */
+*/
 class MultiVerseOptimizer<Obj, ObjValue, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractMVOPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 执行多元宇宙优化算法 / Execute Multi-Verse Optimizer
      *
      * @param model 回调模型 / callback model
      * @param runningCallBack 运行回调函数 / running callback function
      * @return 最优个体列表 / best individual list
-     */
+    */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, Universe<ObjValue, V>, List<Universe<ObjValue, V>>) -> Try)? = null
@@ -357,5 +361,6 @@ class MultiVerseOptimizer<Obj, ObjValue, V>(
 
 /** 单目标多元宇宙优化器别名 / Single-objective Multi-Verse Optimizer typealias */
 typealias MVO = MultiVerseOptimizer<Flt64, Flt64, Flt64>
+
 /** 多目标多元宇宙优化器别名 / Multi-objective Multi-Verse Optimizer typealias */
 typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

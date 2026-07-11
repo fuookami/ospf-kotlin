@@ -4,7 +4,7 @@
  *
  * 定义数值类型的特性接口，包括不变怌(Invariant)、可变怌(Variant)、有界怌(Bounded)、无穷怌(Infinite)、定点怌(Fixed) 和精度特怌(Epsilon)。
  * Defines trait interfaces for numeric types, including invariance (Invariant), variance (Variant), boundedness (Bounded), infinity support (Infinite), fixed-point property (Fixed), and precision characteristics (Epsilon).
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.concept
 
 /**
@@ -15,16 +15,16 @@ package fuookami.ospf.kotlin.math.algebra.concept
  * Indicates the value type is identical to the internal value type, allowing direct value retrieval.
  *
  * @param T 内部值类垌
- * @param T The internal value type
- */
+*/
 interface Invariant<T> {
+
     /**
      * 获取内部倌
      * Get the internal value
      *
      * @return 内部倌
      * @return The internal value
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     fun value(): T {
         // 安全不变量：Invariant<T> 语义要求实现类型本身就是 T。
@@ -41,16 +41,16 @@ interface Invariant<T> {
  * Indicates the value type may differ from the internal value type, and the internal value may be null.
  *
  * @param T 内部值类垌
- * @param T The internal value type
- */
+*/
 interface Variant<T> {
+
     /**
      * 获取内部倌
      * Get the internal value
      *
      * @return 内部值，可能为空
      * @return The internal value, may be null
-     */
+    */
     fun value(): T? = null
 }
 
@@ -62,13 +62,15 @@ interface Variant<T> {
  * Indicates the numeric type has lower and upper bounds.
  *
  * @param Self 有界类型
- * @param Self The bounded type
- */
+*/
 interface Bounded<Self : Comparable<Self>> {
+
     /** 是否有界 / Whether the type is bounded */
     val isBounded: Boolean
+
     /** 下界 / Lower bound */
     val minBound: Self?
+
     /** 上界 / Upper bound */
     val maxBound: Self?
 
@@ -85,10 +87,9 @@ interface Bounded<Self : Comparable<Self>> {
      * Check if a value is within bounds
      *
      * @param value 待检查的倌
-     * @param value The value to check
      * @return 是否在边界内
      * @return Whether the value is within bounds
-     */
+    */
     fun isWithinBounds(value: Self): Boolean {
         val lowerOkay = minBound?.let { value >= it } ?: true
         val upperOkay = maxBound?.let { value <= it } ?: true
@@ -100,10 +101,9 @@ interface Bounded<Self : Comparable<Self>> {
      * Clamp a value to within bounds
      *
      * @param value 待限制的倌
-     * @param value The value to clamp
      * @return 限制后的倌
      * @return The clamped value
-     */
+    */
     fun clampToBounds(value: Self): Self {
         return when {
             minBound != null && value < minBound!! -> minBound!!
@@ -121,13 +121,15 @@ interface Bounded<Self : Comparable<Self>> {
  * Indicates the numeric type supports positive and negative infinity.
  *
  * @param Self 无穷类型
- * @param Self The infinity type
- */
+*/
 interface Infinite<Self> {
+
     /** 是否支持无穷 / Whether infinity is supported */
     val supportsInfinity: Boolean
+
     /** 正无穷倌/ Positive infinity value */
     val positiveInfinity: Self?
+
     /** 负无穷倌/ Negative infinity value */
     val negativeInfinityValue: Self?
 
@@ -144,10 +146,9 @@ interface Infinite<Self> {
      * Check if the value is positive infinity
      *
      * @param value 待判断的值
-     * @param value The value to check
      * @return 是否为正无穷
      * @return Whether the value is positive infinity
-     */
+    */
     fun isPositiveInfinity(value: Self): Boolean {
         return positiveInfinity?.let { value == it } ?: false
     }
@@ -157,10 +158,9 @@ interface Infinite<Self> {
      * Check if the value is negative infinity
      *
      * @param value 待判断的值
-     * @param value The value to check
      * @return 是否为负无穷
      * @return Whether the value is negative infinity
-     */
+    */
     fun isNegativeInfinity(value: Self): Boolean {
         return negativeInfinityValue?.let { value == it } ?: false
     }
@@ -170,10 +170,9 @@ interface Infinite<Self> {
      * Check if the value is infinite
      *
      * @param value 待判断的值
-     * @param value The value to check
      * @return 是否为无穷
      * @return Whether the value is infinite
-     */
+    */
     fun isInfinite(value: Self): Boolean {
         return isPositiveInfinity(value) || isNegativeInfinity(value)
     }
@@ -183,10 +182,9 @@ interface Infinite<Self> {
      * Check if the value is finite
      *
      * @param value 待判断的值
-     * @param value The value to check
      * @return 是否为有限值
      * @return Whether the value is finite
-     */
+    */
     fun isFinite(value: Self): Boolean {
         return !isInfinite(value)
     }
@@ -200,13 +198,15 @@ interface Infinite<Self> {
  * Indicates the numeric type has fixed-point precision characteristics.
  *
  * @param Self 定点类型
- * @param Self The fixed-point type
- */
+*/
 interface Fixed<Self> {
+
     /** 是否定点 / Whether the type is fixed-point */
     val isFixed: Boolean
+
     /** 定点小数位数 / Fixed-point decimal digits */
     val fixedDigits: Int?
+
     /** 定点精度倌/ Fixed-point precision value */
     val fixedPrecision: Self?
 
@@ -231,9 +231,9 @@ interface Fixed<Self> {
  * Indicates the numeric type has a precision epsilon.
  *
  * @param Self 精度误差类型
- * @param Self The epsilon type
- */
+*/
 interface Epsilon<Self> {
+
     /** 精度误差倌/ Precision epsilon value */
     val precisionEpsilon: Self?
 

@@ -3,7 +3,7 @@
  *
  * 本文件定义物料数量相关的类型别名，用于表示物理量及范围。
  * This file defines type aliases for material quantities, representing physical quantities and ranges.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange

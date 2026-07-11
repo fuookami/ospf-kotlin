@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  *
  * @property config 求解器配置 / solver configuration
  * @property callBack 线性求解器回调 / linear solver callback
- */
+*/
 class GurobiColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack()
@@ -44,7 +44,7 @@ class GurobiColumnGenerationSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -127,7 +127,7 @@ class GurobiColumnGenerationSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-     */
+    */
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -230,7 +230,7 @@ class GurobiColumnGenerationSolver(
      * @param registrationStatusCallBack 注册状态回调 / registration status callback
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return LP 求解结果（含对偶解）/ LP solving result with dual solution
-     */
+    */
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,

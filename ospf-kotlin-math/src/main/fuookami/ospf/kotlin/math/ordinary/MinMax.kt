@@ -22,7 +22,7 @@
  * Boundary cases: empty collection calls to minMax() return Failed,
  * corresponding OrNull versions return null.
  * Requires type to implement Ord interface for comparison operations (lt/leq/gt/geq).
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param lhs 左值 / Left value
  * @param rhs 右值 / Right value
  * @return 较小的值 / The smaller value
- */
+*/
 fun <T : Ord<T>> min(lhs: T, rhs: T): T = if (lhs < rhs) lhs else rhs
 
 /**
@@ -45,7 +45,7 @@ fun <T : Ord<T>> min(lhs: T, rhs: T): T = if (lhs < rhs) lhs else rhs
  * @param lhs 第一个值 / First value
  * @param rhs 其余值 / Remaining values
  * @return 最小值 / Minimum value
- */
+*/
 fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
     var min = lhs
     for (e in rhs) {
@@ -64,7 +64,7 @@ fun <T : Ord<T>> min(lhs: T, vararg rhs: T): T {
  * @param rhs 其余值 / Remaining values
  * @param extractor 值提取器 / Value extractor
  * @return 提取后的最小值 / Minimum extracted value
- */
+*/
 inline fun <T : Ord<T>, U> minOf(
     lhs: U,
     vararg rhs: U,
@@ -87,7 +87,7 @@ inline fun <T : Ord<T>, U> minOf(
  * @param lhs 左值 / Left value
  * @param rhs 右值 / Right value
  * @return 较大的值 / The larger value
- */
+*/
 fun <T : Ord<T>> max(lhs: T, rhs: T): T = if (lhs > rhs) lhs else rhs
 
 /**
@@ -97,7 +97,7 @@ fun <T : Ord<T>> max(lhs: T, rhs: T): T = if (lhs > rhs) lhs else rhs
  * @param lhs 第一个值 / First value
  * @param rhs 其余值 / Remaining values
  * @return 最大值 / Maximum value
- */
+*/
 fun <T : Ord<T>> max(lhs: T, vararg rhs: T): T {
     var max = lhs
     for (e in rhs) {
@@ -116,7 +116,7 @@ fun <T : Ord<T>> max(lhs: T, vararg rhs: T): T {
  * @param rhs 其余值 / Remaining values
  * @param extractor 值提取器 / Value extractor
  * @return 提取后的最大值 / Maximum extracted value
- */
+*/
 inline fun <T : Ord<T>, U> maxOf(
     lhs: U,
     vararg rhs: U,
@@ -139,7 +139,7 @@ inline fun <T : Ord<T>, U> maxOf(
  * @param lhs 左值 / Left value
  * @param rhs 右值 / Right value
  * @return 最小值和最大值对 / Pair of minimum and maximum values
- */
+*/
 fun <T : Ord<T>> minmax(lhs: T, rhs: T): Pair<T, T> = Pair(min(lhs, rhs), max(lhs, rhs))
 
 /**
@@ -149,7 +149,7 @@ fun <T : Ord<T>> minmax(lhs: T, rhs: T): Pair<T, T> = Pair(min(lhs, rhs), max(lh
  * @param lhs 第一个值 / First value
  * @param rhs 其余值 / Remaining values
  * @return 最小值和最大值对 / Pair of minimum and maximum values
- */
+*/
 fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
     var min = lhs
     var max = lhs
@@ -172,7 +172,7 @@ fun <T : Ord<T>> minMax(lhs: T, vararg rhs: T): Pair<T, T> {
  * @param rhs 其余值 / Remaining values
  * @param extractor 值提取器 / Value extractor
  * @return 提取后的最小值和最大值对 / Pair of minimum and maximum extracted values
- */
+*/
 inline fun <T : Ord<T>, U> minMaxOf(
     lhs: U,
     vararg rhs: U,
@@ -245,7 +245,7 @@ fun <T : Ord<T>> Iterable<T>.minMaxOrNull(): Pair<T, T>? {
  *
  * @param extractor 值提取器 / Value extractor
  * @return 最小和最大元素对 / Pair of minimum and maximum elements
- */
+*/
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(
     crossinline extractor: Extractor<T, U>
 ): Pair<U, U> {
@@ -275,7 +275,7 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxBy(
  *
  * @param extractor 值提取器 / Value extractor
  * @return 最小和最大元素对，空集合返回 null / Pair of min and max elements, or null for empty
- */
+*/
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(
     crossinline extractor: Extractor<T, U>
 ): Pair<U, U>? {
@@ -308,7 +308,7 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxByOrNull(
  *
  * @param extractor 值提取器 / Value extractor
  * @return 最小和最大提取值对 / Pair of minimum and maximum extracted values
- */
+*/
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(
     crossinline extractor: Extractor<T, U>
 ): Pair<T, T> {
@@ -333,7 +333,7 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOf(
  *
  * @param extractor 值提取器 / Value extractor
  * @return 最小和最大提取值对，空集合返回 null / Pair of min and max extracted values, or null for empty
- */
+*/
 inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
     crossinline extractor: Extractor<T, U>
 ): Pair<T, T>? {
@@ -361,7 +361,7 @@ inline fun <T : Ord<T>, U> Iterable<U>.minMaxOfOrNull(
  *
  * @param comparator 自定义比较器 / Custom comparator
  * @return 最小值和最大值对 / Pair of minimum and maximum values
- */
+*/
 fun <T> Iterable<T>.minMaxWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
     val iterator = this.iterator()
     var min = iterator().next()
@@ -384,7 +384,7 @@ fun <T> Iterable<T>.minMaxWith(comparator: kotlin.Comparator<T>): Pair<T, T> {
  *
  * @param comparator 自定义比较器 / Custom comparator
  * @return 最小值和最大值对，空集合返回 null / Pair of min and max values, or null for empty
- */
+*/
 fun <T> Iterable<T>.minMaxWithOrNull(comparator: kotlin.Comparator<T>): Pair<T, T>? {
     val iterator = this.iterator()
     if (!iterator.hasNext()) {

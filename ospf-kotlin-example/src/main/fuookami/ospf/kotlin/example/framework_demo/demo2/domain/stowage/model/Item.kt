@@ -14,10 +14,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /** 货物位置标签枚举 / Item location tag enum */
 enum class ItemLocationTag {
+    /** Main deck location / 主舱位置 */
     Main,
+    /** Lower deck location / 下舱位置 */
     Low,
+    /** Bulk cargo location / 散货位置 */
     Bulk,
+    /** Head section location / 头部位置 */
     Head,
+    /** Tail section location / 尾部位置 */
     Tail
 }
 
@@ -26,7 +31,7 @@ enum class ItemLocationTag {
  * Item location, describing which deck and position tags the item can be loaded to.
  *
  * @property tags 位置标签集合 / set of location tags
- */
+*/
 data class ItemLocation(
     val tags: Set<ItemLocationTag>,
 ) {
@@ -57,7 +62,7 @@ data class ItemLocation(
      *
      * @param location 甲板位置 / deck location
      * @return 如果允许则返回 ok，否则返回失败原因 / ok if allowed, otherwise a failure reason
-     */
+    */
     fun enabledIn(location: DeckLocation): Try {
         return when (location) {
             DeckLocation.Main -> {
@@ -84,7 +89,7 @@ data class ItemLocation(
      *
      * @param location 货位位置 / position location
      * @return 如果允许则返回 ok，否则返回失败原因 / ok if allowed, otherwise a failure reason
-     */
+    */
     fun enabledIn(location: PositionLocation): Try {
         if (low && location.main) {
             return Failed(ErrorCode.ApplicationFailed, "低舱位货物不能装载到主舱位")
@@ -110,21 +115,26 @@ data class ItemLocation(
 
 /** 货物状态枚举 / Item status enum */
 enum class ItemStatus {
+    /** Item is loaded / 货物已装载 */
     Loaded {
         override val loaded = true
         override val available = false
     },
+    /** Item needs adjustment / 货物需要调整 */
     AdjustmentNeeded {
         override val loaded = true
         override val available = true
         override val adjustmentNeeded = true
     },
+    /** Item is preassigned to a position / 货物已预分配位置 */
     Preassigned {
         override val stowageNeeded = true
     },
+    /** Item is optional for stowage / 货物为可选装载 */
     Optional {
         override val stowageNeeded = true
     },
+    /** Item is reserved and unavailable / 货物已预留且不可用 */
     Reserved {
         override val available = false
     };
@@ -142,7 +152,7 @@ enum class ItemStatus {
  *
  * @property types 货物类型集合 / set of cargo types
  * @property priority 货物优先级 / cargo priority
- */
+*/
 data class ItemCargo(
     val types: Set<CargoType>,
     val priority: CargoPriority
@@ -168,20 +178,21 @@ data class ItemCargo(
  * @property reweighed 复称时间 / reweigh instant
  * @property carBoard 车辆板信息 / car-board info
  * @property order 顺序号 / order number
- */
+*/
 data class ItemOrder(
     val hardstand: kotlin.time.Instant?,
     val reweighed: kotlin.time.Instant?,
     val carBoard: CarBoard?,
     val order: UInt8?
 ) {
+
     /**
      * 车辆板信息，包含车辆和板号。
      * Car-board information, including car and board identifiers.
      *
      * @property car 车辆标识 / car identifier
      * @property board 板号 / board identifier
-     */
+    */
     data class CarBoard(
         val car: String,
         val board: String
@@ -213,7 +224,7 @@ data class ItemOrder(
  * @property cargo 货物类型 / item cargo type
  * @property status 货物状态 / item status
  * @property order 订单信息 / order information
- */
+*/
 class Item(
     val id: String,
     val destination: IATA,

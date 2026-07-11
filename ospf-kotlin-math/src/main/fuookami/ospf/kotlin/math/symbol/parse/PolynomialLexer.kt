@@ -4,7 +4,7 @@
  *
  * 提供多项式表达式的词法分析功能，将字符串分解为词法单元序列。
  * Provides lexical analysis for polynomial expressions, decomposing strings into token sequences.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.parse
 
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -14,22 +14,52 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 /**
  * Token types for polynomial lexical analysis.
  * 多项式词法分析的词法单元类型。
- */
+*/
 internal enum class PolynomialTokenType {
+
+    /** Numeric literal / 数字字面量 */
     Number,
+
+    /** Identifier / 标识符 */
     Identifier,
+
+    /** Plus operator / 加号运算符 */
     Plus,
+
+    /** Minus operator / 减号运算符 */
     Minus,
+
+    /** Multiplication operator / 乘号运算符 */
     Star,
+
+    /** Exponentiation operator / 幂运算符 */
     Caret,
+
+    /** Left parenthesis / 左圆括号 */
     LeftParen,
+
+    /** Right parenthesis / 右圆括号 */
     RightParen,
+
+    /** Less-than operator / 小于运算符 */
     Less,
+
+    /** Less-than-or-equal operator / 小于等于运算符 */
     LessEqual,
+
+    /** Equality operator / 等于运算符 */
     Equal,
+
+    /** Not-equal operator / 不等于运算符 */
     NotEqual,
+
+    /** Greater-than-or-equal operator / 大于等于运算符 */
     GreaterEqual,
+
+    /** Greater-than operator / 大于运算符 */
     Greater,
+
+    /** End of input / 输入结束 */
     End
 }
 
@@ -40,7 +70,7 @@ internal enum class PolynomialTokenType {
  * @property type the token type / 词法单元类型
  * @property text the raw text of the token / 词法单元的原始文本
  * @property position the starting position in the input string / 在输入字符串中的起始位置
- */
+*/
 internal data class PolynomialToken(
     val type: PolynomialTokenType,
     val text: String,
@@ -52,7 +82,7 @@ internal data class PolynomialToken(
  * 多项式表达式的词法分析器，将输入字符串分解为词法单元序列。
  *
  * @property input the input string to tokenize / 待词法分析的输入字符串
- */
+*/
 internal class PolynomialLexer(
     private val input: String
 ) {
@@ -63,7 +93,7 @@ internal class PolynomialLexer(
      * 对输入字符串执行词法分析。
      *
      * @return the list of tokens or a parse error / 词法单元列表或解析错误
-     */
+    */
     fun lex(): ParseResult<List<PolynomialToken>> {
         val tokens = ArrayList<PolynomialToken>()
         while (true) {
@@ -163,7 +193,7 @@ internal class PolynomialLexer(
      * 从输入中读取数字字面量（整数或小数）。
      *
      * @return the numeric token or a parse error / 数字词法单元或解析错误
-     */
+    */
     private fun readNumber(): ParseResult<PolynomialToken> {
         val start = index
         var hasDot = false
@@ -199,7 +229,7 @@ internal class PolynomialLexer(
      * 从输入中读取标识符（由字母、数字或下划线组成的词）。
      *
      * @return the identifier token / 标识符词法单元
-     */
+    */
     private fun readIdentifier(): PolynomialToken {
         val start = index
         while (!isEnd()) {
@@ -220,7 +250,7 @@ internal class PolynomialLexer(
     /**
      * Skips whitespace characters in the input.
      * 跳过输入中的空白字符。
-     */
+    */
     private fun skipWhitespace() {
         while (!isEnd() && input[index].isWhitespace()) {
             index += 1
@@ -232,7 +262,7 @@ internal class PolynomialLexer(
      * 判断是否已到达输入末尾。
      *
      * @return whether the index is past the end of input / 索引是否已超过输入末尾
-     */
+    */
     private fun isEnd(): Boolean {
         return index >= input.length
     }
@@ -242,7 +272,7 @@ internal class PolynomialLexer(
      * 查看下一个字符但不推进索引。
      *
      * @return the next character, or null if absent / 下一个字符，不存在则返回 null
-     */
+    */
     private fun peekNext(): Char? {
         return if (index + 1 < input.length) {
             input[index + 1]

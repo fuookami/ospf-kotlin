@@ -6,7 +6,7 @@
  *
  * 定义日志记录类型、接口和持久化对象。
  * Defines log record types, interfaces, and persistence objects.
- */
+*/
 package fuookami.ospf.kotlin.framework.log
 
 import java.io.ByteArrayOutputStream
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.framework.persistence.*
  * @param value 日志值 / Log value
  * @param T 日志值类型 / Log value type
  * @return 序列化器 / Serializer
- */
+*/
 @OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
 private fun <T : Any> runtimeLogSerializer(value: T): KSerializer<T> {
@@ -43,7 +43,7 @@ private fun <T : Any> runtimeLogSerializer(value: T): KSerializer<T> {
 /**
  * 日志记录类型
  * Log record type
- */
+*/
 enum class LogRecordType {
     /** 信息 / Info */
     Info,
@@ -58,22 +58,28 @@ enum class LogRecordType {
 /**
  * 日志记录接口
  * Log record interface
- */
+*/
 interface LogRecord {
     companion object {}
 
     /** 应用名 / Application name */
     val app: String
+
     /** 版本 / Version */
     val version: String
+
     /** 服务标识 / Service identifier */
     val serviceId: String
+
     /** 步骤 / Step */
     val step: String
+
     /** 日志类型 / Log type */
     val type: LogRecordType
+
     /** 时间 / Time */
     val time: LocalDateTime
+
     /** 有效时间 / Available time */
     val availableTime: LocalDateTime
 }
@@ -83,7 +89,7 @@ interface LogRecord {
  * Log record persistence object
  *
  * @param T 日志值类型 / Log value type
- */
+*/
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class LogRecordPO<T : Any>(
@@ -111,7 +117,7 @@ data class LogRecordPO<T : Any>(
      * @param value 日志值 / Log value
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
-     */
+    */
     constructor(
         app: String,
         version: String,
@@ -151,7 +157,7 @@ data class LogRecordPO<T : Any>(
      *
      * @param serializer 序列化器 / Serializer
      * @return 字符串持久化对象 / String persistence object
-     */
+    */
     fun stringPO(serializer: KSerializer<T>): LogRecordStringPO {
         return stringPO { writeJson(serializer, it) }
     }
@@ -162,7 +168,7 @@ data class LogRecordPO<T : Any>(
      *
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字符串持久化对象 / String persistence object
-     */
+    */
     fun stringPO(serializer: (T) -> String): LogRecordStringPO {
         return LogRecordStringPO(
             app = this@LogRecordPO.app,
@@ -182,7 +188,7 @@ data class LogRecordPO<T : Any>(
      *
      * @param serializer 序列化器 / Serializer
      * @return 字节数组持久化对象 / Byte array persistence object
-     */
+    */
     fun bytePO(serializer: KSerializer<T>): LogRecordBytePO {
         return bytePO {
             val stream = ByteArrayOutputStream()
@@ -201,7 +207,7 @@ data class LogRecordPO<T : Any>(
      *
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @return 字节数组持久化对象 / Byte array persistence object
-     */
+    */
     fun bytePO(serializer: (T) -> ByteArray): LogRecordBytePO {
         return LogRecordBytePO(
             app = this@LogRecordPO.app,

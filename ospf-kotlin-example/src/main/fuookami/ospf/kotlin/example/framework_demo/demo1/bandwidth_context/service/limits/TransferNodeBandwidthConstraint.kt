@@ -15,11 +15,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 通过求和边容量计算节点的最大出带宽容量。
  * Computes the maximum outgoing bandwidth capacity of a node by summing its edge capacities.
+ * 通过求和边容量计算节点的最大出带宽容量。
  *
- * @return 最大出带宽容量。
- */
+ * @receiver Node the node to compute capacity for / 要计算容量的节点
+ * @return the maximum outgoing bandwidth capacity / 最大出带宽容量
+*/
 fun Node.maxOutDegree(): UInt64 {
     var bandwidth = UInt64.zero
     edges.forEach { bandwidth += it.maxBandwidth }
@@ -27,12 +28,13 @@ fun Node.maxOutDegree(): UInt64 {
 }
 
 /**
- * 约束总节点流出到节点容量（当节点被分配时）。Constrains total node out-flow to the node's capacity when the node is assigned.
+ * Constrains total node out-flow to the node's capacity when the node is assigned.
+ * 约束总节点流出到节点容量（当节点被分配时）。
  *
- * @property nodes 参数。
- * @property assignment 参数。
- * @property nodeBandwidth 参数。
- */
+ * @property nodes the list of network nodes / 网络节点列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property nodeBandwidth the node bandwidth model / 节点带宽模型
+*/
 class TransferNodeBandwidthConstraint(
     private val nodes: ArrayList<Node>,
     private val assignment: Assignment,

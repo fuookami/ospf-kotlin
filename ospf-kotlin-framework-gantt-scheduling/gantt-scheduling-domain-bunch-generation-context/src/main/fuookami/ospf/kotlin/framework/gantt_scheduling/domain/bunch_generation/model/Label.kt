@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param V 数值类型 / Numeric type
- */
+*/
 typealias TotalCostCalculator<T, E, V> = (executor: E, lastTask: T?, tasks: List<T>) -> Cost<V>?
 
 /**
@@ -27,7 +27,7 @@ typealias TotalCostCalculator<T, E, V> = (executor: E, lastTask: T?, tasks: List
  * @param executorUsability 执行器初始可用性 / Executor initial usability
  * @param totalCostCalculator 总成本计算器 / Total cost calculator
  * @return 任务束或null / Bunch or null
- */
+*/
 private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A, V>,
     iteration: Int64,
@@ -79,7 +79,7 @@ private fun <V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> g
  * @param totalCostCalculator 总成本计算器 / Total cost calculator
  * @param bunchCtor 任务束构造器 / Bunch constructor
  * @return 任务束或null / Bunch or null
- */
+*/
 private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> generateBunch(
     label: Label<T, E, A, V>,
     iteration: Int64,
@@ -110,18 +110,26 @@ private fun <B : AbstractTaskBunch<T, E, A, V>, V, T : AbstractTask<E, A>, E : E
 }
 
 /**
- * 标签类 / Label class
+ * 标签类，用于列生成中的标签算法 / Label class for labeling algorithm in column generation
+ *
+ * 每个标签代表从根节点到当前节点的部分路径，包含累计成本和影子价格信息。
+ * Each label represents a partial path from the root node to the current node, containing accumulated cost and shadow price information.
  *
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  * @param V 数值类型 / Numeric type
- * @param cost 成本 / Cost
- * @param shadowPrice 影子价格 / Shadow price
- * @param prevLabel 前一个标签 / Previous label
- * @param node 节点 / Node
- * @param task 任务 / Task
- */
+ * @property cost 累计成本 / Accumulated cost
+ * @property shadowPrice 累计影子价格 / Accumulated shadow price
+ * @property prevLabel 前驱标签 / Previous label in the path
+ * @property node 当前节点 / Current node
+ * @property task 当前任务 / Current task
+ * @property reducedCost 检验成本（成本减去影子价格）/ Reduced cost (cost minus shadow price)
+ * @property executorChange 执行器变更次数（0或1）/ Executor change count (0 or 1)
+ * @property trace 已访问的任务节点索引轨迹 / Trace of visited task node indices
+ * @property isBetterBunch 是否为更优束（检验成本小于零）/ Whether this is a better bunch (reduced cost less than zero)
+ * @property plan 关联的计划，若任务为计划任务 / Associated plan if the task is a planned task
+*/
 open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, V>(
     val cost: Cost<V>,
     val shadowPrice: V,
@@ -187,7 +195,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, 
      *
      * @param node 节点 / Node
      * @return 是否已访问 / Whether visited
-     */
+    */
     fun visited(node: Node): Boolean {
         return when (node) {
             is RootNode, is EndNode -> {
@@ -208,7 +216,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, 
      * @param executorUsability 执行器初始可用性 / Executor initial usability
      * @param totalCostCalculator 总成本计算器 / Total cost calculator
      * @return 任务束或null / Bunch or null
-     */
+    */
     fun generateBunch(
         iteration: Int64,
         executor: E,
@@ -234,7 +242,7 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, 
      * @param totalCostCalculator 总成本计算器 / Total cost calculator
      * @param bunchCtor 任务束构造器 / Bunch constructor
      * @return 任务束或null / Bunch or null
-     */
+    */
     fun <B : AbstractTaskBunch<T, E, A, V>> generateBunch(
         iteration: Int64,
         executor: E,

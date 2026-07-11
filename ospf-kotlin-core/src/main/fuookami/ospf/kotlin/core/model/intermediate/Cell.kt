@@ -1,7 +1,7 @@
 /**
  * 中间模型单元格
  * Intermediate model cells
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -13,14 +13,15 @@ import fuookami.ospf.kotlin.core.variable.VariableItemKey
 /**
  * 通用单元格接口，支持多种求值方式。
  * Generic cell interface supporting multiple evaluation modes.
- */
+*/
 interface Cell<V : RealNumber<V>> {
+
     /**
      * 使用标记的已知结果求值。
      * Evaluate using the token's known result.
      *
      * @return 求值结果，若标记结果未知则返回 null / The evaluation result, or null if the token result is unknown
-     */
+    */
     fun evaluate(): V?
 
     /**
@@ -29,7 +30,7 @@ interface Cell<V : RealNumber<V>> {
      *
      * @param solution 解向量，索引对应标记在标记表中的位置 / The solution vector whose indices correspond to token positions in the token table
      * @return 求值结果，若标记未在标记表中找到则返回 null / The evaluation result, or null if the token is not found in the token table
-     */
+    */
     fun evaluate(solution: List<V>): V?
 
     /**
@@ -38,14 +39,14 @@ interface Cell<V : RealNumber<V>> {
      *
      * @param solution 解映射，键对应变量项的唯一标识 / The solution map whose keys correspond to variable item keys
      * @return 求值结果，若键未在映射中找到则返回 null / The evaluation result, or null if the key is not found in the map
-     */
+    */
     fun evaluate(solution: Map<VariableItemKey, V>): V?
 }
 
 /**
  * 线性单元格接口，持有系数和标记。
  * Linear cell interface holding coefficient and token.
- */
+*/
 interface LinearCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
     val token: Token<V>
@@ -54,7 +55,7 @@ interface LinearCell<V : RealNumber<V>> : Cell<V> {
 /**
  * 二次单元格接口，持有系数和两个标记。
  * Quadratic cell interface holding coefficient and two tokens.
- */
+*/
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
     val token1: Token<V>
@@ -69,7 +70,7 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
  * @property _coefficientFlt64 Flt64 类型的原始系数 / Raw Flt64 coefficient
  * @property token 线性标记 / The linear token
  * @property converter 值转换器，将 Flt64 转换为目标类型 V / Value converter from Flt64 to target type V
- */
+*/
 class LinearCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
     private val _coefficientFlt64: Flt64,
@@ -110,7 +111,7 @@ class LinearCellImpl<V>(
  * @property token1 第一个二次标记 / First quadratic token
  * @property token2 第二个二次标记（null 表示线性项）/ Second quadratic token (null for linear term)
  * @property converter 值转换器，将 Flt64 转换为目标类型 V / Value converter from Flt64 to target type V
- */
+*/
 class QuadraticCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
     private val _coefficientFlt64: Flt64,

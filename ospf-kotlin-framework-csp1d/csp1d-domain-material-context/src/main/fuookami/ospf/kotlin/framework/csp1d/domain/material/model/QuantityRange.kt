@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
  * @property upperBound 上界 / Upper bound
  * @property lowerInclusive 下界是否包含 / Whether lower bound is inclusive
  * @property upperInclusive 上界是否包含 / Whether upper bound is inclusive
- */
+*/
 data class QuantityRange<V : RealNumber<V>>(
     val lowerBound: Quantity<V>,
     val upperBound: Quantity<V>,
@@ -32,7 +32,7 @@ data class QuantityRange<V : RealNumber<V>>(
      *
      * @param value 待判断值 / Value to check
      * @return 是否在区间内 / Whether inside the range
-     */
+    */
     fun contains(value: Quantity<V>): Boolean {
         val leftOrder = (value partialOrd lowerBound) ?: return false
         val rightOrder = (value partialOrd upperBound) ?: return false

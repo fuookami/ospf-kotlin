@@ -1,7 +1,7 @@
 /**
  * Packer.
  * 装箱器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -18,13 +18,14 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property loadingOrderCalculator The loading order calculator.
  * 装载顺序计算器。
- */
+*/
 class Packer(
     private val loadingOrderCalculator: LoadingOrderCalculator = LoadingOrderCalculator(
         maxBlockDepth = null,
         sameTypeJudger = { lhs, rhs -> lhs.pattern == rhs.pattern }
     )
 ) {
+
     /**
      * Validate that cylinder axes are consistent within each layer. Mixed cylinder axes in the same layer are not allowed.
      * 校验每层中圆柱体的轴向是否一致。同一层内不允许混合不同轴向的圆柱体。
@@ -35,7 +36,7 @@ class Packer(
      * 调用来源标识。
      * @return The validation result, fails when mixed axes are detected.
      * 校验结果，轴向不一致时失败。
-     */
+    */
     private fun requireSingleCylinderAxisPerLayer(
         bin: Bin<BinLayer, FltX>,
         source: String
@@ -68,7 +69,7 @@ class Packer(
      * 装箱上下文。
      * @return The packing result.
      * 装箱结果。
-     */
+    */
     suspend operator fun invoke(
         bins: List<Bin<BinLayer, FltX>>,
         context: PackingContext = PackingContext()
@@ -121,7 +122,7 @@ class Packer(
      * 已装箱列表。
      * @return The material summary list.
      * 物料汇总列表。
-     */
+    */
     private fun summarizeMaterials(bins: List<PackedBin>): List<MaterialSummary> {
         val summary = LinkedHashMap<MaterialKey, UInt64>()
         for (bin in bins) {

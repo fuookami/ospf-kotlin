@@ -18,14 +18,26 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /** 编译接口 / Compilation interface */
 interface Compilation {
+
+    /** Whether task cancellation is enabled / 是否启用任务取消 */
     val taskCancelEnabled: Boolean
+
+    /** Whether executor leisure is included / 是否包含执行器空闲 */
     val withExecutorLeisure: Boolean
 
+    /** Binary variable indicating task cancellation / 表示任务取消的二值变量 */
     val y: BinVariable1
+
+    /** Binary variable indicating executor leisure / 表示执行器空闲的二值变量 */
     val z: BinVariable1
 
+    /** Task-to-executor assignment intermediate symbols / 任务到执行器的分配中间符号 */
     val taskAssignment: LinearIntermediateSymbols2<Flt64>
+
+    /** Task compilation intermediate symbols / 任务编译中间符号 */
     val taskCompilation: LinearIntermediateSymbols1<Flt64>
+
+    /** Executor compilation intermediate symbols / 执行器编译中间符号 */
     val executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     /**
@@ -33,7 +45,7 @@ interface Compilation {
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: MetaModel<Flt64>): Try
 }
 
@@ -48,7 +60,7 @@ interface Compilation {
  * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
- */
+*/
 class TaskCompilation<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -73,7 +85,7 @@ class TaskCompilation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2(
@@ -287,7 +299,7 @@ class TaskCompilation<
  * @param originTasks 原始任务列表 / List of origin tasks
  * @param executors 执行器列表 / List of executors
  * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
- */
+*/
 open class IterativeTaskCompilation<
         IT : IterativeAbstractTask<E, A>,
         out T : AbstractTask<E, A>,
@@ -339,7 +351,7 @@ open class IterativeTaskCompilation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1(
@@ -502,7 +514,7 @@ open class IterativeTaskCompilation<
      * @param cost 成本函数 / Cost function
      * @param conflict 冲突函数 / Conflict function
      * @return 去重后的任务列表 / Deduplicated task list
-     */
+    */
     open suspend fun <V : RealNumber<V>> addColumns(
         iteration: UInt64,
         newTasks: List<IT>,

@@ -1,7 +1,7 @@
 /**
  * 面包师映射
  * Baker's Map
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * 公式 / Formula:
  * x_{n+1} = 2 * x_n mod 1
  * y_{n+1} = (floor(2 * x_n) + y_n) / 2
- */
+*/
 data object BakersMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
     override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
         return point2(
@@ -39,7 +39,7 @@ data object BakersMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
  * Baker's Map Generator
  *
  * @property bakersMap 面包师映射实例 / Baker's map instance
- */
+*/
 data class BakersMapGenerator(
     val bakersMap: BakersMap = BakersMap,
     private var _x: Point<Dim2, Flt64> = point2(

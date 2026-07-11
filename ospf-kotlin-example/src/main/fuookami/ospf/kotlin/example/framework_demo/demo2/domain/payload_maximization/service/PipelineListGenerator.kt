@@ -12,10 +12,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximiza
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 生成用于模型构建的载荷最大化目标管线。Generates the pipeline of payload maximization objective for model construction.
+ * Generates the pipeline of payload maximization objective for model construction.
+ * 生成用于模型构建的载荷最大化目标管线。
  *
- * @property aggregation 参数。
- */
+ * @property aggregation The aggregation containing aircraft model and payload data / 包含飞机模型和载荷数据的聚合
+*/
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

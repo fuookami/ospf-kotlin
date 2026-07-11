@@ -21,7 +21,12 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.time.Duration
-
+/**
+ * Compute the next reduced cost cutoff by applying a 2/3 floor-based decay to the current maximum.
+ * 通过对当前最大值应用基于向下取整的 2/3 衰减来计算下一个约简成本截断值。
+ * @param maximumReducedCost Current maximum reduced cost threshold / 当前最大约简成本阈值
+ * @return Next reduced cost cutoff value, at least 5.0 / 下一个约简成本截断值，至少为 5.0
+*/
 private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
     val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
     return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
@@ -37,7 +42,7 @@ private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
  * @param tasks 任务列表 / List of tasks
  * @param executors 执行器列表 / List of executors
  * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
- */
+*/
 abstract class AbstractIterativeTaskCompilationAggregation<
         V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
@@ -49,6 +54,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     executors: List<E>,
     lockedCancelTasks: Set<T> = emptySet()
 ) {
+
     /**
      * 策略 / Policy
      *
@@ -57,7 +63,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param A 分配策略类型 / Assignment policy type
      * @param cost 成本函数 / Cost function
      * @param conflict 冲突函数 / Conflict function
-     */
+    */
     data class Policy<
             IT : IterativeAbstractTask<E, A>,
             V : RealNumber<V>,
@@ -87,7 +93,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
@@ -111,7 +117,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param newTasks 新任务列表 / List of new tasks
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务列表 / Deduplicated task list
-     */
+    */
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
@@ -150,7 +156,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param keptTasks 保留任务集合 / Set of kept tasks
      * @param model 线性元模型 / Linear meta model
      * @return 更新后的最大约简成本 / Updated maximum reduced cost
-     */
+    */
     open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
@@ -192,7 +198,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 固定任务集合 / Set of fixed tasks
-     */
+    */
     open fun extractFixedTasks(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -206,7 +212,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 保留任务集合 / Set of kept tasks
-     */
+    */
     open fun extractKeptTasks(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -220,7 +226,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param executors 执行器列表 / List of executors
      * @param model 线性元模型 / Linear meta model
      * @return 隐藏执行器集合 / Set of hidden executors
-     */
+    */
     open fun extractHiddenExecutors(
         executors: List<E>,
         model: AbstractLinearMetaModel<Flt64>
@@ -242,7 +248,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      *
      * @param fixedTasks 固定任务集合 / Set of fixed tasks
      * @return 操作结果 / Operation result
-     */
+    */
     open fun globallyFix(
         fixedTasks: Set<IT>
     ): Try {
@@ -263,7 +269,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param fixedTasks 固定任务集合 / Set of fixed tasks
      * @param model 线性元模型 / Linear meta model
      * @return 新固定的任务集合 / Set of newly fixed tasks
-     */
+    */
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
@@ -330,7 +336,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun logResult(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -354,7 +360,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun logTaskCost(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>
@@ -376,6 +382,14 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+/**
+ * Reset variable ranges for a new iteration, unlocking cancel variables and restoring binary ranges.
+ * 重置变量范围以开始新一轮迭代，解锁取消变量并恢复二值范围。
+ * @param iteration Current iteration index to flush variables up to / 要刷新变量至的当前迭代索引
+ * @param tasks Original task list whose cancel variables need resetting / 需要重置取消变量的原始任务列表
+ * @param lockCancelTasks Tasks whose cancel variables should remain locked / 取消变量应保持锁定的任务集合
+ * @return Operation result / 操作结果
+*/
     fun flush(
         iteration: UInt64,
         tasks: List<T>,
@@ -408,6 +422,14 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+/**
+ * Extract tasks from solved model tokens matching a given predicate on their result values.
+ * 从已求解的模型令牌中提取结果值满足给定谓词的任务。
+ * @param iteration Current iteration index / 当前迭代索引
+ * @param model Linear meta model containing solved tokens / 包含已求解令牌的线性元模型
+ * @param predicate Filter predicate applied to token result values / 应用于令牌结果值的过滤谓词
+ * @return Set of iterative tasks matching the predicate / 匹配谓词的迭代任务集合
+*/
     private fun extractTasks(
         iteration: UInt64,
         model: AbstractLinearMetaModel<Flt64>,
@@ -433,6 +455,10 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     }
 }
 
+/**
+ * Iterative task compilation aggregation with cost and conflict policies.
+ * 带有成本和冲突策略的迭代任务编译聚合。
+*/
 open class IterativeTaskCompilationAggregation<
         V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
@@ -450,6 +476,10 @@ open class IterativeTaskCompilationAggregation<
     lockedCancelTasks = lockedCancelTasks
 )
 
+/**
+ * Iterative task compilation aggregation with time-window scheduling support.
+ * 带时间窗口调度支持的迭代任务编译聚合。
+*/
 open class IterativeTaskCompilationAggregationWithTime<
         V : RealNumber<V>,
         IT : IterativeAbstractTask<E, A>,
@@ -489,7 +519,7 @@ open class IterativeTaskCompilationAggregationWithTime<
      * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
      * @param redundancyRange 冗余范围 / Redundancy range
      * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,

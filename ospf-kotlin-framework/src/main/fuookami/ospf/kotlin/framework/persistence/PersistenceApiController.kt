@@ -4,7 +4,7 @@
  *
  * 定义持久化层 API 控制器的通用接口。
  * Defines a common interface for persistence layer API controllers.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 // todo: extract interface function from mongodb.PersistenceApiController

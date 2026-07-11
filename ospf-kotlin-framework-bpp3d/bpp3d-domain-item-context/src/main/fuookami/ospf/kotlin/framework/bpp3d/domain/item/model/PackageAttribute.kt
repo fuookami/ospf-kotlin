@@ -1,7 +1,7 @@
 /**
  * Package attribute model.
  * 包装属性模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.quantities.unit.Meter
  * Get the support packing shape of the item view; returns null when a cylinder item does not satisfy upright-vertical support conditions.
  *
  * @return 支撑包装形状或 null / the support packing shape or null
- */
+*/
 private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
     val itemShape = placementPackingShape ?: unit.packingShape
     if (itemShape is CylinderPackingShape3) {
@@ -39,7 +39,7 @@ private fun ItemView.supportPackingShapeOrNull(): PackingShape3<FltX>? {
  * Calculate the bottom footprint area of the item view; returns null if the support packing shape is unavailable.
  *
  * @return 底部投影面积或 null / the bottom footprint area or null
- */
+*/
 private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
     val packingShape = supportPackingShapeOrNull() ?: return null
     val shapePlacement = ShapePlacement3(
@@ -54,7 +54,7 @@ private fun ItemView.bottomFootprintAreaOrNull(): Quantity<FltX>? {
  * Get the minimum span of the item view's bottom footprint (diameter for circles, lesser of width/depth for rectangles); returns null if the shape is unavailable.
  *
  * @return 底部投影最小跨度或 null / the minimum bottom footprint span or null
- */
+*/
 private fun ItemView.bottomFootprintMinSpanOrNull(): Quantity<FltX>? {
     return when (val footprint = supportPackingShapeOrNull()?.footprint() ?: return null) {
         is ShapeFootprint2.Circle -> footprint.radius + footprint.radius
@@ -71,7 +71,7 @@ interface AbstractCargoAttribute
  *
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
  * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
- */
+*/
 data class FilterStackingOnPolicy(
     private val maxOverWeight: FltX = FltX(10.0),
     private val extraStackingOnRule: ((ItemView, ItemView) -> Boolean)? = null
@@ -114,7 +114,7 @@ data class FilterStackingOnPolicy(
  * @property maxDifference 最大允许尺寸差 / maximum allowed dimension difference
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
  * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
- */
+*/
 data class CartonContainerStackingOnPolicy(
     val maxDifference: FltX,
     private val maxOverWeight: FltX = FltX(10.0),
@@ -164,7 +164,7 @@ data class CartonContainerStackingOnPolicy(
  * @property maxDifference 最大允许尺寸差 / maximum allowed dimension difference
  * @property maxOverWeight 最大允许超重 / maximum allowed overweight
  * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
- */
+*/
 data class BoxStackingOnPolicy(
     val maxDifference: FltX,
     private val maxOverWeight: FltX = FltX(10.0),
@@ -222,8 +222,9 @@ data class BoxStackingOnPolicy(
  * Stacking on policy interface, defining the logic to determine whether an item can stack on another item.
  *
  * @property T 具体的堆叠策略类型 / the specific stacking on policy type
- */
+*/
 interface AbstractStackingOnPolicy {
+
     /**
      * 判断物品视图是否可以在指定底部物品视图上堆叠。
      * Determine whether an item view can be stacked on a specified bottom item view.
@@ -233,7 +234,7 @@ interface AbstractStackingOnPolicy {
      * @param layer 当前层数 / the current layer
      * @param height 当前高度 / the current height
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     fun enabledStackingOn(
         item: ItemView,
         bottomItem: ItemView,
@@ -248,7 +249,7 @@ interface AbstractStackingOnPolicy {
  *
  * @property hangingPercentage 允许的悬挂百分比 / allowed hanging percentage
  * @property withWeight 是否考虑重量 / whether to consider weight
- */
+*/
 data class RelativeHangingPolicy(
     private val hangingPercentage: FltX,
     private val withWeight: Boolean = true
@@ -292,7 +293,7 @@ data class RelativeHangingPolicy(
  *
  * @property maxDifference 最大允许差值 / maximum allowed difference
  * @property withWeight 是否考虑重量 / whether to consider weight
- */
+*/
 data class AbsoluteHangingPolicy(
     private val maxDifference: FltX,
     private val withWeight: Boolean = true
@@ -335,8 +336,9 @@ data class AbsoluteHangingPolicy(
 /**
  * 悬挂策略接口，定义货物悬挂支撑的判断逻辑。
  * Hanging policy interface, defining the logic to determine item hanging support.
- */
+*/
 interface AbstractHangingPolicy {
+
     /**
      * 判断物品视图是否可以在指定底部支撑上堆叠。
      * Determine whether an item view can be stacked on the specified bottom support.
@@ -344,7 +346,7 @@ interface AbstractHangingPolicy {
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomSupport 底部支撑 / the bottom support
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     fun enabledStackingOn(
         item: ItemView,
         bottomSupport: BottomSupport
@@ -356,7 +358,7 @@ interface AbstractHangingPolicy {
  * Linear deformation attribute, calculating deformation in each dimension as volume multiplied by the deformation coefficient.
  *
  * @property deformationCoefficient 变形系数 / deformation coefficient
- */
+*/
 data class LinearDeformationAttribute(
     val deformationCoefficient: FltX
 ) : AbstractDeformationAttribute {
@@ -383,15 +385,16 @@ data class LinearDeformationAttribute(
 /**
  * 变形属性接口，定义货物变形的计算逻辑。
  * Deformation attribute interface, defining the logic for calculating item deformation.
- */
+*/
 interface AbstractDeformationAttribute {
+
     /**
      * 根据体积计算变形量。
      * Calculate the deformation quantity based on volume.
      *
      * @param volume 体积 / the volume
      * @return 三维变形向量 / the 3D deformation vector
-     */
+    */
     fun deformationQuantity(volume: FltX): Vector<Dim3, FltX>
 
     /**
@@ -400,7 +403,7 @@ interface AbstractDeformationAttribute {
      *
      * @param item 物品 / the item
      * @return 三维变形向量 / the 3D deformation vector
-     */
+    */
     fun deformationQuantity(item: Item) = deformationQuantity(item.volume.value)
 
     /**
@@ -409,7 +412,7 @@ interface AbstractDeformationAttribute {
      *
      * @param item 物品视图 / the item view
      * @return 三维变形向量 / the 3D deformation vector
-     */
+    */
     fun deformationQuantity(item: ItemView) = deformationQuantity(item.volume.value)
 }
 
@@ -418,7 +421,7 @@ interface AbstractDeformationAttribute {
  * Weight attribute, defining the maximum stacking layer limit for items.
  *
  * @property maxLayer 最大堆叠层数 / maximum stacking layer count
- */
+*/
 data class WeightAttribute(
     override val maxLayer: UInt64 = UInt64.maximum
 ) : AbstractWeightAttribute {
@@ -439,7 +442,7 @@ data class WeightAttribute(
 /**
  * 重量属性接口，定义货物重量相关的堆叠限制。
  * Weight attribute interface, defining weight-related stacking constraints for items.
- */
+*/
 interface AbstractWeightAttribute {
     val maxLayer: UInt64
 }
@@ -465,7 +468,7 @@ interface AbstractWeightAttribute {
  * @property stackingOnPolicy 堆叠策略 / stacking on policy
  * @property extraOrientationRule 额外朝向规则 / extra orientation rule
  * @property extraStackingOnRule 额外堆叠规则 / extra stacking on rule
- */
+*/
 data class PackageAttribute(
     val packageType: PackageType,
     val packageMaxLayer: UInt64 = UInt64.maximum,
@@ -503,7 +506,7 @@ data class PackageAttribute(
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
          * @return 堆叠层数 / the stacking layer count
-         */
+        */
         private suspend fun layerLayer(
             item: QuantityPlacement3<Item, FltX>,
             bottomItems: List<QuantityPlacement3<Item, FltX>>,
@@ -535,6 +538,7 @@ data class PackageAttribute(
                 maxLayer
             }
         }
+
         /**
          * 递归计算货物在底部货物集合中的堆叠高度。
          * Recursively calculate the stacking height of the item within a set of bottom items.
@@ -542,7 +546,7 @@ data class PackageAttribute(
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
          * @return 堆叠高度 / the stacking height
-         */
+        */
         private suspend fun layerHeight(
             item: QuantityPlacement3<Item, FltX>,
             bottomItems: List<QuantityPlacement3<Item, FltX>>,
@@ -582,7 +586,7 @@ data class PackageAttribute(
          * @param item 待计算货物 / the item to calculate
          * @param bottomItems 底部货物集合 / the set of bottom items
          * @return 层数和高度对 / pair of layer and height
-         */
+        */
         suspend fun layer(
             item: QuantityPlacement3<Item, FltX>,
             bottomItems: List<QuantityPlacement3<Item, FltX>>,
@@ -606,7 +610,7 @@ data class PackageAttribute(
      * @param item 待堆叠物品视图 / the item view to stack
      * @param bottomSupport 底部支撑 / the bottom support
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     fun enabledStackingOn(
         item: ItemView,
         bottomSupport: BottomSupport
@@ -627,7 +631,7 @@ data class PackageAttribute(
      * @param height 当前高度 / the current height
      * @param space 容器空间 / the container space
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     fun enabledStackingOn(
         item: Item,
         bottomItem: Item?,
@@ -654,7 +658,7 @@ data class PackageAttribute(
      * @param height 当前高度 / the current height
      * @param space 容器空间 / the container space
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     fun enabledStackingOn(
         item: ItemView,
         bottomItem: ItemView? = null,
@@ -692,6 +696,7 @@ data class PackageAttribute(
             height = height
         )
     }
+
     /**
      * 判断货物是否可以在指定底部货物集合上堆叠。
      * Determine whether the item can be stacked on the specified set of bottom items.
@@ -700,7 +705,7 @@ data class PackageAttribute(
      * @param bottomItems 底部货物集合 / the set of bottom items
      * @param space 容器空间 / the container space
      * @return 是否可以堆叠 / whether stacking is allowed
-     */
+    */
     suspend fun enabledStackingOn(
         item: QuantityPlacement3<Item, FltX>,
         bottomItems: List<QuantityPlacement3<Item, FltX>>,

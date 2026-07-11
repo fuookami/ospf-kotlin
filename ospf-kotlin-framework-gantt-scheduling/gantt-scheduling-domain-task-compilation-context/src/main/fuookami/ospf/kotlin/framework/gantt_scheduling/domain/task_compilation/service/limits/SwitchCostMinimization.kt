@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param switch 切换对象 / Switch object
  * @param coefficient 切换成本系数提取器 / Extractor for switch cost coefficient
  * @param name 管道名称 / Pipeline name
- */
+*/
 class SwitchCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

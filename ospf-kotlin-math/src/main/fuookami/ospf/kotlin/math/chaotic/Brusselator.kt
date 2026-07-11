@@ -9,7 +9,7 @@
  * The Brusselator is a chemical reaction kinetics model proposed by Ilya Prigogine at the Free University of Brussels.
  * This model describes oscillatory behavior in autocatalytic chemical reactions, serving as an important example for nonequilibrium thermodynamics and chemical reaction kinetics research.
  * Commonly used for chemical reaction kinetics research, self-organization phenomena analysis, and nonlinear dynamics education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
  * @property h 时间步长 / Time step size
- */
+*/
 data class Brusselator<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -55,7 +55,7 @@ data class Brusselator<V : FloatingNumber<V>>(
 /**
  * 布鲁塞尔振子生成噌
  * Brusselator Generator
- */
+*/
 data class BrusselatorGenerator(
     val brusselator: Brusselator<Flt64> = Brusselator(),
     private var _x: Point<Dim2, Flt64> = point2(

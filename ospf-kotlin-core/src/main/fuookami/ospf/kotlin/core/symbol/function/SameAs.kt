@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SameAsFunction]，当所有不等式满足状态一致时返回 1。
  *
  * Provides [SameAsFunction] that returns 1 when all inequalities have the same satisfaction status.
- */
+*/
 
 /**
  * 相等函数符号：当所有不等式具有相同的满足状态时返回 1（全满足或全不满足），否则返回 0。
@@ -46,7 +46,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SameAsFunction<V>(
     val inequalities: List<LinearInequality<V>>,
     val constraint: Boolean = true,

@@ -13,17 +13,17 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConf
 import fuookami.ospf.kotlin.framework.model.*
 
 /**
- * 超产上限约束管线 / Over-production upper bound constraint pipeline
- *
- * 为每个配置了超产上限的需求添加约束：over_production_i <= upperBound
+ * Over-production upper bound constraint pipeline.
+ * 超产上限约束管线
  *
  * Add constraint for each demand with over-production upper bound: over_production_i <= upperBound
+ * 为每个配置了超产上限的需求添加约束：over_production_i <= upperBound
  *
- * @param V 数值类型 / Numeric value type
- * @property yield 产出偏差聚合 / Yield deviation aggregation
- * @property config 产出建模配置 / Yield modeling configuration
- * @property demands 需求列表 / Demand list
- */
+ * @param V Numeric value type / 数值类型
+ * @property yield Yield deviation aggregation / 产出偏差聚合
+ * @property config Yield modeling configuration / 产出建模配置
+ * @property demands Demand list / 需求列表
+*/
 class YieldConstraintPipeline<V : RealNumber<V>>(
     private val yield: YieldAggregation<V>,
     private val config: YieldModelingConfig<V>,

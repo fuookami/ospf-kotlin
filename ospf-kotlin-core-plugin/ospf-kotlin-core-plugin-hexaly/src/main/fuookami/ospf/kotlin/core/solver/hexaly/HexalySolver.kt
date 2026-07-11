@@ -1,7 +1,7 @@
 /**
  * Hexaly solver base
  * Hexaly 求解器基类
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.hexaly
 
@@ -14,7 +14,7 @@ import com.hexaly.optimizer.*
 /**
  * Hexaly solver abstract base class, provides common implementation for environment initialization, solving, and status analysis
  * Hexaly 求解器抽象基类，提供环境初始化、求解和状态分析的通用实现
- */
+*/
 @OptIn(ExperimentalTime::class)
 abstract class HexalySolver : AutoCloseable {
     protected lateinit var optimizer: HexalyOptimizer
@@ -27,7 +27,7 @@ abstract class HexalySolver : AutoCloseable {
     /**
      * Close Hexaly model and optimizer, release resources
      * 关闭 Hexaly 模型和优化器，释放资源
-     */
+    */
     override fun close() {
         hexalyModel.close()
         optimizer.close()
@@ -40,7 +40,7 @@ abstract class HexalySolver : AutoCloseable {
      * @param name model name / 中文 模型名称
      * @param callBack creating environment callback function / 中文 创建环境回调函数
      * @return operation result / 中文 操作结果
-     */
+    */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -67,7 +67,7 @@ abstract class HexalySolver : AutoCloseable {
      * 执行 Hexaly 求解
      *
      * @return operation result / 中文 操作结果
-     */
+    */
     protected suspend fun solve(): Try {
         return try {
             beginTime = Clock.System.now()
@@ -88,7 +88,7 @@ abstract class HexalySolver : AutoCloseable {
      * 分析 Hexaly 求解状态
      *
      * @return operation result / 中文 操作结果
-     */
+    */
     protected suspend fun analyzeStatus(): Try {
         return try {
             hexalySolution = optimizer.solution

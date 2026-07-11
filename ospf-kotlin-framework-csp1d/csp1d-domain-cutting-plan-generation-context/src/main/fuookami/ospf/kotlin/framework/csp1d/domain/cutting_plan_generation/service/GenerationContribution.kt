@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  *                 当产品具有动态长度时使用的物料上下文
  * @return the contribution length quantity, or null if the product has no length and is not dynamic
  *         贡献长度数量，若产品无长度且非动态则返回 null
- */
+*/
 internal fun <V : RealNumber<V>> generationContributionLength(
     product: Product<V>,
     material: Material<V>

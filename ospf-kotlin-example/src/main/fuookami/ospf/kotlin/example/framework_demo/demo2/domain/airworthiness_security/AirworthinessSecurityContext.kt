@@ -14,14 +14,32 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
+/** Type alias for the aircraft domain aggregation. / 飞机域聚合的类型别名。 */
 internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
+
+/** Type alias for the stowage domain aggregation. / 装载域聚合的类型别名。 */
 internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
+
+/** Type alias for the MAC domain aggregation. / MAC 域聚合的类型别名。 */
 internal typealias MACAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.Aggregation
 
-/** 跨飞机、装载和 MAC 域管理适航和安全约束的上下文。Context for managing airworthiness and safety constraints across aircraft, stowage, and MAC domains. */
+/**
+ * Context for managing airworthiness and safety constraints across aircraft, stowage, and MAC domains.
+ * 跨飞机、装载和 MAC 域管理适航和安全约束的上下文。
+*/
 class AirworthinessSecurityContext {
     lateinit var aggregation: Aggregation
 
+    /**
+     * Initializes the airworthiness security aggregation from the given contexts and input.
+     * 从给定的上下文和输入初始化适航安全聚合。
+     *
+     * @param aircraftContext The aircraft context. / 飞机上下文
+     * @param stowageContext The stowage context. / 装载上下文
+     * @param macContext The MAC context. / MAC 上下文
+     * @param input The request DTO input data. / 请求 DTO 输入数据
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun init(
         aircraftContext: AircraftContext,
         stowageContext: StowageContext,
@@ -52,6 +70,14 @@ class AirworthinessSecurityContext {
         return ok
     }
 
+    /**
+     * Registers all airworthiness and safety constraints with the given model.
+     * 将所有适航和安全约束注册到给定模型中。
+     *
+     * @param stowageMode The stowage mode to use. / 使用的装载模式
+     * @param model The linear meta model to register constraints with. / 要注册约束的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -103,12 +129,26 @@ class AirworthinessSecurityContext {
         return ok
     }
 
+    /**
+     * Registers constraints for the Benders decomposition master problem.
+     * 为 Benders 分解主问题注册约束。
+     *
+     * @param model The linear meta model for the master problem. / Benders 主问题的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         return ok
     }
 
+    /**
+     * Registers constraints for the Benders decomposition sub-problem.
+     * 为 Benders 分解子问题注册约束。
+     *
+     * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -118,6 +158,14 @@ class AirworthinessSecurityContext {
         )
     }
 
+    /**
+     * Flushes state for the Benders decomposition sub-problem.
+     * 为 Benders 分解子问题刷新状态。
+     *
+     * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
+     * @param solution The solution from the master problem. / 主问题的解
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

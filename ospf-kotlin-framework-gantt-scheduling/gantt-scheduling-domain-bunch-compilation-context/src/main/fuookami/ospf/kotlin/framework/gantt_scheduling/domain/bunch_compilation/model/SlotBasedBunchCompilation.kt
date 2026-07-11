@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 分时隙任务束编译模型 / Slot-based bunch compilation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
@@ -25,7 +26,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param slots 时隙列表 / List of time slots
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+*/
 open class SlotBasedBunchCompilation<
         B,
         V : RealNumber<V>,
@@ -50,14 +56,14 @@ open class SlotBasedBunchCompilation<
     /**
      * 按时隙分组的 bunches
      * Bunches grouped by slot
-     */
+    */
     val bunchesBySlot: Map<TimeSlot, List<B>>
         get() = bunches.groupBy { it.slot }
 
     /**
      * 按时隙分组的 bunch 变量
      * Bunch variables grouped by slot
-     */
+    */
     private val _xBySlot = HashMap<TimeSlot, ArrayList<BinVariable1>>()
     val xBySlot: Map<TimeSlot, List<BinVariable1>>
         get() = _xBySlot.mapValues { it.value.toList() }
@@ -70,7 +76,7 @@ open class SlotBasedBunchCompilation<
      * @param newBunches New bunches to add / 要添加的新 bunch
      * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
      * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
-     */
+    */
     open suspend fun addColumnsBySlot(
         iteration: UInt64,
         newBunches: List<B>,
@@ -109,7 +115,7 @@ open class SlotBasedBunchCompilation<
      *
      * @param slot The time slot / 时隙
      * @return List of bunches in this slot / 该时隙的 bunch 列表
-     */
+    */
     fun bunchesInSlot(slot: TimeSlot): List<B> {
         return bunchesBySlot[slot] ?: emptyList()
     }
@@ -121,7 +127,7 @@ open class SlotBasedBunchCompilation<
      * @param slot The time slot / 时隙
      * @param executor The executor / 执行器
      * @return List of bunches in this slot for this executor / 该时隙该执行器的 bunch 列表
-     */
+    */
     fun bunchesInSlot(slot: TimeSlot, executor: E): List<B> {
         return bunchesBySlot[slot]?.filter { it.executor == executor } ?: emptyList()
     }

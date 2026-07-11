@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property toNodeId the destination node ID / 目标节点 ID
  * @property maxBandwidth the maximum bandwidth capacity / 最大带宽容量
  * @property costPerBandwidth the cost per unit of bandwidth / 每单位带宽成本
- */
+*/
 data class EdgeDTO(
     val fromNodeId: UInt64,
     val toNodeId: UInt64,
@@ -26,7 +26,7 @@ data class EdgeDTO(
  * @property id the client node ID / 客户端节点 ID
  * @property normalNodeId the ID of the connected normal node / 所连接的普通节点 ID
  * @property demand the bandwidth demand / 带宽需求
- */
+*/
 data class ClientNodeDTO(
     val id: UInt64,
     val normalNodeId: UInt64,
@@ -35,13 +35,13 @@ data class ClientNodeDTO(
 
 /**
  * Aggregated input data for the SPP problem including service cost, node count, edges, and client nodes.
- * 表示 SPP 问题的聚合输入数据，包括服务成本、节点数、边和客户端节点。
+ * SPP 问题的聚合输入数据，包括服务成本、节点数、边和客户端节点。
  *
  * @property serviceCost the cost per service / 每个服务的成本
  * @property normalNodeAmount the number of normal (transit) nodes / 普通（传输）节点数量
  * @property edges the list of network edges / 网络边列表
  * @property clientNodes the list of client nodes / 客户端节点列表
- */
+*/
 data class Input(
     val serviceCost: UInt64,
     val normalNodeAmount: UInt64,
@@ -51,10 +51,10 @@ data class Input(
 
 /**
  * Output containing the computed service paths as lists of node IDs.
- * 表示包含计算的服务路径（节点 ID 列表）的输出。
+ * 包含计算的服务路径（节点 ID 列表）的输出。
  *
  * @property links the list of service paths, each represented as a list of node IDs / 服务路径列表，每条路径由节点 ID 列表表示
- */
+*/
 data class Output(
     val links: List<List<UInt64>>
 )

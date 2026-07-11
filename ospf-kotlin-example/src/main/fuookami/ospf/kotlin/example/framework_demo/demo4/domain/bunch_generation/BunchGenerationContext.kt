@@ -24,20 +24,20 @@ class BunchGenerationContext {
 
     /**
      * 初始化批次生成上下文。Initializes the bunch generation context.
- *
-     * @param aircrafts 参数。
-     * @param aircraftUsability 参数。
-     * @param flightTasks 参数。
-     * @param originBunches 参数。
-     * @param lock 参数。
-     * @param connectionTimeCalculator 参数。
-     * @param minimumDepartureTimeCalculator 参数。
-     * @param ruleChecker 参数。
-     * @param costCalculator 参数。
-     * @param totalCostCalculator 参数。
-     * @param withOrderChange 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param aircrafts list of aircraft / 飞机列表
+     * @param aircraftUsability aircraft usability map / 飞机可用性映射
+     * @param flightTasks list of flight tasks / 航班任务列表
+     * @param originBunches original flight task bunches / 原始航班任务束
+     * @param lock lock constraints / 锁定约束
+     * @param connectionTimeCalculator connection time calculator / 连接时间计算器
+     * @param minimumDepartureTimeCalculator minimum departure time calculator / 最小离港时间计算器
+     * @param ruleChecker rule checker / 规则检查器
+     * @param costCalculator cost calculator / 成本计算器
+     * @param totalCostCalculator total cost calculator / 总成本计算器
+     * @param withOrderChange whether order change is enabled / 是否启用换序
+     * @return initialization result / 初始化结果
+    */
     fun init(
         aircrafts: List<Aircraft>,
         aircraftUsability: Map<Aircraft, AircraftUsability>,
@@ -103,12 +103,12 @@ class BunchGenerationContext {
 
     /**
      * 为给定的飞机和影子价格映射生成航班任务束。Generates flight task bunches for the given aircrafts and shadow price map.
- *
-     * @param aircrafts 参数。
-     * @param iteration 参数。
-     * @param shadowPriceMap 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param aircrafts list of aircraft to generate bunches for / 需要生成束的飞机列表
+     * @param iteration current iteration number / 当前迭代次数
+     * @param shadowPriceMap shadow price map / 影子价格映射
+     * @return generated flight task bunches / 生成的航班任务束
+    */
     fun generateFlightTaskBunch(
         aircrafts: List<Aircraft>,
         iteration: Int64,

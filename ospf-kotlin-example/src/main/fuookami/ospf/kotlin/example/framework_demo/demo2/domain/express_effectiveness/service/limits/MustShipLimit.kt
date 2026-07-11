@@ -14,13 +14,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 确保必须发货的货物恰好分配到一个位置。Ensures must-ship cargos are assigned to exactly one position.
+ * Ensures must-ship cargos are assigned to exactly one position.
+ * 确保必须发货的货物恰好分配到一个位置。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property stowage 参数。
- * @property mustShipIndices 参数。
- */
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property mustShipIndices Indices of items that must be shipped. / 必须发货的货物项索引列表
+*/
 class MustShipLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

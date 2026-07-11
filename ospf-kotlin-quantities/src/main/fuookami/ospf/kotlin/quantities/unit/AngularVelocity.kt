@@ -9,7 +9,7 @@
  * Source: SI derived units
  * - RadianPerSecond: rad/s, SI derived unit for angular velocity
  * - DegreePerSecond: °/s, common unit for angular velocity
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.AngularVelocity
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.dimension.AngularVelocity
  *
  * 来源：SI 导出单位，角速度的国际单位
  * Source: SI derived unit, international unit for angular velocity
- */
+*/
 object RadianPerSecond : DerivedPhysicalUnit(Radian / Second) {
     override val name = "radian per second"
     override val symbol = "rad/s"
@@ -52,7 +52,7 @@ object RadianPerSecond : DerivedPhysicalUnit(Radian / Second) {
  *
  * 来源：常用角速度单位，广泛用于工程和导航
  * Source: Common angular velocity unit, widely used in engineering and navigation
- */
+*/
 object DegreePerSecond : DerivedPhysicalUnit(Degree / Second) {
     override val name = "degree per second"
     override val symbol = "°/s"

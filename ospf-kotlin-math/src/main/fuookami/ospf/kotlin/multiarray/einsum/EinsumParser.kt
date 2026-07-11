@@ -4,7 +4,7 @@
  *
  * Provides Einstein summation based on string notation.
  * 提供基于字符串表示法的爱因斯坦求和。
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @param message the error description / 错误描述
  * @return the failed Ret result / 失败的 Ret 结果
- */
+*/
 private fun <T> unsupportedEinsum(message: String): Ret<T> {
     return Failed(ErrorCode.IllegalArgument, message)
 }
@@ -58,9 +58,7 @@ private fun <T> unsupportedEinsum(message: String): Ret<T> {
  * @param a the first tensor / 第一个张量
  * @param b the second tensor / 第二个张量
  * @param notation the Einstein notation string / 爱因斯坦表示法字符串
- * @param zero the zero value for the ring / 零值
- * @return the parse and execution result / 解析与执行结果
- */
+*/
 fun <T : Ring<T>> einsum(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
@@ -128,7 +126,7 @@ fun <T : Ring<T>> einsum(
  * @param notation the Einstein notation string / 爱因斯坦表示法字符串
  * @param zero the zero value (needed for trace) / 零值（迹操作需要）
  * @return the parse and execution result / 解析与执行结果
- */
+*/
 fun <T : Ring<T>> einsum(
     a: AbstractMultiArray<T, *>,
     notation: String,
@@ -188,18 +186,19 @@ fun <T : Ring<T>> einsum(
  * val c = einstein(a, b, Flt64.zero).matmul()
  * val d = einstein(a, b, Flt64.zero).outer()
  * ```
- */
+*/
 class Einstein<T : Ring<T>>(
     private val a: AbstractMultiArray<T, *>,
     private val b: AbstractMultiArray<T, *>? = null,
     private val zero: T
 ) {
+
     /**
      * Matrix multiplication.
      * 矩阵乘法。
      *
      * @return the matrix multiplication result / 矩阵乘法结果
-     */
+    */
     fun matmul(): Ret<MultiArray<T, DynShape>> {
         return b?.let { matmul(a, it, zero) }
             ?: unsupportedEinsum("matmul requires two operands")
@@ -210,7 +209,7 @@ class Einstein<T : Ring<T>>(
      * 点积。
      *
      * @return the dot product result / 点积结果
-     */
+    */
     fun dot(): Ret<T> {
         return b?.let { dot(a, it, zero) }
             ?: unsupportedEinsum("dot requires two operands")
@@ -221,7 +220,7 @@ class Einstein<T : Ring<T>>(
      * 外积。
      *
      * @return the outer product result / 外积结果
-     */
+    */
     fun outer(): Ret<MultiArray<T, DynShape>> {
         return b?.let { outer(a, it, zero) }
             ?: unsupportedEinsum("outer requires two operands")
@@ -234,7 +233,7 @@ class Einstein<T : Ring<T>>(
      * @param axisA the contraction axis of the first tensor / 第一个张量的缩并轴
      * @param axisB the contraction axis of the second tensor / 第二个张量的缩并轴
      * @return the contraction result / 缩并结果
-     */
+    */
     fun contract(axisA: Int, axisB: Int): Ret<MultiArray<T, DynShape>> {
         return b?.let { contract(a, axisA, it, axisB, zero) }
             ?: unsupportedEinsum("contract requires two operands")
@@ -245,7 +244,7 @@ class Einstein<T : Ring<T>>(
      * 迹（单操作数）。
      *
      * @return the trace result / 迹结果
-     */
+    */
     fun trace(): Ret<T> {
         if (b != null) {
             return unsupportedEinsum("trace is a single operand operation")
@@ -258,7 +257,7 @@ class Einstein<T : Ring<T>>(
      * 转置（单操作数）。
      *
      * @return the transposed result / 转置结果
-     */
+    */
     fun transpose(): Ret<MultiArray<T, DynShape>> {
         if (b != null) {
             return unsupportedEinsum("transpose is a single operand operation")
@@ -275,7 +274,7 @@ class Einstein<T : Ring<T>>(
  * @param b the second tensor / 第二个张量
  * @param zero the zero value for the ring / 零值
  * @return the Einstein DSL context / Einstein DSL 上下文
- */
+*/
 fun <T : Ring<T>> einstein(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
@@ -289,7 +288,7 @@ fun <T : Ring<T>> einstein(
  * @param a the input tensor / 输入张量
  * @param zero the zero value for the ring / 零值
  * @return the Einstein DSL context / Einstein DSL 上下文
- */
+*/
 fun <T : Ring<T>> einstein(
     a: AbstractMultiArray<T, *>,
     zero: T

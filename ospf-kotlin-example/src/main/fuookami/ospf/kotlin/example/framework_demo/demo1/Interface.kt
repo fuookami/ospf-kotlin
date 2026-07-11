@@ -66,9 +66,13 @@ const val data = """28 45 12
     11 24 23
     """
 
-/** 最短路径问题演示的入口点，解析内联测试数据并调用 SSP 求解器。Entry point for the Shortest Path Problem demo that parses inline test data and invokes the SSP solver. */
+/**
+ * Entry point for the Shortest Path Problem demo that parses inline test data and invokes the SSP solver.
+ * 最短路径问题演示的入口点，解析内联测试数据并调用 SSP 求解器。
+*/
 class SPP {
-    /** @return 执行结果。 */
+
+    /** @return the execution result / 执行结果 */
     suspend operator fun invoke(): Try {
         return when (val input = read(data)) {
             is Failed -> {
@@ -87,10 +91,13 @@ class SPP {
         }
     }
 
-    /** 解析原始字符串数据为输入模型。Parses raw string data into the input model.
-     * @param data 原始测试数据字符串 / Raw test data string
-     * @return 解析后的输入模型 / Parsed input model
-     */
+    /**
+     * Parses raw string data into the input model.
+     * 解析原始字符串数据为输入模型。
+     *
+     * @param data raw test data string / 原始测试数据字符串
+     * @return the parsed input model / 解析后的输入模型
+    */
     private fun read(data: String): Ret<Input> {
         val lines = data.split("\n")
         val firstLine = lines[0].trim()

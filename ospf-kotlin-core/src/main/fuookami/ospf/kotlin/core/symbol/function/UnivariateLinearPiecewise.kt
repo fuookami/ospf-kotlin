@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [UnivariateLinearPiecewiseFunction]，使用断点和斜率定义分段线性函数。
  *
  * Provides [UnivariateLinearPiecewiseFunction] for defining piecewise linear functions using breakpoints and slopes.
- */
+*/
 
 /**
  * 单变量线性分段函数：由断点和斜率定义的 y = f(x)。
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class UnivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
     val breakpoints: List<V>,
@@ -190,7 +190,7 @@ class UnivariateLinearPiecewiseFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 分段线性函数实例 / piecewise linear function instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             breakpoints: List<V>,
@@ -217,7 +217,7 @@ class UnivariateLinearPiecewiseFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 分段线性函数实例 / piecewise linear function instance
-         */
+        */
         @JvmStatic
         @JvmName("fromPoints")
         fun <V> fromPoints(

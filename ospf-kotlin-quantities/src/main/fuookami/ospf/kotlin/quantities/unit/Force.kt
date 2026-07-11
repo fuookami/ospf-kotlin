@@ -9,7 +9,7 @@
  * - Newton: SI 基本单位 (1 N = 1 kg·m/s²) / SI base unit (1 N = 1 kg·m/s²)
  * - KilogramForce: 标准重力 g = 9.80665 m/s² (ISO 80000-4) / Standard gravity g = 9.80665 m/s² (ISO 80000-4)
  * - PoundForce: 1 lbf = 4.4482216152605 N (NIST Special Publication 814)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Force
  *
  * 定义：1 N = 1 kg × 1 m/s²
  * Definition: 1 N = 1 kg × 1 m/s²
- */
+*/
 object Newton : DerivedPhysicalUnit(Kilogram * MeterPerSecondSquared) {
     override val name = "newton"
     override val symbol = "N"
@@ -41,7 +41,7 @@ object Newton : DerivedPhysicalUnit(Kilogram * MeterPerSecondSquared) {
  *
  * 定义：1 kN = 10³ N
  * Definition: 1 kN = 10³ N
- */
+*/
 object Kilonewton : DerivedPhysicalUnit(Newton * Scale.kilo) {
     override val name = "kilonewton"
     override val symbol = "kN"
@@ -58,7 +58,7 @@ object Kilonewton : DerivedPhysicalUnit(Newton * Scale.kilo) {
  *
  * 定义：1 MN = 10⁶ N
  * Definition: 1 MN = 10⁶ N
- */
+*/
 object Meganewton : DerivedPhysicalUnit(Newton * Scale.mega) {
     override val name = "meganewton"
     override val symbol = "MN"
@@ -75,7 +75,7 @@ object Meganewton : DerivedPhysicalUnit(Newton * Scale.mega) {
  *
  * 定义：1 kgf = 1 kg × 9.80665 m/s² = 9.80665 N
  * Definition: 1 kgf = 1 kg × 9.80665 m/s² = 9.80665 N
- */
+*/
 object KilogramForce : DerivedPhysicalUnit(Newton * 9.80665) {
     override val name = "kilogram force"
     override val symbol = "kgf"
@@ -89,7 +89,7 @@ object KilogramForce : DerivedPhysicalUnit(Newton * 9.80665) {
  *
  * 定义：1 gf = 10⁻³ kgf = 9.80665 × 10⁻³ N
  * Definition: 1 gf = 10⁻³ kgf = 9.80665 × 10⁻³ N
- */
+*/
 object GramForce : DerivedPhysicalUnit(KilogramForce / Scale.kilo) {
     override val name = "gram force"
     override val symbol = "gf"
@@ -106,7 +106,7 @@ object GramForce : DerivedPhysicalUnit(KilogramForce / Scale.kilo) {
  *
  * 定义：1 dyn = 1 g × 1 cm/s² = 10⁻⁵ N
  * Definition: 1 dyn = 1 g × 1 cm/s² = 10⁻⁵ N
- */
+*/
 object Dyne : DerivedPhysicalUnit(Gram * CentimeterPerSecondSquared) {
     override val name = "dyne"
     override val symbol = "dyn"
@@ -123,7 +123,7 @@ object Dyne : DerivedPhysicalUnit(Gram * CentimeterPerSecondSquared) {
  *
  * 定义：1 lbf = 4.4482216152605 N
  * Definition: 1 lbf = 4.4482216152605 N
- */
+*/
 object PoundForce : DerivedPhysicalUnit(Newton * 4.4482216152605) {
     override val name = "pound force"
     override val symbol = "lbf"
@@ -137,7 +137,7 @@ object PoundForce : DerivedPhysicalUnit(Newton * 4.4482216152605) {
  *
  * 定义：1 klbf = 10³ lbf
  * Definition: 1 klbf = 10³ lbf
- */
+*/
 object KilopoundForce : DerivedPhysicalUnit(PoundForce * Scale.kilo) {
     override val name = "kilopound force"
     override val symbol = "klbf"

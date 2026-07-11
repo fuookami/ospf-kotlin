@@ -7,7 +7,7 @@
  *
  * 来源：常用应力单位定义
  * Source: Common stress unit definitions
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Stress
  *
  * 来源：英制应力单位，常用于美国工程领域
  * Source: Imperial stress unit, commonly used in US engineering
- */
+*/
 object PoundForcePerSquareInch : DerivedPhysicalUnit(PoundForce / SquareInch) {
     override val name = "pound force per square inch"
     override val symbol = "psi"
@@ -51,7 +51,7 @@ object PoundForcePerSquareInch : DerivedPhysicalUnit(PoundForce / SquareInch) {
  *
  * 来源：英制应力单位，常用于建筑结构计算
  * Source: Imperial stress unit, commonly used in structural engineering
- */
+*/
 object PoundForcePerSquareFoot : DerivedPhysicalUnit(PoundForce / SquareFoot) {
     override val name = "pound force per square foot"
     override val symbol = "psf"
@@ -74,7 +74,7 @@ object PoundForcePerSquareFoot : DerivedPhysicalUnit(PoundForce / SquareFoot) {
  *
  * 来源：工程单位制，常用于亚洲国家工程领域
  * Source: Engineering unit system, commonly used in Asian engineering
- */
+*/
 object KilogramForcePerSquareCentimeter : DerivedPhysicalUnit(KilogramForce / SquareCentimeter) {
     override val name = "kilogram force per square centimeter"
     override val symbol = "kgf/cm2"
@@ -97,7 +97,7 @@ object KilogramForcePerSquareCentimeter : DerivedPhysicalUnit(KilogramForce / Sq
  *
  * 来源：工程单位制
  * Source: Engineering unit system
- */
+*/
 object KilogramForcePerSquareMeter : DerivedPhysicalUnit(KilogramForce / SquareMeter) {
     override val name = "kilogram force per square meter"
     override val symbol = "kgf/m2"
@@ -120,7 +120,7 @@ object KilogramForcePerSquareMeter : DerivedPhysicalUnit(KilogramForce / SquareM
  *
  * 来源：SI 导出应力单位，与压力帕斯卡量纲相同
  * Source: SI derived stress unit, same dimension as pressure pascal
- */
+*/
 object PascalStress : DerivedPhysicalUnit(Newton / SquareMeter) {
     override val name = "pascal"
     override val symbol = "Pa"
@@ -143,7 +143,7 @@ object PascalStress : DerivedPhysicalUnit(Newton / SquareMeter) {
  *
  * 来源：SI 导出应力单位，常用于材料力学
  * Source: SI derived stress unit, commonly used in mechanics of materials
- */
+*/
 object KilopascalStress : DerivedPhysicalUnit(PascalStress * Scale.kilo) {
     override val name = "kilopascal"
     override val symbol = "kPa"
@@ -166,7 +166,7 @@ object KilopascalStress : DerivedPhysicalUnit(PascalStress * Scale.kilo) {
  *
  * 来源：SI 导出应力单位，常用于结构工程和材料科学
  * Source: SI derived stress unit, commonly used in structural engineering and materials science
- */
+*/
 object MegapascalStress : DerivedPhysicalUnit(PascalStress * Scale.mega) {
     override val name = "megapascal"
     override val symbol = "MPa"

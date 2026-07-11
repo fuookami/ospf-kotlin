@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * 配规/副产物，可填充切割方案剩余宽度 / Costar/byproduct that can fill remaining width in cutting plans
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 open class Costar<V : RealNumber<V>>(
     override val id: CostarId,
     val name: String,

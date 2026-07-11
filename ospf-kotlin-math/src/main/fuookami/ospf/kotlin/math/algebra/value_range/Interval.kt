@@ -4,7 +4,7 @@
  *
  * 定义区间的开闭性质，包括开区间（Open）和闭区间（Closed），用于表示值范围的边界是否包含边界值本身。
  * Defines the openness/closedness of intervals, including Open and Closed types, used to represent whether the boundaries of a value range include the boundary values themselves.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import java.util.*
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 用于将 Interval 枚举值序列化和反序列化为字符串格式。
  * Used to serialize and deserialize Interval enum values to/from string format.
- */
+*/
 private data object IntervalSerializer : KSerializer<Interval> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("IntervalType", PrimitiveKind.STRING)
 
@@ -29,7 +29,7 @@ private data object IntervalSerializer : KSerializer<Interval> {
      *
      * @param encoder 编码器
      * @param value 要序列化的区间值
-     */
+    */
     override fun serialize(encoder: Encoder, value: Interval) {
         encoder.encodeString(value.toString().lowercase(Locale.getDefault()))
     }
@@ -40,7 +40,7 @@ private data object IntervalSerializer : KSerializer<Interval> {
      *
      * @param decoder 解码器
      * @return 解析后的 Interval 枚举值
-     */
+    */
     override fun deserialize(decoder: Decoder): Interval {
         return Interval.valueOf(
             decoder.decodeString()
@@ -62,7 +62,7 @@ private data object IntervalSerializer : KSerializer<Interval> {
  *
  * @property lowerSign 下边界符号表示（开区间为 "("，闭区间为 "["）
  * @property upperSign 上边界符号表示（开区间为 ")"，闭区间为 "]"）
- */
+*/
 @Serializable(with = IntervalSerializer::class)
 enum class Interval {
     /**
@@ -71,7 +71,7 @@ enum class Interval {
      *
      * 边界不包含边界值，例如 (a, b) 表示所有满足 a < x < b 的值。
      * Boundary does not include boundary value, e.g., (a, b) represents all values satisfying a < x < b.
-     */
+    */
     Open {
         override val lowerSign = "("
         override val upperSign = ")"
@@ -82,7 +82,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 并集结果的区间类型（开区间优先）
-         */
+        */
         override fun union(rhs: Interval) = rhs
 
         /**
@@ -91,7 +91,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 交集结果的区间类型（总是返回开区间）
-         */
+        */
         override fun intersect(rhs: Interval) = Open
 
         /**
@@ -100,7 +100,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 当前区间是否在另一区间外部
-         */
+        */
         override fun outer(rhs: Interval) = false
 
         /**
@@ -111,7 +111,7 @@ enum class Interval {
          * Open interval lower bound uses strict less-than comparison (<).
          *
          * @return 用于判断值是否在下边界内的比较函数
-         */
+        */
         override fun <T : PartialOrd<T>> lowerBoundOperator(): (T, T) -> Boolean {
             return { lhs, rhs -> lhs partialOrd rhs is Order.Less }
         }
@@ -124,7 +124,7 @@ enum class Interval {
          * Open interval upper bound uses strict greater-than comparison (>).
          *
          * @return 用于判断值是否在上边界内的比较函数
-         */
+        */
         override fun <T : PartialOrd<T>> upperBoundOperator(): (T, T) -> Boolean {
             return { lhs, rhs -> lhs partialOrd rhs is Order.Greater }
         }
@@ -136,7 +136,7 @@ enum class Interval {
      *
      * 边界包含边界值，例如 [a, b] 表示所有满足 a <= x <= b 的值。
      * Boundary includes boundary value, e.g., [a, b] represents all values satisfying a <= x <= b.
-     */
+    */
     Closed {
         override val lowerSign = "["
         override val upperSign = "]"
@@ -147,7 +147,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 并集结果的区间类型（闭区间优先）
-         */
+        */
         override fun union(rhs: Interval) = Closed
 
         /**
@@ -156,7 +156,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 交集结果的区间类型（返回另一区间的类型）
-         */
+        */
         override fun intersect(rhs: Interval) = rhs
 
         /**
@@ -165,7 +165,7 @@ enum class Interval {
          *
          * @param rhs 另一个区间
          * @return 当前区间是否在另一区间外部（闭区间比开区间更宽松）
-         */
+        */
         override fun outer(rhs: Interval) = rhs == Open
 
         /**
@@ -176,7 +176,7 @@ enum class Interval {
          * Closed interval lower bound uses less-than-or-equal comparison (<=).
          *
          * @return 用于判断值是否在下边界内的比较函数
-         */
+        */
         override fun <T : PartialOrd<T>> lowerBoundOperator(): (T, T) -> Boolean {
             return { lhs, rhs ->
                 when (lhs partialOrd rhs) {
@@ -195,7 +195,7 @@ enum class Interval {
          * Closed interval upper bound uses greater-than-or-equal comparison (>=).
          *
          * @return 用于判断值是否在上边界内的比较函数
-         */
+        */
         override fun <T : PartialOrd<T>> upperBoundOperator(): (T, T) -> Boolean {
             return { lhs, rhs ->
                 when (lhs partialOrd rhs) {
@@ -210,13 +210,13 @@ enum class Interval {
     /**
      * 下边界符号表示
      * Lower bound symbol representation
-     */
+    */
     abstract val lowerSign: String
 
     /**
      * 上边界符号表示
      * Upper bound symbol representation
-     */
+    */
     abstract val upperSign: String
 
     /**
@@ -225,7 +225,7 @@ enum class Interval {
      *
      * @param rhs 另一个区间
      * @return 并集结果的区间类型
-     */
+    */
     abstract infix fun union(rhs: Interval): Interval
 
     /**
@@ -234,7 +234,7 @@ enum class Interval {
      *
      * @param rhs 另一个区间
      * @return 交集结果的区间类型
-     */
+    */
     abstract infix fun intersect(rhs: Interval): Interval
 
     /**
@@ -246,7 +246,7 @@ enum class Interval {
      *
      * @param rhs 另一个区间
      * @return 当前区间是否在另一区间外部
-     */
+    */
     abstract infix fun outer(rhs: Interval): Boolean
 
     /**
@@ -262,7 +262,7 @@ enum class Interval {
      * - Closed: less-than-or-equal (<=)
      *
      * @return 用于判断值是否满足下边界条件的比较函数
-     */
+    */
     abstract fun <T : PartialOrd<T>> lowerBoundOperator(): (T, T) -> Boolean
 
     /**
@@ -278,6 +278,6 @@ enum class Interval {
      * - Closed: greater-than-or-equal (>=)
      *
      * @return 用于判断值是否满足上边界条件的比较函数
-     */
+    */
     abstract fun <T : PartialOrd<T>> upperBoundOperator(): (T, T) -> Boolean
 }

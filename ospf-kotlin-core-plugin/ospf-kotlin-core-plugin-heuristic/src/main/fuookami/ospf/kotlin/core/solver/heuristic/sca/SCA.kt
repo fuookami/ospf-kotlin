@@ -30,12 +30,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /** 正弦余弦算法策略接口 / Sine Cosine Algorithm policy interface */
 interface AbstractSCAPolicy<ObjValue, V> :
     AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 计算控制参数 r1 / Calculate control parameter r1
      *
      * @param iteration 当前迭代 / current iteration
      * @return 控制参数 r1 / control parameter r1
-     */
+    */
     fun r1(iteration: Iteration): Flt64
 
     /**
@@ -44,7 +45,7 @@ interface AbstractSCAPolicy<ObjValue, V> :
      * @param iteration 当前迭代 / current iteration
      * @param model 回调模型 / callback model
      * @return 随机参数 r2 列表 / random parameter r2 list
-     */
+    */
     fun r2(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
@@ -56,7 +57,7 @@ interface AbstractSCAPolicy<ObjValue, V> :
      * @param iteration 当前迭代 / current iteration
      * @param model 回调模型 / callback model
      * @return 随机参数 r3 列表 / random parameter r3 list
-     */
+    */
     fun r3(
         iteration: Iteration,
         model: AbstractCallBackModelInterface<*, ObjValue, V>
@@ -73,7 +74,7 @@ interface AbstractSCAPolicy<ObjValue, V> :
      * @param r3 随机参数 r3 列表 / random parameter r3 list
      * @param model 回调模型 / callback model
      * @return 移动后的解 / moved solution
-     */
+    */
     fun move(
         iteration: Iteration,
         solution: SolutionWithFitness<ObjValue, V>,
@@ -97,7 +98,7 @@ interface AbstractSCAPolicy<ObjValue, V> :
  *
  * @property density 种群密度 / population density
  * @property distance 到最优个体的距离 / distance to best individual
- */
+*/
 data class QLearningState(
     val density: Flt64,
     val distance: Flt64
@@ -136,7 +137,7 @@ data class QLearningState(
  * @property alpha Q-learning 学习率 / Q-learning learning rate
  * @property gamma Q-learning 折扣因子 / Q-learning discount factor
  * @property randomGenerator 随机数生成器 / random number generator
- */
+*/
 class SCAPolicy<ObjValue, V>(
     private val alpha: Flt64 = Flt64(0.1),
     private val gamma: Flt64 = Flt64(0.9),
@@ -279,7 +280,7 @@ class SCAPolicy<ObjValue, V>(
      * @param population 种群 / population
      * @param best 最优个体 / best individual
      * @param model 回调模型 / callback model
-     */
+    */
     private fun updateState(
         population: List<Individual<*, *>>,
         best: Individual<*, *>,
@@ -298,7 +299,7 @@ class SCAPolicy<ObjValue, V>(
      * 更新 Q 表 / Update Q table
      *
      * @param reward 奖励值 / reward value
-     */
+    */
     private fun updateQTable(reward: Flt64) {
         val actions = qTable.getOrPut(currentState) { mutableListOf(Flt64(9)) }
         val maxNextQ = qTable[currentState]?.maxOrNull() ?: Flt64.zero
@@ -306,6 +307,13 @@ class SCAPolicy<ObjValue, V>(
         actions[bestAction] += alpha * (reward + gamma * maxNextQ - actions[bestAction])
     }
 
+/**
+ * Cast population individuals to the concrete ObjValue/V type.
+ * 将种群个体转型为具体的 ObjValue/V 类型。
+ *
+ * @param population the population from the policy update flow / 策略更新流程中的种群
+ * @return the type-safe population list / 类型安全的种群列表
+*/
     @Suppress("UNCHECKED_CAST")
     private fun targetPopulation(population: List<Individual<*, *>>): List<Individual<ObjValue, V>> {
         // 策略 update 回调链路中的 population 来自同一算法实例，元素类型与当前 ObjValue/V 一致。
@@ -313,6 +321,13 @@ class SCAPolicy<ObjValue, V>(
         return population as List<Individual<ObjValue, V>>
     }
 
+/**
+ * Cast a single individual to the concrete ObjValue/V type.
+ * 将单个个体转型为具体的 ObjValue/V 类型。
+ *
+ * @param individual the individual from the same-origin population / 来自同源种群的单个个体
+ * @return the type-safe individual / 类型安全的个体
+*/
     @Suppress("UNCHECKED_CAST")
     private fun targetIndividual(individual: Individual<*, *>): Individual<ObjValue, V> {
         // best 个体来自当前 population 的同源排序结果，类型约束与 population 保持一致。
@@ -320,6 +335,13 @@ class SCAPolicy<ObjValue, V>(
         return individual as Individual<ObjValue, V>
     }
 
+/**
+ * Unwrap a token bound value to the concrete type V.
+ * 将令牌边界值解包为具体类型 V。
+ *
+ * @param value the bound value from a token / 来自令牌的边界值
+ * @return the value cast to type V / 转型为 V 类型的值
+*/
     @Suppress("UNCHECKED_CAST")
     private fun unwrapBoundValue(value: Any?): V {
         // token 边界值由模型在同一泛型 V 下构建，这里只做边界读取时的最小作用域转换。
@@ -332,7 +354,7 @@ class SCAPolicy<ObjValue, V>(
      *
      * @param population 种群 / population
      * @return 密度值 / density value
-     */
+    */
     private fun calculateDensity(
         population: List<Individual<*, *>>
     ): Flt64 {
@@ -353,7 +375,7 @@ class SCAPolicy<ObjValue, V>(
      * @param best 最优个体 / best individual
      * @param model 回调模型 / callback model
      * @return 距离值 / distance value
-     */
+    */
     private fun calculateDistance(
         population: List<Individual<*, *>>,
         best: Individual<*, *>,
@@ -377,6 +399,7 @@ class SCAPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+
 /**
  * 正弦余弦算法
  *
@@ -394,19 +417,20 @@ class SCAPolicy<ObjValue, V>(
  * @property populationAmount 种群数量 / population amount
  * @property solutionAmount 期望解的数量 / desired number of solutions
  * @property policy 正弦余弦算法策略 / SCA policy
- */
+*/
 class SineCosineAlgorithm<Obj, ObjValue, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractSCAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 执行正弦余弦算法 / Execute Sine Cosine Algorithm
      *
      * @param model 回调模型 / callback model
      * @param runningCallBack 运行回调函数 / running callback function
      * @return 最优个体列表 / best individual list
-     */
+    */
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
@@ -489,5 +513,6 @@ class SineCosineAlgorithm<Obj, ObjValue, V>(
 
 /** 单目标正弦余弦算法类型 / Single-objective Sine Cosine Algorithm type */
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64, Flt64>
+
 /** 多目标正弦余弦算法类型 / Multi-objective Sine Cosine Algorithm type */
 typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

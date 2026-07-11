@@ -14,7 +14,7 @@
  * - UKGallon: 1 UK gal = 4.54609 L (exact, Weights and Measures Act 1985)
  * - USGallon: 1 US gal = 3.78541178 L (exact, NIST Handbook 44)
  * - CubicYard: 1 yd³ = 27 ft³ (geometric)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Volume
  *
  * 来源：SI 导出体积单位
  * Source: SI derived volume unit
- */
+*/
 object CubicMillimeter : DerivedPhysicalUnit(SquareMillimeter * Millimeter) {
     override val name = "cubic millimeter"
     override val symbol = "mm3"
@@ -58,7 +58,7 @@ object CubicMillimeter : DerivedPhysicalUnit(SquareMillimeter * Millimeter) {
  *
  * 来源：SI 导出体积单位，常用于医学和化学
  * Source: SI derived volume unit, commonly used in medicine and chemistry
- */
+*/
 object CubicCentimeter : DerivedPhysicalUnit(SquareCentimeter * Centimeter) {
     override val name = "cubic centimeter"
     override val symbol = "cm3"
@@ -81,7 +81,7 @@ object CubicCentimeter : DerivedPhysicalUnit(SquareCentimeter * Centimeter) {
  *
  * 来源：SI 导出体积单位
  * Source: SI derived volume unit
- */
+*/
 object CubicDecimeter : DerivedPhysicalUnit(SquareDecimeter * Decimeter) {
     override val name = "cubic decimeter"
     override val symbol = "dm3"
@@ -104,7 +104,7 @@ object CubicDecimeter : DerivedPhysicalUnit(SquareDecimeter * Decimeter) {
  *
  * 来源：SI 导出单位，体积的国际单位
  * Source: SI derived unit, international unit for volume
- */
+*/
 object CubicMeter : DerivedPhysicalUnit(SquareMeter * Meter) {
     override val name = "cubic meter"
     override val symbol = "m3"
@@ -127,7 +127,7 @@ object CubicMeter : DerivedPhysicalUnit(SquareMeter * Meter) {
  *
  * 来源：SI 导出体积单位，常用于水资源计量
  * Source: SI derived volume unit, commonly used for water resource measurement
- */
+*/
 object CubicDecameter : DerivedPhysicalUnit(Decameter * Decameter * Decameter) {
     override val name = "cubic decameter"
     override val symbol = "dam3"
@@ -150,7 +150,7 @@ object CubicDecameter : DerivedPhysicalUnit(Decameter * Decameter * Decameter) {
  *
  * 来源：SI 导出体积单位，常用于水库库容计量
  * Source: SI derived volume unit, commonly used for reservoir capacity measurement
- */
+*/
 object CubicHectometer : DerivedPhysicalUnit(Hectometer * Hectometer * Hectometer) {
     override val name = "cubic hectometer"
     override val symbol = "hm3"
@@ -173,7 +173,7 @@ object CubicHectometer : DerivedPhysicalUnit(Hectometer * Hectometer * Hectomete
  *
  * 来源：SI 导出体积单位，常用于地质和海洋体积计量
  * Source: SI derived volume unit, commonly used for geological and oceanic volume measurement
- */
+*/
 object CubicKilometer : DerivedPhysicalUnit(Kilometer * Kilometer * Kilometer) {
     override val name = "cubic kilometer"
     override val symbol = "km3"
@@ -196,7 +196,7 @@ object CubicKilometer : DerivedPhysicalUnit(Kilometer * Kilometer * Kilometer) {
  *
  * 来源：常用体积单位，广泛用于日常生活和科学
  * Source: Common volume unit, widely used in daily life and science
- */
+*/
 object Liter : DerivedPhysicalUnit(CubicDecimeter) {
     override val name = "liter"
     override val symbol = "L"
@@ -219,7 +219,7 @@ object Liter : DerivedPhysicalUnit(CubicDecimeter) {
  *
  * 来源：SI 体积单位，常用于实验室微量分析
  * Source: SI volume unit, commonly used in laboratory microanalysis
- */
+*/
 object Microliter : DerivedPhysicalUnit(Liter * Scale.micro) {
     override val name = "microliter"
     override val symbol = "μL"
@@ -242,7 +242,7 @@ object Microliter : DerivedPhysicalUnit(Liter * Scale.micro) {
  *
  * 来源：SI 体积单位，广泛用于医学和日常生活
  * Source: SI volume unit, widely used in medicine and daily life
- */
+*/
 object Milliliter : DerivedPhysicalUnit(Liter * Scale.milli) {
     override val name = "milliliter"
     override val symbol = "mL"
@@ -265,7 +265,7 @@ object Milliliter : DerivedPhysicalUnit(Liter * Scale.milli) {
  *
  * 来源：SI 体积单位
  * Source: SI volume unit
- */
+*/
 object Centiliter : DerivedPhysicalUnit(Liter * Scale.centi) {
     override val name = "centiliter"
     override val symbol = "cL"
@@ -288,7 +288,7 @@ object Centiliter : DerivedPhysicalUnit(Liter * Scale.centi) {
  *
  * 来源：SI 体积单位，常用于医学检验
  * Source: SI volume unit, commonly used in medical tests
- */
+*/
 object Deciliter : DerivedPhysicalUnit(Liter * Scale.deci) {
     override val name = "deciliter"
     override val symbol = "dL"
@@ -311,7 +311,7 @@ object Deciliter : DerivedPhysicalUnit(Liter * Scale.deci) {
  *
  * 来源：SI 体积单位，常用于酿造业和农业
  * Source: SI volume unit, commonly used in brewing and agriculture
- */
+*/
 object Hectoliter : DerivedPhysicalUnit(Liter * Scale.hecto) {
     override val name = "hectoliter"
     override val symbol = "hL"
@@ -334,7 +334,7 @@ object Hectoliter : DerivedPhysicalUnit(Liter * Scale.hecto) {
  *
  * 来源：英制体积单位
  * Source: Imperial volume unit
- */
+*/
 object CubicInch : DerivedPhysicalUnit(SquareInch * Inch) {
     override val name = "cubic inch"
     override val symbol = "cu.in"
@@ -357,7 +357,7 @@ object CubicInch : DerivedPhysicalUnit(SquareInch * Inch) {
  *
  * 来源：英制体积单位，常用于建筑和工程
  * Source: Imperial volume unit, commonly used in construction and engineering
- */
+*/
 object CubicFoot : DerivedPhysicalUnit(SquareFoot * Foot) {
     override val name = "cubic foot"
     override val symbol = "cu.ft"
@@ -380,7 +380,7 @@ object CubicFoot : DerivedPhysicalUnit(SquareFoot * Foot) {
  *
  * 来源：英制体积单位，常用于建筑材料
  * Source: Imperial volume unit, commonly used for construction materials
- */
+*/
 object CubicYard : DerivedPhysicalUnit(Yard * Yard * Yard) {
     override val name = "cubic yard"
     override val symbol = "cu.yd"
@@ -403,7 +403,7 @@ object CubicYard : DerivedPhysicalUnit(Yard * Yard * Yard) {
  *
  * 来源：英制体积单位
  * Source: Imperial volume unit
- */
+*/
 object UKFluidOunce : DerivedPhysicalUnit(Milliliter * 28.4130625) {
     override val name = "uk fluid ounce"
     override val symbol = "uk.fl.oz"
@@ -426,7 +426,7 @@ object UKFluidOunce : DerivedPhysicalUnit(Milliliter * 28.4130625) {
  *
  * 来源：美制体积单位
  * Source: US customary volume unit
- */
+*/
 object USFluidOunce : DerivedPhysicalUnit(Milliliter * 29.5735295625) {
     override val name = "us fluid ounce"
     override val symbol = "us.fl.oz"
@@ -449,7 +449,7 @@ object USFluidOunce : DerivedPhysicalUnit(Milliliter * 29.5735295625) {
  *
  * 来源：英制体积单位
  * Source: Imperial volume unit
- */
+*/
 object UKGallon : DerivedPhysicalUnit(Liter * 4.54609) {
     override val name = "uk gallon"
     override val symbol = "uk.gal"
@@ -472,7 +472,7 @@ object UKGallon : DerivedPhysicalUnit(Liter * 4.54609) {
  *
  * 来源：美制体积单位，常用于美国燃油销售
  * Source: US customary volume unit, commonly used for fuel sales in the US
- */
+*/
 object USGallon : DerivedPhysicalUnit(Liter * 3.78541178) {
     override val name = "us gallon"
     override val symbol = "us.gal"

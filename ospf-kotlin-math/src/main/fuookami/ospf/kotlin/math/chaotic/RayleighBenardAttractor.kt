@@ -1,7 +1,7 @@
 /**
  * Rayleigh-Benard 吸引子
  * Rayleigh-Benard Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property gamma 系统参数 gamma / System parameter gamma
  * @property h 时间步长 / Time step size
- */
+*/
 data class RayleighBenardAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val gamma: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -48,7 +48,7 @@ data class RayleighBenardAttractor<V : FloatingNumber<V>>(val alpha: V, val beta
  *
  * @property attractor 吸引子实例 / Attractor instance
  * @property x 当前状态向量 / Current state vector
- */
+*/
 data class RayleighBenardAttractorGenerator(
     val attractor: RayleighBenardAttractor<Flt64> = RayleighBenardAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

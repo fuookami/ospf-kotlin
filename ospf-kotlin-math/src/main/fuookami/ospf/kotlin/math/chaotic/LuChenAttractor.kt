@@ -1,7 +1,7 @@
 /**
  * Lu-Chen 吸引子
  * Lu-Chen Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class LuChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -40,7 +40,7 @@ data class LuChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
      * @param beta 系统参数 beta / System parameter beta
      * @param zeta 系统参数 zeta / System parameter zeta
      * @param h 时间步长 / Time step size
-     */
+    */
     companion object {
         operator fun invoke(
             alpha: Flt64 = Flt64(-10.0),
@@ -57,7 +57,7 @@ data class LuChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
  *
  * @property attractor Lu-Chen 吸引子实例 / Lu-Chen attractor instance
  * @property _x 内部可变状态点，初始值为随机生成的三维点 / Internal mutable state point initialized with a random 3D point
- */
+*/
 data class LuChenAttractorGenerator(
     val attractor: LuChenAttractor<Flt64> = LuChenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(
@@ -69,6 +69,7 @@ data class LuChenAttractorGenerator(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point<Dim3, Flt64>> {
+
     /** 当前状态点 / Current state point */
     val x by ::_x;
     override operator fun invoke(): Point<Dim3, Flt64> {

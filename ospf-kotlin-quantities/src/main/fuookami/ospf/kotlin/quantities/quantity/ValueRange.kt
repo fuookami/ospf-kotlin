@@ -7,7 +7,7 @@
  *
  * 支持从 ValueRange、Bound、ValueWrapper 等包装类型中提取物理量值。
  * Supports extracting quantity values from wrapper types like ValueRange, Bound, and ValueWrapper.
- */
+*/
 package fuookami.ospf.kotlin.quantities.quantity
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * val range = Quantity(ValueRange(Flt64(1.0), Flt64(5.0)), Meter)
  * val lower = range.lowerBound  // Quantity(Flt64(1.0), Meter)
  * ```
- */
+*/
 val <V> Quantity<ValueRange<V>>.lowerBound where V : RealNumber<V>, V : NumberField<V>
     get() = Quantity(value.lowerBound, unit)
 
@@ -45,7 +45,7 @@ val <V> Quantity<ValueRange<V>>.lowerBound where V : RealNumber<V>, V : NumberFi
  * val range = Quantity(ValueRange(Flt64(1.0), Flt64(5.0)), Meter)
  * val upper = range.upperBound  // Quantity(Flt64(5.0), Meter)
  * ```
- */
+*/
 val <V> Quantity<ValueRange<V>>.upperBound where V : RealNumber<V>, V : NumberField<V>
     get() = Quantity(value.upperBound, unit)
 
@@ -62,7 +62,7 @@ val <V> Quantity<ValueRange<V>>.upperBound where V : RealNumber<V>, V : NumberFi
  * val range = Quantity(ValueRange(Flt64(1.0), Flt64(5.0)), Meter)
  * val diff = range.diff  // Quantity(Flt64(4.0), Meter)
  * ```
- */
+*/
 val <V> Quantity<ValueRange<V>>.diffOrNull where V : RealNumber<V>, V : NumberField<V>
     get() = value.diffOrNull?.let { Quantity(it, unit) }
 
@@ -71,7 +71,7 @@ val <V> Quantity<ValueRange<V>>.diffOrNull where V : RealNumber<V>, V : NumberFi
  * Get the difference result of a value range quantity
  *
  * @return 差值结果，失败时返回错误 / The difference result, or an error when unavailable
- */
+*/
 val <V> Quantity<ValueRange<V>>.diff: Ret<Quantity<ValueWrapper<V>>> where V : RealNumber<V>, V : NumberField<V>
     get() = value.diff.map { Quantity(it, unit) }
 
@@ -87,7 +87,7 @@ val <V> Quantity<ValueRange<V>>.diff: Ret<Quantity<ValueWrapper<V>>> where V : R
  * val bound = Quantity(Bound(Flt64(3.0), inclusive = true), Meter)
  * val value = bound.boundValue  // Quantity(Flt64(3.0), Meter)
  * ```
- */
+*/
 val <V> Quantity<Bound<V>>.boundValue where V : RealNumber<V>, V : NumberField<V>
     get() = Quantity(value.value, unit)
 
@@ -105,7 +105,7 @@ val <V> Quantity<Bound<V>>.boundValue where V : RealNumber<V>, V : NumberField<V
  * ```
  *
  * @return 解包后的物理量 / The unwrapped quantity
- */
+*/
 fun <V> Quantity<ValueWrapper<V>>.unwrap(): Quantity<V> where V : RealNumber<V>, V : NumberField<V> {
     return Quantity(value.unwrap(), unit)
 }
@@ -127,7 +127,7 @@ fun <V> Quantity<ValueWrapper<V>>.unwrap(): Quantity<V> where V : RealNumber<V>,
  * ```
  *
  * @return 解包后的物理量，如果包装器为空则返回 null / The unwrapped quantity, or null if the wrapper is empty
- */
+*/
 fun <V> Quantity<ValueWrapper<V>>.unwrapOrNull(): Quantity<V>? where V : RealNumber<V>, V : NumberField<V> {
     return value.unwrapOrNull()?.let {
         Quantity(it, unit)

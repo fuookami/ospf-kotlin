@@ -30,8 +30,19 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/** Type alias for the MAC decision model. 中文：MAC 决策模型的类型别名。 */
 typealias MACDecision = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.MAC
 
+/**
+ * Models the horizontal stabilizer trim and warning slack for a specific stabilizer configuration.
+ * 为特定安定面配置建模水平安定面配平和警告松弛。
+ *
+ * @property key The stabilizer configuration key / 安定面配置键
+ * @property points The trim lookup points for this stabilizer / 此安定面的配平查找点
+ * @property limit The trim limits including warning boundaries / 包含警告边界的配平限制
+ * @property trim The linear intermediate symbol for the stabilizer trim / 安定面配平的线性中间符号
+ * @property warnSlack The linear intermediate symbol for the warning slack / 警告松弛的线性中间符号
+*/
 class HorizontalStabilizer(
     private val aircraftModel: AircraftModel,
     val key: Key,
@@ -40,6 +51,14 @@ class HorizontalStabilizer(
     private val totalWeight: TotalWeight,
     private val mac: MACDecision
 ) {
+
+    /**
+     * Key identifying a horizontal stabilizer configuration by angle and thrust derate.
+     * 通过角度和推力衰减识别水平安定面配置的键。
+     *
+     * @property angle The horizontal stabilizer angle / 水平安定面角度
+     * @property thrustDrate The thrust derate setting, if applicable / 推力衰减设置（如适用）
+    */
     data class Key(
         val angle: HorizontalStabilizerAngle,
         val thrustDrate: HorizontalStabilizerThrustDrate?
@@ -49,12 +68,29 @@ class HorizontalStabilizer(
         }
     }
 
+    /**
+     * A trim lookup point associating takeoff weight, MAC, and trim value.
+     * 关联起飞重量、MAC 和配平值的配平查找点。
+     *
+     * @property tow The takeoff weight at this point / 此点的起飞重量
+     * @property mac The MAC value at this point / 此点的 MAC 值
+     * @property trim The trim value at this point / 此点的配平值
+    */
     data class Point(
         val tow: Quantity<Flt64>,
         val mac: MAC,
         val trim: Flt64
     )
 
+    /**
+     * Trim limits including mandatory and warning boundaries.
+     * 包括强制和警告边界的配平限制。
+     *
+     * @property minTrim The minimum allowed trim value / 最小允许配平值
+     * @property maxTrim The maximum allowed trim value / 最大允许配平值
+     * @property warnMinTrim The warning-level minimum trim value / 警告级最小配平值
+     * @property warnMaxTrim The warning-level maximum trim value / 警告级最大配平值
+    */
     data class Limit(
         val minTrim: Flt64?,
         val maxTrim: Flt64?,
@@ -71,6 +107,14 @@ class HorizontalStabilizer(
             ?.trim ?: Flt64.zero
     }
 
+    /**
+     * Registers the trim and warning slack symbols into the optimization model.
+     * 将配平和警告松弛符号注册到优化模型中。
+     *
+     * @param stowageMode The stowage mode controlling whether warning slack is registered / 控制是否注册警告松弛的装载模式
+     * @param model The linear meta-model to register symbols into / 要注册符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -148,6 +192,13 @@ class HorizontalStabilizer(
         return ok
     }
 
+    /**
+     * Returns the list of (MAC, trim) pairs for points matching the given takeoff weight.
+     * 返回与给定起飞重量匹配的点的 (MAC, 配平) 对列表。
+     *
+     * @param tow The takeoff weight to look up / 要查找的起飞重量
+     * @return List of (MAC, trim) pairs sorted by MAC / 按 MAC 排序的 (MAC, 配平) 对列表
+    */
     private fun pointsOf(tow: Quantity<Flt64>): List<Pair<MAC, Flt64>> {
         val eps = Equal<Flt64, Flt64>(Flt64(1e-5))
         val towValue = tow.to(aircraftModel.weightUnit)!!.value

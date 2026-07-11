@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * 封装通用编译运算，自动填入 Flt64 的零值和一值。
  * Provides convenience compile-evaluation and gradient functions for Flt64 polynomials.
  * Wraps generic compile operations with Flt64 zero/one constants.
- */
+*/
 
 /**
  * 编译线性多项式为求值函数
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 编译后的求值函数 / Compiled evaluation function
- */
+*/
 fun LinearPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -45,7 +45,7 @@ fun LinearPolynomial<Flt64>.compileEval(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 编译后的求值函数 / Compiled evaluation function
- */
+*/
 fun QuadraticPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -68,7 +68,7 @@ fun QuadraticPolynomial<Flt64>.compileEval(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 编译后的求值函数 / Compiled evaluation function
- */
+*/
 fun CanonicalPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -91,7 +91,7 @@ fun CanonicalPolynomial<Flt64>.compileEval(
  * @param order 符号顺序 / Symbol order
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 编译后的梯度函数 / Compiled gradient function
- */
+*/
 fun LinearPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
@@ -112,7 +112,7 @@ fun LinearPolynomial<Flt64>.compileGradient(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 编译后的梯度函数 / Compiled gradient function
- */
+*/
 fun QuadraticPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,
@@ -135,7 +135,7 @@ fun QuadraticPolynomial<Flt64>.compileGradient(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 编译后的梯度函数 / Compiled gradient function
- */
+*/
 fun CanonicalPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,

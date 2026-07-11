@@ -7,7 +7,7 @@
  * Provides direct parsing of Flt64 polynomials and inequalities from strings.
  * Supports canonical, linear, and quadratic polynomials and inequalities,
  * including Ret-wrapped safe versions.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
  *
  * @property coefficient the numeric coefficient of the term / 项的数值系数
  * @property powers the map of symbols to their exponents / 符号到其指数的映射
- */
+*/
 private data class ParsedTerm(
     val coefficient: Flt64,
     val powers: Map<Symbol, Int32>
@@ -44,7 +44,7 @@ private data class ParsedTerm(
  *
  * @property terms the list of parsed terms / 已解析项的列表
  * @property constant the constant term of the polynomial / 多项式的常数项
- */
+*/
 private data class ParsedPolynomial(
     val terms: List<ParsedTerm>,
     val constant: Flt64
@@ -57,7 +57,7 @@ private data class ParsedPolynomial(
  * @property lhs the left-hand side polynomial / 左侧多项式
  * @property rhs the right-hand side polynomial / 右侧多项式
  * @property comparison the comparison operator / 比较运算符
- */
+*/
 private data class ParsedInequality(
     val lhs: ParsedPolynomial,
     val rhs: ParsedPolynomial,
@@ -75,7 +75,7 @@ private data class ParsedInequality(
  * @property input the original input string / 原始输入字符串
  * @property tokens the list of lexed tokens / 词法分析后的 token 列表
  * @property symbolOf the function to resolve symbol names / 符号名称解析函数
- */
+*/
 private class DirectPolynomialParser(
     private val input: String,
     private val tokens: List<PolynomialToken>,
@@ -85,7 +85,7 @@ private class DirectPolynomialParser(
 
     /** 解析多项式 / Parse polynomial
      * @return the parsed polynomial result / 解析后的多项式结果
-     */
+    */
     fun parsePolynomial(): ParseResult<ParsedPolynomial> {
         return parseExpression().andThen { result ->
             expect(PolynomialTokenType.End).map { result }
@@ -94,7 +94,7 @@ private class DirectPolynomialParser(
 
     /** 解析不等式 / Parse inequality
      * @return the parsed inequality result / 解析后的不等式结果
-     */
+    */
     fun parseInequality(): ParseResult<ParsedInequality> {
         return parseExpression().andThen { lhs ->
             val comparisonToken = current()
@@ -122,7 +122,7 @@ private class DirectPolynomialParser(
 
     /** 解析表达式（加减法层级） / Parse expression (addition/subtraction level)
      * @return the parsed polynomial result / 解析后的多项式结果
-     */
+    */
     private fun parseExpression(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parseTerm()) {
             is Ok -> parsed.value
@@ -160,7 +160,7 @@ private class DirectPolynomialParser(
 
     /** 解析项（乘法层级） / Parse term (multiplication level)
      * @return the parsed polynomial result / 解析后的多项式结果
-     */
+    */
     private fun parseTerm(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parsePower()) {
             is Ok -> parsed.value
@@ -188,7 +188,7 @@ private class DirectPolynomialParser(
 
     /** 解析幂运算层级 / Parse power operation level
      * @return the parsed polynomial result / 解析后的多项式结果
-     */
+    */
     private fun parsePower(): ParseResult<ParsedPolynomial> {
         var result = when (val parsed = parseFactor()) {
             is Ok -> parsed.value
@@ -231,7 +231,7 @@ private class DirectPolynomialParser(
 
     /** 解析因子（数字、变量、括号、负号） / Parse factor (number, variable, parentheses, negation)
      * @return the parsed polynomial result / 解析后的多项式结果
-     */
+    */
     private fun parseFactor(): ParseResult<ParsedPolynomial> {
         val token = current()
         return when (token.type) {
@@ -283,7 +283,7 @@ private class DirectPolynomialParser(
 
     /** 获取当前 token / Get current token
      * @return the current token / 当前 token
-     */
+    */
     private fun current(): PolynomialToken {
         return tokens[position]
     }
@@ -301,7 +301,7 @@ private class DirectPolynomialParser(
      *
      * @param type 期望的 token 类型 / Expected token type
      * @return 匹配结果 / Match result
-     */
+    */
     private fun expect(type: PolynomialTokenType): ParseResult<Unit> {
         val token = current()
         if (token.type != type) {
@@ -327,7 +327,7 @@ private class DirectPolynomialParser(
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 相加结果 / Addition result
- */
+*/
 private fun addParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     return ParsedPolynomial(
         terms = lhs.terms + rhs.terms,
@@ -341,7 +341,7 @@ private fun addParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): 
  *
  * @param poly 输入多项式 / Input polynomial
  * @return 取反结果 / Negated result
- */
+*/
 private fun negateParsedPolynomial(poly: ParsedPolynomial): ParsedPolynomial {
     return ParsedPolynomial(
         terms = poly.terms.map { it.copy(coefficient = -it.coefficient) },
@@ -356,7 +356,7 @@ private fun negateParsedPolynomial(poly: ParsedPolynomial): ParsedPolynomial {
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 相减结果 / Subtraction result
- */
+*/
 private fun subtractParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     return addParsedPolynomials(lhs, negateParsedPolynomial(rhs))
 }
@@ -368,7 +368,7 @@ private fun subtractParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomi
  * @param lhs 左操作数 / Left operand
  * @param rhs 右操作数 / Right operand
  * @return 相乘结果 / Multiplication result
- */
+*/
 private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomial): ParsedPolynomial {
     val terms = ArrayList<ParsedTerm>(lhs.terms.size * rhs.terms.size + lhs.terms.size + rhs.terms.size)
     for (left in lhs.terms) {
@@ -407,7 +407,7 @@ private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomi
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范多项式 / Canonical polynomial
- */
+*/
 private fun ParsedPolynomial.toCanonicalPolynomial(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<Flt64> {
@@ -429,7 +429,7 @@ private fun ParsedPolynomial.toCanonicalPolynomial(
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
- */
+*/
 private fun ParsedInequality.toCanonicalInequality(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalInequality<Flt64> {
@@ -451,7 +451,7 @@ private fun ParsedInequality.toCanonicalInequality(
  * @param input 原始输入字符串 / Original input string
  * @param block 解析代码块 / Parsing block
  * @return 解析结果 / Parse result
- */
+*/
 private inline fun <T> parseSafely(
     input: String,
     crossinline block: () -> ParseResult<T>
@@ -473,7 +473,7 @@ private inline fun <T> parseSafely(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseCanonicalFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -494,7 +494,7 @@ fun parseCanonicalFlt64(
  * @param input 输入表达式字符串 / Input expression string
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
- */
+*/
 fun parseLinearFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -513,7 +513,7 @@ fun parseLinearFlt64(
  * @param input 输入表达式字符串 / Input expression string
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
- */
+*/
 fun parseLinearOrNullFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -529,7 +529,7 @@ fun parseLinearOrNullFlt64(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseQuadraticFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -550,7 +550,7 @@ fun parseQuadraticFlt64(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseQuadraticOrNullFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -568,7 +568,7 @@ fun parseQuadraticOrNullFlt64(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseCanonicalInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -589,7 +589,7 @@ fun parseCanonicalInequalityFlt64(
  * @param input 输入表达式字符串 / Input expression string
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
- */
+*/
 fun parseLinearInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -608,7 +608,7 @@ fun parseLinearInequalityFlt64(
  * @param input 输入表达式字符串 / Input expression string
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @return 解析结果 / Parse result
- */
+*/
 fun parseLinearInequalityOrNullFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
@@ -625,7 +625,7 @@ fun parseLinearInequalityOrNullFlt64(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseQuadraticInequalityFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
@@ -646,7 +646,7 @@ fun parseQuadraticInequalityFlt64(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 解析结果 / Parse result
- */
+*/
 fun parseQuadraticInequalityOrNullFlt64(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,

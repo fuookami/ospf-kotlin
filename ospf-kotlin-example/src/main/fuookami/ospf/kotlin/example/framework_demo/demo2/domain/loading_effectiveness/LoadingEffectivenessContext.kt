@@ -13,28 +13,36 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-/** 飞行器聚合类型别名。 */
+/**
+ * Type alias for the aircraft domain aggregation.
+ * 飞行器域聚合类型别名
+*/
 typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
-/** 配载聚合类型别名。 */
+
+/**
+ * Type alias for the stowage domain aggregation.
+ * 配载域聚合类型别名
+*/
 typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
 
 /**
- * 装车有效性上下文，管理装车有效性的初始化、注册与 Benders 分解流程。
  * Loading effectiveness context, managing initialization, registration, and Benders decomposition flow.
- */
+ * 装车有效性上下文，管理装车有效性的初始化、注册与 Benders 分解流程。
+*/
 class LoadingEffectivenessContext {
-    /** 装车有效性聚合。 */
+
+    /** The loading effectiveness aggregation. / 中文：装车有效性聚合 */
     lateinit var aggregation: Aggregation
 
     /**
+     * Initializes the loading effectiveness context.
      * 初始化装车有效性上下文。
-     * Initialize the loading effectiveness context.
      *
-     * @param aircraftContext 飞行器上下文
-     * @param stowageContext 配载上下文
-     * @param input 请求 DTO
-     * @return 操作结果
-     */
+     * @param aircraftContext The aircraft domain context. / 飞行器域上下文
+     * @param stowageContext The stowage domain context. / 配载域上下文
+     * @param input The request DTO containing input parameters. / 包含输入参数的请求 DTO
+     * @return The result of the initialization operation. / 初始化操作的结果
+    */
     fun init(
         aircraftContext: AircraftContext,
         stowageContext: StowageContext,
@@ -64,14 +72,14 @@ class LoadingEffectivenessContext {
     }
 
     /**
+     * Registers loading effectiveness constraints and pipelines into the model.
      * 注册装车有效性约束与流水线到模型中。
-     * Register loading effectiveness constraints and pipelines into the model.
      *
-     * @param stowageMode 装载模式
-     * @param parameter 参数配置
-     * @param model 线性元模型
-     * @return 操作结果
-     */
+     * @param stowageMode The stowage mode determining which constraints to apply. / 决定应用哪些约束的装载模式
+     * @param parameter The parameter configuration for constraint generation. / 约束生成的参数配置
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
@@ -128,12 +136,12 @@ class LoadingEffectivenessContext {
     }
 
     /**
+     * Registers loading effectiveness constraints for the Benders master problem.
      * 注册 Benders 主问题的装车有效性约束。
-     * Register loading effectiveness constraints for the Benders master problem.
      *
-     * @param model 线性元模型
-     * @return 操作结果
-     */
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -146,12 +154,12 @@ class LoadingEffectivenessContext {
     }
 
     /**
+     * Registers loading effectiveness for the Benders sub problem (no-op, loading effectiveness does not contribute to the sub problem).
      * 注册 Benders 子问题的装车有效性（空实现，装车有效性不贡献给子问题）。
-     * Register loading effectiveness for the Benders sub problem (no-op, loading effectiveness does not contribute to the sub problem).
      *
-     * @param model 线性元模型
-     * @return 操作结果
-     */
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -160,13 +168,13 @@ class LoadingEffectivenessContext {
     }
 
     /**
+     * Flushes loading effectiveness for Benders sub problem (no-op).
      * 刷新 Benders 子问题的装车有效性（空实现）。
-     * Flush loading effectiveness for Benders sub problem (no-op).
      *
-     * @param model 线性元模型
-     * @param solution 解向量
-     * @return 操作结果
-     */
+     * @param model The linear meta model. / 线性元模型
+     * @param solution The current solution vector. / 当前解向量
+     * @return The result of the flush operation. / 刷新操作的结果
+    */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.core.variable.*
 
 /** 用于 [LinearMetaModel] 中 [IntoValue] 的 Flt64 恒等转换器。Flt64 identity converter for use with [IntoValue] in [LinearMetaModel]. */
 private val flt64Converter = object : IntoValue<Flt64> {
+
     /** @param value Flt64 值。 */
     override fun intoValue(value: Flt64) = value
     override val zero get() = Flt64.zero
@@ -32,12 +33,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
 
 /** 演示基于 PSO 的启发式优化在通过 [LinearMetaModel] 构建的线性模型上的应用。Demonstrates PSO-based heuristic optimization on a linear model built via [LinearMetaModel]. */
 class Demo2 {
+
     /**
      * 构建最大化 x + y 的线性模型（受边界约束），然后用 PSO 求解。
      * Builds a linear model maximizing x + y (subject to bounds), then solves it with PSO.
      *
-     * @return 返回结果。
-     */
+     * @return PSO solver execution result / PSO 求解器执行结果
+    */
     operator fun invoke(): Try {
         val metaModel = LinearMetaModel<Flt64>(converter = flt64Converter)
         val x = URealVar("x")

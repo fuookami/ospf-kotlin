@@ -4,7 +4,7 @@
  *
  * 定义 Gantt Scheduling 领域的语义化错误类型，替代裸 ErrorCode + message 构造。
  * Defines semantic error types for the Gantt Scheduling domain, replacing bare ErrorCode + message constructions.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -17,13 +17,14 @@ import fuookami.ospf.kotlin.utils.error.*
  * Used for capability-not-supported errors in the Gantt Scheduling domain.
  *
  * @property capability 不支持的能力 / The unsupported capability
- */
+*/
 class GanttSchedulingCapabilityError(
     val capability: String? = null
 ) : Err<ErrorCode>(
     code = ErrorCode.IllegalArgument,
     message = if (capability != null) "Capability not supported: $capability" else "Capability not supported."
 ) {
+
     /** 工厂方法 / Factory methods */
     companion object {
         /**
@@ -32,7 +33,7 @@ class GanttSchedulingCapabilityError(
          *
          * @param capability 不支持的能力 / The unsupported capability
          * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
-         */
+        */
         fun of(capability: String): GanttSchedulingCapabilityError {
             return GanttSchedulingCapabilityError(capability)
         }
@@ -42,7 +43,7 @@ class GanttSchedulingCapabilityError(
          * Create generic capability not supported error
          *
          * @return GanttSchedulingCapabilityError 实例 / GanttSchedulingCapabilityError instance
-         */
+        */
         fun unsupported(): GanttSchedulingCapabilityError {
             return GanttSchedulingCapabilityError()
         }
@@ -57,7 +58,7 @@ class GanttSchedulingCapabilityError(
  * Used for lifecycle-related errors in the Gantt Scheduling domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class GanttSchedulingLifecycleError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -73,7 +74,7 @@ class GanttSchedulingLifecycleError(
  * Used for solving-related errors in the Gantt Scheduling domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class GanttSchedulingSolvingError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -89,7 +90,7 @@ class GanttSchedulingSolvingError(
  * Used for parameter validation errors in the Gantt Scheduling domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class GanttSchedulingValidationError(
     val detail: String? = null
 ) : Err<ErrorCode>(

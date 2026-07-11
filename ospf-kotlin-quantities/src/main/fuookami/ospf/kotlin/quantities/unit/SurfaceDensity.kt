@@ -7,7 +7,7 @@
  *
  * 来源：SI 导出单位
  * Source: SI derived units
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.SurfaceDensity
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.quantities.dimension.SurfaceDensity
  *
  * 来源：SI 导出单位，表面密度的国际单位
  * Source: SI derived unit, international unit for surface density
- */
+*/
 object KilogramPerSquareMeter : DerivedPhysicalUnit(Kilogram / SquareMeter) {
     override val name = "kilogram per square meter"
     override val symbol = "kgpm2"
@@ -50,7 +50,7 @@ object KilogramPerSquareMeter : DerivedPhysicalUnit(Kilogram / SquareMeter) {
  *
  * 来源：SI 导出单位，常用于纸张、纺织品的表面密度
  * Source: SI derived unit, commonly used for paper and textile surface density
- */
+*/
 object GramPerSquareMeter : DerivedPhysicalUnit(Gram / SquareMeter) {
     override val name = "gram per square meter"
     override val symbol = "gpm2"

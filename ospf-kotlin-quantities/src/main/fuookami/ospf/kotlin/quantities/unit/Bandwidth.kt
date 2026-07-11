@@ -4,7 +4,7 @@
  *
  * 提供带宽度纲的单位定义，包括比特每秒、千比特每秒、兆比特每秒等。
  * Provides unit definitions for bandwidth dimension, including bit per second, kilobit per second, megabit per second, etc.
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Bandwidth
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Bandwidth
  *
  * 定义：1 bit/s = 1 比特 / 秒
  * Definition: 1 bit/s = 1 bit / second
- */
+*/
 object BitPerSecond : DerivedPhysicalUnit(Bit / Second) {
     override val name = "bit per second"
     override val symbol = "bit/s"
@@ -32,7 +32,7 @@ object BitPerSecond : DerivedPhysicalUnit(Bit / Second) {
  *
  * 定义：1 kbit/s = 10³ bit/s
  * Definition: 1 kbit/s = 10³ bit/s
- */
+*/
 object KilobitPerSecond : DerivedPhysicalUnit(Kilobit / Second) {
     override val name = "kilobit per second"
     override val symbol = "kbit/s"
@@ -46,7 +46,7 @@ object KilobitPerSecond : DerivedPhysicalUnit(Kilobit / Second) {
  *
  * 定义：1 Mbit/s = 10⁶ bit/s
  * Definition: 1 Mbit/s = 10⁶ bit/s
- */
+*/
 object MegabitPerSecond : DerivedPhysicalUnit(Megabit / Second) {
     override val name = "megabit per second"
     override val symbol = "mbit/s"
@@ -60,7 +60,7 @@ object MegabitPerSecond : DerivedPhysicalUnit(Megabit / Second) {
  *
  * 定义：1 Gbit/s = 10⁹ bit/s
  * Definition: 1 Gbit/s = 10⁹ bit/s
- */
+*/
 object GigabitPerSecond : DerivedPhysicalUnit(Gigabit / Second) {
     override val name = "gigabit per second"
     override val symbol = "gbit/s"
@@ -74,7 +74,7 @@ object GigabitPerSecond : DerivedPhysicalUnit(Gigabit / Second) {
  *
  * 定义：1 Tbit/s = 10¹² bit/s
  * Definition: 1 Tbit/s = 10¹² bit/s
- */
+*/
 object TerabitPerSecond : DerivedPhysicalUnit(Terabit / Second) {
     override val name = "terabit per second"
     override val symbol = "tbit/s"
@@ -88,7 +88,7 @@ object TerabitPerSecond : DerivedPhysicalUnit(Terabit / Second) {
  *
  * 定义：1 Pbit/s = 10¹⁵ bit/s
  * Definition: 1 Pbit/s = 10¹⁵ bit/s
- */
+*/
 object PetabitPerSecond : DerivedPhysicalUnit(Petabit / Second) {
     override val name = "petabit per second"
     override val symbol = "pbit/s"
@@ -102,7 +102,7 @@ object PetabitPerSecond : DerivedPhysicalUnit(Petabit / Second) {
  *
  * 定义：1 Ebit/s = 10¹⁸ bit/s
  * Definition: 1 Ebit/s = 10¹⁸ bit/s
- */
+*/
 object ExabitPerSecond : DerivedPhysicalUnit(Exabit / Second) {
     override val name = "exabit per second"
     override val symbol = "ebit/s"
@@ -116,7 +116,7 @@ object ExabitPerSecond : DerivedPhysicalUnit(Exabit / Second) {
  *
  * 定义：1 B/s = 8 bit/s
  * Definition: 1 B/s = 8 bit/s
- */
+*/
 object BytePerSecond : DerivedPhysicalUnit(Byte / Second) {
     override val name = "byte per second"
     override val symbol = "B/s"
@@ -130,7 +130,7 @@ object BytePerSecond : DerivedPhysicalUnit(Byte / Second) {
  *
  * 定义：1 KB/s = 10³ B/s = 8000 bit/s
  * Definition: 1 KB/s = 10³ B/s = 8000 bit/s
- */
+*/
 object KilobytePerSecond : DerivedPhysicalUnit(Kilobyte / Second) {
     override val name = "kilobyte per second"
     override val symbol = "KB/s"
@@ -144,7 +144,7 @@ object KilobytePerSecond : DerivedPhysicalUnit(Kilobyte / Second) {
  *
  * 定义：1 MB/s = 10⁶ B/s
  * Definition: 1 MB/s = 10⁶ B/s
- */
+*/
 object MegabytePerSecond : DerivedPhysicalUnit(Megabyte / Second) {
     override val name = "megabyte per second"
     override val symbol = "MB/s"

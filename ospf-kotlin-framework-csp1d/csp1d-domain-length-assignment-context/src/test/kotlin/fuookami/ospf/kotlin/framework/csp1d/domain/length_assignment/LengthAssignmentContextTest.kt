@@ -8,6 +8,10 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.Meter
 
+/**
+ * Length assignment context unit tests.
+ * 长度分配上下文单元测试
+ */
 class LengthAssignmentContextTest {
     private val arithmetic: QuantityArithmetic<Flt64> = assertNotNull(DefaultQuantityArithmetic.resolveFor(Flt64.one).value)
 
@@ -18,6 +22,14 @@ class LengthAssignmentContextTest {
         return assign(input).value ?: fail("length assignment should succeed")
     }
 
+    /**
+     * Create a test dynamic-length product with optional max over-production length.
+     * 创建带可选最大超产长度的测试动态长度产品
+     *
+     * @param id Product identifier / 产品标识
+     * @param maxOverProduceLength Maximum over-production length constraint / 最大超产长度约束
+     * @return Test dynamic-length product instance / 测试动态长度产品实例
+     */
     private fun dynamicProduct(
         id: String = "dp",
         maxOverProduceLength: Quantity<Flt64>? = null

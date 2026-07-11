@@ -4,7 +4,7 @@
  *
  * 提供基于 Ktorm 的日志记录 Entity、Table 定义、DAO 操作及持久化保存。
  * Provides Ktorm-based log record Entity, Table definitions, DAO operations, and persistence saving.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import kotlin.time.Duration.Companion.seconds
@@ -27,16 +27,27 @@ import fuookami.ospf.kotlin.framework.log.*
 /**
  * Ktorm 字节数组日志记录 Entity
  * Ktorm byte array log record Entity
- */
+*/
 interface KtormLogRecordBytePO : Entity<KtormLogRecordBytePO> {
     companion object : Entity.Factory<KtormLogRecordBytePO>()
 
+    /** Application name / 应用名称 */
     var app: String
+
+    /** Version string / 版本字符串 */
     var version: String
+
+    /** Service identifier / 服务标识 */
     var serviceId: String
+
+    /** Processing step / 处理步骤 */
     var step: String
     var type: LogRecordType
+
+    /** Log timestamp / 日志时间戳 */
     var time: LocalDateTime
+
+    /** Available timestamp / 可用时间戳 */
     var availableTime: LocalDateTime
     var value: ByteArray
 }
@@ -44,16 +55,27 @@ interface KtormLogRecordBytePO : Entity<KtormLogRecordBytePO> {
 /**
  * Ktorm 字符串日志记录 Entity
  * Ktorm string log record Entity
- */
+*/
 interface KtormLogRecordStringPO : Entity<KtormLogRecordStringPO> {
     companion object : Entity.Factory<KtormLogRecordStringPO>()
 
+    /** Application name / 应用名称 */
     var app: String
+
+    /** Version string / 版本字符串 */
     var version: String
+
+    /** Service identifier / 服务标识 */
     var serviceId: String
+
+    /** Processing step / 处理步骤 */
     var step: String
     var type: LogRecordType
+
+    /** Log timestamp / 日志时间戳 */
     var time: LocalDateTime
+
+    /** Available timestamp / 可用时间戳 */
     var availableTime: LocalDateTime
     var value: String
 }
@@ -63,7 +85,7 @@ interface KtormLogRecordStringPO : Entity<KtormLogRecordStringPO> {
  * Ktorm byte array log record DAO
  *
  * @param tableName 表名 / Table name
- */
+*/
 open class KtormLogRecordByteDAO(tableName: String) : Table<KtormLogRecordBytePO>(tableName) {
     val id = ui64("id").primaryKey()
     val app = varchar("app").bindTo { it.app }
@@ -81,7 +103,7 @@ open class KtormLogRecordByteDAO(tableName: String) : Table<KtormLogRecordBytePO
  * Ktorm string log record DAO
  *
  * @param tableName 表名 / Table name
- */
+*/
 open class KtormLogRecordStringDAO(tableName: String) : Table<KtormLogRecordStringPO>(tableName) {
     val id = ui64("id").primaryKey()
     val app = varchar("app").bindTo { it.app }
@@ -97,7 +119,7 @@ open class KtormLogRecordStringDAO(tableName: String) : Table<KtormLogRecordStri
 /**
  * 将 LogRecordPO 转换为 Ktorm 字节数组 Entity
  * Convert LogRecordPO to Ktorm byte array Entity
- */
+*/
 fun <T : Any> LogRecordPO<T>.toKtormBytePO(serializer: (T) -> ByteArray): KtormLogRecordBytePO {
     return KtormLogRecordBytePO {
         app = this@toKtormBytePO.app
@@ -114,7 +136,7 @@ fun <T : Any> LogRecordPO<T>.toKtormBytePO(serializer: (T) -> ByteArray): KtormL
 /**
  * 将 LogRecordPO 转换为 Ktorm 字节数组 Entity（使用 KSerializer）
  * Convert LogRecordPO to Ktorm byte array Entity (using KSerializer)
- */
+*/
 fun <T : Any> LogRecordPO<T>.toKtormBytePO(serializer: KSerializer<T>): KtormLogRecordBytePO {
     return toKtormBytePO { record ->
         val stream = java.io.ByteArrayOutputStream()
@@ -130,7 +152,7 @@ fun <T : Any> LogRecordPO<T>.toKtormBytePO(serializer: KSerializer<T>): KtormLog
 /**
  * 将 LogRecordPO 转换为 Ktorm 字符串 Entity
  * Convert LogRecordPO to Ktorm string Entity
- */
+*/
 fun <T : Any> LogRecordPO<T>.toKtormStringPO(serializer: (T) -> String): KtormLogRecordStringPO {
     return KtormLogRecordStringPO {
         app = this@toKtormStringPO.app
@@ -147,7 +169,7 @@ fun <T : Any> LogRecordPO<T>.toKtormStringPO(serializer: (T) -> String): KtormLo
 /**
  * 将 LogRecordPO 转换为 Ktorm 字符串 Entity（使用 KSerializer）
  * Convert LogRecordPO to Ktorm string Entity (using KSerializer)
- */
+*/
 fun <T : Any> LogRecordPO<T>.toKtormStringPO(serializer: KSerializer<T>): KtormLogRecordStringPO {
     return toKtormStringPO { record ->
         writeJson(serializer, record)
@@ -157,7 +179,7 @@ fun <T : Any> LogRecordPO<T>.toKtormStringPO(serializer: KSerializer<T>): KtormL
 /**
  * 从 KtormLogRecordBytePO 创建 LogRecordPO
  * Create LogRecordPO from KtormLogRecordBytePO
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(po: KtormLogRecordBytePO): LogRecordPO<T>? {
     return this(po) {
@@ -190,7 +212,7 @@ inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(
 /**
  * Ktorm 日志记录数据访问对象
  * Ktorm log record data access object
- */
+*/
 data object KtormLogRecordDB {
     fun <T : Any> insert(
         db: Database,
@@ -280,7 +302,7 @@ data object KtormLogRecordDB {
  * @property db 数据库连接 / Database connection
  * @property tableName 表名 / Table name
  * @property scope 协程作用域，可为 null（同步模式） / Coroutine scope, nullable (sync mode)
- */
+*/
 class KtormLogPersistenceSaving(
     private val db: Database,
     private val tableName: String,

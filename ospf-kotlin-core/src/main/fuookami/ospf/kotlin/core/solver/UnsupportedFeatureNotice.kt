@@ -1,7 +1,7 @@
 /**
  * 不支持特性警告通知
  * Unsupported feature warning notices
- */
+*/
 package fuookami.ospf.kotlin.core.solver
 
 import org.apache.logging.log4j.kotlin.logger
@@ -14,7 +14,7 @@ private val unsupportedFeatureLogger = logger("UnsupportedFeatureNotice")
  *
  * @param solverName 求解器名称 / Solver name
  * @param priorityAmount 被忽略的优先级提示数量 / Number of ignored priority hints
- */
+*/
 fun warnIgnoredConstraintPriority(
     solverName: String,
     priorityAmount: Int

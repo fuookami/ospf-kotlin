@@ -15,14 +15,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weig
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 /**
- * 约束项目只能放置在匹配其优先级预约的位置。Constrains items to only be placed at positions matching their priority appointment.
+ * Constrains items to only be placed at positions matching their priority appointment.
+ * 约束项目只能放置在匹配其优先级预约的位置。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property appointment 参数。
- * @property priorityAppointment 参数。
- * @property stowage 参数。
- */
+ * @property items The list of cargo items / 货物项目列表
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property appointment The item-to-position appointment mapping / 项目到位置的预约映射
+ * @property priorityAppointment The priority appointment model / 优先级预约模型
+ * @property stowage The stowage assignment matrix / 装载分配矩阵
+*/
 class PriorityAppointmentLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

@@ -1,7 +1,7 @@
 /**
  * 列生成标准执行器。
  * Column generation standard executors.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import kotlin.math.roundToInt
@@ -26,7 +26,10 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 /**
  * 将对偶解映射转换为 MetaDualSolution（未经类型检查）。
  * Convert dual solution map to MetaDualSolution (unchecked).
- */
+ *
+ * @param dualSolution 对偶解映射 / Dual solution map
+ * @return 元对偶解 / Meta dual solution
+*/
 private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): Ret<MetaDualSolution> {
     val constraints = LinkedHashMap<MathConstraint, Any>()
     val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<*, *>, Any>>>()
@@ -53,7 +56,10 @@ private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): Ret<MetaDualSo
 /**
  * 从求解结果中提取对偶解映射。
  * Extract dual solution map from solve result.
- */
+ *
+ * @param result 求解结果 / Solve result
+ * @return 对偶解映射 / Dual solution map
+*/
 private fun extractDualSolutionMap(result: Any): Map<*, *> {
     return runCatching {
         result.javaClass.methods
@@ -77,7 +83,7 @@ private fun extractDualSolutionMap(result: Any): Map<*, *> {
  * @property enableShadowPriceAwareRequestScore 是否启用影子价格感知请求评分 / whether to enable shadow price aware request score
  * @property integralityTolerance 整性容差 / integrality tolerance
  * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向硬约束 / hard axis/orientation constraints for depth boundary layers
- */
+*/
 data class ColumnGenerationStandardExecutorConfig(
     val rmpSolveNamePrefix: String = "bpp3d-rmp",
     val finalSolveNamePrefix: String = "bpp3d-final",
@@ -101,7 +107,7 @@ data class ColumnGenerationStandardExecutorConfig(
  * @property demandEntries 需求条目 / demand entries
  * @property finalBins 最终箱子 / final bins
  * @property config 执行器配置 / executor config
- */
+*/
 class ColumnGenerationStandardExecutors(
     private val solver: ColumnGenerationSolver,
     private val itemDemands: List<Pair<Item, UInt64>>,
@@ -120,7 +126,7 @@ class ColumnGenerationStandardExecutors(
          * @param finalBins 最终箱子 / final bins
          * @param config 执行器配置 / executor config
          * @return 执行器实例 / executor instance
-         */
+        */
         fun fromDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<Item, UInt64>>,
@@ -150,7 +156,7 @@ class ColumnGenerationStandardExecutors(
          * @param materialCache 物料缓存 / material cache
          * @param itemCache 货物缓存 / item cache
          * @return 执行器实例 / executor instance
-         */
+        */
         fun <T : FloatingNumber<T>> fromQuantityDemandEntries(
             solver: ColumnGenerationSolver,
             itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
@@ -179,7 +185,7 @@ class ColumnGenerationStandardExecutors(
      * Create RMP solver.
      *
      * @return RMP 求解器 / RMP solver
-     */
+    */
     fun rmpSolver(): ColumnGenerationRmpSolver<FltX> {
         return ColumnGenerationRmpSolver { state ->
             val artifactsResult = buildRmpArtifacts(state)
@@ -241,7 +247,7 @@ class ColumnGenerationStandardExecutors(
      * Create final MILP solver.
      *
      * @return 最终 MILP 求解器 / final MILP solver
-     */
+    */
     fun finalSolver(): ColumnGenerationFinalSolver<FltX> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
@@ -396,7 +402,7 @@ class ColumnGenerationStandardExecutors(
      * Create layer request builder.
      *
      * @return 层请求构建器 / layer request builder
-     */
+    */
     fun requestBuilder(): ColumnGenerationLayerRequestBuilder<FltX> {
         val requestDemandEntries = demandEntries.map {
             LayerGenerationDemandEntry(it.mode, it.key, it.quantityUnit)
@@ -420,7 +426,9 @@ class ColumnGenerationStandardExecutors(
         }
     }
 
-    /** 获取层生成候选箱子类型 / Get layer generation candidate bin type */
+	    /** 获取层生成候选箱子类型 / Get layer generation candidate bin type
+	     * @return 候选箱子类型 / candidate bin type
+	    */
     private fun layerGenerationCandidateBin(): BinType<FltX>? {
         return finalBins.firstOrNull()?.type
     }
@@ -432,7 +440,7 @@ class ColumnGenerationStandardExecutors(
      * @property model 线性元模型 / linear meta model
      * @property demandConstraint 货物需求约束 / item demand constraint
      * @property continuousRadiusComponent 连续半径模型组件 / continuous radius model component
-     */
+    */
     private data class RmpArtifacts(
         val model: LinearMetaModel<FltX>,
         val demandConstraint: ItemDemandConstraint,
@@ -445,7 +453,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @param state 列生成状态 / column generation state
      * @return RMP 构件 / RMP artifacts
-     */
+    */
     private suspend fun buildRmpArtifacts(
         state: ColumnGenerationState<FltX>
     ): Ret<RmpArtifacts> {
@@ -543,7 +551,7 @@ class ColumnGenerationStandardExecutors(
      * @param assignment 精确分配 / precise assignment
      * @param binAmount 箱子数量 / bin amount
      * @return 选中的层列列表 / selected layer column list
-     */
+    */
     private fun collectSelectedColumns(
         model: LinearMetaModel<FltX>,
         columns: List<BinLayer>,
@@ -572,7 +580,7 @@ class ColumnGenerationStandardExecutors(
      * @param columns 层列列表 / layer column list
      * @param assignment 精确分配 / precise assignment
      * @return 选中的箱子列表 / selected bin list
-     */
+    */
     private fun collectSelectedBins(
         model: LinearMetaModel<FltX>,
         bins: List<Bin<BinLayer, FltX>>,
@@ -618,7 +626,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @param columns 层列列表 / layer column list
      * @return 回退最终箱子列表 / fallback final bin list
-     */
+    */
     private fun fallbackFinalBins(columns: List<BinLayer>): List<Bin<BinLayer, FltX>> {
         return columns.mapNotNull { layer ->
             val binShape = layer.bin ?: return@mapNotNull null
@@ -636,7 +644,7 @@ class ColumnGenerationStandardExecutors(
      * @param model 线性元模型 / linear meta model
      * @param variable 抽象变量项 / abstract variable item
      * @return 变量的 FltX 值 / FltX value of the variable
-     */
+    */
     private fun tokenValue(
         model: LinearMetaModel<FltX>,
         variable: AbstractVariableItem<*, *>
@@ -651,7 +659,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @param values 原始解值列表 / raw solution value list
      * @return 标准化后的 FltX 列表 / normalized FltX list
-     */
+    */
     private fun normalizeScalarSolution(values: List<*>): Ret<List<FltX>> {
         return ok(values.mapIndexed { index, value ->
             when (value) {
@@ -668,7 +676,7 @@ class ColumnGenerationStandardExecutors(
      *
      * @param name 模型名称 / model name
      * @return 线性元模型 / linear meta model
-     */
+    */
     private fun newModel(name: String): LinearMetaModel<FltX> {
         return LinearMetaModel(
             name = name,

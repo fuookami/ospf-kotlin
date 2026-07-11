@@ -1,7 +1,7 @@
 /**
  * 机制模型转储状态
  * Mechanism model dumping status
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -19,13 +19,14 @@ import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
  * @property totalConstraintAmount 约束总数 / Total number of constraints
  * @property readySymbolAmount     已就绪符号数量 / Number of ready symbols
  * @property totalSymbolAmount     符号总数 / Total number of symbols
- */
+*/
 data class MechanismModelDumpingStatus(
     val readyConstraintAmount: UInt64,
     val totalConstraintAmount: UInt64,
     val readySymbolAmount: UInt64,
     val totalSymbolAmount: UInt64
 ) {
+
     /** 约束转储进度 / Constraint dump progress */
     val constraintProgress: Flt64
         get() = if (totalConstraintAmount neq UInt64.zero) {
@@ -50,7 +51,7 @@ data class MechanismModelDumpingStatus(
          * @param ready 已就绪约束数量 / Number of ready constraints
          * @param model 元模型 / The meta model
          * @return 机制模型转储状态 / The mechanism model dumping status
-         */
+        */
         fun <V> dumpingConstrains(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = ready,
@@ -67,7 +68,7 @@ data class MechanismModelDumpingStatus(
          * @param ready 已就绪符号数量 / Number of ready symbols
          * @param model 元模型 / The meta model
          * @return 机制模型转储状态 / The mechanism model dumping status
-         */
+        */
         fun <V> dumpingSymbols(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = model.constraints.usize,
@@ -89,7 +90,7 @@ typealias MechanismModelDumpingStatusCallBack = (MechanismModelDumpingStatus) ->
  * @param modelName 模型名称 / The model name
  * @param quadratic 是否为二次模型 / Whether the model is quadratic
  * @return 模型构建状态 / The model building status
- */
+*/
 fun MechanismModelDumpingStatus.toModelBuildingStatus(
     modelName: String,
     quadratic: Boolean = false

@@ -12,9 +12,24 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Generator that assembles the list of constraint pipelines for the stowage optimization model
+ * based on the current aggregation and stowage mode.
+ * 根据当前聚合和装载模式，组装配载优化模型的约束管道列表的生成器。
+ *
+ * @property aggregation the stowage aggregation / 配载聚合
+*/
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
+
+    /**
+     * Generates the list of constraint pipelines for the given stowage mode.
+     * 为给定装载模式生成约束管道列表。
+     *
+     * @param stowageMode the stowage mode / 装载模式
+     * @return the list of constraint pipelines or failure / 约束管道列表或失败
+    */
     operator fun invoke(
         stowageMode: StowageMode
     ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {

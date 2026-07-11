@@ -23,14 +23,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
 }
 
 /**
- * 计算快递效能中位置对之间的项目对的相对优先级反转。Computes relative priority reversal between item pairs across position pairs for express effectiveness.
+ * Computes relative priority reversal between item pairs across position pairs for express effectiveness.
+ * 计算快递效能中位置对之间的项目对的相对优先级反转。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property internal val orderedItems 参数。
- * @property internal val orderedPositions 参数。
- * @property stowage 参数。
- */
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property orderedItems The list of ordered item pairs for priority comparison. / 用于优先级比较的有序货物项对列表
+ * @property orderedPositions The list of ordered position pairs for loading order comparison. / 用于装载顺序比较的有序位置对列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+*/
 class RelativeOrder(
     private val items: List<Item>,
     private val positions: List<Position>,
@@ -50,6 +51,13 @@ class RelativeOrder(
 
     lateinit var itemPriorityReverse: LinearIntermediateSymbols2<Flt64>
 
+    /**
+     * Registers the item priority reverse intermediate symbols into the optimization model.
+     * 将项目优先级反转中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

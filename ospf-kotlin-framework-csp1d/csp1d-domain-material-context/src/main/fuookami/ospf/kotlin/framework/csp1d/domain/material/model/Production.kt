@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property width 物料宽度列表 / List of material widths
  * @property length 物料长度 / Material length
  * @property unitWeight 单位重量 / Unit weight
- */
+*/
 interface Production<V : RealNumber<V>> {
     val id: ProductionId?
     val width: List<Quantity<V>>

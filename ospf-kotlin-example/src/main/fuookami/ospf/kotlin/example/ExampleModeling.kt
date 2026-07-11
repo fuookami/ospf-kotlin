@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.variable.*
  *
  * @param value 常量值 / Constant value
  * @return 线性多项式 / Linear polynomial
- */
+*/
 internal fun flt64Constant(value: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), value)
 }
@@ -34,7 +34,7 @@ internal fun flt64Constant(value: Flt64): LinearPolynomial<Flt64> {
  *
  * @param symbol 符号变量 / Symbol variable
  * @return 线性多项式 / Linear polynomial
- */
+*/
 internal fun flt64Linear(symbol: Symbol): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, symbol)), Flt64.zero)
 }
@@ -45,7 +45,7 @@ internal fun flt64Linear(symbol: Symbol): LinearPolynomial<Flt64> {
  *
  * @param variable 变量项 / Variable item
  * @return 线性多项式 / Linear polynomial
- */
+*/
 internal fun flt64Linear(variable: AbstractVariableItem<*, *>): LinearPolynomial<Flt64> {
     return flt64Linear(variable as Symbol)
 }
@@ -62,7 +62,7 @@ internal fun flt64Linear(variable: AbstractVariableItem<*, *>): LinearPolynomial
  * @param constraint 是否作为约束 / Whether to use as constraint
  * @param name 函数名称 / Function name
  * @return 线性函数符号适配器 / Linear function symbol adapter
- */
+*/
 internal fun exampleThresholdSlack(
     x: ToLinearPolynomial<Flt64>,
     threshold: Flt64,
@@ -98,7 +98,7 @@ internal fun exampleThresholdSlack(
  * @param constraint 是否作为约束 / Whether to use as constraint
  * @param name 函数名称 / Function name
  * @return 线性函数符号适配器 / Linear function symbol adapter
- */
+*/
 internal fun exampleAbsoluteSlack(
     x: ToLinearPolynomial<Flt64>,
     y: ToLinearPolynomial<Flt64>,
@@ -132,7 +132,7 @@ internal fun exampleAbsoluteSlack(
  * @param dumpingStatusCallBack 转储状态回调 / Dumping status callback
  * @param solvingStatusCallBack 求解状态回调 / Solving status callback
  * @return 求解结果 / Solver result
- */
+*/
 internal suspend fun solveLinearMetaModel(
     solver: AbstractLinearSolver,
     metaModel: LinearMetaModel<Flt64>,

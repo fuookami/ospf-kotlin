@@ -9,7 +9,7 @@
  * Chua's circuit is a simple electronic circuit designed by Leon O. Chua in 1983, being the first experimentally verified chaotic circuit.
  * This circuit contains linear resistors, capacitors, inductors, and a nonlinear element (Chua's diode), capable of generating rich chaotic dynamical behavior.
  * Commonly used for chaotic circuit experiments, nonlinear circuit design, and chaos dynamics education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c 分段线性参数 c / Piecewise linear parameter c
  * @property d 分段线性参数 d / Piecewise linear parameter d
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChuaCircuit<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -62,7 +62,7 @@ data class ChuaCircuit<V : FloatingNumber<V>>(
 /**
  * 蔡氏电路生成器
  * Chua's Circuit Generator
- */
+*/
 data class ChuaCircuitGenerator(
     val chuaCircuit: ChuaCircuit<Flt64> = ChuaCircuit(),
     private var _x: Point<Dim3, Flt64> = point3(

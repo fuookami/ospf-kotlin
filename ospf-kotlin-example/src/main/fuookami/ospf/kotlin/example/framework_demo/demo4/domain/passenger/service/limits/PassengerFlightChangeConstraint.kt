@@ -29,11 +29,11 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /**
  * 强制乘客航班变更中转时间可行性约束的管线。Pipeline enforcing transfer time feasibility constraints for passenger flight changes.
  *
- * @property timeWindow 参数。
- * @property passengers 参数。
- * @property time 参数。
- * @property change 参数。
- */
+ * @property timeWindow Time window for scheduling / 调度时间窗口
+ * @property passengers List of flight-passenger associations / 航班乘客关联列表
+ * @property time Task time estimation / 任务时间估算
+ * @property change Passenger change component / 乘客变更组件
+*/
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow<*>,
     private val passengers: List<FlightPassenger>,
@@ -45,10 +45,10 @@ class PassengerFlightChangeConstraint(
 
     /**
      * 使用if函数添加航班变更可行性约束以进行中转时间检查。Adds flight change feasibility constraints using if-functions for transfer time checks.
- *
-     * @param model 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param model The linear meta model to add constraints to / 要添加约束的线性元模型
+     * @return Registration result / 注册结果
+    */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
             if (passenger.prev != null) {

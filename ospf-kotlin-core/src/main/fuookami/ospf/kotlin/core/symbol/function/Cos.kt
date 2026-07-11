@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [CosFunction]，使用分段线性插值近似余弦函数。
  *
  * Provides [CosFunction] for piecewise linear approximation of the cosine function.
- */
+*/
 
 /**
  * 通过分段线性插值近似的余弦函数。
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class CosFunction<V>(
     val x: LinearPolynomial<V>,
     val samplingPoints: List<Point<Dim2, Flt64>>,
@@ -96,7 +96,7 @@ class CosFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [CosFunction] 实例 / [CosFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             samplingPoints: List<Point<Dim2, Flt64>> = defaultPoints(),
@@ -111,7 +111,7 @@ class CosFunction<V>(
          * Generate default cosine sampling points (5 key points in the range [-pi, pi]).
          *
          * @return 默认采样点列表 / default sampling point list
-         */
+        */
         private fun defaultPoints(): List<Point<Dim2, Flt64>> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)

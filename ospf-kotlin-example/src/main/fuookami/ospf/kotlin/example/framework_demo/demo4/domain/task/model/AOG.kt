@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 /**
  * 具有固定飞机、时间和机场的 AOG（飞机停场）计划。An AOG (Aircraft On Ground) plan with fixed aircraft, time, and airport.
  *
- * @property airport 参数。
- * @property status 参数。
- */
+ * @property airport The airport where the AOG occurs / AOG发生的机场
+ * @property status The set of flight task statuses / 航班任务状态集合
+*/
 class AOGPlan(
     override val aircraft: Aircraft,
     override val scheduledTime: TimeRange,
@@ -37,12 +37,12 @@ class AOGPlan(
 
         /**
          * 创建具有稳定状态的 [AOGPlan]。Creates an [AOGPlan] with stable status for the given aircraft, time, and airport.
- *
-         * @param aircraft 参数。
-         * @param scheduledTime 参数。
-         * @param airport 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param aircraft The aircraft for the AOG / AOG的飞机
+         * @param scheduledTime The scheduled time range / 计划时间范围
+         * @param airport The airport for the AOG / AOG的机场
+         * @return The created AOGPlan / 创建的AOG计划
+        */
         operator fun invoke(aircraft: Aircraft, scheduledTime: TimeRange, airport: Airport): AOGPlan {
             val status = stableStatus.toMutableSet()
             return AOGPlan(
@@ -90,18 +90,18 @@ class AOG internal constructor(
     companion object {
         /**
          * 从计划创建 [AOG]。Creates an [AOG] from a plan.
- *
-         * @param plan 参数。
-         */
+         *
+         * @param plan The AOG plan / AOG计划
+        */
         operator fun invoke(plan: AOGPlan) = AOG(plan)
 
         /**
          * 创建应用给定恢复策略的已恢复 [AOG]。Creates a recovered [AOG] applying the given recovery policy.
- *
-         * @param origin 参数。
-         * @param recoveryPolicy 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param origin The original AOG / 原始AOG
+         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
+         * @return The recovered AOG instance / 恢复后的AOG实例
+        */
         operator fun invoke(origin: AOG, recoveryPolicy: FlightTaskAssignment): AOG {
             val recoveryAirport =
                 if (recoveryPolicy.route == null || (recoveryPolicy.route.dep == origin.dep && recoveryPolicy.route.arr == origin.arr)) {

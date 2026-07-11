@@ -14,14 +14,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 确保每个来源的至少一个货物被分配到早期位置。Ensures at least one cargo from each source is assigned to an early position.
+ * Ensures at least one cargo from each source is assigned to an early position.
+ * 确保每个来源的至少一个货物被分配到早期位置。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property stowage 参数。
- * @property cargosBySource 参数。
- * @property earlyEnd 参数。
- */
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property cargosBySource Mapping from source identifier to cargo item indices. / 来源标识到货物项索引的映射
+ * @property earlyEnd The index of the last early position. / 最后一个早期位置的索引
+*/
 class SourceEarlyLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

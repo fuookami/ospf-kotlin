@@ -28,7 +28,7 @@ import com.alibaba.damo.mindopt.*
  * MindOPT 线性求解器
  *
  * @property callBack Linear solver callback / 线性求解器回调
- */
+*/
 class MindOPTLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTLinearSolverCallBack? = null,
@@ -97,7 +97,7 @@ class MindOPTLinearSolver(
  * @property config Solver configuration / 求解器配置
  * @property callBack Linear solver callback / 线性求解器回调
  * @property statusCallBack Solving status callback / 求解状态回调
- */
+*/
 private class MindOPTLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MindOPTLinearSolverCallBack? = null,
@@ -148,7 +148,7 @@ private class MindOPTLinearSolverImpl(
      *
      * @param model Linear triad model view / 线性三元组模型视图
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("mindopt", model.nonNullConstraintPriorityAmount())
@@ -282,7 +282,7 @@ private class MindOPTLinearSolverImpl(
      *
      * @param model Linear triad model view / 线性三元组模型视图
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
@@ -391,7 +391,7 @@ private class MindOPTLinearSolverImpl(
      * 分析线性求解结果并提取解
      *
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

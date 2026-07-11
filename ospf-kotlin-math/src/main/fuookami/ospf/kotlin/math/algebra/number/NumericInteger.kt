@@ -9,7 +9,7 @@
  * 本模块定义了带有数值语义的有符号整数类型，包括 NInt8、NInt16、NInt32、NInt64 和 NIntX。
  * 与普通有符号整数不同，这些类型的除法运算返回有理数结果而非整数结果，
  * 从而提供更精确的数值计算。适用于需要精确数值计算的场景。
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.number
 
 import java.math.BigInteger
@@ -37,28 +37,34 @@ import fuookami.ospf.kotlin.utils.functional.orderOf
  *             实现此接口的具体类型
  * @param I The underlying integer type
  *          底层整数类型
- */
+*/
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
+
     /** 自增 / Increment */
     override operator fun inc() = this + constants.one
+
     /** 自减 / Decrement */
     override operator fun dec() = this - constants.one
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(Flt64.ten)
+
     /** 二进制对数（以 2 为底）/ Binary logarithm (base 2) */
     override fun lg2() = log(Flt64.two)
+
     /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(Flt64.e)
 
     /** 平方 / Square */
     override fun sqr() = pow(2)
+
     /** 立方 / Cube */
     override fun cub() = pow(3)
 
     /** 平方根 / Square root */
     override fun sqrt() = pow(Flt64.two.reciprocal())
+
     /** 立方根 / Cube root */
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
@@ -70,7 +76,7 @@ interface NumericInteger<Self, I>
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
@@ -87,7 +93,7 @@ interface NumericInteger<Self, I>
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)
@@ -101,58 +107,79 @@ interface NumericInteger<Self, I>
 
     /** 正弦 / Sine */
     override fun sin(): FloatingNumber<*> = toFlt64().sin()
+
     /** 余弦 / Cosine */
     override fun cos(): FloatingNumber<*> = toFlt64().cos()
+
     /** 正割 / Secant */
     override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+
     /** 余割 / Cosecant */
     override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+
     /** 正切 / Tangent */
     override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+
     /** 余切 / Cotangent */
     override fun cot(): FloatingNumber<*>? = toFlt64().cot()
 
     /** 反正弦 / Arcsine */
     override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+
     /** 反余弦 / Arccosine */
     override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+
     /** 反正割 / Arcsecant */
     override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+
     /** 反余割 / Arccosecant */
     override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+
     /** 反正切 / Arctangent */
     override fun atan(): FloatingNumber<*> = toFlt64().atan()
+
     /** 反余切 / Arccotangent */
     override fun acot(): FloatingNumber<*>? = toFlt64().acot()
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech(): FloatingNumber<*> = toFlt64().sech()
+
     /** 双曲余割 / Hyperbolic cosecant */
     override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+
     /** 双曲余切 / Hyperbolic cotangent */
     override fun coth(): FloatingNumber<*>? = toFlt64().coth()
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+
     /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+
     /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+
     /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+
     /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+
     /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 
     /** 创建整数范围 / Create integer range */
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
+
     /** 创建不包含终点的整数范围 / Create integer range excluding end */
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
@@ -172,7 +199,7 @@ interface NumericInteger<Self, I>
  *             The numeric signed integer constructor
  * @param constants 底层整数常量对象
  *                  The underlying integer constants object
- */
+*/
 abstract class NumericIntegerConstants<Self, I>(
     private val ctor: (I) -> Self,
     private val constants: RealNumberConstants<I>
@@ -193,7 +220,7 @@ abstract class NumericIntegerConstants<Self, I>(
  *
  * 用于 NInt8 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the NInt8 type in the Kotlin serialization framework.
- */
+*/
 data object NInt8Serializer : KSerializer<NInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt8", PrimitiveKind.INT)
 
@@ -218,17 +245,18 @@ data object NInt8Serializer : KSerializer<NInt8> {
  *
  * @property value 底层的 Int8 值
  *                 The underlying Int8 value
- */
+*/
 @JvmInline
 @Serializable(with = NInt8Serializer::class)
 value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
+
     /**
      * NInt8 常量对象
      * NInt8 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
         operator fun invoke(value: Int8) = NInt8(value)
     }
@@ -240,6 +268,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -248,7 +277,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -259,8 +288,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: NInt8) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -269,13 +299,15 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: NInt8) = (value.compareTo(rhs.value) == 0)
 
     /** 倒数（返回有理数）/ Reciprocal (returns rational number) */
     override fun reciprocal() = Rtn8(Int8.one, value)
+
     /** 取负 / Negation */
     override operator fun unaryMinus() = NInt8(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = NInt8(value.abs())
 
@@ -287,8 +319,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: NInt8) = NInt8(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -297,8 +330,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: NInt8) = NInt8(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -307,8 +341,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: NInt8) = NInt8(value * rhs.value)
+
     /**
      * 除法（返回有理数）
      * Division (returns rational number)
@@ -317,8 +352,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand (divisor)
      * @return 有理数除法结果
      *         The rational number division result
-     */
+    */
     override operator fun div(rhs: NInt8) = Rtn8(value, rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -327,8 +363,9 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: NInt8) = NInt8(value % rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -337,7 +374,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
 
     /** 计算整数次幂（返回有理数）/ Calculate integer power (returns rational number) */
@@ -353,30 +390,40 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
@@ -387,7 +434,7 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
  *
  * 用于 NInt16 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the NInt16 type in the Kotlin serialization framework.
- */
+*/
 data object NInt16Serializer : KSerializer<NInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt16", PrimitiveKind.INT)
 
@@ -412,17 +459,18 @@ data object NInt16Serializer : KSerializer<NInt16> {
  *
  * @property value 底层的 Int16 值
  *                 The underlying Int16 value
- */
+*/
 @JvmInline
 @Serializable(with = NInt16Serializer::class)
 value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
+
     /**
      * NInt16 常量对象
      * NInt16 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
         operator fun invoke(value: Int16) = NInt16(value)
     }
@@ -434,6 +482,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -442,7 +491,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -453,8 +502,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: NInt16) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -463,13 +513,15 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: NInt16) = (value.compareTo(rhs.value) == 0)
 
     /** 倒数（返回有理数）/ Reciprocal (returns rational number) */
     override fun reciprocal() = Rtn16(Int16.one, value)
+
     /** 取负 / Negation */
     override operator fun unaryMinus() = NInt16(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = NInt16(value.abs())
 
@@ -481,8 +533,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: NInt16) = NInt16(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -491,8 +544,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: NInt16) = NInt16(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -501,8 +555,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: NInt16) = NInt16(value * rhs.value)
+
     /**
      * 除法（返回有理数）
      * Division (returns rational number)
@@ -511,8 +566,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 有理数除法结果
      *         The rational number division result
-     */
+    */
     override operator fun div(rhs: NInt16) = Rtn16(value, rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -521,8 +577,9 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: NInt16) = NInt16(value % rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -531,7 +588,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
 
     /** 计算整数次幂（返回有理数）/ Calculate integer power (returns rational number) */
@@ -547,30 +604,40 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
@@ -581,7 +648,7 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
  *
  * 用于 NInt32 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the NInt32 type in the Kotlin serialization framework.
- */
+*/
 data object NInt32Serializer : KSerializer<NInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt32", PrimitiveKind.INT)
 
@@ -608,17 +675,18 @@ data object NInt32Serializer : KSerializer<NInt32> {
  *
  * @property value 底层的 Int32 值
  *                 The underlying Int32 value
- */
+*/
 @JvmInline
 @Serializable(with = NInt32Serializer::class)
 value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
+
     /**
      * NInt32 常量对象
      * NInt32 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
         operator fun invoke(value: Int32) = NInt32(value)
     }
@@ -630,6 +698,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -638,7 +707,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -649,8 +718,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: NInt32) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -659,13 +729,15 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: NInt32) = (value.compareTo(rhs.value) == 0)
 
     /** 倒数（返回有理数）/ Reciprocal (returns rational number) */
     override fun reciprocal() = Rtn32(Int32.one, value)
+
     /** 取负 / Negation */
     override operator fun unaryMinus() = NInt32(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = NInt32(value.abs())
 
@@ -677,8 +749,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: NInt32) = NInt32(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -687,8 +760,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: NInt32) = NInt32(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -697,8 +771,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: NInt32) = NInt32(value * rhs.value)
+
     /**
      * 除法（返回有理数）
      * Division (returns rational number)
@@ -707,8 +782,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 有理数除法结果
      *         The rational number division result
-     */
+    */
     override operator fun div(rhs: NInt32) = Rtn32(value, rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -717,8 +793,9 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: NInt32) = NInt32(value % rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -727,7 +804,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
 
     /** 计算整数次幂（返回有理数）/ Calculate integer power (returns rational number) */
@@ -743,30 +820,40 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
@@ -777,7 +864,7 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
  *
  * 用于 NInt64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the NInt64 type in the Kotlin serialization framework.
- */
+*/
 data object NInt64Serializer : KSerializer<NInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt64", PrimitiveKind.LONG)
 
@@ -804,17 +891,18 @@ data object NInt64Serializer : KSerializer<NInt64> {
  *
  * @property value 底层的 Int64 值
  *                 The underlying Int64 value
- */
+*/
 @JvmInline
 @Serializable(with = NInt64Serializer::class)
 value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
+
     /**
      * NInt64 常量对象
      * NInt64 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
         operator fun invoke(value: Int64) = NInt64(value)
     }
@@ -826,6 +914,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -834,7 +923,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -845,8 +934,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: NInt64) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -855,13 +945,15 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: NInt64) = (value.compareTo(rhs.value) == 0)
 
     /** 倒数（返回有理数）/ Reciprocal (returns rational number) */
     override fun reciprocal() = Rtn64(Int64.one, value)
+
     /** 取负 / Negation */
     override operator fun unaryMinus() = NInt64(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = NInt64(value.abs())
 
@@ -873,8 +965,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: NInt64) = NInt64(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -883,8 +976,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: NInt64) = NInt64(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -893,8 +987,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: NInt64) = NInt64(value * rhs.value)
+
     /**
      * 除法（返回有理数）
      * Division (returns rational number)
@@ -903,8 +998,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 有理数除法结果
      *         The rational number division result
-     */
+    */
     override operator fun div(rhs: NInt64) = Rtn64(value, rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -913,8 +1009,9 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: NInt64) = NInt64(value % rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -923,7 +1020,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
 
     /** 计算整数次幂（返回有理数）/ Calculate integer power (returns rational number) */
@@ -939,30 +1036,40 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }
@@ -976,7 +1083,7 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
  *
  * Serializer for the NIntX (arbitrary precision numeric signed integer) type in the Kotlin serialization framework.
  * Uses string format for serialization and deserialization.
- */
+*/
 data object NIntXSerializer : KSerializer<NIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NIntX", PrimitiveKind.STRING)
 
@@ -1003,17 +1110,18 @@ data object NIntXSerializer : KSerializer<NIntX> {
  *
  * @property value 底层的 IntX 值
  *                 The underlying IntX value
- */
+*/
 @JvmInline
 @Serializable(NIntXSerializer::class)
 value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX> {
+
     /**
      * NIntX 常量对象
      * NIntX Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
         operator fun invoke(value: IntX) = NIntX(value)
     }
@@ -1025,6 +1133,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -1033,7 +1142,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -1044,8 +1153,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: NIntX) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -1054,13 +1164,15 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: NIntX) = (value.compareTo(rhs.value) == 0)
 
     /** 倒数（返回有理数）/ Reciprocal (returns rational number) */
     override fun reciprocal() = RtnX(IntX.one, value)
+
     /** 取负 / Negation */
     override operator fun unaryMinus() = NIntX(-value)
+
     /** 绝对值 / Absolute value */
     override fun abs() = NIntX(value.abs())
 
@@ -1072,8 +1184,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: NIntX) = NIntX(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -1082,8 +1195,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: NIntX) = NIntX(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -1092,8 +1206,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: NIntX) = NIntX(value * rhs.value)
+
     /**
      * 除法（返回有理数）
      * Division (returns rational number)
@@ -1102,8 +1217,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand (divisor)
      * @return 有理数除法结果
      *         The rational number division result
-     */
+    */
     override operator fun div(rhs: NIntX) = RtnX(value, rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -1112,8 +1228,9 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: NIntX) = NIntX(value % rhs.value)
+
     /**
      * 整数除法
      * Integer division
@@ -1122,7 +1239,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *            The right-hand side operand (divisor)
      * @return 整数除法结果
      *         The integer division result
-     */
+    */
     override fun intDiv(rhs: NIntX) = NIntX(value / rhs.value)
 
     /**
@@ -1133,7 +1250,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFlt32().log(base)
@@ -1144,6 +1261,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(FltX(10.0))
+
     /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(FltX.e)
 
@@ -1166,7 +1284,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFlt32().pow(index)
@@ -1177,6 +1295,7 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
 
     /** 平方根 / Square root */
     override fun sqrt() = pow(FltX(1.0 / 2.0))
+
     /** 立方根 / Cube root */
     override fun cbrt() = pow(FltX(1.0 / 3.0))
 
@@ -1185,82 +1304,112 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
 
     /** 正弦 / Sine */
     override fun sin() = toFltX().sin()
+
     /** 余弦 / Cosine */
     override fun cos() = toFltX().cos()
+
     /** 正割 / Secant */
     override fun sec() = toFltX().sec()
+
     /** 余割 / Cosecant */
     override fun csc() = toFltX().csc()
+
     /** 正切 / Tangent */
     override fun tan() = toFltX().tan()
+
     /** 余切 / Cotangent */
     override fun cot() = toFltX().cot()
 
     /** 反正弦 / Arcsine */
     override fun asin() = toFltX().asin()
+
     /** 反余弦 / Arccosine */
     override fun acos() = toFltX().acos()
+
     /** 反正割 / Arcsecant */
     override fun asec() = toFltX().asec()
+
     /** 反余割 / Arccosecant */
     override fun acsc() = toFltX().acsc()
+
     /** 反正切 / Arctangent */
     override fun atan() = toFltX().atan()
+
     /** 反余切 / Arccotangent */
     override fun acot() = toFltX().acot()
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = toFltX().sinh()
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = toFltX().cosh()
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech() = toFltX().sech()
+
     /** 双曲余割 / Hyperbolic cosecant */
     override fun csch() = toFltX().csch()
+
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = toFltX().tanh()
+
     /** 双曲余切 / Hyperbolic cotangent */
     override fun coth() = toFltX().coth()
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = toFltX().asinh()
+
     /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh() = toFltX().acosh()
+
     /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech() = toFltX().asech()
+
     /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch() = toFltX().acsch()
+
     /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh() = toFltX().atanh()
+
     /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth() = toFltX().acoth()
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = value.toInt8()
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = value.toInt16()
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = value.toInt32()
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = value.toInt64()
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = value.toIntX()
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = value.toUInt8()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = value.toUInt16()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = value.toUInt32()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = value.toUInt64()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = value.toUIntX()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = value.toFlt32()
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = value.toFlt64()
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = value.toFltX()
 }

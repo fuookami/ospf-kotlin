@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SinFunction]，使用分段线性插值近似正弦函数。
  *
  * Provides [SinFunction] for piecewise linear approximation of the sine function.
- */
+*/
 
 /**
  * 通过分段线性插值近似的正弦函数。
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SinFunction<V>(
     val x: LinearPolynomial<V>,
     val samplingPoints: List<Point<Dim2, Flt64>>,
@@ -103,7 +103,7 @@ class SinFunction<V>(
          * Default sine sampling points [-pi, pi].
          *
          * @return (x, sin(x)) 断点列表 / list of (x, sin(x)) break points
-         */
+        */
         private fun defaultPoints(): List<Point<Dim2, Flt64>> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)

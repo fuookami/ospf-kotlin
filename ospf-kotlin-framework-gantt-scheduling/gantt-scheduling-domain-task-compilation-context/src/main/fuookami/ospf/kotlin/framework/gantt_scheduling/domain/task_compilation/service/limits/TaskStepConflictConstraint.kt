@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param compilation 编译结果 / Compilation result
  * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskStepConflictConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

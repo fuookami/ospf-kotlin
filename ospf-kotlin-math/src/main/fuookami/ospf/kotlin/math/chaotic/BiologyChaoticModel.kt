@@ -9,7 +9,7 @@
  * The biological chaotic model simulates chaotic dynamics of population changes in ecosystems.
  * This model reflects competitive relationships among multiple species, with parameter changes causing the system to transition from stable states to chaotic states.
  * Commonly used for ecological dynamics research, population evolution simulation, and complex systems analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 竞争参数 b / Competition parameter b
  * @property c 竞争参数 c / Competition parameter c
  * @property r 增长率 / Growth rate
- */
+*/
 data class BiologyChaoticModel<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -60,7 +60,7 @@ data class BiologyChaoticModel<V : FloatingNumber<V>>(
 /**
  * 生物混沌模型生成器
  * Biological Chaotic Model Generator
- */
+*/
 data class BiologyChaoticModelGenerator(
     val biologyChaoticModel: BiologyChaoticModel<Flt64> = BiologyChaoticModel(),
     private var _x: Point<Dim3, Flt64> = point3(

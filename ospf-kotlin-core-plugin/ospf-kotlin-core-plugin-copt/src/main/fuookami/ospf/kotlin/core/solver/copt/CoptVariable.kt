@@ -25,7 +25,7 @@ enum class CoptVariable {
          *
          * @param type 内部变量类型 / internal variable type
          * @return COPT 变量类型 / COPT variable type
-         */
+        */
         operator fun invoke(type: VariableType<*>): CoptVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.variable.Binary -> {
@@ -47,6 +47,6 @@ enum class CoptVariable {
      * 转换为 COPT 变量类型字符 / Convert to COPT variable type character
      *
      * @return COPT 变量类型字符 / COPT variable type character
-     */
+    */
     abstract fun toCoptVar(): Char
 }

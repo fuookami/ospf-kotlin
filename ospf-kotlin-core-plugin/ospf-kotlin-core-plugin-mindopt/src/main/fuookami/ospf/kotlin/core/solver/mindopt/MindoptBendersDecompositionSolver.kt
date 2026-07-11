@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
  *
  * @property config Solver configuration / 求解器配置
  * @property linearCallBack Linear solver callback / 线性求解器回调
- */
+*/
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack()
@@ -247,7 +247,7 @@ class MindOPTLinearBendersDecompositionSolver(
  * @property config 求解器配置 / solver configuration
  * @property linearCallBack 线性求解器回调 / linear solver callback
  * @property quadraticCallBack 二次求解器回调 / quadratic solver callback
- */
+*/
 class MindOPTQuadraticBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: MindOPTLinearSolverCallBack = MindOPTLinearSolverCallBack(),

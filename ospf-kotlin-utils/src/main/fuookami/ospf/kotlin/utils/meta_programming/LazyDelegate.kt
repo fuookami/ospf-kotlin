@@ -6,7 +6,7 @@
  *
  * Provides lazy loading implementations for Kotlin property delegation,
  * supporting both synchronous and asynchronous lazy initialization.
- */
+*/
 package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.concurrent.atomic.AtomicReference
@@ -23,7 +23,7 @@ import kotlinx.coroutines.*
  * @param U 值类型 / Value type
  * @param lazyFunc 懒加载函数 / Lazy initialization function
  * @return 懒加载委托实例 / Lazy delegate instance
- */
+*/
 fun <T, U : Any> lazyDelegate(lazyFunc: () -> U): LazyDelegate<T, U> {
     return LazyDelegate(lazyFunc)
 }
@@ -38,7 +38,7 @@ fun <T, U : Any> lazyDelegate(lazyFunc: () -> U): LazyDelegate<T, U> {
  * @param U 值类型 / Value type
  * @param lazyFunc 懒加载函数，接收宿主对象作为参数 / Lazy initialization function with host object parameter
  * @return 自引用懒加载委托实例 / Self-referencing lazy delegate instance
- */
+*/
 @JvmName("selfLazyDelegate")
 fun <T, U : Any> lazyDelegate(lazyFunc: (T) -> U): SelfLazyDelegate<T, U> {
     return SelfLazyDelegate(lazyFunc)
@@ -54,7 +54,7 @@ fun <T, U : Any> lazyDelegate(lazyFunc: (T) -> U): SelfLazyDelegate<T, U> {
  * @param U 值类型 / Value type
  * @param lazyKProperty 属性引用 / Property reference
  * @return 自引用懒加载委托实例 / Self-referencing lazy delegate instance
- */
+*/
 fun <T, U : Any> lazyDelegate(lazyKProperty: KProperty1<T, U>): SelfLazyDelegate<T, U> {
     return SelfLazyDelegate { lazyKProperty(it) }
 }
@@ -68,7 +68,7 @@ fun <T, U : Any> lazyDelegate(lazyKProperty: KProperty1<T, U>): SelfLazyDelegate
  * @param T 值类型 / Value type
  * @param lazyFunc 挂起懒加载函数 / Suspend lazy initialization function
  * @return 挂起懒加载实例 / Suspend lazy instance
- */
+*/
 fun <T> suspendLazy(lazyFunc: suspend () -> T): SuspendLazy<T> {
     return SuspendLazy(lazyFunc)
 }
@@ -85,16 +85,17 @@ fun <T> suspendLazy(lazyFunc: suspend () -> T): SuspendLazy<T> {
  * @param T 宿主类型 / Host type
  * @param U 值类型 / Value type
  * @property lazyFunc 懒加载函数 / Lazy initialization function
- */
+*/
 class LazyDelegate<T, U : Any>(
     private val lazyFunc: () -> U
 ) {
+
     /**
      * 缓存的值
      *
      * The cached value.
      * 缓存的懒加载值，使用 lateinit 延迟初始化。
-     */
+    */
     lateinit var range: U
 
     /**
@@ -106,7 +107,7 @@ class LazyDelegate<T, U : Any>(
      * @param self 宿主对象 / Host object
      * @param property 属性元数据 / Property metadata
      * @return 属性值 / Property value
-     */
+    */
     operator fun getValue(self: T, property: KProperty<*>): U {
         if (!::range.isInitialized) {
             range = lazyFunc()
@@ -123,7 +124,7 @@ class LazyDelegate<T, U : Any>(
      * @param self 宿主对象 / Host object
      * @param property 属性元数据 / Property metadata
      * @param value 要设置的值 / Value to set
-     */
+    */
     operator fun setValue(self: T, property: KProperty<*>, value: U) {
         if (!::range.isInitialized) {
             range = lazyFunc()
@@ -146,16 +147,17 @@ class LazyDelegate<T, U : Any>(
  * @param T 宿主类型 / Host type
  * @param U 值类型 / Value type
  * @property lazyFunc 懒加载函数，接收宿主对象 / Lazy initialization function with host object parameter
- */
+*/
 class SelfLazyDelegate<T, U : Any>(
     private val lazyFunc: (T) -> U
 ) {
+
     /**
      * 缓存的值
      *
      * The cached value.
      * 缓存的懒加载值，使用 lateinit 延迟初始化。
-     */
+    */
     lateinit var range: U
 
     /**
@@ -167,7 +169,7 @@ class SelfLazyDelegate<T, U : Any>(
      * @param self 宿主对象 / Host object
      * @param property 属性元数据 / Property metadata
      * @return 属性值 / Property value
-     */
+    */
     operator fun getValue(self: T, property: KProperty<*>): U {
         if (!::range.isInitialized) {
             range = lazyFunc(self)
@@ -184,7 +186,7 @@ class SelfLazyDelegate<T, U : Any>(
      * @param self 宿主对象 / Host object
      * @param property 属性元数据 / Property metadata
      * @param value 要设置的值 / Value to set
-     */
+    */
     operator fun setValue(self: T, property: KProperty<*>, value: U) {
         if (!::range.isInitialized) {
             range = lazyFunc(self)
@@ -206,17 +208,18 @@ class SelfLazyDelegate<T, U : Any>(
  *
  * @param T 值类型 / Value type
  * @property lazyFunc 挂起懒加载函数 / Suspend lazy initialization function
- */
+*/
 class SuspendLazy<T>(
     private val lazyFunc: suspend () -> T,
 ) {
+
     /**
      * 原子引用的 Deferred 值
      *
      * Atomically referenced Deferred value.
      * 使用 AtomicReference 确保线程安全的懒加载。
      * Uses AtomicReference for thread-safe lazy initialization.
-     */
+    */
     private val value = AtomicReference<Deferred<T>>()
 
     /**
@@ -232,7 +235,7 @@ class SuspendLazy<T>(
      * 3. 使用 updateAndGet 确保原子性 / Uses updateAndGet for atomicity
      *
      * @return 懒加载值 / Lazy value
-     */
+    */
     suspend operator fun invoke(): T = (
             value.get()
                 ?: coroutineScope {

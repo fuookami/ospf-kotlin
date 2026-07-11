@@ -1,7 +1,7 @@
 /**
  * OSPF 远程模型序列化器
  * OSPF remote model serializer
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.adapter.ospf
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -11,15 +11,16 @@ import fuookami.ospf.kotlin.framework.solver.remote.domain.*
 /**
  * OSPF 远程模型序列化器。
  * OSPF remote model serializer.
- */
+*/
 object OspfRemoteModelSerializer {
+
     /**
      * 序列化线性三元模型。
      * Serialize linear triad model.
      *
      * @param model 线性三元模型视图 / Linear triad model view
      * @return 序列化线性模型 / Serialized linear model
-     */
+    */
     fun serialize(model: LinearTriadModelView): SerializedLinearModel {
         return SerializedLinearModel(
             name = model.name,
@@ -57,7 +58,7 @@ object OspfRemoteModelSerializer {
      *
      * @param model 二次四元模型视图 / Quadratic tetrad model view
      * @return 序列化二次模型 / Serialized quadratic model
-     */
+    */
     fun serialize(model: QuadraticTetradModelView): SerializedQuadraticModel {
         return SerializedQuadraticModel(
             name = model.name,
@@ -128,7 +129,7 @@ object OspfRemoteModelSerializer {
      *
      * @param model 线性三元模型视图 / Linear triad model view
      * @return 远程模型数据 / Remote model data
-     */
+    */
     fun modelData(model: LinearTriadModelView): ModelData {
         return ModelData.linear(serialize(model))
     }
@@ -139,7 +140,7 @@ object OspfRemoteModelSerializer {
      *
      * @param model 二次四元模型视图 / Quadratic tetrad model view
      * @return 远程模型数据 / Remote model data
-     */
+    */
     fun modelData(model: QuadraticTetradModelView): ModelData {
         return ModelData.quadratic(serialize(model))
     }
@@ -150,7 +151,7 @@ object OspfRemoteModelSerializer {
  * Convert to remote serialized variable.
  *
  * @return 序列化变量 / Serialized variable
- */
+*/
 fun Variable.toSerializedVariable(): SerializedVariable {
     return SerializedVariable(
         index = index,
@@ -170,7 +171,7 @@ fun Variable.toSerializedVariable(): SerializedVariable {
  * Convert to remote serialized constraint sign.
  *
  * @return 序列化约束符号 / Serialized constraint sign
- */
+*/
 fun ConstraintRelation.toSerializedSign(): SerializedConstraintSign {
     return when (this) {
         ConstraintRelation.LessEqual -> SerializedConstraintSign.LESS_EQUAL
@@ -184,7 +185,7 @@ fun ConstraintRelation.toSerializedSign(): SerializedConstraintSign {
  * Convert to remote serialized objective category.
  *
  * @return 序列化目标类型 / Serialized objective category
- */
+*/
 fun ObjectCategory.toSerializedCategory(): SerializedObjectiveCategory {
     return when (this) {
         ObjectCategory.Minimum -> SerializedObjectiveCategory.MINIMIZE

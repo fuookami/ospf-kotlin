@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @property baseIndex 基础宽度索引 / Base width index
  * @property maxOverProduceLength 最大超产长度约束，用于长度边界剪枝 / Maximum over-produce length constraint for length-bound pruning
  * @property widthCheck 自定义宽度检查策略，为空时回退到 material.widthRange.canCut / Custom width check strategy; falls back to material.widthRange.canCut when null
- */
+*/
 internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
     private val baseIndex: GenerationWidthIndex<V>,
     private val maxOverProduceLength: Quantity<V>?,
@@ -25,7 +25,7 @@ internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
      * @param material 目标物料 / Target material
      * @param collector 生成过程收集器，用于记录缓存命中与剪枝统计 / Generation collector for recording cache hits and pruning statistics
      * @return 过滤后的宽度索引 / Filtered width index
-     */
+    */
     fun get(
         material: Material<V>,
         collector: GenerationCollector<V>
@@ -63,7 +63,7 @@ internal class GenerationMaterialWidthIndexCache<V : RealNumber<V>>(
      * Cached width index entry containing the original index and length-bound pruning information.
      * @property widthIndex 过滤后的宽度索引 / Filtered width index
      * @property lengthBoundPrunedEntries 被长度边界剪枝的条目数 / Number of entries pruned by length bound
-     */
+    */
     private data class CachedWidthIndex<V : RealNumber<V>>(
         val widthIndex: GenerationWidthIndex<V>,
         val lengthBoundPrunedEntries: Int64

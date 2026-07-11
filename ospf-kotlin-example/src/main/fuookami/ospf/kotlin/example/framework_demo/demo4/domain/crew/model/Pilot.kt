@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
 /**
  * 通过代码和工号标识的飞行员（具有池化实例管理）。A pilot identified by code and worker number, with pooled instance management.
  *
- * @property code 参数。
- */
+ * @property code Pilot code / 飞行员代码
+*/
 data class Pilot(
     val code: PilotCode,
     override val workerNo: WorkerNo,
@@ -22,20 +22,20 @@ data class Pilot(
 
         /**
          * 通过飞行员代码从池中获取飞行员。Retrieves a [Pilot] by pilot code from the pool.
- *
-         * @param code 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param code Pilot code to look up / 要查找的飞行员代码
+         * @return The matching Pilot, or null if not found / 匹配的飞行员，未找到则返回 null
+        */
         operator fun invoke(code: PilotCode): Pilot? {
             return pool[code]
         }
 
         /**
          * 通过工号从池中获取飞行员。Retrieves a [Pilot] by worker number from the pool.
- *
-         * @param workerNo 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param workerNo Worker number to look up / 要查找的工号
+         * @return The matching Pilot, or null if not found / 匹配的飞行员，未找到则返回 null
+        */
         operator fun invoke(workerNo: WorkerNo): Pilot? {
             return pool.values.find { it.workerNo == workerNo }
         }

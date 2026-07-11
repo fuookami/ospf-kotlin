@@ -1,7 +1,7 @@
 /**
  * Token 表接口与实现，管理中间符号的注册、缓存与求解结果。
  * Token table interfaces and implementations managing intermediate symbol registration, caching, and solve results.
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property repeatedSymbol 已存在的重复符号 / The pre-existing repeated symbol
  * @property symbol 新注册的冲突符号 / The new conflicting symbol being registered
- */
+*/
 class RepeatedSymbolError(
     val repeatedSymbol: IntermediateSymbol<*>,
     val symbol: IntermediateSymbol<*>
@@ -35,19 +35,24 @@ class RepeatedSymbolError(
  * Abstract interface for token tables, defining the contract for symbol registration, cache queries, and solution management.
  *
  * @param V 数值类型 / The number type
- */
+*/
 interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
+
     /** 符号操作类别 / Symbol operation category */
     val category: Category
+
     /** token 列表 / Token list */
     val tokenList: AbstractTokenList<V>
+
     /** 已注册的中间符号集合 / Registered intermediate symbol collection */
     val symbols: Collection<IntermediateSymbol<*>>
 
     /** 所有 token 集合 / All tokens collection */
     val tokens: Collection<Token<V>> get() = tokenList.tokens
+
     /** 求解器中的 token 列表 / Tokens in solver */
     val tokensInSolver: List<Token<V>> get() = tokenList.tokensInSolver
+
     /** 是否已缓存求解结果 / Whether solution is cached */
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
@@ -56,7 +61,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param item 变量项 / Variable item
      * @return 对应 token，不存在返回 null / Corresponding token, or null
-     */
+    */
     fun find(item: AbstractVariableItem<*, *>): Token<V>? = tokenList.find(item)
 
     /**
@@ -64,7 +69,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param index 索引 / Index
      * @return 对应 token，不存在返回 null / Corresponding token, or null
-     */
+    */
     fun find(index: Int): Token<V>? = tokenList.find(index)
 
     /**
@@ -72,7 +77,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param index 索引 / Index
      * @return 对应 token / Corresponding token
-     */
+    */
     operator fun get(index: Int): Token<V> = tokenList[index]
 
     /**
@@ -80,7 +85,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param token token 实例 / Token instance
      * @return 索引，不存在返回 null / Index, or null
-     */
+    */
     fun indexOf(token: Token<V>): Int? = tokenList.indexOf(token)
 
     /**
@@ -88,7 +93,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param item 变量项 / Variable item
      * @return 索引，不存在返回 null / Index, or null
-     */
+    */
     fun indexOf(item: AbstractVariableItem<*, *>): Int? = find(item)?.let { indexOf(it) }
 
     /**
@@ -96,7 +101,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param items 要排除的变量项集合 / Variable items to exclude
      * @return 过滤后的 token 列表 / Filtered token list
-     */
+    */
     fun tokensInSolverWithout(items: Set<AbstractVariableItem<*, *>>): List<Token<V>> {
         val result = ArrayList<Token<V>>()
         for (token in this.tokensInSolver) {
@@ -111,7 +116,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * 设置求解结果（列表形式）/ Set solution (list form)
      *
      * @param solution 求解结果列表 / Solution list
-     */
+    */
     fun setSolution(solution: List<V>) {
         flush()
         tokenList.setSolution(solution)
@@ -121,7 +126,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * 设置求解结果（映射形式）/ Set solution (map form)
      *
      * @param solution 变量到值的映射 / Variable-to-value map
-     */
+    */
     fun setSolution(solution: Map<AbstractVariableItem<*, *>, V>) {
         flush()
         tokenList.setSolution(solution)
@@ -131,7 +136,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * 设置求解器原始求解结果（Flt64 列表）/ Set solver solution from Flt64 list
      *
      * @param solution Flt64 求解结果列表 / Flt64 solution list
-     */
+    */
     fun setSolverSolution(solution: List<Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
@@ -141,7 +146,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * 设置求解器原始求解结果（Flt64 映射）/ Set solver solution from Flt64 map
      *
      * @param solution 变量到 Flt64 值的映射 / Variable-to-Flt64 map
-     */
+    */
     fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
@@ -159,7 +164,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param solution 解的列表 / Solution list
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cached(cacheKey: Any, solution: List<V>? = null): Boolean? = null
 
     /**
@@ -168,7 +173,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param fixedValues 固定值映射 / Fixed values map
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cached(cacheKey: Any, fixedValues: Map<Symbol, V>): Boolean? = null
 
     /**
@@ -177,7 +182,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param solution 解的列表 / Solution list
      * @return 缓存值 / Cached value
-     */
+    */
     fun cachedValue(cacheKey: Any, solution: List<V>? = null): V? = null
 
     /**
@@ -186,7 +191,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param fixedValues 固定值映射 / Fixed values map
      * @return 缓存值 / Cached value
-     */
+    */
     fun cachedValue(cacheKey: Any, fixedValues: Map<Symbol, V>): V? = null
 
     /**
@@ -196,7 +201,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param solution 解的列表 / Solution list
      * @param value 要缓存的值 / Value to cache
      * @return 存入的值 / The stored value
-     */
+    */
     fun cache(cacheKey: Any, solution: List<V>? = null, value: V): V = value
 
     /**
@@ -206,7 +211,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param fixedValues 固定值映射 / Fixed values map
      * @param value 要缓存的值 / Value to cache
      * @return 存入的值 / The stored value
-     */
+    */
     fun cache(cacheKey: Any, fixedValues: Map<Symbol, V>, value: V): V = value
 
     // --- Solver-boundary cache adapters (Flt64 -> V via converter) ---
@@ -218,7 +223,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param solution Flt64 解的列表 / Flt64 solution list
      * @param converter 值转换器 / Value converter
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cachedSolver(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): Boolean? {
         return cached(cacheKey, solution?.map { converter.intoValue(it) })
     }
@@ -230,7 +235,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param fixedValues Flt64 固定值映射 / Flt64 fixed values map
      * @param converter 值转换器 / Value converter
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cachedSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>): Boolean? {
         return cached(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
@@ -242,7 +247,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param solution Flt64 解的列表 / Flt64 solution list
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
-     */
+    */
     fun cachedSolverValue(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): V? {
         return cachedValue(cacheKey, solution?.map { converter.intoValue(it) })
     }
@@ -254,7 +259,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param fixedValues Flt64 固定值映射 / Flt64 fixed values map
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
-     */
+    */
     fun cachedSolverValue(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>): V? {
         return cachedValue(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
@@ -267,7 +272,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param value 要缓存的值 / Value to cache
      * @param converter 值转换器 / Value converter
      * @return 存入的值 / The stored value
-     */
+    */
     fun cacheSolver(cacheKey: Any, solution: List<Flt64>? = null, value: V, converter: IntoValue<V>): V {
         return cache(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
@@ -280,7 +285,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param value 要缓存的值 / Value to cache
      * @param converter 值转换器 / Value converter
      * @return 存入的值 / The stored value
-     */
+    */
     fun cacheSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V, converter: IntoValue<V>): V {
         return cache(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) }, value)
     }
@@ -292,7 +297,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cachedLinearFlatten(cacheKey: Any): Boolean? = null
 
     /**
@@ -300,7 +305,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存数据 / Cached data
-     */
+    */
     fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData<V>? = null
 
     /**
@@ -309,7 +314,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param flatten 展开数据 / Flatten data
      * @return 存入的数据 / The stored data
-     */
+    */
     fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData<V>?): LinearFlattenData<V>? = flatten
 
     /**
@@ -317,7 +322,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被清除的数据 / Cleared data
-     */
+    */
     fun clearLinearFlatten(cacheKey: Any): LinearFlattenData<V>? = null
 
     /**
@@ -325,7 +330,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cachedQuadraticFlatten(cacheKey: Any): Boolean? = null
 
     /**
@@ -333,7 +338,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存数据 / Cached data
-     */
+    */
     fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData<V>? = null
 
     /**
@@ -342,7 +347,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param flatten 展开数据 / Flatten data
      * @return 存入的数据 / The stored data
-     */
+    */
     fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData<V>?): QuadraticFlattenData<V>? = flatten
 
     /**
@@ -350,7 +355,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被清除的数据 / Cleared data
-     */
+    */
     fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData<V>? = null
 
     /**
@@ -358,7 +363,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否已缓存 / Whether cached
-     */
+    */
     fun cachedRange(cacheKey: Any): Boolean? = null
 
     /**
@@ -366,7 +371,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存范围 / Cached range
-     */
+    */
     fun cachedRangeValue(cacheKey: Any): ExpressionRange<V>? = null
 
     /**
@@ -375,7 +380,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param cacheKey 缓存键 / Cache key
      * @param range 范围数据 / Range data
      * @return 存入的范围 / The stored range
-     */
+    */
     fun cacheRange(cacheKey: Any, range: ExpressionRange<V>?): ExpressionRange<V>? = range
 
     /**
@@ -383,14 +388,14 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被清除的范围 / Cleared range
-     */
+    */
     fun clearRange(cacheKey: Any): ExpressionRange<V>? = null
 
     /**
      * 清除值缓存 / Clear value cache
      *
      * @param cacheKey 缓存键 / Cache key
-     */
+    */
     fun clearValue(cacheKey: Any) {}
 
     // Lazy and batch cache methods (solver boundary, Flt64)
@@ -402,7 +407,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param solution 解的列表 / Solution list
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun cache(cacheKey: Any, solution: List<V>? = null, value: () -> V?): V? {
         return value()?.let { cache(cacheKey = cacheKey, solution = solution, value = it) }
     }
@@ -414,7 +419,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param fixedValues 固定值映射 / Fixed values map
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun cache(cacheKey: Any, fixedValues: Map<Symbol, V>, value: () -> V?): V? {
         return value()?.let { cache(cacheKey = cacheKey, fixedValues = fixedValues, value = it) }
     }
@@ -426,7 +431,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param solution 解的列表 / Solution list
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun cacheIfNotCached(cacheKey: Any, solution: List<V>? = null, value: () -> V?): V? {
         var cachedValue = this.cachedValue(cacheKey, solution)
         if (cachedValue == null) {
@@ -445,7 +450,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param fixedValues 固定值映射 / Fixed values map
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun cacheIfNotCached(cacheKey: Any, fixedValues: Map<Symbol, V>, value: () -> V?): V? {
         var cachedValue = this.cachedValue(cacheKey, fixedValues)
         if (cachedValue == null) {
@@ -465,7 +470,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param value 惰性求值工厂 / Lazy value factory
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
-     */
+    */
     fun cacheSolverIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
         return cacheIfNotCached(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
@@ -478,7 +483,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param value 惰性求值工厂 / Lazy value factory
      * @param converter 值转换器 / Value converter
      * @return 缓存值 / Cached value
-     */
+    */
     fun cacheSolverIfNotCached(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> V?, converter: IntoValue<V>): V? {
         return cacheIfNotCached(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) }, value)
     }
@@ -488,7 +493,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param solution 解的列表 / Solution list
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<V>? = null) {
@@ -500,7 +505,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param fixedValues 固定值映射 / Fixed values map
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol<*>, V>, fixedValues: Map<Symbol, V>) {
@@ -512,7 +517,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param solution 解的列表 / Solution list
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<V>? = null) {
@@ -524,7 +529,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      *
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param fixedValues 固定值映射 / Fixed values map
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
     fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, fixedValues: Map<Symbol, V>) {
@@ -537,7 +542,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param solution Flt64 解的列表 / Flt64 solution list
      * @param converter 值转换器 / Value converter
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
     fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
@@ -550,7 +555,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param fixedValues Flt64 固定值映射 / Flt64 fixed values map
      * @param converter 值转换器 / Value converter
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
     fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>) {
@@ -563,7 +568,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param solution Flt64 解的列表 / Flt64 solution list
      * @param converter 值转换器 / Value converter
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
     fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
@@ -576,7 +581,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param fixedValues Flt64 固定值映射 / Flt64 fixed values map
      * @param converter 值转换器 / Value converter
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
     fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>) {
@@ -595,14 +600,15 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
  * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
  *
  * @param V 数值类型 / The number type
- */
+*/
 interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenCollection<V>, Copyable<AbstractMutableTokenTable<V>> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 添加变量项 / Add variable item
      *
      * @param item 变量项 / Variable item
      * @return 操作结果 / Operation result
-     */
+    */
     override fun add(item: AbstractVariableItem<*, *>): Try
 
     /**
@@ -610,7 +616,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
      *
      * @param items 变量项集合 / Variable items
      * @return 操作结果 / Operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addVariables")
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
@@ -619,7 +625,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
      * 移除变量项 / Remove variable item
      *
      * @param item 变量项 / Variable item
-     */
+    */
     fun remove(item: AbstractVariableItem<*, *>)
 
     /**
@@ -627,7 +633,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
      *
      * @param symbol 中间符号 / Intermediate symbol
      * @return 操作结果 / Operation result
-     */
+    */
     fun add(symbol: IntermediateSymbol<*>): Try
 
     /**
@@ -635,7 +641,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
      *
      * @param symbols 中间符号集合 / Intermediate symbols
      * @return 操作结果 / Operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
     fun add(symbols: Iterable<IntermediateSymbol<*>>): Try
@@ -644,14 +650,14 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
      * 移除中间符号 / Remove intermediate symbol
      *
      * @param symbol 中间符号 / Intermediate symbol
-     */
+    */
     fun remove(symbol: IntermediateSymbol<*>)
 
     /**
      * 移除中间符号（别名）/ Remove intermediate symbol (alias)
      *
      * @param symbol 中间符号 / Intermediate symbol
-     */
+    */
     fun removeSymbol(symbol: IntermediateSymbol<*>) = remove(symbol)
 }
 
@@ -663,17 +669,18 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
  * @property category 符号操作类别 / Symbol operation category
  * @property tokenList token 列表 / Token list
  * @property symbols 已注册的中间符号集合 / Registered intermediate symbol collection
- */
+*/
 data class TokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
     override val symbols: List<IntermediateSymbol<*>>
 ) : AbstractTokenTable<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 从可变 token 表构造不可变副本 / Construct immutable copy from mutable token table
      *
      * @param tokenTable 可变 token 表 / Mutable token table
-     */
+    */
     constructor(tokenTable: MutableTokenTable<V>) : this(
         category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList as MutableTokenList<V>),
@@ -809,7 +816,7 @@ data class TokenTable<V>(
  * @property category 符号操作类别 / Symbol operation category
  * @property tokenList 可变 token 列表 / Mutable token list
  * @property _symbols 已注册的中间符号列表 / Registered intermediate symbol list
- */
+*/
 sealed class MutableTokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractMutableTokenList<V>,
@@ -828,7 +835,7 @@ sealed class MutableTokenTable<V>(
      *
      * @param symbol 依赖方符号 / Dependent symbol
      * @param dependsOn 被依赖的符号 / Symbol depended on
-     */
+    */
     fun addSymbolDependency(symbol: IntermediateSymbol<*>, dependsOn: IntermediateSymbol<*>) {
         _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
     }
@@ -838,7 +845,7 @@ sealed class MutableTokenTable<V>(
      *
      * @param symbol 依赖方符号 / Dependent symbol
      * @param dependencies 被依赖的符号集合 / Set of symbols depended on
-     */
+    */
     fun addSymbolWithDependencies(symbol: IntermediateSymbol<*>, dependencies: Set<IntermediateSymbol<*>>) {
         _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
     }
@@ -847,16 +854,17 @@ sealed class MutableTokenTable<V>(
      * 验证符号依赖关系中无环 / Validate no cycles in symbol dependencies
      *
      * @return 是否无环 / Whether acyclic
-     */
+    */
     fun validateNoCycles(): Boolean {
         val visited = mutableSetOf<IntermediateSymbol<*>>()
         val onStack = mutableSetOf<IntermediateSymbol<*>>()
+
         /**
          * 深度优先搜索检测环 / DFS to detect cycles
          *
          * @param symbol 当前访问的符号 / Currently visited symbol
          * @return 是否无环 / Whether acyclic
-         */
+        */
         fun dfs(symbol: IntermediateSymbol<*>): Boolean {
             if (symbol in onStack) return false
             if (symbol in visited) return true
@@ -1075,19 +1083,20 @@ sealed class MutableTokenTable<V>(
  * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
  * @property _tokenList 自动 token 列表 / Auto token list
- */
+*/
 class AutoTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
     private val _tokenList: AutoTokenList<V>,
     _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
 ) : MutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
      * @param category 符号操作类别 / Symbol operation category
      * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
-     */
+    */
     constructor(category: Category, checkTokenExists: Boolean) : this(
         category = category,
         checkTokenExists = checkTokenExists,
@@ -1113,19 +1122,20 @@ class AutoTokenTable<V>(
  * @param category 符号操作类别 / Symbol operation category
  * @property checkTokenExists 是否检查 token 已存在 / Whether to check token existence
  * @property _tokenList 手动 token 列表 / Manual token list
- */
+*/
 class ManualTokenTable<V>(
     category: Category,
     private val checkTokenExists: Boolean,
     private val _tokenList: ManualTokenList<V>,
     _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
 ) : MutableTokenTable<V>(category, _tokenList, _symbols) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 通过类别和检查标志构造 / Construct by category and check flag
      *
      * @param category 符号操作类别 / Symbol operation category
      * @param checkTokenExists 是否检查 token 已存在 / Whether to check token existence
-     */
+    */
     constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
         category = category,
         checkTokenExists = checkTokenExists,

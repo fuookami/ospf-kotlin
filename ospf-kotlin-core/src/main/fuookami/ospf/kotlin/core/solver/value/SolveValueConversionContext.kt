@@ -1,7 +1,7 @@
 /**
  * 求解值转换上下文管理
  * Solve value conversion context management
- */
+*/
 package fuookami.ospf.kotlin.core.solver.value
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -13,7 +13,7 @@ private val solveValueConversionPolicyThreadLocal = ThreadLocal<SolveValueConver
  * Get the current thread's solve value conversion policy.
  *
  * @return 当前转换策略 / Current conversion policy
- */
+*/
 fun currentSolveValueConversionPolicy(): SolveValueConversionPolicy {
     return solveValueConversionPolicyThreadLocal.get() ?: SolveValueConversionPolicy.AllowRounding
 }
@@ -26,7 +26,7 @@ fun currentSolveValueConversionPolicy(): SolveValueConversionPolicy {
  * @param policy 转换策略 / Conversion policy
  * @param block 要执行的代码块 / Code block to execute
  * @return 代码块的返回值 / Return value of the code block
- */
+*/
 suspend fun <T> withSolveValueConversionPolicy(
     policy: SolveValueConversionPolicy,
     block: suspend () -> T
@@ -46,7 +46,7 @@ suspend fun <T> withSolveValueConversionPolicy(
  *
  * @param fieldName 字段名称（用于错误信息）/ Field name (for error messages)
  * @return 转换后的 Double 值 / Converted Double value
- */
+*/
 fun Flt64.toSolverDouble(
     fieldName: String = "solver.value"
 ): Double {
@@ -69,7 +69,7 @@ fun Flt64.toSolverDouble(
  * @param nanMessage NaN 错误信息 / NaN error message
  * @param infinityMessage 无穷大错误信息 / Infinity error message
  * @return 转换后的 Double 值 / Converted Double value
- */
+*/
 fun Flt64.toSolverDouble(
     policy: SolveValueConversionPolicy,
     fieldName: String,

@@ -14,16 +14,17 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 基于装载模式生成适航安全约束的管线。Generates the pipeline of airworthiness security constraints based on the stowage mode.
  *
- * @property aggregation 参数。
- */
+ * @property aggregation The aggregation of all airworthiness domain models / 适航领域模型的聚合
+*/
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
+
     /**
      *
      * @param stowageMode 装载模式。
      * @return 管线列表。
-     */
+    */
     operator fun invoke(stowageMode: StowageMode): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
         val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 

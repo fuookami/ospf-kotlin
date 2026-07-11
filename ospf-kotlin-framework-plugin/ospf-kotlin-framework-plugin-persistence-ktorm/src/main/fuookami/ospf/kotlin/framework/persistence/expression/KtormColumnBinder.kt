@@ -17,7 +17,7 @@
  * val where = UserSchema.predicate { (status eq "active") and (name like "%test%") }
  * val users = repository.find(where)
  * ```
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import org.ktorm.schema.ColumnDeclaring
@@ -31,18 +31,19 @@ import fuookami.ospf.kotlin.framework.persistence.expression.translator.KtormCol
  * @param T Ktorm 表类型 / Ktorm table type
  * @property table Ktorm 表定义 / Ktorm table definition
  * @property columnMapping 属性名到后端列名的映射 / Property name to backend column name mapping
- */
+*/
 class KtormColumnBinder<T : Table<*>>(
     val table: T,
     private val columnMapping: Map<String, String> = emptyMap()
 ) : ColumnBinder<ColumnDeclaring<*>> {
+
     /**
      * 解析属性路径为 Ktorm 列声明
      * Resolve property path to Ktorm column declaring
      *
      * @param path 属性路径 / Property path
      * @return 对应的 Ktorm 列声明，未找到时返回 null / Corresponding Ktorm column declaring, or null if not found
-     */
+    */
     override fun resolve(path: String): ColumnDeclaring<*>? {
         val backendName = columnMapping[path] ?: path
         return table.columns.find { it.name == backendName } as? ColumnDeclaring<*>
@@ -54,7 +55,7 @@ class KtormColumnBinder<T : Table<*>>(
  * Convert KtormColumnBinder to KtormColumnResolver
  *
  * @return Ktorm 列解析器 / Ktorm column resolver
- */
+*/
 fun KtormColumnBinder<*>.asKtormResolver(): KtormColumnResolver = { path -> resolve(path) }
 
 /**
@@ -66,7 +67,7 @@ fun KtormColumnBinder<*>.asKtormResolver(): KtormColumnResolver = { path -> reso
  *
  * @param table Ktorm 表定义 / Ktorm table definition
  * @return Ktorm 列解析器 / Ktorm column resolver
- */
+*/
 fun HasColumnMapping.ktormResolver(table: Table<*>): KtormColumnResolver {
     val binder = KtormColumnBinder(table, columnMapping)
     return { path -> binder.resolve(path) }
@@ -79,7 +80,7 @@ fun HasColumnMapping.ktormResolver(table: Table<*>): KtormColumnResolver {
  * @param table Ktorm 表定义 / Ktorm table definition
  * @param columnMapping 属性名到后端列名的显式映射 / Explicit property name to backend column name mapping
  * @return Ktorm 列解析器 / Ktorm column resolver
- */
+*/
 fun ktormResolver(table: Table<*>, columnMapping: Map<String, String>): KtormColumnResolver {
     val binder = KtormColumnBinder(table, columnMapping)
     return { path -> binder.resolve(path) }

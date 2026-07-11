@@ -1,7 +1,7 @@
 /**
  * 多目标位置
  * Multi-objective location
- */
+*/
 package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * @property priority 子目标优先级 / Sub-objective priority
  * @property weight   子目标权重 / Sub-objective weight
- */
+*/
 data class MultiObjectLocation<V>(
     val priority: UInt64,
     val weight: V

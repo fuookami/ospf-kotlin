@@ -42,7 +42,7 @@
  * - asech(x): 反双曲正剌/ inverse hyperbolic secant
  * - acsch(x): 反双曲余剌/ inverse hyperbolic cosecant
  * - acoth(x): 反双曲余刌/ inverse hyperbolic cotangent
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -59,9 +59,9 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 三角函数运算的结果类垌
  *
- * @param Ret The result type of trigonometric operations
- */
+*/
 interface Trigonometry<out Ret> {
+
     /**
      * 计算正弦倌sin(x)
      * Calculates the sine value sin(x)
@@ -69,7 +69,7 @@ interface Trigonometry<out Ret> {
      * @return 正弦倌
      *
      * @return Sine value
-     */
+    */
     fun sin(): Ret
 
     /**
@@ -79,7 +79,7 @@ interface Trigonometry<out Ret> {
      * @return 余弦倌
      *
      * @return Cosine value
-     */
+    */
     fun cos(): Ret
 
     /**
@@ -89,7 +89,7 @@ interface Trigonometry<out Ret> {
      * @return 正割值，如果 cos(x) = 0 则返囌null
      *
      * @return Secant value, or null if cos(x) = 0
-     */
+    */
     fun sec(): Ret?
 
     /**
@@ -99,7 +99,7 @@ interface Trigonometry<out Ret> {
      * @return 余割值，如果 sin(x) = 0 则返囌null
      *
      * @return Cosecant value, or null if sin(x) = 0
-     */
+    */
     fun csc(): Ret?
 
     /**
@@ -109,7 +109,7 @@ interface Trigonometry<out Ret> {
      * @return 正切值，如果 cos(x) = 0 则返囌null
      *
      * @return Tangent value, or null if cos(x) = 0
-     */
+    */
     fun tan(): Ret?
 
     /**
@@ -119,7 +119,7 @@ interface Trigonometry<out Ret> {
      * @return 余切值，如果 sin(x) = 0 则返囌null
      *
      * @return Cotangent value, or null if sin(x) = 0
-     */
+    */
     fun cot(): Ret?
 
     /**
@@ -129,7 +129,7 @@ interface Trigonometry<out Ret> {
      * @return 反正弦值，如果 |x| > 1 则返囌null
      *
      * @return Arcsine value, or null if |x| > 1
-     */
+    */
     fun asin(): Ret?
 
     /**
@@ -139,7 +139,7 @@ interface Trigonometry<out Ret> {
      * @return 反余弦值，如果 |x| > 1 则返囌null
      *
      * @return Arccosine value, or null if |x| > 1
-     */
+    */
     fun acos(): Ret?
 
     /**
@@ -149,7 +149,7 @@ interface Trigonometry<out Ret> {
      * @return 反正割值，如果 |x| < 1 则返囌null
      *
      * @return Arcsecant value, or null if |x| < 1
-     */
+    */
     fun asec(): Ret?
 
     /**
@@ -159,7 +159,7 @@ interface Trigonometry<out Ret> {
      * @return 反余割值，如果 |x| < 1 则返囌null
      *
      * @return Arccosecant value, or null if |x| < 1
-     */
+    */
     fun acsc(): Ret?
 
     /**
@@ -169,7 +169,7 @@ interface Trigonometry<out Ret> {
      * @return 反正切倌
      *
      * @return Arctangent value
-     */
+    */
     fun atan(): Ret
 
     /**
@@ -179,7 +179,7 @@ interface Trigonometry<out Ret> {
      * @return 反余切倌
      *
      * @return Arccotangent value
-     */
+    */
     fun acot(): Ret?
 
     /**
@@ -189,7 +189,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲正弦倌
      *
      * @return Hyperbolic sine value
-     */
+    */
     fun sinh(): Ret
 
     /**
@@ -199,7 +199,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲余弦倌
      *
      * @return Hyperbolic cosine value
-     */
+    */
     fun cosh(): Ret
 
     /**
@@ -209,7 +209,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲正割倌
      *
      * @return Hyperbolic secant value
-     */
+    */
     fun sech(): Ret
 
     /**
@@ -219,7 +219,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲余割值，如果 sinh(x) = 0 则返囌null
      *
      * @return Hyperbolic cosecant value, or null if sinh(x) = 0
-     */
+    */
     fun csch(): Ret?
 
     /**
@@ -229,7 +229,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲正切倌
      *
      * @return Hyperbolic tangent value
-     */
+    */
     fun tanh(): Ret
 
     /**
@@ -239,7 +239,7 @@ interface Trigonometry<out Ret> {
      * @return 双曲余切值，如果 sinh(x) = 0 则返囌null
      *
      * @return Hyperbolic cotangent value, or null if sinh(x) = 0
-     */
+    */
     fun coth(): Ret?
 
     /**
@@ -249,7 +249,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲正弦倌
      *
      * @return Inverse hyperbolic sine value
-     */
+    */
     fun asinh(): Ret
 
     /**
@@ -259,7 +259,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲余弦值，如果 x < 1 则返囌null
      *
      * @return Inverse hyperbolic cosine value, or null if x < 1
-     */
+    */
     fun acosh(): Ret?
 
     /**
@@ -269,7 +269,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲正割值，如果 x <= 0 戌x > 1 则返囌null
      *
      * @return Inverse hyperbolic secant value, or null if x <= 0 or x > 1
-     */
+    */
     fun asech(): Ret?
 
     /**
@@ -279,7 +279,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲余割值，如果 x = 0 则返囌null
      *
      * @return Inverse hyperbolic cosecant value, or null if x = 0
-     */
+    */
     fun acsch(): Ret?
 
     /**
@@ -289,7 +289,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲正切值，如果 |x| >= 1 则返囌null
      *
      * @return Inverse hyperbolic tangent value, or null if |x| >= 1
-     */
+    */
     fun atanh(): Ret?
 
     /**
@@ -299,7 +299,7 @@ interface Trigonometry<out Ret> {
      * @return 反双曲余切值，如果 |x| <= 1 则返囌null
      *
      * @return Inverse hyperbolic cotangent value, or null if |x| <= 1
-     */
+    */
     fun acoth(): Ret?
 }
 
@@ -312,11 +312,8 @@ interface Trigonometry<out Ret> {
  * @param x 输入倌
  * @return 正弦倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Sine value
- */
+*/
 fun <T, Ret> sin(x: T): Ret where T : Trigonometry<Ret> {
     return x.sin()
 }
@@ -330,11 +327,8 @@ fun <T, Ret> sin(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 余弦倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Cosine value
- */
+*/
 fun <T, Ret> cos(x: T): Ret where T : Trigonometry<Ret> {
     return x.cos()
 }
@@ -348,11 +342,8 @@ fun <T, Ret> cos(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 正割值，如果 cos(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Secant value, or null if cos(x) = 0
- */
+*/
 fun <T, Ret> sec(x: T): Ret? where T : Trigonometry<Ret> {
     return x.sec()
 }
@@ -366,11 +357,8 @@ fun <T, Ret> sec(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 余割值，如果 sin(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Cosecant value, or null if sin(x) = 0
- */
+*/
 fun <T, Ret> csc(x: T): Ret? where T : Trigonometry<Ret> {
     return x.csc()
 }
@@ -384,11 +372,8 @@ fun <T, Ret> csc(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 正切值，如果 cos(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Tangent value, or null if cos(x) = 0
- */
+*/
 fun <T, Ret> tan(x: T): Ret? where T : Trigonometry<Ret> {
     return x.tan()
 }
@@ -402,11 +387,8 @@ fun <T, Ret> tan(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 余切值，如果 sin(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Cotangent value, or null if sin(x) = 0
- */
+*/
 fun <T, Ret> cot(x: T): Ret? where T : Trigonometry<Ret> {
     return x.cot()
 }
@@ -420,11 +402,8 @@ fun <T, Ret> cot(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反正弦值，如果 |x| > 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arcsine value, or null if |x| > 1
- */
+*/
 fun <T, Ret> asin(x: T): Ret? where T : Trigonometry<Ret> {
     return x.asin()
 }
@@ -438,11 +417,8 @@ fun <T, Ret> asin(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反余弦值，如果 |x| > 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arccosine value, or null if |x| > 1
- */
+*/
 fun <T, Ret> acos(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acos()
 }
@@ -456,11 +432,8 @@ fun <T, Ret> acos(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反正割值，如果 |x| < 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arcsecant value, or null if |x| < 1
- */
+*/
 fun <T, Ret> asec(x: T): Ret? where T : Trigonometry<Ret> {
     return x.asec()
 }
@@ -474,11 +447,8 @@ fun <T, Ret> asec(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反余割值，如果 |x| < 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arccosecant value, or null if |x| < 1
- */
+*/
 fun <T, Ret> acsc(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acsc()
 }
@@ -492,11 +462,8 @@ fun <T, Ret> acsc(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反正切倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arctangent value
- */
+*/
 fun <T, Ret> atan(x: T): Ret where T : Trigonometry<Ret> {
     return x.atan()
 }
@@ -510,11 +477,8 @@ fun <T, Ret> atan(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反余切倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Arccotangent value
- */
+*/
 fun <T, Ret> acot(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acot()
 }
@@ -528,11 +492,8 @@ fun <T, Ret> acot(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲正弦倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic sine value
- */
+*/
 fun <T, Ret> sinh(x: T): Ret where T : Trigonometry<Ret> {
     return x.sinh()
 }
@@ -546,11 +507,8 @@ fun <T, Ret> sinh(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲余弦倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic cosine value
- */
+*/
 fun <T, Ret> cosh(x: T): Ret where T : Trigonometry<Ret> {
     return x.cosh()
 }
@@ -564,11 +522,8 @@ fun <T, Ret> cosh(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲正割倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic secant value
- */
+*/
 fun <T, Ret> sech(x: T): Ret where T : Trigonometry<Ret> {
     return x.sech()
 }
@@ -582,11 +537,8 @@ fun <T, Ret> sech(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲余割值，如果 sinh(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic cosecant value, or null if sinh(x) = 0
- */
+*/
 fun <T, Ret> csch(x: T): Ret? where T : Trigonometry<Ret> {
     return x.csch()
 }
@@ -600,11 +552,8 @@ fun <T, Ret> csch(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲正切倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic tangent value
- */
+*/
 fun <T, Ret> tanh(x: T): Ret where T : Trigonometry<Ret> {
     return x.tanh()
 }
@@ -618,11 +567,8 @@ fun <T, Ret> tanh(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 双曲余切值，如果 sinh(x) = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Hyperbolic cotangent value, or null if sinh(x) = 0
- */
+*/
 fun <T, Ret> coth(x: T): Ret? where T : Trigonometry<Ret> {
     return x.coth()
 }
@@ -636,11 +582,8 @@ fun <T, Ret> coth(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲正弦倌
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic sine value
- */
+*/
 fun <T, Ret> asinh(x: T): Ret where T : Trigonometry<Ret> {
     return x.asinh()
 }
@@ -654,11 +597,8 @@ fun <T, Ret> asinh(x: T): Ret where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲余弦值，如果 x < 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic cosine value, or null if x < 1
- */
+*/
 fun <T, Ret> acosh(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acosh()
 }
@@ -672,11 +612,8 @@ fun <T, Ret> acosh(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲正割值，如果 x <= 0 戌x > 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic secant value, or null if x <= 0 or x > 1
- */
+*/
 fun <T, Ret> asech(x: T): Ret? where T : Trigonometry<Ret> {
     return x.asech()
 }
@@ -690,11 +627,8 @@ fun <T, Ret> asech(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲余割值，如果 x = 0 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic cosecant value, or null if x = 0
- */
+*/
 fun <T, Ret> acsch(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acsch()
 }
@@ -708,11 +642,8 @@ fun <T, Ret> acsch(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲正切值，如果 |x| >= 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic tangent value, or null if |x| >= 1
- */
+*/
 fun <T, Ret> atanh(x: T): Ret? where T : Trigonometry<Ret> {
     return x.atanh()
 }
@@ -726,11 +657,8 @@ fun <T, Ret> atanh(x: T): Ret? where T : Trigonometry<Ret> {
  * @param x 输入倌
  * @return 反双曲余切值，如果 |x| <= 1 则返囌null
  *
- * @param T The input type, must implement the Trigonometry interface
- * @param Ret The return type
- * @param x Input value
  * @return Inverse hyperbolic cotangent value, or null if |x| <= 1
- */
+*/
 fun <T, Ret> acoth(x: T): Ret? where T : Trigonometry<Ret> {
     return x.acoth()
 }

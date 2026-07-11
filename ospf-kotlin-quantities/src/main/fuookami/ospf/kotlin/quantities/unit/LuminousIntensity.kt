@@ -6,7 +6,7 @@
  *
  * 单位常量来源 / Unit constant sources:
  * - Candela: SI基本单位（国际单位制）/ Candela: SI base unit (International System of Units)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -23,15 +23,18 @@ import fuookami.ospf.kotlin.quantities.dimension.LuminousIntensity
  *
  * 符号 / Symbol: cd
  * 换算关系 / Conversion: 1 cd = 1 cd（基本单位）/ 1 cd = 1 cd (base unit)
- */
+*/
 object Candela : PhysicalUnit() {
+
     /** 单位名称：candela / Unit name: candela */
     override val name: String = "candela"
+
     /** 单位符号：cd / Unit symbol: cd */
     override val symbol: String = "cd"
 
     /** 对应物理量：发光强度 / Corresponding quantity: LuminousIntensity */
     override val quantity = LuminousIntensity
+
     /** 比例因子：1（基本单位）/ Scale factor: 1 (base unit) */
     override val conversionRule = UnitConversionRule.Linear(Scale())
 }

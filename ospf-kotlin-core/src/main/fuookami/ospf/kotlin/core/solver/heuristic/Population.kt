@@ -1,7 +1,7 @@
 /**
  * 种群与个体数据结构
  * Population and individual data structures
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -18,9 +18,13 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 interface Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
+    /** Solution represented by this individual / 此个体表示的解 */
     val solution: Solution<V>
+
+    /** Fitness value of this individual / 此个体的适应度值 */
     val fitness: ObjValue
 }
 
@@ -32,7 +36,7 @@ interface Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
  * @property densityRange 密度范围 / Density range
  * @property mutationRateRange 变异率范围 / Mutation rate range
  * @property parentAmountRange 父代数量范围 / Parent amount range
- */
+*/
 data class PopulationBuilder(
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
@@ -54,7 +58,7 @@ data class PopulationBuilder(
  * @property densityRange 密度范围 / Density range
  * @property mutationRateRange 变异率范围 / Mutation rate range
  * @property parentAmountRange 父代数量范围 / Parent amount range
- */
+*/
 data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
     val individuals: List<T>,
     val elites: List<T>,
@@ -64,6 +68,7 @@ data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
     val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     /** 种群密度（个体数量）/ Population density (individual count) */
     val density by individuals::size
 }
@@ -76,7 +81,7 @@ data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
  * @param V 值类型 / Value type
  * @property solution 解 / Solution
  * @property fitness 适应度 / Fitness
- */
+*/
 data class SolutionWithFitness<ObjValue, V>(
     override val solution: Solution<V>,
     override val fitness: ObjValue
@@ -93,7 +98,7 @@ data class SolutionWithFitness<ObjValue, V>(
  * @param newIndividuals 新个体列表 / New individuals list
  * @param model 回调模型接口 / Callback model interface
  * @param solutionAmount 期望保留的解数量 / Desired number of solutions to keep
- */
+*/
 fun <T : Individual<ObjValue, V>, ObjValue, V> refreshGoodIndividuals(
     goodIndividuals: MutableList<T>,
     newIndividuals: List<T>,

@@ -20,7 +20,7 @@
  * For FltX floating-point numbers, converts decimals to integers by multiplying powers of 10.
  * For RtnX rational numbers: gcd(a/b, c/d) = gcd(a, c) / lcm(b, d).
  * Boundary cases: empty collection returns one; negative values are converted to absolute values.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.*
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param x 第一个非负整数 / First non-negative integer
  * @param y 第二个非负整数 / Second non-negative integer
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     val zero = x.constants.zero
     assert(x >= zero)
@@ -76,7 +76,7 @@ fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
  * @param x 第一个整数 / First integer
  * @param y 第二个整数 / Second integer
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     val zero = x.constants.zero
     var a = x.abs()
@@ -99,7 +99,7 @@ fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
  * @param numbers 整数集合，需已排序且取绝对值 / Collection of integers, must be sorted and absolute-valued
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 最大公约数，空集合返回 one / Greatest common divisor; returns one for empty collection
- */
+*/
 fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Rem<I, I> {
     val iter = numbers.iterator()
     if (!iter.hasNext()) return constants.one
@@ -110,6 +110,7 @@ fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
     }
     return acc
 }
+
 /**
  * 计算两个整数的最大公约数
  * Compute greatest common divisor of two integers
@@ -117,7 +118,7 @@ fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
  * @param x 第一个整数 / First integer
  * @param y 第二个整数 / Second integer
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     return gcdImpl(x, y)
 }
@@ -129,7 +130,7 @@ fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
  * @param numbers 整数集合 / Collection of integers
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcd(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -146,7 +147,7 @@ fun <I> gcd(
  *
  * @param numbers 整数集合 / Collection of integers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 inline fun <reified I> gcd(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Rem<I, I> {
     return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
         gcd(
@@ -166,7 +167,7 @@ inline fun <reified I> gcd(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I
  * @param numbers 其余整数 / Remaining integers
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcd(
     x: I,
     y: I,
@@ -189,7 +190,7 @@ fun <I> gcd(
  * @param z 第三个整数 / Third integer
  * @param numbers 其余整数 / Remaining integers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Rem<I, I> {
     return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
         gcd(
@@ -209,7 +210,7 @@ inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I 
  * @param x 第一个整数 / First integer
  * @param y 第二个整数 / Second integer
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcdMod(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     return gcdModImpl(x, y)
 }
@@ -221,7 +222,7 @@ fun <I> gcdMod(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
  * @param numbers 整数集合 / Collection of integers
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcdMod(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -235,7 +236,7 @@ fun <I> gcdMod(
  *
  * @param numbers 整数集合 / Collection of integers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 inline fun <reified I> gcdMod(numbers: Iterable<I>): Ret<I> where I : Integer<I>, I : Rem<I, I> {
     return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
         gcdMod(
@@ -255,7 +256,7 @@ inline fun <reified I> gcdMod(numbers: Iterable<I>): Ret<I> where I : Integer<I>
  * @param numbers 其余整数 / Remaining integers
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <I> gcdMod(
     x: I,
     y: I,
@@ -278,7 +279,7 @@ fun <I> gcdMod(
  * @param z 第三个整数 / Third integer
  * @param numbers 其余整数 / Remaining integers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): Ret<I> where I : Integer<I>, I : Rem<I, I> {
     return resolveRealNumberConstantsSafe<I>("GCD").mapResolved { constants ->
         gcdMod(
@@ -298,7 +299,7 @@ inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): Ret<I> where
  * @property gcd 最大公约数 / Greatest common divisor
  * @property x 贝祖等式系数 x / Bezout identity coefficient x
  * @property y 贝祖等式系数 y / Bezout identity coefficient y
- */
+*/
 data class ExtendedGcdResult<I>(
     val gcd: I,
     val x: I,
@@ -312,7 +313,7 @@ data class ExtendedGcdResult<I>(
  * @param a 第一个整数 / First integer
  * @param b 第二个整数 / Second integer
  * @return 包含 GCD 和贝祖等式系数的结果 / Result containing GCD and Bezout identity coefficients
- */
+*/
 fun <I> extendedGcd(
     a: I,
     b: I
@@ -357,7 +358,7 @@ fun <I> extendedGcd(
  * @param x 第一个浮点数 / First floating-point number
  * @param y 第二个浮点数 / Second floating-point number
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun gcd(x: FltX, y: FltX): FltX {
     return gcd(listOf(x, y))
 }
@@ -368,7 +369,7 @@ fun gcd(x: FltX, y: FltX): FltX {
  *
  * @param numbers 浮点数集合 / Collection of floating-point numbers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun gcd(numbers: Iterable<FltX>): FltX {
     var factor = 0
     var scaledNumbers = numbers.toList()
@@ -404,7 +405,7 @@ fun gcd(numbers: Iterable<FltX>): FltX {
  * @param z 第三个浮点数 / Third floating-point number
  * @param numbers 其余浮点数 / Remaining floating-point numbers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun <F : FloatingNumber<*>> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): FltX {
     return gcd(listOf(x, y, z) + numbers.map { it.toFltX() })
 }
@@ -416,7 +417,7 @@ fun <F : FloatingNumber<*>> gcd(x: FltX, y: FltX, z: FltX, vararg numbers: F): F
  * @param x 第一个有理数 / First rational number
  * @param y 第二个有理数 / Second rational number
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun gcd(x: RtnX, y: RtnX): RtnX {
     return gcd(listOf(x, y))
 }
@@ -427,7 +428,7 @@ fun gcd(x: RtnX, y: RtnX): RtnX {
  *
  * @param numbers 有理数集合 / Collection of rational numbers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun gcd(numbers: Iterable<RtnX>): RtnX {
     return RtnX(
         gcd(numbers.map { it.num }, IntX),
@@ -444,7 +445,7 @@ fun gcd(numbers: Iterable<RtnX>): RtnX {
  * @param z 第三个有理数 / Third rational number
  * @param numbers 其余有理数 / Remaining rational numbers
  * @return 最大公约数 / Greatest common divisor
- */
+*/
 fun gcd(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return gcd(listOf(x, y, z) + numbers.toList())
 }

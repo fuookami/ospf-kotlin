@@ -42,7 +42,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-/** 预分配应用入口类，负责协调预分配算法的执行。 / Entry point for the predistribution application, responsible for coordinating the execution of the predistribution algorithm. */
+/**
+ * Entry point for the predistribution application, responsible for coordinating the execution of the predistribution algorithm.
+ * 预分配应用入口类，负责协调预分配算法的执行。
+*/
 class PredistributionApplication {
     suspend operator fun invoke(
         request: RequestDTO,
@@ -54,20 +57,34 @@ class PredistributionApplication {
         return algo(request, runningHeartBeatCallBack, finnishHeartBeatCallBack, withRender)
     }
 
-    /** Benders 分解的模型封装。 / Benders decomposition model bundle. */
+    /**
+     * Benders decomposition model bundle.
+     * Benders 分解的模型封装。
+     *
+     * @property masterModel Master problem model. / 主问题模型
+     * @property subModel Subproblem model. / 子问题模型
+     * @property objectVariable Objective variable. / 目标变量
+     * @property fixedVariables Map of fixed variables. / 固定变量映射
+    */
     private data class BendersModels(
-        /** 主问题模型 / Master problem model */
+        /** Master problem model / 主问题模型 */
         val masterModel: LinearMetaModel<Flt64>,
-        /** 子问题模型 / Subproblem model */
+
+        /** Subproblem model / 子问题模型 */
         val subModel: LinearMetaModel<Flt64>,
-        /** 目标变量 / Objective variable */
+
+        /** Objective variable / 目标变量 */
         val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-        /** 固定变量映射 / Map of fixed variables */
+
+        /** Map of fixed variables / 固定变量映射 */
         val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
     )
 }
 
-/** 预分配算法的具体实现。 / Concrete implementation of the predistribution algorithm. */
+/**
+ * Concrete implementation of the predistribution algorithm.
+ * 预分配算法的具体实现。
+*/
 private class PredistributionAlgorithmImpl {
     lateinit var aircraftContext: AircraftContext
     lateinit var stowageContext: StowageContext
@@ -214,11 +231,12 @@ private class PredistributionAlgorithmImpl {
     }
 
     /**
-     * 初始化所有领域上下文。
      * Initialize all domain contexts.
-     * @param request 请求 DTO / Request DTO
-     * @return 初始化结果 / Initialization result
-     */
+     * 初始化所有领域上下文。
+     *
+     * @param request Request DTO. / 请求 DTO
+     * @return Initialization result. / 初始化结果
+    */
     private fun init(request: RequestDTO): Try {
         when (val result = aircraftContext.init(
             input = request
@@ -367,14 +385,15 @@ private class PredistributionAlgorithmImpl {
     }
 
     /**
-     * 使用 MILP 求解器求解预分配问题。
      * Solve the predistribution problem using MILP solver.
-     * @param id 请求 ID / Request ID
-     * @param parameter 求解参数 / Solving parameters
-     * @param startTime 开始时间 / Start time
-     * @param runningHeartBeatCallBack 运行心跳回调 / Running heartbeat callback
-     * @return 求解结果，包含解决方案 / Result containing the solution
-     */
+     * 使用 MILP 求解器求解预分配问题。
+     *
+     * @param id Request ID. / 请求 ID
+     * @param parameter Solving parameters. / 求解参数
+     * @param startTime Start time. / 开始时间
+     * @param runningHeartBeatCallBack Running heartbeat callback. / 运行心跳回调
+     * @return Result containing the solution. / 求解结果，包含解决方案
+    */
     private suspend fun solveWithMILP(
         id: String,
         parameter: Parameter,
@@ -499,12 +518,13 @@ private class PredistributionAlgorithmImpl {
     }
 
     /**
-     * 将所有领域上下文注册到优化模型中。
      * Register all domain contexts into the optimization model.
-     * @param parameter 求解参数 / Solving parameters
-     * @param model 线性元模型 / Linear meta model
-     * @return 注册结果 / Registration result
-     */
+     * 将所有领域上下文注册到优化模型中。
+     *
+     * @param parameter Solving parameters. / 求解参数
+     * @param model Linear meta model. / 线性元模型
+     * @return Registration result. / 注册结果
+    */
     private fun register(
         parameter: Parameter,
         model: AbstractLinearMetaModel<Flt64>
@@ -638,12 +658,13 @@ private class PredistributionAlgorithmImpl {
     }
 
     /**
-     * 使用 Benders 分解算法求解预分配问题。
      * Solve the predistribution problem using Benders decomposition algorithm.
-     * @param request 请求 DTO / Request DTO
-     * @param notes 诊断笔记列表 / List of diagnostic notes
-     * @return 求解结果，包含解决方案 / Result containing the solution
-     */
+     * 使用 Benders 分解算法求解预分配问题。
+     *
+     * @param request Request DTO. / 请求 DTO
+     * @param notes List of diagnostic notes. / 诊断笔记列表
+     * @return Result containing the solution. / 求解结果，包含解决方案
+    */
     private suspend fun solveWithBendersAlgorithm(
         request: RequestDTO,
         notes: MutableList<String>
@@ -750,10 +771,11 @@ private class PredistributionAlgorithmImpl {
     }
 
     /**
-     * 构建 Benders 分解的主问题和子问题模型。
      * Build master and subproblem models for Benders decomposition.
-     * @return Benders 模型封装 / Benders models bundle
-     */
+     * 构建 Benders 分解的主问题和子问题模型。
+     *
+     * @return Benders models bundle. / Benders 模型封装
+    */
     private fun buildBendersModels(): BendersModels {
         val masterModel = LinearMetaModel<Flt64>(
             name = "demo2_predistribution_master",
@@ -797,15 +819,26 @@ private class PredistributionAlgorithmImpl {
         )
     }
 
-    /** Benders 分解的模型封装，包含主问题、子问题、目标变量和固定变量。 / Benders decomposition model bundle containing master problem, subproblem, objective variable and fixed variables. */
+    /**
+     * Benders decomposition model bundle containing master problem, subproblem, objective variable and fixed variables.
+     * Benders 分解的模型封装，包含主问题、子问题、目标变量和固定变量。
+     *
+     * @property masterModel Master problem model. / 主问题模型
+     * @property subModel Subproblem model. / 子问题模型
+     * @property objectVariable Objective variable. / 目标变量
+     * @property fixedVariables Map of fixed variables. / 固定变量映射
+    */
     private data class BendersModels(
-        /** 主问题模型 / Master problem model */
+        /** Master problem model / 主问题模型 */
         val masterModel: LinearMetaModel<Flt64>,
-        /** 子问题模型 / Subproblem model */
+
+        /** Subproblem model / 子问题模型 */
         val subModel: LinearMetaModel<Flt64>,
-        /** 目标变量 / Objective variable */
+
+        /** Objective variable / 目标变量 */
         val objectVariable: fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>,
-        /** 固定变量映射 / Map of fixed variables */
+
+        /** Map of fixed variables / 固定变量映射 */
         val fixedVariables: Map<fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *>, Flt64>
     )
 }

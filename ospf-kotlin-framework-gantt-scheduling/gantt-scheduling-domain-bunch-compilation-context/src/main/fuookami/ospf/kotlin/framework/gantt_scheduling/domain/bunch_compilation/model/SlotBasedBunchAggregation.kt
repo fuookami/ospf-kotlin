@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 open class SlotBasedBunchAggregation<
         B,
         V : RealNumber<V>,

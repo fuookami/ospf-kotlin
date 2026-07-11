@@ -1,7 +1,7 @@
 /**
  * Yu-Wang 吸引子
  * Yu-Wang Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class YuWangAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val delta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     @Suppress("UNCHECKED_CAST")
@@ -50,7 +50,7 @@ data class YuWangAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
  * Yu-Wang Attractor Generator
  *
  * @property attractor Yu-Wang 吸引子实例 / Yu-Wang attractor instance
- */
+*/
 data class YuWangAttractorGenerator(
     val attractor: YuWangAttractor<Flt64> = YuWangAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

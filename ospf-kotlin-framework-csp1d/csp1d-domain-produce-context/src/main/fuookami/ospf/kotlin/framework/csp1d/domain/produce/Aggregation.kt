@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.CuttingPlanUsag
  * @property materials Available materials / 可用物料列表
  * @property machines Available machines / 可用设备列表
  * @property warmStartPlanUsages Warm start plan usages for initial solution / 用于初始解的热启动方案使用量
- */
+*/
 data class ProduceInput<V : RealNumber<V>>(
     val cuttingPlans: List<CuttingPlan<V>>,
     val demands: List<ProductDemand<V>>,

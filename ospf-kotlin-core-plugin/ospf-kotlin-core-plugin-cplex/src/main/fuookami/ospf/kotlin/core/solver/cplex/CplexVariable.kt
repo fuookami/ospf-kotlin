@@ -25,7 +25,7 @@ enum class CplexVariable {
          *
          * @param type 内部变量类型 / internal variable type
          * @return CPLEX 变量类型 / CPLEX variable type
-         */
+        */
         operator fun invoke(type: VariableType<*>): CplexVariable {
             return when (type) {
                 is fuookami.ospf.kotlin.core.variable.Binary -> {
@@ -47,6 +47,6 @@ enum class CplexVariable {
      * 转换为 CPLEX 变量类型 / Convert to CPLEX variable type
      *
      * @return CPLEX 变量类型 / CPLEX variable type
-     */
+    */
     abstract fun toCplexVar(): IloNumVarType
 }

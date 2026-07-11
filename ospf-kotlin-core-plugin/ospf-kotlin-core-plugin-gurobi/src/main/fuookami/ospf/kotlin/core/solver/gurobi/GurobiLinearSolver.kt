@@ -35,7 +35,7 @@ class GurobiLinearSolver(
      * @param model 线性模型视图 / linear model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -58,7 +58,7 @@ class GurobiLinearSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-     */
+    */
     override suspend fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -121,7 +121,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 求解结果 / solving result
-     */
+    */
     suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
@@ -172,7 +172,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-     */
+    */
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
@@ -305,7 +305,7 @@ private class GurobiLinearSolverImpl(
      *
      * @param model 线性模型视图 / linear model view
      * @return 操作结果 / operation result
-     */
+    */
     private suspend fun configure(model: LinearTriadModelView): Try {
         return try {
             grbModel.set(GRB.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -409,7 +409,12 @@ private class GurobiLinearSolverImpl(
         }
     }
 
-    /** 分析求解结果 / Analyze solving result */
+    /**
+     * 分析求解结果
+     * Analyze solving result
+     *
+     * @return the analysis result as Try / 以Try包装的分析结果
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

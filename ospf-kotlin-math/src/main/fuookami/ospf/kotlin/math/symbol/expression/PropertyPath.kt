@@ -11,20 +11,21 @@
  * - 支持分段解析 `segments` / Supports segment parsing `segments`
  * - 工厂方法 `of("a", "b", "c")` / Factory method `of("a", "b", "c")`
  * - 文本解析支持 `a.b.c` / Text parsing supports `a.b.c`
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression
 
 /**
  * Property Path
- * 中文属性路径
+ * 属性路径
  *
  * Represents a reference path for fields or properties, e.g., `user.address.city`.
- * 中文表示字段或属性的引用路径，如 `user.address.city`。
+ * 表示字段或属性的引用路径，如 `user.address.city`。
  *
  * @property value the string representation of the path / 路径的字符串表示
- */
+*/
 @JvmInline
 value class PropertyPath(val value: String) {
+
     /**
      * 获取路径分段
      * Get path segments
@@ -33,7 +34,7 @@ value class PropertyPath(val value: String) {
      * Splits the path by dot separator into segments.
      *
      * @return 路径分段列表 / List of path segments
-     */
+    */
     val segments: List<String>
         get() = if (value.isEmpty()) emptyList() else value.split('.')
 
@@ -42,7 +43,7 @@ value class PropertyPath(val value: String) {
      * Whether path is empty
      *
      * @return 是否为空 / Whether empty
-     */
+    */
     val isEmpty: Boolean
         get() = value.isEmpty()
 
@@ -51,7 +52,7 @@ value class PropertyPath(val value: String) {
      * Whether path is non-empty
      *
      * @return 是否非空 / Whether non-empty
-     */
+    */
     val isNotEmpty: Boolean
         get() = value.isNotEmpty()
 
@@ -60,7 +61,7 @@ value class PropertyPath(val value: String) {
      * Get number of segments
      *
      * @return 分段数量 / Number of segments
-     */
+    */
     val depth: Int
         get() = segments.size
 
@@ -69,7 +70,7 @@ value class PropertyPath(val value: String) {
      * Get root segment (first segment)
      *
      * @return 根分段，如果路径为空则返囌null / Root segment, null if path is empty
-     */
+    */
     val root: String?
         get() = segments.firstOrNull()
 
@@ -78,7 +79,7 @@ value class PropertyPath(val value: String) {
      * Get leaf segment (last segment)
      *
      * @return 叶分段，如果路径为空则返囌null / Leaf segment, null if path is empty
-     */
+    */
     val leaf: String?
         get() = segments.lastOrNull()
 
@@ -90,7 +91,7 @@ value class PropertyPath(val value: String) {
      * Returns the path without the last segment.
      *
      * @return 父路径，如果只有一个分段则返回 null / Parent path, null if only one segment
-     */
+    */
     val parent: PropertyPath?
         get() {
             val segs = segments
@@ -105,7 +106,7 @@ value class PropertyPath(val value: String) {
      * Returns the path without the first segment.
      *
      * @return 子路径，如果只有一个分段则返回 null / Child path, null if only one segment
-     */
+    */
     val child: PropertyPath?
         get() {
             val segs = segments
@@ -118,7 +119,7 @@ value class PropertyPath(val value: String) {
      *
      * @param other 父路後/ Parent path
      * @return 是否是子路径 / Whether this is a sub-path
-     */
+    */
     fun isSubPathOf(other: PropertyPath): Boolean {
         if (isEmpty || other.isEmpty) return false
         val otherSegs = other.segments
@@ -133,7 +134,7 @@ value class PropertyPath(val value: String) {
      *
      * @param other 子路後/ Child path
      * @return 是否是父路径 / Whether this is a parent path
-     */
+    */
     fun isParentPathOf(other: PropertyPath): Boolean {
         return other.isSubPathOf(this)
     }
@@ -144,7 +145,7 @@ value class PropertyPath(val value: String) {
      *
      * @param other 要拼接的路径 / Path to concatenate
      * @return 拼接后的新路径 / New concatenated path
-     */
+    */
     fun concat(other: PropertyPath): PropertyPath {
         return if (isEmpty) other
         else if (other.isEmpty) this
@@ -157,7 +158,7 @@ value class PropertyPath(val value: String) {
      *
      * @param segment 要追加的分段 / Segment to append
      * @return 拼接后的新路径 / New concatenated path
-     */
+    */
     fun concat(segment: String): PropertyPath {
         return if (isEmpty) PropertyPath(segment)
         else PropertyPath("$value.$segment")
@@ -165,24 +166,24 @@ value class PropertyPath(val value: String) {
 
     /**
      * Returns string representation
-     * 中文返回字符串表示
+     * 返回字符串表示
      *
      * @return the string representation of the path / 路径的字符串表示
-     */
+    */
     override fun toString(): String = value
 
     /**
      * Property Path companion object
-     * 中文属性路径伴生对象
+     * 属性路径伴生对象
      *
      * Provides factory methods and constants for creating and parsing PropertyPath instances.
-     * 中文提供创建和解析 PropertyPath 实例的工厂方法和常量。
-     */
+     * 提供创建和解析 PropertyPath 实例的工厂方法和常量。
+    */
     companion object {
         /**
          * 空路後
          * Empty path
-         */
+        */
         val empty = PropertyPath("")
 
         /**
@@ -191,7 +192,7 @@ value class PropertyPath(val value: String) {
          *
          * @param segments 路径分段 / Path segments
          * @return 创建的路後/ Created path
-         */
+        */
         fun of(segments: List<String>): PropertyPath {
             return PropertyPath(segments.joinToString("."))
         }
@@ -202,7 +203,7 @@ value class PropertyPath(val value: String) {
          *
          * @param segments 路径分段 / Path segments
          * @return 创建的路後/ Created path
-         */
+        */
         fun of(vararg segments: String): PropertyPath {
             return of(segments.toList())
         }
@@ -216,7 +217,7 @@ value class PropertyPath(val value: String) {
          *
          * @param text 路径文本 / Path text
          * @return 解析的路後/ Parsed path
-         */
+        */
         fun parse(text: String): PropertyPath {
             return PropertyPath(text.trim())
         }
@@ -227,7 +228,7 @@ value class PropertyPath(val value: String) {
          *
          * @param text 路径文本 / Path text
          * @return 解析的路径，如果文本无效则返囌null / Parsed path, null if text is invalid
-         */
+        */
         fun parseOrNull(text: String): PropertyPath? {
             val trimmed = text.trim()
             if (trimmed.isEmpty()) return null
@@ -249,7 +250,7 @@ value class PropertyPath(val value: String) {
          *
          * @param id 标识笌/ Identifier
          * @return 是否有效 / Whether valid
-         */
+        */
         private fun isValidIdentifier(id: String): Boolean {
             if (id.isEmpty()) return false
             val first = id.first()
@@ -261,16 +262,16 @@ value class PropertyPath(val value: String) {
 
 /**
  * Extension function: String to PropertyPath
- * 中文扩展函数：字符串转属性路径
+ * 扩展函数：字符串转属性路径
  *
  * @return the parsed PropertyPath / 解析后的属性路径
- */
+*/
 fun String.toPropertyPath(): PropertyPath = PropertyPath.parse(this)
 
 /**
  * Extension function: String to PropertyPathOrNull
- * 中文扩展函数：字符串尝试转属性路径
+ * 扩展函数：字符串尝试转属性路径
  *
  * @return the parsed PropertyPath, or null if the text is invalid / 解析后的属性路径，如果文本无效则返回 null
- */
+*/
 fun String.toPropertyPathOrNull(): PropertyPath? = PropertyPath.parseOrNull(this)

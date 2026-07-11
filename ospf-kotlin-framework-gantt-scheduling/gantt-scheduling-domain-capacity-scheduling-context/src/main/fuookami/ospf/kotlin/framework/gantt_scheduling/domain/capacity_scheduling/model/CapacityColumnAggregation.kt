@@ -16,34 +16,35 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
  * @param V 数值类型 / Numeric type
- */
+*/
 class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumber<V>>(
     private val _columnsIteration: MutableList<List<CapacityColumn<E, A, V>>> = ArrayList(),
     private val _columns: MutableList<CapacityColumn<E, A, V>> = ArrayList(),
     private val _removedColumns: MutableSet<CapacityColumn<E, A, V>> = HashSet()
 ) {
+
     /**
      * 按迭代分组的列
      * Columns grouped by iteration
-     */
+    */
     val columnsIteration: List<List<CapacityColumn<E, A, V>>> by ::_columnsIteration
 
     /**
      * 所有列（扁平化）
      * All columns (flattened)
-     */
+    */
     val columns: List<CapacityColumn<E, A, V>> by ::_columns
 
     /**
      * 已移除的列
      * Removed columns
-     */
+    */
     val removedColumns: Set<CapacityColumn<E, A, V>> by ::_removedColumns
 
     /**
      * 最新迭代的列
      * Columns from last iteration
-     */
+    */
     val lastIterationColumns: List<CapacityColumn<E, A, V>>
         get() = _columnsIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
@@ -54,7 +55,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
      * @param iteration Iteration number / 迭代号
      * @param newColumns New columns to add / 要添加的新列
      * @return Unduplicated columns / 去重后的列
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newColumns: List<CapacityColumn<E, A, V>>
@@ -112,7 +113,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
      * Remove a column
      *
      * @param column Column to remove / 要移除的列
-     */
+    */
     fun removeColumn(column: CapacityColumn<E, A, V>) {
         if (!_removedColumns.contains(column)) {
             _removedColumns.add(column)
@@ -125,7 +126,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
      * Remove multiple columns
      *
      * @param columns Columns to remove / 要移除的列列表
-     */
+    */
     fun removeColumns(columns: List<CapacityColumn<E, A, V>>) {
         for (column in columns) {
             removeColumn(column)
@@ -135,7 +136,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
     /**
      * 清空所有列
      * Clear all columns
-     */
+    */
     fun clear() {
         _columnsIteration.clear()
         _columns.clear()
@@ -148,7 +149,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
      *
      * @param other Column to compare / 要比较的列
      * @return Whether columns are not equal / 列是否不相等
-     */
+    */
     private infix fun CapacityColumn<E, A, V>.neq(other: CapacityColumn<E, A, V>): Boolean {
         if (this.executor != other.executor) return true
         if (this.slotIndex != other.slotIndex) return true

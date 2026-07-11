@@ -1,7 +1,7 @@
 /**
  * Bottom-up left-justified algorithm.
  * 自底向上左对齐算法。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
 import kotlinx.coroutines.*
@@ -21,14 +21,11 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  * 比较两个二维坐标点的位置优先级。
  *
  * @param lhs The left-hand side point.
- * @param lhs 左侧坐标点。
  * @param rhs The right-hand side point.
- * @param rhs 右侧坐标点。
  * @param withManhattanDistance Whether to prioritize sorting by Manhattan distance.
- * @param withManhattanDistance 是否优先按曼哈顿距离排序。
  * @return The comparison result.
  * 返回比较结果。
- */
+*/
 private fun compareWithPosition(
     lhs: QuantityPoint2<FltX>,
     rhs: QuantityPoint2<FltX>,
@@ -59,12 +56,10 @@ private fun compareWithPosition(
  * 按形状和重量比较两个投影的放置优先级。
  *
  * @param lhs The left-hand side projection.
- * @param lhs 左侧投影。
  * @param rhs The right-hand side projection.
- * @param rhs 右侧投影。
  * @return The comparison result.
  * 返回比较结果。
- */
+*/
 fun <P : ProjectivePlane> compareWithShapeAndWeight(
     lhs: Projection<*, FltX, P>,
     rhs: Projection<*, FltX, P>
@@ -106,12 +101,9 @@ fun <P : ProjectivePlane> compareWithShapeAndWeight(
  * 自底向上左对齐算法，在二维投影平面上求解装箱问题。
  *
  * @property space The 2D shape of the container.
- * @property space 容器的二维形状。
  * @property plane The projection plane.
- * @property plane 投影平面。
  * @property config The algorithm configuration.
- * @property config 算法配置。
- */
+*/
 class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private val space: Container2Shape<P>,
     private val plane: P,
@@ -130,14 +122,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * 自底向上左对齐算法的配置。
      *
      * @property withDisplacementX Whether to enable displacement search along the X axis.
-     * @property withDisplacementX 是否启用 X 轴方向的位移搜索。
      * @property withDisplacementY Whether to enable displacement search along the Y axis.
-     * @property withDisplacementY 是否启用 Y 轴方向的位移搜索。
      * @property comparator The three-way comparator for projections, determining placement priority.
-     * @property comparator 投影的三路比较器，决定放置优先级。
      * @property positionComparator The three-way comparator for positions, determining candidate point priority.
-     * @property positionComparator 位置的三路比较器，决定候选点优先级。
-     */
+    */
     data class Config<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,
         val withDisplacementY: Boolean = true,
@@ -199,7 +187,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param promise 用于发送找到的放置方案的通道
      * @param placements 当前放置方案的可变列表
      * @param projections 待放置的投影列表（已排序）
-     */
+    */
     private suspend fun bla(
         promise: Channel<List<QuantityPlacement2<*, FltX, P>?>>,
         placements: MutableList<QuantityPlacement2<*, FltX, P>?>,
@@ -298,7 +286,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param placements 已放置的物料列表
      * @param reverse 是否按逆序（从远到近）排列结果
      * @return 可行放置点列表
-     */
+    */
     private suspend fun feasiblePoints(
         placements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
@@ -318,7 +306,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param fixedPlacements 用于判断重叠和包含关系的已固定放置列表
      * @param reverse 是否按逆序（从远到近）排列结果
      * @return 可行放置点列表
-     */
+    */
     private suspend fun feasiblePoints(
         targetPlacements: List<QuantityPlacement2<*, FltX, P>?>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>,
@@ -381,7 +369,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param placement 当前放置
      * @param fixedPlacements 已固定的放置列表
      * @return 所有可达的实际可行点列表
-     */
+    */
     private fun actualFeasiblePoints(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -426,7 +414,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param placement 当前放置
      * @param fixedPlacements 已固定的放置列表
      * @return X 轴方向的实际可行点，若已在原点则返回 null
-     */
+    */
     private fun actualFeasiblePointOnX(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -465,7 +453,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param placement 当前放置
      * @param fixedPlacements 已固定的放置列表
      * @return Y 轴方向的实际可行点，若已在原点则返回 null
-     */
+    */
     private fun actualFeasiblePointOnY(
         point: QuantityPoint2<FltX>,
         placement: QuantityPlacement2<*, FltX, *>,
@@ -495,6 +483,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             point2(x = point.x, y = maxY)
         }
     }
+
     /**
      * 检查放置是否可行（不越界、不重叠、满足堆叠约束）。
      * Check whether a placement is feasible (within bounds, no overlap, satisfying stacking constraints).
@@ -502,7 +491,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
      * @param placement 待检查的放置
      * @param fixedPlacements 已固定的放置列表
      * @return 可行则返回 Ok(true)，不可行返回 Ok(false)，出错返回 Failed/Fatal
-     */
+    */
     private suspend fun feasible(
         placement: QuantityPlacement2<*, FltX, P>,
         fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>

@@ -9,7 +9,7 @@
  * The Lorenz 96 model is an N-dimensional chaotic system proposed by Edward Lorenz in 1996.
  * This model is used for studying atmospheric predictability, serving as a common chaotic test model in meteorology.
  * Commonly used for weather forecasting, data assimilation, and chaos theory research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property a 强迫参数 / Forcing parameter
  * @property h 时间步长 / Time step size
- */
+*/
 data class Lorenz96Model(
     val a: Flt64 = Flt64(8.0),
     val h: Flt64 = Flt64(0.01)
@@ -50,7 +50,7 @@ data class Lorenz96Model(
  *
  * @property model 底层 Lorenz 96 模型实例 / Underlying Lorenz 96 model instance
  * @property n 系统维数 / System dimension
- */
+*/
 data class Lorenz96ModelGenerator(
     val model: Lorenz96Model = Lorenz96Model(),
     val n: Int = 40,

@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [IfThenFunction]，实现条件-结果联动的线性化建模。
  *
  * Provides [IfThenFunction] for linearized modeling of conditional-consequent linkage.
- */
+*/
 
 /**
  * 若-则函数：当 condition > 0 时 y = then_poly，否则 y = 0。
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class IfThenFunction<V>(
     val condition: LinearPolynomial<V>,
     val thenPoly: LinearPolynomial<V>,
@@ -159,7 +159,7 @@ class IfThenFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [IfThenFunction] 实例 / [IfThenFunction] instance
-         */
+        */
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             thenPoly: LinearPolynomial<V>,
@@ -182,7 +182,7 @@ class IfThenFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
-         */
+        */
         fun <V> from(
             inequality: LinearConstraintInput<V>,
             converter: IntoValue<V>,

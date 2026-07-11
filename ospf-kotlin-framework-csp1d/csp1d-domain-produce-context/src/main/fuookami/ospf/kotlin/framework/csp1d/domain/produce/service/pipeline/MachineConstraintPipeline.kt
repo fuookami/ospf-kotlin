@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.framework.model.*
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
  * @property machines 设备列表 / Machine list
- */
+*/
 class MachineConstraintPipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val machines: List<Machine<V>>
@@ -66,7 +66,7 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
      * @param model 线性元模型 / Linear meta model
      * @param machineIndex 设备索引 / Machine index
      * @param machine 设备 / Machine
-     */
+    */
     private fun addMachineBatchConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         machineIndex: Int,
@@ -107,7 +107,7 @@ class MachineConstraintPipeline<V : RealNumber<V>>(
      * @param model 线性元模型 / Linear meta model
      * @param machineIndex 设备索引 / Machine index
      * @param machine 设备 / Machine
-     */
+    */
     private fun addMachineCapacityConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         machineIndex: Int,

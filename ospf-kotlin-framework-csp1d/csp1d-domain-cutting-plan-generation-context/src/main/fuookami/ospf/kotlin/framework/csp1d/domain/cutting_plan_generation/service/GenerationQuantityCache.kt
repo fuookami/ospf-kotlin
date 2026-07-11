@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * A cache for generation quantities, caching computed repeat width and max repeat count results to avoid redundant computation.
  *
  * @property arithmetic 量算术运算器，用于执行量的加法和减法操作 / The quantity arithmetic used to perform addition and subtraction on quantities.
- */
+*/
 internal class GenerationQuantityCache<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>
 ) {
@@ -37,7 +37,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      * @param width 单次宽度 / The width per occurrence.
      * @param times 重复次数 / The number of repetitions.
      * @return 重复后的总宽度 / The total width after repetition.
-     */
+    */
     fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         val key = RepeatWidthKey(width, times)
         val existing = repeatWidthCache[key]
@@ -58,7 +58,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      * @param width 单次宽度 / The width per occurrence.
      * @param availableWidth 可用总宽度 / The total available width.
      * @return 最大重复次数 / The maximum number of repetitions.
-     */
+    */
     fun maxRepeatCount(width: Quantity<V>, availableWidth: Quantity<V>): UInt64 {
         val key = MaxRepeatCountKey(width, availableWidth)
         val existing = maxRepeatCountCache[key]
@@ -79,7 +79,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      * @param width 单次宽度 / The width per occurrence.
      * @param times 重复次数 / The number of repetitions.
      * @return 重复后的总宽度 / The total width after repetition.
-     */
+    */
     private fun computeRepeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {
@@ -95,7 +95,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      * @param width 单次宽度 / The width per occurrence.
      * @param availableWidth 可用总宽度 / The total available width.
      * @return 最大重复次数 / The maximum number of repetitions.
-     */
+    */
     private fun computeMaxRepeatCount(width: Quantity<V>, availableWidth: Quantity<V>): UInt64 {
         if ((availableWidth.value partialOrd width.value) is Order.Less) {
             return UInt64.zero
@@ -115,7 +115,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      *
      * @property width 单次宽度 / The width per occurrence.
      * @property times 重复次数 / The number of repetitions.
-     */
+    */
     private data class RepeatWidthKey<V : RealNumber<V>>(
         val width: Quantity<V>,
         val times: UInt64
@@ -127,7 +127,7 @@ internal class GenerationQuantityCache<V : RealNumber<V>>(
      *
      * @property width 单次宽度 / The width per occurrence.
      * @property availableWidth 可用总宽度 / The total available width.
-     */
+    */
     private data class MaxRepeatCountKey<V : RealNumber<V>>(
         val width: Quantity<V>,
         val availableWidth: Quantity<V>

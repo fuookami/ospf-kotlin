@@ -10,10 +10,13 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 
 /** 创建环境函数类型 / Creating environment function type */
 typealias CreatingEnvironmentFunction = (EnvrConfig) -> Try
+
 /** COPT 原生回调函数类型 / COPT native callback function type */
 typealias NativeCallback = CallbackBase.() -> Unit
+
 /** 线性求解器回调函数类型 / Linear solver callback function type */
 typealias LinearFunction = suspend (SolverStatus?, Model, List<Var>, List<Constraint>) -> Try
+
 /** 二次求解器回调函数类型 / Quadratic solver callback function type */
 typealias QuadraticFunction = suspend (SolverStatus?, Model, List<Var>, List<QConstraint>) -> Try
 
@@ -35,17 +38,18 @@ enum class Point {
  * @property nativeCallback COPT 原生回调函数 / COPT native callback function
  * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
  * @property map 回调函数映射 / callback function mapping
- */
+*/
 class CoptLinearSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<LinearFunction>> = EnumMap(Point::class.java)
 ) : Copyable<CoptLinearSolverCallBack> {
+
     /**
      * 设置原生回调函数 / Set native callback function
      *
      * @param function 原生回调函数 / native callback function
-     */
+    */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
@@ -55,7 +59,7 @@ class CoptLinearSolverCallBack(
      * 设置创建环境函数 / Set creating environment function
      *
      * @param function 创建环境函数 / creating environment function
-     */
+    */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
@@ -67,7 +71,7 @@ class CoptLinearSolverCallBack(
      * @param point 回调时机 / callback point
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     operator fun set(point: Point, function: LinearFunction): CoptLinearSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
         return this
@@ -78,35 +82,39 @@ class CoptLinearSolverCallBack(
      *
      * @param function 创建环境函数 / creating environment function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
+
     /**
      * 设置建模完成后的回调 / Set after modeling callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterModeling(function: LinearFunction) = set(Point.AfterModeling, function)
+
     /**
      * 设置配置阶段的回调 / Set configuration callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun configuration(function: LinearFunction) = set(Point.Configuration, function)
+
     /**
      * 设置分析解阶段的回调 / Set analyzing solution callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun analyzingSolution(function: LinearFunction) = set(Point.AnalyzingSolution, function)
+
     /**
      * 设置求解失败后的回调 / Set after failure callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterFailure(function: LinearFunction) = set(Point.AfterFailure, function)
 
     /**
@@ -114,14 +122,15 @@ class CoptLinearSolverCallBack(
      *
      * @param point 回调时机 / callback point
      * @return 是否包含 / whether contained
-     */
+    */
     fun contains(point: Point) = map.containsKey(point)
+
     /**
      * 获取指定时机的回调函数列表 / Get callback function list at specified point
      *
      * @param point 回调时机 / callback point
      * @return 回调函数列表 / callback function list
-     */
+    */
     fun get(point: Point): List<LinearFunction>? = map[point]
 
     /**
@@ -129,7 +138,7 @@ class CoptLinearSolverCallBack(
      *
      * @param env 环境配置 / environment configuration
      * @return 操作结果 / operation result
-     */
+    */
     fun execIfContain(env: EnvrConfig): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
@@ -143,7 +152,7 @@ class CoptLinearSolverCallBack(
      * @param variables 变量列表 / variable list
      * @param constraints 约束列表 / constraint list
      * @return 操作结果 / operation result
-     */
+    */
     suspend fun execIfContain(
         point: Point,
         status: SolverStatus?,
@@ -164,7 +173,7 @@ class CoptLinearSolverCallBack(
      * 复制回调管理器 / Copy callback manager
      *
      * @return 回调管理器副本 / callback manager copy
-     */
+    */
     override fun copy(): CoptLinearSolverCallBack {
         return CoptLinearSolverCallBack(
             nativeCallback = nativeCallback,
@@ -180,17 +189,18 @@ class CoptLinearSolverCallBack(
  * @property nativeCallback COPT 原生回调函数 / COPT native callback function
  * @property creatingEnvironmentFunction 创建环境函数 / creating environment function
  * @property map 回调函数映射 / callback function mapping
- */
+*/
 class CoptQuadraticSolverCallBack(
     internal var nativeCallback: NativeCallback? = null,
     internal var creatingEnvironmentFunction: CreatingEnvironmentFunction? = null,
     private val map: MutableMap<Point, MutableList<QuadraticFunction>> = EnumMap(Point::class.java)
 ) : Copyable<CoptQuadraticSolverCallBack> {
+
     /**
      * 设置原生回调函数 / Set native callback function
      *
      * @param function 原生回调函数 / native callback function
-     */
+    */
     @JvmName("setNativeCallback")
     fun set(function: NativeCallback) {
         nativeCallback = function
@@ -200,7 +210,7 @@ class CoptQuadraticSolverCallBack(
      * 设置创建环境函数 / Set creating environment function
      *
      * @param function 创建环境函数 / creating environment function
-     */
+    */
     @JvmName("setCreatingEnvironmentFunction")
     fun set(function: CreatingEnvironmentFunction) {
         creatingEnvironmentFunction = function
@@ -212,7 +222,7 @@ class CoptQuadraticSolverCallBack(
      * @param point 回调时机 / callback point
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     operator fun set(point: Point, function: QuadraticFunction): CoptQuadraticSolverCallBack {
         map.getOrPut(point) { ArrayList() }.add(function)
         return this
@@ -223,35 +233,39 @@ class CoptQuadraticSolverCallBack(
      *
      * @param function 创建环境函数 / creating environment function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun creatingEnvironment(function: CreatingEnvironmentFunction) = set(function)
+
     /**
      * 设置建模完成后的回调 / Set after modeling callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterModeling(function: QuadraticFunction) = set(Point.AfterModeling, function)
+
     /**
      * 设置配置阶段的回调 / Set configuration callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun configuration(function: QuadraticFunction) = set(Point.Configuration, function)
+
     /**
      * 设置分析解阶段的回调 / Set analyzing solution callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun analyzingSolution(function: QuadraticFunction) = set(Point.AnalyzingSolution, function)
+
     /**
      * 设置求解失败后的回调 / Set after failure callback
      *
      * @param function 回调函数 / callback function
      * @return 当前回调管理器实例 / current callback manager instance
-     */
+    */
     fun afterFailure(function: QuadraticFunction) = set(Point.AfterFailure, function)
 
     /**
@@ -259,14 +273,15 @@ class CoptQuadraticSolverCallBack(
      *
      * @param point 回调时机 / callback point
      * @return 是否包含 / whether contained
-     */
+    */
     fun contains(point: Point) = map.containsKey(point)
+
     /**
      * 获取指定时机的回调函数列表 / Get callback function list at specified point
      *
      * @param point 回调时机 / callback point
      * @return 回调函数列表 / callback function list
-     */
+    */
     fun get(point: Point): List<QuadraticFunction>? = map[point]
 
     /**
@@ -274,7 +289,7 @@ class CoptQuadraticSolverCallBack(
      *
      * @param env 环境配置 / environment configuration
      * @return 操作结果 / operation result
-     */
+    */
     fun execIfContain(env: EnvrConfig): Try? {
         return creatingEnvironmentFunction?.invoke(env)
     }
@@ -288,7 +303,7 @@ class CoptQuadraticSolverCallBack(
      * @param variables 变量列表 / variable list
      * @param constraints 二次约束列表 / quadratic constraint list
      * @return 操作结果 / operation result
-     */
+    */
     suspend fun execIfContain(
         point: Point,
         status: SolverStatus?,
@@ -309,7 +324,7 @@ class CoptQuadraticSolverCallBack(
      * 复制回调管理器 / Copy callback manager
      *
      * @return 回调管理器副本 / callback manager copy
-     */
+    */
     override fun copy(): CoptQuadraticSolverCallBack {
         return CoptQuadraticSolverCallBack(
             nativeCallback = nativeCallback,

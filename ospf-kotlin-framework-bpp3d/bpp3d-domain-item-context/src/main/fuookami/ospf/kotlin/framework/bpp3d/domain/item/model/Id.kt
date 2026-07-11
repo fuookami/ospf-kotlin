@@ -10,17 +10,17 @@
  * value class 类型（本身已是语义化类型，满足类型安全意图）；
  * 仅将原 String id（ActualItem.id / BinType.typeCode / QuantityItem.id /
  * MaterialPackingProgramCandidate.id）改为标记接口。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 /**
  * 货物 id 标记接口 / Item id marker interface
- */
+*/
 interface ItemId
 
 /**
  * 箱型 id 标记接口 / Bin type id marker interface
- */
+*/
 interface BinTypeId
 
 /**
@@ -28,7 +28,7 @@ interface BinTypeId
  *
  * 供未来 infrastructure 侧 value class（MaterialNo）实现接口后使用。
  * 当前 Material.no 仍为 MaterialNo 类型（已是语义化 value class）。
- */
+*/
 interface MaterialId
 
 /**
@@ -36,7 +36,7 @@ interface MaterialId
  *
  * 供未来 infrastructure 侧 value class（PackageCode）实现接口后使用。
  * 当前 Package.code 仍为 PackageCode? 类型（已是语义化 value class）。
- */
+*/
 interface PackageId
 
 /**
@@ -45,7 +45,7 @@ interface PackageId
  * 用于拼接生成 ActualItem.id（如 MaterialPacker / LayerGenerationProgramCandidateAdapters），
  * 以及测试构造 ActualItem 实例。
  * value class 仅允许单字段，此处为简单 data class 承载单字段并 override toString 以保持原拼接行为。
- */
+*/
 data class ItemIdImpl(
     val value: String
 ) : ItemId {
@@ -56,14 +56,17 @@ data class ItemIdImpl(
  * ItemId 工厂函数：由 String 裸值构造 [ItemId] / Factory constructing an [ItemId] from a raw String value
  *
  * 供测试构造 ActualItem 实例使用，避免直接暴露 [ItemIdImpl] 构造器。
- */
+ *
+ * @param value raw string identifier to wrap / 待包装的原始字符串标识符
+ * @return an [ItemId] instance wrapping the given string value / 包装给定字符串值的 [ItemId] 实例
+*/
 fun itemIdOf(value: String): ItemId = ItemIdImpl(value)
 
 /**
  * BinTypeId 的默认实现：承载 String 裸值 / Default BinTypeId impl wrapping a raw String value
  *
  * 用于构造 BinType.typeCode，以及测试构造 BinType 实例。
- */
+*/
 data class BinTypeIdImpl(
     val value: String
 ) : BinTypeId {
@@ -72,5 +75,8 @@ data class BinTypeIdImpl(
 
 /**
  * BinTypeId 工厂函数：由 String 裸值构造 [BinTypeId] / Factory constructing a [BinTypeId] from a raw String value
- */
+ *
+ * @param value raw string identifier to wrap / 待包装的原始字符串标识符
+ * @return a [BinTypeId] instance wrapping the given string value / 包装给定字符串值的 [BinTypeId] 实例
+*/
 fun binTypeIdOf(value: String): BinTypeId = BinTypeIdImpl(value)

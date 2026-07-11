@@ -19,17 +19,24 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 从零燃油重量点插值的最小低甲板载荷约束。Minimum low-deck payload constraint interpolated from zero-fuel weight points.
+ * Minimum low-deck payload constraint interpolated from zero-fuel weight points.
+ * 从零燃油重量点插值的最小低甲板载荷约束。
  *
- * @property aircraftModel 参数。
- * @property points 参数。
- * @property totalWeight 参数。
- */
+ * @property points The list of low payload interpolation points. / 低载荷插值点列表
+*/
 class MinLowPayload(
     private val aircraftModel: AircraftModel,
     val points: List<Point>,
     private val totalWeight: TotalWeight
 ) {
+
+    /**
+     * A low payload interpolation point.
+     * 低载荷插值点。
+     *
+     * @property minLowPayload The minimum low payload at this point. / 此点的最小低载荷
+     * @property zfw The zero-fuel weight at this point. / 此点的零燃油重量
+    */
     data class Point(
         val minLowPayload: Quantity<Flt64>,
         val zfw: Quantity<Flt64>
@@ -44,6 +51,13 @@ class MinLowPayload(
         )
     }
 
+    /**
+     * Registers the minimum low payload symbol with the given model.
+     * 将最小低载荷符号注册到给定模型中。
+     *
+     * @param model The linear meta model to register with. / 要注册的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -98,6 +112,13 @@ class MinLowPayload(
         return ok
     }
 
+    /**
+     * Interpolates the minimum low payload for the given zero-fuel weight.
+     * 为给定的零燃油重量插值最小低载荷。
+     *
+     * @param zfw The zero-fuel weight value. / 零燃油重量值
+     * @return The interpolated minimum low payload value. / 插值后的最小低载荷值
+    */
     private fun interpolate(zfw: Flt64): Flt64 {
         val sorted = points
             .map {

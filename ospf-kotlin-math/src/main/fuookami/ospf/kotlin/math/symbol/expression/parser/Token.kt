@@ -4,7 +4,7 @@
  *
  * 定义布尔表达式解析器使用的词法单元类型。
  * Defines token types used in the boolean expression parser.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.*
 /**
  * 词法单元类型
  * Token Type
- */
+*/
 enum class TokenType {
     // 字面里/ Literals
     /** 布尔常量 true / Boolean constant true */
@@ -63,60 +63,76 @@ enum class TokenType {
     LE,          // <=
     /** 大于 / Greater Than */
     GT,          // >
+
     /** 大于等于 / Greater Than or Equal */
     GE,          // >=
 
     // 条件关键字 / Conditional Keywords
     /** if 关键字 / if keyword */
     IF,
+
     /** then 关键字 / then keyword */
     THEN,
+
     /** else 关键字 / else keyword */
     ELSE,
+
     /** fi 关键字 / fi keyword */
     FI,
 
     // 算术操作符 / Arithmetic Operators
     /** 加号 / Plus */
     PLUS,        // +
+
     /** 减号 / Minus */
     MINUS,       // -
+
     /** 乘号 / Star */
     STAR,        // *
+
     /** 除号 / Slash */
     SLASH,       // /
+
     /** 取模 / Percent */
     PERCENT,     // %
+
     /** 幂运算符 ^ / Caret (power) */
     CARET,       // ^
+
     /** 幂运算符 ** / Double star (power) */
     DOUBLE_STAR, // **
 
     // 条件操作符 / Conditional Operators
     /** 问号（三元条件） / Question mark (ternary) */
     QUESTION,    // ?
+
     /** 冒号（三元条件） / Colon (ternary) */
     COLON,       // :
 
     // 逻辑操作符（符号形式） / Logical Operators (symbolic form)
     /** 逻辑与 && / Logical AND */
     AMPERSAND_AMPERSAND, // &&
+
     /** 逻辑或 || / Logical OR */
     PIPE_PIPE,           // ||
+
     /** 逻辑非 ! / Logical NOT */
     BANG,                // !
 
     // 其他符号 / Other Symbols
     /** 左括号 / Left parenthesis */
     LPAREN,      // (
+
     /** 右括号 / Right parenthesis */
     RPAREN,      // )
+
     /** 逗号 / Comma */
     COMMA,       // ,
 
     // 特殊 / Special
     /** 文件结束 / End of file */
     EOF,
+
     /** 未知/错误 / Unknown/Error */
     UNKNOWN
 }
@@ -131,7 +147,7 @@ enum class TokenType {
  * @property type 词法单元类型 / Token type
  * @property value 词法单元的字符串倌/ String value of the token
  * @property position 词法单元在输入中的位置（起始索引， Position in input (start index)
- */
+*/
 data class Token(
     val type: TokenType,
     val value: String,
@@ -150,7 +166,7 @@ data class Token(
          *
          * @param position 位置索引 / Position index
          * @return EOF 词法单元 / EOF token
-         */
+        */
         fun eof(position: Int = 0): Token = Token(TokenType.EOF, "", position)
 
         /**
@@ -160,7 +176,7 @@ data class Token(
          * @param value 未知值 / Unknown value
          * @param position 位置索引 / Position index
          * @return 未知词法单元 / Unknown token
-         */
+        */
         fun unknown(value: String, position: Int = 0): Token = Token(TokenType.UNKNOWN, value, position)
     }
 }
@@ -170,7 +186,7 @@ data class Token(
  * Check if token is a comparison operator
  *
  * @return 是否是比较操作符 / Whether it is a comparison operator
- */
+*/
 fun Token.isComparisonOperator(): Boolean = type in listOf(
     TokenType.EQ, TokenType.NE, TokenType.LT, TokenType.LE, TokenType.GT, TokenType.GE
 )
@@ -180,7 +196,7 @@ fun Token.isComparisonOperator(): Boolean = type in listOf(
  * Check if token is a pattern match operator
  *
  * @return 是否是模式匹配操作符 / Whether it is a pattern match operator
- */
+*/
 fun Token.isPatternOperator(): Boolean = type in listOf(
     TokenType.LIKE, TokenType.CONTAINS, TokenType.PREFIX, TokenType.SUFFIX, TokenType.REGEX, TokenType.EXACT
 )
@@ -190,7 +206,7 @@ fun Token.isPatternOperator(): Boolean = type in listOf(
  * Convert token type to comparison operator
  *
  * @return 比较操作符，不支持时返回 null / Comparison operator, null if not supported
- */
+*/
 fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
     TokenType.EQ -> ComparisonOperator.Eq
     TokenType.NE -> ComparisonOperator.Ne
@@ -206,7 +222,7 @@ fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
  * Convert token type to pattern match mode
  *
  * @return 模式匹配模式，不支持时返回 null / Pattern match mode, null if not supported
- */
+*/
 fun TokenType.toPatternMatchMode(): PatternMatchMode? = when (this) {
     TokenType.LIKE -> PatternMatchMode.Like
     TokenType.CONTAINS -> PatternMatchMode.Contains

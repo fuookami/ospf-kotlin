@@ -20,11 +20,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束沿机身每个检查点的累积载荷重量。Constrains cumulative load weight at each checkpoint along the fuselage.
  *
- * @property aircraftModel 参数。
- * @property maxCumulativeLoadWeight 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
+ * @property maxCumulativeLoadWeight The maximum cumulative load weight limits at checkpoints / 各检查点的最大累积载荷重量限制
+ * @property positions The list of cargo positions / 货物位置列表
+ * @property load The load estimation model / 载荷估算模型
+*/
 class CumulativeLoadWeightLimit(
     private val aircraftModel: AircraftModel,
     private val maxCumulativeLoadWeight: MaxCumulativeLoadWeight,

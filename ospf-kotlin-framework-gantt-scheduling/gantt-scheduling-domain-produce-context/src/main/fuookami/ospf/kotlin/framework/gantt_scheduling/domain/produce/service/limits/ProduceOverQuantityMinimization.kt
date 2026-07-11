@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param threshold 阈值函数 / Threshold function
  * @param coefficient 成本系数函数 / Cost coefficient function
  * @param name 管道名称 / Pipeline name
- */
+*/
 class ProduceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

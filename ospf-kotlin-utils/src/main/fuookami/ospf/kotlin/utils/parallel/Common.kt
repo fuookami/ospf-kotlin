@@ -2,7 +2,7 @@
  * Common utilities for parallel operations including worker pool and concurrency control.
  *
  * 提供并行操作的公共工具，包括工作线程池和并发控制。
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import kotlin.math.*
@@ -45,7 +45,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * - 协程创建数量 = concurrentAmount（固定）
  * - 任务分发通过 Channel，不会预创建大量协程
  * - 大集合场景下不会有协程爆发问题
- */
+*/
 
 /**
  * Default concurrent amount based on collection size and available processors.
@@ -56,7 +56,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @receiver Collection / 集合
  * @return Default concurrent amount / 默认并发量
- */
+*/
 val Collection<*>.defaultConcurrentAmount: ULong
     get() = if (this.isEmpty()) {
         1uL
@@ -78,7 +78,7 @@ val Collection<*>.defaultConcurrentAmount: ULong
  *
  * @receiver Iterable / 可迭代对象
  * @return Default concurrent amount / 默认并发量
- */
+*/
 val Iterable<*>.defaultConcurrentAmount: ULong
     get() = if (this is Collection<*>) {
         this.defaultConcurrentAmount
@@ -96,7 +96,7 @@ val Iterable<*>.defaultConcurrentAmount: ULong
  * @param concurrentAmount Specified concurrent amount / 指定的并发量
  * @param default Default concurrent amount / 默认并发量
  * @return Resolved concurrent amount / 解析后的并发量
- */
+*/
 @PublishedApi
 internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): ULong {
     return concurrentAmount ?: default
@@ -109,7 +109,7 @@ internal fun resolveConcurrentAmount(concurrentAmount: ULong?, default: ULong): 
  *
  * @param concurrentAmount Concurrency limit / 并发上限
  * @return Semaphore instance / 信号量实例
- */
+*/
 @PublishedApi
 internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
     return Semaphore(concurrentAmount.toInt().coerceAtLeast(1))
@@ -123,7 +123,7 @@ internal fun createConcurrencySemaphore(concurrentAmount: ULong): Semaphore {
  * @param semaphore Semaphore / 信号量
  * @param block Execution block / 执行块
  * @return Execution result / 执行结果
- */
+*/
 @PublishedApi
 internal suspend inline fun <T> withConcurrencyLimit(
     semaphore: Semaphore,
@@ -147,7 +147,7 @@ internal suspend inline fun <T> withConcurrencyLimit(
  * @param T Task input type / 任务输入类型
  * @property index Task index / 任务索引
  * @property element Task element / 任务元素
- */
+*/
 @PublishedApi
 internal data class WorkerPoolTask<T>(
     val index: Int,
@@ -162,7 +162,7 @@ internal data class WorkerPoolTask<T>(
  * @param R Result type / 结果类型
  * @property index Task index (for ordering) / 任务索引（用于保持顺序）
  * @property result Execution result / 执行结果
- */
+*/
 @PublishedApi
 internal data class WorkerPoolResult<R>(
     val index: Int,
@@ -179,7 +179,7 @@ internal data class WorkerPoolResult<R>(
  * @param R Target type / 目标类型
  * @param value Value to cast / 待转换值
  * @return Casted value / 转换后的值
- */
+*/
 @PublishedApi
 @Suppress("UNCHECKED_CAST")
 internal fun <R> castWorkerPoolResult(value: Any?): R {
@@ -194,7 +194,7 @@ internal fun <R> castWorkerPoolResult(value: Any?): R {
  * @param R 结果类型 / Result type
  * @param results 结果数组 / Result array
  * @return 类型化结果列表 / Typed result list
- */
+*/
 @PublishedApi
 internal fun <R> castWorkerPoolResultList(results: Array<Any?>): List<R> {
     return results.map { castWorkerPoolResult(it) }
@@ -214,7 +214,7 @@ internal fun <R> castWorkerPoolResultList(results: Array<Any?>): List<R> {
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 提取器函数 / Extractor function
  * @return 结果列表（保持原顺序）/ Result list (preserves original order)
- */
+*/
 @PublishedApi
 internal suspend inline fun <R, T> executeWithWorkerPool(
     elements: Iterable<T>,
@@ -304,7 +304,7 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
  * @return 结果列表或错误 / Result list or error
- */
+*/
 @PublishedApi
 internal suspend inline fun <R, T> executeTryWithWorkerPool(
     elements: Iterable<T>,
@@ -386,7 +386,7 @@ internal suspend inline fun <R, T> executeTryWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
  * @return 结果列表或错误集合 / Result list or error collection
- */
+*/
 @PublishedApi
 internal suspend inline fun <R, T> executeExTryWithWorkerPool(
     elements: Iterable<T>,
@@ -464,7 +464,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
  *
  * @receiver 错误列表 / Error list
  * @param ret 结果对象 / Result object
- */
+*/
 @PublishedApi
 internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
     when (ret) {
@@ -482,7 +482,7 @@ internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
  * @param value 成功时的值 / Value for success case
  * @param errors 错误列表 / Error list
  * @return 如果无错误返回 Ok，否则返回 Fatal / Ok if no errors, Fatal otherwise
- */
+*/
 @PublishedApi
 internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): ExRet<T> {
     return if (errors.isEmpty()) {
@@ -507,7 +507,7 @@ internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): ExRet<T> 
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 谓词函数 / Predicate function
  * @return 谓词结果列表 / Predicate result list
- */
+*/
 @PublishedApi
 internal suspend inline fun <T> executePredicateWithWorkerPool(
     elements: Iterable<T>,
@@ -527,7 +527,7 @@ internal suspend inline fun <T> executePredicateWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 谓词函数（返回 Ret）/ Predicate function (returns Ret)
  * @return 谓词结果列表或错误 / Predicate result list or error
- */
+*/
 @PublishedApi
 internal suspend inline fun <T> executeTryPredicateWithWorkerPool(
     elements: Iterable<T>,
@@ -547,7 +547,7 @@ internal suspend inline fun <T> executeTryPredicateWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param predicate 谓词函数 / Predicate function
  * @return 过滤结果（元素 + 布尔值）/ Filter result (element + boolean)
- */
+*/
 @PublishedApi
 internal suspend inline fun <T> executeFilterWithWorkerPool(
     elements: Iterable<T>,
@@ -569,7 +569,7 @@ internal suspend inline fun <T> executeFilterWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param predicate 谓词函数（返回 Ret）/ Predicate function (returns Ret)
  * @return 过滤结果或错误 / Filter result or error
- */
+*/
 @PublishedApi
 internal suspend inline fun <T> executeTryFilterWithWorkerPool(
     elements: Iterable<T>,
@@ -596,7 +596,7 @@ internal suspend inline fun <T> executeTryFilterWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 提取器函数 / Extractor function
  * @return 展平后的结果列表 / Flattened result list
- */
+*/
 @PublishedApi
 internal suspend inline fun <R, T> executeFlatMapWithWorkerPool(
     elements: Iterable<T>,
@@ -618,7 +618,7 @@ internal suspend inline fun <R, T> executeFlatMapWithWorkerPool(
  * @param concurrentAmount 并发上限 / Concurrency limit
  * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
  * @return 展平后的结果列表或错误 / Flattened result list or error
- */
+*/
 @PublishedApi
 internal suspend inline fun <R, T> executeTryFlatMapWithWorkerPool(
     elements: Iterable<T>,

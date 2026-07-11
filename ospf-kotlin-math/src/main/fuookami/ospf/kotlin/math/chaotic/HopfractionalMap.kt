@@ -8,7 +8,7 @@
  * The Hopfractional map is a fractional-order-based chaotic map
  * that generates chaotic sequences through control parameters,
  * commonly used for chaotic encryption and pseudo-random number generation.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property q 控制参数 q / Control parameter q
  * @property k 控制参数 k / Control parameter k
  * @property s 控制参数 s / Control parameter s
- */
+*/
 data class HopfractionalMap<V : FloatingNumber<V>>(
     val p: V,
     val q: V,
@@ -57,7 +57,7 @@ data class HopfractionalMap<V : FloatingNumber<V>>(
  *
  * @property map Hopfractional 映射实例 / Hopfractional map instance
  * @property iterations 迭代次数 / Number of iterations
- */
+*/
 data class HopfractionalMapGenerator(
     val map: HopfractionalMap<Flt64> = HopfractionalMap(),
     val iterations: UInt64 = UInt64(1000UL),

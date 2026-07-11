@@ -14,7 +14,7 @@
  * - sumAxis: Σ₌a[i₌...,i₌...,iₙ] (沿指定轴求和 / sum along specified axis)
  * - sumAxes: Σₖ₌₌.m a[i₌...,i₌...,iₙ] (沿多轴求和/ sum along multiple axes)
  * - cumsumAxis: a[i₌...,i₌...,iₙ] + cumsum[i₌...,iₖ₋₌...,iₙ] (累积求和 / cumulative sum)
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property axis 越界的轴索引 / The out-of-bounds axis index
  * @property maxAxis 最大合法轴索引 / The maximum valid axis index
- */
+*/
 class AxisOutOfBoundsException(
     val axis: Int,
     val maxAxis: Int
@@ -50,7 +50,7 @@ class AxisOutOfBoundsException(
  *
  * @param zero 零值（累加初始值） / The zero value for type T (initial accumulator)
  * @return 所有元素之和 / The sum of all elements
- */
+*/
 fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T> {
     var acc = zero
     for (i in 0 until size) {
@@ -73,7 +73,7 @@ fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T> {
  * @param axis 求和轴索引（从 0 开始） / The axis to sum along (0-indexed)
  * @param zero 零值（累加初始值） / The zero value for type T
  * @return 移除求和轴后的新数组结果 / Result of a new MultiArray with the summed axis removed
- */
+*/
 fun <T> AbstractMultiArray<T, *>.sumAxisSafe(axis: Int, zero: T): Ret<MultiArray<T, DynShape>> where T : Ring<T> {
     val ndim = shape.dimension
     if (axis !in 0 until ndim) {
@@ -132,7 +132,7 @@ fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): Ret<MultiArray<T, 
  * @param axes 求和轴索引数组 / The axes to sum along
  * @param zero 零值（累加初始值） / The zero value for type T
  * @return 移除求和轴后的新数组结果 / Result of a new MultiArray with the summed axes removed
- */
+*/
 fun <T> AbstractMultiArray<T, *>.sumAxesSafe(axes: IntArray, zero: T): Ret<MultiArray<T, DynShape>> where T : Ring<T> {
     if (axes.isEmpty()) {
         // No axes to sum, return copy with DynShape / 无求和轴，返回 DynShape 副本
@@ -201,7 +201,7 @@ fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): Ret<MultiArra
  * @param axis 累积求和轴索引 / The axis to cumsum along
  * @param zero 零值（累加初始值） / The zero value for type T
  * @return 包含累积和的新数组结果 / Result of a new MultiArray with cumulative sums
- */
+*/
 fun <T> AbstractMultiArray<T, *>.cumsumAxisSafe(axis: Int, zero: T): Ret<MultiArray<T, DynShape>> where T : Ring<T> {
     val ndim = shape.dimension
     if (axis !in 0 until ndim) {

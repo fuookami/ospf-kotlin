@@ -1,7 +1,7 @@
 /**
  * Material packing solver executor.
  * 物料装箱求解器执行器。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
  * 候选装箱方案列表。
  * @property objective The objective function configuration.
  * 目标函数配置。
- */
+*/
 data class MaterialPackingMipRequest<V : FloatingNumber<V>>(
     val demands: Map<MaterialKey, UInt64>,
     val candidates: List<MaterialPackingProgramCandidate<V>>,
@@ -29,7 +29,7 @@ data class MaterialPackingMipRequest<V : FloatingNumber<V>>(
 /**
  * Material packing MIP status.
  * 物料装箱混合整数规划状态。
- */
+*/
 enum class MaterialPackingMipStatus {
     Optimal,
     Infeasible
@@ -51,7 +51,7 @@ enum class MaterialPackingMipStatus {
  * 求解耗时（毫秒）。
  * @property rawStatus The raw solver status string, nullable.
  * 原始求解器状态信息，可为空。
- */
+*/
 data class MaterialPackingMipResult(
     val status: MaterialPackingMipStatus,
     val selections: Map<Int, UInt64> = emptyMap(),
@@ -64,8 +64,9 @@ data class MaterialPackingMipResult(
 /**
  * Interface for material packing solver executor.
  * 物料装箱求解器执行器接口。
- */
+*/
 interface MaterialPackingSolverExecutor {
+
     /**
      * Solve the material packing MIP problem.
      * 求解物料装箱混合整数规划问题。
@@ -76,6 +77,6 @@ interface MaterialPackingSolverExecutor {
      * 物料装箱混合整数规划请求。
      * @return The material packing MIP result.
      * 物料装箱混合整数规划结果。
-     */
+    */
     suspend fun <V : FloatingNumber<V>> solve(request: MaterialPackingMipRequest<V>): MaterialPackingMipResult
 }

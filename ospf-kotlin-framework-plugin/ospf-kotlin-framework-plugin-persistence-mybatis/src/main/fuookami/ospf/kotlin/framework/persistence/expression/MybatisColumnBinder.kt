@@ -17,7 +17,7 @@
  * val where = UserSchema.predicate { (status eq "active") and (name like "%test%") }
  * val users = repository.find(where)
  * ```
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.utils.meta_programming.NameTransfer
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.meta_programming.NamingSystem
 /**
  * MyBatis 列名解析器函数类型
  * MyBatis column name resolver function type
- */
+*/
 typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
 /**
@@ -35,18 +35,19 @@ typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
  *
  * @property columnMapping 属性名到后端列名的映射 / Property name to backend column name mapping
  * @property namingTransfer 命名转换器，无映射时用于回退 / Naming transfer for fallback when no mapping found
- */
+*/
 class MybatisColumnBinder(
     private val columnMapping: Map<String, String> = emptyMap(),
     private val namingTransfer: NameTransfer = NameTransfer(NamingSystem.CamelCase, NamingSystem.SnakeCase)
 ) : ColumnBinder<String> {
+
     /**
      * 解析属性路径为后端列名
      * Resolve property path to backend column name
      *
      * @param path 属性路径 / Property path
      * @return 后端列名，无映射时回退到蛇形命名转换 / Backend column name, falls back to snake_case conversion when no mapping found
-     */
+    */
     override fun resolve(path: String): String? {
         return columnMapping[path] ?: namingTransfer(path)
     }
@@ -57,7 +58,7 @@ class MybatisColumnBinder(
  * Convert MybatisColumnBinder to MybatisColumnNameResolver
  *
  * @return MyBatis 列名解析器 / MyBatis column name resolver
- */
+*/
 fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = { path -> resolve(path) }
 
 /**
@@ -70,7 +71,7 @@ fun MybatisColumnBinder.asMybatisResolver(): MybatisColumnNameResolver = { path 
  * Falls back to camelCase -> snake_case conversion when no mapping found.
  *
  * @return MyBatis 列名解析器 / MyBatis column name resolver
- */
+*/
 fun HasColumnMapping.mybatisResolver(): MybatisColumnNameResolver {
     val binder = MybatisColumnBinder(columnMapping)
     return { path -> binder.resolve(path) }
@@ -82,7 +83,7 @@ fun HasColumnMapping.mybatisResolver(): MybatisColumnNameResolver {
  *
  * @param columnMapping 属性名到后端列名的显式映射 / Explicit property name to backend column name mapping
  * @return MyBatis 列名解析器 / MyBatis column name resolver
- */
+*/
 fun mybatisResolver(columnMapping: Map<String, String>): MybatisColumnNameResolver {
     val binder = MybatisColumnBinder(columnMapping)
     return { path -> binder.resolve(path) }

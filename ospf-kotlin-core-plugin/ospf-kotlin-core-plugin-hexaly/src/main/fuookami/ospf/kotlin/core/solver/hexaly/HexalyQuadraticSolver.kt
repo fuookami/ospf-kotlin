@@ -1,7 +1,7 @@
 /**
  * Hexaly quadratic solver
  * Hexaly 二次求解器
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.core.solver.hexaly
 
@@ -27,7 +27,7 @@ import com.hexaly.optimizer.*
  *
  * @property config solver configuration / 中文 求解器配置
  * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
- */
+*/
 class HexalyQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: HexalySolverCallBack? = null
@@ -85,7 +85,7 @@ class HexalyQuadraticSolver(
  * @property config solver configuration / 中文 求解器配置
  * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
  * @property statusCallBack solving status callback / 中文 求解状态回调
- */
+*/
 private class HexalyQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: HexalySolverCallBack? = null,
@@ -132,7 +132,7 @@ private class HexalyQuadraticSolverImpl(
      *
      * @param model quadratic tetrad model view / 中文 二次四元组模型视图
      * @return operation result / 中文 操作结果
-     */
+    */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
             warnIgnoredConstraintPriority("hexaly", model.nonNullConstraintPriorityAmount())
@@ -300,7 +300,7 @@ private class HexalyQuadraticSolverImpl(
      *
      * @param model quadratic tetrad model view / 中文 二次四元组模型视图
      * @return operation result / 中文 操作结果
-     */
+    */
     @OptIn(ExperimentalTime::class)
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
@@ -412,7 +412,7 @@ private class HexalyQuadraticSolverImpl(
      * 分析 Hexaly 求解器的解
      *
      * @return operation result / 中文 操作结果
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

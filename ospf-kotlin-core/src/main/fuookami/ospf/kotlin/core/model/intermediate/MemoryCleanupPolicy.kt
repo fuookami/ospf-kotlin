@@ -1,7 +1,7 @@
 /**
  * 内存清理策略
  * Memory cleanup policy
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.memoryUseOver
 /**
  * 内存清理策略对象，通过系统属性控制何时触发 GC。
  * Memory cleanup policy object controlling when to trigger GC via system properties.
- */
+*/
 internal object MemoryCleanupPolicy {
     private const val EnabledProperty = "ospf.core.model.memory.cleanup.enabled"
     private const val ThresholdProperty = "ospf.core.model.memory.cleanup.threshold"
@@ -19,7 +19,7 @@ internal object MemoryCleanupPolicy {
      * @return 内存清理是否启用
      * Check whether memory cleanup is enabled
      * @return whether memory cleanup is enabled
-     */
+    */
     private fun enabled(): Boolean {
         return System.getProperty(EnabledProperty)?.toBoolean() ?: false
     }
@@ -28,7 +28,7 @@ internal object MemoryCleanupPolicy {
      * @return 内存使用阈值，默认 0.8
      * Get memory usage threshold (0.0-1.0)
      * @return memory usage threshold, defaults to 0.8
-     */
+    */
     private fun threshold(): Double {
         return System.getProperty(ThresholdProperty)?.toDoubleOrNull()?.coerceIn(0.0, 1.0) ?: 0.8
     }
@@ -37,7 +37,7 @@ internal object MemoryCleanupPolicy {
      * @return 是否启用激进清理模式
      * Check whether aggressive cleanup mode is enabled
      * @return whether aggressive cleanup mode is enabled
-     */
+    */
     private fun aggressive(): Boolean {
         return System.getProperty(AggressiveProperty)?.toBoolean() ?: false
     }
@@ -46,7 +46,7 @@ internal object MemoryCleanupPolicy {
      * @return 当前内存使用是否超过阈值
      * Check whether current memory usage exceeds the threshold
      * @return whether current memory usage exceeds the threshold
-     */
+    */
     private fun shouldCleanup(): Boolean {
         return memoryUseOver(threshold())
     }
@@ -54,8 +54,7 @@ internal object MemoryCleanupPolicy {
     /** 根据条件执行 GC
      * @param shouldCleanup 是否需要执行清理
      * Trigger GC if the condition is met
-     * @param shouldCleanup whether cleanup should be performed
-     */
+    */
     private fun cleanupIfNeeded(shouldCleanup: Boolean) {
         if (shouldCleanup) {
             System.gc()

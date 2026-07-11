@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [IfInFunction]，实现 y = (a <= x <= b ? 1 : 0) 的线性化建模。
  *
  * Provides [IfInFunction] for linearized modeling of y = 1 if a <= x <= b, else y = 0.
- */
+*/
 
 /**
  * 区间条件函数：当 a <= x <= b 时 y = 1，否则 y = 0。
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class IfInFunction<V>(
     val x: LinearPolynomial<V>,
     val lower: V,
@@ -141,7 +141,7 @@ class IfInFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [IfInFunction] 实例 / [IfInFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lower: V,

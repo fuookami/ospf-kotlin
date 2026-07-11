@@ -5,7 +5,7 @@
  * 提供布尔表达式的本地求值能力，支持比较、逻辑、空值检查、集合成员判断、模式匹配。
  * Provides local evaluation capability for boolean expressions,
  * supporting comparison, logic, null check, set membership, and pattern matching.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
 import java.math.*
@@ -20,15 +20,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 提供属性路径到值的映射。
  * Provides mapping from property paths to values.
- */
+*/
 interface EvaluationContext {
+
     /**
      * 获取指定路径的倌
      * Get value at specified path
      *
      * @param path 属性路後/ Property path
      * @return 路径对应的值，如果不存在则返回 null / Value at path, null if not exists
-     */
+    */
     operator fun get(path: PropertyPath): Any?
 
     /**
@@ -37,14 +38,14 @@ interface EvaluationContext {
      *
      * @param path 属性路径 / Property path
      * @return 是否存在 / Whether exists
-     */
+    */
     fun contains(path: PropertyPath): Boolean
 }
 
 /**
  * 基于 Map 的求值上下文
  * Map-based evaluation context
- */
+*/
 class MapEvaluationContext private constructor(
     private val values: Map<PropertyPath, Any?>
 ) : EvaluationContext {
@@ -54,7 +55,7 @@ class MapEvaluationContext private constructor(
          *
          * @param values 属性路径到值的映射 / Property path to value mapping
          * @return 求值上下文 / Evaluation context
-         */
+        */
         fun fromPathMap(values: Map<PropertyPath, Any?>): MapEvaluationContext = MapEvaluationContext(values)
 
         /**
@@ -62,7 +63,7 @@ class MapEvaluationContext private constructor(
          *
          * @param values 字符串路径到值的映射 / String path to value mapping
          * @return 求值上下文 / Evaluation context
-         */
+        */
         fun fromStringMap(values: Map<String, Any?>): MapEvaluationContext = MapEvaluationContext(
             values.mapKeys { PropertyPath.parse(it.key) }
         )
@@ -76,7 +77,7 @@ class MapEvaluationContext private constructor(
 /**
  * 空求值上下文
  * Empty evaluation context
- */
+*/
 object EmptyEvaluationContext : EvaluationContext {
     override fun get(path: PropertyPath): Any? = null
 
@@ -89,7 +90,7 @@ object EmptyEvaluationContext : EvaluationContext {
  *
  * 返回 Trivalent 以支持三值逻辑。
  * Returns Trivalent to support three-valued logic.
- */
+*/
 typealias EvaluationResult = Trivalent
 
 /**
@@ -99,7 +100,7 @@ typealias EvaluationResult = Trivalent
  * @param expr 要求值的表达弌/ Expression to evaluate
  * @param context 求值上下文 / Evaluation context
  * @return 求值结果（三值逻辑， Evaluation result (three-valued logic)
- */
+*/
 fun evaluateBoolean(expr: BooleanExpression, context: EvaluationContext): EvaluationResult {
     return when (expr) {
         is BooleanConstant -> expr.value
@@ -129,7 +130,7 @@ fun evaluateBoolean(expr: BooleanExpression, context: EvaluationContext): Evalua
  * @param expr 要求值的表达式 / Expression to evaluate
  * @param context 求值上下文 / Evaluation context
  * @return 求值结果（true/false/null 表示未知） / Evaluation result (true/false/null for unknown)
- */
+*/
 fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): Boolean? {
     return when (evaluateBoolean(expr, context)) {
         Trivalent.True -> true
@@ -147,7 +148,7 @@ fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): 
  * @param expr the comparison expression to evaluate / 要求值的比较表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext): Trivalent {
     val leftValue = evaluateScalarInternal(expr.left, context) ?: return Trivalent.Unknown
     val rightValue = evaluateScalarInternal(expr.right, context) ?: return Trivalent.Unknown
@@ -163,7 +164,7 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
  * @param expr the in expression to evaluate / 要求值的 In 表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Trivalent {
     val value = evaluateScalarInternal(expr.value, context) ?: return Trivalent.Unknown
 
@@ -186,7 +187,7 @@ private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Triva
  * @param expr the pattern match expression to evaluate / 要求值的模式匹配表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationContext): Trivalent {
     val value = evaluateScalarInternal(expr.value, context)?.toString() ?: return Trivalent.Unknown
     val pattern = evaluateScalarInternal(expr.pattern, context)?.toString() ?: return Trivalent.Unknown
@@ -216,7 +217,7 @@ private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationConte
  * @param expr the null check expression to evaluate / 要求值的空值检查表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Trivalent {
     if (!context.contains(expr.path)) {
         return Trivalent.Unknown
@@ -237,7 +238,7 @@ private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Triv
  * @param expr the and expression to evaluate / 要求值的 And 表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trivalent {
     var hasUnknown = false
     for (operand in expr.operands) {
@@ -259,7 +260,7 @@ private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trival
  * @param expr the or expression to evaluate / 要求值的 Or 表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalent {
     var hasUnknown = false
     for (operand in expr.operands) {
@@ -281,7 +282,7 @@ private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalen
  * @param expr the not expression to evaluate / 要求值的 Not 表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluation result in three-valued logic / 三值逻辑的求值结果
- */
+*/
 private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trivalent {
     return when (evaluateBoolean(expr.operand, context)) {
         Trivalent.True -> Trivalent.False
@@ -297,7 +298,7 @@ private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trival
  * @param expr the scalar expression to evaluate / 要求值的标量表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
- */
+*/
 @Suppress("FunctionName")
 private fun evaluateScalarInternal(expr: ScalarExpression<*>, context: EvaluationContext): Any? {
     val result = evaluateScalar(expr, context, DefaultScalarFunctionEvaluator)
@@ -311,7 +312,7 @@ private fun evaluateScalarInternal(expr: ScalarExpression<*>, context: Evaluatio
 /**
  * 默认标量函数求值器
  * Default scalar function evaluator
- */
+*/
 object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
     override fun evaluate(name: String, arguments: List<Any?>): Any? {
         return when (name.lowercase()) {
@@ -331,7 +332,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
      *
      * @param arguments the argument list (must contain exactly one numeric value) / 参数列表（必须恰好包含一个数值）
      * @return the absolute value, or null if arguments are invalid / 绝对值，参数无效时返回 null
-     */
+    */
     private fun evaluateAbs(arguments: List<Any?>): Any? {
         if (arguments.size != 1) {
             return null
@@ -361,7 +362,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
      * @param arguments 参数列表 / Argument list
      * @param operation 字符串变换运算 / String transformation operation
      * @return 运算结果，参数为 null 时返回 null / Operation result, or null if the argument is null
-     */
+    */
     private fun evaluateStringUnary(
         name: String,
         arguments: List<Any?>,
@@ -383,7 +384,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
      *
      * @param arguments the argument list / 参数列表
      * @return the first non-null value, or null if all values are null / 第一个非空值，全部为 null 时返回 null
-     */
+    */
     private fun evaluateCoalesce(arguments: List<Any?>): Any? {
         if (arguments.isEmpty()) {
             return null
@@ -399,7 +400,7 @@ object DefaultScalarFunctionEvaluator : ScalarFunctionEvaluator {
  * @param expr the unary expression to evaluate / 要求值的一元表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
- */
+*/
 private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext): Any? {
     val operand = evaluateScalarInternal(expr.operand, context) ?: return null
     return NumericDispatcher.evaluateUnary(expr.operator, operand)
@@ -417,7 +418,7 @@ private typealias BinaryExpression<T> = ScalarBinary<T>
  * @param expr the binary expression to evaluate / 要求值的二元表达式
  * @param context the evaluation context / 求值上下文
  * @return the evaluated value, or null if evaluation is not possible / 求值结果，无法求值时返回 null
- */
+*/
 private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext): Any? {
     val left = evaluateScalarInternal(expr.left, context) ?: return null
     val right = evaluateScalarInternal(expr.right, context) ?: return null
@@ -434,7 +435,7 @@ private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext
  * @param right the right operand / 右操作数
  * @param operator the comparison operator / 比较运算符
  * @return the comparison result, or null if either value is null / 比较结果，任一值为 null 时返回 null
- */
+*/
 private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator): Boolean? {
     if (left == null || right == null) return null
 
@@ -455,7 +456,7 @@ private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator)
  * @param left the left operand / 左操作数
  * @param right the right operand / 右操作数
  * @return comparison result (negative if less, zero if equal, positive if greater), or null if types are incompatible / 比较结果（负值表示小于，零表示相等，正值表示大于），类型不兼容时返回 null
- */
+*/
 private fun compareOrder(left: Any, right: Any): Int? {
     return when {
         left is Number && right is Number -> compareNumbers(left, right)
@@ -474,7 +475,7 @@ private fun compareOrder(left: Any, right: Any): Int? {
  * @param left 左操作数 / Left operand
  * @param right 右操作数 / Right operand
  * @return 比较结果，负值表示小于，零表示相等，正值表示大于 / Comparison result: negative if less, zero if equal, positive if greater
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun compareSameTypeComparable(left: Any, right: Any): Int {
     // 安全不变量：调用点先保证 right::class == left::class，compareTo 的参数类型与 left 运行时类型一致。
@@ -489,7 +490,7 @@ private fun compareSameTypeComparable(left: Any, right: Any): Int {
  * @param left the left operand / 左操作数
  * @param right the right operand / 右操作数
  * @return whether the two values are equal / 两个值是否相等
- */
+*/
 private fun valuesEqual(left: Any?, right: Any?): Boolean {
     if (left == null && right == null) return true
     if (left == null || right == null) return false
@@ -507,7 +508,7 @@ private fun valuesEqual(left: Any?, right: Any?): Boolean {
  * @param left 左操作数 / Left operand
  * @param right 右操作数 / Right operand
  * @return 比较结果，无法转换时返回 null / Comparison result, or null if conversion fails
- */
+*/
 private fun compareNumbers(left: Number, right: Number): Int? {
     val leftDecimal = left.toBigDecimalOrNull() ?: return null
     val rightDecimal = right.toBigDecimalOrNull() ?: return null
@@ -519,7 +520,7 @@ private fun compareNumbers(left: Number, right: Number): Int? {
  * Safely convert a Number to BigDecimal, returning null for non-finite floats
  *
  * @return the BigDecimal representation, or null for non-finite floats / BigDecimal 表示，非有限浮点数返回 null
- */
+*/
 private fun Number.toBigDecimalOrNull(): BigDecimal? {
     return when (this) {
         is BigDecimal -> this
@@ -541,7 +542,7 @@ private fun Number.toBigDecimalOrNull(): BigDecimal? {
  * @param value the string value to match / 要匹配的字符串值
  * @param pattern the LIKE pattern / LIKE 模式
  * @return whether the value matches the pattern / 值是否匹配模式
- */
+*/
 private fun matchLike(value: String, pattern: String): Boolean {
     // 尌SQL LIKE 模式转换为正则表达式
     // Convert SQL LIKE pattern to regex
@@ -579,7 +580,7 @@ private fun matchLike(value: String, pattern: String): Boolean {
  *
  * @param values 字符串路径到值的映射 / String path to value mapping
  * @return 求值结果（三值逻辑） / Evaluation result (three-valued logic)
- */
+*/
 fun BooleanExpression.evaluateWith(values: Map<String, Any?>): Trivalent {
     return evaluateBoolean(this, MapEvaluationContext.fromStringMap(values))
 }
@@ -590,7 +591,7 @@ fun BooleanExpression.evaluateWith(values: Map<String, Any?>): Trivalent {
  *
  * @param values 字符串路径到值的映射 / String path to value mapping
  * @return 求值结果（true/false/null 表示未知） / Evaluation result (true/false/null for unknown)
- */
+*/
 fun BooleanExpression.evaluateWithOrNull(values: Map<String, Any?>): Boolean? {
     return evaluateBooleanOrNull(this, MapEvaluationContext.fromStringMap(values))
 }

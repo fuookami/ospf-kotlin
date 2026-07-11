@@ -6,7 +6,7 @@
  *
  * 定义列生成求解器接口及其 MILP/LP 求解、异步变体和值转换扩展。
  * Defines column generation solver interface with MILP/LP solving, async variants, and value conversion extensions.
- */
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import java.util.concurrent.CompletableFuture
@@ -24,16 +24,19 @@ import fuookami.ospf.kotlin.core.symbol.castLinearMetaModelForSolver
 
 /** Flt64 线性元模型 / Flt64 linear meta model */
 typealias Flt64LinearMetaModel = LinearMetaModel<Flt64>
+
 /** Flt64 可行求解器输出 / Flt64 feasible solver output */
 typealias Flt64FeasibleSolverOutput = FeasibleSolverOutput<Flt64>
+
 /** Flt64 解池 / Flt64 solution pool */
 typealias Flt64SolutionPool = List<Solution<Flt64>>
 
 /**
  * 列生成求解器接口
  * Column generation solver interface
- */
+*/
 interface ColumnGenerationSolver {
+
     /** 求解器名称 / Solver name */
     val name: String
 
@@ -47,7 +50,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solveMILP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -63,7 +66,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solveMILP(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -99,7 +102,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -125,7 +128,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun solveMILPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -149,7 +152,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun solveMILP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -175,7 +178,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun solveMILPWithSolutionPool(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions
@@ -201,7 +204,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -229,7 +232,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun solveMILPWithSolutionPoolAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions
@@ -248,7 +251,7 @@ interface ColumnGenerationSolver {
      *
      * @property result 可行求解器输出 / Feasible solver output
      * @property dualSolution 对偶解 / Dual solution
-     */
+    */
     data class LPResult(
         val result: Flt64FeasibleSolverOutput,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -270,7 +273,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solveLP(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -286,7 +289,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solveLP(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -310,7 +313,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun solveLPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -336,7 +339,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun solveLPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -361,7 +364,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveMILPAs(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -394,7 +397,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveMILPAs(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -421,7 +424,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveMILPAs(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -445,7 +448,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveMILPAs(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -471,7 +474,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveMILPAsAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -503,7 +506,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveMILPAsAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -531,7 +534,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveMILPAsAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -554,7 +557,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveMILPAsAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -580,7 +583,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun <V> solveMILPAs(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -619,7 +622,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun <V> solveMILPAs(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -652,7 +655,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun <V> solveMILPAsAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -687,7 +690,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun <V> solveMILPAsAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -717,7 +720,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun <V> solveMILPWithSolutionPoolAs(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -742,7 +745,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池 / Solve result with solution pool
-     */
+    */
     suspend fun <V> solveMILPWithSolutionPoolAs(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions
@@ -763,7 +766,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun <V> solveMILPWithSolutionPoolAsAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -786,7 +789,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果与解池的 CompletableFuture / CompletableFuture of solve result with solution pool
-     */
+    */
     fun <V> solveMILPWithSolutionPoolAsAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions
@@ -806,7 +809,7 @@ interface ColumnGenerationSolver {
      * @property result 可行求解器输出 / Feasible solver output
      * @property dualSolution 对偶解 / Dual solution
      * @param V 目标数值类型 / Target number type
-     */
+    */
     data class LPResultOf<V>(
         val result: FeasibleSolverOutput<V>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -830,7 +833,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveLPAs(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -863,7 +866,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveLPAs(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -890,7 +893,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveLPAs(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -914,7 +917,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solveLPAs(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -940,7 +943,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveLPAsAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -972,7 +975,7 @@ interface ColumnGenerationSolver {
      * @param registrationStatusCallBack 注册状态回调 / Registration status callback
      * @param solvingStatusCallBack 求解状态回调 / Solving status callback
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveLPAsAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
@@ -1000,7 +1003,7 @@ interface ColumnGenerationSolver {
      * @param converter 值转换器 / Value converter
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveLPAsAsync(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -1023,7 +1026,7 @@ interface ColumnGenerationSolver {
      * @param metaModel 线性元模型 / Linear meta model
      * @param options 框架求解选项 / Framework solve options
      * @return 求解结果的 CompletableFuture / CompletableFuture of solve result
-     */
+    */
     fun <V> solveLPAsAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()

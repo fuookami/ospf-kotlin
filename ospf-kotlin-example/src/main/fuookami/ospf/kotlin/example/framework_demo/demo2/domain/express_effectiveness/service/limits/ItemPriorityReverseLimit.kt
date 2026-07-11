@@ -15,13 +15,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiv
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 /**
- * 最小化位置对之间的项目对的优先级反转。Minimizes priority reversals between item pairs across position pairs.
+ * Minimizes priority reversals between item pairs across position pairs.
+ * 最小化位置对之间的项目对的优先级反转。
  *
- * @property orderedItems 参数。
- * @property orderedPositions 参数。
- * @property unloading 参数。
- * @property coefficient 参数。
- */
+ * @property orderedItems The list of ordered item pairs for priority comparison. / 用于优先级比较的有序货物项对列表
+ * @property orderedPositions The list of ordered position pairs. / 有序位置对列表
+ * @property unloading The relative order model for priority reversal computation. / 相对顺序优先级反转计算模型
+ * @property coefficient Function computing the reversal penalty coefficient for each item-position pair. / 计算每个货物项-位置对反转惩罚系数的函数
+*/
 class ItemPriorityReverseLimit(
     private val orderedItems: List<ItemPair>,
     private val orderedPositions: List<PositionPair>,

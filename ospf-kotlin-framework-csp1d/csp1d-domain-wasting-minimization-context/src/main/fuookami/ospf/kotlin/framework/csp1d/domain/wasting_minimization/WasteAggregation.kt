@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.produce.model.Csp1dAggregatio
  * @property materialCostPenalty 按物料 ID 的单位成本惩罚 / Per-material unit cost penalty
  * @property overProductionAreaPenalty 超产面积惩罚权重 / Over-production area penalty weight
  * @property restMaterialPenalty 余料惩罚权重 / Rest material penalty weight
- */
+*/
 class WasteAggregation<V : RealNumber<V>>(
     override val cuttingPlans: List<CuttingPlan<V>>,
     val trimWidthPenalty: V? = null,
@@ -40,12 +40,12 @@ class WasteAggregation<V : RealNumber<V>>(
      *
      * 浪费最小化不需要注册额外变量。
      * Waste minimization does not need to register additional variables.
-     */
+    */
     override fun register(model: LinearMetaModel<Flt64>): Try = ok
 
     /**
      * 是否存在任何浪费惩罚配置 / Whether any waste penalty configuration exists
-     */
+    */
     val hasAnyPenalty: Boolean get() = trimWidthPenalty != null ||
             materialCostPenalty.isNotEmpty() ||
             overProductionAreaPenalty != null ||

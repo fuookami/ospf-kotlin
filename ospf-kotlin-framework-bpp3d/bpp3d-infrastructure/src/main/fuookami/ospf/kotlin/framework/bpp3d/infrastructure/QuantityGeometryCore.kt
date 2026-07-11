@@ -1,7 +1,7 @@
 /**
  * 泛型量纲几何基础设施。
  * Quantity geometry infrastructure.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param op 二元运算函数 / binary operation function
  * @param symbol 运算符号，用于错误信息 / operation symbol for error messages
  * @return 运算结果或失败 / operation result or failure
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> quantityBinary(
     lhs: Quantity<V>,
@@ -88,7 +88,7 @@ internal fun <V : FloatingNumber<V>> quantityZeroByValue(sample: Quantity<V>): Q
  * @param quantity 待缩放的物理量 / quantity to scale
  * @param scale 缩放因子 / scaling factor
  * @return 缩放后的物理量或失败 / scaled quantity or failure
- */
+*/
 @Suppress("UNCHECKED_CAST")
 internal fun <V : FloatingNumber<V>> quantityScaleByValue(
     quantity: Quantity<V>,
@@ -112,7 +112,7 @@ internal fun <V : FloatingNumber<V>> quantityScaleByValue(
  * @param quantity 待缩放的物理量 / quantity to scale
  * @param scale 缩放因子 / scaling factor
  * @return 缩放后的物理量或失败 / scaled quantity or failure
- */
+*/
 @Suppress("UNCHECKED_CAST")
 internal fun <V : FloatingNumber<V>> quantityScaleByFltXValue(
     quantity: Quantity<V>,
@@ -136,7 +136,7 @@ internal fun <V : FloatingNumber<V>> quantityScaleByFltXValue(
  * @param lhs 被除数量纲值 / dividend quantity value
  * @param rhs 除数量纲值 / divisor quantity value
  * @return 比率值或失败 / ratio value or failure
- */
+*/
 @Suppress("UNCHECKED_CAST")
 internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs: Quantity<V>): Ret<V> {
     return when (lhs.value) {
@@ -162,7 +162,7 @@ internal fun <V : FloatingNumber<V>> quantityRatioByValue(lhs: Quantity<V>, rhs:
  * @param sample 待累加的量纲值 / quantity value to accumulate
  * @param times 重复次数 / number of repetitions
  * @return 累加结果 / accumulated result
- */
+*/
 internal fun <V : FloatingNumber<V>> repeatedQuantitySumByValue(
     sample: Quantity<V>,
     times: UInt64
@@ -181,7 +181,7 @@ internal fun <V : FloatingNumber<V>> repeatedQuantitySumByValue(
  *
  * @param unit 目标物理单位 / target physical unit
  * @return 标量值或失败 / scalar value or failure
- */
+*/
 private fun Quantity<FltX>.toScalar(unit: PhysicalUnit): Ret<FltX> {
     return if (this.unit == unit) {
         ok(this.value)
@@ -194,16 +194,36 @@ private fun Quantity<FltX>.toScalar(unit: PhysicalUnit): Ret<FltX> {
 /** 将标量值与物理单位组合为量纲值 / Combine a scalar value with a physical unit to form a quantity */
 operator fun FltX.times(unit: PhysicalUnit): Quantity<FltX> = Quantity(this, unit)
 
-/** 判断两个量纲值是否相等 / Check if two quantities are equal */
+/**
+ * 判断两个量纲值是否相等 / Check if two quantities are equal
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否相等 / whether equal
+*/
 infix fun Quantity<FltX>.eq(rhs: Quantity<FltX>): Boolean = this.quantityEq(rhs)
 
-/** 判断两个量纲值是否不等 / Check if two quantities are not equal */
+/**
+ * 判断两个量纲值是否不等 / Check if two quantities are not equal
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否不等 / whether not equal
+*/
 infix fun Quantity<FltX>.neq(rhs: Quantity<FltX>): Boolean = !this.quantityEq(rhs)
 
-/** 判断量纲值是否小于等于另一个量纲值 / Check if quantity is less than or equal to another quantity */
+/**
+ * 判断量纲值是否小于等于另一个量纲值 / Check if quantity is less than or equal to another quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否小于等于 / whether less than or equal
+*/
 infix fun Quantity<FltX>.leq(rhs: Quantity<FltX>): Boolean = this.quantityLeq(rhs) ?: false
 
-/** 判断量纲值是否大于等于另一个量纲值 / Check if quantity is greater than or equal to another quantity */
+/**
+ * 判断量纲值是否大于等于另一个量纲值 / Check if quantity is greater than or equal to another quantity
+ *
+ * @param rhs 右侧量纲值 / right-hand quantity value
+ * @return 是否大于等于 / whether greater than or equal
+*/
 infix fun Quantity<FltX>.geq(rhs: Quantity<FltX>): Boolean = this.quantityGeq(rhs) ?: false
 
 /**
@@ -211,7 +231,7 @@ infix fun Quantity<FltX>.geq(rhs: Quantity<FltX>): Boolean = this.quantityGeq(rh
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否小于 / whether it is less
- */
+*/
 infix fun Quantity<FltX>.ls(rhs: Quantity<FltX>): Boolean = this.quantityLs(rhs) ?: false
 
 /**
@@ -219,7 +239,7 @@ infix fun Quantity<FltX>.ls(rhs: Quantity<FltX>): Boolean = this.quantityLs(rhs)
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否大于 / whether it is greater
- */
+*/
 infix fun Quantity<FltX>.gr(rhs: Quantity<FltX>): Boolean = this.quantityGr(rhs) ?: false
 
 /**
@@ -227,7 +247,7 @@ infix fun Quantity<FltX>.gr(rhs: Quantity<FltX>): Boolean = this.quantityGr(rhs)
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否相等 / whether they are equal
- */
+*/
 infix fun Quantity<FltX>.eq(rhs: FltX): Boolean = this.value == rhs
 
 /**
@@ -235,7 +255,7 @@ infix fun Quantity<FltX>.eq(rhs: FltX): Boolean = this.value == rhs
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否不等 / whether they are not equal
- */
+*/
 infix fun Quantity<FltX>.neq(rhs: FltX): Boolean = this.value != rhs
 
 /**
@@ -243,7 +263,7 @@ infix fun Quantity<FltX>.neq(rhs: FltX): Boolean = this.value != rhs
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否小于等于 / whether it is less than or equal
- */
+*/
 infix fun Quantity<FltX>.leq(rhs: FltX): Boolean = this.value <= rhs
 
 /**
@@ -251,7 +271,7 @@ infix fun Quantity<FltX>.leq(rhs: FltX): Boolean = this.value <= rhs
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否大于等于 / whether it is greater than or equal
- */
+*/
 infix fun Quantity<FltX>.geq(rhs: FltX): Boolean = this.value >= rhs
 
 /**
@@ -259,7 +279,7 @@ infix fun Quantity<FltX>.geq(rhs: FltX): Boolean = this.value >= rhs
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否小于 / whether it is less
- */
+*/
 infix fun Quantity<FltX>.ls(rhs: FltX): Boolean = this.value < rhs
 
 /**
@@ -267,7 +287,7 @@ infix fun Quantity<FltX>.ls(rhs: FltX): Boolean = this.value < rhs
  *
  * @param rhs 右侧标量值 / right-hand scalar value
  * @return 是否大于 / whether it is greater
- */
+*/
 infix fun Quantity<FltX>.gr(rhs: FltX): Boolean = this.value > rhs
 
 /**
@@ -275,7 +295,7 @@ infix fun Quantity<FltX>.gr(rhs: FltX): Boolean = this.value > rhs
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否相等 / whether they are equal
- */
+*/
 infix fun FltX.eq(rhs: Quantity<FltX>): Boolean = this == rhs.value
 
 /**
@@ -283,7 +303,7 @@ infix fun FltX.eq(rhs: Quantity<FltX>): Boolean = this == rhs.value
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否不等 / whether they are not equal
- */
+*/
 infix fun FltX.neq(rhs: Quantity<FltX>): Boolean = this != rhs.value
 
 /**
@@ -291,7 +311,7 @@ infix fun FltX.neq(rhs: Quantity<FltX>): Boolean = this != rhs.value
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否小于等于 / whether it is less than or equal
- */
+*/
 infix fun FltX.leq(rhs: Quantity<FltX>): Boolean = this <= rhs.value
 
 /**
@@ -299,7 +319,7 @@ infix fun FltX.leq(rhs: Quantity<FltX>): Boolean = this <= rhs.value
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否大于等于 / whether it is greater than or equal
- */
+*/
 infix fun FltX.geq(rhs: Quantity<FltX>): Boolean = this >= rhs.value
 
 /**
@@ -307,7 +327,7 @@ infix fun FltX.geq(rhs: Quantity<FltX>): Boolean = this >= rhs.value
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否小于 / whether it is less
- */
+*/
 infix fun FltX.ls(rhs: Quantity<FltX>): Boolean = this < rhs.value
 
 /**
@@ -315,7 +335,7 @@ infix fun FltX.ls(rhs: Quantity<FltX>): Boolean = this < rhs.value
  *
  * @param rhs 右侧量纲值 / right-hand quantity value
  * @return 是否大于 / whether it is greater
- */
+*/
 infix fun FltX.gr(rhs: Quantity<FltX>): Boolean = this > rhs.value
 
 /** 加法运算 / Addition */
@@ -379,42 +399,42 @@ operator fun FltX.rem(rhs: Quantity<FltX>): Quantity<FltX> {
  * 向下取整 / Floor
  *
  * @return 向下取整后的标量值 / floored scalar value
- */
+*/
 fun Quantity<FltX>.floor(): FltX = this.quantityFloor().value
 
 /**
  * 向上取整 / Ceil
  *
  * @return 向上取整后的标量值 / ceiled scalar value
- */
+*/
 fun Quantity<FltX>.ceil(): FltX = this.quantityCeil().value
 
 /**
  * 四舍五入 / Round
  *
  * @return 四舍五入后的标量值 / rounded scalar value
- */
+*/
 fun Quantity<FltX>.round(): FltX = this.quantityRound().value
 
 /**
  * 转换为 Double 值 / Convert to Double value
  *
  * @return Double 值 / Double value
- */
+*/
 fun Quantity<FltX>.toDouble(): Double = this.value.toDouble()
 
 /**
  * 提取标量值 / Extract scalar value
  *
  * @return 标量值 / scalar value
- */
+*/
 fun Quantity<FltX>.toScalarValue(): FltX = this.value
 
 /**
  * 取绝对值 / Absolute value
  *
  * @return 绝对值结果 / absolute value result
- */
+*/
 fun Quantity<FltX>.abs(): Quantity<FltX> {
     return if (this.value >= FltX.zero) {
         this
@@ -428,7 +448,7 @@ fun Quantity<FltX>.abs(): Quantity<FltX> {
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 量纲值之和 / sum of quantity values
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.sumOfQuantity(selector: (T) -> Quantity<V>): Quantity<V> {
     val iterator = iterator()
     require(iterator.hasNext()) { "Collection is empty." }
@@ -444,7 +464,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.sumOfQuantity(selector: (T) -> Quanti
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 最大量纲值 / maximum quantity value
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.maxOfQuantity(selector: (T) -> Quantity<V>): Quantity<V> {
     val iterator = iterator()
     require(iterator.hasNext()) { "Collection is empty." }
@@ -463,7 +483,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.maxOfQuantity(selector: (T) -> Quanti
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 最大量纲值或 null / maximum quantity value or null
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.maxOfOrNullQuantity(selector: (T) -> Quantity<V>): Quantity<V>? {
     val iterator = iterator()
     if (!iterator.hasNext()) {
@@ -484,7 +504,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.maxOfOrNullQuantity(selector: (T) -> 
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 最小量纲值 / minimum quantity value
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.minOfQuantity(selector: (T) -> Quantity<V>): Quantity<V> {
     val iterator = iterator()
     require(iterator.hasNext()) { "Collection is empty." }
@@ -503,7 +523,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.minOfQuantity(selector: (T) -> Quanti
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 最小量纲值或 null / minimum quantity value or null
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.minOfOrNullQuantity(selector: (T) -> Quantity<V>): Quantity<V>? {
     val iterator = iterator()
     if (!iterator.hasNext()) {
@@ -524,7 +544,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.minOfOrNullQuantity(selector: (T) -> 
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 排序后的列表 / sorted list
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.sortedByQuantity(selector: (T) -> Quantity<V>): List<T> {
     return sortedWith { lhs, rhs ->
         quantityOrd(selector(lhs), selector(rhs), "sort").value
@@ -536,7 +556,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.sortedByQuantity(selector: (T) -> Qua
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 排序后的列表 / sorted list
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.sortedByDescendingQuantity(selector: (T) -> Quantity<V>): List<T> {
     return sortedWith { lhs, rhs ->
         quantityOrd(selector(rhs), selector(lhs), "sort").value
@@ -548,7 +568,7 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.sortedByDescendingQuantity(selector: 
  *
  * @param selector 从元素中提取量纲值的函数 / function to extract quantity from element
  * @return 量纲值最大的元素 / element with the maximum quantity value
- */
+*/
 fun <T, V : FloatingNumber<V>> Iterable<T>.maxByQuantity(selector: (T) -> Quantity<V>): T {
     val iterator = iterator()
     require(iterator.hasNext()) { "Collection is empty." }
@@ -570,11 +590,12 @@ fun <T, V : FloatingNumber<V>> Iterable<T>.maxByQuantity(selector: (T) -> Quanti
  *
  * @param x x 分量 / x component
  * @param y y 分量 / y component
- */
+*/
 data class QuantityVector2<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>
 ) {
+
     /** 向量加法 / Vector addition */
     operator fun plus(rhs: QuantityVector2<V>): QuantityVector2<V> {
         return QuantityVector2(
@@ -598,12 +619,13 @@ data class QuantityVector2<V : FloatingNumber<V>>(
  * @param x x 分量 / x component
  * @param y y 分量 / y component
  * @param z z 分量 / z component
- */
+*/
 data class QuantityVector3<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>,
     val z: Quantity<V>
 ) {
+
     /** 向量加法 / Vector addition */
     operator fun plus(rhs: QuantityVector3<V>): QuantityVector3<V> {
         return QuantityVector3(
@@ -628,11 +650,12 @@ data class QuantityVector3<V : FloatingNumber<V>>(
  *
  * @param x x 坐标 / x coordinate
  * @param y y 坐标 / y coordinate
- */
+*/
 data class QuantityPoint2<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>
 ) {
+
     /** 加上向量偏移 / Add vector offset */
     operator fun plus(offset: QuantityVector2<V>): QuantityPoint2<V> {
         return QuantityPoint2(
@@ -654,7 +677,7 @@ data class QuantityPoint2<V : FloatingNumber<V>>(
      *
      * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
      * @return 排序结果 / ordering result
-     */
+    */
     infix fun ord(rhs: QuantityPoint2<V>): Order {
         return ordSafe(rhs).value ?: Order.Equal
     }
@@ -664,7 +687,7 @@ data class QuantityPoint2<V : FloatingNumber<V>>(
      *
      * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
      * @return 比较结果或失败 / order result or failure
-     */
+    */
     infix fun ordSafe(rhs: QuantityPoint2<V>): Ret<Order> {
         val yOrder = when (val result = quantityOrdSafe(y, rhs.y, "y")) {
             is Ok -> result.value
@@ -685,12 +708,13 @@ data class QuantityPoint2<V : FloatingNumber<V>>(
  * @param x x 坐标 / x coordinate
  * @param y y 坐标 / y coordinate
  * @param z z 坐标 / z coordinate
- */
+*/
 data class QuantityPoint3<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>,
     val z: Quantity<V>
 ) {
+
     /** 加上向量偏移 / Add vector offset */
     operator fun plus(offset: QuantityVector3<V>): QuantityPoint3<V> {
         return QuantityPoint3(
@@ -714,7 +738,7 @@ data class QuantityPoint3<V : FloatingNumber<V>>(
      *
      * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
      * @return 排序结果 / ordering result
-     */
+    */
     infix fun ord(rhs: QuantityPoint3<V>): Order {
         return ordSafe(rhs).value ?: Order.Equal
     }
@@ -724,7 +748,7 @@ data class QuantityPoint3<V : FloatingNumber<V>>(
      *
      * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
      * @return 比较结果或失败 / order result or failure
-     */
+    */
     infix fun ordSafe(rhs: QuantityPoint3<V>): Ret<Order> {
         val zOrder = when (val result = quantityOrdSafe(z, rhs.z, "z")) {
             is Ok -> result.value
@@ -755,7 +779,7 @@ data class QuantityPoint3<V : FloatingNumber<V>>(
  * @param minY 最小 y 坐标 / minimum y coordinate
  * @param maxX 最大 x 坐标 / maximum x coordinate
  * @param maxY 最大 y 坐标 / maximum y coordinate
- */
+*/
 data class Rectangle2<V : FloatingNumber<V>>(
     val minX: Quantity<V>,
     val minY: Quantity<V>,
@@ -781,7 +805,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个矩形 / another rectangle
      * @return 交集矩形或 null（无交集）/ intersection rectangle or null (no intersection)
-     */
+    */
     fun intersect(rhs: Rectangle2<V>): Rectangle2<V>? {
         val left = quantityMax(minX, rhs.minX, "x")
         val right = quantityMin(maxX, rhs.maxX, "x")
@@ -801,7 +825,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个矩形 / another rectangle
      * @return 交集面积或 null（无交集）/ intersection area or null (no intersection)
-     */
+    */
     fun intersectArea(rhs: Rectangle2<V>): Quantity<V>? {
         return intersect(rhs)?.area
     }
@@ -813,7 +837,7 @@ data class Rectangle2<V : FloatingNumber<V>>(
  * @param x x 坐标 / x coordinate
  * @param y y 坐标 / y coordinate
  * @return 二维量纲点 / 2D quantity point
- */
+*/
 fun <V : FloatingNumber<V>> point2(
     x: Quantity<V>,
     y: Quantity<V>
@@ -828,7 +852,7 @@ fun <V : FloatingNumber<V>> point2(
  * @param y y 坐标 / y coordinate
  * @param z z 坐标 / z coordinate
  * @return 三维量纲点 / 3D quantity point
- */
+*/
 fun <V : FloatingNumber<V>> point3(
     x: Quantity<V>,
     y: Quantity<V>,
@@ -843,7 +867,7 @@ fun <V : FloatingNumber<V>> point3(
  * @param x x 分量 / x component
  * @param y y 分量 / y component
  * @return 二维量纲向量 / 2D quantity vector
- */
+*/
 fun <V : FloatingNumber<V>> vector2(
     x: Quantity<V>,
     y: Quantity<V>
@@ -858,7 +882,8 @@ fun <V : FloatingNumber<V>> vector2(
  * @param y y 分量 / y component
  * @param z z 分量 / z component
  * @return 三维量纲向量 / 3D quantity vector
- */
+ *
+*/
 fun <V : FloatingNumber<V>> vector3(
     x: Quantity<V>,
     y: Quantity<V>,
@@ -867,7 +892,11 @@ fun <V : FloatingNumber<V>> vector3(
     return QuantityVector3(x = x, y = y, z = z)
 }
 
-/** 创建原点二维量纲点（FltX，单位为米） / Create a 2D quantity point at origin (FltX, unit in meters) */
+/**
+ * 创建原点二维量纲点（FltX，单位为米） / Create a 2D quantity point at origin (FltX, unit in meters)
+ *
+ * @return 原点二维量纲点 / 2D quantity point at origin
+*/
 fun point2FltX(): QuantityPoint2<FltX> {
     return QuantityPoint2(
         x = Quantity(FltX.zero, Meter),
@@ -882,7 +911,7 @@ fun point2FltX(): QuantityPoint2<FltX> {
  * @param y y 坐标，默认为零 / y coordinate, defaults to zero
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 二维量纲点 / 2D quantity point
- */
+*/
 fun point2FltX(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -900,7 +929,8 @@ fun point2FltX(
  * @param point 几何点 / geometric point
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 二维量纲点 / 2D quantity point
- */
+ *
+*/
 fun point2FltX(
     point: Point<Dim2, FltX>,
     unit: PhysicalUnit = Meter
@@ -908,8 +938,13 @@ fun point2FltX(
     return point2FltX(point[0], point[1], unit)
 }
 
-/** 创建原点三维量纲点（FltX，单位为米） / Create a 3D quantity point at origin (FltX, unit in meters) */
-fun point3FltX(): QuantityPoint3<FltX> {
+    /**
+     * Returns a default 3D point at the origin.
+     * 返回原点处的默认三维点。
+     *
+     * @return the origin point / 原点
+    */
+    fun point3FltX(): QuantityPoint3<FltX> {
     return QuantityPoint3(
         x = Quantity(FltX.zero, Meter),
         y = Quantity(FltX.zero, Meter),
@@ -925,7 +960,7 @@ fun point3FltX(): QuantityPoint3<FltX> {
  * @param z z 坐标，默认为零 / z coordinate, defaults to zero
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 三维量纲点 / 3D quantity point
- */
+*/
 fun point3FltX(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -945,7 +980,7 @@ fun point3FltX(
  * @param point 几何点 / geometric point
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 三维量纲点 / 3D quantity point
- */
+*/
 fun point3FltX(
     point: Point<Dim3, FltX>,
     unit: PhysicalUnit = Meter
@@ -959,7 +994,7 @@ fun point3FltX(
  * @param vector 几何向量 / geometric vector
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 三维量纲点 / 3D quantity point
- */
+*/
 fun point3FltX(vector: Vector<Dim3, FltX>, unit: PhysicalUnit = Meter): QuantityPoint3<FltX> {
     return point3FltX(vector[0], vector[1], vector[2], unit)
 }
@@ -971,7 +1006,7 @@ fun point3FltX(vector: Vector<Dim3, FltX>, unit: PhysicalUnit = Meter): Quantity
  * @param y y 分量，默认为零 / y component, defaults to zero
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 二维量纲向量 / 2D quantity vector
- */
+*/
 fun vector2FltX(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -989,7 +1024,7 @@ fun vector2FltX(
  * @param vector 几何向量 / geometric vector
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 二维量纲向量 / 2D quantity vector
- */
+*/
 fun vector2FltX(vector: Vector<Dim2, FltX>, unit: PhysicalUnit = Meter): QuantityVector2<FltX> {
     return vector2FltX(vector[0], vector[1], unit)
 }
@@ -1002,7 +1037,7 @@ fun vector2FltX(vector: Vector<Dim2, FltX>, unit: PhysicalUnit = Meter): Quantit
  * @param z z 分量，默认为零 / z component, defaults to zero
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 三维量纲向量 / 3D quantity vector
- */
+*/
 fun vector3FltX(
     x: FltX = FltX.zero,
     y: FltX = FltX.zero,
@@ -1022,7 +1057,7 @@ fun vector3FltX(
  * @param vector 几何向量 / geometric vector
  * @param unit 物理单位，默认为米 / physical unit, defaults to Meter
  * @return 三维量纲向量 / 3D quantity vector
- */
+*/
 fun vector3FltX(vector: Vector<Dim3, FltX>, unit: PhysicalUnit = Meter): QuantityVector3<FltX> {
     return vector3FltX(vector[0], vector[1], vector[2], unit)
 }
@@ -1048,7 +1083,7 @@ operator fun QuantityPoint2<FltX>.minus(rhs: QuantityPoint2<FltX>): QuantityVect
  *
  * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
  * @return 是否相等 / whether they are equal
- */
+*/
 infix fun QuantityPoint2<FltX>.eq(rhs: QuantityPoint2<FltX>): Boolean {
     return this.x eq rhs.x && this.y eq rhs.y
 }
@@ -1058,7 +1093,7 @@ infix fun QuantityPoint2<FltX>.eq(rhs: QuantityPoint2<FltX>): Boolean {
  *
  * @param rhs 右侧二维量纲点 / right-hand 2D quantity point
  * @return 是否不等 / whether they are not equal
- */
+*/
 infix fun QuantityPoint2<FltX>.neq(rhs: QuantityPoint2<FltX>): Boolean = !(this eq rhs)
 
 /** 二维量纲点加上几何向量偏移 / Add geometric vector offset to 2D quantity point */
@@ -1092,7 +1127,7 @@ operator fun QuantityPoint3<FltX>.minus(rhs: QuantityPoint3<FltX>): QuantityVect
  *
  * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
  * @return 是否相等 / whether they are equal
- */
+*/
 infix fun QuantityPoint3<FltX>.eq(rhs: QuantityPoint3<FltX>): Boolean {
     return this.x eq rhs.x && this.y eq rhs.y && this.z eq rhs.z
 }
@@ -1102,7 +1137,7 @@ infix fun QuantityPoint3<FltX>.eq(rhs: QuantityPoint3<FltX>): Boolean {
  *
  * @param rhs 右侧三维量纲点 / right-hand 3D quantity point
  * @return 是否不等 / whether they are not equal
- */
+*/
 infix fun QuantityPoint3<FltX>.neq(rhs: QuantityPoint3<FltX>): Boolean = !(this eq rhs)
 
 /** 三维量纲点加上几何向量偏移 / Add geometric vector offset to 3D quantity point */
@@ -1121,7 +1156,7 @@ operator fun QuantityPoint3<FltX>.plus(offset: Vector<Dim3, FltX>): QuantityPoin
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 比较结果或 null / Order result or null
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order? {
     return lhs.quantityPartialOrd(rhs)
 }
@@ -1133,7 +1168,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdOrNull(lhs: Quantity<V>, rhs: Qu
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 比较结果或失败 / Order result or failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Order> {
     return quantityOrdOrNull(lhs, rhs, axis)?.let { ok(it) }
         ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
@@ -1146,7 +1181,7 @@ internal fun <V : FloatingNumber<V>> quantityOrdSafe(lhs: Quantity<V>, rhs: Quan
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 排序结果 / ordering result
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Order {
     return quantityOrdOrNull(lhs, rhs, axis) ?: Order.Equal
 }
@@ -1156,7 +1191,7 @@ internal fun <V : FloatingNumber<V>> quantityOrd(lhs: Quantity<V>, rhs: Quantity
  *
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 比较结果或 null / Order result or null
- */
+*/
 infix fun <V : FloatingNumber<V>> Quantity<V>.ordOrNull(rhs: Quantity<V>): Order? {
     return quantityOrdOrNull(this, rhs, "quantity")
 }
@@ -1166,7 +1201,7 @@ infix fun <V : FloatingNumber<V>> Quantity<V>.ordOrNull(rhs: Quantity<V>): Order
  *
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 比较结果或失败 / Order result or failure
- */
+*/
 infix fun <V : FloatingNumber<V>> Quantity<V>.ordSafe(rhs: Quantity<V>): Ret<Order> {
     return quantityOrdSafe(this, rhs, "quantity")
 }
@@ -1187,7 +1222,7 @@ fun <V : FloatingNumber<V>> max(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>
  * @param lhs 左侧量纲值 / Left-hand quantity value
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 较大值或 null / Larger value or null
- */
+*/
 fun <V : FloatingNumber<V>> maxOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
     return quantityMaxOrNull(lhs, rhs, "max")
 }
@@ -1198,7 +1233,7 @@ fun <V : FloatingNumber<V>> maxOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quant
  * @param lhs 左侧量纲值 / Left-hand quantity value
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 较大值或失败 / Larger value or failure
- */
+*/
 fun <V : FloatingNumber<V>> maxSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     return quantityMaxSafe(lhs, rhs, "max")
 }
@@ -1210,7 +1245,7 @@ fun <V : FloatingNumber<V>> maxSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Qua
  * @param rhs 第二个量纲值 / second quantity value
  * @param rest 其余量纲值 / remaining quantity values
  * @return 最大量纲值 / maximum quantity value
- */
+*/
 fun <V : FloatingNumber<V>> max(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest: Quantity<V>): Quantity<V> {
     var current = max(lhs, rhs)
     for (value in rest) {
@@ -1230,7 +1265,7 @@ fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>
  * @param lhs 左侧量纲值 / Left-hand quantity value
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 较小值或 null / Smaller value or null
- */
+*/
 fun <V : FloatingNumber<V>> minOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quantity<V>? {
     return quantityMinOrNull(lhs, rhs, "min")
 }
@@ -1241,7 +1276,7 @@ fun <V : FloatingNumber<V>> minOrNull(lhs: Quantity<V>, rhs: Quantity<V>): Quant
  * @param lhs 左侧量纲值 / Left-hand quantity value
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @return 较小值或失败 / Smaller value or failure
- */
+*/
 fun <V : FloatingNumber<V>> minSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Quantity<V>> {
     return quantityMinSafe(lhs, rhs, "min")
 }
@@ -1253,7 +1288,7 @@ fun <V : FloatingNumber<V>> minSafe(lhs: Quantity<V>, rhs: Quantity<V>): Ret<Qua
  * @param rhs 第二个量纲值 / second quantity value
  * @param rest 其余量纲值 / remaining quantity values
  * @return 最小量纲值 / minimum quantity value
- */
+*/
 fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest: Quantity<V>): Quantity<V> {
     var current = min(lhs, rhs)
     for (value in rest) {
@@ -1269,7 +1304,7 @@ fun <V : FloatingNumber<V>> min(lhs: Quantity<V>, rhs: Quantity<V>, vararg rest:
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较大值 / larger value
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return quantityMaxOrNull(lhs, rhs, axis) ?: lhs
 }
@@ -1281,7 +1316,7 @@ internal fun <V : FloatingNumber<V>> quantityMax(lhs: Quantity<V>, rhs: Quantity
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较大值或 null / Larger value or null
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
     return when (quantityOrdOrNull(lhs, rhs, axis) ?: return null) {
         is Order.Greater, Order.Equal -> lhs
@@ -1296,7 +1331,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxOrNull(lhs: Quantity<V>, rhs: Qu
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较大值或失败 / Larger value or failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
     return quantityMaxOrNull(lhs, rhs, axis)?.let { ok(it) }
         ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")
@@ -1309,7 +1344,7 @@ internal fun <V : FloatingNumber<V>> quantityMaxSafe(lhs: Quantity<V>, rhs: Quan
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较小值 / smaller value
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V> {
     return quantityMinOrNull(lhs, rhs, axis) ?: lhs
 }
@@ -1321,7 +1356,7 @@ internal fun <V : FloatingNumber<V>> quantityMin(lhs: Quantity<V>, rhs: Quantity
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较小值或 null / Smaller value or null
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Quantity<V>? {
     return when (quantityOrdOrNull(lhs, rhs, axis) ?: return null) {
         is Order.Greater -> rhs
@@ -1336,7 +1371,7 @@ internal fun <V : FloatingNumber<V>> quantityMinOrNull(lhs: Quantity<V>, rhs: Qu
  * @param rhs 右侧量纲值 / Right-hand quantity value
  * @param axis 比较轴名称，用于错误信息 / Axis name for error messages
  * @return 较小值或失败 / Smaller value or failure
- */
+*/
 internal fun <V : FloatingNumber<V>> quantityMinSafe(lhs: Quantity<V>, rhs: Quantity<V>, axis: String): Ret<Quantity<V>> {
     return quantityMinOrNull(lhs, rhs, axis)?.let { ok(it) }
         ?: Failed(ErrorCode.IllegalArgument, "Incomparable quantity on axis $axis: ${lhs.unit} vs ${rhs.unit}")

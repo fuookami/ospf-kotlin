@@ -19,6 +19,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Models advice loading constraints for amount and weight slack at each position.
+ * 建模每个位置的建议装载数量和重量松弛约束。
+ *
+ * @property aircraftModel The aircraft model providing weight unit information. / 提供重量单位信息的飞行器模型
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property load The load model for cargo assignment. / 货物分配的装载模型
+*/
 class AdviceLoading(
     private val aircraftModel: AircraftModel,
     private val positions: List<Position>,
@@ -27,6 +35,13 @@ class AdviceLoading(
     lateinit var amountSlack: LinearIntermediateSymbols1<Flt64>
     lateinit var weightSlack: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers the advice loading slack symbols into the optimization model.
+     * 将建议装载松弛符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

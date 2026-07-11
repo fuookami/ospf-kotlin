@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * Provides [AndFunction], [OrFunction], [NotFunction], and [XorFunction]
  * for linearized modeling of logical operations.
- */
+*/
 
 /**
  * AND 逻辑函数 / AND logical function
@@ -43,7 +43,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class AndFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -126,7 +126,7 @@ class AndFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [AndFunction] 实例 / [AndFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -144,7 +144,7 @@ class AndFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
-         */
+        */
         fun <V> fromLinearPolynomials(
             polynomials: List<ToLinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -181,7 +181,7 @@ class AndFunction<V>(
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class OrFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -263,7 +263,7 @@ class OrFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [OrFunction] 实例 / [OrFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,
@@ -292,7 +292,7 @@ class OrFunction<V>(
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class NotFunction<V>(
     val polynomial: LinearPolynomial<V>,
     converter: IntoValue<V>,
@@ -355,7 +355,7 @@ class NotFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [NotFunction] 实例 / [NotFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
             converter: IntoValue<V>,
@@ -384,7 +384,7 @@ class NotFunction<V>(
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class XorFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     converter: IntoValue<V>,
@@ -522,7 +522,7 @@ class XorFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [XorFunction] 实例 / [XorFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             converter: IntoValue<V>,

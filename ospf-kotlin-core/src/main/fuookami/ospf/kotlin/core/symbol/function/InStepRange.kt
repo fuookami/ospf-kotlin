@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * 提供 [InStepRangeFunction]，计算 y = lb + floor((x - lb) / step) * step 的线性化建模。
  *
  * Provides [InStepRangeFunction] for linearized modeling of y = lb + floor((x - lb) / step) * step.
- */
+*/
 
 /**
  * 步进区间函数：y = lb + floor((ub - lb) / step) * step。
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class InStepRangeFunction<V>(
     val lb: LinearPolynomial<V>,
     val ub: LinearPolynomial<V>,
@@ -113,7 +113,7 @@ class InStepRangeFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [InStepRangeFunction] 实例 / [InStepRangeFunction] instance
-         */
+        */
         operator fun <V> invoke(
             lb: LinearPolynomial<V>,
             ub: LinearPolynomial<V>,

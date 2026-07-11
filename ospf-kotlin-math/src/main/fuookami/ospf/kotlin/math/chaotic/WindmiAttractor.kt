@@ -10,7 +10,7 @@ package fuookami.ospf.kotlin.math.chaotic
  * @property f 系统参数 f / System parameter f
  * @property g 系统参数 g / System parameter g
  * @property h 系统参数 h / System parameter h
- */
+*/
 class WindmiAttractor(
     val a: Double = 0.2,
     val b: Double = 0.2,
@@ -21,11 +21,12 @@ class WindmiAttractor(
     val g: Double = 0.5,
     val h: Double = 0.1,
 ) {
+
     /**
      * 计算 Windmi 吸引子的导数 / Compute the derivative of the Windmi attractor
      * @param state 当前状态 / Current state
      * @return 导数状态 / Derivative state
-     */
+    */
     fun derive(state: WindmiState): WindmiState {
         val x = state.x
         val y = state.y
@@ -43,7 +44,7 @@ class WindmiAttractor(
      * @param state 当前状态 / Current state
      * @param dt 时间步长 / Time step
      * @return 积分后的状态 / Integrated state
-     */
+    */
     fun integrate(state: WindmiState, dt: Double = 0.01): WindmiState {
         val derivative = derive(state)
         return WindmiState(
@@ -59,7 +60,7 @@ class WindmiAttractor(
  * @property x X 坐标 / X coordinate
  * @property y Y 坐标 / Y coordinate
  * @property z Z 坐标 / Z coordinate
- */
+*/
 data class WindmiState(
     val x: Double,
     val y: Double,

@@ -1,7 +1,7 @@
 /**
  * Item merger service.
  * 货物合并服务。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -9,8 +9,22 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.utils.functional.*
-
+/**
+ * scalar.
+ * scalar。
+ *
+ * @param value 数值 / Number value
+ * @return 浮点扩展值 / Floating-point extended value
+*/
 private fun scalar(value: Number): FltX = FltX(value.toDouble())
+
+/**
+ * scalar.
+ * scalar。
+ *
+ * @param value 无符号长整型值 / Unsigned long value
+ * @return 浮点扩展值 / Floating-point extended value
+*/
 private fun scalar(value: ULong): FltX = FltX(value.toDouble())
 
 /**
@@ -19,7 +33,7 @@ private fun scalar(value: ULong): FltX = FltX(value.toDouble())
  *
  * @return 成功时返回 null（由调用方继续处理），失败时返回对应的 [Failed] 或 [Fatal] /
  *         null on success (caller continues processing), [Failed] or [Fatal] on failure
- */
+*/
 private fun <T> Try.failureAsRet(): Ret<T>? {
     return when (this) {
         is Ok -> null
@@ -28,7 +42,25 @@ private fun <T> Try.failureAsRet(): Ret<T>? {
     }
 }
 
+/**
+ * ItemMerger object.
+ * ItemMerger对象。
+*/
 data object ItemMerger {
+
+/**
+ * Config data class.
+ * Config数据类。
+ *
+ * @param mergeFillerWhenOnlyFiller 是否仅合并填充物 / Whether to merge filler only
+ * @param mergeWithRotation 是否允许旋转合并 / Whether to merge with rotation
+ * @param mergeAsPatternBlock 是否合并为图案方块 / Whether to merge as pattern block
+ * @param mergeAsHollowSquareBlock 是否合并为空心方块 / Whether to merge as hollow square block
+ * @param mergeAsPile 是否合并为堆叠 / Whether to merge as pile
+ * @param mergeAsBlock 是否合并为方块 / Whether to merge as block
+ * @param orientationOrder 朝向顺序 / Orientation order
+ * @param patternConfig 图案配置构建器 / Pattern config builder
+*/
     data class Config(
         val mergeFillerWhenOnlyFiller: Boolean = true,
         val mergeWithRotation: Boolean = true,
@@ -45,6 +77,20 @@ data object ItemMerger {
             }
         }
 
+/**
+ * new.
+ * new。
+ *
+ * @param mergeFillerWhenOnlyFiller 是否仅合并填充物 / Whether to merge filler only
+ * @param mergeWithRotation 是否允许旋转合并 / Whether to merge with rotation
+ * @param mergeAsPatternBlock 是否合并为图案方块 / Whether to merge as pattern block
+ * @param mergeAsHollowSquareBlock 是否合并为空心方块 / Whether to merge as hollow square block
+ * @param mergeAsPile 是否合并为堆叠 / Whether to merge as pile
+ * @param mergeAsBlock 是否合并为方块 / Whether to merge as block
+ * @param orientationOrder 朝向顺序 / Orientation order
+ * @param patternConfig 图案配置构建器 / Pattern config builder
+ * @return 新配置 / New configuration
+*/
         fun new(
             mergeFillerWhenOnlyFiller: Boolean? = null,
             mergeWithRotation: Boolean? = null,
@@ -67,6 +113,13 @@ data object ItemMerger {
             )
         }
 
+/**
+ * new.
+ * new。
+ *
+ * @param builder 配置构建器 / Config builder
+ * @return 新配置 / New configuration
+*/
         fun new(builder: ConfigBuilder): Config {
             return new(
                 mergeFillerWhenOnlyFiller = builder.mergeFillerWhenOnlyFiller,
@@ -81,6 +134,19 @@ data object ItemMerger {
         }
     }
 
+/**
+ * ConfigBuilder data class.
+ * ConfigBuilder数据类。
+ *
+ * @param mergeFillerWhenOnlyFiller 是否仅合并填充物 / Whether to merge filler only
+ * @param mergeWithRotation 是否允许旋转合并 / Whether to merge with rotation
+ * @param mergeAsPatternBlock 是否合并为图案方块 / Whether to merge as pattern block
+ * @param mergeAsHollowSquareBlock 是否合并为空心方块 / Whether to merge as hollow square block
+ * @param mergeAsPile 是否合并为堆叠 / Whether to merge as pile
+ * @param mergeAsBlock 是否合并为方块 / Whether to merge as block
+ * @param orientationOrder 朝向顺序 / Orientation order
+ * @param patternConfig 图案配置构建器 / Pattern config builder
+*/
     data class ConfigBuilder(
         var mergeFillerWhenOnlyFiller: Boolean? = null,
         var mergeWithRotation: Boolean? = null,
@@ -104,13 +170,31 @@ data object ItemMerger {
         }
     }
 
+/**
+ * Builds config.
+ * 构建Config。
+ *
+ * @param builder 配置构建器 DSL / Config builder DSL
+ * @return 配置构建器 / Config builder
+*/
     fun buildConfig(builder: ConfigBuilder.() -> Unit): ConfigBuilder {
         val config = ConfigBuilder()
         builder(config)
         return config
     }
 
-    /** 合并物品 / Merge items */
+    /**
+     * Merges items into merge units based on bin type and patterns.
+     * 中文根据箱型和模式将物品合并为合并单元。
+     *
+     * @param items the list of items to merge / 待合并的物品列表
+     * @param binType the bin type for merging / 合并使用的箱型
+     * @param patterns the packing patterns / 装箱模式
+     * @param predicate optional filter predicate for items / 可选的物品过滤谓词
+     * @param fillerPredicate optional filter predicate for filler items / 可选的填充物品过滤谓词
+     * @param config the merge configuration / 合并配置
+     * @return the list of item merge units / 物品合并单元列表
+    */
     suspend fun merge(
         items: List<Item>,
         binType: BinType<FltX>,
@@ -139,8 +223,14 @@ data object ItemMerger {
      * Merge items, handling cylinder constraints.
      *
      * @param items 待合并的物品列表 / Items to merge
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量约束 / Remaining weight constraint
+     * @param patterns 可用图案列表 / Available patterns
+     * @param predicate 物品过滤谓词 / Item filter predicate
+     * @param fillerPredicate 填充物过滤谓词 / Filler filter predicate
+     * @param config 合并配置 / Merge configuration
      * @return 合并结果 / Merge result
-     */
+    */
     suspend fun merge(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -234,8 +324,10 @@ data object ItemMerger {
      * Merge piled items.
      *
      * @param items 待合并的物品列表 / Items to merge
+     * @param space 容器空间 / Container space
+     * @param restWeight 剩余重量约束 / Remaining weight constraint
      * @return 合并结果 / Merge result
-     */
+    */
     fun mergePiles(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -322,6 +414,16 @@ data object ItemMerger {
         return Ok(Pair(mergedItems, restItems.map { it.unit }))
     }
 
+/**
+ * mergeBlocks.
+ * mergeBlocks。
+ *
+ * @param items 待合并的物品列表 / Items to merge
+ * @param space 容器空间 / Container space
+ * @param restWeight 剩余重量约束 / Remaining weight constraint
+ * @param config 合并配置 / Merge configuration
+ * @return 合并后的方块列表与剩余物品 / Merged blocks and remaining items
+*/
     fun mergeBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -441,7 +543,7 @@ data object ItemMerger {
      * @param restWeight 剩余重量约束 / Remaining weight constraint
      * @param patternConfig 图案配置 / Pattern configuration
      * @return 合并后的通用方块列表与剩余物品列表 / Merged common blocks and remaining items
-     */
+    */
     suspend fun mergePatternBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -523,7 +625,7 @@ data object ItemMerger {
      * @param restWeight 剩余重量约束 / Remaining weight constraint
      * @param config 合并配置 / Merge configuration
      * @return 合并后的空心方块列表与剩余物品列表 / Merged hollow square blocks and remaining items
-     */
+    */
     fun mergeHollowSquareBlocks(
         items: List<Item>,
         space: AbstractContainer3Shape,
@@ -556,7 +658,7 @@ data object ItemMerger {
      * @param restWeight 剩余重量约束 / Remaining weight constraint
      * @param config 合并配置 / Merge configuration
      * @return 合并后的空心方块列表与剩余物品映射 / Merged hollow square blocks and remaining item map
-     */
+    */
     fun mergeHollowSquareBlocks(
         items: Map<Item, UInt64>,
         space: AbstractContainer3Shape,
@@ -743,7 +845,7 @@ data object ItemMerger {
      *
      * @param units 合并单元列表 / The merge units to flatten
      * @return 展开后的物品列表 / The flattened item list
-     */
+    */
     @JvmName("dumpItems")
     fun dump(units: List<ItemMergeUnit>): List<Item> {
         return units.flatMap { unit ->
@@ -761,7 +863,7 @@ data object ItemMerger {
      * @param placements 放置列表 / placement list
      * @param offset 位置偏移量 / position offset
      * @return 货物放置列表 / item placement list
-     */
+    */
     @JvmName("dumpPlacements")
     fun dump(
         placements: List<QuantityPlacement3<*, FltX>>,

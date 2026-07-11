@@ -4,7 +4,7 @@
  *
  * 将 BooleanExpression 翻译为 Ktorm ColumnDeclaring<Boolean>。
  * Translates BooleanExpression to Ktorm ColumnDeclaring<Boolean>.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.ktorm.dsl.*
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 将 PropertyPath 解析为 Ktorm Column。
  * Resolves PropertyPath to Ktorm Column.
- */
+*/
 typealias KtormColumnResolver = PersistenceFieldResolver<ColumnDeclaring<*>>
 
 /**
@@ -42,7 +42,7 @@ typealias KtormColumnResolver = PersistenceFieldResolver<ColumnDeclaring<*>>
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class KtormBooleanTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val patternMatchPolicy: PatternMatchPolicy = DefaultPatternMatchPolicy,
@@ -56,7 +56,7 @@ class KtormBooleanTranslator(
      *
      * @param expr 布尔表达式 / Boolean expression
      * @return Ktorm 条件表达式，不支持时返回 null / Ktorm condition expression, or null if unsupported
-     */
+    */
     fun translate(expr: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
@@ -77,7 +77,7 @@ class KtormBooleanTranslator(
      *
      * @param expr 常量布尔表达式 / Constant boolean expression
      * @return 恒真或恒假条件 / Always-true or always-false condition
-     */
+    */
     private fun translateConstant(expr: BooleanConstant): Ret<ColumnDeclaring<Boolean>?> {
         return Ok(when (expr.value) {
             Trivalent.True -> alwaysTrue()
@@ -91,7 +91,7 @@ class KtormBooleanTranslator(
      *
      * @param expr 比较表达式 / Comparison expression
      * @return Ktorm 比较条件 / Ktorm comparison condition
-     */
+    */
     private fun translateComparison(expr: Comparison<*>): Ret<ColumnDeclaring<Boolean>?> {
         val left = scalarTranslator.translate(expr.left).value
             ?: return unsupported("Unsupported left scalar expression: ${expr.left.typeName}", expr)
@@ -106,7 +106,7 @@ class KtormBooleanTranslator(
      *
      * @param expr IN 表达式 / IN expression
      * @return Ktorm IN 列表条件 / Ktorm IN list condition
-     */
+    */
     private fun translateIn(expr: InExpression<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a column reference", expr)
@@ -135,7 +135,7 @@ class KtormBooleanTranslator(
      *
      * @param expr 模式匹配表达式 / Pattern match expression
      * @return Ktorm 模式匹配条件 / Ktorm pattern match condition
-     */
+    */
     private fun translatePatternMatch(expr: PatternMatch<*>): Ret<ColumnDeclaring<Boolean>?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a column reference", expr)
@@ -168,7 +168,7 @@ class KtormBooleanTranslator(
      *
      * @param expr 空值检查表达式 / Null check expression
      * @return Ktorm 空值检查条件 / Ktorm null check condition
-     */
+    */
     private fun translateNullCheck(expr: NullCheck): Ret<ColumnDeclaring<Boolean>?> {
         val column = resolveColumn(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
@@ -181,7 +181,7 @@ class KtormBooleanTranslator(
      *
      * @param expr AND 表达式 / AND expression
      * @return Ktorm AND 条件 / Ktorm AND condition
-     */
+    */
     private fun translateAnd(expr: AndExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(conditions.reduce { acc, cond -> acc.and(cond) })
@@ -193,7 +193,7 @@ class KtormBooleanTranslator(
      *
      * @param expr OR 表达式 / OR expression
      * @return Ktorm OR 条件 / Ktorm OR condition
-     */
+    */
     private fun translateOr(expr: OrExpression): Ret<ColumnDeclaring<Boolean>?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(conditions.reduce { acc, cond -> acc.or(cond) })
@@ -205,7 +205,7 @@ class KtormBooleanTranslator(
      *
      * @param expr NOT 表达式 / NOT expression
      * @return Ktorm NOT 条件 / Ktorm NOT condition
-     */
+    */
     private fun translateNot(expr: NotExpression): Ret<ColumnDeclaring<Boolean>?> {
         val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
         return Ok(condition.not())
@@ -219,7 +219,7 @@ class KtormBooleanTranslator(
      * @param right 右操作数标量表达式 / Right operand scalar expression
      * @param operator 比较操作符 / Comparison operator
      * @return Ktorm 布尔比较表达式 / Ktorm boolean comparison expression
-     */
+    */
     private fun buildComparison(
         left: ScalarExpression<*>,
         right: ScalarExpression<*>,
@@ -240,6 +240,13 @@ class KtormBooleanTranslator(
         )
     }
 
+/**
+ * unsupported.
+ * unsupported。
+ * @param reason Reason why the expression is unsupported / 不支持该表达式的原因
+ * @param expression The unsupported boolean expression / 不支持的布尔表达式
+ * @return Result based on unsupported predicate policy / 根据不支持谓词策略返回的结果
+*/
     private fun unsupported(reason: String, expression: BooleanExpression): Ret<ColumnDeclaring<Boolean>?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {
@@ -262,6 +269,11 @@ class KtormBooleanTranslator(
         }
     }
 
+/**
+ * alwaysFalse.
+ * alwaysFalse。
+ * @return A Ktorm expression that always evaluates to false / 恒为假的 Ktorm 表达式
+*/
     private fun alwaysFalse(): ColumnDeclaring<Boolean> {
         return BinaryExpression(
             type = BinaryExpressionType.EQUAL,
@@ -271,6 +283,11 @@ class KtormBooleanTranslator(
         )
     }
 
+/**
+ * alwaysTrue.
+ * alwaysTrue。
+ * @return A Ktorm expression that always evaluates to true / 恒为真的 Ktorm 表达式
+*/
     private fun alwaysTrue(): ColumnDeclaring<Boolean> {
         return BinaryExpression(
             type = BinaryExpressionType.EQUAL,

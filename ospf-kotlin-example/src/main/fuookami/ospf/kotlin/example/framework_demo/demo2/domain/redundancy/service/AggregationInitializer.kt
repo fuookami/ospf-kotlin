@@ -4,7 +4,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-/** 从飞机和装载上下文初始化冗余聚合。Initializes the redundancy aggregation from aircraft and stowage contexts. */
+/**
+ * Initializes the redundancy aggregation from aircraft and stowage contexts.
+ * 从飞机和装载上下文初始化冗余聚合。
+*/
 data object AggregationInitializer {
     operator fun invoke(
         aircraftAggregation: AircraftAggregation,

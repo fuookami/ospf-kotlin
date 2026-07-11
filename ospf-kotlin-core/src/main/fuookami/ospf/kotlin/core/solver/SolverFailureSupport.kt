@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 稳定性：按“新增优先、兼容优先”维护；除明确迁移窗口外不破坏既有调用语义。
  * Stability: maintained with additive and compatibility-first policy; existing call semantics should remain stable outside explicit migration windows.
- */
+*/
 
 /**
  * 执行创建环境回调并统一透传失败分支。
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param target 目标对象 / Target object
  * @param callBack 创建环境回调（可选）/ Creating-environment callback (optional)
  * @return 统一结果 / Unified result
- */
+*/
 fun <T> executeCreatingEnvironmentCallback(
     target: T,
     callBack: ((T) -> Try)?
@@ -48,7 +48,7 @@ fun <T> executeCreatingEnvironmentCallback(
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun environmentLost(message: String? = null): Try = Failed(Err(ErrorCode.OREngineEnvironmentLost, message))
 
 /**
@@ -57,7 +57,7 @@ fun environmentLost(message: String? = null): Try = Failed(Err(ErrorCode.OREngin
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
- */
+*/
 fun environmentLost(detail: SolverError): Try = Failed(
     ExErr(
         code = ErrorCode.OREngineEnvironmentLost,
@@ -72,7 +72,7 @@ fun environmentLost(detail: SolverError): Try = Failed(
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun solvingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineSolvingException, message))
 
 /**
@@ -81,7 +81,7 @@ fun solvingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngi
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
- */
+*/
 fun solvingException(detail: SolverError): Try = Failed(
     ExErr(
         code = ErrorCode.OREngineSolvingException,
@@ -96,7 +96,7 @@ fun solvingException(detail: SolverError): Try = Failed(
  *
  * @param message 错误信息（可选）/ Error message (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun modelingException(message: String? = null): Try = Failed(Err(ErrorCode.OREngineModelingException, message))
 
 /**
@@ -105,7 +105,7 @@ fun modelingException(message: String? = null): Try = Failed(Err(ErrorCode.OREng
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
- */
+*/
 fun modelingException(detail: SolverError): Try = Failed(
     ExErr(
         code = ErrorCode.OREngineModelingException,
@@ -119,7 +119,7 @@ fun modelingException(detail: SolverError): Try = Failed(
  * Build a failure result for externally terminated solving.
  *
  * @return 失败结果 / Failure result
- */
+*/
 fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))
 
 /**
@@ -128,7 +128,7 @@ fun terminated(): Try = Failed(Err(ErrorCode.OREngineTerminated))
  *
  * @param detail 求解器错误详情 / Solver error detail
  * @return 失败结果 / Failure result
- */
+*/
 fun terminated(detail: SolverError): Try = Failed(
     ExErr(
         code = ErrorCode.OREngineTerminated,
@@ -151,7 +151,7 @@ fun terminated(detail: SolverError): Try = Failed(
  *
  * @param solver 尝试查找的求解器名称（可选）/ Name of the solver that was looked up (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun solverNotFound(solver: String? = null): Try = Failed(SolverNotFoundError(solver))
 
 /**
@@ -163,7 +163,7 @@ fun solverNotFound(solver: String? = null): Try = Failed(SolverNotFoundError(sol
  *
  * @param detail 环境丢失的描述（可选）/ Description of the environment loss (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun solverEnvironmentLost(detail: String? = null): Try = Failed(SolverEnvironmentLostError(detail))
 
 /**
@@ -175,7 +175,7 @@ fun solverEnvironmentLost(detail: String? = null): Try = Failed(SolverEnvironmen
  *
  * @param detail 求解异常的描述（可选）/ Description of the solving exception (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun solverSolvingException(detail: String? = null): Try = Failed(SolverSolvingError(detail))
 
 /**
@@ -187,7 +187,7 @@ fun solverSolvingException(detail: String? = null): Try = Failed(SolverSolvingEr
  *
  * @param detail 建模异常的描述（可选）/ Description of the modeling exception (optional)
  * @return 失败结果 / Failure result
- */
+*/
 fun solverModelingException(detail: String? = null): Try = Failed(SolverModelingError(detail))
 
 /**
@@ -198,5 +198,5 @@ fun solverModelingException(detail: String? = null): Try = Failed(SolverModeling
  * Callers can assert via `when (error is SolverTerminatedError)`.
  *
  * @return 失败结果 / Failure result
- */
+*/
 fun solverTerminated(): Try = Failed(SolverTerminatedError())

@@ -1,7 +1,7 @@
 /**
  * 种群迁移策略接口与实现
  * Population migration strategy interface and implementations
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -15,8 +15,9 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 在种群间执行个体迁移。
      * Perform individual migration between populations.
@@ -26,7 +27,7 @@ interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
      * @param populations 种群列表 / Populations list
      * @param model 回调模型接口 / Callback model interface
      * @return 每个种群及其迁入个体的列表 / List of populations with their incoming individuals
-     */
+    */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, ObjValue, V>>,
@@ -41,7 +42,7 @@ interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RandomMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -70,7 +71,7 @@ data class RandomMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class BetterToWorseMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -99,7 +100,7 @@ data class BetterToWorseMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class MoreToLessMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -124,7 +125,7 @@ data class MoreToLessMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class MigrationMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -153,7 +154,7 @@ data class MigrationMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RingExchangeMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -180,7 +181,7 @@ data class RingExchangeMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RandomDiffusionMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -207,7 +208,7 @@ data class RandomDiffusionMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class ElitistMigrationMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -239,7 +240,7 @@ data class ElitistMigrationMigration<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class PopulationMergeMigration<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>,
 ) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {

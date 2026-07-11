@@ -14,14 +14,14 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * 封装通用合并运算，自动填入 Flt64 的零值。
  * Provides Flt64 polynomial like-term combination convenience functions.
  * Wraps generic combine operations with Flt64 zero constant.
- */
+*/
 
 /**
  * 合并 Flt64 线性单项式集合中的同类项
  * Combine like terms in a collection of Flt64 linear monomials
  *
  * @return 合并后的单项式列表 / Combined monomial list
- */
+*/
 fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> {
     return combineLinearMonomials(
         zero = Flt64.zero,
@@ -34,7 +34,7 @@ fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> 
  * Combine like terms in a Flt64 linear polynomial
  *
  * @return 合并后的多项式 / Combined polynomial
- */
+*/
 fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
     return combineLinearTerms(
         zero = Flt64.zero,
@@ -48,7 +48,7 @@ fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 合并后的单项式列表 / Combined monomial list
- */
+*/
 fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
 ): List<QuadraticMonomial<Flt64>> {
@@ -65,7 +65,7 @@ fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 合并后的多项式 / Combined polynomial
- */
+*/
 fun QuadraticPolynomial<Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64> {
@@ -82,7 +82,7 @@ fun QuadraticPolynomial<Flt64>.combineTerms(
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 合并后的单项式列表 / Combined monomial list
- */
+*/
 fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
 ): List<CanonicalMonomial<Flt64>> {
@@ -99,7 +99,7 @@ fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 合并后的多项式 / Combined polynomial
- */
+*/
 fun CanonicalPolynomial<Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<Flt64> {

@@ -22,24 +22,25 @@ import jscip.*
 /**
  * SCIP quadratic solver
  *
- * 中文: SCIP 二次求解器
+ * SCIP 二次求解器
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
- */
+*/
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack? = null
 ) : QuadraticSolver {
+
     /** Companion object providing library loading utility / 伴生对象，提供库加载工具 */
     companion object {
         /**
          * Load SCIP native library from JAR package
          *
-         * 中文: 从 JAR 包中加载 SCIP 原生库
+         * 从 JAR 包中加载 SCIP 原生库
          *
          * @return operation result / 操作结果
-         */
+        */
         @JvmStatic
         fun loadLibraryInJar(): Try {
             return ScipSolver.loadLibraryInJar()
@@ -114,12 +115,12 @@ class ScipQuadraticSolver(
 /**
  * SCIP quadratic solver implementation
  *
- * 中文: SCIP 二次求解器实现
+ * SCIP 二次求解器实现
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
  * @property statusCallBack solving status callback / 求解状态回调
- */
+*/
 @OptIn(ExperimentalTime::class)
 private class ScipQuadraticSolverImpl(
     private val config: SolverConfig,
@@ -183,11 +184,11 @@ private class ScipQuadraticSolverImpl(
     /**
      * Dump the quadratic model into SCIP
      *
-     * 中文: 将二次模型导出到 SCIP
+     * 将二次模型导出到 SCIP
      *
      * @param model quadratic tetrad model view / 二次四元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
@@ -407,11 +408,11 @@ private class ScipQuadraticSolverImpl(
     /**
      * Configure SCIP solver parameters
      *
-     * 中文: 配置 SCIP 求解器参数
+     * 配置 SCIP 求解器参数
      *
      * @param model quadratic tetrad model view / 二次四元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         scip.setRealParam("limits/time", config.time.toDouble(DurationUnit.SECONDS))
         scip.setRealParam("limits/gap", config.gap.toSolverDouble("quadratic.config.gap"))
@@ -515,11 +516,11 @@ private class ScipQuadraticSolverImpl(
     /**
      * Analyze the solving result and extract solution
      *
-     * 中文: 分析求解结果并提取解
+     * 分析求解结果并提取解
      *
      * @param model quadratic tetrad model view / 二次四元模型视图
      * @return operation result / 操作结果
-     */
+    */
     private suspend fun analyzeSolution(model: QuadraticTetradModelView): Try {
         return if (status.succeeded) {
             val solution = scip.bestSol

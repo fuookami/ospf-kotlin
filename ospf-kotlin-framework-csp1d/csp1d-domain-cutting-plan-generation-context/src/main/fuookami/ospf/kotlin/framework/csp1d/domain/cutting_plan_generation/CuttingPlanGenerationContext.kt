@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  *
  * @param unit 物理单位 / Physical unit
  * @return 单位符号字符串 / Unit symbol string
- */
+*/
 private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
     return unit.symbol ?: unit.name ?: unit.toString()
 }
@@ -23,7 +23,18 @@ private fun shadowPriceUnitSymbol(unit: PhysicalUnit): String {
  * 切割方案生成输入 / Cutting plan generation input
  *
  * @param V 数值类型 / Numeric value type
- */
+ * @property products 产品列表 / Product list
+ * @property materials 物料列表 / Material list
+ * @property machines 设备列表 / Machine list
+ * @property costars 协产品列表 / Costar list
+ * @property demands 产品需求列表 / Product demand list
+ * @property existingPlans 已有切割方案列表 / Existing cutting plan list
+ * @property domainPolicies 领域策略列表 / Domain policy list
+ * @property candidateFilters 候选方案过滤器列表，每个返回 true 表示接受 / Candidate filter list, each returns true if accepted
+ * @property widthFeasibilityCheck 宽度可行性判断函数 / Width feasibility check function
+ * @property canonicalKeyOverrides 自定义 canonical key 函数列表 / Custom canonical key function list
+ * @property dominanceAcceptOverrides 自定义 dominance 接受函数列表 / Custom dominance acceptance function list
+*/
 data class CuttingPlanGenerationInput<V : RealNumber<V>>(
     val products: List<Product<V>>,
     val materials: List<Material<V>>,
@@ -32,8 +43,10 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
     val demands: List<ProductDemand<V>>,
     val existingPlans: List<CuttingPlan<V>> = emptyList(),
     val domainPolicies: List<Csp1dDomainPolicy<V>> = emptyList(),
+
     /** 候选方案过滤器列表，每个返回 true 表示接受 / Candidate filter list, each returns true if accepted */
     val candidateFilters: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList(),
+
     /**
      * 宽度可行性判断函数，返回 true 表示该产品宽度在该物料上可切。
      * 默认使用 material.widthRange.canCut(productWidth)。
@@ -46,27 +59,33 @@ data class CuttingPlanGenerationInput<V : RealNumber<V>>(
      * @param material 物料 / Material
      * @param product 产品 / Product
      * @param productWidth 当前枚举的产品宽度 / Current enumerated product width
-     */
+    */
     val widthFeasibilityCheck: ((Material<V>, Product<V>, Quantity<V>) -> Boolean)? = null,
+
     /**
      * 自定义 canonical key 函数列表，每个返回非 null 时替代默认 canonicalKey()。
      * 按列表顺序尝试，首个返回非 null 的值作为自定义 key。
      * Custom canonical key function list; when any returns non-null, it replaces the default canonicalKey().
      * Tried in list order; the first non-null result is used as the custom key.
-     */
+    */
     val canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList(),
+
     /**
      * 自定义 dominance 接受函数列表，每个返回 true 表示新候选应被接受。
      * 默认空列表表示不额外过滤。
      * Custom dominance acceptance function list; each returns true if the new candidate should be accepted.
      * Default empty list means no extra filtering.
-     */
+    */
     val dominanceAcceptOverrides: List<(CuttingPlan<V>, List<CuttingPlan<V>>) -> Boolean> = emptyList()
 )
 
 /**
  * 切割方案生成终止原因 / Cutting plan generation stop reason
- */
+ *
+ * - [Exhausted] 搜索空间已穷尽 / Search space exhausted
+ * - [MaxPlans] 达到最大方案数 / Reached max plan count
+ * - [Timeout] 超时 / Timed out
+*/
 enum class CuttingPlanGenerationStopReason {
     Exhausted,
     MaxPlans,
@@ -94,7 +113,7 @@ enum class CuttingPlanGenerationStopReason {
  * @property crossContributionDominated 跨贡献 dominance 剪枝过滤的候选数 / Candidate count filtered by cross-contribution dominance pruning
  * @property elapsedMilliseconds 生成耗时毫秒数 / Generation elapsed time in milliseconds
  * @property stopReason 终止原因 / Stop reason
- */
+*/
 data class CuttingPlanGenerationStatistics(
     val visitedNodes: Int64 = Int64.zero,
     val generatedCandidates: Int64 = Int64.zero,
@@ -141,7 +160,7 @@ data class CuttingPlanGenerationStatistics(
  * @property crossWorkerDuplicateCandidates 并行合并时跨 worker 重复候选数 / Cross-worker duplicate candidate count during parallel merge
  * @property crossContributionDominated 跨贡献 dominance 剪枝过滤的候选数 / Candidate count filtered by cross-contribution dominance pruning
  * @property stopReason 终止原因 / Stop reason
- */
+*/
 data class CuttingPlanGenerationBenchmarkSnapshot(
     val generatorName: String,
     val visitedNodes: Int64,
@@ -162,11 +181,12 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
     val crossContributionDominated: Int64,
     val stopReason: CuttingPlanGenerationStopReason
 ) {
+
     /**
      * 输出稳定文本行 / Render stable text line
      *
      * @return 可比较的稳定文本行 / Comparable stable text line
-     */
+    */
     fun toStableLine(): String {
         return listOf(
             "generator=$generatorName",
@@ -197,7 +217,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
          * @param generatorName 生成器名称 / Generator name
          * @param statistics 生成统计 / Generation statistics
          * @return benchmark 快照 / Benchmark snapshot
-         */
+        */
         fun from(
             generatorName: String,
             statistics: CuttingPlanGenerationStatistics
@@ -232,7 +252,7 @@ data class CuttingPlanGenerationBenchmarkSnapshot(
  * @param V 数值类型 / Numeric value type
  * @property plans 生成并接受的切割方案 / Generated and accepted cutting plans
  * @property statistics 生成统计 / Generation statistics
- */
+*/
 data class CuttingPlanGenerationReport<V : RealNumber<V>>(
     val plans: List<CuttingPlan<V>>,
     val statistics: CuttingPlanGenerationStatistics
@@ -242,14 +262,15 @@ data class CuttingPlanGenerationReport<V : RealNumber<V>>(
  * 初始切割方案生成器 / Initial cutting plan generator
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
+
     /**
      * 生成初始切割方案 / Generate initial cutting plans
      *
      * @param input 切割方案生成输入 / Cutting plan generation input
      * @return 初始切割方案列表 / Initial cutting plans
-     */
+    */
     fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>>
 
     /**
@@ -257,7 +278,7 @@ fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
      *
      * @param input 切割方案生成输入 / Cutting plan generation input
      * @return 切割方案生成报告 / Cutting plan generation report
-     */
+    */
     fun generateWithReport(input: CuttingPlanGenerationInput<V>): CuttingPlanGenerationReport<V> {
         val startTime = System.nanoTime()
         val plans = generate(input)
@@ -276,24 +297,36 @@ fun interface Csp1dInitialCuttingPlanGenerator<V : RealNumber<V>> {
  * 定价输入 / Pricing input
  *
  * @param V 数值类型 / Numeric value type
- */
+ * @property generationInput 切割方案生成输入 / Cutting plan generation input
+ * @property shadowPrices 影子价格映射 / Shadow price map
+ * @property maxGeneratedPlans 最大生成方案数 / Max generated plan count
+ * @property objectiveConfig 定价目标配置 / Pricing objective config
+ * @property pricingCostModifiers 定价成本修正器列表 / Pricing cost modifier list
+ * @property pricingBenefitModifiers 定价收益修正器列表 / Pricing benefit modifier list
+ * @property isImprovingJudges 自定义 isImproving 判断器列表 / Custom isImproving judge list
+ * @property canonicalKeyOverrides 自定义 canonical key 函数列表 / Custom canonical key function list
+*/
 data class Csp1dPricingInput<V : RealNumber<V>>(
     val generationInput: CuttingPlanGenerationInput<V>,
     val shadowPrices: ShadowPriceMap<V>,
     val maxGeneratedPlans: UInt64 = UInt64.one,
     val objectiveConfig: Csp1dPricingObjectiveConfig<V> = Csp1dPricingObjectiveConfig(),
+
     /** 定价成本修正器列表，每个接收 (candidate, baseCost) 返回修正后成本 / Pricing cost modifier list */
     val pricingCostModifiers: List<(CuttingPlan<V>, V) -> V> = emptyList(),
+
     /** 定价收益修正器列表，每个接收 (candidate, baseBenefit) 返回修正后收益 / Pricing benefit modifier list */
     val pricingBenefitModifiers: List<(CuttingPlan<V>, V) -> V> = emptyList(),
+
     /** 自定义 isImproving 判断器列表，返回 null 表示跳过 / Custom isImproving judges, null to skip */
     val isImprovingJudges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList(),
+
     /**
      * 自定义 canonical key 函数列表，覆盖 generationInput 中的同名字段。
      * 每个返回非 null 时替代默认 canonicalKey()。
      * Custom canonical key function list, overriding the same field in generationInput.
      * When any returns non-null, it replaces the default canonicalKey().
-     */
+    */
     val canonicalKeyOverrides: List<(CuttingPlan<V>) -> String?> = emptyList()
 )
 
@@ -308,7 +341,7 @@ data class Csp1dPricingInput<V : RealNumber<V>>(
  * @property trimWidthPenalty 余宽惩罚 / Trim width penalty
  * @property restMaterialPenalty 余料面积代理惩罚 / Rest material area proxy penalty
  * @property materialCostPenalty 按物料 ID 的成本惩罚 / Per-material cost penalty
- */
+*/
 data class Csp1dPricingObjectiveConfig<V : RealNumber<V>>(
     val planUsagePenalty: V? = null,
     val trimWidthPenalty: V? = null,
@@ -320,14 +353,15 @@ data class Csp1dPricingObjectiveConfig<V : RealNumber<V>>(
  * 定价子问题生成器 / Pricing sub-problem generator
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
+
     /**
      * 生成新列 / Generate new columns
      *
      * @param input 定价输入 / Pricing input
      * @return 新切割方案列表 / New cutting plans
-     */
+    */
     fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>>
 
     /**
@@ -335,7 +369,7 @@ fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
      *
      * @param input 定价输入 / Pricing input
      * @return 切割方案生成报告 / Cutting plan generation report
-     */
+    */
     fun generateWithReport(input: Csp1dPricingInput<V>): CuttingPlanGenerationReport<V> {
         val startTime = System.nanoTime()
         val plans = generate(input)
@@ -354,7 +388,7 @@ fun interface Csp1dPricingGenerator<V : RealNumber<V>> {
  * 简单初始方案生成器 / Simple initial cutting plan generator
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCuttingPlanGenerator<V> {
     override fun generate(input: CuttingPlanGenerationInput<V>): List<CuttingPlan<V>> {
         val domainPolicies = input.domainPolicies
@@ -421,7 +455,7 @@ class SimpleInitialCuttingPlanGenerator<V : RealNumber<V>> : Csp1dInitialCutting
  * 简单定价生成器，按 shadow price 触发新列 / Simple pricing generator that triggers new columns by shadow prices
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
     override fun generate(input: Csp1dPricingInput<V>): List<CuttingPlan<V>> {
         val domainPolicies = input.generationInput.domainPolicies
@@ -500,7 +534,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
      *
      * @param value 要检查的值 / Value to check
      * @return 如果大于零返回 true / true if greater than zero
-     */
+    */
     private fun isPositive(value: V): Boolean {
         return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
@@ -524,7 +558,7 @@ class SimplePricingGenerator<V : RealNumber<V>> : Csp1dPricingGenerator<V> {
  *
  * @param V 数值类型 / Numeric value type
  * @property enumerator 底层枚举生成器 / Underlying enumeration generator
- */
+*/
 class ReducedCostPricingGenerator<V : RealNumber<V>>(
     private val enumerator: Csp1dInitialCuttingPlanGenerator<V>
 ) : Csp1dPricingGenerator<V> {
@@ -598,7 +632,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      * @param plan 切割方案 / Cutting plan
      * @param shadowPrices 影子价格映射 / Shadow price map
      * @return 对偶收益值 / Dual benefit value
-     */
+    */
     private fun computeDualBenefit(plan: CuttingPlan<V>, shadowPrices: ShadowPriceMap<V>): V {
         var benefit = plan.material.widthRange.upperBound.value.constants.zero
 
@@ -641,7 +675,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      *
      * @param value 要检查的值 / Value to check
      * @return 如果大于零返回 true / true if greater than zero
-     */
+    */
     private fun isPositive(value: V): Boolean {
         return when (value partialOrd value.constants.zero) {
             is Order.Greater -> true
@@ -658,7 +692,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      * @param plan 切割方案 / Cutting plan
      * @param objectiveConfig 定价目标配置 / Pricing objective config
      * @return 目标成本值 / Objective cost value
-     */
+    */
     private fun computeObjectiveCost(
         plan: CuttingPlan<V>,
         objectiveConfig: Csp1dPricingObjectiveConfig<V>
@@ -705,7 +739,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      * @param candidate 定价候选 / Priced candidate
      * @param judges 自定义判断器列表 / Custom judge list
      * @return 如果可以改善返回 true / true if the candidate is improving
-     */
+    */
     private fun isImproving(
         candidate: PricedCandidate<V>,
         judges: List<(CuttingPlan<V>, V, V) -> Boolean?> = emptyList()
@@ -729,7 +763,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      * Score = benefit + opponent's objectiveCost; higher score takes priority.
      *
      * @return 排序比较器 / Sort comparator
-     */
+    */
     private fun compareByScore(): Comparator<PricedCandidate<V>> {
         return Comparator { left, right ->
             val leftScoreSide = left.benefit + right.objectiveCost
@@ -749,7 +783,7 @@ class ReducedCostPricingGenerator<V : RealNumber<V>>(
      * @property plan 切割方案 / Cutting plan
      * @property benefit 对偶收益 / Dual benefit
      * @property objectiveCost 目标成本 / Objective cost
-     */
+    */
     private data class PricedCandidate<V : RealNumber<V>>(
         val plan: CuttingPlan<V>,
         val benefit: V,

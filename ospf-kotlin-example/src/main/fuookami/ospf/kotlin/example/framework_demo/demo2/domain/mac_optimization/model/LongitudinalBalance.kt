@@ -14,12 +14,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 跨装载模式的 MAC 范围优化的纵向平衡松弛变量。Longitudinal balance slack variables for MAC range optimization across stowage modes.
+ * Longitudinal balance slack variables for MAC range optimization across stowage modes.
+ * 跨装载模式的 MAC 范围优化的纵向平衡松弛变量。
  *
- * @property aircraftModel 参数。
- * @property macRange 参数。
- * @property torque 参数。
- */
+ * @property slack Map of MAC range types to their corresponding slack symbols / MAC 范围类型到对应松弛符号的映射
+*/
 class LongitudinalBalance(
     private val aircraftModel: AircraftModel,
     private val macRange: MACRange,
@@ -27,6 +26,14 @@ class LongitudinalBalance(
 ) {
     lateinit var slack: Map<MACRange.Type, QuantityLinearIntermediateSymbol<Flt64>>
 
+    /**
+     * Registers the longitudinal balance slack symbols into the optimization model.
+     * 将纵向平衡松弛符号注册到优化模型中。
+     *
+     * @param stowageMode The stowage mode determining which slack types to register / 决定注册哪些松弛类型的装载模式
+     * @param model The linear meta-model to register symbols into / 要注册符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>

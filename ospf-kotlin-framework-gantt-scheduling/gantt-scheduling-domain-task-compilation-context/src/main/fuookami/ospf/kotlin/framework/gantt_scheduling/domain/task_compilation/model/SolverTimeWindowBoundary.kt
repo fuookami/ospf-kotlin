@@ -12,10 +12,11 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
  * Solver time-window boundary that centralizes business-time to solver-value conversion
  *
  * @property source Flt64 时间窗口 / Flt64 time window
- */
+*/
 class SolverTimeWindowBoundary(
     val source: TimeWindow<Flt64>
 ) {
+
     /** 是否连续 / Whether the solver time window is continuous */
     val continues: Boolean get() = source.continues
 
@@ -30,7 +31,7 @@ class SolverTimeWindowBoundary(
      *
      * @param duration 持续时间 / Duration
      * @return solver 数值 / Solver value
-     */
+    */
     fun valueOf(duration: Duration) = with(source) { duration.value }
 
     /**
@@ -38,7 +39,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return solver 数值 / Solver value
-     */
+    */
     fun valueOf(instant: Instant) = with(source) { instant.value }
 
     /**
@@ -46,7 +47,7 @@ class SolverTimeWindowBoundary(
      *
      * @param value solver 数值 / Solver value
      * @return 时间点 / Instant
-     */
+    */
     fun instantOf(value: Flt64) = source.instantOf(value)
 
     /**
@@ -54,7 +55,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return 向下取整后的 solver 数值 / Floored solver value
-     */
+    */
     fun flooredValueOf(instant: Instant) = valueOf(instant).floor()
 
     /**
@@ -62,7 +63,7 @@ class SolverTimeWindowBoundary(
      *
      * @param duration 持续时间 / Duration
      * @return 有符号整数 solver 数值 / Signed integer solver value
-     */
+    */
     fun signedFlooredValueOf(duration: Duration) = valueOf(duration).floor().toInt64()
 
     /**
@@ -70,7 +71,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return 无符号整数 solver 数值 / Unsigned integer solver value
-     */
+    */
     fun unsignedFlooredValueOf(instant: Instant) = flooredValueOf(instant).toUInt64()
 
     /**
@@ -78,7 +79,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return 剩余 solver 数值 / Remaining solver value
-     */
+    */
     fun remainingValueAfter(instant: Instant) = with(source) { (source.end - instant).value }
 
     /**
@@ -86,7 +87,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return 已过 solver 数值 / Elapsed solver value
-     */
+    */
     fun elapsedValueBefore(instant: Instant) = with(source) { (instant - source.start).value }
 
     /**
@@ -95,7 +96,7 @@ class SolverTimeWindowBoundary(
      * @param from 开始时间点 / Start instant
      * @param to 结束时间点 / End instant
      * @return 距离 solver 数值 / Distance solver value
-     */
+    */
     fun distanceValue(
         from: Instant,
         to: Instant
@@ -106,7 +107,7 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return solver 数值 / Solver value
-     */
+    */
     fun afterWindowDurationValue(instant: Instant) = with(source) { (instant + source.duration).value }
 
     /**
@@ -114,6 +115,6 @@ class SolverTimeWindowBoundary(
      *
      * @param instant 时间点 / Instant
      * @return solver 数值 / Solver value
-     */
+    */
     fun beforeWindowDurationValue(instant: Instant) = with(source) { (instant - source.duration).value }
 }

@@ -6,7 +6,7 @@
  * 同时提供电容单位，包括法拉、毫法、微法、纳法、皮法等。
  * Provides SI unit definitions for electric charge dimension, including coulomb, millicoulomb, ampere-hour, milliampere-hour, etc.
  * Also provides capacitance units, including farad, millifarad, microfarad, nanofarad, picofarad, etc.
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.quantities.dimension.*
  *
  * 定义：1 C = 1 A × 1 s
  * Definition: 1 C = 1 A × 1 s
- */
+*/
 object Coulomb : DerivedPhysicalUnit(Ampere * Second) {
     override val name = "coulomb"
     override val symbol = "C"
@@ -39,7 +39,7 @@ object Coulomb : DerivedPhysicalUnit(Ampere * Second) {
  *
  * 定义：1 mC = 10⁻³ C
  * Definition: 1 mC = 10⁻³ C
- */
+*/
 object Millicoulomb : DerivedPhysicalUnit(Coulomb * Scale.milli) {
     override val name = "millicoulomb"
     override val symbol = "mC"
@@ -53,7 +53,7 @@ object Millicoulomb : DerivedPhysicalUnit(Coulomb * Scale.milli) {
  *
  * 定义：1 µC = 10⁻⁶ C
  * Definition: 1 µC = 10⁻⁶ C
- */
+*/
 object Microcoulomb : DerivedPhysicalUnit(Coulomb * Scale.micro) {
     override val name = "microcoulomb"
     override val symbol = "µC"
@@ -67,7 +67,7 @@ object Microcoulomb : DerivedPhysicalUnit(Coulomb * Scale.micro) {
  *
  * 定义：1 kC = 10³ C
  * Definition: 1 kC = 10³ C
- */
+*/
 object Kilocoulomb : DerivedPhysicalUnit(Coulomb * Scale.kilo) {
     override val name = "kilocoulomb"
     override val symbol = "kC"
@@ -84,7 +84,7 @@ object Kilocoulomb : DerivedPhysicalUnit(Coulomb * Scale.kilo) {
  *
  * 定义：1 Ah = 1 A × 1 h = 3600 C
  * Definition: 1 Ah = 1 A × 1 h = 3600 C
- */
+*/
 object AmpereHour : DerivedPhysicalUnit(Ampere * Hour) {
     override val name = "ampere-hour"
     override val symbol = "Ah"
@@ -98,7 +98,7 @@ object AmpereHour : DerivedPhysicalUnit(Ampere * Hour) {
  *
  * 定义：1 mAh = 10⁻³ Ah = 3.6 C
  * Definition: 1 mAh = 10⁻³ Ah = 3.6 C
- */
+*/
 object MilliampereHour : DerivedPhysicalUnit(Milliampere * Hour) {
     override val name = "milliampere-hour"
     override val symbol = "mAh"
@@ -112,7 +112,7 @@ object MilliampereHour : DerivedPhysicalUnit(Milliampere * Hour) {
  *
  * 定义：1 µAh = 10⁻⁶ Ah = 3.6 × 10⁻³ C
  * Definition: 1 µAh = 10⁻⁶ Ah = 3.6 × 10⁻³ C
- */
+*/
 object MicroampereHour : DerivedPhysicalUnit(Microampere * Hour) {
     override val name = "microampere-hour"
     override val symbol = "µAh"
@@ -126,7 +126,7 @@ object MicroampereHour : DerivedPhysicalUnit(Microampere * Hour) {
  *
  * 定义：1 kAh = 10³ Ah = 3.6 × 10⁶ C
  * Definition: 1 kAh = 10³ Ah = 3.6 × 10⁶ C
- */
+*/
 object KiloampereHour : DerivedPhysicalUnit(Kiloampere * Hour) {
     override val name = "kiloampere-hour"
     override val symbol = "kAh"
@@ -140,7 +140,7 @@ object KiloampereHour : DerivedPhysicalUnit(Kiloampere * Hour) {
  *
  * 定义：1 As = 1 C
  * Definition: 1 As = 1 C
- */
+*/
 object AmpereSecond : DerivedPhysicalUnit(Ampere * Second) {
     override val name = "ampere-second"
     override val symbol = "As"
@@ -161,7 +161,7 @@ object AmpereSecond : DerivedPhysicalUnit(Ampere * Second) {
  *
  * 定义：1 F = 1 C / V
  * Definition: 1 F = 1 C / V
- */
+*/
 object Farad : DerivedPhysicalUnit(Coulomb / Volt) {
     override val name = "farad"
     override val symbol = "F"
@@ -175,7 +175,7 @@ object Farad : DerivedPhysicalUnit(Coulomb / Volt) {
  *
  * 定义：1 mF = 10⁻³ F
  * Definition: 1 mF = 10⁻³ F
- */
+*/
 object Millifarad : DerivedPhysicalUnit(Farad * Scale.milli) {
     override val name = "millifarad"
     override val symbol = "mF"
@@ -189,7 +189,7 @@ object Millifarad : DerivedPhysicalUnit(Farad * Scale.milli) {
  *
  * 定义：1 µF = 10⁻⁶ F
  * Definition: 1 µF = 10⁻⁶ F
- */
+*/
 object Microfarad : DerivedPhysicalUnit(Farad * Scale.micro) {
     override val name = "microfarad"
     override val symbol = "µF"
@@ -203,7 +203,7 @@ object Microfarad : DerivedPhysicalUnit(Farad * Scale.micro) {
  *
  * 定义：1 nF = 10⁻⁹ F
  * Definition: 1 nF = 10⁻⁹ F
- */
+*/
 object Nanofarad : DerivedPhysicalUnit(Farad * Scale.nano) {
     override val name = "nanofarad"
     override val symbol = "nF"
@@ -217,7 +217,7 @@ object Nanofarad : DerivedPhysicalUnit(Farad * Scale.nano) {
  *
  * 定义：1 pF = 10⁻¹² F
  * Definition: 1 pF = 10⁻¹² F
- */
+*/
 object Picofarad : DerivedPhysicalUnit(Farad * Scale.pico) {
     override val name = "picofarad"
     override val symbol = "pF"

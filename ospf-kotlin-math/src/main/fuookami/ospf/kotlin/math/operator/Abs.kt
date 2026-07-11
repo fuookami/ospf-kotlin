@@ -14,7 +14,7 @@
  *
  * 使用示例 / Usage example:
  * val result = abs(-5)  // result = 5
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -29,9 +29,9 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 绝对值运算的结果类型
  *
- * @param Ret The result type of the absolute value operation
- */
+*/
 interface Abs<out Ret> {
+
     /**
      * 计算绝对倌
      * Calculates the absolute value
@@ -39,7 +39,7 @@ interface Abs<out Ret> {
      * @return 当前数值的绝对值（非负值）
      *
      * @return The absolute value (non-negative value) of the current number
-     */
+    */
     fun abs(): Ret
 }
 
@@ -52,11 +52,8 @@ interface Abs<out Ret> {
  * @param num 要计算绝对值的数倌
  * @return 数值的绝对倌
  *
- * @param T The return type
- * @param U The input type, must implement the Abs interface
- * @param num The number to calculate absolute value for
  * @return The absolute value of the number
- */
+*/
 fun <T, U : Abs<T>> abs(num: U): T {
     return num.abs()
 }

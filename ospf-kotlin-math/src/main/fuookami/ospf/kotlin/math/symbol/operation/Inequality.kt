@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * 提供 Flt64 不等式的符号级 DSL（lt/le/eq/ne/ge/gt）和满足性判断。
  * Supports symbol-level comparison DSL and satisfaction checking for Flt64 inequalities.
- */
+*/
 
 // ========== Comparison.satisfiedBy ==========
 
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @param lhs 左侧操作数 / Left-hand operand
  * @param rhs 右侧操作数 / Right-hand operand
  * @return 是否满足比较关系 / Whether the comparison is satisfied
- */
+*/
 fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
     return when (this) {
         Comparison.LT -> lhs < rhs
@@ -48,7 +48,7 @@ fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
  * 将符号转换为系数为 1 的线性多项式。
  *
  * @return the linear polynomial representation of this symbol / 此符号的线性多项式表示
- */
+*/
 private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 }
@@ -58,7 +58,7 @@ private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
  * 将 Flt64 值转换为常数线性多项式。
  *
  * @return the constant linear polynomial representation of this value / 此值的常数线性多项式表示
- */
+*/
 private fun Flt64.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), this)
 }
@@ -69,7 +69,7 @@ private fun Flt64.asLinearPolynomial(): LinearPolynomial<Flt64> {
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
- */
+*/
 infix fun Symbol.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
 
 /**
@@ -78,7 +78,7 @@ infix fun Symbol.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
- */
+*/
 infix fun Symbol.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
 
 /**
@@ -87,7 +87,7 @@ infix fun Symbol.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
- */
+*/
 infix fun Symbol.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
 
 /**
@@ -96,7 +96,7 @@ infix fun Symbol.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
- */
+*/
 infix fun Symbol.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
 
 /**
@@ -105,7 +105,7 @@ infix fun Symbol.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
- */
+*/
 infix fun Symbol.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
 
 /**
@@ -114,7 +114,7 @@ infix fun Symbol.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side Flt64 value / 右侧 Flt64 值
  * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
- */
+*/
 infix fun Symbol.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 /**
@@ -123,7 +123,7 @@ infix fun Symbol.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
- */
+*/
 infix fun Flt64.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
 
 /**
@@ -132,7 +132,7 @@ infix fun Flt64.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
- */
+*/
 infix fun Flt64.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
 
 /**
@@ -141,7 +141,7 @@ infix fun Flt64.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
- */
+*/
 infix fun Flt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
 
 /**
@@ -150,7 +150,7 @@ infix fun Flt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
- */
+*/
 infix fun Flt64.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
 
 /**
@@ -159,7 +159,7 @@ infix fun Flt64.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
- */
+*/
 infix fun Flt64.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
 
 /**
@@ -168,7 +168,7 @@ infix fun Flt64.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
- */
+*/
 infix fun Flt64.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 /**
@@ -177,7 +177,7 @@ infix fun Flt64.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLi
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this < rhs / 表示 this < rhs 的线性不等式
- */
+*/
 infix fun Symbol.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
 
 /**
@@ -186,7 +186,7 @@ infix fun Symbol.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this <= rhs / 表示 this <= rhs 的线性不等式
- */
+*/
 infix fun Symbol.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
 
 /**
@@ -195,7 +195,7 @@ infix fun Symbol.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this == rhs / 表示 this == rhs 的线性不等式
- */
+*/
 infix fun Symbol.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
 
 /**
@@ -204,7 +204,7 @@ infix fun Symbol.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this != rhs / 表示 this != rhs 的线性不等式
- */
+*/
 infix fun Symbol.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
 
 /**
@@ -213,7 +213,7 @@ infix fun Symbol.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this >= rhs / 表示 this >= rhs 的线性不等式
- */
+*/
 infix fun Symbol.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
 
 /**
@@ -222,7 +222,7 @@ infix fun Symbol.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param rhs the right-hand side symbol / 右侧符号
  * @return the linear inequality representing this > rhs / 表示 this > rhs 的线性不等式
- */
+*/
 infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 // ========== isSatisfied ==========
@@ -234,7 +234,7 @@ infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 是否满足，若缺少值则返回 null / Whether satisfied, or null if values are missing
- */
+*/
 fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val provider = MapValueProvider(values)
     val lhsValue = lhs.evaluate(provider) ?: return null
@@ -249,7 +249,7 @@ fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
- */
+*/
 fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
     val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
         is Ok -> result.value
@@ -270,7 +270,7 @@ fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 是否满足，若缺少值则返回 null / Whether satisfied, or null if values are missing
- */
+*/
 fun QuadraticInequalityOf<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val provider = MapValueProvider(values)
     val lhsValue = lhs.evaluate(provider) ?: return null
@@ -285,7 +285,7 @@ fun QuadraticInequalityOf<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolea
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
- */
+*/
 fun QuadraticInequalityOf<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
     val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
         is Ok -> result.value
@@ -306,7 +306,7 @@ fun QuadraticInequalityOf<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values:
  *
  * @param values 符号到值的映射 / Symbol-to-value mapping
  * @return 是否满足，若缺少值则返回 null / Whether satisfied, or null if values are missing
- */
+*/
 fun CanonicalInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val provider = MapValueProvider(values)
     val lhsValue = lhs.evaluate(provider) ?: return null
@@ -321,7 +321,7 @@ fun CanonicalInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean?
  * @param order 符号顺序 / Symbol order
  * @param values 对应值列表 / Corresponding value list
  * @return 是否满足 / Whether satisfied
- */
+*/
 fun CanonicalInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Ret<Boolean> {
     val lhsValue = when (val result = lhs.evaluateOrdered(order, values)) {
         is Ok -> result.value

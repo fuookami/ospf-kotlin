@@ -7,7 +7,7 @@
  * Defines the basic interface for symbols in symbolic computation.
  * A symbol is an abstract representation of variables in symbolic expressions,
  * each with a unique name and optional display name.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 /**
@@ -24,7 +24,7 @@ package fuookami.ospf.kotlin.math.symbol
  *                Unique identifier name of the symbol, used to identify variables in expressions
  * @property displayName 符号的显示名称（可选），用于输出和可视化展示
  *                       Display name (optional) for output and visualization purposes
- */
+*/
 interface Symbol {
     val name: String
     val displayName: String?

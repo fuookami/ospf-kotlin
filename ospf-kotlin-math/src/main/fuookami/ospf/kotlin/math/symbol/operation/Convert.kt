@@ -19,12 +19,12 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * 包括 Ret 包装的降阶转换和不等式规范化操作。
  * Provides Flt64 polynomial and inequality type conversion convenience functions.
  * Includes Ret-wrapped demotion conversions and inequality normalization operations.
- */
+*/
 
 /** 计算两个 Flt64 线性多项式的差 / Subtract one Flt64 linear polynomial from another
  * @param rhs 被减的线性多项式 / The linear polynomial to subtract
  * @return 两个线性多项式的差 / The difference of the two linear polynomials
- */
+*/
 private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
     return subtractLinear(
         rhs = rhs,
@@ -39,7 +39,7 @@ private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearP
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次多项式，若不可转换则返回 null / Quadratic polynomial, or null if not convertible
- */
+*/
 fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
@@ -56,13 +56,19 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
  *
  * 表示降阶转换为线性多项式时的失败原因。
  * Represents the failure reason when demoting to a linear polynomial.
- */
+*/
 enum class TryToLinearError {
+    /** Canonical monomial is not linear / 规范单项式不是线性的 */
     CanonicalMonomialIsNotLinear,
+    /** Quadratic monomial is not linear / 二次单项式不是线性的 */
     QuadraticMonomialIsNotLinear,
+    /** Canonical polynomial is not linear / 规范多项式不是线性的 */
     CanonicalPolynomialIsNotLinear,
+    /** Quadratic polynomial is not linear / 二次多项式不是线性的 */
     QuadraticPolynomialIsNotLinear,
+    /** Quadratic inequality is not linear / 二次不等式不是线性的 */
     QuadraticInequalityIsNotLinear,
+    /** Canonical inequality is not linear / 规范不等式不是线性的 */
     CanonicalInequalityIsNotLinear
 }
 
@@ -72,10 +78,13 @@ enum class TryToLinearError {
  *
  * 表示降阶转换为二次多项式时的失败原因。
  * Represents the failure reason when demoting to a quadratic polynomial.
- */
+*/
 enum class TryToQuadraticError {
+    /** Canonical monomial is not quadratic / 规范单项式不是二次的 */
     CanonicalMonomialIsNotQuadratic,
+    /** Canonical polynomial is not quadratic / 规范多项式不是二次的 */
     CanonicalPolynomialIsNotQuadratic,
+    /** Canonical inequality is not quadratic / 规范不等式不是二次的 */
     CanonicalInequalityIsNotQuadratic
 }
 
@@ -85,8 +94,9 @@ enum class TryToQuadraticError {
  *
  * 表示转换为规范多项式时的失败原因。
  * Represents the failure reason when converting to a canonical polynomial.
- */
+*/
 enum class TryToCanonicalError {
+    /** Unsupported conversion / 不支持的转换 */
     Unsupported
 }
 
@@ -95,7 +105,7 @@ enum class TryToCanonicalError {
  * Convert a Flt64 canonical monomial to a linear monomial (Ret-wrapped)
  *
  * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
- */
+*/
 fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     val linearMonomial = toLinearMonomialOrNull()
     return if (linearMonomial != null) {
@@ -111,7 +121,7 @@ fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次单项式的 Ret 结果 / Ret result containing quadratic monomial
- */
+*/
 fun CanonicalMonomial<Flt64>.toQuadraticMonomialRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticMonomial<Flt64>> {
@@ -128,7 +138,7 @@ fun CanonicalMonomial<Flt64>.toQuadraticMonomialRet(
  * Convert a Flt64 quadratic monomial to a linear monomial (Ret-wrapped)
  *
  * @return 包含线性单项式的 Ret 结果 / Ret result containing linear monomial
- */
+*/
 fun QuadraticMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     val linearMonomial = toLinearMonomialOrNull()
     return if (linearMonomial != null) {
@@ -143,7 +153,7 @@ fun QuadraticMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
  * Convert a Flt64 canonical polynomial to a linear polynomial (Ret-wrapped)
  *
  * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
- */
+*/
 fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt64>> {
     val linearPolynomial = toLinearPolynomialOrNull()
     return if (linearPolynomial != null) {
@@ -159,7 +169,7 @@ fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次多项式的 Ret 结果 / Ret result containing quadratic polynomial
- */
+*/
 fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticPolynomial<Flt64>> {
@@ -176,7 +186,7 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialRet(
  * Convert a Flt64 quadratic polynomial to a linear polynomial (Ret-wrapped)
  *
  * @return 包含线性多项式的 Ret 结果 / Ret result containing linear polynomial
- */
+*/
 fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt64>> {
     val linearPolynomial = toLinearPolynomialOrNull()
     return if (linearPolynomial != null) {
@@ -191,7 +201,7 @@ fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
  * Promote a Flt64 linear inequality to a quadratic inequality
  *
  * @return 二次不等式 / Quadratic inequality
- */
+*/
 fun LinearInequality<Flt64>.toQuadraticInequality(): QuadraticInequalityOf<Flt64> {
     return QuadraticInequalityOf(
         lhs = lhs.toQuadraticPolynomial(),
@@ -206,7 +216,7 @@ fun LinearInequality<Flt64>.toQuadraticInequality(): QuadraticInequalityOf<Flt64
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
- */
+*/
 fun LinearInequality<Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality<Flt64> {
@@ -223,7 +233,7 @@ fun LinearInequality<Flt64>.toCanonicalInequality(
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范不等式 / Canonical inequality
- */
+*/
 fun QuadraticInequalityOf<Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality<Flt64> {
@@ -239,7 +249,7 @@ fun QuadraticInequalityOf<Flt64>.toCanonicalInequality(
  * Try to demote a Flt64 quadratic inequality to a linear inequality
  *
  * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
- */
+*/
 fun QuadraticInequalityOf<Flt64>.toLinearInequalityOrNull(): LinearInequality<Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
@@ -251,7 +261,7 @@ fun QuadraticInequalityOf<Flt64>.toLinearInequalityOrNull(): LinearInequality<Fl
  * Demote a Flt64 quadratic inequality to a linear inequality (Ret-wrapped)
  *
  * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
- */
+*/
 fun QuadraticInequalityOf<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
@@ -266,7 +276,7 @@ fun QuadraticInequalityOf<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<F
  * Try to demote a Flt64 canonical inequality to a linear inequality
  *
  * @return 线性不等式，若不可转换则返回 null / Linear inequality, or null if not convertible
- */
+*/
 fun CanonicalInequality<Flt64>.toLinearInequalityOrNull(): LinearInequality<Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
@@ -279,7 +289,7 @@ fun CanonicalInequality<Flt64>.toLinearInequalityOrNull(): LinearInequality<Flt6
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次不等式，若不可转换则返回 null / Quadratic inequality, or null if not convertible
- */
+*/
 fun CanonicalInequality<Flt64>.toQuadraticInequalityOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticInequalityOf<Flt64>? {
@@ -293,7 +303,7 @@ fun CanonicalInequality<Flt64>.toQuadraticInequalityOrNull(
  * Demote a Flt64 canonical inequality to a linear inequality (Ret-wrapped)
  *
  * @return 包含线性不等式的 Ret 结果 / Ret result containing linear inequality
- */
+*/
 fun CanonicalInequality<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
@@ -309,7 +319,7 @@ fun CanonicalInequality<Flt64>.toLinearInequalityRet(): Ret<LinearInequality<Flt
  *
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 包含二次不等式的 Ret 结果 / Ret result containing quadratic inequality
- */
+*/
 fun CanonicalInequality<Flt64>.toQuadraticInequalityRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): Ret<QuadraticInequalityOf<Flt64>> {
@@ -327,7 +337,7 @@ fun CanonicalInequality<Flt64>.toQuadraticInequalityRet(
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 左侧归一化的不等式 / Normalized inequality with all terms on LHS
- */
+*/
 fun LinearInequality<Flt64>.moveAllToLhs(combineTerms: Boolean = true): LinearInequality<Flt64> {
     val lhsToZeroRhs = lhs.minus(rhs)
     val normalizedLhs = if (combineTerms) {
@@ -344,7 +354,7 @@ fun LinearInequality<Flt64>.moveAllToLhs(combineTerms: Boolean = true): LinearIn
  *
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @return 规范化的不等式 / Normalized inequality
- */
+*/
 fun LinearInequality<Flt64>.normalizeToLessEqualForm(combineTerms: Boolean = true): LinearInequality<Flt64> {
     if (comparison == Comparison.NE) {
         return this
@@ -364,7 +374,7 @@ fun LinearInequality<Flt64>.normalizeToLessEqualForm(combineTerms: Boolean = tru
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 左侧归一化的不等式 / Normalized inequality with all terms on LHS
- */
+*/
 fun CanonicalInequality<Flt64>.moveAllToLhs(
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -390,7 +400,7 @@ fun CanonicalInequality<Flt64>.moveAllToLhs(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 规范化的不等式 / Normalized inequality
- */
+*/
 fun CanonicalInequality<Flt64>.normalizeToLessEqualForm(
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

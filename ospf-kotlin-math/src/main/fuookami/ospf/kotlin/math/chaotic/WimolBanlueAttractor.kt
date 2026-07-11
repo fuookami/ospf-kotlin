@@ -1,7 +1,7 @@
 /**
  * Wimol-Banlue 吸引子
  * Wimol-Banlue Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property h 时间步长 / Time step size
- */
+*/
 data class WimolBanlueAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     @Suppress("UNCHECKED_CAST")
@@ -40,7 +40,7 @@ data class WimolBanlueAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
 /**
  * Wimol-Banlue 吸引子生成器
  * Wimol-Banlue Attractor Generator
- */
+*/
 data class WimolBanlueAttractorGenerator(
     val attractor: WimolBanlueAttractor<Flt64> = WimolBanlueAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

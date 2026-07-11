@@ -9,7 +9,7 @@
  * Source: SI derived units
  * - RadianPerSecondSquared: rad/s², SI derived unit for angular acceleration
  * - DegreePerSecondSquared: °/s², common unit for angular acceleration
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.AngularAcceleration
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.dimension.AngularAcceleration
  *
  * 来源：SI 导出单位，角加速度的国际单位
  * Source: SI derived unit, international unit for angular acceleration
- */
+*/
 object RadianPerSecondSquared : DerivedPhysicalUnit(RadianPerSecond / Second) {
     override val name = "radian per second squared"
     override val symbol = "rad/s²"
@@ -52,7 +52,7 @@ object RadianPerSecondSquared : DerivedPhysicalUnit(RadianPerSecond / Second) {
  *
  * 来源：常用角加速度单位，广泛用于工程和导航
  * Source: Common angular acceleration unit, widely used in engineering and navigation
- */
+*/
 object DegreePerSecondSquared : DerivedPhysicalUnit(DegreePerSecond / Second) {
     override val name = "degree per second squared"
     override val symbol = "°/s²"

@@ -4,7 +4,7 @@
  *
  * 定义数值类型的核心接口，包括数环、数域、标量、实数、整数、有理数、浮点数等数值类型层次结构。
  * Defines core interfaces for numeric types, including number ring, number field, scalar, real number, integer, rational number, floating number and other numeric type hierarchies.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 数环是具有加法群结构和乘法半群结构的代数结构。
  * A number ring is an algebraic structure with additive group structure and multiplicative semigroup structure.
- */
+*/
 interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
 
 /**
@@ -26,7 +26,7 @@ interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
  *
  * 数域是具有加法群结构和乘法群结构的代数结构。
  * A number field is an algebraic structure with additive group structure and multiplicative group structure.
- */
+*/
 interface NumberField<Self> : Field<Self>, NumberRing<Self>, TimesGroup<Self>
 
 /**
@@ -37,20 +37,19 @@ interface NumberField<Self> : Field<Self>, NumberRing<Self>, TimesGroup<Self>
  * A scalar is an arithmetic type that supports addition, multiplication, cross product, and absolute value operations.
  *
  * @param Self 标量类型，必须继承自 Scalar
- * @param Self The scalar type, must extend Scalar
- */
+*/
 interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
     PlusSemiGroup<Self>, TimesSemiGroup<Self>,
     Cross<Self, Self>, Abs<Self> {
+
     /**
      * 叉积运算，默认实现为乘法
      * Cross product operation, default implementation is multiplication
      *
      * @param rhs 另一个标量
-     * @param rhs The other scalar
      * @return 叉积结果
      * @return The cross product result
-     */
+    */
     override infix fun x(rhs: Self) = this * rhs
 }
 
@@ -64,77 +63,77 @@ interface Scalar<Self : Scalar<Self>> : Arithmetic<Self>,
  * supporting logarithm, power, exponential, and trigonometric operations.
  *
  * @param Self 实数类型，必须继承自 RealNumber
- * @param Self The real number type, must extend RealNumber
- */
+*/
 interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, Ord<Self>, Eq<Self>,
     Bounded<Self>, Infinite<Self>, Fixed<Self>, Epsilon<Self>,
     Log<FloatingNumber<*>, FloatingNumber<*>>,
     PowF<FloatingNumber<*>, FloatingNumber<*>?>,
     Exp<FloatingNumber<*>>, Trigonometry<FloatingNumber<*>> {
+
     /**
      * 实数常量
      * Real number constants
-     */
+    */
     override val constants: RealNumberConstants<Self>
 
     /**
      * 是否有界
      * Whether the number is bounded
-     */
+    */
     override val isBounded: Boolean get() = true
 
     /**
      * 最小边界值
      * Minimum bound value
-     */
+    */
     override val minBound: Self? get() = constants.minimum
 
     /**
      * 最大边界值
      * Maximum bound value
-     */
+    */
     override val maxBound: Self? get() = constants.maximum
 
     /**
      * 是否支持无穷
      * Whether the number supports infinity
-     */
+    */
     override val supportsInfinity: Boolean get() = constants.infinity != null || constants.negativeInfinity != null
 
     /**
      * 正无穷值
      * Positive infinity value
-     */
+    */
     override val positiveInfinity: Self? get() = constants.infinity
 
     /**
      * 负无穷值
      * Negative infinity value
-     */
+    */
     override val negativeInfinityValue: Self? get() = constants.negativeInfinity
 
     /**
      * 是否定点
      * Whether the number is fixed-point
-     */
+    */
     override val isFixed: Boolean get() = constants.decimalDigits != null
 
     /**
      * 定点小数位数
      * Fixed-point decimal digits
-     */
+    */
     override val fixedDigits: Int? get() = constants.decimalDigits
 
     /**
      * 定点精度值
      * Fixed-point precision value
-     */
+    */
     override val fixedPrecision: Self? get() = constants.decimalPrecision
 
     /**
      * 精度误差值
      * Precision epsilon value
-     */
+    */
     override val precisionEpsilon: Self? get() = constants.epsilon
 
     /**
@@ -143,7 +142,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否为正无穷
      * @return Whether the number is positive infinity
-     */
+    */
     fun isInfinity(): Boolean = isPositiveInfinity()
 
     /**
@@ -152,7 +151,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否为正无穷
      * @return Whether the value is positive infinity
-     */
+    */
     fun isPositiveInfinity(): Boolean = positiveInfinity?.let { this == it } ?: false
 
     /**
@@ -161,7 +160,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否为负无穷
      * @return Whether the number is negative infinity
-     */
+    */
     fun isNegativeInfinity(): Boolean = negativeInfinityValue?.let { this == it } ?: false
 
     /**
@@ -170,7 +169,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否为无穷
      * @return Whether the value is infinite
-     */
+    */
     fun isInfinite(): Boolean = isPositiveInfinity() || isNegativeInfinity()
 
     /**
@@ -179,7 +178,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否为有限值
      * @return Whether the value is finite
-     */
+    */
     fun isFinite(): Boolean = !isInfinite()
 
     override fun isWithinBounds(value: Self): Boolean {
@@ -202,7 +201,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 当前实例的 Self 类型引用
      * @return The Self-typed reference to this instance
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     private fun self(): Self {
         // 安全不变量：RealNumber<Self> 使用自类型约束，运行时 this 与 Self 一致。
@@ -216,15 +215,16 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      *
      * @return 是否在边界内
      * @return Whether the value is within bounds
-     */
+    */
     fun isSelfWithinBounds(): Boolean = isWithinBounds(self())
+
     /**
      * 将当前值限制在边界范围内
      * Clamp the current value to within bounds
      *
      * @return 限制后的值
      * @return The clamped value
-     */
+    */
     fun clampSelfToBounds(): Self = clampToBounds(self())
 
     /**
@@ -232,10 +232,9 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Equivalence checking
      *
      * @param rhs 另一个实数
-     * @param rhs The other real number
      * @return 是否等价
      * @return Whether the numbers are equivalent
-     */
+    */
     override infix fun equiv(rhs: Self) = this == rhs
 
     /**
@@ -243,8 +242,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 8-bit signed integer
      *
      * @return Int8 值
-     * @return Int8 value
-     */
+    */
     fun toInt8(): Int8
 
     /**
@@ -252,8 +250,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 16-bit signed integer
      *
      * @return Int16 值
-     * @return Int16 value
-     */
+    */
     fun toInt16(): Int16
 
     /**
@@ -261,8 +258,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 32-bit signed integer
      *
      * @return Int32 值
-     * @return Int32 value
-     */
+    */
     fun toInt32(): Int32
 
     /**
@@ -270,8 +266,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 64-bit signed integer
      *
      * @return Int64 值
-     * @return Int64 value
-     */
+    */
     fun toInt64(): Int64
 
     /**
@@ -279,8 +274,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to arbitrary precision signed integer
      *
      * @return IntX 值
-     * @return IntX value
-     */
+    */
     fun toIntX(): IntX
 
     /**
@@ -288,8 +282,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 8-bit unsigned integer
      *
      * @return UInt8 值
-     * @return UInt8 value
-     */
+    */
     fun toUInt8(): UInt8
 
     /**
@@ -297,8 +290,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 16-bit unsigned integer
      *
      * @return UInt16 值
-     * @return UInt16 value
-     */
+    */
     fun toUInt16(): UInt16
 
     /**
@@ -306,8 +298,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 32-bit unsigned integer
      *
      * @return UInt32 值
-     * @return UInt32 value
-     */
+    */
     fun toUInt32(): UInt32
 
     /**
@@ -315,8 +306,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 64-bit unsigned integer
      *
      * @return UInt64 值
-     * @return UInt64 value
-     */
+    */
     fun toUInt64(): UInt64
 
     /**
@@ -324,8 +314,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to arbitrary precision unsigned integer
      *
      * @return UIntX 值
-     * @return UIntX value
-     */
+    */
     fun toUIntX(): UIntX
 
     /**
@@ -333,8 +322,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 8-bit signed integer
      *
      * @return NInt8 值
-     * @return NInt8 value
-     */
+    */
     fun toNInt8(): NInt8 = NInt8(toInt8())
 
     /**
@@ -342,8 +330,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 16-bit signed integer
      *
      * @return NInt16 值
-     * @return NInt16 value
-     */
+    */
     fun toNInt16(): NInt16 = NInt16(toInt16())
 
     /**
@@ -351,8 +338,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 32-bit signed integer
      *
      * @return NInt32 值
-     * @return NInt32 value
-     */
+    */
     fun toNInt32(): NInt32 = NInt32(toInt32())
 
     /**
@@ -360,8 +346,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 64-bit signed integer
      *
      * @return NInt64 值
-     * @return NInt64 value
-     */
+    */
     fun toNInt64(): NInt64 = NInt64(toInt64())
 
     /**
@@ -369,8 +354,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable arbitrary precision signed integer
      *
      * @return NIntX 值
-     * @return NIntX value
-     */
+    */
     fun toNIntX(): NIntX = NIntX(toIntX())
 
     /**
@@ -378,8 +362,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 8-bit unsigned integer
      *
      * @return NUInt8 值
-     * @return NUInt8 value
-     */
+    */
     fun toNUInt8(): NUInt8 = NUInt8(toUInt8())
 
     /**
@@ -387,8 +370,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 16-bit unsigned integer
      *
      * @return NUInt16 值
-     * @return NUInt16 value
-     */
+    */
     fun toNUInt16(): NUInt16 = NUInt16(toUInt16())
 
     /**
@@ -396,8 +378,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 32-bit unsigned integer
      *
      * @return NUInt32 值
-     * @return NUInt32 value
-     */
+    */
     fun toNUInt32(): NUInt32 = NUInt32(toUInt32())
 
     /**
@@ -405,8 +386,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable 64-bit unsigned integer
      *
      * @return NUInt64 值
-     * @return NUInt64 value
-     */
+    */
     fun toNUInt64(): NUInt64 = NUInt64(toUInt64())
 
     /**
@@ -414,8 +394,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to nullable arbitrary precision unsigned integer
      *
      * @return NUIntX 值
-     * @return NUIntX value
-     */
+    */
     fun toNUIntX(): NUIntX = NUIntX(toUIntX())
 
     /**
@@ -423,8 +402,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 8-bit signed integer ratio
      *
      * @return Rtn8 值
-     * @return Rtn8 value
-     */
+    */
     fun toRtn8(): Rtn8 = Rtn8(toInt8(), Int8.one)
 
     /**
@@ -432,8 +410,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 16-bit signed integer ratio
      *
      * @return Rtn16 值
-     * @return Rtn16 value
-     */
+    */
     fun toRtn16(): Rtn16 = Rtn16(toInt16(), Int16.one)
 
     /**
@@ -441,8 +418,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 32-bit signed integer ratio
      *
      * @return Rtn32 值
-     * @return Rtn32 value
-     */
+    */
     fun toRtn32(): Rtn32 = Rtn32(toInt32(), Int32.one)
 
     /**
@@ -450,8 +426,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 64-bit signed integer ratio
      *
      * @return Rtn64 值
-     * @return Rtn64 value
-     */
+    */
     fun toRtn64(): Rtn64 = Rtn64(toInt64(), Int64.one)
 
     /**
@@ -459,8 +434,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to arbitrary precision signed integer ratio
      *
      * @return RtnX 值
-     * @return RtnX value
-     */
+    */
     fun toRtnX(): RtnX = RtnX(toIntX(), IntX.one)
 
     /**
@@ -468,8 +442,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 8-bit unsigned integer ratio
      *
      * @return URtn8 值
-     * @return URtn8 value
-     */
+    */
     fun toURtn8(): URtn8 = URtn8(toUInt8(), UInt8.one)
 
     /**
@@ -477,8 +450,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 16-bit unsigned integer ratio
      *
      * @return URtn16 值
-     * @return URtn16 value
-     */
+    */
     fun toURtn16(): URtn16 = URtn16(toUInt16(), UInt16.one)
 
     /**
@@ -486,8 +458,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 32-bit unsigned integer ratio
      *
      * @return URtn32 值
-     * @return URtn32 value
-     */
+    */
     fun toURtn32(): URtn32 = URtn32(toUInt32(), UInt32.one)
 
     /**
@@ -495,8 +466,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 64-bit unsigned integer ratio
      *
      * @return URtn64 值
-     * @return URtn64 value
-     */
+    */
     fun toURtn64(): URtn64 = URtn64(toUInt64(), UInt64.one)
 
     /**
@@ -504,8 +474,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to arbitrary precision unsigned integer ratio
      *
      * @return URtnX 值
-     * @return URtnX value
-     */
+    */
     fun toURtnX(): URtnX = URtnX(toUIntX(), UIntX.one)
 
     /**
@@ -513,8 +482,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 32-bit floating point number
      *
      * @return Flt32 值
-     * @return Flt32 value
-     */
+    */
     fun toFlt32(): Flt32
 
     /**
@@ -522,8 +490,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to 64-bit floating point number
      *
      * @return Flt64 值
-     * @return Flt64 value
-     */
+    */
     fun toFlt64(): Flt64
 
     /**
@@ -531,8 +498,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * Convert to arbitrary precision floating point number
      *
      * @return FltX 值
-     * @return FltX value
-     */
+    */
     fun toFltX(): FltX
 }
 
@@ -544,85 +510,85 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
  * Provides basic constants for real number types.
  *
  * @param Self 实数类型，必须继承自 RealNumber
- * @param Self The real number type, must extend RealNumber
- */
+*/
 interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Self>, RealConst<Self> {
+
     /**
      * 常量二
      * Constant two
-     */
+    */
     override val two: Self
 
     /**
      * 常量三
      * Constant three
-     */
+    */
     override val three: Self
 
     /**
      * 常量五
      * Constant five
-     */
+    */
     override val five: Self
 
     /**
      * 常量十
      * Constant ten
-     */
+    */
     override val ten: Self
 
     /**
      * 最小值
      * Minimum value
-     */
+    */
     override val minimum: Self
 
     /**
      * 最大值
      * Maximum value
-     */
+    */
     override val maximum: Self
 
     /**
      * 正最小值，默认为一
      * Positive minimum value, defaults to one
-     */
+    */
     val positiveMinimum get() = one
 
     /**
      * 小数位数，默认为空
      * Decimal digits, defaults to null
-     */
+    */
     override val decimalDigits: Int? get() = null
 
     /**
      * 小数精度值，默认为零
      * Decimal precision value, defaults to zero
-     */
+    */
     override val decimalPrecision: Self get() = zero
 
     /**
      * 精度误差值，默认为零
      * Precision epsilon value, defaults to zero
-     */
+    */
     override val epsilon: Self get() = zero
 
     /**
      * NaN 值，默认为空
      * NaN value, defaults to null
-     */
+    */
     override val nan: Self? get() = null
 
     /**
      * 正无穷值，默认为空
      * Positive infinity value, defaults to null
-     */
+    */
     override val infinity: Self? get() = null
 
     /**
      * 负无穷值，默认为空
      * Negative infinity value, defaults to null
-     */
+    */
     override val negativeInfinity: Self? get() = null
 }
 
@@ -634,8 +600,7 @@ interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Sel
  * An integer is a real number type that supports range operations.
  *
  * @param Self 整数类型，必须继承自 RealNumber
- * @param Self The integer type, must extend RealNumber
- */
+*/
 interface Integer<Self : RealNumber<Self>> : RealNumber<Self>, RangeTo<Self, Self>
 
 /**
@@ -646,8 +611,7 @@ interface Integer<Self : RealNumber<Self>> : RealNumber<Self>, RangeTo<Self, Sel
  * A signed integer is an integer number field type that supports power operations.
  *
  * @param Self 有符号整数类型，必须继承自 IntegerNumber
- * @param Self The integer number type, must extend IntegerNumber
- */
+*/
 interface IntegerNumber<Self : IntegerNumber<Self>> : Integer<Self>, NumberField<Self>, Pow<Self>
 
 /**
@@ -658,8 +622,7 @@ interface IntegerNumber<Self : IntegerNumber<Self>> : Integer<Self>, NumberField
  * An unsigned integer is an integer number field type that supports power operations.
  *
  * @param Self 无符号整数类型，必须继承自 UIntegerNumber
- * @param Self The unsigned integer number type, must extend UIntegerNumber
- */
+*/
 interface UIntegerNumber<Self : UIntegerNumber<Self>> : Integer<Self>, NumberField<Self>, Pow<Self>
 
 /**
@@ -670,10 +633,8 @@ interface UIntegerNumber<Self : UIntegerNumber<Self>> : Integer<Self>, NumberFie
  * A rational number is a real number field type represented by a ratio of two integers.
  *
  * @param Self 有理数类型，必须继承自 RationalNumber
- * @param Self The rational number type, must extend RationalNumber
  * @param I 整数类型
- * @param I The integer type
- */
+*/
 interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, NumberField<Self>, Pow<Self>
         where I : Integer<I>, I : NumberField<I>
 
@@ -685,16 +646,15 @@ interface RationalNumber<Self : RationalNumber<Self, I>, I> : RealNumber<Self>, 
  * Provides constants for rational number types, including half value constant.
  *
  * @param Self 有理数类型，必须继承自 RationalNumber
- * @param Self The rational number type, must extend RationalNumber
  * @param I 整数类型
- * @param I The integer type
- */
+*/
 interface RationalNumberConstants<Self : RationalNumber<Self, I>, I> : RealNumberConstants<Self>
         where I : Integer<I>, I : NumberField<I> {
+
     /**
      * 常量 1/2
      * Constant 1/2
-     */
+    */
     val half: Self
 }
 
@@ -706,13 +666,13 @@ interface RationalNumberConstants<Self : RationalNumber<Self, I>, I> : RealNumbe
  * A floating number is a real number field type that supports power operations and reciprocal.
  *
  * @param Self 浮点数类型，必须继承自 FloatingNumber
- * @param Self The floating number type, must extend FloatingNumber
- */
+*/
 interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, NumberField<Self>, Pow<Self> {
+
     /**
      * 浮点数常量
      * Floating number constants
-     */
+    */
     override val constants: FloatingNumberConstants<Self>
 
     /** 计算倒数 / Compute reciprocal */
@@ -727,37 +687,37 @@ interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, Number
  * Provides constants for floating number types, including half, pi, e, and lg2 constants.
  *
  * @param Self 浮点数类型，必须继承自 FloatingNumber
- * @param Self The floating number type, must extend FloatingNumber
- */
+*/
 interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConstants<Self>, FloatingConst<Self> {
+
     /**
      * 正最小值，默认为精度误差值
      * Positive minimum value, defaults to epsilon
-     */
+    */
     override val positiveMinimum: Self get() = epsilon
 
     /**
      * 常量 1/2
      * Constant 1/2
-     */
+    */
     override val half: Self
 
     /**
      * 圆周率常量
      * Pi constant
-     */
+    */
     override val pi: Self
 
     /**
      * 自然常数
      * E constant
-     */
+    */
     override val e: Self
 
     /**
      * 以 2 为底的常用对数常量
      * Log base 2 constant
-     */
+    */
     override val lg2: Self
 }
 
@@ -769,10 +729,8 @@ interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConst
  * A numeric integer number is an integer type that supports additive group, multiplicative semigroup, reciprocal, division, integer division, remainder, and power operations.
  *
  * @param Self 数值有符号整数类型
- * @param Self The numeric integer number type
  * @param I 有符号整数类型
- * @param I The integer number type
- */
+*/
 interface NumericIntegerNumber<Self : NumericIntegerNumber<Self, I>, I : IntegerNumber<I>> : Integer<Self>,
     PlusGroup<Self>, TimesSemiGroup<Self>,
     Reciprocal<RationalNumber<*, I>>,
@@ -789,10 +747,8 @@ interface NumericIntegerNumber<Self : NumericIntegerNumber<Self, I>, I : Integer
  * A numeric unsigned integer number is an integer type that supports additive semigroup, multiplicative semigroup, decrement, negation, subtraction, reciprocal, division, integer division, remainder, and power operations.
  *
  * @param Self 数值无符号整数类型
- * @param Self The numeric unsigned integer number type
  * @param I 无符号整数类型
- * @param I The unsigned integer number type
- */
+*/
 interface NumericUIntegerNumber<Self : NumericUIntegerNumber<Self, I>, I : UIntegerNumber<I>> : Integer<Self>,
     PlusSemiGroup<Self>, TimesSemiGroup<Self>,
     Dec<Self>,

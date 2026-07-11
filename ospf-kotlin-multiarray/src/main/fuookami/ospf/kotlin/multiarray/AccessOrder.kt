@@ -47,7 +47,7 @@
  * ```
  *
  * @see Shape
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -64,7 +64,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *   Row-major, last dimension varies fastest (C style)
  * - ColumnMajor: 列优先，第一个维度变化最快（Fortran 风格）
  *   Column-major, first dimension varies fastest (Fortran style)
- */
+*/
 enum class AccessOrder {
     RowMajor,
     ColumnMajor;
@@ -83,7 +83,7 @@ enum class AccessOrder {
  *
  * @param positions 各维度的当前位置 / Current position of each dimension
  * @param exhausted 是否已耗尽 / Whether exhausted
- */
+*/
 data class IteratorPosition(
     val positions: IntArray,
     val exhausted: Boolean = false
@@ -109,7 +109,7 @@ data class IteratorPosition(
  *
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
- */
+*/
 class MultiIndexIterator(
     private val shape: Shape,
     private val accessOrder: AccessOrder = AccessOrder.Default
@@ -155,7 +155,10 @@ class MultiIndexIterator(
     /**
      * 推进到下一个索引
      * Advance to the next index
-     */
+     *
+     * @param v Current multi-dimensional index to advance / 要推进的当前多维索引
+     * @return Next index array, or null if iteration is exhausted / 下一个索引数组，迭代耗尽时返回 null
+    */
     private fun advance(v: IntArray): IntArray? {
         when (accessOrder) {
             AccessOrder.RowMajor -> {
@@ -191,13 +194,15 @@ class MultiIndexIterator(
     /**
      * 获取已迭代的元素数量
      * Get the count of iterated elements
-     */
+     *
+     * @return Number of elements iterated so far / 已迭代的元素数量
+    */
     fun count(): Int = count
 
     /**
      * 重置迭代器
      * Reset the iterator
-     */
+    */
     fun reset() {
         current = null
         count = 0
@@ -209,7 +214,7 @@ class MultiIndexIterator(
  * Convert storage order to access order
  *
  * @return 对应的访问顺序 / Corresponding access order
- */
+*/
 private fun StorageOrder.toAccessOrder(): AccessOrder {
     return when (this) {
         StorageOrder.RowMajor -> AccessOrder.RowMajor
@@ -225,7 +230,7 @@ private fun StorageOrder.toAccessOrder(): AccessOrder {
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 按存储顺序排列的数组 / Array reordered to storage order
- */
+*/
 private fun <T : Any, S : Shape> reorderToStorageOrder(
     shape: S,
     list: List<T>,
@@ -245,7 +250,7 @@ private fun <T : Any, S : Shape> reorderToStorageOrder(
  *
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
- */
+*/
 class MultiIndexSequence(
     private val shape: Shape,
     private val accessOrder: AccessOrder = AccessOrder.Default
@@ -261,7 +266,7 @@ class MultiIndexSequence(
  *
  * @param order 访问顺序 / Access order
  * @return 多维索引序列 / Multi-dimensional index sequence
- */
+*/
 fun Shape.indices(order: AccessOrder = AccessOrder.Default): MultiIndexSequence {
     return MultiIndexSequence(this, order)
 }
@@ -272,7 +277,7 @@ fun Shape.indices(order: AccessOrder = AccessOrder.Default): MultiIndexSequence 
  *
  * @param order 访问顺序 / Access order
  * @return 索引序列 / Index sequence
- */
+*/
 fun Shape.iterate(order: AccessOrder = AccessOrder.Default): Sequence<IntArray> {
     return MultiIndexSequence(this, order)
 }
@@ -284,7 +289,7 @@ fun Shape.iterate(order: AccessOrder = AccessOrder.Default): Sequence<IntArray> 
  * @param shape 数组形状 / Array shape
  * @param accessOrder 访问顺序 / Access order
  * @return 索引序列 / Index sequence
- */
+*/
 fun DummyVector.iterateWithOrder(
     shape: Shape,
     accessOrder: AccessOrder = AccessOrder.Default
@@ -355,7 +360,7 @@ fun DummyVector.iterateWithOrder(
  *
  * @param accessOrder 访问顺序 / Access order
  * @return 元素序列 / Element sequence
- */
+*/
 fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<T> = sequence {
@@ -374,7 +379,7 @@ fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
  *
  * @param accessOrder 访问顺序 / Access order
  * @return 元素序列 / Element sequence
- */
+*/
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<T> = sequence {
@@ -389,7 +394,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.iterWithOrder(
  *
  * @param accessOrder 访问顺序 / Access order
  * @return (线性索引, 向量坐标, 元素) 三元组序列 / (linear index, vector, element) triple sequence
- */
+*/
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.enumerateWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<Triple<Int, IntArray, T>> = sequence {
@@ -405,7 +410,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.enumerateWithOrder(
  *
  * @param accessOrder 访问顺序 / Access order
  * @return 展平后的元素列表 / Flattened element list
- */
+*/
 fun <T : Any, S : Shape> AbstractMultiArray<T, S>.flatten(
     accessOrder: AccessOrder = AccessOrder.Default
 ): List<T> {
@@ -420,7 +425,7 @@ fun <T : Any, S : Shape> AbstractMultiArray<T, S>.flatten(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 不可变多维数组 / Immutable multi-array
- */
+*/
 fun <T : Any, S : Shape> MultiArray.Companion.fromList(
     shape: S,
     list: List<T>,
@@ -441,7 +446,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 不可变多维数组或 null / Immutable multi-array or null
- */
+*/
 fun <T : Any, S : Shape> MultiArray.Companion.fromListOrNull(
     shape: S,
     list: List<T>,
@@ -462,7 +467,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromListOrNull(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 不可变多维数组结果 / Immutable multi-array result
- */
+*/
 fun <T : Any, S : Shape> MultiArray.Companion.fromListSafe(
     shape: S,
     list: List<T>,
@@ -494,7 +499,7 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromListSafe(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 可变多维数组 / Mutable multi-array
- */
+*/
 fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
     shape: S,
     list: List<T>,
@@ -515,7 +520,7 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 可变多维数组或 null / Mutable multi-array or null
- */
+*/
 fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListOrNull(
     shape: S,
     list: List<T>,
@@ -536,7 +541,7 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListOrNull(
  * @param list 元素列表 / Element list
  * @param accessOrder 列表的访问顺序 / Access order of the list
  * @return 可变多维数组结果 / Mutable multi-array result
- */
+*/
 fun <T : Any, S : Shape> MutableMultiArray.Companion.fromListSafe(
     shape: S,
     list: List<T>,

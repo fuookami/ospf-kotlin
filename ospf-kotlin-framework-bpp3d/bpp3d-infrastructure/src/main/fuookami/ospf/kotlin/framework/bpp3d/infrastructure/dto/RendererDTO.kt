@@ -1,7 +1,7 @@
 /**
  * 渲染器数据传输对象。
  * Renderer data transfer objects.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
 import kotlinx.serialization.Serializable
@@ -40,6 +40,10 @@ enum class RenderAlgorithmShapeTypeDTO {
     HorizontalCylinderZ
 }
 
+/**
+ * RenderLoadingPlanItemDTO data class.
+ * RenderLoadingPlanItemDTO数据类。
+*/
 @Serializable
 data class RenderLoadingPlanItemDTO(
     val name: String,
@@ -65,6 +69,10 @@ data class RenderLoadingPlanItemDTO(
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * RenderLoadingPlanDTO data class.
+ * RenderLoadingPlanDTO数据类。
+*/
 @Serializable
 data class RenderLoadingPlanDTO(
     val group: List<String> = emptyList(),
@@ -80,6 +88,10 @@ data class RenderLoadingPlanDTO(
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * SchemaDTO data class.
+ * SchemaDTO数据类。
+*/
 @Serializable
 data class SchemaDTO(
     val kpi: Map<String, String> = emptyMap(),

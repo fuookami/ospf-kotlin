@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * @property overProductionVars 超产松弛变量列表（超产面积惩罚需要）/ Over-production slack variables (needed for over-production area penalty)
  * @property overProductionAreaMeasure 超产面积度量口径 / Over-production area measure policy
  * @property restMaterialMeasure 余料度量口径 / Rest material measure policy
- */
+*/
 class WasteObjectivePipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val waste: WasteAggregation<V>,
@@ -51,7 +51,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
      * 生成目标项单项式
      *
      * @return List of linear monomials representing waste penalty terms / 表示浪费惩罚项的线性单项式列表
-     */
+    */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 
@@ -111,7 +111,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
      * @param plan Cutting plan / 切割方案
      * @param measure Rest material measure policy / 余料度量口径
      * @return Rest material value, or null if unavailable / 余料值，若不可用则返回 null
-     */
+    */
     private fun restMaterialValue(
         plan: CuttingPlan<V>,
         measure: RestMaterialMeasure
@@ -125,6 +125,14 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * Calculate the width value used for over-production area penalty.
+     * 计算超产面积惩罚所使用的宽度值
+     *
+     * @param demand Product demand / 产品需求
+     * @param measure Over-production area measure policy / 超产面积度量口径
+     * @return Width value for over-production area, or null if unavailable / 超产面积宽度值，若不可用则返回 null
+    */
     private fun overProductionAreaWidthValue(
         demand: ProductDemand<V>,
         measure: OverProductionAreaMeasure
@@ -139,7 +147,7 @@ class WasteObjectivePipeline<V : RealNumber<V>>(
 
 /**
  * 超产面积度量口径 / Over-production area measure policy
- */
+*/
 enum class OverProductionAreaMeasure {
     /** 使用产品最大宽度代理 / Use product max width proxy */
     ProductMaxWidthProxy
@@ -147,7 +155,7 @@ enum class OverProductionAreaMeasure {
 
 /**
  * 余料度量口径 / Rest material measure policy
- */
+*/
 enum class RestMaterialMeasure {
     /** 使用余宽乘物料长度代理 / Use rest width by material length proxy */
     RestWidthByMaterialLengthProxy

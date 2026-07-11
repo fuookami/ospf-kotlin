@@ -12,13 +12,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * 为每架飞机生成初始航班任务束。Generates initial flight task bunches for each aircraft.
+ * Generates initial flight task bunches for each aircraft.
+ * 为每架飞机生成初始航班任务束。
  *
- * @property feasibilityJudger 参数。
- * @property connectionTimeCalculator 参数。
- * @property minimumDepartureTimeCalculator 参数。
- * @property costCalculator 参数。
- */
+ * @property feasibilityJudger The feasibility judger for checking task-aircraft compatibility / 用于检查任务-飞机兼容性的可行性判断器
+ * @property connectionTimeCalculator Function to calculate connection time between tasks / 计算任务间连接时间的函数
+ * @property minimumDepartureTimeCalculator Function to calculate minimum departure time / 计算最小出发时间的函数
+ * @property costCalculator Function to calculate total cost of a bunch / 计算批次总成本的函数
+*/
 class InitialFlightTaskBunchGenerator(
     val feasibilityJudger: FlightTaskFeasibilityJudger,
     val connectionTimeCalculator: ConnectionTimeCalculator,
@@ -32,14 +33,15 @@ class InitialFlightTaskBunchGenerator(
     }
 
     /**
-     * 为给定飞机生成初始束。Generates an initial bunch for the given aircraft.
- *
-     * @param aircraft 参数。
-     * @param aircraftUsability 参数。
-     * @param lockedFlightTasks 参数。
-     * @param originBunch 参数。
-     * @return 返回结果。
-     */
+     * Generates an initial bunch for the given aircraft.
+     * 为给定飞机生成初始束。
+     *
+     * @param aircraft The aircraft for which to generate the bunch / 要生成束的飞机
+     * @param aircraftUsability The usability constraints of the aircraft / 飞机的可用性约束
+     * @param lockedFlightTasks The list of locked flight tasks that must be included / 必须包含的锁定航班任务列表
+     * @param originBunch The original flight task bunch / 原始航班任务束
+     * @return The generated flight task bunch, or null if generation fails / 生成的航班任务束，如果生成失败则为 null
+    */
     operator fun invoke(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,
@@ -51,13 +53,14 @@ class InitialFlightTaskBunchGenerator(
     }
 
     /**
-     * 生成仅包含锁定任务的空束。Generates an empty bunch with only locked tasks.
- *
-     * @param aircraft 参数。
-     * @param aircraftUsability 参数。
-     * @param lockedFlightTasks 参数。
-     * @return 返回结果。
-     */
+     * Generates an empty bunch with only locked tasks.
+     * 生成仅包含锁定任务的空束。
+     *
+     * @param aircraft The aircraft for which to generate the bunch / 要生成束的飞机
+     * @param aircraftUsability The usability constraints of the aircraft / 飞机的可用性约束
+     * @param lockedFlightTasks The list of locked flight tasks / 锁定航班任务列表
+     * @return The generated flight task bunch, or null if generation fails / 生成的航班任务束，如果生成失败则为 null
+    */
     fun emptyBunch(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,
@@ -81,6 +84,15 @@ class InitialFlightTaskBunchGenerator(
         }
     }
 
+/**
+ * Attempts soft recovery by reusing tasks from the original bunch while preserving locked tasks.
+ * 尝试软恢复，在保留锁定任务的同时复用原始束中的任务。
+ * @param aircraft The aircraft for which to recover the bunch / 要恢复束的飞机
+ * @param aircraftUsability The usability constraints of the aircraft / 飞机的可用性约束
+ * @param lockedFlightTasks The list of locked flight tasks that must be included / 必须包含的锁定航班任务列表
+ * @param originBunch The original flight task bunch to recover from / 要从中恢复的原始航班任务束
+ * @return The recovered flight task bunch, or null if recovery fails / 恢复后的航班任务束，如果恢复失败则为 null
+*/
     private fun softRecovery(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,
@@ -217,6 +229,14 @@ class InitialFlightTaskBunchGenerator(
         }
     }
 
+/**
+ * Recovers flight tasks by recalculating departure times and verifying feasibility for each task.
+ * 通过重新计算出发时间并验证每个任务的可行性来恢复航班任务。
+ * @param aircraft The aircraft for which to recover tasks / 要恢复任务的飞机
+ * @param aircraftUsability The usability constraints of the aircraft / 飞机的可用性约束
+ * @param lockedFlightTasks The list of flight tasks to recover / 要恢复的航班任务列表
+ * @return The list of recovered flight tasks that passed feasibility checks / 通过可行性检查的恢复后航班任务列表
+*/
     private fun recoveryFlightTasks(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,

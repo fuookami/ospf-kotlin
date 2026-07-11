@@ -2,7 +2,10 @@ package fuookami.ospf.kotlin.framework.csp1d.domain.cutting_plan_generation.serv
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.Material
-
+/**
+ * GenerationMaterialWidthRangeKey data class.
+ * GenerationMaterialWidthRangeKey数据类。
+*/
 internal data class GenerationMaterialWidthRangeKey(
     val lowerValue: String,
     val lowerUnit: String,

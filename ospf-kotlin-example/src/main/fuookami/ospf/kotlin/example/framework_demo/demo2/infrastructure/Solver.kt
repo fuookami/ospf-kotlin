@@ -8,6 +8,10 @@ import fuookami.ospf.kotlin.core.solver.gurobi.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.framework.solver.*
 
+/**
+ * Builder for constructing linear solver instances with configurable solver selection and parameters.
+ * 线性求解器构建器，支持可配置的求解器选择和参数。
+*/
 data object LinearSolverBuilder {
     operator fun invoke(
         solver: String? = null,

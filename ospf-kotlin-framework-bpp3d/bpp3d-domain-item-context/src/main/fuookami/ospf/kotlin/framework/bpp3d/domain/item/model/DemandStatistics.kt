@@ -1,7 +1,7 @@
 /**
  * Demand statistics model.
  * 需求统计模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -14,18 +14,24 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * BPP3D 需求模式，区分货物/物料及离散/连续域。
  * BPP3D demand mode, distinguishing item/material and discrete/continuous domain.
- */
+*/
 sealed interface Bpp3dDemandMode {
+
     /** 货物需求 / Item demand */
     object Item : Bpp3dDemandMode
+
     /** 物料需求 / Material demand */
     object Material : Bpp3dDemandMode
+
     /** 货物数量需求 / Item amount demand */
     object ItemAmount : Bpp3dDemandMode
+
     /** 货物重量需求 / Item weight demand */
     object ItemWeight : Bpp3dDemandMode
+
     /** 物料数量需求 / Item material amount demand */
     object ItemMaterialAmount : Bpp3dDemandMode
+
     /** 物料重量需求 / Item material weight demand */
     object ItemMaterialWeight : Bpp3dDemandMode
 }
@@ -36,7 +42,7 @@ sealed interface Bpp3dDemandMode {
  *
  * @param isDiscrete 是否为离散域 / whether the domain is discrete
  * @return 具体需求模式 / concrete demand mode
- */
+*/
 fun Bpp3dDemandMode.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
     return when (this) {
         is Bpp3dDemandMode.Item -> if (isDiscrete) Bpp3dDemandMode.ItemAmount else Bpp3dDemandMode.ItemWeight
@@ -51,11 +57,21 @@ fun Bpp3dDemandMode.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
  *
  * @property item 货物实例 / item instance
  * @property material 物料键 / material key
- */
+*/
 sealed interface Bpp3dDemandKey {
-    /** 货物需求键 / Item demand key */
+
+    /**
+     * 货物需求键 / Item demand key
+     *
+     * @property item 货物实例 / item instance
+    */
     data class Item(val item: fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item) : Bpp3dDemandKey
-    /** 物料需求键 / Material demand key */
+
+    /**
+     * 物料需求键 / Material demand key
+     *
+     * @property material 物料键 / material key
+    */
     data class Material(val material: MaterialKey) : Bpp3dDemandKey
 }
 
@@ -65,7 +81,7 @@ sealed interface Bpp3dDemandKey {
  *
  * @param isDiscrete 是否为离散域 / whether the domain is discrete
  * @return 具体需求模式 / concrete demand mode
- */
+*/
 fun Bpp3dDemandKey.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
     return when (this) {
         is Bpp3dDemandKey.Item -> if (isDiscrete) Bpp3dDemandMode.ItemAmount else Bpp3dDemandMode.ItemWeight
@@ -80,7 +96,7 @@ fun Bpp3dDemandKey.toConcreteMode(isDiscrete: Boolean): Bpp3dDemandMode {
  * @param key 需求键 / demand key
  * @param isDiscrete 是否为离散域 / whether the domain is discrete
  * @return 具体需求模式 / concrete demand mode
- */
+*/
 fun Bpp3dDemandMode.toConcreteMode(
     key: Bpp3dDemandKey,
     isDiscrete: Boolean
@@ -107,10 +123,12 @@ fun Bpp3dDemandMode.toConcreteMode(
 /**
  * BPP3D 需求值，表示数量或重量。
  * BPP3D demand value, representing amount or weight.
- */
+*/
 sealed interface Bpp3dDemandValue {
+
     /** 数量需求值 / Amount demand value */
     data class Amount(val value: UInt64) : Bpp3dDemandValue
+
     /** 重量需求值 / Weight demand value */
     data class Weight(val value: Quantity<FltX>) : Bpp3dDemandValue
 }
@@ -122,7 +140,7 @@ sealed interface Bpp3dDemandValue {
  * @param lhs 左侧需求值 / left-hand side demand value
  * @param rhs 右侧需求值 / right-hand side demand value
  * @return 合并后的需求值或错误 / merged demand value or error
- */
+*/
 private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Ret<Bpp3dDemandValue> {
     return when {
         lhs is Bpp3dDemandValue.Amount && rhs is Bpp3dDemandValue.Amount -> ok(Bpp3dDemandValue.Amount(lhs.value + rhs.value))
@@ -138,7 +156,7 @@ private fun mergeDemandValue(lhs: Bpp3dDemandValue, rhs: Bpp3dDemandValue): Ret<
  * @param value 原始需求值 / original demand value
  * @param multiplier 缩放倍数 / scaling multiplier
  * @return 缩放后的需求值 / scaled demand value
- */
+*/
 private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3dDemandValue {
     return when (value) {
         is Bpp3dDemandValue.Amount -> Bpp3dDemandValue.Amount(value.value * multiplier)
@@ -152,7 +170,7 @@ private fun scaleDemandValue(value: Bpp3dDemandValue, multiplier: UInt64): Bpp3d
  *
  * @param key 需求键 / demand key
  * @param value 需求值 / demand value
- */
+*/
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
     key: Bpp3dDemandKey,
     value: Bpp3dDemandValue
@@ -165,7 +183,7 @@ private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
  * Merge a collection of demands into a mutable map.
  *
  * @param values 需求键值对映射 / mapping of demand key-value pairs
- */
+*/
 private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
     values: Map<Bpp3dDemandKey, Bpp3dDemandValue>
 ) {
@@ -180,7 +198,7 @@ private fun MutableMap<Bpp3dDemandKey, Bpp3dDemandValue>.mergeDemand(
  *
  * @param multiplier 缩放倍数 / scaling multiplier
  * @return 缩放后的需求映射 / scaled demand map
- */
+*/
 private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
     multiplier: UInt64
 ): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
@@ -197,7 +215,7 @@ private fun Map<Bpp3dDemandKey, Bpp3dDemandValue>.scale(
  * @param unit 货物、容器或投影等单元 / unit such as item, container or projection
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 private fun statisticsOf(
     unit: Any,
     mode: Bpp3dDemandMode
@@ -223,7 +241,7 @@ private fun statisticsOf(
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Item.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (mode) {
         is Bpp3dDemandMode.Item -> mapOf(
@@ -259,7 +277,7 @@ fun Item.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue
  * @param mode 需求模式 / demand mode
  * @param amount 货物数量 / item amount
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Item.statistics(
     mode: Bpp3dDemandMode,
     amount: UInt64
@@ -273,7 +291,7 @@ fun Item.statistics(
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun ItemView.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return unit.statistics(mode)
 }
@@ -284,7 +302,7 @@ fun ItemView.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandV
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun QuantityPlacement2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in toPlacement3()) {
@@ -299,7 +317,7 @@ fun QuantityPlacement2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dD
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun QuantityPlacement3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return statisticsOf(unit, mode)
 }
@@ -310,7 +328,7 @@ fun QuantityPlacement3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDema
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Projection<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return when (this) {
         is PlaneProjection<*, FltX, *> -> statisticsOf(unit, mode)
@@ -331,7 +349,7 @@ fun Projection<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Container2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
@@ -346,7 +364,7 @@ fun Container2<*, FltX, *>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Container3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in units) {
@@ -361,7 +379,7 @@ fun Container3<*, FltX>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, B
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun ItemContainer<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     return (this as Container3<*, FltX>).statistics(mode)
 }
@@ -372,7 +390,7 @@ fun ItemContainer<*>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3
  *
  * @param mode 需求模式 / demand mode
  * @return 需求键到需求值的映射 / mapping from demand key to demand value
- */
+*/
 fun Iterable<QuantityPlacement3<*, FltX>>.statistics(mode: Bpp3dDemandMode): Map<Bpp3dDemandKey, Bpp3dDemandValue> {
     val counter = mutableMapOf<Bpp3dDemandKey, Bpp3dDemandValue>()
     for (placement in this) {
@@ -386,5 +404,5 @@ fun Iterable<QuantityPlacement3<*, FltX>>.statistics(mode: Bpp3dDemandMode): Map
  * Create a zero-weight demand value.
  *
  * @return 零重量需求值 / zero-weight demand value
- */
+*/
 fun noWeightDemandValue(): Bpp3dDemandValue.Weight = Bpp3dDemandValue.Weight(FltX.zero * Kilogram)

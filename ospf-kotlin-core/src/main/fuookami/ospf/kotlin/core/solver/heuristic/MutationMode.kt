@@ -1,7 +1,7 @@
 /**
  * 变异模式接口与实现
  * Mutation mode interface and implementations
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Generator
  *
  * @param range 变异率的值范围 / The value range for mutation rate
  * @return 变异率 / The mutation rate
- */
+*/
 private fun finiteMutationRateOrDefault(range: ValueRange<Flt64>): Flt64 {
     return range.upperBound.value.unwrapOrNull() ?: Flt64.zero
 }
@@ -34,7 +34,7 @@ private fun finiteMutationRateOrDefault(range: ValueRange<Flt64>): Flt64 {
  * @param range 变异率的值范围 / The value range for mutation rate
  * @param randomGenerator 随机数生成器（产生 [0,1) 的 Flt64）/ Random number generator producing Flt64 in [0,1)
  * @return 随机变异率，或 null / The random mutation rate, or null
- */
+*/
 private fun randomMutationRateOrNull(
     range: ValueRange<Flt64>,
     randomGenerator: Generator<Flt64>
@@ -55,7 +55,7 @@ private fun randomMutationRateOrNull(
  * @param range 变异率的值范围 / The value range for mutation rate
  * @param weight 插值权重，通常在 [0,1] 之间 / Interpolation weight, typically in [0,1]
  * @return 加权变异率，或 null / The weighted mutation rate, or null
- */
+*/
 private fun weightedMutationRateOrNull(
     range: ValueRange<Flt64>,
     weight: Flt64
@@ -71,8 +71,9 @@ private fun weightedMutationRateOrNull(
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 为种群中的每个个体计算变异率。
      * Calculate mutation rate for each individual in the population.
@@ -84,7 +85,7 @@ interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> 
      * @param model 回调模型接口 / Callback model interface
      * @param mutationRateRange 变异率范围 / Mutation rate range
      * @return 每个个体的变异率 / Mutation rate for each individual
-     */
+    */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -101,17 +102,18 @@ interface MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> 
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property mutationRate 固定变异率（可选）/ Fixed mutation rate (optional)
- */
+*/
 data class StaticMutationMode<ObjValue, V>(
     val mutationRate: Flt64? = null
 ) : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 对个体执行变异操作。
      * Apply mutation operation to an individual.
      *
      * @param individual 待变异的个体 / Individual to mutate
      * @return 变异后的个体 / Mutated individual
-     */
+    */
     override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -132,7 +134,7 @@ data class StaticMutationMode<ObjValue, V>(
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
  * @property randomGenerator 随机数生成器 / Random number generator
- */
+*/
 data class RandomMutationMode<ObjValue, V>(
     private val randomGenerator: Generator<Flt64>
 ) : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
@@ -158,7 +160,7 @@ data class RandomMutationMode<ObjValue, V>(
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 class AdaptiveDynamicMutationMode<ObjValue, V> : MutationMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,

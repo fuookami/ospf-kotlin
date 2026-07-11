@@ -6,7 +6,7 @@
  * 用于支持浮点数等需要容差的数值类型的精确比较。
  * Defines precision-based comparison operators, including Equal, Unequal, Less, LessEqual, Greater, GreaterEqual,
  * for precise comparison of numeric types that require tolerance, such as floating-point numbers.
- */
+*/
 package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.utils.functional.Ord
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.operator.*
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class Equal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
@@ -31,7 +31,7 @@ data class Equal<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 相等比较器实例 / Equality comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): Equal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Equal(precision)
 
@@ -41,7 +41,7 @@ data class Equal<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 相等比较器实例 / Equality comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Equal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Equal(constants.decimalPrecision)
@@ -54,7 +54,7 @@ data class Equal<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 是否相等 / Whether the values are equal
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() eq rhs.value()
         else -> abs((lhs - rhs).value()) <= precision
@@ -68,7 +68,7 @@ data class Equal<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class Unequal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
@@ -79,7 +79,7 @@ data class Unequal<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 不等比较器实例 / Inequality comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): Unequal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Unequal(precision)
 
@@ -89,7 +89,7 @@ data class Unequal<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 不等比较器实例 / Inequality comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Unequal<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Unequal(constants.decimalPrecision)
@@ -102,7 +102,7 @@ data class Unequal<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 是否不等 / Whether the values are unequal
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() neq rhs.value()
         else -> abs((lhs - rhs).value()) >= precision
@@ -116,7 +116,7 @@ data class Unequal<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class Less<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
@@ -127,7 +127,7 @@ data class Less<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 小于比较器实例 / Less-than comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): Less<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T>, U : Neg<U> =
             Less(precision)
@@ -138,7 +138,7 @@ data class Less<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 小于比较器实例 / Less-than comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Less<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
             Less(constants.decimalPrecision)
@@ -151,7 +151,7 @@ data class Less<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 左值是否小于右值 / Whether lhs is less than rhs
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() < rhs.value()
         else -> (lhs - rhs).value() <= -precision
@@ -165,7 +165,7 @@ data class Less<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class LessEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
@@ -176,7 +176,7 @@ data class LessEqual<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 小于等于比较器实例 / Less-than-or-equal comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): LessEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = LessEqual(precision)
 
@@ -186,7 +186,7 @@ data class LessEqual<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 小于等于比较器实例 / Less-than-or-equal comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): LessEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             LessEqual(constants.decimalPrecision)
@@ -199,7 +199,7 @@ data class LessEqual<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 左值是否小于等于右值 / Whether lhs is less than or equal to rhs
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() <= rhs.value()
         else -> (lhs - rhs).value() <= precision
@@ -213,7 +213,7 @@ data class LessEqual<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class Greater<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
@@ -224,7 +224,7 @@ data class Greater<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 大于比较器实例 / Greater-than comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): Greater<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> = Greater(precision)
 
@@ -234,7 +234,7 @@ data class Greater<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 大于比较器实例 / Greater-than comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): Greater<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T> =
             Greater(constants.decimalPrecision)
@@ -247,7 +247,7 @@ data class Greater<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 左值是否大于右值 / Whether lhs is greater than rhs
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() > rhs.value()
         else -> (lhs - rhs).value() >= precision
@@ -261,7 +261,7 @@ data class Greater<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class GreaterEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
@@ -272,7 +272,7 @@ data class GreaterEqual<T, U>(
          *
          * @param precision 比较精度 / Comparison precision
          * @return 大于等于比较器实例 / Greater-than-or-equal comparator instance
-         */
+        */
         operator fun <T, U> invoke(precision: U): GreaterEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : FloatingNumber<U>, T : Minus<T, T> =
             GreaterEqual(precision)
@@ -283,7 +283,7 @@ data class GreaterEqual<T, U>(
          *
          * @param constants 数值常量提供器 / Real number constants provider
          * @return 大于等于比较器实例 / Greater-than-or-equal comparator instance
-         */
+        */
         operator fun <T, U> invoke(constants: RealNumberConstants<U>): GreaterEqual<T, U>
                 where T : Arithmetic<U>, T : Invariant<U>, U : RealNumber<U>, T : Minus<T, T>, U : Neg<U> =
             GreaterEqual(constants.decimalPrecision)
@@ -296,7 +296,7 @@ data class GreaterEqual<T, U>(
      * @param lhs 左操作数 / Left operand
      * @param rhs 右操作数 / Right operand
      * @return 左值是否大于等于右值 / Whether lhs is greater than or equal to rhs
-     */
+    */
     operator fun invoke(lhs: T, rhs: T) = when (precision) {
         null -> lhs.value() >= rhs.value()
         else -> (lhs - rhs).value() >= -precision
@@ -313,17 +313,18 @@ data class GreaterEqual<T, U>(
  * @param T 值类型
  * @param U 数值类型
  * @property precision 比较精度
- */
+*/
 data class ComparisonOperator<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U>, U : Neg<U> {
+
     /**
      * 相等比较
      * Equality comparison
      *
      * @param rhs 右操作数 / Right operand
      * @return 是否相等 / Whether the values are equal
-     */
+    */
     infix fun T.eq(rhs: T): Boolean {
         val op = Equal<T, U>(precision)
         return op(this, rhs)
@@ -335,7 +336,7 @@ data class ComparisonOperator<T, U>(
      *
      * @param rhs 右操作数 / Right operand
      * @return 是否不等 / Whether the values are unequal
-     */
+    */
     infix fun T.neq(rhs: T): Boolean {
         val op = Unequal<T, U>(precision)
         return op(this, rhs)
@@ -347,7 +348,7 @@ data class ComparisonOperator<T, U>(
      *
      * @param rhs 右操作数 / Right operand
      * @return 左值是否小于右值 / Whether lhs is less than rhs
-     */
+    */
     infix fun T.ls(rhs: T): Boolean {
         val op = Less<T, U>(precision)
         return op(this, rhs)
@@ -359,7 +360,7 @@ data class ComparisonOperator<T, U>(
      *
      * @param rhs 右操作数 / Right operand
      * @return 左值是否小于等于右值 / Whether lhs is less than or equal to rhs
-     */
+    */
     infix fun T.leq(rhs: T): Boolean {
         val op = LessEqual<T, U>(precision)
         return op(this, rhs)
@@ -371,7 +372,7 @@ data class ComparisonOperator<T, U>(
      *
      * @param rhs 右操作数 / Right operand
      * @return 左值是否大于右值 / Whether lhs is greater than rhs
-     */
+    */
     infix fun T.gr(rhs: T): Boolean {
         val op = Greater<T, U>(precision)
         return op(this, rhs)
@@ -383,7 +384,7 @@ data class ComparisonOperator<T, U>(
      *
      * @param rhs 右操作数 / Right operand
      * @return 左值是否大于等于右值 / Whether lhs is greater than or equal to rhs
-     */
+    */
     infix fun T.geq(rhs: T): Boolean {
         val op = GreaterEqual<T, U>(precision)
         return op(this, rhs)

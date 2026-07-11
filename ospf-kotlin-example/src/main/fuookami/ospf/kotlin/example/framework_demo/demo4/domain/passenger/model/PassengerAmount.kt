@@ -19,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 跟踪每个航班和舱位的乘客数量表达式，考虑取消和舱位/航班变更。Tracks passenger amount expressions per flight and class,
  * accounting for cancellations and class/flight changes.
  *
-  * @property flights 参数。
-  * @property passengers 参数。
-  * @property cancel 参数。
-  * @property change 参数。
- */
+ * @property flights List of flight tasks / 航班任务列表
+ * @property passengers Passengers grouped by flight / 按航班分组的乘客
+ * @property cancel Passenger cancel component / 乘客取消组件
+ * @property change Passenger change component / 乘客变更组件
+*/
 class PassengerAmount(
     private val flights: List<FlightTask>,
     private val passengers: Map<FlightTask, List<FlightPassenger>>,
@@ -34,10 +34,10 @@ class PassengerAmount(
 
     /**
      * 将乘客数量表达式注册到模型中。Registers passenger amount expressions with the model.
- *
-     * @param model 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param model The linear meta model to register with / 要注册的线性元模型
+     * @return Registration result / 注册结果
+    */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerAmount.isInitialized) {
             passengerAmount = flights.associateWith { flight ->

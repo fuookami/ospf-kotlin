@@ -4,7 +4,7 @@
  *
  * 提供带容差的相等和比较操作，用于浮点数等需要考虑精度的数值类型的精确比较。
  * Provides tolerance-based equality and comparison operations for precise comparison of numeric types that require precision consideration, such as floating-point numbers.
- */
+*/
 package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.utils.functional.Order
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.operator.*
  *
  * @param T 数值类型
  * @return 容差相等比较器
- */
+*/
 fun <T> defaultTolerancedEq(): TolerancedEq<T>
         where T : RealNumber<T>, T : NumberField<T> {
     return TolerancedEq { lhs, rhs, tolerance ->
@@ -36,7 +36,7 @@ fun <T> defaultTolerancedEq(): TolerancedEq<T>
  *
  * @param T 数值类型
  * @return 容差序比较器
- */
+*/
 fun <T> defaultTolerancedOrd(): TolerancedOrd<T>
         where T : RealNumber<T>, T : NumberField<T> {
     return TolerancedOrd { lhs, rhs, tolerance ->

@@ -25,7 +25,7 @@
  *   (non-null version implements nullable: toQuadraticPolynomialOrNull() = toQuadraticPolynomial())
  * - ToCanonicalPolynomial extends TryToCanonicalPolynomial
  *   (non-null version implements nullable: toCanonicalPolynomialOrNull() = toCanonicalPolynomial())
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -42,14 +42,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
  * Demotion conversion may fail (e.g., quadratic polynomial with cross terms
  * cannot convert to linear), so the return type is nullable.
  * Callers can use parameterized extension functions in ConvertOps.kt for precise control.
- */
+*/
 interface TryToLinearPolynomial<T : Ring<T>> {
+
     /**
      * Converts this expression to a linear polynomial, or returns null if conversion fails.
      * 将此表达式转换为线性多项式，若转换失败则返回 null。
      *
      * @return the linear polynomial representation, or null if conversion is not possible / 线性多项式表示，若无法转换则为 null
-     */
+    */
     fun toLinearPolynomialOrNull(): LinearPolynomial<T>?
 }
 
@@ -61,14 +62,15 @@ interface TryToLinearPolynomial<T : Ring<T>> {
  * 因此返回可空类型。
  * Demotion conversion may fail (e.g., canonical polynomial with degree > 2
  * cannot convert to quadratic), so the return type is nullable.
- */
+*/
 interface TryToQuadraticPolynomial<T : Ring<T>> {
+
     /**
      * Converts this expression to a quadratic polynomial, or returns null if conversion fails.
      * 将此表达式转换为二次多项式，若转换失败则返回 null。
      *
      * @return the quadratic polynomial representation, or null if conversion is not possible / 二次多项式表示，若无法转换则为 null
-     */
+    */
     fun toQuadraticPolynomialOrNull(): QuadraticPolynomial<T>?
 }
 
@@ -81,14 +83,15 @@ interface TryToQuadraticPolynomial<T : Ring<T>> {
  * Canonical is the highest form; promotion typically never fails.
  * This interface is kept for completeness; future scenarios may require
  * conversions with symbolComparator or other parameters.
- */
+*/
 interface TryToCanonicalPolynomial<T : Ring<T>> {
+
     /**
      * Converts this expression to a canonical polynomial, or returns null if conversion fails.
      * 将此表达式转换为规范多项式，若转换失败则返回 null。
      *
      * @return the canonical polynomial representation, or null if conversion is not possible / 规范多项式表示，若无法转换则为 null
-     */
+    */
     fun toCanonicalPolynomialOrNull(): CanonicalPolynomial<T>?
 }
 
@@ -102,14 +105,15 @@ interface TryToCanonicalPolynomial<T : Ring<T>> {
  * Any type implementing this interface can be converted to a linear polynomial,
  * serving as a unified input for linear model objectives or constraints.
  * Extends TryToLinearPolynomial, implementing toLinearPolynomialOrNull() via toLinearPolynomial().
- */
+*/
 interface ToLinearPolynomial<T : Ring<T>> : TryToLinearPolynomial<T> {
+
     /**
      * Converts this expression to a linear polynomial.
      * 将此表达式转换为线性多项式。
      *
      * @return the linear polynomial representation / 线性多项式表示
-     */
+    */
     fun toLinearPolynomial(): LinearPolynomial<T>
     override fun toLinearPolynomialOrNull(): LinearPolynomial<T> = toLinearPolynomial()
 }
@@ -124,14 +128,15 @@ interface ToLinearPolynomial<T : Ring<T>> : TryToLinearPolynomial<T> {
  * Any type implementing this interface can be converted to a quadratic polynomial,
  * serving as a unified input for quadratic model objectives or constraints.
  * Extends TryToQuadraticPolynomial, implementing toQuadraticPolynomialOrNull() via toQuadraticPolynomial().
- */
+*/
 interface ToQuadraticPolynomial<T : Ring<T>> : TryToQuadraticPolynomial<T> {
+
     /**
      * Converts this expression to a quadratic polynomial.
      * 将此表达式转换为二次多项式。
      *
      * @return the quadratic polynomial representation / 二次多项式表示
-     */
+    */
     fun toQuadraticPolynomial(): QuadraticPolynomial<T>
     override fun toQuadraticPolynomialOrNull(): QuadraticPolynomial<T> = toQuadraticPolynomial()
 }
@@ -146,14 +151,15 @@ interface ToQuadraticPolynomial<T : Ring<T>> : TryToQuadraticPolynomial<T> {
  * Any type implementing this interface can be converted to a canonical polynomial,
  * which is the most general polynomial representation supporting any degree.
  * Extends TryToCanonicalPolynomial, implementing toCanonicalPolynomialOrNull() via toCanonicalPolynomial().
- */
+*/
 interface ToCanonicalPolynomial<T : Ring<T>> : TryToCanonicalPolynomial<T> {
+
     /**
      * Converts this expression to a canonical polynomial.
      * 将此表达式转换为规范多项式。
      *
      * @return the canonical polynomial representation / 规范多项式表示
-     */
+    */
     fun toCanonicalPolynomial(): CanonicalPolynomial<T>
     override fun toCanonicalPolynomialOrNull(): CanonicalPolynomial<T> = toCanonicalPolynomial()
 }

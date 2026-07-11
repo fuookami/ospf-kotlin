@@ -12,10 +12,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weig
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 生成用于模型构建的推荐重量均衡约束管线。Generates the pipeline of recommended weight equalization constraints for model construction.
+ * Generates the pipeline of recommended weight equalization constraints for model construction.
+ * 生成用于模型构建的推荐重量均衡约束管线。
  *
- * @property aggregation 参数。
- */
+ * @property aggregation The aggregation containing weight equalization data / 包含重量均衡数据的聚合
+*/
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

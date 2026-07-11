@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @property actions 生产动作列表 / List of production actions
  * @property slots 时隙列表 / List of time slots
  * @property timeWindow 时间窗口 / Time window
- */
+*/
 class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
     private val actions: List<A>,
     private val slots: List<TimeSlot>,
@@ -50,14 +50,14 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
      * 二维整型变量
      * 2D integer variable
      * x[action, slot] -> amount
-     */
+    */
     lateinit var x: UIntVariable2
         private set
 
     /**
      * 成本表达式
      * Cost expression
-     */
+    */
     lateinit var cost: LinearIntermediateSymbol<Flt64>
         private set
 
@@ -73,7 +73,7 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         // Register x variable
         // 注册 x 变量
@@ -170,7 +170,7 @@ class CapacityCompilation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param model Abstract linear meta model / 抽象线性元模型
      * @return Capacity scheduling solution / 产能调度解
-     */
+    */
     override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
 

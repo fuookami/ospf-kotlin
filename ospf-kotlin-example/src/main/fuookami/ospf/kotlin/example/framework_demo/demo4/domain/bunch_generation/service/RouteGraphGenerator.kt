@@ -11,34 +11,38 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_generation
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 
 /**
- * 路线图生成配置。Configuration for route graph generation.
+ * Configuration for route graph generation.
+ * 路线图生成配置。
  *
- * @property withOrderChange 参数。
- */
+ * @property withOrderChange Whether order change is enabled in route generation / 路线生成中是否启用顺序变更
+*/
 data class Configuration(
     val withOrderChange: Boolean = false
 )
 
 /**
- * 为批次生成生成路线图。Generates route graphs for bunch generation.
+ * Generates route graphs for bunch generation.
+ * 为批次生成生成路线图。
  *
- * @property reverse 参数。
- * @property configuration 参数。
- * @property feasibilityJudger 参数。
- */
+ * @property reverse The flight task reverse manager for order change operations / 用于顺序变更操作的航班任务反转管理器
+ * @property configuration The route graph generation configuration / 路线图生成配置
+ * @property feasibilityJudger Function to check if a flight task is feasible for an aircraft / 检查航班任务对飞机是否可行的函数
+*/
 class RouteGraphGenerator(
     private val reverse: FlightTaskReverse,
     private val configuration: Configuration,
     private val feasibilityJudger: (Aircraft, FlightTask?, FlightTask) -> Boolean,
 ) {
+
     /**
-     * 为给定飞机生成路线图。Generates a route graph for the given aircraft.
- *
-     * @param aircraft 参数。
-     * @param aircraftUsability 参数。
-     * @param flightTasks 参数。
-     * @return 返回结果。
-     */
+     * Generates a route graph for the given aircraft.
+     * 为给定飞机生成路线图。
+     *
+     * @param aircraft The aircraft for which to generate the route graph / 要生成路线图的飞机
+     * @param aircraftUsability The usability constraints of the aircraft / 飞机的可用性约束
+     * @param flightTasks Map of airports to available flight tasks / 机场到可用航班任务的映射
+     * @return The generated route graph, or an error / 生成的路线图，或错误
+    */
     operator fun invoke(
         aircraft: Aircraft,
         aircraftUsability: AircraftUsability,
@@ -64,6 +68,16 @@ class RouteGraphGenerator(
         return Ok(graph)
     }
 
+/**
+ * Searches for feasible flight tasks at the current airport and inserts them into the route graph.
+ * 在当前机场搜索可行的航班任务并将其插入路线图。
+ * @param graph The route graph being constructed / 正在构建的路线图
+ * @param nodes The BFS queue of airport-node pairs to process / 待处理的机场-节点对BFS队列
+ * @param nodeMap The mapping from flight tasks to their graph nodes / 航班任务到其图节点的映射
+ * @param node The current node in the graph / 图中的当前节点
+ * @param aircraft The aircraft for which to check feasibility / 要检查可行性的飞机
+ * @param flightTasks The available flight tasks at the current airport / 当前机场可用的航班任务
+*/
     private fun searchAndInsertFlightTasks(
         graph: Graph,
         nodes: MutableList<Pair<Airport, Node>>,
@@ -112,6 +126,15 @@ class RouteGraphGenerator(
         }
     }
 
+/**
+ * Inserts a flight task into the route graph, creating a new node or connecting to an existing one.
+ * 将航班任务插入路线图，创建新节点或连接到已有节点。
+ * @param graph The route graph being constructed / 正在构建的路线图
+ * @param nodes The BFS queue of airport-node pairs to process / 待处理的机场-节点对BFS队列
+ * @param nodeMap The mapping from flight tasks to their graph nodes / 航班任务到其图节点的映射
+ * @param prevNode The predecessor node to connect from / 要连接的前序节点
+ * @param flightTask The flight task to insert / 要插入的航班任务
+*/
     private fun insertFlightTask(
         graph: Graph,
         nodes: MutableList<Pair<Airport, Node>>,

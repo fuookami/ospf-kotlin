@@ -8,7 +8,7 @@
  * including combining like terms, evaluation, and partial evaluation.
  * Uses PowerVectorKey for efficient power vector comparison,
  * achieving 50-100% performance improvement over Map-based implementation.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @param power 指数（非负） / The exponent (non-negative)
  * @param one 乘法单位元 / The multiplicative identity
  * @return value 的非负 power 次幂 / value raised to the non-negative power
- */
+*/
 internal fun <T : Ring<T>> computeNonNegativeRingPower(value: T, power: Int, one: T): T {
     if (power == 0) return one
     if (power == 1) return value
@@ -61,7 +61,7 @@ internal fun <T : Ring<T>> computeNonNegativeRingPower(value: T, power: Int, one
  * @param power 指数 / The exponent
  * @param one 乘法单位元 / The multiplicative identity
  * @return 幂值，无法处理负指数时返回 null / Power value, or null when a negative exponent is unsupported
- */
+*/
 internal fun <T : Ring<T>> computeRingPowerOrNull(value: T, power: Int, one: T): T? {
     if (power >= 0) {
         return computeNonNegativeRingPower(value, power, one)
@@ -86,7 +86,7 @@ internal fun <T : Ring<T>> computeRingPowerOrNull(value: T, power: Int, one: T):
  * @param power 指数 / The exponent
  * @param one 乘法单位元 / The multiplicative identity
  * @return 幂值结果 / Power result
- */
+*/
 internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): Ret<T> {
     return computeRingPowerOrNull(value = value, power = power, one = one)
         ?.let { Ok(it) }
@@ -115,7 +115,7 @@ internal fun <T : Ring<T>> computeRingPower(value: T, power: Int, one: T): Ret<T
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 合并同类项后的单项式列表 / List of monomials with like terms combined
- */
+*/
 fun <T> Iterable<CanonicalMonomial<T>>.combineCanonicalMonomials(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -165,7 +165,7 @@ fun <T> Iterable<CanonicalMonomial<T>>.combineCanonicalMonomials(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 合并同类项后的规范多项式 / Canonical polynomial with like terms combined
- */
+*/
 fun <T> CanonicalPolynomial<T>.combineCanonicalPolynomialTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -185,7 +185,7 @@ fun <T> CanonicalPolynomial<T>.combineCanonicalPolynomialTerms(
  * @param onMissing 缺失符号的回调函数（可选） / Callback for missing symbols (optional)
  * @param one 乘法单位元 / The multiplicative identity
  * @return 求值结果，若存在未提供值的符号则返回 null / Evaluation result, or null if a symbol has no value
- */
+*/
 fun <T> CanonicalPolynomial<T>.evaluateCanonical(
     values: Map<Symbol, T>,
     onMissing: ((Symbol) -> T?)? = null,
@@ -214,7 +214,7 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonical(
  * @param values 与符号顺序对应的值列表 / List of values corresponding to symbol order
  * @param one 乘法单位元 / The multiplicative identity
  * @return 求值结果 / Evaluation result
- */
+*/
 fun <T> CanonicalPolynomial<T>.evaluateCanonicalOrdered(
     order: List<Symbol>,
     values: List<T>,
@@ -261,7 +261,7 @@ fun <T> CanonicalPolynomial<T>.evaluateCanonicalOrdered(
  * @param one 乘法单位元 / The multiplicative identity
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 部分求值后的规范多项式 / Partially evaluated canonical polynomial
- */
+*/
 fun <T> CanonicalPolynomial<T>.partialEvaluateCanonical(
     values: Map<Symbol, T>,
     zero: T,

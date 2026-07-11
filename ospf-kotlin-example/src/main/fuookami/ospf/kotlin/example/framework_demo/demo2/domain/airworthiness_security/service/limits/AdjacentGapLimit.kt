@@ -16,10 +16,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 /**
  * 限制相邻位置之间的载荷间隙。Limits the load gap between adjacent positions.
  *
- * @property positions 参数。
- * @property load 参数。
- * @property maxAdjacentLoadGap 参数。
- */
+ * @property positions The list of cargo positions / 货物位置列表
+ * @property load The load estimation model / 载荷估算模型
+ * @property maxAdjacentLoadGap The maximum allowed load gap between adjacent positions / 相邻位置间允许的最大载荷间隙
+*/
 class AdjacentGapLimit(
     private val positions: List<Position>,
     private val load: Load,

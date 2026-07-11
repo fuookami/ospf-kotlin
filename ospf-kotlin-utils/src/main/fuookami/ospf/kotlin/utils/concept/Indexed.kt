@@ -8,7 +8,7 @@
  * and management, useful for entity tracking and identification.
  * 此文件提供用于自动索引分配和管理的接口和类，
  * 适用于实体跟踪和标识。
- */
+*/
 package fuookami.ospf.kotlin.utils.concept
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -25,8 +25,9 @@ import kotlin.reflect.KClass
  * ConcurrentHashMap with AtomicInteger counters.
  * 此类使用线程安全的 ConcurrentHashMap 和 AtomicInteger 计数器
  * 管理不同类型的索引计数器。
- */
+*/
 sealed class IndexedImpl {
+
     /**
      * 获取下一个索引（内联函数，使用具体化类型参数）
      *
@@ -35,7 +36,7 @@ sealed class IndexedImpl {
      *
      * @param T 要获取索引的类型 / The type to get the index for
      * @return 该类型的下一个索引 / The next index for the type
-     */
+    */
     inline fun <reified T> nextIndex(): Int {
         return nextIndex(T::class)
     }
@@ -48,7 +49,7 @@ sealed class IndexedImpl {
      *
      * @param cls 要获取索引的类 / The class to get the index for
      * @return 该类的下一个索引 / The next index for the class
-     */
+    */
     fun nextIndex(cls: KClass<*>): Int {
         return impls.getOrPut(cls) { AtomicInteger(0) }.getAndIncrement()
     }
@@ -60,7 +61,7 @@ sealed class IndexedImpl {
      * 使用具体化类型参数重置指定类型的索引计数器。
      *
      * @param T 要重置索引的类型 / The type to reset the index for
-     */
+    */
     inline fun <reified T> flush() {
         flush(T::class)
     }
@@ -72,7 +73,7 @@ sealed class IndexedImpl {
      * 重置指定类的索引计数器。
      *
      * @param cls 要重置索引的类 / The class to reset the index for
-     */
+    */
     fun flush(cls: KClass<*>) {
         impls[cls] = AtomicInteger(0)
     }
@@ -83,7 +84,7 @@ sealed class IndexedImpl {
  *
  * Private map storing index counters for each class type.
  * 私有映射，存储每个类类型的索引计数器。
- */
+*/
 private val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
 
 /**
@@ -96,14 +97,15 @@ private val impls = ConcurrentHashMap<KClass<*>, AtomicInteger>()
  * that can be used for identification and lookup.
  * 实现此接口的类型具有唯一的整数索引，
  * 可用于标识和查找。
- */
+*/
 interface Indexed {
+
     /**
      * 索引值
      *
      * The unique integer index for this instance.
      * 此实例的唯一整数索引。
-     */
+    */
     val index: Int
 
     /**
@@ -111,7 +113,7 @@ interface Indexed {
      *
      * The index as an unsigned long value.
      * 索引的无符号长整型值。
-     */
+    */
     val uindex: ULong get() = index.toULong()
 
     /**
@@ -119,7 +121,7 @@ interface Indexed {
      *
      * Returns true if the index has been set.
      * 如果索引已设置则返回 true。
-     */
+    */
     val indexed: Boolean get() = true
 }
 
@@ -133,16 +135,17 @@ interface Indexed {
  * 当需要控制索引分配时机时使用此类。
  *
  * @property _index 内部索引存储 / Internal index storage
- */
+*/
 open class ManualIndexed internal constructor(
     private var _index: Int? = null
 ) : Indexed {
+
     /**
      * 是否已设置索引
      *
      * Returns true if the index has been set.
      * 如果索引已设置则返回 true。
-     */
+    */
     override val indexed: Boolean get() = _index != null
 
     /**
@@ -152,7 +155,7 @@ open class ManualIndexed internal constructor(
      * 此实例的唯一整数索引。
      *
      * @throws AssertionError 如果索引未设置 / If the index has not been set
-     */
+    */
     override val index: Int
         get() {
             assert(indexed)
@@ -164,7 +167,7 @@ open class ManualIndexed internal constructor(
      *
      * Creates an instance without an index set.
      * 创建未设置索引的实例。
-     */
+    */
     constructor() : this(null)
 
     companion object : IndexedImpl()
@@ -174,7 +177,7 @@ open class ManualIndexed internal constructor(
      *
      * Sets the index using the instance's class type.
      * 使用实例的类类型设置索引。
-     */
+    */
     fun setIndexed() {
         assert(!indexed)
         _index = nextIndex(this::class)
@@ -187,7 +190,7 @@ open class ManualIndexed internal constructor(
      * 使用指定的类类型设置索引。
      *
      * @param cls 要使用的类类型 / The class type to use
-     */
+    */
     fun setIndexed(cls: KClass<*>) {
         assert(!indexed)
         _index = nextIndex(cls)
@@ -198,7 +201,7 @@ open class ManualIndexed internal constructor(
      *
      * Refreshes the index with a new value using the instance's class type.
      * 使用实例的类类型刷新索引为新值。
-     */
+    */
     fun refreshIndex() {
         assert(indexed)
         _index = nextIndex(this::class)
@@ -211,7 +214,7 @@ open class ManualIndexed internal constructor(
      * 使用指定的类类型刷新索引为新值。
      *
      * @param cls 要使用的类类型 / The class type to use
-     */
+    */
     fun refreshIndex(cls: KClass<*>) {
         assert(indexed)
         _index = nextIndex(cls)
@@ -229,16 +232,17 @@ open class ManualIndexed internal constructor(
  * 当希望实例创建时自动分配索引时使用此类。
  *
  * @property mIndex 内部索引存储 / Internal index storage
- */
+*/
 open class AutoIndexed internal constructor(
     private var mIndex: Int
 ) : Indexed {
+
     /**
      * 索引值
      *
      * The unique integer index for this instance.
      * 此实例的唯一整数索引。
-     */
+    */
     override val index: Int by ::mIndex
 
     /**
@@ -248,7 +252,7 @@ open class AutoIndexed internal constructor(
      * 创建带有指定类类型索引的实例。
      *
      * @param cls 要使用的类类型 / The class type to use
-     */
+    */
     constructor(cls: KClass<*>) : this(nextIndex(cls))
 
     companion object : IndexedImpl()
@@ -258,7 +262,7 @@ open class AutoIndexed internal constructor(
      *
      * Refreshes the index with a new value using the instance's class type.
      * 使用实例的类类型刷新索引为新值。
-     */
+    */
     fun refreshIndex() {
         mIndex = nextIndex(this::class)
     }
@@ -270,7 +274,7 @@ open class AutoIndexed internal constructor(
      * 使用指定的类类型刷新索引为新值。
      *
      * @param cls 要使用的类类型 / The class type to use
-     */
+    */
     fun refreshIndex(cls: KClass<*>) {
         mIndex = nextIndex(cls)
     }
@@ -290,7 +294,7 @@ open class AutoIndexed internal constructor(
  * @param T 可索引类型 / The indexed type
  * @param index 要查找的索引 / The index to find
  * @return 找到的元素或指定位置的元素 / The found element or the element at the given position
- */
+*/
 fun <T : Indexed> List<T>.findOrGet(index: Int): T {
     return find { it.index == index } ?: get(index)
 }

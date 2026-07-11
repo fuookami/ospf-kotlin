@@ -1,7 +1,7 @@
 /**
  * Rabinovich-Fabrikant 方程
  * Rabinovich-Fabrikant Equation
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
  * @property h 时间步长 / Time step size
- */
+*/
 data class RabinovichFabrikantEquation<V : FloatingNumber<V>>(val a: V, val b: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -47,7 +47,7 @@ data class RabinovichFabrikantEquation<V : FloatingNumber<V>>(val a: V, val b: V
  *
  * @property attractor the Rabinovich-Fabrikant equation instance / Rabinovich-Fabrikant 方程实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class RabinovichFabrikantEquationGenerator(
     val attractor: RabinovichFabrikantEquation<Flt64> = RabinovichFabrikantEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

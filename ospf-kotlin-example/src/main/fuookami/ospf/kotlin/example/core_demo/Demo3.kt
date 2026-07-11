@@ -31,14 +31,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * 生产规划：在满足产品产量要求的同时最小化成本。
  *
  * @see     https://fuookami.github.io/ospf/examples/example3.html
- */
+*/
 data object Demo3 {
+
     /**
      * A product with a minimum yield requirement.
      * 具有最低产量要求的产品。
      *
      * @property minYield the minimum yield requirement / 最低产量要求
-     */
+    */
     data class Product(val minYield: Flt64) : AutoIndexed(Product::class)
 
     /**
@@ -47,7 +48,7 @@ data object Demo3 {
      *
      * @property cost the cost of the material / 物料成本
      * @property yieldQuantity the yield quantity per product / 每产品产量
-     */
+    */
     data class Material(
         val cost: Flt64,
         val yieldQuantity: Map<Product, Flt64>
@@ -107,7 +108,7 @@ data object Demo3 {
      * 顺序运行所有子流程以构建、求解和分析模型。
      *
      * @return the operation result / 操作结果
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -130,7 +131,7 @@ data object Demo3 {
      * 初始化物料数量的无符号整数变量。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable1("x", Shape1(materials.size))
         for (c in materials) {
@@ -145,7 +146,7 @@ data object Demo3 {
      * 创建成本和每产品产出表达式符号。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
             sum(materials) { it.cost * x[it] },
@@ -172,7 +173,7 @@ data object Demo3 {
      * 设置目标函数以最小化物料成本。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
         return ok
@@ -183,7 +184,7 @@ data object Demo3 {
      * 为每个产品添加产出等式约束。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (p in products) {
             metaModel.addConstraint(yield[p.index] geq p.minYield)
@@ -197,7 +198,7 @@ data object Demo3 {
      * 使用 SCIP 求解器求解线性模型。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -221,7 +222,7 @@ data object Demo3 {
      * 从解中提取物料数量。
      *
      * @return the operation result / 操作结果
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, UInt64>()
         for (token in metaModel.tokens.tokens) {

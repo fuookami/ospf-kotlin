@@ -12,10 +12,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 生成纵向平衡、横向平衡和安定面的 MAC 优化约束管线。Generates the pipeline of MAC optimization constraints for longitudinal balance, lateral balance, and stabilizers.
- *
- * @property aggregation 参数。
- */
+ * Generates the pipeline of MAC optimization constraints for longitudinal balance, lateral balance, and stabilizers.
+ * 生成纵向平衡、横向平衡和安定面的 MAC 优化约束管线。
+*/
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

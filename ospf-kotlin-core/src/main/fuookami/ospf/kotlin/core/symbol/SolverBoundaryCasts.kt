@@ -5,7 +5,7 @@
  *
  * Provides runtime solver-boundary Flt64 type cast utilities, converting star-projected
  * references back to Flt64 for calling generic methods.
- */
+*/
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -36,9 +36,10 @@ import fuookami.ospf.kotlin.core.solver.value.*
  * 本对象是框架中所有 UNCHECKED_CAST 抑制的唯一位置。请勿在其他地方添加 @Suppress("UNCHECKED_CAST")。
  * This object is the single location for all UNCHECKED_CAST suppressions
  * in the framework. Do not add @Suppress("UNCHECKED_CAST") elsewhere.
- */
+*/
 @Suppress("UNCHECKED_CAST")
 internal object SolverBoundaryCasts {
+
     /** Flt64 恒等值转换器 / Flt64 identity value converter */
     private val solverValueConverter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -54,7 +55,7 @@ internal object SolverBoundaryCasts {
      * @param symbol 中间符号实例 / Intermediate symbol instance
      * @param tokens 令牌集合实例 / Token collection instance
      * @return 操作结果 / Operation result
-     */
+    */
     fun registerAuxiliaryTokensStar(
         symbol: Any,
         tokens: Any
@@ -70,7 +71,7 @@ internal object SolverBoundaryCasts {
      * @param fixedValues 固定值映射（可空） / Fixed values map (nullable)
      * @param tokenTable 令牌表 / Token table
      * @return 求值结果 / Evaluation result
-     */
+    */
     fun prepareStar(
         symbol: Any,
         fixedValues: Map<Symbol, Flt64>?,
@@ -91,7 +92,7 @@ internal object SolverBoundaryCasts {
      * @param symbol 数学函数符号实例 / Math function symbol instance
      * @param model 线性机制模型实例 / Linear mechanism model instance
      * @return 操作结果 / Operation result
-     */
+    */
     fun registerConstraintsLinearStar(
         symbol: Any,
         model: Any
@@ -106,7 +107,7 @@ internal object SolverBoundaryCasts {
      * @param symbol 二次数学函数符号实例 / Quadratic math function symbol instance
      * @param model 二次机制模型实例 / Quadratic mechanism model instance
      * @return 操作结果 / Operation result
-     */
+    */
     fun registerConstraintsQuadraticStar(
         symbol: Any,
         model: Any
@@ -120,7 +121,7 @@ internal object SolverBoundaryCasts {
      *
      * @param model 机制模型 / Mechanism model
      * @return 线性机制模型 / Linear mechanism model
-     */
+    */
     fun <V> castLinearMechanismModelStar(model: MechanismModel<V>): LinearMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return model as LinearMechanismModel<Flt64>
@@ -132,7 +133,7 @@ internal object SolverBoundaryCasts {
      *
      * @param model 机制模型 / Mechanism model
      * @return 二次机制模型 / Quadratic mechanism model
-     */
+    */
     fun <V> castQuadraticMechanismModelStar(model: MechanismModel<V>): QuadraticMechanismModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return model as QuadraticMechanismModel<Flt64>
@@ -144,7 +145,7 @@ internal object SolverBoundaryCasts {
      *
      * @param model 线性元模型 / Linear meta model
      * @return Flt64 类型的线性元模型 / Linear meta model of Flt64 type
-     */
+    */
     fun <V> castLinearMetaModelStar(model: LinearMetaModel<V>): LinearMetaModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return model as LinearMetaModel<Flt64>
@@ -156,7 +157,7 @@ internal object SolverBoundaryCasts {
      *
      * @param model 二次元模型 / Quadratic meta model
      * @return Flt64 类型的二次元模型 / Quadratic meta model of Flt64 type
-     */
+    */
     fun <V> castQuadraticMetaModelStar(model: QuadraticMetaModel<V>): QuadraticMetaModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return model as QuadraticMetaModel<Flt64>
@@ -168,7 +169,7 @@ internal object SolverBoundaryCasts {
      *
      * @param constraint 线性约束实现 / Linear constraint implementation
      * @return Flt64 类型的线性约束 / Linear constraint of Flt64 type
-     */
+    */
     fun <V> linearConstraintAsFlt64(constraint: LinearConstraintImpl<V>): Constraint<Flt64, Linear>
         where V : RealNumber<V>, V : NumberField<V> {
         return constraint as Constraint<Flt64, Linear>
@@ -180,7 +181,7 @@ internal object SolverBoundaryCasts {
      *
      * @param constraints 线性约束实现列表 / List of linear constraint implementations
      * @return Flt64 类型的线性约束列表 / List of Flt64 linear constraints
-     */
+    */
     fun <V> linearConstraintsAsFlt64(constraints: List<LinearConstraintImpl<V>>): List<Constraint<Flt64, Linear>>
         where V : RealNumber<V>, V : NumberField<V> {
         return constraints as List<Constraint<Flt64, Linear>>
@@ -192,7 +193,7 @@ internal object SolverBoundaryCasts {
      *
      * @param constraint 二次约束实现 / Quadratic constraint implementation
      * @return Flt64 类型的二次约束 / Quadratic constraint of Flt64 type
-     */
+    */
     fun <V> quadraticConstraintAsFlt64(constraint: QuadraticConstraintImpl<V>): Constraint<Flt64, Quadratic>
         where V : RealNumber<V>, V : NumberField<V> {
         return constraint as Constraint<Flt64, Quadratic>
@@ -204,7 +205,7 @@ internal object SolverBoundaryCasts {
      *
      * @param constraints 二次约束实现列表 / List of quadratic constraint implementations
      * @return Flt64 类型的二次约束列表 / List of Flt64 quadratic constraints
-     */
+    */
     fun <V> quadraticConstraintsAsFlt64(constraints: List<QuadraticConstraintImpl<V>>): List<Constraint<Flt64, Quadratic>>
         where V : RealNumber<V>, V : NumberField<V> {
         return constraints as List<Constraint<Flt64, Quadratic>>
@@ -216,7 +217,7 @@ internal object SolverBoundaryCasts {
      *
      * @param cut 待转换的对象 / Object to cast
      * @return 线性不等式，若类型不匹配则返回 null / Linear inequality, or null if type mismatch
-     */
+    */
     fun <V> linearInequalityAs(cut: Any): LinearInequality<V>?
         where V : RealNumber<V>, V : NumberField<V> {
         return cut as? LinearInequality<V>
@@ -228,7 +229,7 @@ internal object SolverBoundaryCasts {
      *
      * @param cut 待转换的对象 / Object to cast
      * @return 二次不等式，若类型不匹配则返回 null / Quadratic inequality, or null if type mismatch
-     */
+    */
     fun <V> quadraticInequalityAs(cut: Any): QuadraticInequalityOf<V>?
         where V : RealNumber<V>, V : NumberField<V> {
         return cut as? QuadraticInequalityOf<V>
@@ -240,7 +241,7 @@ internal object SolverBoundaryCasts {
      *
      * @param tokenTable 令牌表 / Token table
      * @return Flt64 类型的令牌列表 / Flt64 token list
-     */
+    */
     fun <V> tokenListAsFlt64(tokenTable: AbstractTokenTable<V>): AbstractTokenList<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return tokenTable.tokenList as AbstractTokenList<Flt64>
@@ -252,7 +253,7 @@ internal object SolverBoundaryCasts {
      *
      * @param tokenTable 令牌表（可空） / Token table (nullable)
      * @return Flt64 类型的令牌列表（可空） / Flt64 token list (nullable)
-     */
+    */
     fun <V> tokenListAsFlt64OrNull(tokenTable: AbstractTokenTable<V>?): AbstractTokenList<Flt64>?
         where V : RealNumber<V>, V : NumberField<V> {
         return tokenTable?.let { tokenListAsFlt64(it) }
@@ -265,7 +266,7 @@ internal object SolverBoundaryCasts {
      * @param values Flt64 类型的值映射 / Flt64 value map
      * @param converter 值转换器 / Value converter
      * @return 目标类型的值映射 / Target type value map
-     */
+    */
     fun <V> mapValues(values: Map<Symbol, Flt64>, converter: IntoValue<V>): Map<Symbol, V>
         where V : RealNumber<V>, V : NumberField<V> {
         return values.mapValues { converter.intoValue(it.value) }
@@ -277,7 +278,7 @@ internal object SolverBoundaryCasts {
      *
      * @param dependency 依赖中间符号 / Dependency intermediate symbol
      * @return 目标类型的中间符号 / Target type intermediate symbol
-     */
+    */
     fun <V> dependencyAsIntermediate(dependency: IntermediateSymbol<*>): IntermediateSymbol<V>
         where V : RealNumber<V>, V : NumberField<V> {
         return dependency as IntermediateSymbol<V>
@@ -289,7 +290,7 @@ internal object SolverBoundaryCasts {
      *
      * @param polynomial 可变线性多项式 / Mutable linear polynomial
      * @return Flt64 类型的可变线性多项式 / Flt64 mutable linear polynomial
-     */
+    */
     fun <V> linearPolynomialAsFlt64(polynomial: MutableLinearPolynomial<V>): MutableLinearPolynomial<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return MutableLinearPolynomial(
@@ -309,7 +310,7 @@ internal object SolverBoundaryCasts {
      *
      * @param polynomial 可变二次多项式 / Mutable quadratic polynomial
      * @return Flt64 类型的可变二次多项式 / Flt64 mutable quadratic polynomial
-     */
+    */
     fun <V> quadraticPolynomialAsFlt64(polynomial: MutableQuadraticPolynomial<V>): MutableQuadraticPolynomial<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return MutableQuadraticPolynomial(
@@ -330,7 +331,7 @@ internal object SolverBoundaryCasts {
      *
      * @param tokenTable 待转换的对象（可空） / Object to cast (nullable)
      * @return Flt64 类型令牌表（可空） / Flt64 token table (nullable)
-     */
+    */
     fun tokenTableAsFlt64OrNull(tokenTable: Any?): AbstractTokenTable<Flt64>? {
         return tokenTable as? AbstractTokenTable<Flt64>
     }
@@ -341,7 +342,7 @@ internal object SolverBoundaryCasts {
      *
      * @param symbol 符号（可空） / Symbol (nullable)
      * @return 目标类型的中间符号（可空） / Target type intermediate symbol (nullable)
-     */
+    */
     fun <V> symbolAsIntermediateStar(symbol: Symbol?): IntermediateSymbol<out V>?
         where V : RealNumber<V>, V : NumberField<V> {
         return symbol as? IntermediateSymbol<out V>
@@ -353,7 +354,7 @@ internal object SolverBoundaryCasts {
      *
      * @param symbol 线性中间符号实例 / Linear intermediate symbol instance
      * @return Flt64 类型的线性扁平化数据 / Flt64 linear flatten data
-     */
+    */
     fun linearSolverFlattenedMonomials(symbol: Any): LinearFlattenData<Flt64> {
         val polynomial = (symbol as LinearIntermediateSymbol<*>).toLinearPolynomial()
         return LinearFlattenData(
@@ -373,7 +374,7 @@ internal object SolverBoundaryCasts {
      *
      * @param symbol 二次中间符号实例 / Quadratic intermediate symbol instance
      * @return Flt64 类型的二次扁平化数据 / Flt64 quadratic flatten data
-     */
+    */
     fun quadraticSolverFlattenedMonomials(symbol: Any): QuadraticFlattenData<Flt64> {
         val polynomial = (symbol as QuadraticIntermediateSymbol<*>).toQuadraticPolynomial()
         return QuadraticFlattenData(
@@ -394,7 +395,7 @@ internal object SolverBoundaryCasts {
      *
      * @param rangeFlt64 Flt64 值域（可空） / Flt64 value range (nullable)
      * @return 目标类型的表达式值域 / Target type expression range
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     fun <V> expressionRangeFromFlt64(rangeFlt64: ValueRange<Flt64>?): ExpressionRange<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -406,7 +407,7 @@ internal object SolverBoundaryCasts {
      * Create full (unbounded) expression range for target type.
      *
      * @return 完整的表达式值域 / Full expression range
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     fun <V> fullExpressionRange(): ExpressionRange<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -419,7 +420,7 @@ internal object SolverBoundaryCasts {
      *
      * @param symbol 中间符号实例 / Intermediate symbol instance
      * @return Flt64 类型的表达式值域（可空） / Flt64 expression range (nullable)
-     */
+    */
     fun rangeAsFlt64(symbol: Any): ExpressionRange<Flt64>? {
         val flt64Symbol = symbol as IntermediateSymbol<Flt64>
         return flt64Symbol.range as ExpressionRange<Flt64>?
@@ -432,7 +433,7 @@ internal object SolverBoundaryCasts {
  *
  * @param model 线性元模型 / Linear meta model
  * @return Flt64 类型的线性元模型 / Flt64 linear meta model
- */
+*/
 fun <V> castLinearMetaModelForSolver(model: LinearMetaModel<V>): LinearMetaModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return SolverBoundaryCasts.castLinearMetaModelStar(model)
@@ -444,7 +445,7 @@ fun <V> castLinearMetaModelForSolver(model: LinearMetaModel<V>): LinearMetaModel
  *
  * @param model 二次元模型 / Quadratic meta model
  * @return Flt64 类型的二次元模型 / Flt64 quadratic meta model
- */
+*/
 fun <V> castQuadraticMetaModelForSolver(model: QuadraticMetaModel<V>): QuadraticMetaModel<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     return SolverBoundaryCasts.castQuadraticMetaModelStar(model)

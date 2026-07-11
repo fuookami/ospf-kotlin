@@ -26,7 +26,7 @@
  * 7. 逻辑与 &&, and
  * 8. 逻辑或 ||, or
  * 9. 三元条件 ? :, if/then/else/fi
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
@@ -42,8 +42,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property tokens 词法单元列表 / List of tokens
  * @property input 原始输入字符串（可选，用于错误报告）/ Original input string (optional, for error reporting)
- */
+*/
 class ScalarParser(private val tokens: List<Token>, private val input: String? = null) {
+
+    /**
+     * Current position in the token list during parsing.
+     * 解析过程中在词法单元列表中的当前位置。
+    */
     private var position = 0
 
     /**
@@ -51,7 +56,7 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
      * Parse scalar expression
      *
      * @return 解析后的标量表达式或失败原因 / Parsed scalar expression or failure reason
-     */
+    */
     fun parse(): Ret<ScalarExpression<Double>> {
         if (tokens.isEmpty() || (tokens.size == 1 && tokens[0].type == TokenType.EOF)) {
             return parseFailed("Empty expression")
@@ -75,6 +80,15 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 解析方法 / Parse Methods ==========
 
+    /**
+     * Creates a parse failure result with the given message and position.
+     * 使用给定的消息和位置创建解析失败结果。
+     *
+     * @param T the expected result type / 期望的结果类型
+     * @param message the error message / 错误消息
+     * @param position the token position where the error occurred / 发生错误的词法单元位置
+     * @return a failed parse result / 解析失败结果
+    */
     private fun <T> parseFailed(message: String, position: Int = 0): Ret<T> {
         val issue = ParseIssue(
             type = ParseIssueType.Syntax,
@@ -91,6 +105,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 9: 三元条件 / Priority 9: Ternary ==========
 
+    /**
+     * Parses a ternary conditional expression (? : or if/then/else/fi).
+     * 解析三元条件表达式（? : 或 if/then/else/fi）。
+     *
+     * @return the parsed ternary expression or failure / 解析后的三元表达式或失败
+    */
     private fun parseTernary(): Ret<ScalarExpression<Double>> {
         // 检查 if/then/else/fi 形式 / Check if/then/else/fi form
         if (currentToken().type == TokenType.IF) {
@@ -138,9 +158,11 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 解析 if/then/else/fi 条件表达式
-     * Parse if/then/else/fi conditional expression
-     */
+     * Parses if/then/else/fi conditional expression.
+     * 解析 if/then/else/fi 条件表达式。
+     *
+     * @return the parsed conditional expression or failure / 解析后的条件表达式或失败
+    */
     private fun parseIfThenElse(): Ret<ScalarExpression<Double>> {
         val ifPos = currentToken().position
         advance() // 跳过 if / skip if
@@ -194,6 +216,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 8: 逻辑或 / Priority 8: Logical OR ==========
 
+    /**
+     * Parses a logical OR expression (|| or `or`), left-associative.
+     * 解析逻辑或表达式（|| 或 `or`），左结合。
+     *
+     * @return the parsed logical OR expression or failure / 解析后的逻辑或表达式或失败
+    */
     private fun parseLogicalOr(): Ret<ScalarExpression<Double>> {
         var left = when (val r = parseLogicalAnd()) {
             is Ok -> r.value
@@ -218,6 +246,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 7: 逻辑与 / Priority 7: Logical AND ==========
 
+    /**
+     * Parses a logical AND expression (&& or `and`), left-associative.
+     * 解析逻辑与表达式（&& 或 `and`），左结合。
+     *
+     * @return the parsed logical AND expression or failure / 解析后的逻辑与表达式或失败
+    */
     private fun parseLogicalAnd(): Ret<ScalarExpression<Double>> {
         var left = when (val r = parseComparison()) {
             is Ok -> r.value
@@ -242,6 +276,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 6: 比较 / Priority 6: Comparison ==========
 
+    /**
+     * Parses a comparison expression (>, <, >=, <=, ==, !=).
+     * 解析比较表达式（>, <, >=, <=, ==, !=）。
+     *
+     * @return the parsed comparison expression or failure / 解析后的比较表达式或失败
+    */
     private fun parseComparison(): Ret<ScalarExpression<Double>> {
         var left = when (val r = parseAdditive()) {
             is Ok -> r.value
@@ -268,6 +308,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 5: 加减 / Priority 5: Additive ==========
 
+    /**
+     * Parses an additive expression (+, -), left-associative.
+     * 解析加减表达式（+, -），左结合。
+     *
+     * @return the parsed additive expression or failure / 解析后的加减表达式或失败
+    */
     private fun parseAdditive(): Ret<ScalarExpression<Double>> {
         // 左操作数经 parseUnaryMinus 处理前导负号（支持 -x^2 = -(x^2) 和 --x）
         // Left operand goes through parseUnaryMinus for leading minus
@@ -307,7 +353,9 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
      * Recursion target is parseMultiplicative, not parseAdditive, to avoid
      * swallowing subsequent +/- into the operand (fixes A4:
      * -x^2+1 should be -(x^2)+1, -2-3 should be (-2)-3).
-     */
+     *
+     * @return parsed unary negation expression or the next-level result / 解析后的一元取负表达式或下一层级结果
+    */
     private fun parseUnaryMinus(): Ret<ScalarExpression<Double>> {
         if (currentToken().type == TokenType.MINUS) {
             advance()
@@ -323,6 +371,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 4: 乘除模 / Priority 4: Multiplicative ==========
 
+    /**
+     * Parses a multiplicative expression (*, /, %), left-associative.
+     * 解析乘除模表达式（*, /, %），左结合。
+     *
+     * @return the parsed multiplicative expression or failure / 解析后的乘除模表达式或失败
+    */
     private fun parseMultiplicative(): Ret<ScalarExpression<Double>> {
         var left = when (val r = parsePower()) {
             is Ok -> r.value
@@ -351,6 +405,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 2: 幂 / Priority 2: Power ==========
 
+    /**
+     * Parses a power expression (^, **), right-associative.
+     * 解析幂运算表达式（^, **），右结合。
+     *
+     * @return the parsed power expression or failure / 解析后的幂运算表达式或失败
+    */
     private fun parsePower(): Ret<ScalarExpression<Double>> {
         var base = when (val r = parseUnaryPlus()) {
             is Ok -> r.value
@@ -374,6 +434,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 3: 一元正号 / Priority 3: Unary plus ==========
 
+    /**
+     * Parses a unary plus expression, recursively handling consecutive plus signs.
+     * 解析一元正号表达式，递归处理连续正号。
+     *
+     * @return the parsed unary plus expression or primary / 解析后的一元正号表达式或原子
+    */
     private fun parseUnaryPlus(): Ret<ScalarExpression<Double>> {
         if (currentToken().type == TokenType.PLUS) {
             advance()
@@ -389,6 +455,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 优先级 1: 原子 / Priority 1: Primary ==========
 
+    /**
+     * Parses a primary (atomic) expression: number, identifier, function call, parenthesized expression, boolean, null, string, or logical NOT.
+     * 解析原子表达式：数字、标识符、函数调用、括号表达式、布尔值、null、字符串或逻辑非。
+     *
+     * @return the parsed primary expression or failure / 解析后的原子表达式或失败
+    */
     private fun parsePrimary(): Ret<ScalarExpression<Double>> {
         return when (currentToken().type) {
             TokenType.NUMBER -> {
@@ -459,9 +531,11 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 解析标识符或函数调用
-     * Parse identifier or function call
-     */
+     * Parses an identifier or function call expression, handling math.* constants and function name normalization.
+     * 解析标识符或函数调用，处理 math.* 常量和函数名归一化。
+     *
+     * @return the parsed identifier reference, function call, or constant / 解析后的标识符引用、函数调用或常量
+    */
     private fun parseIdentifierOrFunction(): Ret<ScalarExpression<Double>> {
         val identifier = currentToken().value
         val startPos = currentToken().position
@@ -521,16 +595,36 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
 
     // ========== 辅助方法 / Helper Methods ==========
 
+    /**
+     * Returns the current token at the parser position, or an EOF token if past the end.
+     * 返回解析器当前位置的词法单元，如果超出末尾则返回 EOF 词法单元。
+     *
+     * @return the current token / 当前词法单元
+    */
     private fun currentToken(): Token {
         return tokens.getOrNull(position) ?: Token.eof(position)
     }
 
+    /**
+     * Advances the parser position by one and returns the consumed token.
+     * 将解析器位置前进一位并返回已消费的词法单元。
+     *
+     * @return the token that was consumed / 已消费的词法单元
+    */
     private fun advance(): Token {
         val token = currentToken()
         position++
         return token
     }
 
+    /**
+     * Expects a token of the given type at the current position; advances and returns it, or fails with the given message.
+     * 期望当前位置有给定类型的词法单元；前进并返回它，否则以给定消息失败。
+     *
+     * @param type the expected token type / 期望的词法单元类型
+     * @param message the error message if the token does not match / 词法单元不匹配时的错误消息
+     * @return the expected token or failure / 期望的词法单元或失败
+    */
     private fun expect(type: TokenType, message: String): Ret<Token> {
         if (currentToken().type != type) {
             return parseFailed(message, currentToken().position)
@@ -539,9 +633,13 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 从 ScalarExpression 中提取 BooleanExpression（如果它是一个 ScalarBoolean 包装）
-     * Extract BooleanExpression from ScalarExpression (if it's a ScalarBoolean wrapper)
-     */
+     * Extracts a BooleanExpression from a ScalarExpression if it wraps a ScalarBoolean.
+     * 从 ScalarExpression 中提取 BooleanExpression（如果它是一个 ScalarBoolean 包装）。
+     *
+     * @param expr the scalar expression to extract from / 要提取的标量表达式
+     * @param errorPos optional position for error reporting / 可选的错误报告位置
+     * @return the extracted BooleanExpression, or null if not a boolean expression / 提取的 BooleanExpression，如果不是布尔表达式则返回 null
+    */
     private fun extractBooleanCondition(expr: ScalarExpression<Double>, errorPos: Int? = null): BooleanExpression? {
         return when (expr) {
             is ScalarBoolean<*> -> expr.expr
@@ -550,9 +648,12 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 从 ScalarExpression 中解包 BooleanExpression（用于逻辑操作符和条件）
-     * Unwrap BooleanExpression from ScalarExpression (for logical operators and conditionals)
-     */
+     * Unwraps a BooleanExpression from a ScalarExpression for use in logical operators and conditionals.
+     * 从 ScalarExpression 中解包 BooleanExpression（用于逻辑操作符和条件）。
+     *
+     * @param expr the scalar expression to unwrap / 要解包的标量表达式
+     * @return the unwrapped BooleanExpression, or null if not a boolean expression / 解包的 BooleanExpression，如果不是布尔表达式则返回 null
+    */
     private fun unwrapBoolean(expr: ScalarExpression<Double>): BooleanExpression? {
         return when (expr) {
             is ScalarBoolean<*> -> expr.expr
@@ -561,9 +662,13 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 合并 or 表达式（扁平化）
-     * Merge or expressions (flatten)
-     */
+     * Merges two boolean expressions with OR, flattening nested OrExpressions.
+     * 合并 or 表达式（扁平化）。
+     *
+     * @param left the left boolean expression / 左布尔表达式
+     * @param right the right boolean expression / 右布尔表达式
+     * @return the merged OrExpression / 合并后的 OrExpression
+    */
     private fun mergeOr(left: BooleanExpression, right: BooleanExpression): OrExpression {
         val operands = mutableListOf<BooleanExpression>()
         if (left is OrExpression) operands.addAll(left.operands) else operands.add(left)
@@ -572,9 +677,13 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
     }
 
     /**
-     * 合并 and 表达式（扁平化）
-     * Merge and expressions (flatten)
-     */
+     * Merges two boolean expressions with AND, flattening nested AndExpressions.
+     * 合并 and 表达式（扁平化）。
+     *
+     * @param left the left boolean expression / 左布尔表达式
+     * @param right the right boolean expression / 右布尔表达式
+     * @return the merged AndExpression / 合并后的 AndExpression
+    */
     private fun mergeAnd(left: BooleanExpression, right: BooleanExpression): AndExpression {
         val operands = mutableListOf<BooleanExpression>()
         if (left is AndExpression) operands.addAll(left.operands) else operands.add(left)
@@ -591,7 +700,7 @@ class ScalarParser(private val tokens: List<Token>, private val input: String? =
  *
  * @param input 标量表达式字符串 / Scalar expression string
  * @return 解析后的标量表达式或失败原因 / Parsed scalar expression or failure reason
- */
+*/
 fun parseScalarExpression(input: String): Ret<ScalarExpression<Double>> {
     val lexer = Lexer(input, LexMode.Scalar)
     val tokens = lexer.tokenize()
@@ -605,7 +714,7 @@ fun parseScalarExpression(input: String): Ret<ScalarExpression<Double>> {
  *
  * @param input 标量表达式字符串 / Scalar expression string
  * @return 解析后的标量表达式，失败时返回 null / Parsed scalar expression, null on failure
- */
+*/
 fun parseScalarExpressionOrNull(input: String): ScalarExpression<Double>? {
     return when (val result = parseScalarExpression(input)) {
         is Ok -> result.value

@@ -33,7 +33,7 @@ import kotlin.time.Instant
  * Narrows task objects in the solving flow to the target task type.
  * The task list and compilation artifacts come from the same context,
  * so the construction path owns the runtime type invariant.
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun <
         T : AbstractTask<E, A>,
@@ -43,6 +43,10 @@ private fun <
     return task as T
 }
 
+/**
+ * SolutionAnalyzer object.
+ * SolutionAnalyzer对象。
+*/
 data object SolutionAnalyzer {
     operator fun <
             T : AbstractTask<E, A>,
@@ -140,7 +144,7 @@ data object SolutionAnalyzer {
      * @param assignedPolicyGenerator 分配策略生成器 / Assignment policy generator
      * @param solution 备选求解向量 / Optional solution vector
      * @return 任务解 / Task solution
-     */
+    */
     operator fun <
             T : AbstractTask<E, A>,
             E : Executor,

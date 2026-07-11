@@ -31,8 +31,9 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Multi-commodity distribution: minimize shipping cost with production, sales, and transshipment nodes.
  *
  * @see     https://fuookami.github.io/ospf/examples/example14.html
- */
+*/
 data object Demo14 {
+
     /** 分销网络中的节点。A node in the distribution network. */
     sealed interface Node : Indexed {
         val name: String
@@ -42,7 +43,7 @@ data object Demo14 {
      * 具有存储容量的生产节点。A production node with storage capacity.
      *
      * @property storage 存储容量 / Storage capacity
-     */
+    */
     class Product(
         override val name: String,
         val storage: UInt64
@@ -52,7 +53,7 @@ data object Demo14 {
      * 具有需求量的销售节点。A sales node with demand quantity.
      *
      * @property demand 需求量 / Demand quantity
-     */
+    */
     class Sale(
         override val name: String,
         val demand: UInt64
@@ -61,7 +62,7 @@ data object Demo14 {
     /**
      * 转运（分销）节点。A transshipment (distribution) node.
      *
-     */
+    */
     class Distribution(
         override val name: String
     ) : Node, AutoIndexed(Node::class)
@@ -124,7 +125,7 @@ data object Demo14 {
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -147,7 +148,7 @@ data object Demo14 {
      * Initializes flow variables between connected nodes.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(nodes.size, nodes.size))
         for (node1 in nodes) {
@@ -172,7 +173,7 @@ data object Demo14 {
      * Creates cost, outgoing flow, and incoming flow expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         cost = LinearExpressionSymbol(
             sum(
@@ -220,7 +221,7 @@ data object Demo14 {
      * Sets the objective to minimize total shipping cost.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost)
 
@@ -232,7 +233,7 @@ data object Demo14 {
      * Adds production, demand, and transshipment balance constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (node in nodes.filterIsInstance<Product>()) {
             metaModel.addConstraint(
@@ -267,7 +268,7 @@ data object Demo14 {
      * Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -292,7 +293,7 @@ data object Demo14 {
      * Extracts the flow quantities between nodes from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<Node, MutableMap<Node, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {

@@ -9,7 +9,7 @@
  *
  * ORM 特有的 Entity/Table/DAO 实现已迁移至 plugin-persistence-ktorm 模块。
  * ORM-specific Entity/Table/DAO implementations have been migrated to the plugin-persistence-ktorm module.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import java.io.*
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @param request 请求对象 / Request object
  * @param T 请求 DTO 类型 / Request DTO type
  * @return 序列化器 / Serializer
- */
+*/
 @OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
 private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerializer<T> {
@@ -45,7 +45,7 @@ private fun <T : RequestDTO<T>> runtimeRequestSerializer(request: T): KSerialize
  * @param response 响应对象 / Response object
  * @param T 响应 DTO 类型 / Response DTO type
  * @return 序列化器 / Serializer
- */
+*/
 @OptIn(InternalSerializationApi::class)
 @Suppress("UNCHECKED_CAST")
 private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerializer<T> {
@@ -64,7 +64,7 @@ private fun <T : ResponseDTO<T>> runtimeResponseSerializer(response: T): KSerial
  * @property version 版本 / Version
  * @property time 时间 / Time
  * @property request 请求数据（字节） / Request data (bytes)
- */
+*/
 data class RequestRecordPO(
     val requestId: String,
     val app: String,
@@ -82,7 +82,7 @@ data class RequestRecordPO(
          * @param serializer 序列化函数 / Serialization function
          * @param T 请求 DTO 类型 / Request DTO type
          * @return 请求记录 PO / Request record PO
-         */
+        */
         operator fun <T : RequestDTO<T>> invoke(
             record: RequestRecord<T>,
             serializer: (T) -> ByteArray
@@ -132,7 +132,7 @@ data class RequestRecordPO(
  * @property msg 消息 / Message
  * @property time 时间 / Time
  * @property response 响应数据（字节） / Response data (bytes)
- */
+*/
 data class ResponseRecordPO(
     val requestId: String,
     val app: String,
@@ -152,7 +152,7 @@ data class ResponseRecordPO(
          * @param serializer 序列化函数 / Serialization function
          * @param T 响应 DTO 类型 / Response DTO type
          * @return 响应记录 PO / Response record PO
-         */
+        */
         operator fun <T : ResponseDTO<T>> invoke(
             record: ResponseRecord<T>,
             serializer: (T) -> ByteArray
@@ -207,7 +207,7 @@ data class ResponseRecordPO(
  * @property time 时间 / Time
  * @property request 请求数据 / Request data
  * @param T 请求 DTO 类型 / Request DTO type
- */
+*/
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class RequestRecord<T>(
@@ -276,7 +276,7 @@ data class RequestRecord<T>(
      *
      * @param serializer 序列化函数 / Serialization function
      * @return 请求记录 PO / Request record PO
-     */
+    */
     fun po(serializer: (T) -> ByteArray): RequestRecordPO {
         return RequestRecordPO(
             requestId = this.id,
@@ -301,7 +301,7 @@ data class RequestRecord<T>(
  * @property time 时间 / Time
  * @property response 响应数据 / Response data
  * @param T 响应 DTO 类型 / Response DTO type
- */
+*/
 @OptIn(ExperimentalTime::class)
 @Serializable
 data class ResponseRecord<T>(
@@ -369,7 +369,7 @@ data class ResponseRecord<T>(
      *
      * @param serializer 序列化函数 / Serialization function
      * @return 响应记录 PO / Response record PO
-     */
+    */
     fun po(serializer: (T) -> ByteArray): ResponseRecordPO {
         return ResponseRecordPO(
             requestId = this.id,

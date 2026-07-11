@@ -6,7 +6,7 @@
  *
  * 提供 Kafka 生产者/消费者的封装，支持主题订阅和模式匹配订阅。
  * Provides Kafka producer/consumer wrapper with topic subscription and pattern-matching subscription.
- */
+*/
 package fuookami.ospf.kotlin.framework.message
 
 import java.util.*
@@ -35,19 +35,20 @@ import org.apache.kafka.common.serialization.StringSerializer
  * @property name 客户端名称 / Client name
  * @property userName 用户名（可选）/ Username (optional)
  * @property password 密码（可选）/ Password (optional)
- */
+*/
 data class KafkaConfigBuilder(
     val urls: List<String>? = null,
     val name: String? = null,
     val userName: String? = null,
     val password: String? = null
 ) {
+
     /**
      * 构建 Kafka 配置
      * Build Kafka configuration
      *
      * @return 配置实例，参数不完整时返回 null / Configuration instance, or null if parameters are incomplete
-     */
+    */
     operator fun invoke(): KafkaConfig? {
         return try {
             KafkaConfig(
@@ -70,7 +71,7 @@ data class KafkaConfigBuilder(
  * @property name 客户端名称 / Client name
  * @property userName 用户名（可选）/ Username (optional)
  * @property password 密码（可选）/ Password (optional)
- */
+*/
 @Serializable
 data class KafkaConfig(
     val urls: List<String>,
@@ -82,7 +83,7 @@ data class KafkaConfig(
 /**
  * Kafka 消息记录类型别名
  * Kafka message record type alias
- */
+*/
 typealias KafkaMessageRecord = ConsumerRecord<String, String>
 
 /**
@@ -97,7 +98,7 @@ typealias KafkaMessageRecord = ConsumerRecord<String, String>
  * @property topicConsumer 主题消费者实例 / Topic consumer instance
  * @property topicProcessor 主题消息处理器映射 / Topic message processor mapping
  * @property patternConsumers 模式匹配消费者列表 / Pattern-matching consumer list
- */
+*/
 data class KafkaClient(
     val config: KafkaConfig
 ) : AutoCloseable {
@@ -122,7 +123,7 @@ data class KafkaClient(
     /**
      * 关闭客户端，释放生产者和消费者资源
      * Close client, releasing producer and consumer resources
-     */
+    */
     override fun close() {
         producer.close()
         if (::topicConsumer.isInitialized) {
@@ -140,7 +141,7 @@ data class KafkaClient(
      * @param topic 主题名称 / Topic name
      * @param message 消息内容 / Message content
      * @param key 消息键（可选）/ Message key (optional)
-     */
+    */
     fun <T> send(
         topic: String,
         message: String,
@@ -158,7 +159,7 @@ data class KafkaClient(
      * @param value 消息对象 / Message object
      * @param serializable 序列化函数 / Serialization function
      * @param key 消息键（可选）/ Message key (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> send(
         topic: String,
@@ -176,7 +177,7 @@ data class KafkaClient(
      * @param topic 主题名称 / Topic name
      * @param process 消息处理函数 / Message processor function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listen(
         topic: String,
         process: (String) -> Unit,
@@ -196,7 +197,7 @@ data class KafkaClient(
      * @param topic 主题名称 / Topic name
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listen(
         topic: String,
         process: (String, KafkaMessageRecord) -> Unit,
@@ -216,7 +217,7 @@ data class KafkaClient(
      * @param topics 主题名称列表 / Topic name list
      * @param process 消息处理函数 / Message processor function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listen(
         topics: List<String>,
         process: (String) -> Unit,
@@ -236,7 +237,7 @@ data class KafkaClient(
      * @param topics 主题名称列表 / Topic name list
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listen(
         topics: List<String>,
         process: (String, KafkaMessageRecord) -> Unit,
@@ -277,7 +278,7 @@ data class KafkaClient(
      * @param process 消息处理函数 / Message processor function
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listen(
         topic: String,
@@ -301,7 +302,7 @@ data class KafkaClient(
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listen(
         topic: String,
@@ -325,7 +326,7 @@ data class KafkaClient(
      * @param process 消息处理函数 / Message processor function
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listen(
         topics: List<String>,
@@ -349,7 +350,7 @@ data class KafkaClient(
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listen(
         topics: List<String>,
@@ -371,7 +372,7 @@ data class KafkaClient(
      * @param pattern 主题名称正则模式 / Topic name regex pattern
      * @param process 消息处理函数 / Message processor function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listenPattern(
         pattern: String,
         process: (String) -> Unit,
@@ -391,7 +392,7 @@ data class KafkaClient(
      * @param pattern 主题名称正则模式 / Topic name regex pattern
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     fun listenPattern(
         pattern: String,
         process: (String, KafkaMessageRecord) -> Unit,
@@ -422,7 +423,7 @@ data class KafkaClient(
      * @param process 消息处理函数 / Message processor function
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listenPattern(
         pattern: String,
@@ -446,7 +447,7 @@ data class KafkaClient(
      * @param process 消息处理函数（含记录元数据）/ Message processor function (with record metadata)
      * @param deserializer 反序列化函数 / Deserializer function
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
-     */
+    */
     @OptIn(ExperimentalSerializationApi::class)
     inline fun <reified T> listenPattern(
         pattern: String,
@@ -467,7 +468,7 @@ data class KafkaClient(
      *
      * @param groupId 消费者组 ID（可选）/ Consumer group ID (optional)
      * @return Kafka 消费者实例 / Kafka consumer instance
-     */
+    */
     private fun generateConsumer(groupId: String?): KafkaConsumer<String, String> {
         val props = Properties()
         props["bootstrap.servers"] = config.urls.joinToString(",")
@@ -492,7 +493,7 @@ data class KafkaClient(
  *
  * 管理多个 Kafka 客户端实例，按名称索引。
  * Manages multiple Kafka client instances, indexed by name.
- */
+*/
 object Kafka {
     @get:Synchronized
     private val clients: MutableMap<String, KafkaClient> = HashMap()
@@ -503,7 +504,7 @@ object Kafka {
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Kafka 客户端实例，初始化失败时返回 null / Kafka client instance, or null if initialization fails
-     */
+    */
     @Synchronized
     fun init(builder: KafkaConfigBuilder.() -> Unit): KafkaClient? {
         val config = KafkaConfigBuilder()
@@ -517,7 +518,7 @@ object Kafka {
      *
      * @param config Kafka 配置 / Kafka configuration
      * @return Kafka 客户端实例，创建失败时返回 null / Kafka client instance, or null if creation fails
-     */
+    */
     @Synchronized
     operator fun invoke(config: KafkaConfig): KafkaClient? {
         if (clients.containsKey(config.name)) {
@@ -535,7 +536,7 @@ object Kafka {
      *
      * @param name 客户端名称（为 null 时返回第一个）/ Client name (returns first if null)
      * @return Kafka 客户端实例，未找到时返回 null / Kafka client instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(name: String? = null): KafkaClient? {
         return name?.let { clients[it] } ?: clients.values.toList().firstOrNull()

@@ -1,7 +1,7 @@
 /**
  * 远程求解运行配置
  * Remote solve runtime config
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import java.util.UUID
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.solver.remote.domain.*
  * @property maxRounds 最大轮询轮数 / Maximum polling rounds
  * @property taskIdProvider 任务 ID 生成器 / Task ID provider
  * @property sliceIdProvider 切片 ID 生成器 / Slice ID provider
- */
+*/
 data class RemoteSolverRuntimeConfig(
     val tenantId: TenantId = TenantId.of("default"),
     val nodeId: NodeId = NodeId.of("remote-client"),

@@ -1,7 +1,7 @@
 /**
  * 目标对象
  * Objective object
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -20,7 +20,7 @@ sealed interface Object
  * @param Obj 子目标类型 / The sub-objective type
  * @property category   目标分类 / The objective category
  * @property subObjects 子目标列表 / List of sub-objectives
- */
+*/
 class SingleObject<out Obj : AnySubObject>(
     val category: ObjectCategory,
     subObjects: List<@UnsafeVariance Obj>

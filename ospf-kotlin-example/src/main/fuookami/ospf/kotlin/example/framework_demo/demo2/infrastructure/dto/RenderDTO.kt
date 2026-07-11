@@ -5,7 +5,7 @@ import kotlinx.serialization.*
 /**
  * Data transfer object for rendering output.
  * 渲染输出的数据传输对象。
- */
+*/
 @Serializable
 class RenderDTO {
 }

@@ -17,7 +17,7 @@
  * - PlusTrait: 加法运算符特征接口，用于类型约束
  * - PlusAssign: 加法赋值接口，支持 a += b
  * - Inc: 自增运算符接口，支持 ++a 戌a++
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -33,10 +33,9 @@ package fuookami.ospf.kotlin.math.operator
  * @param Rhs 右操作数（加数）的类垌
  * @param Ret 返回值（和）的类垌
  *
- * @param Rhs The type of the right operand (addend)
- * @param Ret The type of the return value (sum)
- */
+*/
 interface Plus<in Rhs, out Ret> {
+
     /**
      * 加法运算符，计算和
      * Addition operator, calculates the sum
@@ -44,9 +43,8 @@ interface Plus<in Rhs, out Ret> {
      * @param rhs 加数
      * @return 和
      *
-     * @param rhs Addend
      * @return Sum
-     */
+    */
     operator fun plus(rhs: Rhs): Ret
 }
 
@@ -64,11 +62,9 @@ interface Plus<in Rhs, out Ret> {
  * @param Rhs 右操作数（加数）的类垌
  * @param Ret 返回值（和）的类垌
  *
- * @param Self The receiver type (augend)
- * @param Rhs The type of the right operand (addend)
- * @param Ret The type of the return value (sum)
- */
+*/
 interface PlusTrait<Self, in Rhs, out Ret> {
+
     /**
      * 加法运算符扩展函数，计算和
      * Addition operator extension function, calculates the sum
@@ -76,9 +72,8 @@ interface PlusTrait<Self, in Rhs, out Ret> {
      * @param rhs 加数
      * @return 和
      *
-     * @param rhs Addend
      * @return Sum
-     */
+    */
     operator fun Self.plus(rhs: Rhs): Ret
 }
 
@@ -94,17 +89,16 @@ interface PlusTrait<Self, in Rhs, out Ret> {
  *
  * @param Rhs 右操作数（加数）的类垌
  *
- * @param Rhs The type of the right operand (addend)
- */
+*/
 interface PlusAssign<in Rhs> {
+
     /**
      * 加法赋值运算符，将和赋值给左操作数
      * Addition assignment operator, assigns the sum to the left operand
      *
      * @param rhs 加数
      *
-     * @param rhs Addend
-     */
+    */
     operator fun plusAssign(rhs: Rhs)
 }
 
@@ -120,9 +114,9 @@ interface PlusAssign<in Rhs> {
  *
  * @param Self 自增运算后返回的类型
  *
- * @param Self The type returned after increment operation
- */
+*/
 interface Inc<Self> {
+
     /**
      * 自增运算符，将值加 1
      * Increment operator, increases the value by 1
@@ -130,6 +124,6 @@ interface Inc<Self> {
      * @return 自增后的新实侌
      *
      * @return New instance after increment
-     */
+    */
     operator fun inc(): Inc<Self>
 }

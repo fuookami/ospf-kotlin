@@ -13,12 +13,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 跨所有服务的每个节点聚合入度、出度和流出的中间符号。Intermediate symbols for aggregated in-degree, out-degree, and out-flow at each node across all services.
+ * Intermediate symbols for aggregated in-degree, out-degree, and out-flow at each node across all services.
+ * 跨所有服务的每个节点聚合入度、出度和流出的中间符号。
  *
- * @property nodes 节点列表 / Node list
- * @property services 服务列表 / Service list
- * @property serviceBandwidth 服务带宽模型 / Service bandwidth model
- */
+ * @property nodes the list of nodes / 节点列表
+ * @property services the list of services / 服务列表
+ * @property serviceBandwidth the service bandwidth model / 服务带宽模型
+*/
 class NodeBandwidth(
     private val nodes: List<Node>,
     private val services: List<Service>,
@@ -29,11 +30,12 @@ class NodeBandwidth(
     lateinit var outFlow: LinearIntermediateSymbols1<Flt64>
 
     /**
-     * 注册所有中间符号到模型。Register all intermediate symbols to the model.
+     * Registers all intermediate symbols to the model.
+     * 注册所有中间符号到模型。
      *
-     * @param model 线性元模型 / Linear meta model
-     * @return 操作结果 / Operation result
-     */
+     * @param model the linear meta model / 线性元模型
+     * @return the operation result / 操作结果
+    */
     fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(

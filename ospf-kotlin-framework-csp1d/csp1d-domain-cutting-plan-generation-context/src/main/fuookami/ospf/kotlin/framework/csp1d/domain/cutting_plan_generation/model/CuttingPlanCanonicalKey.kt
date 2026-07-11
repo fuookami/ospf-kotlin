@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @property capacityConsumption 设备产能消耗键 / Machine capacity consumption key
  * @property slices 切片结构键 / Slice structural keys
  * @property demandContributions 需求贡献结构键 / Demand contribution structural keys
- */
+*/
 data class CuttingPlanCanonicalKey(
     val materialId: MaterialId,
     val machineId: MachineId?,
@@ -22,6 +22,7 @@ data class CuttingPlanCanonicalKey(
     val slices: List<CuttingPlanSliceCanonicalKey>,
     val demandContributions: List<CuttingPlanDemandContributionCanonicalKey>
 ) {
+
     /**
      * 从自定义字符串键构造简并 canonical key / Construct a degenerate canonical key from a custom string key
      *
@@ -30,7 +31,7 @@ data class CuttingPlanCanonicalKey(
      *
      * When downstream provides a custom key via Csp1dGenerationStrategy.canonicalKeyFor,
      * this constructor wraps the string into a CuttingPlanCanonicalKey for dedup set membership.
-     */
+    */
     constructor(customKey: String) : this(
         materialId = CustomKeyMaterialId(customKey),
         machineId = null,
@@ -47,7 +48,7 @@ data class CuttingPlanCanonicalKey(
  * @property productionId 产出标识 / Production identifier
  * @property width 宽度键 / Width key
  * @property amount 数量 / Amount
- */
+*/
 data class CuttingPlanSliceCanonicalKey(
     val productionType: String,
     val productionId: ProductionId?,
@@ -61,7 +62,7 @@ data class CuttingPlanSliceCanonicalKey(
  * @property productId 产品标识 / Product identifier
  * @property unit 单位键 / Unit key
  * @property quantityValue 需求贡献值 / Demand contribution value
- */
+*/
 data class CuttingPlanDemandContributionCanonicalKey(
     val productId: ProductId,
     val unit: String,
@@ -72,7 +73,7 @@ data class CuttingPlanDemandContributionCanonicalKey(
  * 生成切割方案的结构化去重键 / Build a structural deduplication key for a cutting plan
  *
  * @return 结构化去重键 / Structural deduplication key
- */
+*/
 fun <V : RealNumber<V>> CuttingPlan<V>.canonicalKey(): CuttingPlanCanonicalKey {
     return CuttingPlanCanonicalKey(
         materialId = material.id,
@@ -87,7 +88,7 @@ fun <V : RealNumber<V>> CuttingPlan<V>.canonicalKey(): CuttingPlanCanonicalKey {
  * 按结构化去重键保留首个切割方案 / Keep the first cutting plan for each structural deduplication key
  *
  * @return 去重后的切割方案列表 / Deduplicated cutting plans
- */
+*/
 fun <V : RealNumber<V>> Iterable<CuttingPlan<V>>.distinctByCanonicalKey(): List<CuttingPlan<V>> {
     val seen = HashSet<CuttingPlanCanonicalKey>()
     val plans = ArrayList<CuttingPlan<V>>()
@@ -99,12 +100,20 @@ fun <V : RealNumber<V>> Iterable<CuttingPlan<V>>.distinctByCanonicalKey(): List<
     return plans
 }
 
+/**
+ * SliceGroupKey data class.
+ * SliceGroupKey数据类。
+*/
 private data class SliceGroupKey(
     val productionType: String,
     val productionId: ProductionId?,
     val width: String
 )
 
+/**
+ * DemandContributionGroupKey data class.
+ * DemandContributionGroupKey数据类。
+*/
 private data class DemandContributionGroupKey(
     val productId: ProductId,
     val unit: String
@@ -113,7 +122,7 @@ private data class DemandContributionGroupKey(
 /**
  * 自定义字符串 canonical key 的 MaterialId 哨兵实现 /
  * MaterialId sentinel for degenerate canonical keys built from custom string keys
- */
+*/
 private data class CustomKeyMaterialId(val value: String) : MaterialId {
     override fun toString(): String = value
 }
@@ -170,6 +179,11 @@ private fun <V : RealNumber<V>> Quantity<V>.canonicalQuantityKey(): String {
     return "${value}:${unit.canonicalUnitKey()}"
 }
 
+/**
+ * PhysicalUnit.
+ * PhysicalUnit。
+ * @return the unit's symbol if available, otherwise its name, or its string representation / 物理单位的符号（若可用），否则为其名称或字符串表示
+*/
 private fun PhysicalUnit.canonicalUnitKey(): String {
     return symbol ?: name ?: toString()
 }
@@ -178,7 +192,7 @@ private fun PhysicalUnit.canonicalUnitKey(): String {
  * 生成产出的规范类型键 / Generate canonical production type key
  *
  * @return 产出类型的字符串标识 / String identifier for production type
- */
+*/
 private fun <V : RealNumber<V>> Production<V>.canonicalProductionType(): String {
     return when (this) {
         is Product<*> -> "product"

@@ -18,21 +18,25 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 从起飞重量点插值的最大中心线指数裕度约束。Maximum CentrLine Index Margin constraint interpolated from takeoff weight points.
+ * Maximum CenterLine Index Margin constraint interpolated from takeoff weight points.
+ * 从起飞重量点插值的最大中心线指数裕度约束。
  *
- * @property aircraftModel 参数。
- * @property points 参数。
- * @property totalWeight 参数。
- */
+ * @property points The list of CLIM interpolation points. / CLIM 插值点列表
+*/
 class MaxCLIM(
     private val aircraftModel: AircraftModel,
     val points: List<Point>,
     private val totalWeight: TotalWeight
 ) {
+
+    /**
+     * A CLIM interpolation point.
+     * CLIM 插值点。
+     *
+     * @property tow Takeoff weight at this point. / 此点的起飞重量
+     * @property maxCLIM Maximum CLIM value at this point. / 此点的最大 CLIM 值
+    */
     data class Point(
-        val tow: Quantity<Flt64>,
-        val maxCLIM: Quantity<Flt64>
-    )
 
     operator fun invoke(tow: Quantity<Flt64>): Quantity<Flt64> {
         val x = tow.to(aircraftModel.weightUnit)!!.value
@@ -58,6 +62,13 @@ class MaxCLIM(
 
     lateinit var maxCLIM: QuantityLinearIntermediateSymbol<Flt64>
 
+    /**
+     * Registers the maximum CLIM symbol with the given model.
+     * 将最大 CLIM 符号注册到给定模型中。
+     *
+     * @param model The linear meta model to register with. / 要注册的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

@@ -1,7 +1,7 @@
 /**
  * 求解器建模数据准备工具
  * Solver modeling data preparation utilities
- */
+*/
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.model.basic.Variable
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
  * @property upperBounds 变量上界数组 / Variable upper bounds array
  * @property names 变量名称数组 / Variable names array
  * @property initialResults 初始解列表（列索引, 值）/ Initial solution list (column index, value)
- */
+*/
 data class VariableDumpingData(
     val lowerBounds: DoubleArray,
     val upperBounds: DoubleArray,
@@ -30,7 +30,7 @@ data class VariableDumpingData(
  * @param variables 变量列表 / Variable list
  * @param scopeName 作用域名称（用于错误信息）/ Scope name (for error messages)
  * @return 变量转储数据 / Variable dumping data
- */
+*/
 fun prepareVariableDumpingData(
     variables: List<Variable>,
     scopeName: String
@@ -63,7 +63,7 @@ fun prepareVariableDumpingData(
  * @param constraintSize 约束总数 / Total constraint count
  * @param availableProcessors 可用处理器数 / Available processor count
  * @return 分段大小 / Segment size
- */
+*/
 fun computeConstraintSegmentSize(
     constraintSize: Int,
     availableProcessors: Int = Runtime.getRuntime().availableProcessors()

@@ -1,7 +1,7 @@
 /**
  * 稀疏矩阵
  * Sparse matrix
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
  *
  * @property index 列索引 / Column index
  * @property value 条目值 / Entry value
- */
+*/
 data class SparseVectorEntry<V : RealNumber<V>>(
     val index: Int,
     val value: V
@@ -24,17 +24,18 @@ data class SparseVectorEntry<V : RealNumber<V>>(
  * Sparse vector backed by a list of (index, value) pairs.
  *
  * @property entries 条目列表 / Entry list
- */
+*/
 class SparseVector<V : RealNumber<V>>(
     val entries: MutableList<SparseVectorEntry<V>> = mutableListOf()
 ) {
+
     /**
      * 添加一个条目到向量末尾。
      * Append an entry to the end of this vector.
      *
      * @param index 列索引 / Column index
      * @param value 条目值 / Entry value
-     */
+    */
     fun add(index: Int, value: V) {
         entries.add(SparseVectorEntry(index, value))
     }
@@ -44,7 +45,7 @@ class SparseVector<V : RealNumber<V>>(
      * Number of entries
      *
      * @return 条目数量 / Number of entries
-     */
+    */
     fun len(): Int = entries.size
 
     /**
@@ -52,7 +53,7 @@ class SparseVector<V : RealNumber<V>>(
      * Whether this vector is empty
      *
      * @return 若为空则返回 true / true if this vector is empty
-     */
+    */
     fun isEmpty(): Boolean = entries.isEmpty()
 
     /**
@@ -60,9 +61,7 @@ class SparseVector<V : RealNumber<V>>(
      * Iterate over all entries in this vector, invoking [action] with (index, value).
      *
      * @param action 对每个条目执行的回调 / Callback to execute for each entry
-     * @param action index 列索引 / Column index
-     * @param action value 条目值 / Entry value
-     */
+    */
     inline fun forEachEntry(action: (index: Int, value: V) -> Unit) {
         for (i in entries.indices) {
             val entry = entries[i]
@@ -83,16 +82,17 @@ class SparseVector<V : RealNumber<V>>(
  * Sparse matrix backed by a list of [SparseVector] rows.
  *
  * @property rows 行列表 / Row list
- */
+*/
 class SparseMatrix<V : RealNumber<V>>(
     val rows: MutableList<SparseVector<V>> = mutableListOf()
 ) {
+
     /**
      * 添加一行到矩阵末尾。
      * Append a row to the end of this matrix.
      *
      * @param row 要添加的稀疏向量行 / Sparse vector row to append
-     */
+    */
     fun addRow(row: SparseVector<V>) {
         rows.add(row)
     }
@@ -102,7 +102,7 @@ class SparseMatrix<V : RealNumber<V>>(
      * Number of rows in this matrix
      *
      * @return 行数 / Number of rows
-     */
+    */
     fun numRows(): Int = rows.size
 
     /**
@@ -111,7 +111,7 @@ class SparseMatrix<V : RealNumber<V>>(
      *
      * @param row 行索引 / Row index
      * @return 该行的非零条目数 / Number of non-zero entries in the specified row
-     */
+    */
     fun rowSize(row: Int): Int = rows.getOrNull(row)?.len() ?: 0
 
     /**
@@ -120,7 +120,7 @@ class SparseMatrix<V : RealNumber<V>>(
      *
      * @param index 行索引 / Row index
      * @return 对应的稀疏向量行，越界时返回 null / The sparse vector row, or null if out of bounds
-     */
+    */
     fun getRow(index: Int): SparseVector<V>? = rows.getOrNull(index)
 
     /**
@@ -130,9 +130,7 @@ class SparseMatrix<V : RealNumber<V>>(
      *
      * @param row 行索引 / Row index
      * @param action 对每个条目执行的回调 / Callback to execute for each entry
-     * @param action colIndex 列索引 / Column index
-     * @param action value 条目值 / Entry value
-     */
+    */
     inline fun forEachEntry(row: Int, action: (colIndex: Int, value: V) -> Unit) {
         if (row < 0 || row >= rows.size) {
             return
@@ -149,9 +147,7 @@ class SparseMatrix<V : RealNumber<V>>(
      * Iterate over all rows, invoking [action] with (rowIndex, SparseVector).
      *
      * @param action 对每行执行的回调 / Callback to execute for each row
-     * @param action rowIndex 行索引 / Row index
-     * @param action row 稀疏向量行 / Sparse vector row
-     */
+    */
     inline fun forEachRow(action: (rowIndex: Int, row: SparseVector<V>) -> Unit) {
         for (i in rows.indices) {
             action(i, rows[i])
@@ -163,7 +159,7 @@ class SparseMatrix<V : RealNumber<V>>(
      * Build the transpose of this matrix: each entry (r, c, v) becomes (c, r, v).
      *
      * @return 转置后的稀疏矩阵 / The transposed sparse matrix
-     */
+    */
     fun transpose(): SparseMatrix<V> {
         var maxCol = -1
         for (rowIndex in rows.indices) {
@@ -219,7 +215,7 @@ class SparseMatrix<V : RealNumber<V>>(
  * Negate a [SparseMatrix] in-place: multiply every entry by -1.
  *
  * @return 就地取反后的稀疏矩阵（即 this）/ The negated sparse matrix in-place (this)
- */
+*/
 fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
@@ -235,7 +231,7 @@ fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
  * Return a negated copy of this [SparseMatrix].
  *
  * @return 取反后的新稀疏矩阵 / A new negated sparse matrix
- */
+*/
 fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
     val result = SparseMatrix<Flt64>()
     for (row in rows) {
@@ -254,7 +250,7 @@ fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
  *
  * @param factor 缩放因子 / Scale factor
  * @return 缩放后的稀疏矩阵（即 this）/ The scaled sparse matrix in-place (this)
- */
+*/
 fun SparseMatrix<Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
@@ -275,7 +271,7 @@ fun SparseMatrix<Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<Flt64> {
  * @property colIndex1 第一列索引 / First column index
  * @property colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
  * @property coefficient 系数 / Coefficient
- */
+*/
 data class SparseQuadraticEntry(
     val colIndex1: Int,
     val colIndex2: Int?,
@@ -287,10 +283,11 @@ data class SparseQuadraticEntry(
  * Sparse quadratic vector: a row of quadratic constraint entries.
  *
  * @property entries 条目列表 / Entry list
- */
+*/
 class SparseQuadraticVector(
     val entries: MutableList<SparseQuadraticEntry> = mutableListOf()
 ) {
+
     /**
      * 添加一个二次条目到向量末尾。
      * Append a quadratic entry to the end of this vector.
@@ -298,7 +295,7 @@ class SparseQuadraticVector(
      * @param colIndex1 第一列索引 / First column index
      * @param colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
      * @param coefficient 系数 / Coefficient
-     */
+    */
     fun add(colIndex1: Int, colIndex2: Int?, coefficient: Flt64) {
         entries.add(SparseQuadraticEntry(colIndex1, colIndex2, coefficient))
     }
@@ -308,7 +305,7 @@ class SparseQuadraticVector(
      * Number of entries
      *
      * @return 条目数量 / Number of entries
-     */
+    */
     fun len(): Int = entries.size
 
     /**
@@ -316,7 +313,7 @@ class SparseQuadraticVector(
      * Whether this vector is empty
      *
      * @return 若为空则返回 true / true if this vector is empty
-     */
+    */
     fun isEmpty(): Boolean = entries.isEmpty()
 
     /**
@@ -324,10 +321,7 @@ class SparseQuadraticVector(
      * Iterate over all entries, invoking [action] with (colIndex1, colIndex2, coefficient).
      *
      * @param action 对每个条目执行的回调 / Callback to execute for each entry
-     * @param action colIndex1 第一列索引 / First column index
-     * @param action colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
-     * @param action coefficient 系数 / Coefficient
-     */
+    */
     inline fun forEachEntry(action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
         for (i in entries.indices) {
             val entry = entries[i]
@@ -343,7 +337,7 @@ class SparseQuadraticVector(
          * Create an empty SparseQuadraticVector.
          *
          * @return 空的 SparseQuadraticVector 实例 / An empty SparseQuadraticVector instance
-         */
+        */
         fun invoke(): SparseQuadraticVector = SparseQuadraticVector()
     }
 }
@@ -355,16 +349,17 @@ class SparseQuadraticVector(
  * Used as the sparse representation of quadratic constraint LHS.
  *
  * @property rows 行列表 / Row list
- */
+*/
 class SparseQuadraticMatrix(
     val rows: MutableList<SparseQuadraticVector> = mutableListOf()
 ) {
+
     /**
      * 添加一行到二次矩阵末尾。
      * Append a row to the end of this quadratic matrix.
      *
      * @param row 要添加的稀疏二次向量行 / Sparse quadratic vector row to append
-     */
+    */
     fun addRow(row: SparseQuadraticVector) {
         rows.add(row)
     }
@@ -374,7 +369,7 @@ class SparseQuadraticMatrix(
      * Number of rows in this matrix
      *
      * @return 行数 / Number of rows
-     */
+    */
     fun numRows(): Int = rows.size
 
     /**
@@ -383,7 +378,7 @@ class SparseQuadraticMatrix(
      *
      * @param row 行索引 / Row index
      * @return 该行的条目数 / Number of entries in the specified row
-     */
+    */
     fun rowSize(row: Int): Int = rows.getOrNull(row)?.len() ?: 0
 
     /**
@@ -392,7 +387,7 @@ class SparseQuadraticMatrix(
      *
      * @param index 行索引 / Row index
      * @return 对应的稀疏二次向量行，越界时返回 null / The sparse quadratic vector row, or null if out of bounds
-     */
+    */
     fun getRow(index: Int): SparseQuadraticVector? = rows.getOrNull(index)
 
     /**
@@ -402,10 +397,7 @@ class SparseQuadraticMatrix(
      *
      * @param row 行索引 / Row index
      * @param action 对每个条目执行的回调 / Callback to execute for each entry
-     * @param action colIndex1 第一列索引 / First column index
-     * @param action colIndex2 第二列索引（null 表示线性项）/ Second column index (null for linear term)
-     * @param action coefficient 系数 / Coefficient
-     */
+    */
     inline fun forEachEntry(row: Int, action: (colIndex1: Int, colIndex2: Int?, coefficient: Flt64) -> Unit) {
         if (row < 0 || row >= rows.size) {
             return
@@ -425,7 +417,7 @@ class SparseQuadraticMatrix(
          * Create an empty SparseQuadraticMatrix.
          *
          * @return 空的 SparseQuadraticMatrix 实例 / An empty SparseQuadraticMatrix instance
-         */
+        */
         fun invoke(): SparseQuadraticMatrix = SparseQuadraticMatrix()
     }
 }

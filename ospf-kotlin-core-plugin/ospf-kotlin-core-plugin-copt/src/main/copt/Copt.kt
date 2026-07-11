@@ -102,7 +102,11 @@ data object COPT {
         Interrupted(10),
     }
 
-    /** 回调信息枚举 / Callback info enum */
+    /**
+     * 回调信息枚举 / Callback info enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class CallBackInfo(val key: String) {
         /** 最优目标值 / Best objective value */
         BestObj("BestObj"),
@@ -124,7 +128,11 @@ data object COPT {
         NodeStatus("NodeStatus"),
     }
 
-    /** 双精度参数枚举 / Double parameter enum */
+    /**
+     * 双精度参数枚举 / Double parameter enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class DoubleParam(val key: String) {
         /** 时间限制 / Time limit */
         TimeLimit("TimeLimit"),
@@ -152,7 +160,11 @@ data object COPT {
         TuneTargetRelGap("TuneTargetRelGap"),
     }
 
-    /** 整数参数枚举 / Integer parameter enum */
+    /**
+     * 整数参数枚举 / Integer parameter enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class IntParam(val key: String) {
         /** 日志级别 / Logging level */
         Logging("Logging"),
@@ -246,7 +258,11 @@ data object COPT {
         LazyConstraints("LazyConstraints"),
     }
 
-    /** 双精度属性枚举 / Double attribute enum */
+    /**
+     * 双精度属性枚举 / Double attribute enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class DoubleAttr(val key: String) {
         /** 求解时间 / Solving time */
         SolvingTime("SolvingTime"),
@@ -264,7 +280,11 @@ data object COPT {
         FeasRelaxObj("FeasRelaxObj")
     }
 
-    /** 整数属性枚举 / Integer attribute enum */
+    /**
+     * 整数属性枚举 / Integer attribute enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class IntAttr(val key: String) {
         /** 列数 / Number of columns */
         Cols("Cols"),
@@ -346,7 +366,11 @@ data object COPT {
         IsMinIIS("IsMinIIS"),
     }
 
-    /** 双精度信息枚举 / Double info enum */
+    /**
+     * 双精度信息枚举 / Double info enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class DoubleInfo(val key: String) {
         /** 目标系数 / Objective coefficient */
         Obj("Obj"),
@@ -374,7 +398,11 @@ data object COPT {
         RelaxValue("RelaxValue"),
     }
 
-    /** 客户端配置枚举 / Client configuration enum */
+    /**
+     * 客户端配置枚举 / Client configuration enum
+     *
+     * @property key the parameter key string / 参数键字符串
+    */
     enum class Client(val key: String) {
         /** CA 文件 / CA file */
         CaFile("CaFile"),
@@ -410,7 +438,7 @@ data object COPT {
  *
  * @param key 客户端配置键 / client configuration key
  * @param value 配置值 / configuration value
- */
+*/
 fun EnvrConfig.set(key: COPT.Client, value: String) {
     this.set(key.key, value)
 }
@@ -420,7 +448,7 @@ fun EnvrConfig.set(key: COPT.Client, value: String) {
  *
  * @param key 双精度属性键 / double attribute key
  * @param value 属性值 / attribute value
- */
+*/
 fun EnvrConfig.set(key: COPT.DoubleAttr, value: Double) {
     this.set(key.key, value.toString())
 }
@@ -430,7 +458,7 @@ fun EnvrConfig.set(key: COPT.DoubleAttr, value: Double) {
  *
  * @param key 整数属性键 / integer attribute key
  * @param value 属性值 / attribute value
- */
+*/
 fun EnvrConfig.set(key: COPT.IntAttr, value: Int) {
     this.set(key.key, value.toString())
 }
@@ -440,7 +468,7 @@ fun EnvrConfig.set(key: COPT.IntAttr, value: Int) {
  *
  * @param key 回调信息键 / callback info key
  * @return 回调信息值 / callback info value
- */
+*/
 fun CallbackBase.get(key: COPT.CallBackInfo): Double {
     return this.getDblInfo(key.key)
 }
@@ -450,7 +478,7 @@ fun CallbackBase.get(key: COPT.CallBackInfo): Double {
  *
  * @param key 双精度参数键 / double parameter key
  * @return 参数值 / parameter value
- */
+*/
 fun Model.get(key: COPT.DoubleParam): Double {
     return this.getDblParam(key.key)
 }
@@ -460,7 +488,7 @@ fun Model.get(key: COPT.DoubleParam): Double {
  *
  * @param key 双精度参数键 / double parameter key
  * @param value 参数值 / parameter value
- */
+*/
 fun Model.set(key: COPT.DoubleParam, value: Double) {
     this.setDblParam(key.key, value)
 }
@@ -470,7 +498,7 @@ fun Model.set(key: COPT.DoubleParam, value: Double) {
  *
  * @param key 整数参数键 / integer parameter key
  * @return 参数值 / parameter value
- */
+*/
 fun Model.get(key: COPT.IntParam): Int {
     return this.getIntParam(key.key)
 }
@@ -480,7 +508,7 @@ fun Model.get(key: COPT.IntParam): Int {
  *
  * @param key 整数参数键 / integer parameter key
  * @param value 参数值 / parameter value
- */
+*/
 fun Model.set(key: COPT.IntParam, value: Int) {
     this.setIntParam(key.key, value)
 }
@@ -490,7 +518,7 @@ fun Model.set(key: COPT.IntParam, value: Int) {
  *
  * @param key 双精度属性键 / double attribute key
  * @return 属性值 / attribute value
- */
+*/
 fun Model.get(key: COPT.DoubleAttr): Double {
     return this.getDblAttr(key.key)
 }
@@ -500,7 +528,7 @@ fun Model.get(key: COPT.DoubleAttr): Double {
  *
  * @param key 整数属性键 / integer attribute key
  * @return 属性值 / attribute value
- */
+*/
 fun Model.get(key: COPT.IntAttr): Int {
     return this.getIntAttr(key.key)
 }
@@ -510,7 +538,7 @@ fun Model.get(key: COPT.IntAttr): Int {
  *
  * @param key 双精度信息键 / double info key
  * @return 信息值 / info value
- */
+*/
 fun Var.get(key: COPT.DoubleInfo): Double {
     return this.get(key.key)
 }
@@ -520,7 +548,7 @@ fun Var.get(key: COPT.DoubleInfo): Double {
  *
  * @param key 双精度信息键 / double info key
  * @return 信息值 / info value
- */
+*/
 fun Constraint.get(key: COPT.DoubleInfo): Double {
     return this.get(key.key)
 }
@@ -530,7 +558,7 @@ fun Constraint.get(key: COPT.DoubleInfo): Double {
  *
  * @param key 双精度信息键 / double info key
  * @return 信息值 / info value
- */
+*/
 fun QConstraint.get(key: COPT.DoubleInfo): Double {
     return this.get(key.key)
 }

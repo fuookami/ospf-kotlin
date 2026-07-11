@@ -9,7 +9,7 @@
  * The Lozi map is a piecewise linear simplification of the Henon map, proposed by Rene Lozi.
  * This map replaces the squared term with an absolute value, producing similar chaotic behavior but is easier to analyze.
  * Commonly used for chaos theory research and fractal geometry education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
- */
+*/
 data class LoziMap<V : FloatingNumber<V>>(
     val a: V,
     val b: V
@@ -53,7 +53,7 @@ data class LoziMap<V : FloatingNumber<V>>(
 /**
  * 洛兹映射生成器
  * Lozi Map Generator
- */
+*/
 data class LoziMapGenerator(
     val loziMap: LoziMap<Flt64> = LoziMap(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -24,7 +24,7 @@ typealias MakespanQuantity<V> = Quantity<V>
  * @param tasks 任务列表 / List of tasks
  * @param taskTime 任务时间对象 / Task time object
  * @param extra 是否使用额外的最小最大函数 / Whether to use extra min-max function
- */
+*/
 class Makespan<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -41,7 +41,7 @@ class Makespan<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: MetaModel<Flt64>): Try {
         if (!::makespan.isInitialized) {
             makespan = if (extra) {
@@ -85,7 +85,7 @@ class Makespan<
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 最大完工时间物理量 / Makespan quantity
-     */
+    */
     fun <V : RealNumber<V>> quantity(
         model: MetaModel<Flt64>,
         adapter: SchedulingSolverValueAdapter<V>,

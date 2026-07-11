@@ -9,20 +9,24 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 产出上下文，按产品+单位聚合贡献并与需求对比 / Yield context: aggregates contributions by product+unit and compares with demands
+ * Yield context: aggregates contributions by product+unit and compares with demands.
+ * 产出上下文，按产品+单位聚合贡献并与需求对比
  *
- * @param V 数值类型 / Numeric value type
- */
+ * @param V Numeric value type / 数值类型
+ * @property arithmetic Quantity arithmetic strategy / 物理量算术策略
+*/
 class YieldContext<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>
 ) {
+
     /**
-     * 分析产出偏差：按产品+单位聚合贡献，只在同单位下比较 / Analyze yield deviation: aggregate by product+unit, compare only under same unit
+     * Analyze yield deviation: aggregate by product+unit, compare only under same unit.
+     * 分析产出偏差：按产品+单位聚合贡献，只在同单位下比较
      *
-     * @param produce 主问题产出 / Master problem output
-     * @param demands 需求列表 / Demand list
-     * @return 产出偏差分析 / Yield deviation analysis
-     */
+     * @param produce Master problem output / 主问题产出
+     * @param demands Demand list / 需求列表
+     * @return Yield deviation analysis / 产出偏差分析
+    */
     fun analyze(
         produce: Produce<V>,
         demands: List<ProductDemand<V>>
@@ -106,11 +110,12 @@ class YieldContext<V : RealNumber<V>>(
     }
 
     /**
-     * 按产品+单位聚合贡献 / Aggregate contributions by product+unit
+     * Aggregate contributions by product+unit.
+     * 按产品+单位聚合贡献
      *
-     * @param produce 主问题产出 / Master problem output
-     * @return 按聚合键分组的贡献映射 / Contribution map grouped by aggregation key
-     */
+     * @param produce Master problem output / 主问题产出
+     * @return Contribution map grouped by aggregation key / 按聚合键分组的贡献映射
+    */
     private fun aggregateContributions(
         produce: Produce<V>
     ): Ret<Map<DemandAggregationKey<V>, List<CuttingPlanDemandContribution<V>>>> {
@@ -130,12 +135,13 @@ class YieldContext<V : RealNumber<V>>(
     }
 
     /**
-     * 将贡献量按次数累乘 / Multiply contribution quantity by repeating count
+     * Multiply contribution quantity by repeating count.
+     * 将贡献量按次数累乘
      *
-     * @param contribution 切割方案需求贡献 / Cutting plan demand contribution
-     * @param times 重复次数 / Repeat count
-     * @return 累乘后的贡献 / Multiplied contribution
-     */
+     * @param contribution Cutting plan demand contribution / 切割方案需求贡献
+     * @param times Repeat count / 重复次数
+     * @return Multiplied contribution / 累乘后的贡献
+    */
     private fun multiplyContribution(
         contribution: CuttingPlanDemandContribution<V>,
         times: UInt64
@@ -159,11 +165,12 @@ class YieldContext<V : RealNumber<V>>(
     }
 
     /**
-     * 汇总同组贡献量 / Sum contributions within the same group
+     * Sum contributions within the same group.
+     * 汇总同组贡献量
      *
-     * @param contributions 同组贡献列表 / Contribution list within the same group
-     * @return 汇总后的量，空列表返回 null / Summed quantity, or null if list is empty
-     */
+     * @param contributions Contribution list within the same group / 同组贡献列表
+     * @return Summed quantity, or null if list is empty / 汇总后的量，空列表返回 null
+    */
     private fun sumContributions(
         contributions: List<CuttingPlanDemandContribution<V>>
     ): Ret<Quantity<V>?> {

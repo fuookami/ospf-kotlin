@@ -23,7 +23,7 @@ import java.net.URLClassLoader
  * 5) measurement iterations
  * 6) result format (`json` / `csv` / ...)
  * 7) result file path
- */
+*/
 fun main(args: Array<String>) {
     patchJavaClassPathForForkedJmh()
 
@@ -54,7 +54,7 @@ fun main(args: Array<String>) {
 /**
  * 在 `exec:java` 场景下，JMH fork 进程读取的 `java.class.path` 可能不包含项目依赖。
  * Under `exec:java`, JMH forked VMs may see an incomplete `java.class.path`.
- */
+*/
 private fun patchJavaClassPathForForkedJmh() {
     val classLoader = Thread.currentThread().contextClassLoader as? URLClassLoader ?: return
     val classpath = classLoader.urLs
@@ -74,7 +74,7 @@ private fun patchJavaClassPathForForkedJmh() {
  *
  * @param format 结果格式的字符串表示 / string representation of the result format
  * @return 对应的 [ResultFormatType] 枚举值 / the corresponding [ResultFormatType] enum value
- */
+*/
 private fun parseResultFormat(format: String): ResultFormatType {
     return runCatching {
         ResultFormatType.valueOf(format.uppercase())
@@ -89,7 +89,7 @@ private fun parseResultFormat(format: String): ResultFormatType {
  *
  * @param raw 原始正则表达式字符串 / raw regex string
  * @return 经过清理的文件名安全字符串 / sanitized file-name-safe string
- */
+*/
 private fun sanitizeForFileName(raw: String): String {
     val sanitized = raw.replace(Regex("[^A-Za-z0-9._-]"), "_")
     return sanitized.trim('_').ifBlank { "all" }

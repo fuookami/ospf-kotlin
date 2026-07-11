@@ -1,7 +1,7 @@
 /**
  * Bin loading order constraint.
  * 箱子装载顺序约束。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -21,20 +21,21 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
  * @property assignment 精确赋值 / precise assignment
  * @property capacity 容量符号 / capacity symbols
  * @property name 约束名称 / constraint name
- */
+*/
 class BinLoadingOrderConstraint(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val assignment: PreciseAssignment,
     private val capacity: Capacity,
     val name: String = "bin_loading_order_constraint"
 ) {
+
     /**
      * Add constraint to model.
      * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun invoke(model: MetaModel<FltX>): Try {
         val linearModel = model as AbstractLinearMetaModel<FltX>
         for (i in bins.indices) {

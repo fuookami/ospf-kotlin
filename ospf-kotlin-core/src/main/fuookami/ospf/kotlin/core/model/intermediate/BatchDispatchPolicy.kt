@@ -1,7 +1,7 @@
 /**
  * 批处理调度策略
  * Batch dispatch policy
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 /**
@@ -9,7 +9,7 @@ package fuookami.ospf.kotlin.core.model.intermediate
  *
  * @property fromIndex 起始索引（含）/ Start index (inclusive)
  * @property toIndexExclusive 结束索引（不含）/ End index (exclusive)
- */
+*/
 internal data class BatchSlice(
     val fromIndex: Int,
     val toIndexExclusive: Int
@@ -23,7 +23,7 @@ internal data class BatchSlice(
  * @property segmentSize 段大小 / Segment size
  * @property shouldUseParallelPath 是否使用并行路径 / Whether to use parallel path
  * @property shouldSplitIntoSegments 是否拆分为段 / Whether to split into segments
- */
+*/
 internal data class BatchDispatchPlan(
     val availableProcessors: Int,
     val workerCount: Int,
@@ -42,7 +42,7 @@ internal data class BatchDispatchPlan(
  * @param itemCount 项目数量 / Item count
  * @param availableProcessors 可用处理器数 / Available processors
  * @return 批处理调度计划 / Batch dispatch plan
- */
+*/
 internal fun computeBatchDispatchPlan(
     itemCount: Int,
     availableProcessors: Int = Runtime.getRuntime().availableProcessors()
@@ -86,7 +86,7 @@ internal fun computeBatchDispatchPlan(
  * @param itemCount 项目数量 / Item count
  * @param segmentSize 段大小 / Segment size
  * @return 批处理切片列表 / Batch slice list
- */
+*/
 internal fun buildBatchSlices(
     itemCount: Int,
     segmentSize: Int

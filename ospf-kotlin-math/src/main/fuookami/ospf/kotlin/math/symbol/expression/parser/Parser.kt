@@ -18,7 +18,7 @@
  * 1. not, 括号 / not, parentheses
  * 2. and
  * 3. or
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @property tokens 词法单元列表 / List of tokens
  * @property input 原始输入字符串（可选，用于错误报告）/ Original input string (optional, for error reporting)
- */
+*/
 class Parser(private val tokens: List<Token>, private val input: String? = null) {
     private var position = 0
 
@@ -46,7 +46,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse boolean expression.
      *
      * @return 解析后的布尔表达式 AST 或失败原因 / Parsed boolean expression AST or failure reason
-     */
+    */
     fun parse(): Ret<BooleanExpression> {
         if (tokens.isEmpty() || (tokens.size == 1 && tokens[0].type == TokenType.EOF)) {
             return parseFailed("Empty expression")
@@ -77,7 +77,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param message the error message / 错误信息
      * @param position the position in the input where the error occurred / 输入中发生错误的位置
      * @return a failed result containing the parse issue / 包含解析问题的失败结果
-     */
+    */
     private fun <T> parseFailed(message: String, position: Int = 0): Ret<T> {
         val issue = ParseIssue(
             type = ParseIssueType.Syntax,
@@ -97,7 +97,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse or expression (lowest precedence)
      *
      * @return the parsed or expression or failure / 解析后的 or 表达式或失败原因
-     */
+    */
     private fun parseOrExpression(): Ret<BooleanExpression> {
         var left = when (val result = parseAndExpression()) {
             is Ok -> result.value
@@ -123,7 +123,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse and expression
      *
      * @return the parsed and expression or failure / 解析后的 and 表达式或失败原因
-     */
+    */
     private fun parseAndExpression(): Ret<BooleanExpression> {
         var left = when (val result = parseNotExpression()) {
             is Ok -> result.value
@@ -149,7 +149,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse not expression
      *
      * @return the parsed not expression or failure / 解析后的 not 表达式或失败原因
-     */
+    */
     private fun parseNotExpression(): Ret<BooleanExpression> {
         if (currentToken().type == TokenType.NOT) {
             advance()
@@ -168,7 +168,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse primary expression
      *
      * @return the parsed primary expression or failure / 解析后的基本表达式或失败原因
-     */
+    */
     private fun parsePrimaryExpression(): Ret<BooleanExpression> {
         return when (currentToken().type) {
             TokenType.LPAREN -> {
@@ -209,7 +209,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse path expression (expression starting with identifier)
      *
      * @return the parsed path expression or failure / 解析后的路径表达式或失败原因
-     */
+    */
     private fun parsePathExpression(): Ret<BooleanExpression> {
         val path = when (val result = parsePath()) {
             is Ok -> result.value
@@ -273,7 +273,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      *
      * @param path the property path to check / 待检查的属性路径
      * @return the null check expression / 空值检查表达式
-     */
+    */
     private fun parseNullCheck(path: PropertyPath): Ret<BooleanExpression> {
         advance()
 
@@ -303,7 +303,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param path the property path for the left operand / 左操作数的属性路径
      * @param negated whether the membership check is negated (not in) / 是否为取反的成员判断（not in）
      * @return the in expression / 集合成员判断表达式
-     */
+    */
     private fun parseInExpression(path: PropertyPath, negated: Boolean): Ret<BooleanExpression> {
         when (val result = expect(TokenType.LPAREN, "Expected '(' after 'in'")) {
             is Ok -> {}
@@ -343,7 +343,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param mode the pattern match mode / 模式匹配模式
      * @param negated whether the pattern match is negated / 是否为取反的模式匹配
      * @return the pattern match expression / 模式匹配表达式
-     */
+    */
     private fun parsePatternMatch(
         path: PropertyPath,
         mode: PatternMatchMode,
@@ -363,7 +363,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      *
      * @param leftPath the property path for the left operand / 左操作数的属性路径
      * @return the comparison expression or failure / 比较表达式或失败原因
-     */
+    */
     private fun parseComparison(leftPath: PropertyPath): Ret<BooleanExpression> {
         val operator = currentToken().type.toComparisonOperator()
             ?: return parseFailed(
@@ -387,7 +387,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse scalar value (constant or path reference)
      *
      * @return the parsed scalar expression or failure / 解析后的标量表达式或失败原因
-     */
+    */
     private fun parseScalarValue(): Ret<ScalarExpression<Any?>> {
         return when (currentToken().type) {
             TokenType.STRING -> {
@@ -433,7 +433,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Parse property path
      *
      * @return the parsed property path or failure / 解析后的属性路径或失败原因
-     */
+    */
     private fun parsePath(): Ret<PropertyPath> {
         if (currentToken().type != TokenType.IDENTIFIER) {
             return parseFailed(
@@ -454,7 +454,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Get current token
      *
      * @return the current token / 当前词法单元
-     */
+    */
     private fun currentToken(): Token {
         return tokens.getOrNull(position) ?: Token.eof(position)
     }
@@ -464,7 +464,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * Advance and return previous token
      *
      * @return the token before advancing / 前进之前的词法单元
-     */
+    */
     private fun advance(): Token {
         val token = currentToken()
         position++
@@ -478,7 +478,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param type the expected token type / 期望的词法单元类型
      * @param message the error message if the token does not match / 词法单元不匹配时的错误信息
      * @return the matched token or failure / 匹配的词法单元或失败原因
-     */
+    */
     private fun expect(type: TokenType, message: String): Ret<Token> {
         if (currentToken().type != type) {
             return parseFailed(message, currentToken().position)
@@ -493,7 +493,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param left the left boolean expression / 左侧布尔表达式
      * @param right the right boolean expression / 右侧布尔表达式
      * @return the merged or expression / 合并后的 or 表达式
-     */
+    */
     private fun mergeOr(left: BooleanExpression, right: BooleanExpression): OrExpression {
         val operands = mutableListOf<BooleanExpression>()
 
@@ -519,7 +519,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
      * @param left the left boolean expression / 左侧布尔表达式
      * @param right the right boolean expression / 右侧布尔表达式
      * @return the merged and expression / 合并后的 and 表达式
-     */
+    */
     private fun mergeAnd(left: BooleanExpression, right: BooleanExpression): AndExpression {
         val operands = mutableListOf<BooleanExpression>()
 
@@ -545,7 +545,7 @@ class Parser(private val tokens: List<Token>, private val input: String? = null)
  *
  * @param input 布尔表达式字符串 / Boolean expression string
  * @return 解析后的布尔表达式或失败原因 / Parsed boolean expression or failure reason
- */
+*/
 fun parseBooleanExpression(input: String): Ret<BooleanExpression> {
     val lexer = Lexer(input)
     val tokens = lexer.tokenize()
@@ -559,7 +559,7 @@ fun parseBooleanExpression(input: String): Ret<BooleanExpression> {
  *
  * @param input 布尔表达式字符串 / Boolean expression string
  * @return 解析后的布尔表达式，失败时返回 null / Parsed boolean expression, null on failure
- */
+*/
 fun parseBooleanExpressionOrNull(input: String): BooleanExpression? {
     return when (val result = parseBooleanExpression(input)) {
         is Ok -> result.value

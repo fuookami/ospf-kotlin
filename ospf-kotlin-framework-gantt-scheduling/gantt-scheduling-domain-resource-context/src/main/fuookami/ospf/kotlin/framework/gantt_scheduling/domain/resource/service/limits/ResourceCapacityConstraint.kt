@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param C 资源容量类型 / Resource capacity type
  * @param V 值类型 / Value type
  * @property slot 资源时间槽 / Resource time slot
- */
+*/
 data class ResourceCapacityShadowPriceKey<R : Resource<C, V>, C : AbstractResourceCapacity<V>, V>(
     val slot: ResourceTimeSlot<R, C, V>
 ) : ShadowPriceKey(ResourceCapacityShadowPriceKey::class) where V : RealNumber<V>, V : NumberField<V>
@@ -39,7 +39,7 @@ data class ResourceCapacityShadowPriceKey<R : Resource<C, V>, C : AbstractResour
  * @param withSlack 是否使用松弛 / Whether to use slack
  * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class ResourceCapacityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
@@ -55,12 +55,13 @@ class ResourceCapacityConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "${usage.name}_resource_capacity"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 向模型添加资源容量约束 / Add resource capacity constraints to the model
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (slot in usage.timeSlots) {
             val thisQuantity = quantity(slot)
@@ -188,7 +189,7 @@ class ResourceCapacityConstraint<
      * 返回影子价格提取器 / Return the shadow price extractor
      *
      * @return 影子价格提取函数 / Shadow price extractor function
-     */
+    */
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
@@ -216,6 +217,7 @@ class ResourceCapacityConstraint<
             }
         }
     }
+
     /**
      * 从对偶解中刷新影子价格 / Refresh shadow prices from the dual solution
      *
@@ -223,7 +225,7 @@ class ResourceCapacityConstraint<
      * @param model 线性元模型 / Linear meta model
      * @param shadowPrices 对偶解 / Dual solution
      * @return 成功与否 / Success or failure
-     */
+    */
     override fun refresh(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,

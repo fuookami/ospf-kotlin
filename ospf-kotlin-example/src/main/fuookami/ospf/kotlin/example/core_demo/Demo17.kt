@@ -37,8 +37,9 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Vehicle routing with time windows: minimize fixed and travel costs for a fleet visiting demand nodes.
  *
  * @see https://fuookami.github.io/ospf/examples/example17.html
- */
+*/
 data object Demo17 {
+
     /** VRPTW 网络中的节点（具有位置、时间窗和可选需求）。A node in the VRPTW network with position, time window, and optional demand. */
     sealed interface Node : Indexed {
         val demand: UInt64 get() = UInt64.zero
@@ -50,7 +51,7 @@ data object Demo17 {
          * Calculate the distance to another node.
          * @param other 目标节点 / Target node
          * @return 距离值 / Distance value
-         */
+        */
         fun distance(other: Node): Flt64 {
             return position.distance(other.position)
         }
@@ -60,7 +61,7 @@ data object Demo17 {
          * Calculate the cost of reaching another node.
          * @param other 目标节点 / Target node
          * @return 移动成本 / Travel cost
-         */
+        */
         fun cost(other: Node): Flt64 {
             return distance(other)
         }
@@ -70,7 +71,7 @@ data object Demo17 {
          * Calculate the time required to reach another node.
          * @param other 目标节点 / Target node
          * @return 所需时间 / Required time
-         */
+        */
         fun time(other: Node): Flt64 {
             return distance(other)
         }
@@ -79,7 +80,7 @@ data object Demo17 {
     /**
      * 仓库起点节点。The depot origin node.
      *
-     */
+    */
     data class OriginNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
@@ -88,7 +89,7 @@ data object Demo17 {
     /**
      * 仓库终点（返回）节点。The depot end (return) node.
      *
-     */
+    */
     data class EndNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
@@ -98,7 +99,7 @@ data object Demo17 {
      * 具有需求和服务时长的客户节点。A customer node with demand and service duration.
      *
      * @property serviceTime 服务时长 / Service duration
-     */
+    */
     data class DemandNode(
         override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>,
@@ -111,7 +112,7 @@ data object Demo17 {
      *
      * @property capacity 货物容量 / Cargo capacity
      * @property fixedUsedCost 固定使用成本 / Fixed usage cost
-     */
+    */
     data class Vehicle(
         val capacity: UInt64,
         val fixedUsedCost: UInt64,
@@ -262,7 +263,7 @@ data object Demo17 {
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -285,7 +286,7 @@ data object Demo17 {
      * Initializes binary route variables and continuous service-time variables.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = BinVariable3(
             "x",
@@ -325,7 +326,7 @@ data object Demo17 {
      * Creates origin, destination, flow, service, and capacity expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         origin = LinearIntermediateSymbols1<Flt64>(
             "origin",
@@ -435,7 +436,7 @@ data object Demo17 {
      * Sets the objective to minimize fixed vehicle cost and travel cost.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(
             sum(vehicles.map { v -> v.fixedUsedCost * origin[v] }),
@@ -459,7 +460,7 @@ data object Demo17 {
      * Adds flow balance, service, time-window, and capacity constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (v in vehicles) {
             metaModel.addConstraint(
@@ -542,7 +543,7 @@ data object Demo17 {
      * Solves the linear model using the SCIP solver with a 5-minute time limit.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver(config = SolverConfig(time = 300.seconds))
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -567,7 +568,7 @@ data object Demo17 {
      * Extracts routes and service times from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val route: MutableMap<Vehicle, MutableList<Pair<Node, Node>>> = HashMap()
         val time: MutableMap<Vehicle, MutableMap<Node, UInt64>> = HashMap()

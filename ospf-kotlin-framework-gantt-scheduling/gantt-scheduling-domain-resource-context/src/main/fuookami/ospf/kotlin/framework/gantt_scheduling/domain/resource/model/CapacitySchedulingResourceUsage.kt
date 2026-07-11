@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * @param resources 资源列表 / List of resources
  * @param actions 生产动作列表 / List of production actions
  * @param interval 时间间隔 / Time interval
- */
+*/
 abstract class CapacitySchedulingResourceUsage<
         A : ProductionAction,
         S : ResourceTimeSlot<R, C, V>,
@@ -52,7 +52,7 @@ abstract class CapacitySchedulingResourceUsage<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     abstract fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
@@ -62,7 +62,7 @@ abstract class CapacitySchedulingResourceUsage<
      * Subclasses should calculate timeSlots first in init block, then call this method
      *
      * @param timeSlots 时间槽列表 / List of time slots
-     */
+    */
     protected fun initQuantity(timeSlots: List<S>) {
         quantity = LinearExpressionSymbols1<Flt64>(
             name = "${name}_quantity",
@@ -85,7 +85,7 @@ abstract class CapacitySchedulingResourceUsage<
      * @param model 线性元模型 / Linear meta model
      * @param timeSlots 时间槽列表 / List of time slots
      * @return 成功与否 / Success or failure
-     */
+    */
     protected fun addQuantityToModel(model: LinearMetaModel<Flt64>, timeSlots: List<S>): Try {
         if (timeSlots.isNotEmpty()) {
             when (val result = model.add(quantity)) {

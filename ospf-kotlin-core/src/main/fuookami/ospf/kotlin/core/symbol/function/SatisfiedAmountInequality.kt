@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Provides [SatisfiedAmountInequalityFunction], [AnyFunction], [AllFunction],
  * [AtLeastInequalityFunction], [NotAllFunction], [NumeratorFunction] and more
  * for linearized modeling of inequality satisfaction counts.
- */
+*/
 
 /**
  * 满足数量函数：统计列表中有多少不等式被满足。
@@ -58,8 +58,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property epsilon 边界检查的容差 / tolerance for boundary checks
  * @property converter V 类型常量和 Flt64 <-> V 转换的值类型转换器 / value type converter for V-type constants and Flt64 <-> V conversion
  * @property name 此函数的唯一名称 / unique name for this function
- * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 open class SatisfiedAmountInequalityFunction<V>(
     val inputs: List<LinearConstraintInput<V>>,
     open val amount: ValueRange<UInt64>? = null,
@@ -92,7 +91,7 @@ open class SatisfiedAmountInequalityFunction<V>(
      * Result: sum of satisfied constraint flags.
      * 若指定了 amount，则为二值指示器（0 或 1）。
      * If amount is specified, this is a binary indicator (0 or 1).
-     */
+    */
     val result: LinearPolynomial<V> by lazy {
         val currentAmount = amount
         if (currentAmount != null) {
@@ -126,7 +125,7 @@ open class SatisfiedAmountInequalityFunction<V>(
     /**
      * 检查给定当前值下单个输入约束是否满足。
      * Check whether a single input constraint is satisfied given the current values.
-     */
+    */
     /**
      * 检查给定当前值下单个输入约束是否满足。
      * Check whether a single input constraint is satisfied given the current values.
@@ -134,7 +133,7 @@ open class SatisfiedAmountInequalityFunction<V>(
      * @param input 约束输入 / the constraint input
      * @param values 符号到值的映射 / symbol-to-value map
      * @return 若满足返回 true，若值缺失返回 null / true if satisfied, null if value missing
-     */
+    */
     private fun checkInputSatisfied(
         input: LinearConstraintInput<V>,
         values: Map<Symbol, V>
@@ -303,7 +302,7 @@ open class SatisfiedAmountInequalityFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class AnyFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
@@ -348,7 +347,7 @@ class AnyFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class AllFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
@@ -394,7 +393,7 @@ class AllFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class AtLeastInequalityFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
     val k: UInt64,
@@ -447,7 +446,7 @@ class AtLeastInequalityFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class NotAllFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
@@ -490,7 +489,7 @@ class NotAllFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class NumerableFunction<V>(
     inputs: List<LinearConstraintInput<V>>,
     override val amount: ValueRange<UInt64>,

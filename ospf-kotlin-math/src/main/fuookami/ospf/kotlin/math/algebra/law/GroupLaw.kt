@@ -4,7 +4,7 @@
  *
  * 提供群代数结构定律验证类，验证结合律、单位元存在性和逆元存在性。
  * Provides group algebraic structure law validation class, verifying associativity, identity existence, and inverse existence.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
@@ -20,7 +20,7 @@ package fuookami.ospf.kotlin.math.algebra.law
  * @property zero 单位元 / Identity element
  * @property negate 取逆运算 / Inverse operation
  * @property equal 相等性判定谓词 / Equality predicate
- */
+*/
 class GroupLaw<Self>(
     private val samples: Collection<Self>,
     private val add: (Self, Self) -> Self,
@@ -28,12 +28,13 @@ class GroupLaw<Self>(
     private val negate: (Self) -> Self,
     private val equal: (Self, Self) -> Boolean
 ) {
+
     /**
      * 验证结合律
      * Verify associativity
      *
      * @return 对所有采样元素满足结合律返回 true / True if associativity holds for all sampled elements
-     */
+    */
     fun isAssociative(): Boolean {
         for (lhs in samples) {
             for (mid in samples) {
@@ -54,7 +55,7 @@ class GroupLaw<Self>(
      * Verify identity element existence
      *
      * @return 对所有采样元素满足单位元性质返回 true / True if identity property holds for all sampled elements
-     */
+    */
     fun hasIdentity(): Boolean {
         for (value in samples) {
             if (!equal(add(value, zero), value)) {
@@ -72,7 +73,7 @@ class GroupLaw<Self>(
      * Verify inverse element existence
      *
      * @return 对所有采样元素满足逆元性质返回 true / True if inverse property holds for all sampled elements
-     */
+    */
     fun hasInverse(): Boolean {
         for (value in samples) {
             val inverse = negate(value)
@@ -91,7 +92,7 @@ class GroupLaw<Self>(
      * Validate all group laws
      *
      * @return 结合律、单位元、逆元均满足返回 true / True if associativity, identity, and inverse all hold
-     */
+    */
     fun validate(): Boolean {
         return isAssociative() && hasIdentity() && hasInverse()
     }

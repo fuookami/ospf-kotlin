@@ -9,7 +9,7 @@
  * The Julia set is a fractal set closely related to the Mandelbrot set in complex dynamics.
  * For a fixed complex c, iterate z_{n+1} = z_n^2 + c; if the sequence does not diverge, z belongs to the Julia set.
  * Different values of c produce different Julia set shapes, commonly used for fractal graphics generation and complex dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.fractal
 
 import kotlin.random.Random
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * y_{n+1} = 2*x*y + b
  *
  * @property c 复数参数 c = (a, b) / Complex parameter c = (a, b)
- */
+*/
 class JuliaSet<V : FloatingNumber<V>>(
     val c: Point<Dim2, V>
 ) {
@@ -51,7 +51,7 @@ class JuliaSet<V : FloatingNumber<V>>(
 /**
  * Julia 集序列生成器
  * Julia Set sequence generator
- */
+*/
 data class JuliaSetGenerator(
     val juliaSet: JuliaSet<Flt64> = JuliaSet(Flt64(-0.7), Flt64(0.27015)),
     private var _z: Point<Dim2, Flt64> = point2()
@@ -87,7 +87,7 @@ data class JuliaSetGenerator(
  *
  * @property c 复数参数 c = (a, b) / Complex parameter c = (a, b)
  * @property n 指数参数 / Exponent parameter
- */
+*/
 class MultiJuliaSet(
     val c: Point<Dim2, Flt64>,
     val n: Flt64 = Flt64(2.0)
@@ -120,7 +120,7 @@ class MultiJuliaSet(
 /**
  * 多重 Julia 集序列生成器
  * Multi Julia Set sequence generator
- */
+*/
 data class MultiJuliaSetGenerator(
     val multiJuliaSet: MultiJuliaSet = MultiJuliaSet(Flt64(-0.7), Flt64(0.27015)),
     private var _z: Point<Dim2, Flt64> = point2()

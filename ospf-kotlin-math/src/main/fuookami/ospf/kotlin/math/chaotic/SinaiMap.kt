@@ -8,7 +8,7 @@
  * The Sinai map is a two-dimensional chaotic map that produces chaotic behavior
  * through cosine coupling terms.
  * Commonly used for chaotic dynamics research, random number generation, and encryption applications.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property r 混沌参数 / Chaos parameter
  * @property twoPi 常量 2*pi / Constant 2*pi
- */
+*/
 data class SinaiMap<V : FloatingNumber<V>>(
     val r: V,
     val twoPi: V
@@ -52,7 +52,7 @@ data class SinaiMap<V : FloatingNumber<V>>(
  * Sinai Map Generator
  *
  * @property map 西奈映射实例 / Sinai map instance
- */
+*/
 data class SinaiMapGenerator(
     val map: SinaiMap<Flt64> = SinaiMap(),
     private var _x: Point<Dim2, Flt64> = point2(

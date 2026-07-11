@@ -12,11 +12,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Ass
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 
 /**
- * 约束每个服务最多分配一个节点。Constrains each service to be assigned to at most one node.
+ * Constrains each service to be assigned to at most one node.
+ * 约束每个服务最多分配一个节点。
  *
- * @property services 参数。
- * @property assignment 参数。
- */
+ * @property services the list of services / 服务列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+*/
 class ServiceAssignmentConstraint(
     private val services: List<Service>,
     private val assignment: Assignment,

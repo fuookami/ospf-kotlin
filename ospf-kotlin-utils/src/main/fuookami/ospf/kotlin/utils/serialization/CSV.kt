@@ -5,7 +5,7 @@
  * 提供 CSV 文件的读取和写入功能，基于 kotlinx.serialization。
  *
  * Provides CSV file reading and writing capabilities based on kotlinx.serialization.
- */
+*/
 package fuookami.ospf.kotlin.utils.serialization
 
 import java.io.*
@@ -28,7 +28,7 @@ import kotlinx.serialization.*
  * @param T 数据类型 / Data type
  * @param path CSV 文件路径 / CSV file path
  * @return 解析后的数据列表 / Parsed data list
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromCSV(path: String): List<T> {
     return readFromCSV(T::class.serializer(), path)
@@ -50,7 +50,7 @@ inline fun <reified T : Any> readFromCSV(path: String): List<T> {
  * @param serializer 数据序列化器 / Data serializer
  * @param path CSV 文件路径 / CSV file path
  * @return 解析后的数据列表 / Parsed data list
- */
+*/
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromCSV(serializer: KSerializer<T>, path: String): List<T> {
     val file = File(path)
@@ -79,7 +79,7 @@ fun <T> readFromCSV(serializer: KSerializer<T>, path: String): List<T> {
  * @param T 数据类型 / Data type
  * @param stream 输入流 / Input stream
  * @return 解析后的数据列表 / Parsed data list
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromCSV(stream: InputStream): List<T> {
     return readFromCSV(T::class.serializer(), stream)
@@ -101,7 +101,7 @@ inline fun <reified T : Any> readFromCSV(stream: InputStream): List<T> {
  * @param serializer 数据序列化器 / Data serializer
  * @param stream 输入流 / Input stream
  * @return 解析后的数据列表 / Parsed data list
- */
+*/
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
     val csv = Csv {
@@ -128,7 +128,7 @@ fun <T> readFromCSV(serializer: KSerializer<T>, stream: InputStream): List<T> {
  * @param T 数据类型 / Data type
  * @param path CSV 文件路径 / CSV file path
  * @param value 要写入的数据列表 / Data list to write
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeCSVToFile(path: String, value: List<T>) {
     return writeCSVToFile(
@@ -153,7 +153,7 @@ inline fun <reified T : Any> writeCSVToFile(path: String, value: List<T>) {
  * @param path CSV 文件路径 / CSV file path
  * @param serializer 数据序列化器 / Data serializer
  * @param value 要写入的数据列表 / Data list to write
- */
+*/
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> writeCSVToFile(path: String, serializer: KSerializer<T>, value: List<T>) {
     val csv = Csv {

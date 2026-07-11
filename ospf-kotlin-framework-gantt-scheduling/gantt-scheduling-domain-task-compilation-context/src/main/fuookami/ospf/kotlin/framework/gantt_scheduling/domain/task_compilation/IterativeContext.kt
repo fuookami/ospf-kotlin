@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.s
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 interface IterativeTaskCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         V : RealNumber<V>,
@@ -27,9 +27,14 @@ interface IterativeTaskCompilationContext<
         E : Executor,
         A : AssignmentPolicy<E>
         > {
+
+    /** Iterative task compilation aggregation / 迭代任务编译聚合 */
     val aggregation: IterativeTaskCompilationAggregation<V, IT, T, E, A>
+
+    /** List of column generation pipelines / 列生成管道列表 */
     val pipelineList: AbstractGanttSchedulingCGPipelineList<Args, E, A>
 
+    /** Number of columns, derived from aggregation task count / 列数量，从聚合任务数派生 */
     val columnAmount get() = UInt64(aggregation.tasks.size)
 
     /**
@@ -37,7 +42,7 @@ interface IterativeTaskCompilationContext<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
@@ -73,7 +78,7 @@ interface IterativeTaskCompilationContext<
      * @param newTasks 新任务列表 / List of new tasks
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务列表 / Deduplicated task list
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
@@ -110,7 +115,7 @@ interface IterativeTaskCompilationContext<
      * @param keptTasks 保留任务集合 / Set of kept tasks
      * @param model 线性元模型 / Linear meta model
      * @return 更新后的最大约简成本 / Updated maximum reduced cost
-     */
+    */
     fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
@@ -136,7 +141,7 @@ interface IterativeTaskCompilationContext<
      * @param model 线性元模型 / Linear meta model
      * @param shadowPrices 对偶解 / Dual solution
      * @return 操作结果 / Operation result
-     */
+    */
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
@@ -169,7 +174,7 @@ interface IterativeTaskCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 固定任务集合 / Set of fixed tasks
-     */
+    */
     fun extractFixedTasks(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Ret<Set<IT>> {
         return aggregation.extractFixedTasks(iteration, model)
     }
@@ -180,7 +185,7 @@ interface IterativeTaskCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 保留任务集合 / Set of kept tasks
-     */
+    */
     fun extractKeptTasks(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Ret<Set<IT>> {
         return aggregation.extractKeptTasks(iteration, model)
     }
@@ -191,7 +196,7 @@ interface IterativeTaskCompilationContext<
      * @param executors 执行器列表 / List of executors
      * @param model 线性元模型 / Linear meta model
      * @return 隐藏执行器集合 / Set of hidden executors
-     */
+    */
     fun extractHiddenExecutors(
         executors: List<E>,
         model: AbstractLinearMetaModel<Flt64>
@@ -207,7 +212,7 @@ interface IterativeTaskCompilationContext<
      * @param shadowPriceMap 影子价格映射 / Shadow price map
      * @param model 线性元模型 / Linear meta model
      * @return 空闲执行器集合 / Set of free executors
-     */
+    */
     fun <Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>> selectFreeExecutors(
         fixedTasks: Set<IT>,
         hiddenExecutors: Set<E>,
@@ -220,7 +225,7 @@ interface IterativeTaskCompilationContext<
      *
      * @param fixedTasks 固定任务集合 / Set of fixed tasks
      * @return 操作结果 / Operation result
-     */
+    */
     fun globallyFix(fixedTasks: Set<IT>): Try {
         return aggregation.globallyFix(fixedTasks)
     }
@@ -233,7 +238,7 @@ interface IterativeTaskCompilationContext<
      * @param fixedTasks 固定任务集合 / Set of fixed tasks
      * @param model 线性元模型 / Linear meta model
      * @return 新固定的任务集合 / Set of newly fixed tasks
-     */
+    */
     fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
@@ -254,7 +259,7 @@ interface IterativeTaskCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logResult(iteration, model)
     }
@@ -265,7 +270,7 @@ interface IterativeTaskCompilationContext<
      * @param iteration 迭代次数 / Iteration count
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun logTaskCost(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logTaskCost(iteration, model)
     }
@@ -275,7 +280,7 @@ interface IterativeTaskCompilationContext<
      *
      * @param iteration 迭代次数 / Iteration count
      * @return 操作结果 / Operation result
-     */
+    */
     fun flush(iteration: UInt64): Try {
         return aggregation.flush(iteration, emptyList())
     }
@@ -288,7 +293,7 @@ interface IterativeTaskCompilationContext<
      * @param model 线性元模型 / Linear meta model
      * @param solution 解向量 / Solution vector
      * @return 任务解 / Task solution
-     */
+    */
     fun analyzeSolution(
         iteration: UInt64,
         tasks: List<T>,
@@ -314,7 +319,7 @@ interface IterativeTaskCompilationContext<
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
- */
+*/
 interface ExtractIterativeTaskCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         V : RealNumber<V>,
@@ -323,22 +328,53 @@ interface ExtractIterativeTaskCompilationContext<
         E : Executor,
         A : AssignmentPolicy<E>
         > {
+
+    /** Base iterative task compilation context / 基础迭代任务编译上下文 */
     val baseContext: IterativeTaskCompilationContext<Args, V, IT, T, E, A>
 
+/**
+ * Register extraction context into the meta model.
+ * 将提取上下文注册到元模型中。
+ * @param model Meta model to register extraction context into / 要注册提取上下文的元模型
+ * @return Operation result / 操作结果
+*/
     fun register(model: MetaModel<Flt64>): Try
 
+/**
+ * Add new task columns for the given iteration.
+ * 为给定迭代添加新的任务列。
+ * @param iteration Current iteration index / 当前迭代索引
+ * @param newTasks New tasks to add as columns / 要添加为新列的任务列表
+ * @param model Linear meta model to add columns into / 要添加列的线性元模型
+ * @return Operation result / 操作结果
+*/
     fun addColumns(
         iteration: UInt64,
         newTasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>
     ): Try
 
+/**
+ * Extract shadow prices from the dual solution and refresh pipelines.
+ * 从对偶解中提取影子价格并刷新管道。
+ * @param shadowPriceMap Shadow price map to populate / 要填充的影子价格映射
+ * @param model Linear meta model containing dual solution / 包含对偶解的线性元模型
+ * @param shadowPrices Dual solution from the solver / 来自求解器的对偶解
+ * @return Operation result / 操作结果
+*/
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try
 
+/**
+ * Log the current iteration's solved result.
+ * 记录当前迭代的求解结果。
+ * @param iteration Current iteration index / 当前迭代索引
+ * @param model Linear meta model containing solved tokens / 包含已求解令牌的线性元模型
+ * @return Operation result / 操作结果
+*/
     fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return ok
     }

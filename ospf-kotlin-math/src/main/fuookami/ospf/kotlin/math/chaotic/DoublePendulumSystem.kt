@@ -9,7 +9,7 @@
  * The double pendulum system is a classical mechanical system composed of two connected pendulums, serving as a typical example demonstrating chaotic motion.
  * Even with slight differences in initial conditions, the system trajectories evolve distinctly, demonstrating the sensitivity of chaos.
  * Commonly used for chaos dynamics education, nonlinear mechanics research, and physics demonstrations.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,13 +26,14 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property l 摆长 / Pendulum length
  * @property g 重力加速度 / Gravitational acceleration
  * @property h 时间步长 / Time step size
- */
+*/
 data class DoublePendulumSystem(
     val m: Flt64 = Flt64(10.0),
     val l: Flt64 = Flt64(1.0),
     val g: Flt64 = Flt64(9.80665),
     val h: Flt64 = Flt64(0.01)
 ) {
+
     /**
      * 计算双摆系统的下一步状态
      * Compute the next state of the double pendulum system
@@ -40,7 +41,7 @@ data class DoublePendulumSystem(
      * @param x 第一个摆的状态（角度，角速度） / State of the first pendulum (angle, angular velocity)
      * @param y 第二个摆的状态（角度，角速度） / State of the second pendulum (angle, angular velocity)
      * @return 两个摆的下一步状态 / Next state of both pendulums
-     */
+    */
     operator fun invoke(x: Point<Dim2, Flt64>, y: Point<Dim2, Flt64>): Pair<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
         val theta1 = x[0]
         val omega1 = x[1]
@@ -67,7 +68,7 @@ data class DoublePendulumSystem(
 /**
  * 双摆系统生成器
  * Double Pendulum System Generator
- */
+*/
 data class DoublePendulumSystemGenerator(
     val doublePendulumSystem: DoublePendulumSystem = DoublePendulumSystem(),
     private var _x: Point<Dim2, Flt64> = point2(

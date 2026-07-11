@@ -14,6 +14,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Penalizes empty positions that are marked as empty-hated to discourage leaving them empty.
+ * 对标记为空载厌恶的位置施加惩罚以避免留空。
+ *
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property load The load distribution data / 载荷分布数据
+ * @property coefficient The penalty coefficient function per position / 每个位置的惩罚系数函数
+*/
 class EmptyHatedLimit(
     private val positions: List<Position>,
     private val load: Load,

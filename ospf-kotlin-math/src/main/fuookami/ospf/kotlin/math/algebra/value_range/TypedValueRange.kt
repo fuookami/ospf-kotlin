@@ -4,7 +4,7 @@
  *
  * 定义类型安全的值范围类，使用泛型参数静态编码区间开闭性，支持闭区间、开区间、半开半闭区间等类型，并提供算术运算和类型推导。
  * Defines type-safe value range class, using generic parameters to statically encode interval openness/closedness, supporting closed, open, and half-open interval types, with arithmetic operations and type inference.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -20,12 +20,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * Used to mark interval openness/closedness, supporting static type inference.
  *
  * @property interval 对应皌Interval 枚举倌
- */
+*/
 sealed interface IntervalKind {
+
     /**
      * 对应皌Interval 枚举倌
      * Corresponding Interval enum value
-     */
+    */
     val interval: Interval
 }
 
@@ -35,7 +36,7 @@ sealed interface IntervalKind {
  *
  * 表示闭区间类型，边界包含边界值。
  * Represents closed interval type, boundary includes boundary value.
- */
+*/
 data object ClosedIntervalKind : IntervalKind {
     override val interval: Interval = Interval.Closed
 }
@@ -46,7 +47,7 @@ data object ClosedIntervalKind : IntervalKind {
  *
  * 表示开区间类型，边界不包含边界值。
  * Represents open interval type, boundary does not include boundary value.
- */
+*/
 data object OpenIntervalKind : IntervalKind {
     override val interval: Interval = Interval.Open
 }
@@ -59,7 +60,7 @@ data object OpenIntervalKind : IntervalKind {
  * Used for dynamic wrapping of value ranges, interval type determined at runtime.
  *
  * @property interval 对应皌Interval 枚举倌
- */
+*/
 data class RuntimeIntervalKind(
     override val interval: Interval
 ) : IntervalKind
@@ -70,7 +71,7 @@ data class RuntimeIntervalKind(
  *
  * 上下边界均为运行时确定类型。
  * Both upper and lower bounds are runtime-determined types.
- */
+*/
 typealias DynamicTypedValueRange<T> = TypedValueRange<T, RuntimeIntervalKind, RuntimeIntervalKind>
 
 /**
@@ -79,7 +80,7 @@ typealias DynamicTypedValueRange<T> = TypedValueRange<T, RuntimeIntervalKind, Ru
  *
  * 上下边界均为闭区间。
  * Both upper and lower bounds are closed intervals.
- */
+*/
 typealias ClosedTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, ClosedIntervalKind>
 
 /**
@@ -88,7 +89,7 @@ typealias ClosedTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, Clos
  *
  * 上下边界均为开区间。
  * Both upper and lower bounds are open intervals.
- */
+*/
 typealias OpenTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, OpenIntervalKind>
 
 /**
@@ -97,7 +98,7 @@ typealias OpenTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, OpenInte
  *
  * 下边界为闭区间，上边界为开区间。
  * Lower bound is closed interval, upper bound is open interval.
- */
+*/
 typealias ClosedOpenTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, OpenIntervalKind>
 
 /**
@@ -106,7 +107,7 @@ typealias ClosedOpenTypedValueRange<T> = TypedValueRange<T, ClosedIntervalKind, 
  *
  * 下边界为开区间，上边界为闭区间。
  * Lower bound is open interval, upper bound is closed interval.
- */
+*/
 typealias OpenClosedTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, ClosedIntervalKind>
 
 /**
@@ -132,19 +133,20 @@ typealias OpenClosedTypedValueRange<T> = TypedValueRange<T, OpenIntervalKind, Cl
  * @property valueRange 内部的值范囌
  * @property lowerKind 下边界区间类型标讌
  * @property upperKind 上边界区间类型标讌
- */
+*/
 class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private constructor(
     private val valueRange: ValueRange<T>,
     val lowerKind: LB,
     val upperKind: UB
 ) : Contains<T> where T : RealNumber<T>, T : NumberField<T> {
+
     /**
      * 根据 Interval 枚举值获取对应的 IntervalKind
      * Gets corresponding IntervalKind from Interval enum value
      *
      * @param interval Interval 枚举倌
      * @return 对应皌IntervalKind
-     */
+    */
     private fun kindOf(interval: Interval): IntervalKind {
         return when (interval) {
             Interval.Closed -> ClosedIntervalKind
@@ -158,7 +160,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param range 要转换的值范囌
      * @return 相同类型标记的类型化值范囌
-     */
+    */
     private fun toSameKindRange(range: ValueRange<T>): TypedValueRange<T, LB, UB> {
         return TypedValueRange.fromDynamic(
             range = range,
@@ -176,7 +178,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param range 要转换的值范囌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     private fun toMostStaticKindRange(range: ValueRange<T>): TypedValueRange<T, *, *>? {
         val inferredLower = kindOf(range.lowerBound.interval)
         val inferredUpper = kindOf(range.upperBound.interval)
@@ -197,7 +199,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param lowerKind 下边界区间类型标讌
      * @param upperKind 上边界区间类型标讌
      * @return 指定类型标记的类型化值范围，戌null
-     */
+    */
     private fun <NLB : IntervalKind, NUB : IntervalKind> toKindRangeOrNull(
         range: ValueRange<T>,
         lowerKind: NLB,
@@ -228,7 +230,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param value 要判断的数倌
      * @return 是否为正敌
-     */
+    */
     private fun isPositive(value: T): Boolean {
         val zero = value - value
         return value > zero
@@ -240,7 +242,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param value 要判断的数倌
      * @return 是否为负敌
-     */
+    */
     private fun isNegative(value: T): Boolean {
         val zero = value - value
         return value < zero
@@ -254,7 +256,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param T 数值类垌
          * @param range 要转换的值范囌
          * @return 动态类型化值范囌
-         */
+        */
         private fun <T> toDynamicRange(
             range: ValueRange<T>
         ): DynamicTypedValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
@@ -279,7 +281,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param lowerKind 下边界区间类型标讌
          * @param upperKind 上边界区间类型标讌
          * @return 创建结果
-         */
+        */
         fun <T, LB : IntervalKind, UB : IntervalKind> fromDynamic(
             range: ValueRange<T>,
             lowerKind: LB,
@@ -314,7 +316,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param upperKind 上边界区间类型标讌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T, LB : IntervalKind, UB : IntervalKind> fromValues(
             lb: T,
             ub: T,
@@ -350,7 +352,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param upperKind 上边界区间类型标讌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T, LB : IntervalKind, UB : IntervalKind> fromBounds(
             lb: ValueWrapper<T>,
             ub: ValueWrapper<T>,
@@ -382,7 +384,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param ub 上边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> closed(
             lb: T,
             ub: T,
@@ -400,7 +402,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param ub 上边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> open(
             lb: T,
             ub: T,
@@ -418,7 +420,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param ub 上边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> closedOpen(
             lb: T,
             ub: T,
@@ -436,7 +438,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param ub 上边界倌
          * @param constants 数值常量对豌
          * @return 创建结果
-         */
+        */
         fun <T> openClosed(
             lb: T,
             ub: T,
@@ -452,7 +454,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param lb 下边界倌
          * @param ub 上边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> closed(
             lb: T,
             ub: T
@@ -469,7 +471,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param lb 下边界倌
          * @param ub 上边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> open(
             lb: T,
             ub: T
@@ -486,7 +488,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param lb 下边界倌
          * @param ub 上边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> closedOpen(
             lb: T,
             ub: T
@@ -503,7 +505,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
          * @param lb 下边界倌
          * @param ub 上边界倌
          * @return 创建结果
-         */
+        */
         inline fun <reified T> openClosed(
             lb: T,
             ub: T
@@ -517,37 +519,37 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     /**
      * 下边界倌
      * Lower bound value
-     */
+    */
     val lowerBound: ValueWrapper<T> get() = valueRange.lowerBound.value
 
     /**
      * 上边界倌
      * Upper bound value
-     */
+    */
     val upperBound: ValueWrapper<T> get() = valueRange.upperBound.value
 
     /**
      * 下边界区间类垌
      * Lower bound interval type
-     */
+    */
     val lowerInterval: Interval get() = valueRange.lowerBound.interval
 
     /**
      * 上边界区间类垌
      * Upper bound interval type
-     */
+    */
     val upperInterval: Interval get() = valueRange.upperBound.interval
 
     /**
      * 是否为固定值（单点区间，
      * Whether is a fixed value (single-point interval)
-     */
+    */
     val fixed: Boolean get() = valueRange.fixed
 
     /**
      * 固定倌
      * Fixed value
-     */
+    */
     val fixedValue: T? get() = valueRange.fixedValue
 
     /**
@@ -555,7 +557,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * Converts to dynamic value range
      *
      * @return 动态值范围副朌
-     */
+    */
     fun toDynamic(): ValueRange<T> = valueRange.copy()
 
     /**
@@ -564,7 +566,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param value 要判断的倌
      * @return 是否在范围内
-     */
+    */
     override infix operator fun contains(value: T): Boolean {
         return valueRange.contains(value)
     }
@@ -575,7 +577,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要判断的类型化值范囌
      * @return 是否完全包含
-     */
+    */
     infix operator fun contains(rhs: TypedValueRange<T, *, *>): Boolean {
         return valueRange.contains(rhs.valueRange)
     }
@@ -589,7 +591,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null（不相交时）
-     */
+    */
     infix fun union(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange union rhs.valueRange)?.let { toDynamicRange(it) }
     }
@@ -603,7 +605,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     infix fun unionTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
         return (valueRange union rhs.valueRange)?.let { toSameKindRange(it) }
     }
@@ -617,7 +619,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null（不相交时）
-     */
+    */
     infix fun intersect(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange intersect rhs.valueRange)?.let { toDynamicRange(it) }
     }
@@ -631,7 +633,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     infix fun intersectTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
         return (valueRange intersect rhs.valueRange)?.let { toSameKindRange(it) }
     }
@@ -642,7 +644,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
-     */
+    */
     fun plusTyped(rhs: T): TypedValueRange<T, LB, UB>? {
         return (valueRange + rhs)?.let { toSameKindRange(it) }
     }
@@ -653,7 +655,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要添加的数倌
      * @return 相同类型标记的类型化值范囌
-     */
+    */
     operator fun plus(rhs: T): TypedValueRange<T, LB, UB>? {
         return plusTyped(rhs)
     }
@@ -667,7 +669,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
-     */
+    */
     operator fun plus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange + rhs.valueRange)?.let { toDynamicRange(it) }
     }
@@ -678,7 +680,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     fun plusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
         return (valueRange + rhs.valueRange)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
     }
@@ -692,7 +694,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     fun plusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
         return (valueRange + rhs.valueRange)?.let { toMostStaticKindRange(it) }
     }
@@ -703,7 +705,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
-     */
+    */
     fun minusTyped(rhs: T): TypedValueRange<T, LB, UB>? {
         return (valueRange - rhs)?.let { toSameKindRange(it) }
     }
@@ -714,7 +716,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要减去的数倌
      * @return 相同类型标记的类型化值范囌
-     */
+    */
     operator fun minus(rhs: T): TypedValueRange<T, LB, UB>? {
         return minusTyped(rhs)
     }
@@ -728,7 +730,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范囌
-     */
+    */
     operator fun minus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange - rhs.valueRange)?.let { toDynamicRange(it) }
     }
@@ -739,7 +741,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个同类型的类型化值范囌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     fun minusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
         return (valueRange - rhs.valueRange)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
     }
@@ -753,7 +755,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     fun minusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
         return (valueRange - rhs.valueRange)?.let { toMostStaticKindRange(it) }
     }
@@ -767,7 +769,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要乘的数倌
      * @return 动态类型化值范围，戌null
-     */
+    */
     operator fun times(rhs: T): DynamicTypedValueRange<T>? {
         return (valueRange * rhs)?.let { toDynamicRange(it) }
     }
@@ -781,7 +783,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要乘的正敌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     fun timesPositive(rhs: T): TypedValueRange<T, LB, UB>? {
         if (!isPositive(rhs)) {
             return null
@@ -798,7 +800,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要乘的负敌
      * @return 类型翻转的类型化值范围，戌null
-     */
+    */
     fun timesNegative(rhs: T): TypedValueRange<T, UB, LB>? {
         if (!isNegative(rhs)) {
             return null
@@ -815,7 +817,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要乘的数倌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     fun timesTyped(rhs: T): TypedValueRange<T, *, *>? {
         val scaled = valueRange * rhs ?: return null
         return toMostStaticKindRange(scaled)
@@ -830,7 +832,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 动态类型化值范围，戌null
-     */
+    */
     operator fun times(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange * rhs.valueRange)?.let { toDynamicRange(it) }
     }
@@ -844,7 +846,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 另一个类型化值范囌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     fun timesTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
         val scaled = valueRange * rhs.valueRange ?: return null
         return toMostStaticKindRange(scaled)
@@ -859,7 +861,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要除的数倌
      * @return 动态类型化值范围，戌null
-     */
+    */
     operator fun div(rhs: T): DynamicTypedValueRange<T>? {
         return (valueRange / rhs)?.let { toDynamicRange(it) }
     }
@@ -873,7 +875,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要除的正敌
      * @return 相同类型标记的类型化值范围，戌null
-     */
+    */
     fun divPositive(rhs: T): TypedValueRange<T, LB, UB>? {
         if (!isPositive(rhs)) {
             return null
@@ -890,7 +892,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要除的负敌
      * @return 类型翻转的类型化值范围，戌null
-     */
+    */
     fun divNegative(rhs: T): TypedValueRange<T, UB, LB>? {
         if (!isNegative(rhs)) {
             return null
@@ -907,7 +909,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param rhs 要除的数倌
      * @return 最静态类型标记的类型化值范围，戌null
-     */
+    */
     fun divTyped(rhs: T): TypedValueRange<T, *, *>? {
         val scaled = valueRange / rhs ?: return null
         return toMostStaticKindRange(scaled)
@@ -919,7 +921,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      *
      * @param other 要比较的对象
      * @return 是否相等
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) {
             return true
@@ -935,7 +937,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * Computes hash value
      *
      * @return 哈希倌
-     */
+    */
     override fun hashCode(): Int {
         var result = valueRange.hashCode()
         result = 31 * result + lowerKind.hashCode()
@@ -948,7 +950,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * Gets string representation
      *
      * @return 类型化值范围的字符串形弌
-     */
+    */
     override fun toString(): String {
         return "TypedValueRange(lower=$lowerBound, upper=$upperBound, lowerInterval=$lowerInterval, upperInterval=$upperInterval)"
     }
@@ -960,7 +962,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
  *
  * @param T 数值类垌
  * @return 动态类型化值范囌
- */
+*/
 fun <T> ValueRange<T>.toDynamicTypedValueRange(): DynamicTypedValueRange<T>
         where T : RealNumber<T>, T : NumberField<T> {
     return TypedValueRange.fromDynamic(

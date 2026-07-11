@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property production 产出对象（产品或配规）/ Production target (product or costar)
  * @property width 幅宽 / Width
  * @property amount 份数 / Piece amount
- */
+*/
 data class CuttingPlanSlice<V : RealNumber<V>>(
     val production: Production<V>,
     val width: Quantity<V>,
@@ -31,7 +31,7 @@ data class CuttingPlanSlice<V : RealNumber<V>>(
  * @property demandContributions 需求贡献 / Demand contributions
  * @property arithmetic 物理量算术策略，为空时按物料值自动解析 / Quantity arithmetic strategy, auto-resolved from material value when null
  * @property capacityConsumption 单次方案使用的设备产能消耗，必须与设备产能同单位才进入主问题约束 / Machine capacity consumed by one plan usage, modeled only when unit matches machine capacity
- */
+*/
 data class CuttingPlan<V : RealNumber<V>>(
     val id: CuttingPlanId,
     val material: Material<V>,
@@ -55,7 +55,7 @@ data class CuttingPlan<V : RealNumber<V>>(
 
     /**
      * 已使用幅宽 / Used width
-     */
+    */
     val usedWidth: Quantity<V>? by lazy {
         val arith = resolvedArithmeticOrNull ?: return@lazy null
         var result: Quantity<V>? = null
@@ -72,7 +72,7 @@ data class CuttingPlan<V : RealNumber<V>>(
 
     /**
      * 剩余幅宽 / Remaining width
-     */
+    */
     val restWidth: Quantity<V>? by lazy {
         val currentUsedWidth = usedWidth ?: return@lazy null
         val upperBound = material.widthRange.upperBound
@@ -90,7 +90,7 @@ data class CuttingPlan<V : RealNumber<V>>(
  * @param amount 累加次数 / Repeat amount
  * @param arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @return 累加结果 / Repeated quantity
- */
+*/
 fun <V : RealNumber<V>> Quantity<V>.repeat(
     amount: UInt64,
     arithmetic: QuantityArithmetic<V>

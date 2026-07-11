@@ -4,7 +4,7 @@
  *
  * 将 SortBy 翻译为 MyBatis-Plus ORDER BY 子句。
  * Translates SortBy to MyBatis-Plus ORDER BY clause.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper
@@ -20,11 +20,12 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
- */
+*/
 class MybatisOrderByTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver,
     private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
 ) {
+
     /**
      * 应用排序到 Wrapper
      * Apply sort to wrapper
@@ -32,7 +33,7 @@ class MybatisOrderByTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
      * @param sortBy 排序条件 / Sort conditions
      * @return 应用排序后的 QueryWrapper / QueryWrapper with sort applied
-     */
+    */
     fun apply(wrapper: QueryWrapper<T>, sortBy: SortBy): QueryWrapper<T> {
         if (sortBy.isEmpty()) return wrapper
 
@@ -50,7 +51,7 @@ class MybatisOrderByTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
      * @param item 排序项 / Sort item
      * @return 应用排序后的 QueryWrapper / QueryWrapper with sort item applied
-     */
+    */
     private fun applyItem(wrapper: QueryWrapper<T>, item: SortItem): QueryWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
 

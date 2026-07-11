@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
  * @param task 任务 / Task
- */
+*/
 data class TaskAdvanceEarliestEndTimeShadowPriceKey<
         E : Executor,
         A : AssignmentPolicy<E>
@@ -41,7 +41,7 @@ data class TaskAdvanceEarliestEndTimeShadowPriceKey<
  * @param taskTime 任务时间对象 / Task time object
  * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskAdvanceEarliestEndTimeConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
@@ -53,6 +53,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_advance_earliest_end_time"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+
     /**
      * 通过 solver 时间窗口边界创建任务提前最早结束时间约束 /
      * Create task advance earliest end time constraint from a solver time-window boundary
@@ -62,7 +63,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
      * @param taskTime 任务时间对象 / Task time object
      * @param shadowPriceExtractor 影子价格提取器 / Shadow price extractor
      * @param name 管道名称 / Pipeline name
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<AbstractTask<E, A>>,

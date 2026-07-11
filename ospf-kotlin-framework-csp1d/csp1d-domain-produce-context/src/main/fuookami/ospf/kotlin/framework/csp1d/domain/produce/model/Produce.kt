@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @param V 数值类型 / Numeric value type
  * @property plan 切割方案 / Cutting plan
  * @property amount 使用车次 / Usage amount
- */
+*/
 data class CuttingPlanUsage<V : RealNumber<V>>(
     val plan: CuttingPlan<V>,
     val amount: UInt64
@@ -23,7 +23,7 @@ data class CuttingPlanUsage<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property material 物料 / Material
  * @property amount 使用车次 / Used batches
- */
+*/
 data class MaterialUsage<V : RealNumber<V>>(
     val material: Material<V>,
     val amount: UInt64
@@ -35,7 +35,7 @@ data class MaterialUsage<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property machine 设备 / Machine
  * @property used 按方案产能消耗聚合的实际使用产能 / Actual used capacity aggregated from plan consumption
- */
+*/
 data class MachineCapacityUsage<V : RealNumber<V>>(
     val machine: Machine<V>,
     val used: Quantity<V>?
@@ -49,7 +49,7 @@ data class MachineCapacityUsage<V : RealNumber<V>>(
  * @property materialUsages 物料使用统计 / Material usage statistics
  * @property machineUsages 设备产能统计 / Machine capacity statistics
  * @property unmetDemands 未满足需求 / Unmet demands
- */
+*/
 data class Produce<V : RealNumber<V>>(
     val cuttingPlans: List<CuttingPlanUsage<V>>,
     val materialUsages: List<MaterialUsage<V>>,
@@ -62,7 +62,7 @@ data class Produce<V : RealNumber<V>>(
  *
  * @property productId 产品标识 / Product identifier
  * @property unit 物理单位 / Physical unit
- */
+*/
 data class ContributionKey(
     val productId: ProductId,
     val unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -73,7 +73,7 @@ data class ContributionKey(
  *
  * @param V 数值类型 / Numeric value type
  * @return 按产品+单位聚合的需求贡献 / Demand contribution grouped by product+unit
- */
+*/
 fun <V : RealNumber<V>> Produce<V>.contributions(): Map<ContributionKey, List<CuttingPlanDemandContribution<V>>> {
     val contributions = LinkedHashMap<ContributionKey, MutableList<CuttingPlanDemandContribution<V>>>()
     for (usage in cuttingPlans) {

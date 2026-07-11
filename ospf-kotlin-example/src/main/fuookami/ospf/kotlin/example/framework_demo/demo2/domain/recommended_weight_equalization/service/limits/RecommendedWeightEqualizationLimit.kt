@@ -17,12 +17,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 约束位置之间的载荷重量以均衡推荐重量分布。Constrains load weights between positions to equalize recommended weight distribution.
+ * Constrains load weights between positions to equalize recommended weight distribution.
+ * 约束位置之间的载荷重量以均衡推荐重量分布。
  *
- * @property aircraftModel 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property aircraftModel The aircraft model reference / 飞机模型引用
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property load The load distribution data / 载荷分布数据
+*/
 class RecommendedWeightEqualizationLimit(
     private val aircraftModel: AircraftModel,
     private val positions: List<Position>,

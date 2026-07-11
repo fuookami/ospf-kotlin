@@ -4,7 +4,7 @@
  *
  * 将 BooleanExpression 翻译为 MongoDB Bson 查询条件。
  * Translates BooleanExpression to MongoDB Bson query conditions.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.mongodb.client.model.Filters
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
 /**
  * 字段名解析器
  * Field Name Resolver
- */
+*/
 typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
 
 /**
@@ -31,15 +31,16 @@ typealias MongoFieldNameResolver = PersistenceFieldResolver<String>
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class MongoBooleanTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+
     /**
      * 标量表达式翻译器实例
      * Scalar expression translator instance
-     */
+    */
     private val scalarTranslator = MongoScalarTranslator(resolveFieldName, unsupportedPredicatePolicy)
 
     /**
@@ -48,7 +49,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 布尔表达式 / Boolean expression
      * @return Bson 查询条件，不支持时返回 null / Bson query condition, or null if unsupported
-     */
+    */
     fun translate(expr: BooleanExpression): Ret<Bson?> {
         return when (expr) {
             is BooleanConstant -> translateConstant(expr)
@@ -69,7 +70,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 布尔常量表达式 / Boolean constant expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateConstant(expr: BooleanConstant): Ret<Bson?> {
         val result: Bson? = when (expr.value) {
             Trivalent.True -> Filters.empty()
@@ -77,13 +78,14 @@ class MongoBooleanTranslator(
         }
         return Ok(result)
     }
+
     /**
      * 翻译比较表达式
      * Translate comparison expression
      *
      * @param expr 比较表达式 / Comparison expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateComparison(expr: Comparison<*>): Ret<Bson?> {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -132,13 +134,14 @@ class MongoBooleanTranslator(
             ?: return unsupported("Unsupported right scalar expression: ${expr.right.typeName}", expr)
         return Ok(Document("\$expr", Document(exprOperator(expr.operator), listOf(left, right))))
     }
+
     /**
      * 翻译 IN 表达式
      * Translate IN expression
      *
      * @param expr IN 表达式 / IN expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateIn(expr: InExpression<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("IN value must be a field reference", expr)
@@ -156,13 +159,14 @@ class MongoBooleanTranslator(
             Filters.`in`(field, values)
         })
     }
+
     /**
      * 翻译模式匹配表达式
      * Translate pattern match expression
      *
      * @param expr 模式匹配表达式 / Pattern match expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translatePatternMatch(expr: PatternMatch<*>): Ret<Bson?> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported("Pattern value must be a field reference", expr)
@@ -194,7 +198,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 空值检查表达式 / Null check expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateNullCheck(expr: NullCheck): Ret<Bson?> {
         val field = resolveFieldName(expr.path.value)
             ?: return unsupported("Unresolved null-check path: ${expr.path.value}", expr)
@@ -218,7 +222,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 逻辑与表达式 / Logical AND expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateAnd(expr: AndExpression): Ret<Bson?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(Filters.and(conditions))
@@ -230,7 +234,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 逻辑或表达式 / Logical OR expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateOr(expr: OrExpression): Ret<Bson?> {
         val conditions = expr.operands.map { translate(it).value ?: alwaysFalse() }
         return Ok(Filters.or(conditions))
@@ -242,7 +246,7 @@ class MongoBooleanTranslator(
      *
      * @param expr 逻辑非表达式 / Logical NOT expression
      * @return Bson 查询条件 / Bson query condition
-     */
+    */
     private fun translateNot(expr: NotExpression): Ret<Bson?> {
         val condition = translate(expr.operand).value ?: return unsupported("Unsupported NOT operand", expr)
         return Ok(Filters.not(condition))
@@ -254,7 +258,7 @@ class MongoBooleanTranslator(
      *
      * @param operator 比较运算符 / Comparison operator
      * @return MongoDB 表达式运算符字符串 / MongoDB expression operator string
-     */
+    */
     private fun exprOperator(operator: ComparisonOperator): String {
         return when (operator) {
             ComparisonOperator.Eq -> "\$eq"
@@ -273,7 +277,7 @@ class MongoBooleanTranslator(
      * @param reason 不支持的原因 / Reason for being unsupported
      * @param expression 不支持的表达式 / Unsupported expression
      * @return 处理结果 / Handling result
-     */
+    */
     private fun unsupported(reason: String, expression: BooleanExpression): Ret<Bson> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {
@@ -299,7 +303,9 @@ class MongoBooleanTranslator(
     /**
      * 生成恒假条件，避免 unsupported 表达式被误解释为“无条件”。
      * Build an always-false filter to avoid unsupported expressions becoming "no filter".
-     */
+     *
+     * @return A Bson filter that matches no documents / 不匹配任何文档的 Bson 过滤器
+    */
     private fun alwaysFalse(): Bson {
         return Filters.exists("_id", false)
     }
@@ -307,7 +313,10 @@ class MongoBooleanTranslator(
     /**
      * 转义正则特殊字符
      * Escape regex special characters
-     */
+     *
+     * @param pattern Raw string pattern to escape / 需要转义的原始字符串模式
+     * @return Escaped regex-safe string / 转义后的正则安全字符串
+    */
     private fun escapeRegex(pattern: String): String {
         return pattern.replace(Regex("[\\[\\]{}()*+?.\\\\^$|]")) { "\\${it.value}" }
     }
@@ -315,7 +324,10 @@ class MongoBooleanTranslator(
     /**
      * 将 SQL LIKE 模式转换为正则表达式
      * Convert SQL LIKE pattern to regex
-     */
+     *
+     * @param pattern SQL LIKE pattern string / SQL LIKE 模式字符串
+     * @return Equivalent regex pattern string / 等价的正则表达式字符串
+    */
     private fun translateLikeToRegex(pattern: String): String {
         val escaped = escapeRegex(pattern)
         return escaped

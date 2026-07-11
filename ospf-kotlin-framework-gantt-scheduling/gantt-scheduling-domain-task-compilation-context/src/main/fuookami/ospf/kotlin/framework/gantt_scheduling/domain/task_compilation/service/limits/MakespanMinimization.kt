@@ -29,7 +29,7 @@ import kotlin.time.Instant
  * @param threshold 阈值时间点 / Threshold time point
  * @param coefficient 成本系数 / Cost coefficient
  * @param name 管道名称 / Pipeline name
- */
+*/
 class MakespanMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
@@ -41,6 +41,7 @@ class MakespanMinimization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+
     /**
      * 通过 solver 时间窗口边界创建最大完工时间最小化 / Create makespan minimization from a solver time-window boundary
      *
@@ -49,7 +50,7 @@ class MakespanMinimization<
      * @param threshold 阈值时间点 / Threshold time point
      * @param coefficient 成本系数 / Cost coefficient
      * @param name 管道名称 / Pipeline name
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         makespan: Makespan<*, E, A>,

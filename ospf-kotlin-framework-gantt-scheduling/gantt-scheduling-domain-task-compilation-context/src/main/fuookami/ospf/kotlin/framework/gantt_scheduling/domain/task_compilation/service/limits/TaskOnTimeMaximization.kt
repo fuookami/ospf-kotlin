@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param threshold 阈值数量 / Threshold quantity
  * @param coefficient 成本系数 / Cost coefficient
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskOnTimeMaximization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,

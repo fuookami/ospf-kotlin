@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** IIS 计算状态 / IIS computing status */
 package fuookami.ospf.kotlin.core.solver.iis
 
@@ -14,17 +15,20 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property totalBoundAmount 总边界数量 / Total bound amount
  * @property restConstraintAmount 剩余约束数量 / Remaining constraint amount
  * @property totalConstraintAmount 总约束数量 / Total constraint amount
- */
+*/
 data class IISComputingStatus(
     val restBoundAmount: UInt64,
     val totalBoundAmount: UInt64,
     val restConstraintAmount: UInt64,
     val totalConstraintAmount: UInt64
 ) {
+
     /** 边界计算进度 / Bound computation progress */
     val boundProgress: Flt64 get() = restBoundAmount.toFlt64() / totalBoundAmount.toFlt64()
+
     /** 约束计算进度 / Constraint computation progress */
     val constraintProgress: Flt64 get() = restConstraintAmount.toFlt64() / totalConstraintAmount.toFlt64()
+
     /** 总进度 / Total progress */
     val totalProgress: Flt64 get() = (restBoundAmount.toFlt64() + restConstraintAmount.toFlt64()) / (totalBoundAmount.toFlt64() + totalConstraintAmount.toFlt64())
 }

@@ -1,7 +1,7 @@
 /**
  * 远程求解 HTTP 传输插件
  * Remote solver HTTP transport plugins
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import java.net.http.HttpClient
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property requestTimeout 请求超时 / Request timeout
  * @property headers 默认请求头 / Default request headers
  * @property properties 插件扩展配置 / Plugin extension properties
- */
+*/
 data class RemoteSolverHttpTransportConfig(
     val connectTimeout: Duration? = null,
     val requestTimeout: Duration? = null,
@@ -29,8 +29,9 @@ data class RemoteSolverHttpTransportConfig(
 /**
  * HTTP 传输插件。
  * HTTP transport plugin.
- */
+*/
 interface RemoteSolverHttpTransportPlugin {
+
     /** 插件名称 / Plugin name */
     val name: String
 
@@ -40,14 +41,14 @@ interface RemoteSolverHttpTransportPlugin {
      *
      * @param config HTTP 传输配置 / HTTP transport config
      * @return HTTP 传输 / HTTP transport
-     */
+    */
     fun create(config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()): RemoteSolverHttpTransport
 }
 
 /**
  * JDK HTTP 传输插件。
  * JDK HTTP transport plugin.
- */
+*/
 object JavaNetRemoteSolverHttpTransportPlugin : RemoteSolverHttpTransportPlugin {
     override val name: String = "jdk"
 
@@ -66,7 +67,7 @@ object JavaNetRemoteSolverHttpTransportPlugin : RemoteSolverHttpTransportPlugin 
 /**
  * HTTP 传输插件注册表。
  * HTTP transport plugin registry.
- */
+*/
 object RemoteSolverHttpTransportPlugins {
     private val plugins = ConcurrentHashMap<String, RemoteSolverHttpTransportPlugin>()
 
@@ -79,7 +80,7 @@ object RemoteSolverHttpTransportPlugins {
      * Register plugin.
      *
      * @param plugin HTTP 传输插件 / HTTP transport plugin
-     */
+    */
     fun register(plugin: RemoteSolverHttpTransportPlugin) {
         val key = plugin.name.trim().lowercase()
         require(key.isNotBlank()) { "HTTP transport plugin name must not be blank." }
@@ -92,7 +93,7 @@ object RemoteSolverHttpTransportPlugins {
      *
      * @param name 插件名称 / Plugin name
      * @return HTTP 传输插件 / HTTP transport plugin
-     */
+    */
     fun resolve(name: String): Ret<RemoteSolverHttpTransportPlugin> {
         val key = name.trim().lowercase()
         val plugin = plugins[key]
@@ -110,7 +111,7 @@ object RemoteSolverHttpTransportPlugins {
      * @param name 插件名称 / Plugin name
      * @param config HTTP 传输配置 / HTTP transport config
      * @return HTTP 传输 / HTTP transport
-     */
+    */
     fun create(
         name: String,
         config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
@@ -127,7 +128,7 @@ object RemoteSolverHttpTransportPlugins {
      * Default plugin.
      *
      * @return 默认 JDK HTTP 插件 / Default JDK HTTP plugin
-     */
+    */
     fun default(): RemoteSolverHttpTransportPlugin {
         return JavaNetRemoteSolverHttpTransportPlugin
     }
@@ -137,7 +138,7 @@ object RemoteSolverHttpTransportPlugins {
      * Registered plugin names.
      *
      * @return 插件名称集合 / Plugin name set
-     */
+    */
     fun names(): Set<String> {
         return plugins.keys.toSet()
     }

@@ -2,7 +2,7 @@
  * 并行关联操作
  *
  * Parallel association operations for creating maps from iterables with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数 / Key-value pair extractor function
  * @return 关联后的 Map / Associated Map
- */
+*/
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<Pair<K, V>, T>
@@ -44,7 +44,7 @@ suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数（返回 Ret）/ Key-value pair extractor function (returns Ret)
  * @return 关联后的 Map 或错误 / Associated Map or error
- */
+*/
 suspend inline fun <K, V, T> Iterable<T>.tryAssociateToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
@@ -64,7 +64,7 @@ suspend inline fun <K, V, T> Iterable<T>.tryAssociateToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数（返回 Ret）/ Key-value pair extractor function (returns Ret)
  * @return 关联后的 Map 或错误集合 / Associated Map or error collection
- */
+*/
 suspend inline fun <K, V, T> Iterable<T>.exTryAssociateToParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
@@ -86,7 +86,7 @@ suspend inline fun <K, V, T> Iterable<T>.exTryAssociateToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数 / Key-value pair extractor function
  * @return 目标 Map / Destination Map
- */
+*/
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -114,7 +114,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数（返回 Ret）/ Key-value pair extractor function (returns Ret)
  * @return 目标 Map 或错误 / Destination Map or error
- */
+*/
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociateToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -148,7 +148,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociat
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 提取键值对的函数（返回 Ret）/ Key-value pair extractor function (returns Ret)
  * @return 目标 Map 或错误集合 / Destination Map or error collection
- */
+*/
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssociateToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -190,7 +190,7 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssoci
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数 / Key extractor function
  * @return 关联后的 Map / Associated Map
- */
+*/
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendExtractor<K, T>
@@ -209,7 +209,7 @@ suspend inline fun <K, T> Iterable<T>.associateByParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数（返回 Ret）/ Key extractor function (returns Ret)
  * @return 关联后的 Map 或错误 / Associated Map or error
- */
+*/
 suspend inline fun <K, T> Iterable<T>.tryAssociateByToParallelly(
     concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
@@ -228,7 +228,7 @@ suspend inline fun <K, T> Iterable<T>.tryAssociateByToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数（返回 Ret）/ Key extractor function (returns Ret)
  * @return 关联后的 Map 或错误集合 / Associated Map or error collection
- */
+*/
 suspend inline fun <K, T> Iterable<T>.exTryAssociateByToParallelly(
     concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
@@ -249,7 +249,7 @@ suspend inline fun <K, T> Iterable<T>.exTryAssociateByToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数 / Key extractor function
  * @return 目标 Map / Destination Map
- */
+*/
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -276,7 +276,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数（返回 Ret）/ Key extractor function (returns Ret)
  * @return 目标 Map 或错误 / Destination Map or error
- */
+*/
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateByToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -315,7 +315,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateBy
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param keyExtractor 键提取函数（返回 Ret）/ Key extractor function (returns Ret)
  * @return 目标 Map 或错误集合 / Destination Map or error collection
- */
+*/
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociateByToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -363,7 +363,7 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociate
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数 / Value extractor function
  * @return 关联后的 Map / Associated Map
- */
+*/
 suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
     concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendExtractor<V, T>
@@ -382,7 +382,7 @@ suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数（返回 Ret）/ Value extractor function (returns Ret)
  * @return 关联后的 Map 或错误 / Associated Map or error
- */
+*/
 suspend inline fun <V, T> Iterable<T>.tryAssociateWithToParallelly(
     concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
@@ -401,7 +401,7 @@ suspend inline fun <V, T> Iterable<T>.tryAssociateWithToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数（返回 Ret）/ Value extractor function (returns Ret)
  * @return 关联后的 Map 或错误集合 / Associated Map or error collection
- */
+*/
 suspend inline fun <V, T> Iterable<T>.exTryAssociateWithToParallelly(
     concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
@@ -422,7 +422,7 @@ suspend inline fun <V, T> Iterable<T>.exTryAssociateWithToParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数 / Value extractor function
  * @return 目标 Map / Destination Map
- */
+*/
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -449,7 +449,7 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数（返回 Ret）/ Value extractor function (returns Ret)
  * @return 目标 Map 或错误 / Destination Map or error
- */
+*/
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWithToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,
@@ -488,7 +488,7 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWi
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param valueExtractor 值提取函数（返回 Ret）/ Value extractor function (returns Ret)
  * @return 目标 Map 或错误集合 / Destination Map or error collection
- */
+*/
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.exTryAssociateWithToParallelly(
     destination: M,
     concurrentAmount: ULong? = null,

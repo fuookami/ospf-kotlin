@@ -4,7 +4,7 @@
  * 提供 [ProductFunction]，实现两个线性多项式乘积 y = left * right 的二次建模。
  *
  * Provides [ProductFunction] for quadratic modeling of the product of two linear polynomials y = left * right.
- */
+*/
 package fuookami.ospf.kotlin.core.symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -34,7 +34,7 @@ private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  * @param V 多项式系数的值类型 / value type for the polynomial coefficients.
- */
+*/
 class ProductFunction<V>(
     val left: LinearPolynomial<V>,
     val right: LinearPolynomial<V>,
@@ -86,7 +86,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -108,7 +108,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -135,7 +135,7 @@ class ProductFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -157,7 +157,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateLinear(
         poly: LinearPolynomial<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -180,7 +180,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateLinearFromResults(
         poly: LinearPolynomial<V>,
         results: List<V>,
@@ -204,7 +204,7 @@ class ProductFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateLinearFromValues(
         poly: LinearPolynomial<V>,
         values: Map<Symbol, V>,
@@ -227,7 +227,7 @@ class ProductFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         val leftValue = if (targetValues.isNullOrEmpty()) {
@@ -250,7 +250,7 @@ class ProductFunction<V>(
      * Expand left * right into a V-generic quadratic polynomial.
      *
      * @return 展开后的二次多项式 / the expanded quadratic polynomial
-     */
+    */
     private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {
         val leftC = left
         val rightC = right
@@ -320,6 +320,7 @@ class ProductFunction<V>(
         val rightValue = evaluateLinearFromValues(right, values, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
+
     /**
      * 使用 Flt64 结果列表进行求解器求值。
      * Evaluate solver with Flt64 results list.
@@ -329,11 +330,12 @@ class ProductFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /**
      * 使用 Flt64 值映射进行求解器求值。
      * Evaluate solver with Flt64 value map.
@@ -343,7 +345,7 @@ class ProductFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)

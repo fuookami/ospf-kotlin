@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 任务束编译 / Bunch compilation
  *
  * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
  * @param T 任务类型 / Task type
  * @param E 执行器类型 / Executor type
  * @param A 分配策略类型 / Assignment policy type
@@ -26,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
  * @param bunchAggregation 任务束聚合 / Bunch aggregation
- */
+*/
 open class BunchCompilation<
         B : AbstractTaskBunch<T, E, A, V>,
         V : RealNumber<V>,
@@ -79,7 +80,7 @@ open class BunchCompilation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
@@ -223,7 +224,7 @@ open class BunchCompilation<
      * @param newBunches 新任务束列表 / List of new bunches
      * @param model 线性元模型 / Linear meta model
      * @return 去重后的任务束列表 / Deduplicated bunch list
-     */
+    */
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,

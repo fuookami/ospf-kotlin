@@ -4,7 +4,7 @@
  *
  * 提供基于 Ktorm 的仓储实现。
  * Provides Ktorm-based repository implementation.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import org.ktorm.database.Database
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.expression.BooleanExpression
 /**
  * 列名解析器
  * Column Name Resolver
- */
+*/
 typealias ColumnNameResolver = (String) -> String?
 
 /**
@@ -34,7 +34,7 @@ typealias ColumnNameResolver = (String) -> String?
  * @property patternMatchPolicy 模式匹配策略 / Pattern match policy
  * @property nullsOrderSupport 空值排序支持 / Nulls order support
  * @property unsupportedPredicatePolicy 不支持谓词策略 / Unsupported predicate policy
- */
+*/
 abstract class KtormRepository<E : Any>(
     protected val database: Database,
     protected val table: Table<*>,
@@ -54,7 +54,7 @@ abstract class KtormRepository<E : Any>(
      *
      * @param where 查询条件 / Query condition
      * @return 实体列表 / Entity list
-     */
+    */
     override fun find(where: BooleanExpression): List<E> {
         return find(where, null, null, null)
     }
@@ -68,7 +68,7 @@ abstract class KtormRepository<E : Any>(
      * @param limit 返回数量限制（可选）/ Limit (optional)
      * @param offset 偏移量（可选）/ Offset (optional)
      * @return 实体列表 / Entity list
-     */
+    */
     override fun find(
         where: BooleanExpression,
         sortBy: SortBy?,
@@ -104,7 +104,7 @@ abstract class KtormRepository<E : Any>(
      *
      * @param where 查询条件 / Query condition
      * @return 实体数量 / Entity count
-     */
+    */
     override fun count(where: BooleanExpression): Long {
         val condition = booleanTranslator.translate(where).value
         if (condition == null) return 0L
@@ -120,7 +120,7 @@ abstract class KtormRepository<E : Any>(
      * @param where 更新条件 / Update condition
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 受影响的行数 / Number of affected rows
-     */
+    */
     override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
         if (assignments.isEmpty()) return 0
 
@@ -136,7 +136,7 @@ abstract class KtormRepository<E : Any>(
      *
      * @param where 删除条件 / Delete condition
      * @return 受影响的行数 / Number of affected rows
-     */
+    */
     override fun delete(where: BooleanExpression): Int {
         val condition = booleanTranslator.translate(where).value
         if (condition == null) return 0
@@ -153,7 +153,7 @@ abstract class KtormRepository<E : Any>(
      *
      * @param row 查询结果行 / Query result row
      * @return 映射后的实体，若无法映射则返回 null / Mapped entity, or null if mapping fails
-     */
+    */
     protected abstract fun mapToEntity(row: QueryRowSet): E?
 
     companion object {
@@ -163,7 +163,7 @@ abstract class KtormRepository<E : Any>(
          *
          * @param table Ktorm 表定义 / Ktorm table definition
          * @return 列解析器函数 / Column resolver function
-         */
+        */
         fun tableColumnResolver(table: Table<*>): KtormColumnResolver = { path: String ->
             val columnName = path.substringAfterLast(".")
             table.columns.find { it.name == columnName } as? ColumnDeclaring<*>

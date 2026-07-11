@@ -6,6 +6,14 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * Check if two positions are on the same side of the aircraft.
+ * 检查两个位置是否在飞机的同一侧。
+ *
+ * @param position1 The first position. / 第一个位置
+ * @param position2 The second position. / 第二个位置
+ * @return True if both positions are on the same side. / 如果两个位置在同一侧则返回 true
+*/
 private fun onSameSide(
     position1: Position,
     position2: Position
@@ -16,7 +24,10 @@ private fun onSameSide(
             || (position1.coordinate.onRight && position2.coordinate.onRight)
 }
 
-/** 计算同一甲板上货物位置之间的物理邻接。Calculates physical adjacency between cargo positions on the same deck. */
+/**
+ * Calculates physical adjacency between cargo positions on the same deck.
+ * 计算同一甲板上货物位置之间的物理邻接。
+*/
 data object PhysicalNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>
@@ -46,6 +57,14 @@ data object PhysicalNeighbourCalculator {
         return Ok(neighbours)
     }
 
+    /**
+     * Check if two positions are on the same longitudinal line.
+     * 检查两个位置是否在同一纵线上。
+     *
+     * @param position1 The first position. / 第一个位置
+     * @param position2 The second position. / 第二个位置
+     * @return True if both positions are on the same line. / 如果两个位置在同一条线上则返回 true
+    */
     private fun onSameLine(
         position1: Position,
         position2: Position
@@ -56,7 +75,10 @@ data object PhysicalNeighbourCalculator {
     }
 }
 
-/** 通过共享物理邻居计算间接物理邻接。Calculates indirect physical adjacency through shared physical neighbours. */
+/**
+ * Calculates indirect physical adjacency through shared physical neighbours.
+ * 通过共享物理邻居计算间接物理邻接。
+*/
 data object IndirectPhysicsNeighbourCalculator {
     private val nearEnoughLongitudinalRatio = Flt64(0.5)
 
@@ -103,6 +125,13 @@ data object IndirectPhysicsNeighbourCalculator {
         return Ok(neighbours)
     }
 
+    /**
+     * Organize physical neighbour pairs into a bidirectional position map.
+     * 将物理邻接对组织为双向位置映射。
+     *
+     * @param physicalNeighbours The list of physical neighbour relationships. / 物理邻接关系列表
+     * @return A map from each position to its physically adjacent positions. / 从每个位置到其物理相邻位置的映射
+    */
     private fun tidy(
         physicalNeighbours: List<Neighbour>
     ): Map<Position, List<Position>> {
@@ -114,6 +143,14 @@ data object IndirectPhysicsNeighbourCalculator {
         return map
     }
 
+    /**
+     * Check if two positions are close enough longitudinally to be considered indirect neighbours.
+     * 检查两个位置在纵向上是否足够接近以被视为间接邻居。
+     *
+     * @param position1 The first position. / 第一个位置
+     * @param position2 The second position. / 第二个位置
+     * @return True if the positions are near enough. / 如果位置足够接近则返回 true
+    */
     private fun nearEnough(
         position1: Position,
         position2: Position
@@ -129,7 +166,10 @@ data object IndirectPhysicsNeighbourCalculator {
     }
 }
 
-/** 计算每个甲板上连续位置之间的线性装载顺序邻接。Calculates linear loading order adjacency between consecutive positions on each deck. */
+/**
+ * Calculates linear loading order adjacency between consecutive positions on each deck.
+ * 计算每个甲板上连续位置之间的线性装载顺序邻接。
+*/
 class LinearLoadingOrderNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>
@@ -153,7 +193,10 @@ class LinearLoadingOrderNeighbourCalculator {
     }
 }
 
-/** 从直接后继关系计算拓扑装载顺序邻接。Calculates topological loading order adjacency from direct successor relationships. */
+/**
+ * Calculates topological loading order adjacency from direct successor relationships.
+ * 从直接后继关系计算拓扑装载顺序邻接。
+*/
 class TopologicalLoadingOrderNeighbourCalculator {
     operator fun invoke(
         decks: List<Deck>

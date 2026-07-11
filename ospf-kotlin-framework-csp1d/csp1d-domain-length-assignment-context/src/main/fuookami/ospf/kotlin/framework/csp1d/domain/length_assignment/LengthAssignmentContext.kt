@@ -12,15 +12,16 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 长度推导函数：从需求量和产品属性推导卷长
  *
  * @param V Numeric value type / 数值类型
- */
+*/
 fun interface LengthDerivation<V : RealNumber<V>> {
+
     /**
      * 从需求量和产品属性推导卷长 / Derive coil length from demand quantity and product properties
      *
      * @param demandQuantity 需求量 / Demand quantity
      * @param product 产品 / Product
      * @return 推导的卷长，null 表示无法推导 / Derived coil length, null if derivation is not possible
-     */
+    */
     fun derive(demandQuantity: Quantity<V>, product: Product<V>): Quantity<V>?
 }
 
@@ -28,22 +29,28 @@ fun interface LengthDerivation<V : RealNumber<V>> {
  * 长度分配约束 / Length assignment constraint
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 sealed interface LengthAssignmentConstraint<V : RealNumber<V>> {
+
     /**
-     * 超长约束：产品卷长不得超过 maxOverProduceLength / Over-length constraint: product length must not exceed maxOverProduceLength
+     * Over-length constraint: product coil length must not exceed maxOverProduceLength.
+     * 超长约束：产品卷长不得超过 maxOverProduceLength
      *
-     * @param V 数值类型 / Numeric value type
-     */
+     * @param V Numeric value type / 数值类型
+     * @property product Product subject to the constraint / 受约束的产品
+    */
     data class MaxOverLength<V : RealNumber<V>>(
         val product: Product<V>
     ) : LengthAssignmentConstraint<V>
 
     /**
-     * 最小批次约束：产品分配批次数不得低于给定值 / Minimum batch constraint: assigned batch count must not be below given value
+     * Minimum batch constraint: assigned batch count must not be below given value.
+     * 最小批次约束：产品分配批次数不得低于给定值
      *
-     * @param V 数值类型 / Numeric value type
-     */
+     * @param V Numeric value type / 数值类型
+     * @property product Product subject to the constraint / 受约束的产品
+     * @property minBatches Minimum required batch count / 最小批次数
+    */
     data class MinBatchCount<V : RealNumber<V>>(
         val product: Product<V>,
         val minBatches: UInt64
@@ -57,7 +64,7 @@ sealed interface LengthAssignmentConstraint<V : RealNumber<V>> {
  * @property dynamicProducts 动态长度产品列表 / Dynamic-length products
  * @property demands 产品需求 / Product demands
  * @property constraints 长度分配约束 / Length assignment constraints
- */
+*/
 data class LengthAssignmentInput<V : RealNumber<V>>(
     val dynamicProducts: List<Product<V>>,
     val demands: List<ProductDemand<V>>,
@@ -70,7 +77,7 @@ data class LengthAssignmentInput<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property assignments 分配列表 / Assignment list
  * @property overLengthRecords 超长记录 / Over-length records
- */
+*/
 data class LengthAssignmentResult<V : RealNumber<V>>(
     val assignments: List<LengthAssignment<V>>,
     val overLengthRecords: List<OverLengthRecord<V>>
@@ -82,17 +89,18 @@ data class LengthAssignmentResult<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property arithmetic 物理量算术策略 / Quantity arithmetic strategy
  * @property lengthDerivation 长度推导函数，由下游项目按业务单位注入 / Length derivation function injected by downstream project per business unit
- */
+*/
 class LengthAssignmentContext<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>,
     private val lengthDerivation: LengthDerivation<V>
 ) {
+
     /**
      * 执行长度分配 / Execute length assignment
      *
      * @param input 长度分配输入 / Length assignment input
      * @return 长度分配结果 / Length assignment result
-     */
+    */
     fun assign(input: LengthAssignmentInput<V>): Ret<LengthAssignmentResult<V>> {
         val assignments = ArrayList<LengthAssignment<V>>()
         val overLengthRecords = ArrayList<OverLengthRecord<V>>()

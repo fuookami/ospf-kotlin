@@ -18,13 +18,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 将平均气动弦（MAC）百分比计算为线性中间符号。Computes the Mean Aerodynamic Chord (MAC) percentage as a linear intermediate symbol.
+ * Computes the Mean Aerodynamic Chord (MAC) percentage as a linear intermediate symbol.
+ * 将平均气动弦（MAC）百分比计算为线性中间符号。
  *
- * @property aircraftModel 参数。
- * @property formula 参数。
- * @property totalWeight 参数。
- * @property torque 参数。
- */
+ * @property mac The linear intermediate symbol representing the MAC percentage / 表示 MAC 百分比的线性中间符号
+*/
 class MAC(
     private val aircraftModel: AircraftModel,
     private val formula: Formula,
@@ -33,6 +31,13 @@ class MAC(
 ) {
     lateinit var mac: LinearIntermediateSymbol<Flt64>
 
+    /**
+     * Registers the MAC symbol into the optimization model.
+     * 将 MAC 符号注册到优化模型中。
+     *
+     * @param model The linear meta-model to register the MAC symbol into / 要注册 MAC 符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

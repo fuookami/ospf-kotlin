@@ -1,7 +1,7 @@
 /**
  * 范德波尔系统
  * Van der Pol System
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property a 系统参数 a / System parameter a
  * @property h 时间步长 / Time step size
- */
+*/
 data class VanDerPolSystem<V : FloatingNumber<V>>(val a: V, val h: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
         val x = p[0];
@@ -37,7 +37,7 @@ data class VanDerPolSystem<V : FloatingNumber<V>>(val a: V, val h: V) : Extracto
 /**
  * 范德波尔系统生成器
  * Van der Pol System Generator
- */
+*/
 data class VanDerPolSystemGenerator(
     val attractor: VanDerPolSystem<Flt64> = VanDerPolSystem(),
     private var _x: Point<Dim2, Flt64> = point2(

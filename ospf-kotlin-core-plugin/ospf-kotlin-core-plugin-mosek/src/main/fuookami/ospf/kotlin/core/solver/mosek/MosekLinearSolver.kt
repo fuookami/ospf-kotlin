@@ -24,7 +24,7 @@ import mosek.*
  * MOSEK 线性求解器
  *
  * @property callBack Solver callback / 求解器回调
- */
+*/
 class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MosekSolverCallBack? = null
@@ -83,7 +83,7 @@ class MosekLinearSolver(
  * @property config Solver configuration / 求解器配置
  * @property callBack Solver callback / 求解器回调
  * @property statusCallBack Solving status callback / 求解状态回调
- */
+*/
 class MosekLinearSolverImpl(
     private val config: SolverConfig,
     private val callBack: MosekSolverCallBack? = null,
@@ -120,6 +120,13 @@ class MosekLinearSolverImpl(
         return Ok(output)
     }
 
+/**
+ * Dump the linear model into MOSEK variables, constraints, and objective.
+ * 将线性模型转储为 MOSEK 变量、约束和目标函数。
+ *
+ * @param model the linear model view to dump / 待转储的线性模型视图
+ * @return success if model was dumped, or failure on modeling error / 转储成功返回成功，建模错误返回失败
+*/
     private suspend fun dump(model: LinearTriadModelView): Try {
         return try {
             warnIgnoredConstraintPriority("mosek", model.nonNullConstraintPriorityAmount())
@@ -298,6 +305,12 @@ class MosekLinearSolverImpl(
         }
     }
 
+/**
+ * Configure MOSEK solver parameters for the linear model.
+ * 为线性模型配置 MOSEK 求解器参数。
+ *
+ * @return failure since MOSEK linear configuration is not yet implemented / 因 MOSEK 线性配置尚未实现而返回失败
+*/
     private suspend fun configure(): Try {
         return Failed(
             Err(
@@ -307,6 +320,12 @@ class MosekLinearSolverImpl(
         )
     }
 
+/**
+ * Analyze the MOSEK solving result and extract the solution output.
+ * 分析 MOSEK 求解结果并提取解输出。
+ *
+ * @return failure since MOSEK linear solution extraction is not yet implemented / 因 MOSEK 线性解提取尚未实现而返回失败
+*/
     private suspend fun analyzeSolution(): Try {
         return Failed(
             Err(

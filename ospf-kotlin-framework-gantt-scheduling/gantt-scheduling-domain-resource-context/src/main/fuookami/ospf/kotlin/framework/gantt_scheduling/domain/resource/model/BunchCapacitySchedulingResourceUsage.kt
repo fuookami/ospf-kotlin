@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * @param times 时间槽列表 / List of time slots
  * @param actions 生产动作列表 / List of production actions
  * @param interval 时间间隔 / Time interval
- */
+*/
 class BunchCapacitySchedulingResourceUsage<
         E : Executor,
         A : ProductionAction,
@@ -112,7 +112,7 @@ class BunchCapacitySchedulingResourceUsage<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         return addQuantityToModel(model, timeSlots)
     }
@@ -127,7 +127,7 @@ class BunchCapacitySchedulingResourceUsage<
      * @param columns 产能列列表 / Capacity columns
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     @Suppress("UNUSED_PARAMETER")
     suspend fun addColumns(
         iteration: UInt64,
@@ -160,7 +160,7 @@ class BunchCapacitySchedulingResourceUsage<
      *
      * @param slot 资源时间槽 / Resource time slot
      * @return 产能时间槽索引 / Capacity slot index
-     */
+    */
     private fun resolveCapacitySlotIndex(slot: CapacityActionResourceTimeSlot<R, C, V>): Int {
         if (capacitySlots.isNotEmpty()) {
             return capacitySlots.indexOfFirst { it.time.contains(slot.time) }

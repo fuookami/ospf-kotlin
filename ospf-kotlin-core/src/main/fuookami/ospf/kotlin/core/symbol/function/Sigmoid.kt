@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SigmoidFunction]，实现 y = (condition > 0 ? 1 : 0) 的线性化建模。
  *
  * Provides [SigmoidFunction] for linearized modeling of y = 1 if condition > 0, else 0.
- */
+*/
 
 /**
  * Sigmoid/阶跃函数：当 condition > 0 时 y = 1，否则为 0。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SigmoidFunction<V>(
     val condition: LinearPolynomial<V>,
     bigM: V? = null,

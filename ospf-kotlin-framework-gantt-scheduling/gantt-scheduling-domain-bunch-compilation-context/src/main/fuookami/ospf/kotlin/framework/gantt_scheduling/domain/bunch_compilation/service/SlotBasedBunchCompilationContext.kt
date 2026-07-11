@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 分时隙任务束编译上下文服务 / Slot-based bunch compilation context service */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
@@ -21,7 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  *
  * 提供产能预求解功能，获取时隙级中间值。
  * Provides capacity pre-solving functionality to obtain slot-level intermediate values.
- */
+*/
 interface SlotBasedBunchCompilationContext<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         B,
@@ -38,19 +39,19 @@ interface SlotBasedBunchCompilationContext<
     /**
      * 时隙列表
      * List of time slots
-     */
+    */
     val slots: List<TimeSlot>
 
     /**
      * 产能预求解器
      * Capacity pre-solver
-     */
+    */
     val capacityPreSolver: SlotBasedCapacityPreSolver<V, E, Action, M, R>
 
     /**
      * 产能中间值（预求解后填充）
      * Capacity intermediate values (populated after pre-solving)
-     */
+    */
     val intermediateValues: CapacityIntermediateValues<Action, M, R, V>?
 
     /**
@@ -63,7 +64,7 @@ interface SlotBasedBunchCompilationContext<
      * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
      * @param solver Solver / 求解器
      * @return Intermediate values / 中间值
-     */
+    */
     suspend fun preSolveCapacity(
         model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver
@@ -76,7 +77,7 @@ interface SlotBasedBunchCompilationContext<
      * @param slot The time slot / 时隙
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Slot constraints / 时隙约束
-     */
+    */
     fun slotConstraints(slot: TimeSlot, tolerance: V? = null): SlotConstraints<M, R, V>? {
         return intermediateValues?.slotConstraints(slot, tolerance)
     }
@@ -87,7 +88,7 @@ interface SlotBasedBunchCompilationContext<
      *
      * @param tolerance Tolerance for constraint bounds / 约束边界的容差
      * @return Map of slot to constraints / 时隙到约束的映射
-     */
+    */
     fun allSlotConstraints(tolerance: V? = null): Map<TimeSlot, SlotConstraints<M, R, V>> {
         return slots.mapNotNull { slot ->
             intermediateValues?.slotConstraints(slot, tolerance)?.let { slot to it }
@@ -102,7 +103,7 @@ interface SlotBasedBunchCompilationContext<
      * @param newBunches New bunches to add / 要添加的新 bunch
      * @param model Linear meta model / 线性元模型 (solver boundary — Flt64)
      * @return Added bunches grouped by slot / 按时隙分组的已添加 bunch
-     */
+    */
     suspend fun addColumnsBySlot(
         iteration: UInt64,
         newBunches: List<B>,
@@ -115,6 +116,6 @@ interface SlotBasedBunchCompilationContext<
      *
      * @param slot The time slot / 时隙
      * @return List of bunches in this slot / 该时隙的 bunch 列表
-     */
+    */
     fun bunchesInSlot(slot: TimeSlot): List<B>
 }

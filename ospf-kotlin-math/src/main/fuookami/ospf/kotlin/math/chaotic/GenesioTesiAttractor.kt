@@ -1,7 +1,7 @@
 /**
  * Genesio-Tesi 吸引子
  * Genesio-Tesi Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property delta 系统参数 delta / System parameter delta
  * @property h 时间步长 / Time step size
- */
+*/
 data class GenesioTesiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val delta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -48,7 +48,7 @@ data class GenesioTesiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V
  *
  * @property attractor Genesio-Tesi 吸引子实例 / Genesio-Tesi attractor instance
  * @property _x 当前三维状态点 / Current 3D state point
- */
+*/
 data class GenesioTesiAttractorGenerator(
     val attractor: GenesioTesiAttractor<Flt64> = GenesioTesiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

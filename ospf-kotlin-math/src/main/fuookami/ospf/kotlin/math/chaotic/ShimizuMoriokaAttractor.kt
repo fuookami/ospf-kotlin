@@ -1,7 +1,7 @@
 /**
  * Shimizu-Morioka 吸引子
  * Shimizu-Morioka Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property beta 系统参数 beta / System parameter beta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ShimizuMoriokaAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -45,7 +45,7 @@ data class ShimizuMoriokaAttractor<V : FloatingNumber<V>>(val alpha: V, val beta
  * Shimizu-Morioka Attractor Generator
  *
  * @property attractor 吸引子实例 / The attractor instance
- */
+*/
 data class ShimizuMoriokaAttractorGenerator(
     val attractor: ShimizuMoriokaAttractor<Flt64> = ShimizuMoriokaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

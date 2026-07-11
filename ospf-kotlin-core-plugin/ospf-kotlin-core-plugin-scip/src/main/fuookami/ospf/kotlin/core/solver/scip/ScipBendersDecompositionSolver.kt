@@ -23,11 +23,11 @@ import jscip.SCIP_ParamSetting
 /**
  * SCIP linear Benders decomposition solver
  *
- * 中文: SCIP 线性 Benders 分解求解器
+ * SCIP 线性 Benders 分解求解器
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
- */
+*/
 class ScipLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()
@@ -275,7 +275,7 @@ class ScipLinearBendersDecompositionSolver(
  *
  * @property config 求解器配置 / solver configuration
  * @property callBack 求解器回调 / solver callback
- */
+*/
 class ScipQuadraticBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()

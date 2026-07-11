@@ -43,9 +43,7 @@ import fuookami.ospf.kotlin.framework.model.*
  * @param V 数值类型 / Numeric value type
  * @property produce 产出聚合 / Produce aggregation
  * @property demands 需求列表 / Demand list
- * @property yieldUnderVars 欠产松弛变量 / Under-production slack variables
- * @property yieldOverVars 超产松弛变量 / Over-production slack variables
- */
+*/
 class DemandConstraintPipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val demands: List<ProductDemand<V>>,
@@ -89,7 +87,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
      *
      * @param demandIndex 需求索引 / Demand index
      * @return 需求贡献左侧多项式 / Demand contribution left-hand side polynomial
-     */
+    */
     private fun buildDemandLhs(demandIndex: Int): LinearPolynomial<Flt64> {
         return LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, produce.demandQuantity[demandIndex])),
@@ -107,7 +105,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
      * @param demandIndex 需求索引 / Demand index
      * @param demand 产品需求 / Product demand
      * @param priceKey 影子价格键 / Shadow price key
-     */
+    */
     private fun addEqualityConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         demandIndex: Int,
@@ -152,7 +150,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
      * @param demand 产品需求 / Product demand
      * @param demandIndex 需求索引 / Demand index
      * @param priceKey 影子价格键 / Shadow price key
-     */
+    */
     private fun addGeConstraint(
         model: AbstractLinearMetaModel<Flt64>,
         demand: ProductDemand<V>,
@@ -212,7 +210,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
          *
          * @param value 常数值 / Constant value
          * @return 常数多项式 / Constant polynomial
-         */
+        */
         internal fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
             return LinearPolynomial(emptyList(), value)
         }
@@ -222,7 +220,7 @@ class DemandConstraintPipeline<V : RealNumber<V>>(
          *
          * @param unit 物理单位 / Physical unit
          * @return 单位符号字符串 / Unit symbol string
-         */
+        */
         internal fun shadowPriceUnitSymbol(unit: fuookami.ospf.kotlin.quantities.unit.PhysicalUnit): String {
             return unit.symbol ?: unit.toString()
         }

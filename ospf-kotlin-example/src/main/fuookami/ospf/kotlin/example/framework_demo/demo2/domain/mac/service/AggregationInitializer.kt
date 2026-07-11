@@ -4,7 +4,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
-/** 从飞机和装载上下文初始化 MAC 聚合。Initializes the MAC aggregation from aircraft and stowage contexts. */
+/**
+ * Initializes the MAC aggregation from aircraft and stowage contexts.
+ * 从飞机和装载上下文初始化 MAC 聚合。
+*/
 data object AggregationInitializer {
     operator fun invoke(
         aircraftAggregation: AircraftAggregation,

@@ -31,7 +31,7 @@ enum class MindOPTConstraintSign {
          *
          * @param sign 内部约束关系 / internal constraint relation
          * @return MindOPT 约束符号 / MindOPT constraint sign
-         */
+        */
         operator fun invoke(sign: ConstraintRelation): MindOPTConstraintSign {
             return when (sign) {
                 ConstraintRelation.GreaterEqual -> {
@@ -53,6 +53,6 @@ enum class MindOPTConstraintSign {
      * 转换为 MindOPT 约束符号字符 / Convert to MindOPT constraint sign character
      *
      * @return MindOPT 约束符号字符 / MindOPT constraint sign character
-     */
+    */
     abstract fun toMindOPTConstraintSign(): Char
 }

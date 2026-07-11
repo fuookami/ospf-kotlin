@@ -38,7 +38,7 @@
  * // Get all columns from row 0
  * val row = matrix[0, _a]  // [1, 2, 3]
  * ```
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.functional.get
@@ -56,7 +56,7 @@ typealias List3<T> = List<List2<T>>
  * @param i All 索引 / All index
  * @param j 列索引 / Column index
  * @return 指定列的所有元素 / All elements from the specified column
- */
+*/
 operator fun <T> List2<T>.get(i: DummyIndex.All, j: Int): Iterable<T> {
     return this.mapNotNull { it.getOrNull(j) }
 }
@@ -68,7 +68,7 @@ operator fun <T> List2<T>.get(i: DummyIndex.All, j: Int): Iterable<T> {
  * @param i 行索引 / Row index
  * @param j All 索引 / All index
  * @return 指定行的所有元素 / All elements from the specified row
- */
+*/
 operator fun <T> List2<T>.get(i: Int, j: DummyIndex.All): Iterable<T> {
     return this.getOrNull(i) ?: emptyList()
 }
@@ -80,7 +80,7 @@ operator fun <T> List2<T>.get(i: Int, j: DummyIndex.All): Iterable<T> {
  * @param i All 索引 / All index
  * @param j All 索引 / All index
  * @return 所有元素 / All elements
- */
+*/
 operator fun <T> List2<T>.get(i: DummyIndex.All, j: DummyIndex.All): Iterable<T> {
     return this.flatten()
 }
@@ -93,7 +93,7 @@ operator fun <T> List2<T>.get(i: DummyIndex.All, j: DummyIndex.All): Iterable<T>
  * @param j 行索引 / Row index
  * @param k 列索引 / Column index
  * @return 所有层的指定行指定列元素 / Elements at specified row and column from all layers
- */
+*/
 operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: Int): Iterable<T> {
     return this.map { it[j, k] }
 }
@@ -106,7 +106,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: Int): Iterable<T> {
  * @param j All 索引 / All index
  * @param k 列索引 / Column index
  * @return 指定层指定列的所有行元素 / All row elements from the specified layer and column
- */
+*/
 operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: Int): Iterable<T> {
     return this.getOrNull(i)?.get(j, k) ?: emptyList()
 }
@@ -119,7 +119,7 @@ operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: Int): Iterable<T> {
  * @param j 行索引 / Row index
  * @param k All 索引 / All index
  * @return 指定层指定行的所有列元素 / All column elements from the specified layer and row
- */
+*/
 operator fun <T> List3<T>.get(i: Int, j: Int, k: DummyIndex.All): Iterable<T> {
     return this.getOrNull(i)?.get(j, k) ?: emptyList()
 }
@@ -132,7 +132,7 @@ operator fun <T> List3<T>.get(i: Int, j: Int, k: DummyIndex.All): Iterable<T> {
  * @param j All 索引 / All index
  * @param k 列索引 / Column index
  * @return 指定列的所有元素 / All elements from the specified column
- */
+*/
 operator fun <T> List3<T>.get(i: DummyIndex.All, j: DummyIndex.All, k: Int): Iterable<T> {
     return this.flatMap { it[j, k] }
 }
@@ -145,7 +145,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: DummyIndex.All, k: Int): Ite
  * @param j 行索引 / Row index
  * @param k All 索引 / All index
  * @return 指定行的所有元素 / All elements from the specified row
- */
+*/
 operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: DummyIndex.All): Iterable<T> {
     return this.flatMap { it[j, k] }
 }
@@ -158,7 +158,7 @@ operator fun <T> List3<T>.get(i: DummyIndex.All, j: Int, k: DummyIndex.All): Ite
  * @param j All 索引 / All index
  * @param k All 索引 / All index
  * @return 指定层的所有元素 / All elements from the specified layer
- */
+*/
 operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: DummyIndex.All): Iterable<T> {
     return this.getOrNull(i)?.get(j, k) ?: emptyList()
 }
@@ -171,7 +171,7 @@ operator fun <T> List3<T>.get(i: Int, j: DummyIndex.All, k: DummyIndex.All): Ite
  * @param j All 索引 / All index
  * @param k All 索引 / All index
  * @return 所有元素 / All elements
- */
+*/
 operator fun <T> List3<T>.get(i: DummyIndex.All, j: DummyIndex.All, k: DummyIndex.All): Iterable<T> {
     return this.flatMap { it[j, k] }
 }

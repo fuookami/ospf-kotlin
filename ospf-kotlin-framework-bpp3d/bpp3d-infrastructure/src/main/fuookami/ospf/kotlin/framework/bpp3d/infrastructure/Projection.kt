@@ -1,7 +1,7 @@
 /**
  * 投影基础设施。
  * Projection infrastructure.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -31,6 +31,10 @@ private fun <V : FloatingNumber<V>> maxQuantity(values: Iterable<Quantity<V>>): 
     return maximum
 }
 
+/**
+ * ProjectionShape data class.
+ * ProjectionShape数据类。
+*/
 data class ProjectionShape<V : FloatingNumber<V>>(
     val length: Quantity<V>,
     val width: Quantity<V>
@@ -48,13 +52,37 @@ data class ProjectionShape<V : FloatingNumber<V>>(
     val area: Quantity<V> = length * width
 }
 
+/**
+ * ProjectivePlane sealed class.
+ * ProjectivePlane密封类。
+*/
 sealed class ProjectivePlane {
     abstract fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
     abstract fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
     abstract fun <V : FloatingNumber<V>> height(unit: AbstractCuboid<V>, orientation: Orientation = Orientation.Upright): Quantity<V>
 
+/**
+ * length.
+ * length。
+ * @param space 3D container shape / 三维容器形状
+ * @return length dimension on this projection plane / 此投影平面上的长度维度
+*/
     abstract fun length(space: AbstractContainer3Shape): Quantity<FltX>
+
+/**
+ * width.
+ * width。
+ * @param space 3D container shape / 三维容器形状
+ * @return width dimension on this projection plane / 此投影平面上的宽度维度
+*/
     abstract fun width(space: AbstractContainer3Shape): Quantity<FltX>
+
+/**
+ * height.
+ * height。
+ * @param space 3D container shape / 三维容器形状
+ * @return height dimension on this projection plane / 此投影平面上的高度维度
+*/
     abstract fun height(space: AbstractContainer3Shape): Quantity<FltX>
 
     open fun <V : FloatingNumber<V>> length(space: Container3Geometry<V>): Quantity<V> {
@@ -86,6 +114,12 @@ sealed class ProjectivePlane {
         width = this.width(unit, orientation)
     )
 
+/**
+ * shape.
+ * shape。
+ * @param space 3D container shape / 三维容器形状
+ * @return projection shape on this plane / 此平面上的投影形状
+*/
     fun shape(space: AbstractContainer3Shape): ProjectionShape<FltX> {
         return ProjectionShape(
             length = this.length(space),
@@ -187,7 +221,7 @@ sealed class ProjectivePlane {
 
 /**
  * ZOX
- */
+*/
 object Bottom : ProjectivePlane() {
     override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.depth(unit)
     override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.width(unit)
@@ -204,7 +238,7 @@ object Bottom : ProjectivePlane() {
 
 /**
  * XOY
- */
+*/
 object Side : ProjectivePlane() {
     override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.width(unit)
     override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.height(unit)
@@ -221,7 +255,7 @@ object Side : ProjectivePlane() {
 
 /**
  * ZOY
- */
+*/
 object Front : ProjectivePlane() {
     override fun <V : FloatingNumber<V>> length(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.depth(unit)
     override fun <V : FloatingNumber<V>> width(unit: AbstractCuboid<V>, orientation: Orientation) = orientation.height(unit)
@@ -236,6 +270,10 @@ object Front : ProjectivePlane() {
     }
 }
 
+/**
+ * Projection interface.
+ * Projection接口。
+*/
 sealed interface Projection<
         T : Cuboid<T, V>,
         V : FloatingNumber<V>,
@@ -251,10 +289,28 @@ sealed interface Projection<
     val area: Quantity<V> get() = length * width
     val weight: Quantity<V> get() = unit.weight
 
+/**
+ * amount.
+ * amount。
+ * @param unit packing unit to check / 待检查的装箱单元
+ * @return count of the given unit / 给定单元的数量
+*/
     fun amount(unit: AbstractCuboid<*>): UInt64
+
+/**
+ * Reconstructs 3D placements from this 2D projection at the given position.
+ * 从此二维投影在给定坐标处重建三维放置列表。
+ *
+ * @param position 2D placement position on the projection plane / 投影平面上的二维放置坐标
+ * @return list of 3D placements corresponding to this projection / 此投影对应的三维放置列表
+*/
     fun toPlacement3At(position: QuantityPoint2<V>): List<QuantityPlacement3<T, V>>
 }
 
+/**
+ * PlaneProjection data class.
+ * PlaneProjection数据类。
+*/
 data class PlaneProjection<
         T : Cuboid<T, V>,
         V : FloatingNumber<V>,
@@ -278,6 +334,10 @@ data class PlaneProjection<
     override fun copy() = PlaneProjection(view.copy(), plane)
 }
 
+/**
+ * PileProjection data class.
+ * PileProjection数据类。
+*/
 data class PileProjection<
         T : Cuboid<T, V>,
         V : FloatingNumber<V>,
@@ -315,6 +375,10 @@ data class PileProjection<
     override fun copy() = PileProjection(view.copy(), plane, layer)
 }
 
+/**
+ * MultiPileProjection data class.
+ * MultiPileProjection数据类。
+*/
 data class MultiPileProjection<
         T : Cuboid<T, V>,
         V : FloatingNumber<V>,

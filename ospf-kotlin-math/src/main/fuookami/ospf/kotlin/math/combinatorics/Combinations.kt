@@ -14,7 +14,7 @@
  *
  * 应用场景：优化问题遍历、约束求解、特征选择等。
  * Applications: optimization problem traversal, constraint solving, feature selection, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.combinatorics
 
 import kotlin.math.min
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
  * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
  * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
  * @return 所有子集组合的列表 / List of all subset combinations
- */
+*/
 fun <T> combine(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -62,7 +62,7 @@ fun <T> combine(
  * @param n 元素总数 / Total number of elements
  * @param choose 选取的元素个数 / Number of elements to choose
  * @return 组合数 / The combination count
- */
+*/
 fun combineCount(n: Int, choose: Int): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -84,7 +84,7 @@ fun combineCount(n: Int, choose: Int): Long {
  *
  * @param input 输入列表 / The input list
  * @return 所有子集组合的惰性序列 / Lazy sequence of all subset combinations
- */
+*/
 fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
     for (k in 1..input.size) {
         yieldAll(combineSequence(input, k))
@@ -98,7 +98,7 @@ fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
  * @param input 输入列表 / The input list
  * @param choose 每个组合的元素个数 / Number of elements per combination
  * @return 指定大小组合的惰性序列 / Lazy sequence of combinations of specified size
- */
+*/
 fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -133,7 +133,7 @@ fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
  * @param callBack 每个组合生成时的回调函数（可选） / Callback function invoked for each generated combination (optional)
  * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
  * @return 指定大小的所有组合列表 / List of all combinations of specified size
- */
+*/
 fun <T> combine(
     input: List<T>,
     choose: Int,
@@ -158,7 +158,7 @@ fun <T> combine(
  * @param input 输入列表 / The input list
  * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)
  * @return 通道守护，用于异步接收组合结果 / Channel guard for receiving combination results asynchronously
- */
+*/
 fun <T> combineAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope,

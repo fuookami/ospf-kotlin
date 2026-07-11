@@ -54,15 +54,15 @@ class MaintenancePlan internal constructor(
 
         /**
          * 根据类别和过期时间创建具有适当状态的 [MaintenancePlan]。Creates a [MaintenancePlan] with appropriate status based on category and expiration.
- *
-         * @param aircraft 参数。
-         * @param scheduledTime 参数。
-         * @param airports 参数。
-         * @param expirationTime 参数。
-         * @param category 参数。
-         * @param timeWindow 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param aircraft The aircraft for maintenance / 维护的飞机
+         * @param scheduledTime The scheduled time range / 计划时间范围
+         * @param airports The list of airports where maintenance can occur / 可进行维护的机场列表
+         * @param expirationTime The expiration time of the maintenance / 维护的过期时间
+         * @param category The maintenance category / 维护类别
+         * @param timeWindow The scheduling time window / 调度时间窗口
+         * @return The created maintenance plan / 创建的维护计划
+        */
         operator fun invoke(
             aircraft: Aircraft,
             scheduledTime: TimeRange,
@@ -140,21 +140,21 @@ class Maintenance internal constructor(
     companion object {
         /**
          * 从计划创建 [Maintenance]。Creates a [Maintenance] from a plan.
- *
-         * @param plan 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param plan The maintenance plan / 维护计划
+         * @return The created maintenance / 创建的维护
+        */
         operator fun invoke(plan: MaintenancePlan): Maintenance {
             return Maintenance(plan = plan)
         }
 
         /**
          * 创建应用给定恢复策略的已恢复 [Maintenance]。Creates a recovered [Maintenance] applying the given recovery policy.
- *
-         * @param origin 参数。
-         * @param recoveryPolicy 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param origin The original maintenance / 原始维护
+         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
+         * @return The recovered maintenance instance / 恢复后的维护实例
+        */
         operator fun invoke(origin: Maintenance, recoveryPolicy: FlightTaskAssignment): Maintenance {
             val recoveryTime = if (recoveryPolicy.time == null || recoveryPolicy.time == origin.scheduledTime!!) {
                 null

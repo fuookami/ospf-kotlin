@@ -11,9 +11,24 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiv
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Generates the pipeline of loading effectiveness constraints based on stowage mode and parameters.
+ * 基于装载模式和参数生成装车效能约束的管线。
+ *
+ * @property aggregation The loading effectiveness aggregation containing domain models. / 包含域模型的装车效能聚合
+*/
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
+
+    /**
+     * Generates the list of constraint pipelines based on stowage mode and parameters.
+     * 基于装载模式和参数生成约束管线列表。
+     *
+     * @param stowageMode The stowage mode determining which pipelines to include. / 决定包含哪些管线的装载模式
+     * @param parameter The parameter configuration for pipeline generation. / 管线生成的参数配置
+     * @return The list of constraint pipelines, or an error. / 约束管线列表或错误
+    */
     operator fun invoke(
         stowageMode: StowageMode,
         parameter: Parameter

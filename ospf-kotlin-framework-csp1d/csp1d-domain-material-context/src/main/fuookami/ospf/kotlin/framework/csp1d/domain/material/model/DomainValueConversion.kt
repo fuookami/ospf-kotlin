@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param sample 领域数值样本 / Domain value sample
  * @param value solver 边界值 / Solver boundary value
  * @return 与 sample 同类型的领域数值 / Domain value with the same numeric type as sample
- */
+*/
 @Suppress("UNCHECKED_CAST")
 fun <V : RealNumber<V>> convertSolverValue(sample: V, value: Flt64): Ret<V> {
     return when (sample) {

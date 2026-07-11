@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
  * @property timeout 超时限制 / Timeout limit
  * @property parallelism 按物料并行生成的协程并发度，1 表示关闭 / Coroutine parallelism by material, 1 means disabled
  * @property enableDominancePruning 是否启用同贡献候选 dominance 剪枝 / Whether to enable dominance pruning for same-contribution candidates
- */
+*/
 class FullSumGenerator<V : RealNumber<V>>(
     private val constraints: List<CuttingPlanConstraint<V>> = emptyList(),
     private val arithmetic: QuantityArithmetic<V>,
@@ -34,6 +34,15 @@ class FullSumGenerator<V : RealNumber<V>>(
     private val dominanceStrategy: DominanceStrategy = DominanceStrategy.SameContribution
 ) : Csp1dInitialCuttingPlanGenerator<V> {
 
+    /**
+     * Constructs a FullSum generator using [GenerationConstraints].
+     * 使用 [GenerationConstraints] 构建 FullSum 生成器。
+     *
+     * @param constraints generation constraints / 生成约束
+     * @param arithmetic quantity arithmetic strategy / 物理量算术策略
+     * @param maxPlans max plans (early termination) / 最大方案数（提前终止）
+     * @param timeout timeout limit / 超时限制
+    */
     constructor(
         constraints: GenerationConstraints<V>,
         arithmetic: QuantityArithmetic<V>,
@@ -222,6 +231,19 @@ class FullSumGenerator<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * Performs full-sum search to enumerate all feasible cutting plan combinations by width summation.
+     * 执行全量求和搜索，按宽度值递归求和枚举所有可行的切割方案组合。
+     *
+     * @param material the current material / 当前物料
+     * @param widthIndex width index containing all product width entries / 包含所有产品宽度条目的宽度索引
+     * @param machines available machine list / 可用机器列表
+     * @param planIndex atomic index for plan ID generation / 方案 ID 生成器原子索引
+     * @param collector plan collector / 方案收集器
+     * @param quantityCache quantity cache / 数量缓存
+     * @param templateRecorder optional slice template recorder / 可选的切片模板记录器
+     * @param widthCheck optional width feasibility check / 可选宽度可行性检查
+    */
     private fun fullSumSearch(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -353,6 +375,19 @@ class FullSumGenerator<V : RealNumber<V>>(
         }
     }
 
+/**
+ * Emits cutting plans from pre-recorded slice templates, converting each template into a [CuttingPlan]
+ * and recording it with the collector for feasibility evaluation.
+ * 从预记录的切片模板生成切割方案，将每个模板转换为 [CuttingPlan] 并通过收集器记录其可行性。
+ *
+ * @param material the material to which the cutting plans apply / 切割方案所对应的物料
+ * @param widthIndex width index for resolving demand units per slice / 用于解析每个切片需求单位的宽度索引
+ * @param machines available machines for feasibility checking / 用于可行性检查的可用机器列表
+ * @param planIndex atomic counter for generating unique plan IDs / 用于生成唯一方案 ID 的原子计数器
+ * @param collector collector that records generated plans / 记录已生成方案的收集器
+ * @param templates pre-recorded slice templates to emit as plans / 待作为方案输出的预记录切片模板列表
+ * @param widthCheck optional callback to check width feasibility for each plan / 可选的宽度可行性检查回调
+*/
     private fun emitTemplates(
         material: Material<V>,
         widthIndex: GenerationWidthIndex<V>,
@@ -377,6 +412,17 @@ class FullSumGenerator<V : RealNumber<V>>(
         }
     }
 
+/**
+ * Checks whether the given slices satisfy all pruning constraints (early-bound constraints
+ * used to cut off infeasible branches during search).
+ * 检查给定切片是否满足所有剪枝约束（搜索过程中用于剪除不可行分支的早期绑定约束）。
+ *
+ * @param slices current list of cutting plan slices / 当前的切割方案切片列表
+ * @param totalWidth accumulated total width of the slices / 切片的累计总宽度
+ * @param upperBound material width upper bound / 物料宽度上界
+ * @param material the material being cut / 正在切割的物料
+ * @return true if all pruning constraints are satisfied, false otherwise / 是否满足所有剪枝约束
+*/
     private fun satisfiesPruningConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -388,6 +434,17 @@ class FullSumGenerator<V : RealNumber<V>>(
         return pruningConstraints.all { it.isSatisfied(context) }
     }
 
+/**
+ * Checks whether the given slices satisfy all leaf constraints (constraints evaluated
+ * at leaf nodes when no further expansion is possible).
+ * 检查给定切片是否满足所有叶节点约束（在无法继续扩展时于叶节点处评估的约束）。
+ *
+ * @param slices current list of cutting plan slices / 当前的切割方案切片列表
+ * @param totalWidth accumulated total width of the slices / 切片的累计总宽度
+ * @param upperBound material width upper bound / 物料宽度上界
+ * @param material the material being cut / 正在切割的物料
+ * @return true if all leaf constraints are satisfied, false otherwise / 是否满足所有叶节点约束
+*/
     private fun satisfiesLeafConstraints(
         slices: List<CuttingPlanSlice<V>>,
         totalWidth: Quantity<V>,
@@ -399,6 +456,17 @@ class FullSumGenerator<V : RealNumber<V>>(
         return leafConstraints.all { it.isSatisfied(context) }
     }
 
+/**
+ * Builds a [CuttingPlan] from the given slices by computing each slice's demand contribution
+ * using the width index and quantity arithmetic.
+ * 根据给定切片构建 [CuttingPlan]，通过宽度索引和数量算术计算每个切片的需求贡献。
+ *
+ * @param material the material to which the plan applies / 方案所对应的物料
+ * @param slices the cutting plan slices composing the plan / 组成方案的切割切片列表
+ * @param widthIndex width index for resolving demand units per slice / 用于解析每个切片需求单位的宽度索引
+ * @param planId unique identifier for the generated plan / 生成方案的唯一标识符
+ * @return the constructed [CuttingPlan] / 构建完成的切割方案
+*/
     private fun buildPlan(
         material: Material<V>,
         slices: List<CuttingPlanSlice<V>>,

@@ -7,7 +7,7 @@
  * Internally stores Flt64? (solver backends always produce Flt64); the public API
  * provides a type-safe V? view via IntoValue<V> converter while retaining resultFlt64
  * for solver-internal use.
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import kotlin.random.*
@@ -35,13 +35,14 @@ import fuookami.ospf.kotlin.core.variable.*
  * @property variable 关联的变量项 / Associated variable item
  * @property solverIndex 求解器中的索引 / Index in solver
  * @property converter 值转换器（Flt64 -> V）/ Value converter (Flt64 -> V)
- */
+*/
 data class Token<V : RealNumber<V>>(
     val variable: AbstractVariableItem<*, *>,
     val solverIndex: Int,
     internal val refreshCallbacks: MutableMap<AbstractTokenList<V>, (Boolean) -> Unit>,
     private val converter: IntoValue<V>? = null
 ) {
+
     /** 变量唯一键 / Variable unique key */
     val key by variable::key
     internal var __result: Flt64? = null
@@ -54,6 +55,7 @@ data class Token<V : RealNumber<V>>(
 
     /** 结果的 Flt64 视图（求解器边界，内部使用）/ Flt64 view of result (solver-boundary, internal) */
     val resultFlt64: Flt64? by ::_result
+
     /** 结果的 Double 视图 / Double view of result */
     val doubleResult get() = _result?.toSolverDouble("token.result")
 
@@ -65,7 +67,7 @@ data class Token<V : RealNumber<V>>(
      * converter 为 null（V = Flt64）时通过 unchecked cast 返回 _result。
      * When converter is set, converts Flt64 -> V via IntoValue<V>.
      * When converter is null (V = Flt64), returns _result via unchecked cast.
-     */
+    */
     @Suppress("UNCHECKED_CAST")
     val result: V?
         get() = if (converter != null) {
@@ -79,7 +81,7 @@ data class Token<V : RealNumber<V>>(
      * Set result from the generic value
      *
      * @param value 要设置的值 / Value to set
-     */
+    */
     fun setResult(value: V) {
         _result = value.toFlt64()
     }
@@ -90,11 +92,12 @@ data class Token<V : RealNumber<V>>(
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的结果值 / Generic result value
-     */
+    */
     fun result(converter: IntoValue<V>): V? = _result?.let { converter.intoValue(it) }
 
     /** 变量名称 / Variable name */
     val name by variable::name
+
     /** 变量类型 / Variable type */
     val type by variable::type
 
@@ -120,7 +123,7 @@ data class Token<V : RealNumber<V>>(
      * @param value 待检查的值 / Value to check
      * @param converter 值转换器 / Value converter
      * @return 是否在范围内 / Whether within bounds
-     */
+    */
     fun containsInBounds(value: V, converter: IntoValue<V>): Boolean {
         val r = range ?: return true
         return r.contains(converter.fromValue(value))
@@ -128,6 +131,7 @@ data class Token<V : RealNumber<V>>(
 
     /** 下界的 Flt64 视图（求解器边界）/ Flt64 view of lower bound (solver-boundary) */
     val lowerBound by variable::lowerBound
+
     /** 上界的 Flt64 视图（求解器边界）/ Flt64 view of upper bound (solver-boundary) */
     val upperBound by variable::upperBound
 
@@ -137,7 +141,7 @@ data class Token<V : RealNumber<V>>(
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的下界值 / Typed lower bound value
-     */
+    */
     fun lowerBound(converter: IntoValue<V>): V? = lowerBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
     /**
@@ -146,7 +150,7 @@ data class Token<V : RealNumber<V>>(
      *
      * @param converter 值转换器 / Value converter
      * @return 类型化的上界值 / Typed upper bound value
-     */
+    */
     fun upperBound(converter: IntoValue<V>): V? = upperBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
     /**
@@ -155,7 +159,7 @@ data class Token<V : RealNumber<V>>(
      *
      * @param item 变量项 / Variable item
      * @return 是否属于同一组 / Whether in the same group
-     */
+    */
     infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return variable.belongsTo(item)
     }
@@ -166,7 +170,7 @@ data class Token<V : RealNumber<V>>(
      *
      * @param combination 变量组合 / Variable combination
      * @return 是否属于该组合 / Whether belongs to the combination
-     */
+    */
     infix fun belongsTo(combination: VariableCombination<*, *, *>): Boolean {
         return variable.belongsTo(combination)
     }
@@ -177,7 +181,7 @@ data class Token<V : RealNumber<V>>(
      *
      * @param rng 随机数生成器 / Random number generator
      * @return 随机 Flt64 值 / Random Flt64 value
-     */
+    */
     fun random(rng: Random): Flt64 {
         return if (variable.type.isUnsignedIntegerType) {
             val lower = lowerBound!!.value.unwrap().round().toUInt64().toULong()
@@ -203,7 +207,7 @@ data class Token<V : RealNumber<V>>(
     /**
      * @param other 待比较对象 / Object to compare
      * @return 是否相同 / Whether equal
-     */
+    */
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

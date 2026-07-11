@@ -28,7 +28,7 @@ import copt.*
  *
  * @property config 求解器配置 / solver configuration
  * @property callBack 二次求解器回调 / quadratic solver callback
- */
+*/
 class CoptQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: CoptQuadraticSolverCallBack? = null
@@ -41,7 +41,7 @@ class CoptQuadraticSolver(
      * @param model 二次模型视图 / quadratic model view
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果 / solving result
-     */
+    */
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -63,7 +63,7 @@ class CoptQuadraticSolver(
      * @param solutionAmount 期望解的数量 / desired number of solutions
      * @param solvingStatusCallBack 求解状态回调 / solving status callback
      * @return 求解结果及多个解 / solving result with multiple solutions
-     */
+    */
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
@@ -108,7 +108,7 @@ class CoptQuadraticSolver(
  * @property config 求解器配置 / solver configuration
  * @property callBack 二次求解器回调 / quadratic solver callback
  * @property statusCallBack 求解状态回调 / solving status callback
- */
+*/
 private class CoptQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: CoptQuadraticSolverCallBack? = null,
@@ -128,7 +128,7 @@ private class CoptQuadraticSolverImpl(
      *
      * @param model 二次模型视图 / quadratic model view
      * @return 求解结果 / solving result
-     */
+    */
     suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val coptConfig = config.extraConfig as? CoptSolverConfig
         val server = coptConfig?.server
@@ -181,7 +181,7 @@ private class CoptQuadraticSolverImpl(
      *
      * @param model 二次模型视图 / quadratic model view
      * @return 操作结果 / operation result
-     */
+    */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
             warnIgnoredConstraintPriority("copt", model.nonNullConstraintPriorityAmount())
@@ -323,7 +323,7 @@ private class CoptQuadraticSolverImpl(
      *
      * @param model 二次模型视图 / quadratic model view
      * @return 操作结果 / operation result
-     */
+    */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             coptModel.set(COPT.DoubleParam.TimeLimit, config.time.toDouble(DurationUnit.SECONDS))
@@ -430,7 +430,12 @@ private class CoptQuadraticSolverImpl(
         }
     }
 
-    /** 分析求解结果 / Analyze solving result */
+    /**
+     * 分析求解结果
+     * Analyze solving result
+     *
+     * @return the analysis result as Try / 以Try包装的分析结果
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

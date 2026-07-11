@@ -14,6 +14,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Minimizes the number of unloaded (reserved) items, encouraging more items to be loaded.
+ * 最小化未装载（预留）的货物项数量，鼓励装载更多货物。
+ *
+ * @property items The list of cargo items. / 货物项列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property coefficient Function computing the penalty coefficient for each item. / 计算每个货物项惩罚系数的函数
+*/
 class ItemReserveLimit(
     private val items: List<Item>,
     private val stowage: Stowage,

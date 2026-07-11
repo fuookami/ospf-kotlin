@@ -7,7 +7,7 @@
  * 来源：SI 导出单位
  * Source: SI derived units
  * - Reciprocal meter: 1/m, SI derived unit for wavenumber
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.WaveNumber
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.dimension.WaveNumber
  * 用于光谱学中描述波的频率与光速的关系
  * Source: SI derived unit, international unit for wavenumber
  * Used in spectroscopy to describe the relationship between wave frequency and speed of light
- */
+*/
 object ReciprocalMeter : DerivedPhysicalUnit(Meter.reciprocal()) {
     override val name = "reciprocal meter"
     override val symbol = "1/m"

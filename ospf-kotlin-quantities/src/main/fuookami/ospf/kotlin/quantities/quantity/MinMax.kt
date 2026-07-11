@@ -7,7 +7,7 @@
  *
  * 基于 PartialOrd 进行比较，支持无法比较（返回 null）的情况。
  * Based on PartialOrd for comparison, supports incomparable cases (returns null).
- */
+*/
 package fuookami.ospf.kotlin.quantities.quantity
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param lhs 左侧物理量 / Left-hand quantity
  * @param rhs 右侧物理量 / Right-hand quantity
  * @return 较小的物理量，或 null 如果无法比较 / The smaller quantity, or null if incomparable
- */
+*/
 fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
     is Order.Less, is Order.Equal -> {
         lhs
@@ -73,7 +73,7 @@ fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = 
  * @param lhs 左侧物理量 / Left-hand quantity
  * @param rhs 右侧物理量 / Right-hand quantity
  * @return 较大的物理量，或 null 如果无法比较 / The larger quantity, or null if incomparable
- */
+*/
 fun <T : PartialOrd<T>> max(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
     is Order.Greater, is Order.Equal -> {
         lhs

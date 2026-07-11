@@ -20,7 +20,7 @@ import kotlinx.serialization.*
  * @property scoreIterationWeight weight of the iteration score component / 迭代得分分量的权重
  * @property scoreCutDensityWeight weight of the cut density score component / 割平面密度得分分量的权重
  * @property scoreTrajectoryWeight weight of the trajectory score component / 轨迹得分分量的权重
- */
+*/
 @Serializable
 data class BendersQualityOverrideConfig(
     val weakGapMultiplier: Double? = null,

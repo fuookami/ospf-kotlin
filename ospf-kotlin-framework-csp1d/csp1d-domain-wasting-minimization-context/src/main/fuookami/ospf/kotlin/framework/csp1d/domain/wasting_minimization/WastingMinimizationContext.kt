@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property restMaterialWastes 余料浪费列表 / Rest material waste list
  * @property totalRestWidth 总余宽 / Total rest width
  * @property totalRestMaterial 总余料面积代理 / Total rest material area proxy
- */
+*/
 data class WasteAnalysis<V : RealNumber<V>>(
     val restWidthWastes: List<RestWidthWaste<V>>,
     val restMaterialWastes: List<RestMaterialWaste<V>>,
@@ -28,16 +28,17 @@ data class WasteAnalysis<V : RealNumber<V>>(
  * 浪费最小化上下文，负责分析和量化切割方案集合中的各种浪费 / Waste minimization context: analyze and quantify various wastes across cutting plans
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class WastingMinimizationContext<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>
 ) {
+
     /**
      * 分析切割方案集合的浪费 / Analyze waste across selected cutting plans
      *
      * @param selectedPlans 选中的切割方案及其使用车次 / Selected cutting plans with usage amounts
      * @return 浪费分析结果 / Waste analysis result
-     */
+    */
     fun analyze(selectedPlans: List<CuttingPlanUsage<V>>): Ret<WasteAnalysis<V>> {
         val restWidthWastes = ArrayList<RestWidthWaste<V>>()
         val restMaterialWastes = ArrayList<RestMaterialWaste<V>>()
@@ -108,7 +109,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
      * @param q 待重复的数量 / Quantity to repeat
      * @param times 重复次数 / Number of repetitions
      * @return 重复后的总量 / Total quantity after repetition
-     */
+    */
     private fun repeatQuantity(q: Quantity<V>, times: UInt64): Ret<Quantity<V>> {
         var result = Quantity(q.value.constants.zero, q.unit)
         var count = UInt64.zero
@@ -130,7 +131,7 @@ class WastingMinimizationContext<V : RealNumber<V>>(
      * @param a First quantity / 第一个数量
      * @param b Second quantity / 第二个数量
      * @return Product of the two quantities / 两个数量的乘积
-     */
+    */
     private fun multiplyQuantities(a: Quantity<V>, b: Quantity<V>): Quantity<V> {
         return (a * b)!!
     }

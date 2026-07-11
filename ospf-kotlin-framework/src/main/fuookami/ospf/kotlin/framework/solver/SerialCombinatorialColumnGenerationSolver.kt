@@ -4,7 +4,7 @@
  *
  * 将多个列生成求解器串行运行，第一个成功即返回。
  * Runs multiple column generation solvers serially, returning on first success.
- */
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import org.apache.logging.log4j.kotlin.logger
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property solvers 列生成求解器列表（懒加载） / Column generation solver list (lazy loaded)
  * @property stopErrorCode 遇到即停止的错误码 / Error codes that stop execution
- */
+*/
 class SerialCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
     private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)

@@ -1,7 +1,7 @@
 /**
  * 模型视图
  * Model view
- */
+*/
 package fuookami.ospf.kotlin.core.model.basic
 
 import java.io.*
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.core.variable.*
  * @property constraint 关联的约束（可为 null） / The associated constraint (nullable)
  * @property lowerBound 下界变量（可为 null） / Lower bound variable (nullable)
  * @property upperBound 上界变量（可为 null） / Upper bound variable (nullable)
- */
+*/
 data class VariableSlack(
     val constraint: Constraint<Flt64, *>? = null,
     val lowerBound: Variable? = null,
@@ -40,7 +40,7 @@ data class VariableSlack(
  * @property slack         松弛信息 / Slack information
  * @property name          变量名 / Variable name
  * @property initialResult 初始值（可为 null） / Initial value (nullable)
- */
+*/
 class Variable(
     val index: Int,
     lowerBound: Flt64,
@@ -105,7 +105,7 @@ class Variable(
 /**
  * 模型单元格接口，持有系数值。
  * Model cell interface holding a coefficient value.
- */
+*/
 interface ModelCell<Self : ModelCell<Self>> {
     val coefficient: Flt64
 
@@ -116,7 +116,7 @@ interface ModelCell<Self : ModelCell<Self>> {
 /**
  * 约束单元格接口，扩展 ModelCell 增加行索引。
  * Constraint cell interface extending ModelCell with a row index.
- */
+*/
 interface ConstraintCell<Self : ConstraintCell<Self>> : ModelCell<Self> {
     val rowIndex: Int
 }
@@ -124,7 +124,7 @@ interface ConstraintCell<Self : ConstraintCell<Self>> : ModelCell<Self> {
 /**
  * 约束来源枚举，标识约束的产生途径。
  * Constraint source enumeration indicating how a constraint was produced.
- */
+*/
 enum class ConstraintSource {
     /** 原始约束 / Original constraint */
     Origin,
@@ -159,7 +159,7 @@ enum class ConstraintSource {
  * @param    rhs             右端值列表 / List of right-hand side values
  * @param    names           约束名称列表 / List of constraint names
  * @param    sources         约束来源列表 / List of constraint sources
- */
+*/
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
     signs: List<ConstraintRelation>,
@@ -199,7 +199,7 @@ abstract class ModelConstraint<ConCell>(
  * @property category  优化方向 / Optimization direction
  * @property objective 目标单元格列表 / List of objective cells
  * @property constant  常数项 / Constant term
- */
+*/
 class Objective<C : Copyable<C>>(
     val category: ObjectCategory,
     val objective: List<C>,
@@ -212,7 +212,7 @@ class Objective<C : Copyable<C>>(
 /**
  * 基本模型视图接口，提供变量、约束、名称及导出能力。
  * Basic model view interface providing variables, constraints, name, and export capability.
- */
+*/
 interface BasicModelView<ConCell> : AutoCloseable
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
     val variables: List<Variable>
@@ -249,7 +249,7 @@ interface BasicModelView<ConCell> : AutoCloseable
      *
      * @param format 文件格式 / File format
      * @return 导出结果 / Export result
-     */
+    */
     fun export(format: ModelFileFormat): Try {
         return export(Path("."), format)
     }
@@ -261,7 +261,7 @@ interface BasicModelView<ConCell> : AutoCloseable
      * @param name   文件名 / File name
      * @param format 文件格式 / File format
      * @return 导出结果 / Export result
-     */
+    */
     fun export(name: String, format: ModelFileFormat): Try {
         return export(Path(".").resolve(name), format)
     }
@@ -273,7 +273,7 @@ interface BasicModelView<ConCell> : AutoCloseable
      * @param path   导出路径 / Export path
      * @param format 文件格式 / File format
      * @return 导出结果 / Export result
-     */
+    */
     fun export(path: Path, format: ModelFileFormat): Try {
         val file = if (path.isDirectory()) {
             path.resolve("$name.${format}").toFile()
@@ -300,7 +300,7 @@ interface BasicModelView<ConCell> : AutoCloseable
      *
      * @param writer 输出流写入器 / Output stream writer
      * @return 导出结果 / Export result
-     */
+    */
     fun exportLP(writer: OutputStreamWriter): Try
 
     override fun close() {
@@ -311,7 +311,7 @@ interface BasicModelView<ConCell> : AutoCloseable
 /**
  * 完整模型视图接口，在 BasicModelView 基础上增加目标函数。
  * Full model view interface adding an objective function on top of BasicModelView.
- */
+*/
 interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell>, ObjCell : ModelCell<ObjCell>, ObjCell : Copyable<ObjCell> {
     val objective: Objective<ObjCell>

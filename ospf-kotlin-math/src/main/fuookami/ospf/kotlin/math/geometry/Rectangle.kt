@@ -4,7 +4,7 @@
  *
  * 定义几何空间中的矩形数据结构，由四个顶点定义，支持面积、凸性检测、交集等操作。
  * Defines rectangle data structure in geometric space, defined by four vertices, supporting area, convexity detection, intersection, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.ordinary.*
  * @property p2 第二个顶点 / Second vertex
  * @property p3 第三个顶点 / Third vertex
  * @property p4 第四个顶点 / Fourth vertex
- */
+*/
 data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,
     val p2: P,
@@ -39,7 +39,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
          * @param leftUpperPoint 左上角点 / The left-upper corner point
          * @param rightBottomPoint 右下角点 / The right-bottom corner point
          * @return 二维轴对齐矩形 / The 2D axis-aligned rectangle
-         */
+        */
         operator fun invoke(leftUpperPoint: Point<Dim2, Flt64>, rightBottomPoint: Point<Dim2, Flt64>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64> {
             return Rectangle(
                 leftUpperPoint,
@@ -52,6 +52,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 
     /** 长边长度 / Length of the longer side */
     val length: V
+
     /** 短边长度 / Length of the shorter side */
     val width: V
 
@@ -101,7 +102,7 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
  * @param withUpperBound 是否包含上界 / Whether to include the upper bound
  * @param withBorder 是否包含边界 / Whether to include the border
  * @return 点是否在矩形内 / Whether the point is inside the rectangle
- */
+*/
 fun Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>.contains(
     point: Point<Dim2, Flt64>,
     withLowerBound: Boolean = true,

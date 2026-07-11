@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param compilation 任务编译结果 / Task compilation result
  * @param conflict 冲突判断函数 / Conflict predicate function
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskConflictConstraint<
         T : AbstractTask<E, A>,
         E : Executor,

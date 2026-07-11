@@ -8,7 +8,7 @@
  * including basic error types and an application exception wrapper.
  * 此文件提供了一个密封类层次结构用于表示错误，
  * 包括基本错误类型和应用程序异常包装器。
- */
+*/
 package fuookami.ospf.kotlin.utils.error
 
 /**
@@ -21,7 +21,7 @@ package fuookami.ospf.kotlin.utils.error
  * error codes, messages, and optional values.
  * 此类为错误处理提供了通用接口，
  * 包含错误代码、消息和可选值。
- */
+*/
 sealed class Error<out C : Any> {
     companion object {
         /**
@@ -33,7 +33,7 @@ sealed class Error<out C : Any> {
          * @param code 错误代码 / The error code
          * @param message 错误消息 / The error message
          * @return 新的 Err 实例 / A new Err instance
-         */
+        */
         operator fun <C : Any> invoke(code: C, message: String): Err<C> {
             return Err(code, message)
         }
@@ -44,7 +44,7 @@ sealed class Error<out C : Any> {
      *
      * The error code identifying the type of error.
      * 标识错误类型的错误代码。
-     */
+    */
     abstract val code: C
 
     /**
@@ -52,7 +52,7 @@ sealed class Error<out C : Any> {
      *
      * The human-readable error message.
      * 人类可读的错误消息。
-     */
+    */
     abstract val message: String
 
     /**
@@ -60,7 +60,7 @@ sealed class Error<out C : Any> {
      *
      * An optional value associated with the error.
      * 与错误关联的可选值。
-     */
+    */
     open val value: Any? = null
 
     /**
@@ -68,7 +68,7 @@ sealed class Error<out C : Any> {
      *
      * Returns true if the error has an associated value.
      * 如果错误有关联值则返回 true。
-     */
+    */
     val withValue get() = value != null
 
     /**
@@ -78,7 +78,7 @@ sealed class Error<out C : Any> {
      * 返回错误的字符串表示。
      *
      * @return 格式化的错误字符串 / The formatted error string
-     */
+    */
     override fun toString(): String {
         return if (value != null) {
             "$code: $message($value)"
@@ -96,7 +96,7 @@ sealed class Error<out C : Any> {
  *
  * @property code 错误代码 / The error code
  * @property message 错误消息 / The error message
- */
+*/
 open class Err<out C : Any>(
     override val code: C,
     override val message: String
@@ -112,7 +112,7 @@ open class Err<out C : Any>(
          * @param message 可选的错误消息，默认使用代码的字符串表示 /
          *                Optional error message, defaults to code's string representation
          * @return 新的 Err 实例 / A new Err instance
-         */
+        */
         operator fun <C : Any> invoke(code: C, message: String? = null): Err<C> {
             return if (message == null) {
                 Err(code, code.toString())
@@ -133,7 +133,7 @@ open class Err<out C : Any>(
  * @param C 错误代码类型 / Error code type
  * @property code 错误代码 / The error code
  * @param messageLazy 惰性错误消息 / Lazy error message
- */
+*/
 open class LazyErr<out C : Any>(
     override val code: C,
     messageLazy: Lazy<String>
@@ -148,7 +148,7 @@ open class LazyErr<out C : Any>(
      *
      * @param code 错误代码 / The error code
      * @param message 错误消息初始化函数 / Error message initializer
-     */
+    */
     constructor(code: C, message: () -> String) : this(code, lazy(message))
 }
 
@@ -167,12 +167,13 @@ open class LazyErr<out C : Any>(
  * @property code 错误代码 / The error code
  * @property message 错误消息 / The error message
  * @property value 与错误关联的值 / The value associated with the error
- */
+*/
 open class ExErr<out C : Any, out T>(
     override val code: C,
     override val message: String,
     override val value: T
 ) : Error<C>() {
+
     /**
      * 创建只带代码和值的实例
      *
@@ -181,7 +182,7 @@ open class ExErr<out C : Any, out T>(
      *
      * @param code 错误代码 / The error code
      * @param value 与错误关联的值 / The value associated with the error
-     */
+    */
     constructor(code: C, value: T) : this(code, code.toString(), value)
 }
 
@@ -199,7 +200,7 @@ open class ExErr<out C : Any, out T>(
  * @property value 与错误关联的值 / The value associated with the error
  * @param messageLazy 惰性错误消息 / Lazy error message
  * @param valueLazy 惰性关联值 / Lazy associated value
- */
+*/
 open class LazyExErr<out C : Any, out T>(
     override val code: C,
     messageLazy: Lazy<String>,
@@ -217,7 +218,7 @@ open class LazyExErr<out C : Any, out T>(
      * @param code 错误代码 / The error code
      * @param message 错误消息初始化函数 / Error message initializer
      * @param value 关联值初始化函数 / Associated value initializer
-     */
+    */
     constructor(
         code: C,
         message: () -> String,
@@ -237,7 +238,7 @@ open class LazyExErr<out C : Any, out T>(
      *
      * @param code 错误代码 / The error code
      * @param valueLazy 惰性关联值 / Lazy associated value
-     */
+    */
     constructor(code: C, valueLazy: Lazy<T>) : this(
         code = code,
         messageLazy = lazy { code.toString() },
@@ -253,7 +254,7 @@ open class LazyExErr<out C : Any, out T>(
      *
      * @param code 错误代码 / The error code
      * @param value 关联值初始化函数 / Associated value initializer
-     */
+    */
     constructor(code: C, value: () -> T) : this(
         code = code,
         valueLazy = lazy(value)
@@ -267,16 +268,17 @@ open class LazyExErr<out C : Any, out T>(
  * Error 实例的异常包装器，允许将错误作为异常抛出。
  *
  * @property error 包装的错误实例 / The wrapped error instance
- */
+*/
 data class ApplicationException(
     val error: Error<ErrorCode>
 ) : Throwable() {
+
     /**
      * 异常消息
      *
      * The exception message, delegated from the wrapped error.
      * 异常消息，从包装的错误委托而来。
-     */
+    */
     override val message: String by error::message
 
     /**
@@ -286,7 +288,7 @@ data class ApplicationException(
      * 返回异常的字符串表示。
      *
      * @return 错误的字符串表示 / The string representation of the error
-     */
+    */
     override fun toString(): String {
         return "$error"
     }

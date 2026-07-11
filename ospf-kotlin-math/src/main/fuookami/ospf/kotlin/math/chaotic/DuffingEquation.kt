@@ -1,7 +1,7 @@
 /**
  * 达芬方程
  * Duffing Equation
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property omega 系统参数 omega / System parameter omega
  * @property h 时间步长 / Time step size
- */
+*/
 data class DuffingEquation<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -57,7 +57,7 @@ data class DuffingEquation<V : FloatingNumber<V>>(
  * Duffing Equation generator
  *
  * @property attractor 达芬方程吸引子 / Duffing equation attractor
- */
+*/
 data class DuffingEquationGenerator(
     val attractor: DuffingEquation<Flt64> = DuffingEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

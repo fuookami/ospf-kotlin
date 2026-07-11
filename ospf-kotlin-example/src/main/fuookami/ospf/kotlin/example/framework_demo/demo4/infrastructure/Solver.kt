@@ -11,12 +11,13 @@ import fuookami.ospf.kotlin.framework.solver.*
 
 /** 基于配置和回调类型构建列生成求解器的构建器。Builder for constructing a column generation solver based on configuration and callback type. */
 data object LinearSolverBuilder {
+
     /**
-     * 使用给定的求解器名称、配置和可选回调创建列生成求解器。/ Creates a [ColumnGenerationSolver] using the given solver name, config, and optional callback.
- *
-     * @param solver 参数。
-     * @param config 参数。
-     */
+     * Creates a [ColumnGenerationSolver] using the given solver name, config, and optional callback / 使用给定的求解器名称、配置和可选回调创建列生成求解器
+     *
+     * @param solver The solver name (e.g., "gurobi", "scip") / 求解器名称（如"gurobi"、"scip"）
+     * @param config The solver configuration / 求解器配置
+    */
     operator fun invoke(
         solver: String? = null,
         config: SolverConfig = SolverConfig(),

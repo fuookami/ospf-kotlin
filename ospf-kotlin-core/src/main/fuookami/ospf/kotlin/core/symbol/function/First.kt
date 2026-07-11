@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [FirstFunction]，从候选列表中选择第一个满足条件的元素。
  *
  * Provides [FirstFunction] for selecting the first satisfying element from a candidate list.
- */
+*/
 
 /**
  * 首元素函数：返回列表中第一个计算值 > 0 的多项式的索引。
@@ -53,7 +53,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 函数名称 / function name
  * @property displayName 可选显示名称 / optional display name
- */
+*/
 class FirstFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     val epsilon: Flt64 = Flt64(1e-6),
@@ -88,7 +88,7 @@ class FirstFunction<V>(
      * Result polynomial: sum(i * y[i]) + n * (1 - sum(y[i]))
      * 返回第一个非零多项式的索引，若无则返回 n。
      * Returns the index of the first nonzero polynomial, or n if none.
-     */
+    */
     val result: LinearPolynomial<V> by lazy {
         // sum(i * y[i]) / i * y[i] 的加权求和
         val one = converter.one
@@ -188,7 +188,7 @@ class FirstFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [FirstFunction] 实例 / [FirstFunction] instance
-         */
+        */
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             epsilon: Flt64 = Flt64(1e-6),

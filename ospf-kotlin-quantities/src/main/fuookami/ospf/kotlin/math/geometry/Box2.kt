@@ -4,7 +4,7 @@
  *
  * 由位置坐标和投影形状定义的二维包围盒，支持包含测试、重叠检测和求交运算。
  * A 2D bounding box defined by position coordinates and a projection shape, supporting containment tests, overlap detection, and intersection.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property y 原点的 y 坐标 / y coordinate of the origin
  * @property shape 包围盒的形状（矩形或圆形）/ Shape of the bounding box (rectangle or circle)
  * @param V 数值类型 / Number type
- */
+*/
 data class QuantityBox2<V : FloatingNumber<V>>(
     val x: Quantity<V>,
     val y: Quantity<V>,
@@ -41,7 +41,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
          * @param shape 形状 / Shape
          * @param V 数值类型 / Number type
          * @return 原点处的包围盒 / Bounding box at the origin
-         */
+        */
         fun <V : FloatingNumber<V>> atOrigin(shape: QuantityShape2<V>): QuantityBox2<V> {
             return when (shape) {
                 is QuantityRectangle2 -> QuantityBox2(
@@ -78,6 +78,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
 
     /** x 方向最大值，失败时返回 null / Maximum x value, or null on failure */
     val maxXOrNull: Quantity<V>? get() = maxX().value
+
     /** y 方向最大值，失败时返回 null / Maximum y value, or null on failure */
     val maxYOrNull: Quantity<V>? get() = maxY().value
 
@@ -86,7 +87,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
      * Get the maximum x value
      *
      * @return x 方向最大值 / Maximum x value
-     */
+    */
     fun maxX(): Ret<Quantity<V>> = quantityPlusSafe(x, width)
 
     /**
@@ -94,13 +95,18 @@ data class QuantityBox2<V : FloatingNumber<V>>(
      * Get the maximum y value
      *
      * @return y 方向最大值 / Maximum y value
-     */
+    */
     fun maxY(): Ret<Quantity<V>> = quantityPlusSafe(y, height)
 
     private val centerXOrNull: Quantity<V>? get() = centerX().value
     private val centerYOrNull: Quantity<V>? get() = centerY().value
 
-    /** 计算包围盒中心 X 坐标 / Compute bounding box center X coordinate */
+    /**
+     * 计算包围盒中心 X 坐标
+     * Compute bounding box center X coordinate
+     *
+     * @return 中心 X 坐标 / Center X coordinate
+    */
     private fun centerX(): Ret<Quantity<V>> {
         return when (val s = shape) {
             is QuantityRectangle2 -> ok(x)
@@ -108,7 +114,12 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         }
     }
 
-    /** 计算包围盒中心 Y 坐标 / Compute bounding box center Y coordinate */
+    /**
+     * 计算包围盒中心 Y 坐标
+     * Compute bounding box center Y coordinate
+     *
+     * @return 中心 Y 坐标 / Center Y coordinate
+    */
     private fun centerY(): Ret<Quantity<V>> {
         return when (val s = shape) {
             is QuantityRectangle2 -> ok(y)
@@ -126,7 +137,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
      * @param withUpperBound 是否包含上界 / Whether to include upper bound
      * @param withBorder 是否包含边界 / Whether to include border
      * @return 点是否在包围盒内 / Whether the point is inside
-     */
+    */
     fun contains(
         x: Quantity<V>,
         y: Quantity<V>,
@@ -206,7 +217,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     fun overlapped(rhs: QuantityBox2<V>): Ret<Boolean> {
         return when (val lhsShape = shape) {
             is QuantityRectangle2 -> when (val rhsShape = rhs.shape) {
@@ -227,7 +238,7 @@ data class QuantityBox2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / Another bounding box
      * @return 交集包围盒，如果不相交则返回 null / Intersection box, or null if they don't intersect
-     */
+    */
     fun intersect(rhs: QuantityBox2<V>): Ret<QuantityBox2<V>?> {
         val thisMaxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -305,7 +316,13 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         ))
     }
 
-    /** 判断矩形是否重叠 / Check if rectangles overlap */
+    /**
+     * 判断矩形是否重叠
+     * Check if rectangles overlap
+     *
+     * @param rhs 另一个包围盒 / Another bounding box
+     * @return 是否重叠 / Whether they overlap
+    */
     private fun rectangleOverlapped(rhs: QuantityBox2<V>): Ret<Boolean> {
         val thisMaxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -362,7 +379,14 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         return ok(true)
     }
 
-    /** 判断矩形与圆形是否重叠 / Check if rectangle and circle overlap */
+    /**
+     * 判断矩形与圆形是否重叠
+     * Check if rectangle and circle overlap
+     *
+     * @param circleBox 圆形包围盒 / Circle bounding box
+     * @param circle 圆形 / Circle
+     * @return 是否重叠 / Whether they overlap
+    */
     private fun rectCircleOverlapped(circleBox: QuantityBox2<V>, circle: QuantityCircle2<V>): Ret<Boolean> {
         val maxX = when (val result = maxX()) {
             is Ok -> result.value
@@ -418,7 +442,15 @@ data class QuantityBox2<V : FloatingNumber<V>>(
         return ok(ord is Order.Less || ord is Order.Equal)
     }
 
-    /** 判断两个圆形是否重叠 / Check if two circles overlap */
+    /**
+     * 判断两个圆形是否重叠
+     * Check if two circles overlap
+     *
+     * @param rhs 另一个包围盒 / Another bounding box
+     * @param lhs 左侧圆形 / Left-hand side circle
+     * @param rhsCircle 右侧圆形 / Right-hand side circle
+     * @return 是否重叠 / Whether they overlap
+    */
     private fun circleOverlapped(rhs: QuantityBox2<V>, lhs: QuantityCircle2<V>, rhsCircle: QuantityCircle2<V>): Ret<Boolean> {
         val centerX = when (val result = centerX()) {
             is Ok -> result.value
@@ -473,5 +505,5 @@ data class QuantityBox2<V : FloatingNumber<V>>(
 /**
  * 二维轴对齐包围盒别名
  * Type alias for 2D axis-aligned bounding box
- */
+*/
 typealias QuantityAxisAlignedBox2<V> = QuantityBox2<V>

@@ -9,7 +9,7 @@
  * The Gauss map is a simple one-dimensional chaotic map that generates chaotic behavior through modulo operations.
  * This map is related to Gauss's recursive algorithm, exhibiting complex chaotic dynamical properties.
  * Commonly used for chaos theory research, pseudo-random number generation, and chaotic iteration analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * Gauss Map
  *
  * @property mu 系统参数 mu / System parameter mu
- */
+*/
 data class GaussMap<V : FloatingNumber<V>>(
     val mu: V
 ) : Extractor<V, V> {
@@ -42,7 +42,7 @@ data class GaussMap<V : FloatingNumber<V>>(
          *
          * @param mu 混沌参数 / Chaos parameter
          * @return 高斯映射实例 / A Gauss map instance
-         */
+        */
         operator fun invoke(
             mu: Flt64 = Random.nextFlt64(Flt64.one, Flt64.ten)
         ): GaussMap<Flt64> {
@@ -56,7 +56,7 @@ data class GaussMap<V : FloatingNumber<V>>(
  * Gauss Map Generator
  *
  * @property gaussMap 高斯映射实例 / Gauss map instance
- */
+*/
 data class GaussMapGenerator(
     val gaussMap: GaussMap<Flt64> = GaussMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -68,7 +68,7 @@ data class GaussMapGenerator(
          * @param mu 混沌参数 / Chaos parameter
          * @param x 初始值 / Initial value
          * @return 高斯映射生成器 / A Gauss map generator
-         */
+        */
         operator fun invoke(
             mu: Flt64,
             x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

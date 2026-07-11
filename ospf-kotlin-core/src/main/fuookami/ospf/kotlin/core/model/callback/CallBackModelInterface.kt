@@ -1,7 +1,7 @@
 /**
  * 回调模型接口定义
  * Call-back model interface definitions
- */
+*/
 @file:Suppress("unused")
 package fuookami.ospf.kotlin.core.model.callback
 
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 /**
  * 回调模型接口
  * Call-back model interfaces
- */
+*/
 
 /**
  * 回调模型抽象接口，定义约束、目标函数和解比较的通用能力。
@@ -24,14 +24,16 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
  * @param Obj          目标值类型 / The objective value type
  * @param ObjValue     目标聚合值类型 / The aggregated objective value type
  * @param SolutionValue 解值类型 / The solution value type
- */
+*/
 interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<SolutionValue>, AutoCloseable
         where SolutionValue : RealNumber<SolutionValue>, SolutionValue : NumberField<SolutionValue> {
+
     /** 默认目标值（用于无解时的初始值） / Default objective value (used as initial value when no solution exists) */
     val defaultObjective: ObjValue
 
     /** 可变令牌表 / The mutable token table */
     val tokens: AbstractMutableTokenTable<SolutionValue>
+
     /** 约束列表（提取器与名称的配对） / Constraint list (pairs of extractor and name) */
     val constraints: List<Pair<Extractor<Boolean?, Solution<SolutionValue>>, String>>
 
@@ -44,7 +46,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      *
      * @param initialSolutionAmount 初始解数量 / The number of initial solutions
      * @return 初始解列表 / The list of initial solutions
-     */
+    */
     fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<SolutionValue>> {
         return emptyList()
     }
@@ -56,7 +58,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      * @param lhs 左侧目标值 / The left-hand side objective value
      * @param rhs 右侧目标值 / The right-hand side objective value
      * @return 合并后的目标值 / The combined objective value
-     */
+    */
     fun operation(lhs: ObjValue, rhs: ObjValue): ObjValue
 
     /**
@@ -64,7 +66,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      * Get the zero objective value (identity element).
      *
      * @return 零目标值 / The zero objective value
-     */
+    */
     fun objectiveValue(): ObjValue
 
     /**
@@ -73,7 +75,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      *
      * @param obj 原始目标对象 / The raw objective object
      * @return 聚合后的目标值 / The aggregated objective value
-     */
+    */
     fun objectiveValue(obj: Obj): ObjValue
 
     /**
@@ -82,7 +84,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      *
      * @param solution 待计算的解 / The solution to evaluate
      * @return 聚合后的目标值，任一目标函数返回 null 时整体返回 null / The aggregated objective value, or null if any objective function returns null
-     */
+    */
     fun objective(solution: Solution<SolutionValue>): ObjValue? {
         var obj = objectiveValue()
         for ((objectiveFunction, _) in objectiveFunctions) {
@@ -99,7 +101,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      * @param lhs 左侧目标值 / The left-hand side objective value
      * @param rhs 右侧目标值 / The right-hand side objective value
      * @return 比较结果 / The comparison result
-     */
+    */
     fun compareObjective(lhs: ObjValue, rhs: ObjValue): Order?
 
     /**
@@ -109,7 +111,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      * @param lhs 左侧目标值（可为 null） / The left-hand side objective value (nullable)
      * @param rhs 右侧目标值（可为 null） / The right-hand side objective value (nullable)
      * @return 比较结果，任一为 null 时另一个更优 / The comparison result; when either is null, the other is preferred
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("comparePartialObjective")
     fun compareObjective(lhs: ObjValue?, rhs: ObjValue?): Order? {
@@ -130,13 +132,13 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
      *
      * @param solution 待检查的解 / The solution to check
      * @return `true` 表示满足，`false` 表示违反，`null` 表示无法确定 / `true` if satisfied, `false` if violated, `null` if undetermined
-     */
+    */
     fun constraintSatisfied(solution: Solution<SolutionValue>): Boolean?
 
     /**
      * 刷新模型内部状态。
      * Flush the internal state of the model.
-     */
+    */
     fun flush()
 
     override fun close() {
@@ -149,7 +151,7 @@ interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<S
  * Single-objective call-back model interface where objective and solution value types are the same.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> where V : RealNumber<V>, V : NumberField<V> {
     override val defaultObjective: V
         get() = if (objectCategory == ObjectCategory.Minimum) {
@@ -193,7 +195,7 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
      * Provide the IntoValue<V> converter for this V type.
      *
      * @return the value converter / 值转换器
-     */
+    */
     fun converter(): IntoValue<V>
 
     /**
@@ -201,7 +203,7 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
      * Provide negative infinity for this V type.
      *
      * @return negative infinity value / 负无穷值
-     */
+    */
     fun negativeInfinity(): V
 
     /**
@@ -209,7 +211,7 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
      * Provide positive infinity for this V type.
      *
      * @return positive infinity value / 正无穷值
-     */
+    */
     fun infinity(): V
 }
 
@@ -218,10 +220,12 @@ interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> wh
  * Multi-objective call-back model interface supporting multiple priority-weighted objective functions.
  *
  * @param V 数值类型 / The numeric type
- */
+*/
 interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /** 目标函数位置列表 / Objective function location list */
     val objectiveLocation: List<MultiObjectLocation<V>>
+
     /** 目标函数数量 / Objective function count */
     val objectiveSize get() = objectiveLocation.size
 
@@ -275,7 +279,7 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
      * Provide the IntoValue<V> converter for this V type.
      *
      * @return the value converter / 值转换器
-     */
+    */
     fun converter(): IntoValue<V>
 
     /**
@@ -283,7 +287,7 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
      * Provide negative infinity for this V type.
      *
      * @return negative infinity value / 负无穷值
-     */
+    */
     fun negativeInfinity(): V
 
     /**
@@ -291,6 +295,6 @@ interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<
      * Provide positive infinity for this V type.
      *
      * @return positive infinity value / 正无穷值
-     */
+    */
     fun infinity(): V
 }

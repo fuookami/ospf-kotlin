@@ -3,7 +3,7 @@
  *
  * 本文件提供影子价格键的安全类型转换工具函数。
  * This file provides utility functions for safe type casting of shadow price keys.
- */
+*/
 @file:Suppress("UNCHECKED_CAST")
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
  *
  * Safely narrows constraint args to the target shadow-price key type.
  * The pipeline construction path owns the runtime key-type invariant.
- */
+*/
 internal inline fun <reified K : ShadowPriceKey> shadowPriceKeyOf(args: Any?): K? {
     return args as? K
 }

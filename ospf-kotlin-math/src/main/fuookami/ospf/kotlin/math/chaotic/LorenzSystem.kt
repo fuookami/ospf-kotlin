@@ -9,7 +9,7 @@
  * The Lorenz system is a famous three-dimensional chaotic system proposed by Edward Lorenz in 1963.
  * This system was originally used for studying atmospheric convection, unexpectedly discovering chaotic phenomena, pioneering chaos theory research.
  * The Lorenz attractor (butterfly effect) is one of the most famous chaotic systems, commonly used for chaos dynamics research, meteorological model analysis, and educational demonstrations.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c（瑞利数） / System parameter c (Rayleigh number)
  * @property h 时间步长 / Time step size
- */
+*/
 data class LorenzSystem<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -56,7 +56,7 @@ data class LorenzSystem<V : FloatingNumber<V>>(
 /**
  * 洛伦兹系统生成器
  * Lorenz System Generator
- */
+*/
 data class LorenzSystemGenerator(
     val lorenzSystem: LorenzSystem<Flt64> = LorenzSystem(),
     private var _x: Point<Dim3, Flt64> = point3(

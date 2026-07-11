@@ -1,7 +1,7 @@
 /**
  * Packing context.
  * 装箱上下文。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  * 剩余未分配物料及其数量。
  * @property info Additional key-value context information.
  * 附加的键值上下文信息。
- */
+*/
 data class PackingContext(
     val restItems: Map<Item, UInt64> = emptyMap(),
     val restMaterials: Map<MaterialKey, UInt64> = emptyMap(),

@@ -1,7 +1,7 @@
 /**
  * Packing aggregation.
  * 装箱聚合。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  * 物品在三维空间中的数量放置。
  * @property loadingOrder The loading order of the item within the bin.
  * 物品在箱内的装载顺序。
- */
+*/
 data class PackedItem(
     val placement: QuantityPlacement3<Item, FltX>,
     val loadingOrder: UInt64
@@ -36,7 +36,7 @@ data class PackedItem(
  * 容器的分组标签列表。
  * @property items The list of packed items in this bin.
  * 该容器内已装箱物品的列表。
- */
+*/
 data class PackedBin(
     val name: String,
     val type: BinType<FltX>,
@@ -51,7 +51,7 @@ data class PackedBin(
  *
  * @property bins The list of packed bins.
  * 已装箱容器列表。
- */
+*/
 data class PackingAggregation(
     val bins: List<PackedBin>
 )
@@ -64,7 +64,7 @@ data class PackingAggregation(
  * 标识物料的物料键。
  * @property amount The total amount of the material used.
  * 使用的物料总数量。
- */
+*/
 data class MaterialSummary(
     val material: MaterialKey,
     val amount: UInt64
@@ -80,7 +80,7 @@ data class MaterialSummary(
  * 物料使用汇总列表。
  * @property info Additional key-value information about the packing result.
  * 关于装箱结果的附加键值信息。
- */
+*/
 data class PackingResult(
     val aggregation: PackingAggregation,
     val materialSummary: List<MaterialSummary> = emptyList(),

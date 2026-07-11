@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConf
  * @property demands 需求列表 / Demand list
  * @property configuration 求解配置 / Solving configuration
  * @property solveConfig 一站式求解配置，缺省时使用 [configuration] / One-stop solve config, falls back to [configuration]
- */
+*/
 data class Csp1dProblem<V : RealNumber<V>>(
     val products: List<Product<V>>,
     val materials: List<Material<V>>,
@@ -37,7 +37,7 @@ data class Csp1dProblem<V : RealNumber<V>>(
  * @property maxInitialPlans 初始方案上限 / Initial plan limit
  * @property maxPricingPlans 每轮定价新增方案上限 / Max pricing plans per iteration
  * @property iterationLimit 列生成迭代上限 / Column generation iteration limit
- */
+*/
 data class Csp1dConfiguration<V : RealNumber<V>>(
     val maxInitialPlans: Int64 = Int64(1024),
     val maxPricingPlans: Int64 = Int64(64),
@@ -55,7 +55,7 @@ data class Csp1dConfiguration<V : RealNumber<V>>(
  * @property topKPlanLimit Top-K 方案保留上限，null 表示不输出 / Top-K plan limit, null for disabled
  * @property allowPartialSolution 最终 MILP 失败时是否返回部分结果 / Whether to return a partial result when final MILP fails
  * @property extensions 建模扩展列表，用于注入额外管线（如 same unit length / same width 等业务约束）/ Modeling extensions for injecting additional pipelines (e.g. same unit length / same width constraints)
- */
+*/
 data class Csp1dSolveConfig<V : RealNumber<V>>(
     val columnGeneration: Csp1dConfiguration<V> = Csp1dConfiguration(),
     val yieldConfig: YieldModelingConfig<V>? = null,
@@ -66,6 +66,7 @@ data class Csp1dSolveConfig<V : RealNumber<V>>(
     val extensions: List<Csp1dModelingExtension<V>> = emptyList(),
     val extensionSet: Csp1dExtensionSet<V> = Csp1dExtensionSet()
 ) {
+
     /**
      * 合并 extensions 与 extensionSet.modelingExtensions /
      * Merge extensions and extensionSet.modelingExtensions
@@ -73,7 +74,7 @@ data class Csp1dSolveConfig<V : RealNumber<V>>(
      * 保证直接构造 Csp1dSolveConfig(extensionSet = ...) 时 modelingExtensions 也能进入求解路径。
      * Ensures that modelingExtensions from extensionSet also enters the solve path
      * when Csp1dSolveConfig is constructed directly with extensionSet.
-     */
+    */
     val allExtensions: List<Csp1dModelingExtension<V>>
         get() = extensions + extensionSet.modelingExtensions.filter { ext ->
             ext !in extensions

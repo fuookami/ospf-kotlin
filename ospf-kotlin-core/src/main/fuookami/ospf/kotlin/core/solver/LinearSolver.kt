@@ -1,7 +1,7 @@
 /**
  * 线性求解器接口定义
  * Linear solver interface definitions
- */
+*/
 package fuookami.ospf.kotlin.core.solver
 
 import java.util.concurrent.CompletableFuture
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.core.solver.output.*
 /**
  * 线性求解器的抽象接口，定义了求解、异步求解和泛型求解等核心能力。
  * Abstract interface for linear solvers, defining core capabilities for solving, async solving, and generic solving.
- */
+*/
 interface AbstractLinearSolver {
     val name: String
 
@@ -32,7 +32,7 @@ interface AbstractLinearSolver {
      * @param model 线性三元模型视图 / Linear triad model view
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-     */
+    */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -46,7 +46,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
-     */
+    */
     suspend operator fun invoke(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -69,7 +69,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param callBack 结果回调（可选）/ Result callback (optional)
      * @return 异步求解结果 / Async solve result
-     */
+    */
     fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -94,7 +94,7 @@ interface AbstractLinearSolver {
      * @param iisConfig IIS 配置 / IIS configuration
      * @param callBack 结果回调（可选）/ Result callback (optional)
      * @return 异步求解结果 / Async solve result
-     */
+    */
     fun solveAsync(
         model: LinearTriadModel,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -120,7 +120,7 @@ interface AbstractLinearSolver {
      * @param solutionAmount 期望解数量 / Desired solution amount
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-     */
+    */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -136,7 +136,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param iisConfig IIS 配置 / IIS configuration
      * @return 求解结果与解列表（可能包含 IIS）/ Solve result with solution list (may contain IIS)
-     */
+    */
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -162,7 +162,7 @@ interface AbstractLinearSolver {
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @param callBack 结果回调（可选）/ Result callback (optional)
      * @return 异步求解结果与解列表 / Async solve result with solution list
-     */
+    */
     fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -190,7 +190,7 @@ interface AbstractLinearSolver {
      * @param iisConfig IIS 配置 / IIS configuration
      * @param callBack 结果回调（可选）/ Result callback (optional)
      * @return 异步求解结果与解列表 / Async solve result with solution list
-     */
+    */
     fun solveAsync(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -222,7 +222,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         converter: IntoValue<V>,
@@ -245,7 +245,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-     */
+    */
     suspend fun <V> solve(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
@@ -272,7 +272,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -305,7 +305,7 @@ interface AbstractLinearSolver {
      * @param converter 值转换器 / Value converter
      * @param solvingStatusCallBack 求解状态回调（可选）/ Solving status callback (optional)
      * @return 求解结果与解列表 / Solve result with solution list
-     */
+    */
     suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
@@ -335,7 +335,7 @@ interface AbstractLinearSolver {
      *
      * @param model 线性机制模型 / Linear mechanism model
      * @return 线性三元组模型 / Linear triad model
-     */
+    */
     suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {
         return LinearTriadModel(model)
     }
@@ -348,7 +348,7 @@ interface AbstractLinearSolver {
      * @param registrationStatusCallBack 注册状态回调（可选）/ Registration status callback (optional)
      * @param dumpingStatusCallBack 转储状态回调（可选）/ Dumping status callback (optional)
      * @return 线性机制模型 / Linear mechanism model
-     */
+    */
     suspend fun dump(
         model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -367,8 +367,10 @@ interface AbstractLinearSolver {
  * Linear solver interface extending [AbstractLinearSolver] with configuration-driven model dumping.
  *
  * @property config 求解器配置 / Solver configuration
- */
+*/
 interface LinearSolver : AbstractLinearSolver {
+
+    /** Solver configuration / 求解器配置 */
     val config: SolverConfig
 
     override suspend fun dump(model: LinearMechanismModel<Flt64>): LinearTriadModel {

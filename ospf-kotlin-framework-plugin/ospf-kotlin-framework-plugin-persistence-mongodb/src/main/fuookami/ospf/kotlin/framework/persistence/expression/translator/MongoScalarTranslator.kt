@@ -4,7 +4,7 @@
  *
  * 将通用 ScalarExpression 翻译为 MongoDB $expr 可用的表达式值。
  * Translates generic ScalarExpression to values usable in MongoDB $expr.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.bson.Document
@@ -19,18 +19,19 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  *
  * @property resolveFieldName 字段名解析函数 / Field name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class MongoScalarTranslator(
     private val resolveFieldName: MongoFieldNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
 ) {
+
     /**
      * 翻译标量表达式为 MongoDB 可用的值
      * Translate scalar expression to MongoDB-compatible value
      *
      * @param expr 标量表达式 / Scalar expression
      * @return MongoDB 可用的值，不支持时返回 null / MongoDB-compatible value, or null if unsupported
-     */
+    */
     fun translate(expr: ScalarExpression<*>): Ret<Any?> {
         return when (expr) {
             is ScalarReference<*> -> {
@@ -52,7 +53,7 @@ class MongoScalarTranslator(
      *
      * @param expr 一元标量表达式 / Unary scalar expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
-     */
+    */
     private fun translateUnary(expr: ScalarUnary<*>): Ret<Any?> {
         val operand = translate(expr.operand).value ?: return Ok(null)
         return when (expr.operator) {
@@ -68,7 +69,7 @@ class MongoScalarTranslator(
      *
      * @param expr 二元标量表达式 / Binary scalar expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
-     */
+    */
     private fun translateBinary(expr: ScalarBinary<*>): Ret<Any?> {
         val left = translate(expr.left).value ?: return Ok(null)
         val right = translate(expr.right).value ?: return Ok(null)
@@ -89,7 +90,7 @@ class MongoScalarTranslator(
      *
      * @param expr 标量函数表达式 / Scalar function expression
      * @return MongoDB 可用的值 / MongoDB-compatible value
-     */
+    */
     private fun translateFunction(expr: ScalarFunction<*>): Ret<Any?> {
         val arguments = expr.arguments.map { translate(it).value ?: return Ok(null) }
         return when (expr.name.lowercase()) {
@@ -119,7 +120,7 @@ class MongoScalarTranslator(
      * @param arguments 函数参数列表 / Function argument list
      * @param argumentMapper 参数映射函数 / Argument mapper function
      * @return MongoDB 可用的值 / MongoDB-compatible value
-     */
+    */
     private fun translateUnaryFunction(
         logicalName: String,
         mongoName: String,
@@ -138,7 +139,7 @@ class MongoScalarTranslator(
      *
      * @param reason 不支持的原因 / Reason for being unsupported
      * @return 处理结果 / Handling result
-     */
+    */
     private fun unsupported(reason: String): Ret<Any?> {
         return when (unsupportedPredicatePolicy) {
             UnsupportedPredicatePolicy.FailFast -> {

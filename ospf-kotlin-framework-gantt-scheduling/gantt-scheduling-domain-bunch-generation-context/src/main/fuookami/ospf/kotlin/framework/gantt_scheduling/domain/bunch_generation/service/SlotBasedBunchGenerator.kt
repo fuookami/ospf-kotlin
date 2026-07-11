@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 分时隙任务束生成器服务 / Slot-based bunch generator service */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
@@ -28,7 +29,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.
  * @param M 物料类型 / Material type
  * @param R 资源容量类型 / Resource capacity type
  * @param V 影子价格数值类型 / Shadow price numeric type
- */
+*/
 interface SlotBasedBunchGenerator<
         B : SlotBasedBunch<T, E, A>,
         T : AbstractTask<E, A>,
@@ -39,10 +40,11 @@ interface SlotBasedBunchGenerator<
         R,
         V
         > where V : RealNumber<V>, V : PlusGroup<V> {
+
     /**
      * 支持的执行器列表
      * List of supported executors
-     */
+    */
     val executors: List<E>
 
     /**
@@ -54,7 +56,7 @@ interface SlotBasedBunchGenerator<
      * @param constraints Slot constraints / 时隙约束
      * @param shadowPrices Task shadow prices / 任务影子价格
      * @return Generated bunches / 生成的 bunch 列表
-     */
+    */
     suspend fun generate(
         iteration: UInt64,
         slot: TimeSlot,
@@ -70,7 +72,7 @@ interface SlotBasedBunchGenerator<
      * @param intermediateValues Capacity intermediate values / 产能中间值
      * @param shadowPrices Task shadow prices / 任务影子价格
      * @return Generated bunches / 生成的 bunch 列表
-     */
+    */
     suspend fun generateAll(
         iteration: UInt64,
         intermediateValues: CapacityIntermediateValues<Action, M, R, V>,
@@ -106,7 +108,7 @@ interface SlotBasedBunchGenerator<
      *
      * @param executor The executor / 执行器
      * @return Whether the executor is supported / 是否支持该执行器
-     */
+    */
     fun supportsExecutor(executor: E): Boolean {
         return executors.contains(executor)
     }
@@ -118,7 +120,7 @@ interface SlotBasedBunchGenerator<
  *
  * 用于创建特定执行器的 bunch 生成器。
  * Used to create bunch generators for specific executors.
- */
+*/
 interface SlotBasedBunchGeneratorFactory<
         B : SlotBasedBunch<T, E, A>,
         T : AbstractTask<E, A>,
@@ -129,12 +131,13 @@ interface SlotBasedBunchGeneratorFactory<
         R,
         V
         > where V : RealNumber<V>, V : PlusGroup<V> {
+
     /**
      * 创建指定执行器的生成器
      * Create generator for specified executor
      *
      * @param executor The executor / 执行器
      * @return Bunch generator / 任务束生成器
-     */
+    */
     fun create(executor: E): SlotBasedBunchGenerator<B, T, E, A, Action, M, R, V>?
 }

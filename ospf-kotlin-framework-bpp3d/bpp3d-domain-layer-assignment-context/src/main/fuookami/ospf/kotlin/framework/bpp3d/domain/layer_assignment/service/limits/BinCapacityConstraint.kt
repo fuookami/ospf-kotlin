@@ -1,7 +1,7 @@
 /**
  * Bin capacity constraint.
  * 箱子容量约束。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -22,20 +22,21 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
  * @property capacity 容量符号 / capacity symbols
  * @property solverValueAdapter 求解器值适配器 / solver value adapter
  * @property name 约束名称 / constraint name
- */
+*/
 class BinCapacityConstraint(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val capacity: Capacity,
     private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter,
     val name: String = "bin_capacity_constraint"
 ) {
+
     /**
      * Add constraint to model.
      * 将约束添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun invoke(model: MetaModel<FltX>): Try {
         val linearModel = model as AbstractLinearMetaModel<FltX>
         for ((i, bin) in bins.withIndex()) {

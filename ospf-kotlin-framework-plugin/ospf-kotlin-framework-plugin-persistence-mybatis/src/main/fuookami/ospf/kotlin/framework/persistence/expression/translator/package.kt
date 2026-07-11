@@ -4,5 +4,5 @@
  *
  * 提供 BooleanExpression、SortBy、UpdateAssignment 到 MyBatis-Plus Wrapper 的翻译。
  * Provides translation from BooleanExpression, SortBy, UpdateAssignment to MyBatis-Plus Wrapper.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator

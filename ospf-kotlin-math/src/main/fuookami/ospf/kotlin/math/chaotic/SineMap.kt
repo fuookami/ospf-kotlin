@@ -9,7 +9,7 @@
  * The sine map is a one-dimensional chaotic map based on the sine function.
  * This map generates chaotic behavior using the nonlinearity of the sine function, exhibiting a bifurcation structure similar to the logistic map.
  * Commonly used for chaos encryption, pseudo-random number generation, and chaotic dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * 公式 / Formula: x_{n+1} = mu * sin(pi * x)
  *
  * @property mu 系统参数 mu，取值范围 [0, 1] / System parameter mu, range [0, 1]
- */
+*/
 data class SineMap<V : FloatingNumber<V>>(
     val mu: V
 ) : Extractor<V, V> {
@@ -47,7 +47,7 @@ data class SineMap<V : FloatingNumber<V>>(
 /**
  * 正弦映射生成器
  * Sine Map Generator
- */
+*/
 data class SineMapGenerator(
     val sineMap: SineMap<Flt64> = SineMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

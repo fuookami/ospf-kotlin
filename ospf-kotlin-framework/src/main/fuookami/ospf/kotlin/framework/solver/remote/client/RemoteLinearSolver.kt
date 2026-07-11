@@ -1,7 +1,7 @@
 /**
  * 远程线性求解器
  * Remote linear solver
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
 import kotlin.time.Duration
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property remoteClient 远程客户端 / Remote client
  * @property resultStoragePort 结果对象存储 / Result object storage
  * @property runtimeConfig 运行配置 / Runtime config
- */
+*/
 class RemoteLinearSolver(
     delegate: LinearSolver,
     private val remoteClient: RemoteSolverClient,
@@ -34,6 +34,7 @@ class RemoteLinearSolver(
         isLenient = true
     }
 ) : LinearSolver by delegate {
+
     /**
      * 使用执行端口构造远程线性求解器。
      * Construct remote linear solver with execution port.
@@ -42,7 +43,7 @@ class RemoteLinearSolver(
      * @param executionPort 求解执行端口 / Solve execution port
      * @param resultStoragePort 结果对象存储 / Result object storage
      * @param runtimeConfig 运行配置 / Runtime config
-     */
+    */
     constructor(
         delegate: LinearSolver,
         executionPort: SolverExecutionPort,
@@ -101,7 +102,7 @@ class RemoteLinearSolver(
      * @param quantum 时间片 / Quantum
      * @param maxRounds 最大轮数 / Maximum rounds
      * @return 求解结果 / Solve result
-     */
+    */
     suspend fun solveRemote(
         payload: SolvePayload,
         taskId: TaskId,
@@ -133,7 +134,7 @@ class RemoteLinearSolver(
      *
      * @param variableCount 变量数量 / Variable count
      * @return 可行求解输出或错误 / Feasible solver output or error
-     */
+    */
     private suspend fun SolveResult.toFeasibleOutput(variableCount: Int): Ret<FeasibleSolverOutput<Flt64>> {
         if (!feasible) {
             return Failed(Err(ErrorCode.ORModelInfeasible, message ?: "Remote linear solve is infeasible."))
@@ -173,7 +174,7 @@ class RemoteLinearSolver(
      *
      * @param variableCount 变量数量 / Variable count
      * @return 可行求解输出或错误 / Feasible solver output or error
-     */
+    */
     private fun SolveResult.toEmptySolutionOutput(variableCount: Int): Ret<FeasibleSolverOutput<Flt64>> {
         if (variableCount != 0) {
             return Failed(
@@ -204,7 +205,7 @@ class RemoteLinearSolver(
      * 从对象存储读取序列化的求解结果。
      *
      * @return 序列化求解结果，如果不可用则返回 null / Serialized solution, or null if unavailable
-     */
+    */
     private suspend fun SolveResult.readSerializedSolution(): SerializedSolution? {
         val ref = resultRef ?: return null
         val storage = resultStoragePort ?: return null

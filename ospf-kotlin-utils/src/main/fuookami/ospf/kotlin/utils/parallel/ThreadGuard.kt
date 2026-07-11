@@ -13,7 +13,7 @@
  * - Ensuring thread completes execution when scope ends
  * - Used with try-with-resources or use function
  * - Async task execution with result waiting
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 /**
@@ -24,17 +24,18 @@ package fuookami.ospf.kotlin.utils.parallel
  *
  * @param T 任务返回类型 / Task return type
  * @param task 要执行的任务函数 / Task function to execute
- */
+*/
 // RAII Thread Wrapper
 class Async<T>(
     val task: () -> T
 ) : AutoCloseable {
+
     /**
      * 任务执行结果
      *
      * Result of the task execution.
      * 任务执行的结果。
-     */
+    */
     private var result: T? = null
 
     /**
@@ -42,7 +43,7 @@ class Async<T>(
      *
      * Thread that executes the task.
      * 执行任务的线程实例。
-     */
+    */
     val thread = Thread {
         val result = task()
         this.result = result
@@ -56,7 +57,7 @@ class Async<T>(
      *
      * 实现 AutoCloseable 接口的关闭方法，用于 RAII 资源管理。
      * Implementation of AutoCloseable close method for RAII resource management.
-     */
+    */
     override fun close() {
         thread.join()
     }
@@ -67,7 +68,7 @@ class Async<T>(
          *
          * Start the thread upon initialization.
          * 在初始化时启动线程执行任务。
-         */
+        */
         thread.start()
     }
 
@@ -78,7 +79,7 @@ class Async<T>(
      * 等待线程完成并返回任务执行结果。
      *
      * @return 任务执行结果 / Task execution result
-     */
+    */
     fun join(): T {
         thread.join()
         return result!!
@@ -93,5 +94,5 @@ class Async<T>(
  *
  * ThreadGuard 是 Async<Unit> 的别名，适用于不需要返回值的后台任务。
  * ThreadGuard is an alias for Async<Unit>, suitable for background tasks that don't need return values.
- */
+*/
 typealias ThreadGuard = Async<Unit>

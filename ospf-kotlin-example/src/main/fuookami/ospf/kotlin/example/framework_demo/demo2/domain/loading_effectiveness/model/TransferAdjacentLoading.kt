@@ -23,6 +23,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Models transfer adjacent loading constraints for same-source and same-destination adjacency.
+ * 建模同来源和同目的地相邻的转运装载约束。
+ *
+ * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
+ * @property sources The list of source flight numbers. / 来源航班号列表
+ * @property destinations The list of destination IATA codes. / 目的地 IATA 代码列表
+ * @property load The load model for cargo assignment. / 货物分配的装载模型
+*/
 class TransferAdjacentLoading(
     private val adjacentPositions: List<PositionPair>,
     private val sources: List<FlightNo>,
@@ -32,6 +41,13 @@ class TransferAdjacentLoading(
     lateinit var sameSourceAdjacent: LinearIntermediateSymbols2<Flt64>
     lateinit var sameDestinationAdjacent: LinearIntermediateSymbols2<Flt64>
 
+    /**
+     * Registers the same-source and same-destination adjacent intermediate symbols into the optimization model.
+     * 将同来源和同目的地相邻中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

@@ -15,18 +15,34 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 所有 V 与 Flt64 的转换应通过此 adapter 进行，避免各子模块自行转换或散落 converter 逻辑。
  * All V-to-Flt64 conversions should go through this adapter to avoid scattered converter logic across sub-modules.
- */
+*/
 interface SchedulingSolverValueAdapter<V : RealNumber<V>> : IntoValue<V> {
+
     /** 底层 IntoValue 转换器，可传递给 solver symbol API / Underlying IntoValue converter, passable to solver symbol API */
     val converter: IntoValue<V>
 
-    /** 将 solver 解值舍入为最接近的合法值（例如整数化）/ Round a solver solution value to the nearest legal value (e.g., integer) */
+    /**
+     * 将 solver 解值舍入为最接近的合法值（例如整数化）/ Round a solver solution value to the nearest legal value (e.g., integer)
+     *
+     * @param value solver 解值 / solver solution value
+     * @return 舍入后的合法值 / rounded legal value
+    */
     fun roundSolution(value: Flt64): V
 
-    /** 将 solver Flt64 下取整为 UInt64，用于整数解判定 / Floor a solver Flt64 to UInt64 for integer solution determination */
+    /**
+     * 将 solver Flt64 下取整为 UInt64，用于整数解判定 / Floor a solver Flt64 to UInt64 for integer solution determination
+     *
+     * @param value solver Flt64 值 / solver Flt64 value
+     * @return 下取整后的 UInt64 / floored UInt64
+    */
     fun floorToUInt64(value: Flt64): UInt64
 
-    /** 对 Flt64 值下取整 / Floor a Flt64 value */
+    /**
+     * 对 Flt64 值下取整 / Floor a Flt64 value
+     *
+     * @param value Flt64 值 / Flt64 value
+     * @return 下取整后的 Flt64 / floored Flt64
+    */
     fun floorValue(value: Flt64): Flt64
 
     companion object {
@@ -38,7 +54,7 @@ interface SchedulingSolverValueAdapter<V : RealNumber<V>> : IntoValue<V> {
          *
          * Flt64 走 Identity 快速路径，其他类型通过 resolveFlt64ValueConverter 反射解析。
          * Flt64 takes the Identity fast path; other types are resolved via resolveFlt64ValueConverter reflection.
-         */
+        */
         inline fun <reified V : RealNumber<V>> create(): Ret<SchedulingSolverValueAdapter<V>> {
             return if (V::class == Flt64::class) {
                 @Suppress("UNCHECKED_CAST")
@@ -71,7 +87,7 @@ private object Flt64SolverValueAdapter : SchedulingSolverValueAdapter<Flt64> {
  * 泛型 adapter 实现，通过 Flt64ValueConverter 桥接任意 V
  *
  * @property delegate The Flt64 value converter delegate / Flt64值转换器委托
- */
+*/
 class GenericSolverValueAdapter<V : RealNumber<V>>(
     private val delegate: fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter<V>
 ) : SchedulingSolverValueAdapter<V> {
@@ -87,10 +103,12 @@ class GenericSolverValueAdapter<V : RealNumber<V>>(
 
 /**
  * solver 边界：UInt64 到 Flt64 的集中转换 / Solver boundary: centralized UInt64-to-Flt64 conversion
- */
+ *
+ * @return The Flt64 representation of this UInt64 value / 此UInt64值的Flt64浮点数表示
+*/
 fun UInt64.toSolverFlt64(): Flt64 = Flt64(toLong().toDouble())
 
 /**
  * solver 边界：泛型域值 V 到 Flt64 的集中转换 / Solver boundary: centralized generic domain value V-to-Flt64 conversion
- */
+*/
 fun <V : RealNumber<V>> V.toSolverValue(): Flt64 = toFlt64()

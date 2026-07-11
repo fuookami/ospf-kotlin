@@ -7,7 +7,7 @@
  * Provides core implementation for polynomial integration.
  * Supports univariate integration for linear, quadratic, and canonical polynomials,
  * based on FloatingNumber type constraints.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * @param symbol 积分变量 / Integration variable
  * @param integrationConstant 积分常数 C / Integration constant C
  * @return 积分结果（二次多项式，/ Integral result (quadratic polynomial)
- */
+*/
 fun <T> LinearMonomial<T>.integrateLinear(
     symbol: Symbol,
     integrationConstant: T
@@ -63,7 +63,7 @@ fun <T> LinearMonomial<T>.integrateLinear(
  * @param combineTerms 是否合并同类題/ Whether to combine like terms
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @return 积分结果（二次多项式，/ Integral result (quadratic polynomial)
- */
+*/
 fun <T> LinearPolynomial<T>.integrateLinear(
     symbol: Symbol,
     integrationConstant: T,
@@ -132,7 +132,7 @@ fun <T> LinearPolynomial<T>.integrateLinear(
  * @param symbol 积分变量 / Integration variable
  * @param integrationConstant 积分常数 C / Integration constant C
  * @return 积分结果 / Integral result
- */
+*/
 fun <T> QuadraticMonomial<T>.integrateQuadratic(
     symbol: Symbol,
     integrationConstant: T
@@ -230,7 +230,7 @@ fun <T> QuadraticMonomial<T>.integrateQuadratic(
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @param symbolComparator 符号比较噌/ Symbol comparator
  * @return 积分结果（规范多项式，/ Integral result (canonical polynomial)
- */
+*/
 fun <T> QuadraticPolynomial<T>.integrateQuadratic(
     symbol: Symbol,
     integrationConstant: T,
@@ -277,7 +277,7 @@ fun <T> QuadraticPolynomial<T>.integrateQuadratic(
  * @param symbol 积分变量 / Integration variable
  * @param integrationConstant 积分常数 C / Integration constant C
  * @return 积分结果 / Integral result
- */
+*/
 fun <T> CanonicalMonomial<T>.integrateCanonical(
     symbol: Symbol,
     integrationConstant: T
@@ -320,7 +320,7 @@ fun <T> CanonicalMonomial<T>.integrateCanonical(
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @param symbolComparator 符号比较噌/ Symbol comparator
  * @return 积分结果 / Integral result
- */
+*/
 fun <T> CanonicalPolynomial<T>.integrateCanonical(
     symbol: Symbol,
     integrationConstant: T,

@@ -3,7 +3,7 @@
  *
  * Extension functions for Boolean type, providing nullable-safe logical operations.
  * Boolean 类型的扩展函数，提供空值安全的逻辑操作。
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -14,7 +14,7 @@ package fuookami.ospf.kotlin.utils.functional
  *
  * @param other 另一个可空 Boolean 值 / Another nullable Boolean value
  * @return 两个值都非空时返回逻辑与结果，否则返回 null / Returns logical AND result if both values are non-null, otherwise null
- */
+*/
 infix fun Boolean?.and(other: Boolean?) = if (this != null && other != null) {
     this && other
 } else {

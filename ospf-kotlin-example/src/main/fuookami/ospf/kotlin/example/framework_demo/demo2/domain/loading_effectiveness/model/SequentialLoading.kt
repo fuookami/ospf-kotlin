@@ -22,6 +22,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Models sequential loading order reversal between item pairs across position pairs.
+ * 建模位置对之间的项目对顺序装载反转。
+ *
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property orderedItems The list of ordered item pairs for loading order comparison. / 用于装载顺序比较的有序货物项对列表
+ * @property orderedPositions The list of ordered position pairs. / 有序位置对列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+*/
 class SequentialLoading(
     private val items: List<Item>,
     private val positions: List<Position>,
@@ -42,6 +52,13 @@ class SequentialLoading(
 
     lateinit var itemOrderReverse: LinearIntermediateSymbols2<Flt64>
 
+    /**
+     * Registers the item order reverse intermediate symbols into the optimization model.
+     * 将项目顺序反转中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

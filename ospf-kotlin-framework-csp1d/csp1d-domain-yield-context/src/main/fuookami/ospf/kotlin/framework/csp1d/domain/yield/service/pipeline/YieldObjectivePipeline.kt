@@ -11,25 +11,24 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.yield.model.YieldModelingConf
 import fuookami.ospf.kotlin.framework.model.Pipeline
 
 /**
- * 产出偏差目标管线 / Yield deviation objective pipeline
- *
- * 在目标函数中添加欠产和超产惩罚项：
- * minimize sum(underPenalty * under_production_i + overPenalty * over_production_i)
+ * Yield deviation objective pipeline.
+ * 产出偏差目标管线
  *
  * Add under-production and over-production penalty terms to the objective function:
  * minimize sum(underPenalty * under_production_i + overPenalty * over_production_i)
- *
- * 注意：此管线不直接设置目标函数，而是返回目标项的单项式列表，
- * 由 Csp1dProduceContext 统一组装目标函数。
+ * 在目标函数中添加欠产和超产惩罚项：
+ * minimize sum(underPenalty * under_production_i + overPenalty * over_production_i)
  *
  * Note: This pipeline does not set the objective function directly, but returns
  * the objective monomials for Csp1dProduceContext to assemble the full objective.
+ * 注意：此管线不直接设置目标函数，而是返回目标项的单项式列表，
+ * 由 Csp1dProduceContext 统一组装目标函数。
  *
- * @param V 数值类型 / Numeric value type
- * @property yield 产出偏差聚合 / Yield deviation aggregation
- * @property config 产出建模配置 / Yield modeling configuration
- * @property demands 需求列表 / Demand list
- */
+ * @param V Numeric value type / 数值类型
+ * @property yield Yield deviation aggregation / 产出偏差聚合
+ * @property config Yield modeling configuration / 产出建模配置
+ * @property demands Demand list / 需求列表
+*/
 class YieldObjectivePipeline<V : RealNumber<V>>(
     private val yield: YieldAggregation<V>,
     private val config: YieldModelingConfig<V>,
@@ -45,10 +44,11 @@ class YieldObjectivePipeline<V : RealNumber<V>>(
     }
 
     /**
-     * 生成目标项单项式 / Generate objective monomials
+     * Generate objective monomials.
+     * 生成目标项单项式
      *
-     * @return 目标项单项式列表 / Objective monomial list
-     */
+     * @return List of linear monomials representing objective penalty terms / 表示目标惩罚项的线性单项式列表
+    */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 

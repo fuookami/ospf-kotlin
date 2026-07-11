@@ -18,8 +18,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 /**
  * 约束每个飞行阶段的总飞机重量不超过最大允许值。Constrains the total aircraft weight for each flight phase to not exceed the maximum allowed.
  *
- * @property totalWeight 参数。
- */
+ * @property totalWeight The total weight estimation and limits per flight phase / 各飞行阶段的总重量估算与限制
+*/
 class TotalWeightLimit(
     private val totalWeight: TotalWeight,
     override val name: String = "total_weight_limit"

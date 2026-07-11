@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
- */
+*/
 abstract class AbstractTaskSchedulingAggregation<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -58,7 +58,7 @@ abstract class AbstractTaskSchedulingAggregation<
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
@@ -100,7 +100,7 @@ abstract class AbstractTaskSchedulingAggregation<
  * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
  * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
  * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
- */
+*/
 open class TaskCompilationAggregation<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -120,6 +120,7 @@ open class TaskCompilationAggregation<
     taskCancelEnabled = taskCancelEnabled,
     withExecutorLeisure = withExecutorLeisure
 ) {
+
     /**
      * 通过 solver 时间窗口边界创建任务编译聚合 / Create task compilation aggregation from a solver time-window boundary
      *
@@ -129,7 +130,7 @@ open class TaskCompilationAggregation<
      * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
      * @param taskCancelEnabled 是否启用任务取消 / Whether task cancellation is enabled
      * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,
@@ -167,7 +168,7 @@ open class TaskCompilationAggregation<
  * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
  * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
  * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
- */
+*/
 open class TaskCompilationAggregationWithTime<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -228,7 +229,7 @@ open class TaskCompilationAggregationWithTime<
      * @param delayLastEndTimeEnabled 是否启用延迟最后结束时间 / Whether delay last end time is enabled
      * @param advanceEarliestEndTimeEnabled 是否启用提前最早结束时间 / Whether advance earliest end time is enabled
      * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,

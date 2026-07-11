@@ -9,7 +9,7 @@
  * Source: SI base unit definitions
  * - Katal: mol/s (SI derived unit for catalytic activity)
  * - Enzyme Unit (U): 1 μmol/min = 1/60 μmol/s ≈ 16.67 nmol/s
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.quantities.dimension.CatalyticActivity
  * 于 1999 年第 21 届国际计量大会采纳
  * Source: SI derived unit, international unit for catalytic activity
  * Adopted at the 21st General Conference on Weights and Measures in 1999
- */
+*/
 object Katal : DerivedPhysicalUnit(Mole / Second) {
     override val name = "katal"
     override val symbol = "kat"
@@ -56,7 +56,7 @@ object Katal : DerivedPhysicalUnit(Mole / Second) {
  *
  * 来源：SI 催化活度单位
  * Source: SI catalytic activity unit
- */
+*/
 object Millikatal : DerivedPhysicalUnit(Katal * Scale.milli) {
     override val name = "millikatal"
     override val symbol = "mkat"
@@ -79,7 +79,7 @@ object Millikatal : DerivedPhysicalUnit(Katal * Scale.milli) {
  *
  * 来源：SI 催化活度单位，常用于酶学
  * Source: SI catalytic activity unit, commonly used in enzymology
- */
+*/
 object Microkatal : DerivedPhysicalUnit(Katal * Scale.micro) {
     override val name = "microkatal"
     override val symbol = "μkat"
@@ -104,7 +104,7 @@ object Microkatal : DerivedPhysicalUnit(Katal * Scale.micro) {
  * 1 U ≈ 16.67 nkat
  * Source: Common unit in biochemistry, defines enzyme catalytic reaction rate
  * 1 U ≈ 16.67 nkat
- */
+*/
 object EnzymeUnit : DerivedPhysicalUnit(Katal / FltX(60000000.0)) {
     override val name = "enzyme unit"
     override val symbol = "U"

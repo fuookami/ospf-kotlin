@@ -21,11 +21,11 @@ import jscip.SCIP_ParamSetting
 /**
  * SCIP column generation solver
  *
- * 中文: SCIP 列生成求解器
+ * SCIP 列生成求解器
  *
  * @property config solver configuration / 求解器配置
  * @property callBack solver callback / 求解器回调
- */
+*/
 class ScipColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: ScipSolverCallBack = ScipSolverCallBack()

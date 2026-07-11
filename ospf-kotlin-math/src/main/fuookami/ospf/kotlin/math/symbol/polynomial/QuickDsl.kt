@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * 提供多项式构建的泛型 DSL 扩展函数。
  * Provides generic DSL extension functions for polynomial construction.
- */
+*/
 
 // ========== Linear polynomial construction ==========
 
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @param poly 可变线性多项式 / Mutable linear polynomial
  * @return 不可变线性多项式 / Immutable linear polynomial
- */
+*/
 @JvmName("quickLinearPolynomialFromMutable")
 fun <T : NumberField<T>> LinearPolynomial(poly: MutableLinearPolynomial<T>): LinearPolynomial<T> {
     return poly.toLinearPolynomial()
@@ -39,7 +39,7 @@ fun <T : NumberField<T>> LinearPolynomial(poly: MutableLinearPolynomial<T>): Lin
  *
  * @param monomials 线性单项式可迭代集合 / Iterable of linear monomials
  * @return 求和后的线性多项式 / Resulting linear polynomial
- */
+*/
 @JvmName("sumLinearMonomials")
 fun <T : Ring<T>> sum(monomials: Iterable<LinearMonomial<T>>): LinearPolynomial<T> {
     return LinearPolynomial(monomials.toList(), zeroOf(monomials.firstOrNull()?.coefficient ?: error("empty monomials")))
@@ -51,7 +51,7 @@ fun <T : Ring<T>> sum(monomials: Iterable<LinearMonomial<T>>): LinearPolynomial<
  *
  * @param polynomials 线性多项式可迭代集合 / Iterable of linear polynomials
  * @return 合并后的线性多项式 / Combined linear polynomial
- */
+*/
 @JvmName("sumLinearPolynomials")
 fun <T : Ring<T>> sum(polynomials: Iterable<LinearPolynomial<T>>): LinearPolynomial<T> {
     val monomials = ArrayList<LinearMonomial<T>>()
@@ -70,7 +70,7 @@ fun <T : Ring<T>> sum(polynomials: Iterable<LinearPolynomial<T>>): LinearPolynom
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性单项式的函数 / Function to extract a linear monomial from an element
  * @return 求和后的线性多项式 / Resulting linear polynomial
- */
+*/
 fun <T : Ring<T>, E> sum(
     elements: Iterable<E>,
     selector: (E) -> LinearMonomial<T>
@@ -92,7 +92,7 @@ fun <T : Ring<T>, E> sum(
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性多项式的函数 / Function to extract a linear polynomial from an element
  * @return 合并后的线性多项式 / Combined linear polynomial
- */
+*/
 fun <T : Ring<T>, E> sumPolynomials(
     elements: Iterable<E>,
     selector: (E) -> LinearPolynomial<T>
@@ -111,7 +111,7 @@ fun <T : Ring<T>, E> sumPolynomials(
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取线性单项式可迭代集合的函数 / Function returning an iterable of linear monomials per element
  * @return 求和后的线性多项式 / Resulting linear polynomial
- */
+*/
 fun <T : Ring<T>, E> flatSum(
     elements: Iterable<E>,
     selector: (E) -> Iterable<LinearMonomial<T>>
@@ -126,7 +126,7 @@ fun <T : Ring<T>, E> flatSum(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的线性多项式结果 / Resulting linear polynomial result
- */
+*/
 @JvmName("quickSumByNullableMonomial")
 fun <T : Ring<T>, E> sum(
     items: Iterable<E>,
@@ -142,7 +142,7 @@ fun <T : Ring<T>, E> sum(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的线性多项式结果 / Resulting linear polynomial result
- */
+*/
 fun <T : Ring<T>, E> sumSafe(
     items: Iterable<E>,
     transform: (E) -> LinearMonomial<T>?
@@ -164,7 +164,7 @@ fun <T : Ring<T>, E> sumSafe(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的线性多项式或 null / Resulting linear polynomial, or null
- */
+*/
 fun <T : Ring<T>, E> sumOrNull(
     items: Iterable<E>,
     transform: (E) -> LinearMonomial<T>?
@@ -184,7 +184,7 @@ fun <T : Ring<T>, E> sumOrNull(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
  * @return 求和后的线性多项式结果 / Resulting linear polynomial result
- */
+*/
 @JvmName("quickFlatSumNullable")
 fun <T : Ring<T>, E> flatSum(
     list: Iterable<E>,
@@ -200,7 +200,7 @@ fun <T : Ring<T>, E> flatSum(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
  * @return 求和后的线性多项式结果 / Resulting linear polynomial result
- */
+*/
 fun <T : Ring<T>, E> flatSumSafe(
     list: Iterable<E>,
     transform: (E) -> Iterable<LinearMonomial<T>?>
@@ -225,7 +225,7 @@ fun <T : Ring<T>, E> flatSumSafe(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空单项式可迭代集合的转换函数 / Transform returning iterable of nullable monomials
  * @return 求和后的线性多项式或 null / Resulting linear polynomial, or null
- */
+*/
 fun <T : Ring<T>, E> flatSumOrNull(
     list: Iterable<E>,
     transform: (E) -> Iterable<LinearMonomial<T>?>
@@ -249,7 +249,7 @@ fun <T : Ring<T>, E> flatSumOrNull(
  *
  * @param monomials 二次单项式可迭代集合 / Iterable of quadratic monomials
  * @return 求和后的二次多项式 / Resulting quadratic polynomial
- */
+*/
 @JvmName("sumQuadraticMonomials")
 fun <T : Ring<T>> qsum(monomials: Iterable<QuadraticMonomial<T>>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials.toList(), zeroOf(monomials.firstOrNull()?.coefficient ?: error("empty monomials")))
@@ -261,7 +261,7 @@ fun <T : Ring<T>> qsum(monomials: Iterable<QuadraticMonomial<T>>): QuadraticPoly
  *
  * @param polynomials 二次多项式可迭代集合 / Iterable of quadratic polynomials
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 @JvmName("sumQuadraticPolynomials")
 fun <T : Ring<T>> qsum(polynomials: Iterable<QuadraticPolynomial<T>>): QuadraticPolynomial<T> {
     val monomials = ArrayList<QuadraticMonomial<T>>()
@@ -280,7 +280,7 @@ fun <T : Ring<T>> qsum(polynomials: Iterable<QuadraticPolynomial<T>>): Quadratic
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取二次单项式的函数 / Function to extract a quadratic monomial from an element
  * @return 求和后的二次多项式 / Resulting quadratic polynomial
- */
+*/
 fun <T : Ring<T>, E> qsum(
     elements: Iterable<E>,
     selector: (E) -> QuadraticMonomial<T>
@@ -302,7 +302,7 @@ fun <T : Ring<T>, E> qsum(
  * @param elements 元素可迭代集合 / Iterable of elements
  * @param selector 从元素提取二次多项式的函数 / Function to extract a quadratic polynomial from an element
  * @return 合并后的二次多项式 / Combined quadratic polynomial
- */
+*/
 fun <T : Ring<T>, E> qsumPolynomials(
     elements: Iterable<E>,
     selector: (E) -> QuadraticPolynomial<T>
@@ -321,7 +321,7 @@ fun <T : Ring<T>, E> qsumPolynomials(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
  * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
- */
+*/
 fun <T : Ring<T>, E> flatQSum(
     list: Iterable<E>,
     transform: (E) -> Iterable<QuadraticMonomial<T>?>
@@ -336,7 +336,7 @@ fun <T : Ring<T>, E> flatQSum(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
  * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
- */
+*/
 fun <T : Ring<T>, E> flatQSumSafe(
     list: Iterable<E>,
     transform: (E) -> Iterable<QuadraticMonomial<T>?>
@@ -361,7 +361,7 @@ fun <T : Ring<T>, E> flatQSumSafe(
  * @param list 元素可迭代集合 / Iterable of elements
  * @param transform 返回可空二次单项式可迭代集合的转换函数 / Transform returning iterable of nullable quadratic monomials
  * @return 求和后的二次多项式或 null / Resulting quadratic polynomial, or null
- */
+*/
 fun <T : Ring<T>, E> flatQSumOrNull(
     list: Iterable<E>,
     transform: (E) -> Iterable<QuadraticMonomial<T>?>
@@ -384,7 +384,7 @@ fun <T : Ring<T>, E> flatQSumOrNull(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
- */
+*/
 @JvmName("quickQSumByNullableMonomial")
 fun <T : Ring<T>, E> qsum(
     items: Iterable<E>,
@@ -400,7 +400,7 @@ fun <T : Ring<T>, E> qsum(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的二次多项式结果 / Resulting quadratic polynomial result
- */
+*/
 fun <T : Ring<T>, E> qsumSafe(
     items: Iterable<E>,
     transform: (E) -> QuadraticMonomial<T>?
@@ -422,7 +422,7 @@ fun <T : Ring<T>, E> qsumSafe(
  * @param items 元素可迭代集合 / Iterable of elements
  * @param transform 可空转换函数 / Nullable transform function
  * @return 求和后的二次多项式或 null / Resulting quadratic polynomial, or null
- */
+*/
 fun <T : Ring<T>, E> qsumOrNull(
     items: Iterable<E>,
     transform: (E) -> QuadraticMonomial<T>?
@@ -443,5 +443,5 @@ fun <T : Ring<T>, E> qsumOrNull(
  *
  * @param value 用于推断类型的值 / Value used to infer the type
  * @return 该类型的零值 / Zero value of the type
- */
+*/
 internal fun <T : Ring<T>> zeroOf(value: T): T = value - value

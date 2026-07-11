@@ -4,13 +4,19 @@
  *
  * 提供面向仓储谓词的字符串与空值函数入口。
  * Provides string and null-handling function entry points for repository predicates.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.expression.dsl.PathBuilder
 
-/** 将标量表达式无损转换为 Any? 类型 / Cast scalar expression to Any? type losslessly */
+/**
+ * Casts scalar expression to Any? type losslessly.
+ * 将标量表达式无损转换为 Any? 类型。
+ *
+ * @param expr the scalar expression to cast / 要转换的标量表达式
+ * @return the casted scalar expression / 转换后的标量表达式
+*/
 @Suppress("UNCHECKED_CAST")
 private fun anyScalar(expr: ScalarExpression<*>): ScalarExpression<Any?> = expr as ScalarExpression<Any?>
 
@@ -21,7 +27,7 @@ private fun anyScalar(expr: ScalarExpression<*>): ScalarExpression<Any?> = expr 
  * @param name 函数名 / Function name
  * @param arguments 参数列表 / Argument list
  * @return 标量函数表达式 / Scalar function expression
- */
+*/
 private fun function(name: String, arguments: List<ScalarExpression<*>>): ScalarFunction<Any?> {
     return ScalarFunction(name, arguments.map { anyScalar(it) })
 }
@@ -32,7 +38,7 @@ private fun function(name: String, arguments: List<ScalarExpression<*>>): Scalar
  *
  * @param expr 输入表达式 / Input expression
  * @return 小写转换函数表达式 / Lowercase conversion function expression
- */
+*/
 fun lower(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Lower, listOf(expr))
 
@@ -42,7 +48,7 @@ fun lower(expr: ScalarExpression<*>): ScalarFunction<Any?> =
  *
  * @param path 字段路径 / Field path
  * @return 小写转换函数表达式 / Lowercase conversion function expression
- */
+*/
 fun lower(path: PathBuilder): ScalarFunction<Any?> = lower(path.asScalar<Any?>())
 
 /**
@@ -51,7 +57,7 @@ fun lower(path: PathBuilder): ScalarFunction<Any?> = lower(path.asScalar<Any?>()
  *
  * @param expr 输入表达式 / Input expression
  * @return 大写转换函数表达式 / Uppercase conversion function expression
- */
+*/
 fun upper(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Upper, listOf(expr))
 
@@ -61,7 +67,7 @@ fun upper(expr: ScalarExpression<*>): ScalarFunction<Any?> =
  *
  * @param path 字段路径 / Field path
  * @return 大写转换函数表达式 / Uppercase conversion function expression
- */
+*/
 fun upper(path: PathBuilder): ScalarFunction<Any?> = upper(path.asScalar<Any?>())
 
 /**
@@ -70,7 +76,7 @@ fun upper(path: PathBuilder): ScalarFunction<Any?> = upper(path.asScalar<Any?>()
  *
  * @param expr 输入表达式 / Input expression
  * @return 去空白函数表达式 / Trim function expression
- */
+*/
 fun trim(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Trim, listOf(expr))
 
@@ -80,7 +86,7 @@ fun trim(expr: ScalarExpression<*>): ScalarFunction<Any?> =
  *
  * @param path 字段路径 / Field path
  * @return 去空白函数表达式 / Trim function expression
- */
+*/
 fun trim(path: PathBuilder): ScalarFunction<Any?> = trim(path.asScalar<Any?>())
 
 /**
@@ -89,7 +95,7 @@ fun trim(path: PathBuilder): ScalarFunction<Any?> = trim(path.asScalar<Any?>())
  *
  * @param expr 输入表达式 / Input expression
  * @return 长度函数表达式 / Length function expression
- */
+*/
 fun length(expr: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Length, listOf(expr))
 
@@ -99,7 +105,7 @@ fun length(expr: ScalarExpression<*>): ScalarFunction<Any?> =
  *
  * @param path 字段路径 / Field path
  * @return 长度函数表达式 / Length function expression
- */
+*/
 fun length(path: PathBuilder): ScalarFunction<Any?> = length(path.asScalar<Any?>())
 
 /**
@@ -108,7 +114,7 @@ fun length(path: PathBuilder): ScalarFunction<Any?> = length(path.asScalar<Any?>
  *
  * @param expressions 候选表达式列表 / Candidate expression list
  * @return 合并函数表达式 / Coalesce function expression
- */
+*/
 fun coalesce(vararg expressions: ScalarExpression<*>): ScalarFunction<Any?> =
     function(ScalarFunctionNames.Coalesce, expressions.toList())
 
@@ -118,6 +124,6 @@ fun coalesce(vararg expressions: ScalarExpression<*>): ScalarFunction<Any?> =
  *
  * @param paths 候选路径列表 / Candidate path list
  * @return 合并函数表达式 / Coalesce function expression
- */
+*/
 fun coalesce(vararg paths: PathBuilder): ScalarFunction<Any?> =
     coalesce(*paths.map { it.asScalar<Any?>() }.toTypedArray())

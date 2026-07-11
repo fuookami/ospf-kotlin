@@ -3,7 +3,7 @@
  *
  * System utility functions for memory management and monitoring.
  * 用于内存管理和监控的系统工具函数。
- */
+*/
 package fuookami.ospf.kotlin.utils
 
 /**
@@ -20,7 +20,7 @@ package fuookami.ospf.kotlin.utils
  * @param threshold 内存使用阈值，默认 0.8（80%）/ Memory usage threshold, default 0.8 (80%)
  * @return 如果内存使用超过阈值则返回 true，否则返回 false /
  *         True if memory usage exceeds threshold, false otherwise
- */
+*/
 fun memoryUseOver(threshold: Double = 0.8): Boolean {
     val memoryThreshold = Runtime.getRuntime().maxMemory().toDouble() * threshold
     val usedMemory = (Runtime.getRuntime().totalMemory() - Runtime.getRuntime().freeMemory()).toDouble()

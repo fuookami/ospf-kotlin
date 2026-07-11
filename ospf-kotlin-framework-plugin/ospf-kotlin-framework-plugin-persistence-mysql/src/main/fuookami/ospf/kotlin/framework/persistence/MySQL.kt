@@ -4,7 +4,7 @@
  *
  * 提供 MySQL 数据源的初始化和管理功能。
  * Provides MySQL datasource initialization and management functionality.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import kotlinx.serialization.Serializable
@@ -19,7 +19,7 @@ import org.ktorm.support.mysql.MySqlDialect
  *
  * @property name 客户端名称 / Client name
  * @property database 数据库名称 / Database name
- */
+*/
 data class MySQLClientKey(
     val name: String,
     val database: String
@@ -38,7 +38,7 @@ data class MySQLClientKey(
  * @property maxTotal 最大连接数 / Maximum total connections
  * @property maxIdle 最大空闲连接数 / Maximum idle connections
  * @property maxOpenPreparedStatements 最大预编译语句数 / Maximum open prepared statements
- */
+*/
 data class MySQLConfigBuilder(
     var url: String? = null,
     var name: String? = null,
@@ -57,7 +57,7 @@ data class MySQLConfigBuilder(
      * Build MySQL configuration
      *
      * @return 配置实例，参数不完整时返回 null / Configuration instance, or null if parameters are incomplete
-     */
+    */
     operator fun invoke(): MySQLConfig? {
         return try {
             MySQLConfig(
@@ -105,7 +105,7 @@ data class MySQLConfigBuilder(
  * @property maxTotal 最大连接数 / Maximum total connections
  * @property maxIdle 最大空闲连接数 / Maximum idle connections
  * @property maxOpenPreparedStatements 最大预编译语句数 / Maximum open prepared statements
- */
+*/
 @Serializable
 data class MySQLConfig(
     val url: String,
@@ -127,7 +127,7 @@ data class MySQLConfig(
  *
  * 管理多个 MySQL 数据源实例，按名称和数据库索引。
  * Manages multiple MySQL datasource instances, indexed by name and database.
- */
+*/
 object MySQL {
     @get:Synchronized
     private val clients: MutableMap<MySQLClientKey, BasicDataSource> = HashMap()
@@ -138,7 +138,7 @@ object MySQL {
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Ktorm 数据库实例，初始化失败时返回 null / Ktorm database instance, or null if initialization fails
-     */
+    */
     @Synchronized
     fun init(builder: MySQLConfigBuilder.() -> Unit): Database? {
         val config = MySQLConfigBuilder()
@@ -152,7 +152,7 @@ object MySQL {
      *
      * @param config MySQL 配置 / MySQL configuration
      * @return Ktorm 数据库实例，创建失败时返回 null / Ktorm database instance, or null if creation fails
-     */
+    */
     @Synchronized
     operator fun invoke(config: MySQLConfig): Database? {
         if (clients.containsKey(config.key)) {
@@ -186,7 +186,7 @@ object MySQL {
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(key: MySQLClientKey? = null): Database? {
         return (if (key != null) {
@@ -205,7 +205,7 @@ object MySQL {
      * @param name 客户端名称 / Client name
      * @param dataBase 数据库名称（可选）/ Database name (optional)
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(name: String, dataBase: String? = null): Database? {
         return (if (dataBase != null) {

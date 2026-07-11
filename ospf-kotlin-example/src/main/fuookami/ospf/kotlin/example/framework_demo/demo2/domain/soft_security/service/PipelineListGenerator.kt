@@ -15,6 +15,12 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Generates the pipeline of soft security constraints for model construction.
+ * 生成用于模型构建的软安全约束管线。
+ *
+ * @property aggregation The aggregation containing soft security data / 包含软安全数据的聚合
+*/
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {

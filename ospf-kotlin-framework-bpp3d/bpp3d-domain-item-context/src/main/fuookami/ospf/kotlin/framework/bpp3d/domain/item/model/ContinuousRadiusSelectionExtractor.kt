@@ -2,7 +2,7 @@
  * Continuous radius selection result extractor that builds CylinderRadiusSelectionResult lists
  * from native and PWL results.
  * 连续半径选择结果提取器，从 native 和 PWL 结果构建 CylinderRadiusSelectionResult 列表。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param solverResults solver 选出半径映射 / solver-selected radius map
  * @return 连续半径已选择结果列表 / continuous-radius selection result list
- */
+*/
 fun buildNativeContinuousRadiusSelectionResults(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     solverResults: Map<String, FltX>
@@ -40,7 +40,7 @@ fun buildNativeContinuousRadiusSelectionResults(
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param pwlContinuousRadiusResults PWL 连续半径结果 opaque Map / PWL continuous-radius results opaque Map
  * @return 连续半径已选择结果列表（包含 PWL 元数据）/ continuous-radius selection result list (with PWL metadata)
- */
+*/
 fun buildPWLContinuousRadiusSelectionResults(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     pwlContinuousRadiusResults: Map<String, Map<String, FltX>>
@@ -84,7 +84,7 @@ fun buildPWLContinuousRadiusSelectionResults(
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param extractedResults PWL 提取结果列表 / PWL extracted results
  * @return 连续半径已选择结果列表（包含 PWL 元数据）/ continuous-radius selection result list (with PWL metadata)
- */
+*/
 fun buildPWLSelectionResultsFromExtracted(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     extractedResults: List<PWLExtractedRadius>

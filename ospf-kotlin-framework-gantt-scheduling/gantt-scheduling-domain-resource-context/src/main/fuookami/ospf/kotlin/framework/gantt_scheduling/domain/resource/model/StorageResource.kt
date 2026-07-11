@@ -32,19 +32,20 @@ import fuookami.ospf.kotlin.utils.min
  * @param name 资源名称 / Resource name
  * @param capacities 容量列表 / List of capacities
  * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
- */
+*/
 abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
     override val id: ResourceId,
     override val name: String,
     override val capacities: List<C>,
     override val initialQuantityValue: V
 ) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算指定时长内的固定成本 / Calculate fixed cost in the given duration
      *
      * @param time 时长 / Duration
      * @return 固定成本裸值 / Fixed cost raw value
-     */
+    */
     open fun fixedCostIn(time: Duration): V {
         return initialQuantityValue.constants.zero
     }
@@ -54,7 +55,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      *
      * @param time 时间范围 / Time range
      * @return 固定成本裸值 / Fixed cost raw value
-     */
+    */
     open fun fixedCostIn(time: TimeRange): V {
         return fixedCostIn(time.duration)
     }
@@ -68,7 +69,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时长 / Duration
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         task: T,
         time: Duration
@@ -83,7 +84,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时间范围 / Time range
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         task: T,
         time: TimeRange
@@ -97,7 +98,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      *
      * @param time 时长 / Duration
      * @return 固定供给量裸值 / Fixed supply raw value
-     */
+    */
     open fun fixedSupplyIn(time: Duration): V {
         return initialQuantityValue.constants.zero
     }
@@ -107,7 +108,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      *
      * @param time 时间范围 / Time range
      * @return 固定供给量裸值 / Fixed supply raw value
-     */
+    */
     open fun fixedSupplyIn(time: TimeRange): V {
         return fixedSupplyIn(time.duration)
     }
@@ -121,7 +122,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时长 / Duration
      * @return 资源供给量裸值 / Resource supply raw value
-     */
+    */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
         task: T,
         time: Duration
@@ -136,7 +137,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时间范围 / Time range
      * @return 资源供给量裸值 / Resource supply raw value
-     */
+    */
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
         task: T,
         time: TimeRange
@@ -154,7 +155,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param task 任务 / Task
      * @param time 时间范围 / Time range
      * @return 净使用量裸值 / Net usage raw value
-     */
+    */
     fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
         task: T,
         time: TimeRange
@@ -171,7 +172,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param bunch 任务束 / Task bunch
      * @param time 时间范围 / Time range
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> costBy(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
@@ -199,7 +200,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
      * @param bunch 任务束 / Task bunch
      * @param time 时间范围 / Time range
      * @return 资源供给量裸值 / Resource supply raw value
-     */
+    */
     open fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> supplyBy(
         bunch: AbstractTaskBunch<T, E, A, V>,
         time: TimeRange
@@ -238,7 +239,7 @@ abstract class StorageResource<C : AbstractResourceCapacity<V>, V>(
  * @param resource 资源 / Resource
  * @param resourceCapacity 资源容量 / Resource capacity
  * @param indexInRule 规则内索引 / Index in rule
- */
+*/
 data class StorageResourceTimeSlot<
         R : StorageResource<C, V>,
         C : AbstractResourceCapacity<V>,
@@ -251,6 +252,7 @@ data class StorageResourceTimeSlot<
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C, V>, AutoIndexed(StorageResourceTimeSlot::class)
         where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算任务在此时槽的资源消耗量 / Calculate resource consumption of a task at this time slot
      *
@@ -258,7 +260,7 @@ data class StorageResourceTimeSlot<
      * @param A 分配策略类型 / Assignment policy type
      * @param task 任务 / Task
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> costBy(task: AbstractTask<E, A>): V {
         return resource.costBy(task, time)
     }
@@ -270,7 +272,7 @@ data class StorageResourceTimeSlot<
      * @param A 分配策略类型 / Assignment policy type
      * @param task 任务 / Task
      * @return 资源供给量裸值 / Resource supply raw value
-     */
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> supplyBy(task: AbstractTask<E, A>): V {
         return resource.supplyBy(task, time)
     }
@@ -322,7 +324,7 @@ typealias StorageResourceUsage<R, C, V> = ResourceUsage<StorageResourceTimeSlot<
  * @property supply 供给变量 / Supply variables
  * @property cost 消耗变量 / Cost variables
  * @property quantity 数量变量 / Quantity variables
- */
+*/
 abstract class AbstractStorageResourceUsage<
         E : Executor,
         R : StorageResource<C, V>,
@@ -481,7 +483,7 @@ abstract class AbstractStorageResourceUsage<
  * @param name 名称 / Name
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
- */
+*/
 class TaskSchedulingStorageResourceUsage<
         E : Executor,
         R : StorageResource<C, V>,
@@ -565,7 +567,7 @@ class TaskSchedulingStorageResourceUsage<
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
  * @param name 名称 / Name
- */
+*/
 class IterativeTaskSchedulingStorageResourceUsage<
         E : Executor,
         R : StorageResource<C, V>,
@@ -691,7 +693,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
      * @param tasks 任务列表 / List of tasks
      * @param compilation 迭代编译对象 / Iterative compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     suspend fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> addColumns(
         iteration: UInt64,
         tasks: List<T>,
@@ -772,7 +774,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
  * @param times 时间槽列表 / List of time slots
  * @param interval 时间间隔 / Time interval
  * @param name 名称 / Name
- */
+*/
 class BunchSchedulingStorageResourceUsage<
         E : Executor,
         R : StorageResource<C, V>,
@@ -899,7 +901,7 @@ class BunchSchedulingStorageResourceUsage<
      * @param bunches 任务束列表 / List of task bunches
      * @param compilation 编译对象 / Compilation object
      * @return 成功与否 / Success or failure
-     */
+    */
     suspend fun <
             B : AbstractTaskBunch<T, E, A, V>,
             T : AbstractTask<E, A>,

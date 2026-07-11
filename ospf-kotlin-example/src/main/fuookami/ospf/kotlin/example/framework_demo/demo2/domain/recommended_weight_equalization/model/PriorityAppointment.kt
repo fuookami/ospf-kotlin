@@ -5,10 +5,11 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 /**
- * 将货物优先级映射到装载顺序深度集合用于重量均衡预约。Maps cargo priorities to sets of loading order depths for weight equalization appointments.
+ * Maps cargo priorities to sets of loading order depths for weight equalization appointments.
+ * 将货物优先级映射到装载顺序深度集合用于重量均衡预约。
  *
- * @property appointment 参数。
- */
+ * @property appointment The mapping from cargo priority to loading order depth sets / 从货物优先级到装载顺序深度集合的映射
+*/
 data class PriorityAppointment(
     private val appointment: HashMap<CargoPriority, Set<UInt8>>
 ) {

@@ -1,7 +1,7 @@
 /**
  * Bouali 吸引子
  * Bouali Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property c4 常量 4 / Constant 4
  * @property c15 常量 1.5 / Constant 1.5
  * @property c005 常量 0.05 / Constant 0.05
- */
+*/
 data class BoualiAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val zeta: V,
@@ -51,7 +51,7 @@ data class BoualiAttractor<V : FloatingNumber<V>>(
  * Bouali Attractor Generator
  *
  * @property attractor Bouali 吸引子实例 / Bouali attractor instance
- */
+*/
 data class BoualiAttractorGenerator(
     val attractor: BoualiAttractor<Flt64> = BoualiAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

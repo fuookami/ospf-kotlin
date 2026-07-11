@@ -1,6 +1,6 @@
 /**
  * Token 缓存键 / Token cache key
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
  * @property category 符号操作类别 / Symbol operation category
  * @property prefix 键前缀 / Key prefix
  * @property identifier 唯一标识符 / Unique identifier
- */
+*/
 internal data class TokenCacheKey(
     val category: Category,
     val prefix: String,
@@ -32,7 +32,7 @@ internal data class TokenCacheKey(
  * @param category 符号操作类别 / Symbol operation category
  * @param prefix 键前缀 / Key prefix
  * @return 新的缓存键 / New cache key
- */
+*/
 internal fun newTokenCacheKey(
     category: Category,
     prefix: String

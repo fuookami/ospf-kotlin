@@ -1,7 +1,7 @@
 /**
  * 本地文件对象存储
  * Local file object storage
- */
+*/
 package fuookami.ospf.kotlin.framework.solver.remote.adapter.localfs
 
 import java.nio.file.Files
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.framework.solver.remote.port.ObjectStoragePort
  * Local file object storage port implementation.
  *
  * @property root 存储根目录 / Storage root directory
- */
+*/
 class LocalFileObjectStoragePort(
     root: Path
 ) : ObjectStoragePort {
@@ -70,7 +70,7 @@ class LocalFileObjectStoragePort(
      *
      * @param path 对象路径 / Object path
      * @return 绝对文件系统路径 / Absolute filesystem path
-     */
+    */
     private fun resolveObjectPath(path: ObjectPath): Path {
         val normalizedPath = normalizeObjectPath(path)
         val resolved = root.resolve(normalizedPath.value).toAbsolutePath().normalize()
@@ -86,7 +86,7 @@ class LocalFileObjectStoragePort(
      *
      * @param path 对象路径 / Object path
      * @return 规范化后的对象路径 / Normalized object path
-     */
+    */
     private fun normalizeObjectPath(path: ObjectPath): ObjectPath {
         return ObjectPath.of(path.value)
     }
@@ -97,7 +97,7 @@ class LocalFileObjectStoragePort(
      *
      * @param path 对象文件路径 / Object file path
      * @return 元数据文件路径 / Metadata file path
-     */
+    */
     private fun metadataPath(path: Path): Path {
         return path.resolveSibling("${path.fileName}.metadata")
     }
@@ -108,7 +108,7 @@ class LocalFileObjectStoragePort(
      *
      * @param metadata 元数据键值对 / Metadata key-value pairs
      * @return 编码后的字符串 / Encoded string
-     */
+    */
     private fun encodeMetadata(metadata: Map<String, String>): String {
         return metadata.entries.joinToString("\n") { (key, value) ->
             "${key.replace("\n", "\\n")}=${value.replace("\n", "\\n")}"
@@ -121,7 +121,7 @@ class LocalFileObjectStoragePort(
      *
      * @param bytes 字节数组 / Byte array
      * @return 十六进制哈希字符串 / Hexadecimal hash string
-     */
+    */
     private fun sha256(bytes: ByteArray): String {
         val digest = MessageDigest.getInstance("SHA-256").digest(bytes)
         return digest.joinToString("") { "%02x".format(it) }

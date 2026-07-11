@@ -17,14 +17,20 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 用于分析主甲板扭矩分布的实验纵向平衡模型。Experimental longitudinal balance model for analyzing main-deck torque distribution.
+ * Experimental longitudinal balance model for analyzing main-deck torque distribution.
+ * 用于分析主甲板扭矩分布的实验纵向平衡模型。
  *
- * @property aircraftModel 参数。
- * @property positions 参数。
- * @property load 参数。
- * @property payload 参数。
- * @property redundancy 参数。
- */
+ * @property aircraftModel The aircraft model reference / 飞机模型引用
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property load The load distribution data / 载荷分布数据
+ * @property payload The payload data / 载荷数据
+ * @property redundancy The redundancy model reference / 冗余模型引用
+ * @property mainActualLongitudinalTorque The main deck actual longitudinal torque symbol / 主甲板实际纵向扭矩符号
+ * @property predicateLongitudinalTorque The predicate longitudinal torque symbol / 预测纵向扭矩符号
+ * @property longitudinalTorqueSlack The longitudinal torque slack variable / 纵向扭矩松弛变量
+ * @property minLongitudinalTorque The minimum longitudinal torque bound / 最小纵向扭矩边界
+ * @property maxLongitudinalTorque The maximum longitudinal torque bound / 最大纵向扭矩边界
+*/
 class ExperimentalLongitudinalBalance(
     private val aircraftModel: AircraftModel,
     private val positions: List<Position>,
@@ -44,6 +50,13 @@ class ExperimentalLongitudinalBalance(
         TODO("not implemented yet")
     }
 
+    /**
+     * Registers longitudinal balance intermediate symbols into the optimization model.
+     * 将纵向平衡中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into / 要注册到的线性元模型
+     * @return Success or failure result / 成功或失败结果
+    */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::mainActualLongitudinalTorque.isInitialized) {
             val poly = MutableLinearPolynomial()

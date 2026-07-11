@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * @property produce Produce aggregation / 产出聚合
  * @property length Length assignment aggregation / 长度分配聚合
  * @property config Length assignment modeling configuration / 长度分配建模配置
- */
+*/
 class LengthObjectivePipeline<V : RealNumber<V>>(
     private val produce: ProduceAggregation<V>,
     private val length: LengthAggregation<V>,
@@ -43,8 +43,11 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
     }
 
     /**
-     * 生成目标项单项式 / Generate objective monomials
-     */
+     * Generate objective monomials.
+     * 生成目标项单项式
+     *
+     * @return List of linear monomials representing objective penalty terms / 表示目标惩罚项的线性单项式列表
+    */
     fun objectiveMonomials(): List<LinearMonomial<Flt64>> {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 
@@ -70,11 +73,14 @@ class LengthObjectivePipeline<V : RealNumber<V>>(
     }
 
     /**
-     * 获取批次系数 / Get batch coefficient
+     * Get batch coefficient for the objective function.
+     * 获取目标函数的批次系数
      *
+     * When batchMinPenalty is present, extra weight is applied to Σx_j.
      * 当 batchMinPenalty 非空时，对 Σx_j 施加额外加权。
-     * Apply extra weight to Σx_j when batchMinPenalty is present.
-     */
+     *
+     * @return Batch coefficient for Σx_j / Σx_j 的批次系数
+    */
     fun batchCoefficient(): Flt64 {
         val batchMinPenalty = config.batchMinPenalty ?: return Flt64.one
         return Flt64.one + batchMinPenalty.toFlt64()

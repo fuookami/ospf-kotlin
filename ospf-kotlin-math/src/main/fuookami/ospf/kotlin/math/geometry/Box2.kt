@@ -4,7 +4,7 @@
  *
  * 定义二维几何空间中的包围盒，由位置 (x, y) 和投影形状定义。
  * Defines bounding box in 2D geometric space, defined by position (x, y) and projection shape.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @property x X 坐标 / X coordinate
  * @property y Y 坐标 / Y coordinate
  * @property shape 包围的二维形状 / The enclosed 2D shape
- */
+*/
 data class Box2<V : FloatingNumber<V>>(
     val x: V,
     val y: V,
@@ -37,7 +37,7 @@ data class Box2<V : FloatingNumber<V>>(
          * @param V 数值类型 / The numeric type
          * @param shape 二维形状 / The 2D shape
          * @return 原点处的包围盒 / The bounding box at the origin
-         */
+        */
         fun <V : FloatingNumber<V>> atOrigin(shape: Shape2<V>): Box2<V> {
             return when (shape) {
                 is Rectangle2 -> Box2(
@@ -74,6 +74,7 @@ data class Box2<V : FloatingNumber<V>>(
 
     /** X 轴最大值 / Maximum X value */
     val maxX: V get() = quantityPlus(x, width)
+
     /** Y 轴最大值 / Maximum Y value */
     val maxY: V get() = quantityPlus(y, height)
 
@@ -99,7 +100,7 @@ data class Box2<V : FloatingNumber<V>>(
      * @param withUpperBound 是否包含上界 / Whether to include the upper bound
      * @param withBorder 是否包含边界 / Whether to include the border
      * @return 点是否在包围盒内 / Whether the point is inside the bounding box
-     */
+    */
     fun contains(
         x: V,
         y: V,
@@ -147,7 +148,7 @@ data class Box2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     fun overlapped(rhs: Box2<V>): Ret<Boolean> {
         return when (val lhsShape = shape) {
             is Rectangle2 -> when (val rhsShape = rhs.shape) {
@@ -168,7 +169,7 @@ data class Box2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个包围盒 / The other bounding box
      * @return 交集包围盒，无交集返回 null / The intersection box, or null if no overlap
-     */
+    */
     fun intersect(rhs: Box2<V>): Ret<Box2<V>?> {
         val minX = when (val result = quantityMax(x, rhs.x, "x")) {
             is Ok -> result.value
@@ -222,7 +223,7 @@ data class Box2<V : FloatingNumber<V>>(
      *
      * @param rhs 另一个矩形包围盒 / The other rectangle bounding box
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     private fun rectangleOverlapped(rhs: Box2<V>): Ret<Boolean> {
         val maxXOrd = when (val result = quantityOrdSafe(maxX, rhs.x, "x")) {
             is Ok -> result.value
@@ -266,7 +267,7 @@ data class Box2<V : FloatingNumber<V>>(
      * @param circleBox 圆形包围盒 / The circle bounding box
      * @param circle 圆形形状 / The circle shape
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     private fun rectCircleOverlapped(circleBox: Box2<V>, circle: Circle2<V>): Ret<Boolean> {
         val circleCenterX = quantityPlus(circleBox.x, circle.radius)
         val circleCenterY = quantityPlus(circleBox.y, circle.radius)
@@ -300,7 +301,7 @@ data class Box2<V : FloatingNumber<V>>(
      * @param lhs 左侧圆形形状 / The left circle shape
      * @param rhsCircle 右侧圆形形状 / The right circle shape
      * @return 是否重叠 / Whether they overlap
-     */
+    */
     private fun circleOverlapped(rhs: Box2<V>, lhs: Circle2<V>, rhsCircle: Circle2<V>): Ret<Boolean> {
         val dx = quantityMinus(centerX, rhs.centerX)
         val dy = quantityMinus(centerY, rhs.centerY)
@@ -322,5 +323,5 @@ data class Box2<V : FloatingNumber<V>>(
  *
  * @param V 数值类型 / The numeric type
  * @see Box2
- */
+*/
 typealias AxisAlignedBox2<V> = Box2<V>

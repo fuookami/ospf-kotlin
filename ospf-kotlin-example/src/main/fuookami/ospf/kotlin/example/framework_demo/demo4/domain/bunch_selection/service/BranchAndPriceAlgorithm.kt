@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * @property context 批次选择上下文。
  * @property solver 列生成求解器。
  * @property configuration 算法配置。
- */
+*/
 class BranchAndPriceAlgorithm(
     private val context: BunchSelectionContext,
     private val solver: ColumnGenerationSolver,
@@ -39,7 +39,7 @@ class BranchAndPriceAlgorithm(
      * @property maximumColumnAmount 最大列数。
      * @property minimumColumnAmountPerExecutor 每个执行器最小列数。
      * @property timeLimit 时间限制。
-     */
+    */
     data class Configuration(
         val badReducedAmount: UInt64 = UInt64(20UL),
         val maximumColumnAmount: UInt64 = UInt64(50000UL),
@@ -89,7 +89,7 @@ class BranchAndPriceAlgorithm(
      * @param id 标识符。
      * @param heartBeatCallBack 心跳回调。
      * @return 批次解。
-     */
+    */
     suspend operator fun invoke(
         id: String,
         heartBeatCallBack: ((kotlin.time.Instant, Duration, Flt64) -> Try)? = null

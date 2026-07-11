@@ -4,7 +4,7 @@
  *
  * Defines type aliases for polynomial parse results and parse issue types.
  * 定义多项式解析的结果类型别名和解析问题类型。
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.parse
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -19,7 +19,7 @@ typealias ParseResult<T> = Ret<T>
 /**
  * Parse issue type
  * 解析问题类型
- */
+*/
 enum class ParseIssueType {
     /** Lexical error / 中文：词法错误 */
     Lexical,
@@ -41,7 +41,7 @@ enum class ParseIssueType {
  * @param message 问题描述 / Issue description
  * @param input 输入字符串 / Input string
  * @param position 问题位置 / Issue position
- */
+*/
 data class ParseIssue(
     val type: ParseIssueType,
     val message: String,

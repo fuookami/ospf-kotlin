@@ -24,7 +24,7 @@ abstract class MindOPTSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -49,7 +49,7 @@ abstract class MindOPTSolver : AutoCloseable {
      * 执行 MindOPT 求解 / Execute MindOPT solving
      *
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun solve(): Try {
         return try {
             mindoptModel.optimize()
@@ -65,7 +65,7 @@ abstract class MindOPTSolver : AutoCloseable {
      * 分析 MindOPT 求解状态 / Analyze MindOPT solving status
      *
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (mindoptModel.get(MDO.IntAttr.Status)) {

@@ -4,7 +4,7 @@
  *
  * 将多个二次求解器并行运行，取第一个或最优结果。
  * Runs multiple quadratic solvers in parallel, taking the first or best result.
- */
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import kotlinx.coroutines.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property solvers 二次求解器列表（懒加载） / Quadratic solver list (lazy loaded)
  * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
- */
+*/
 class ParallelCombinatorialQuadraticSolver(
     private val solvers: List<Lazy<AbstractQuadraticSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best
@@ -32,6 +32,14 @@ class ParallelCombinatorialQuadraticSolver(
     private val logger = logger()
 
     companion object {
+        /**
+         * Construct from an iterable of solvers.
+         * 从求解器可迭代集合构造。
+         *
+         * @param solvers the solvers to combine / 要组合的求解器
+         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
+         * @return the parallel combinatorial solver / 并行组合求解器
+        */
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: Iterable<AbstractQuadraticSolver>,

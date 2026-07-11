@@ -1,7 +1,7 @@
 /**
  * 托马斯吸引子
  * Thomas Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property beta 系统参数 beta / System parameter beta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ThomasAttractor<V : FloatingNumber<V>>(val beta: V, val h: V) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     @Suppress("UNCHECKED_CAST")
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -41,7 +41,7 @@ data class ThomasAttractor<V : FloatingNumber<V>>(val beta: V, val h: V) : Extra
  * Thomas Attractor Generator
  *
  * @property attractor 托马斯吸引子实例 / Thomas attractor instance
- */
+*/
 data class ThomasAttractorGenerator(
     val attractor: ThomasAttractor<Flt64> = ThomasAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(
@@ -53,10 +53,11 @@ data class ThomasAttractorGenerator(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point<Dim3, Flt64>> {
+
     /**
      * 当前点坐标
      * Current point coordinates
-     */
+    */
     val x by ::_x;
     override operator fun invoke(): Point<Dim3, Flt64> {
         val x = _x.copy(); _x = attractor(x); return x

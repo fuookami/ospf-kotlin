@@ -4,7 +4,7 @@
  *
  * 将 UpdateAssignment 翻译为 MyBatis-Plus UPDATE SET 子句。
  * Translates UpdateAssignment to MyBatis-Plus UPDATE SET clause.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
@@ -20,10 +20,11 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  *
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
- */
+*/
 class MybatisUpdateTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver
 ) {
+
     /**
      * 应用更新到 Wrapper
      * Apply update to wrapper
@@ -31,7 +32,7 @@ class MybatisUpdateTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 应用更新后的 UpdateWrapper / UpdateWrapper with updates applied
-     */
+    */
     fun apply(wrapper: UpdateWrapper<T>, assignments: UpdateAssignments): UpdateWrapper<T> {
         if (assignments.isEmpty()) return wrapper
 
@@ -46,6 +47,13 @@ class MybatisUpdateTranslator<T : Any>(
         return result
     }
 
+/**
+ * applySetValue.
+ * applySetValue。
+ * @param wrapper MyBatis-Plus update wrapper to apply the value to / 要应用赋值的 MyBatis-Plus 更新 Wrapper
+ * @param item Set value assignment item / 赋值项
+ * @return UpdateWrapper with the value assignment applied / 应用赋值后的 UpdateWrapper
+*/
     private fun applySetValue(wrapper: UpdateWrapper<T>, item: SetValue): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
         return wrapper.set(column, MybatisValueConverter.convert(item.value))
@@ -58,7 +66,7 @@ class MybatisUpdateTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
      * @param item NULL 赋值项 / NULL assignment item
      * @return 应用赋值后的 UpdateWrapper / UpdateWrapper with null assignment applied
-     */
+    */
     private fun applySetNull(wrapper: UpdateWrapper<T>, item: SetNull): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
         return wrapper.set(column, null)
@@ -71,7 +79,7 @@ class MybatisUpdateTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
      * @param item 表达式赋值项 / Expression assignment item
      * @return 应用赋值后的 UpdateWrapper / UpdateWrapper with assignment applied
-     */
+    */
     private fun applySetFromExpression(wrapper: UpdateWrapper<T>, item: SetFromExpression): UpdateWrapper<T> {
         val column = resolveColumnName(item.path) ?: return wrapper
 

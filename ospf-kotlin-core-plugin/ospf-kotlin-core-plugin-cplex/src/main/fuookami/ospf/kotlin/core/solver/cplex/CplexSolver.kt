@@ -22,7 +22,7 @@ abstract class CplexSolver : AutoCloseable {
      *
      * @param name 模型名称 / model name
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun init(name: String): Try {
         cplex = IloCplex()
         cplex.name = name
@@ -33,7 +33,7 @@ abstract class CplexSolver : AutoCloseable {
      * 分析 CPLEX 求解状态 / Analyze CPLEX solving status
      *
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun analyzeStatus(): Try {
         status = when (cplex.status) {
             IloCplex.Status.Optimal -> {

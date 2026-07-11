@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [QuadraticMinFunction]，实现二次约束下的最小值建模。
  *
  * Provides [QuadraticMinFunction] for minimum value modeling under quadratic constraints.
- */
+*/
 
 /**
  * 二次最小值函数：y = min(p1, p2, ..., pn)。
@@ -39,7 +39,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class QuadraticMinFunction<V>(
     val polynomials: List<QuadraticPolynomial<V>>,
     val exact: Boolean = true,
@@ -88,7 +88,7 @@ class QuadraticMinFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
@@ -110,7 +110,7 @@ class QuadraticMinFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
@@ -137,7 +137,7 @@ class QuadraticMinFunction<V>(
      * @param tokenTable 可选的 token 表 / optional token table
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 符号值或 null / symbol value or null
-     */
+    */
     private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
@@ -158,7 +158,7 @@ class QuadraticMinFunction<V>(
      * @param poly 要求值的二次多项式 / the quadratic polynomial to evaluate
      * @param resolve 符号解析函数 / symbol resolution function
      * @return 多项式值或 null / polynomial value or null
-     */
+    */
     private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
@@ -182,7 +182,7 @@ class QuadraticMinFunction<V>(
      *
      * @param eval 多项式求值函数 / polynomial evaluation function
      * @return 最小值或 null / minimum value or null
-     */
+    */
     private fun chooseMin(
         eval: (QuadraticPolynomial<V>) -> V?
     ): V? {
@@ -204,7 +204,7 @@ class QuadraticMinFunction<V>(
      * @param tokenTable token 表 / the token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算结果或 null / pre-computed result or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -226,8 +226,9 @@ class QuadraticMinFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 结果列表求值（始终返回 null）。
      * Evaluate with Flt64 results list (always returns null).
@@ -236,8 +237,9 @@ class QuadraticMinFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /**
      * 使用 Flt64 值映射求值（始终返回 null）。
      * Evaluate with Flt64 value map (always returns null).
@@ -246,7 +248,7 @@ class QuadraticMinFunction<V>(
      * @param tokenList Flt64 token 列表 / Flt64 token list
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
@@ -277,6 +279,7 @@ class QuadraticMinFunction<V>(
             }
         }
     }
+
     /**
      * 使用 Flt64 结果列表进行求解器求值。
      * Evaluate solver with Flt64 results list.
@@ -286,11 +289,12 @@ class QuadraticMinFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /**
      * 使用 Flt64 值映射进行求解器求值。
      * Evaluate solver with Flt64 value map.
@@ -300,7 +304,7 @@ class QuadraticMinFunction<V>(
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 若为 true，缺失时返回零；否则返回 null / if true, return zero when missing; otherwise null
      * @return 求值结果或 null / evaluation result or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(targetValues, tokenTable, converter, zeroIfNone)
@@ -311,7 +315,7 @@ class QuadraticMinFunction<V>(
     /**
      * 将辅助变量 (resultVar, binVars) 注册到 token 集合中。
      * Register helper variables (resultVar, binVars) with the token collection.
-     */
+    */
     override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
         val allVars = mutableListOf<AbstractVariableItem<*, *>>(resultVar)
         allVars.addAll(binVars)
@@ -325,7 +329,7 @@ class QuadraticMinFunction<V>(
     /**
      * 注册最小值约束（y <= pi，精确模式下：y >= pi - M*(1-ui), sum(ui)=1）。
      * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
-     */
+    */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val one = converter.one
         val zero = converter.zero

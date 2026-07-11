@@ -14,14 +14,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 基于装载模式聚合用于项目优先级排序的快递效能模型。Aggregates express effectiveness models for item priority ordering based on stowage mode.
+ * Aggregates express effectiveness models for item priority ordering based on stowage mode.
+ * 基于装载模式聚合用于项目优先级排序的快递效能模型。
  *
- * @property stowageMode 参数。
- * @property internal val items 参数。
- * @property internal val positions 参数。
- * @property internal val stowage 参数。
- * @property mustShipIndices 参数。
- */
+ * @property items The list of cargo items to be prioritized. / 待排序的货物项列表
+ * @property positions The list of available stowage positions. / 可用配载位置列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property mustShipIndices Indices of items that must be shipped. / 必须发货的货物项索引列表
+*/
 class Aggregation(
     stowageMode: StowageMode,
     internal val items: List<Item>,
@@ -56,6 +56,14 @@ class Aggregation(
         }
     }
 
+    /**
+     * Registers express effectiveness models into the optimization model.
+     * 将快递效能模型注册到优化模型中。
+     *
+     * @param stowageMode The stowage mode determining which sub-models to register. / 决定注册哪些子模型的装载模式
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -77,12 +85,27 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Registers express effectiveness models for the Benders master problem.
+     * 为 Benders 主问题注册快递效能模型。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
+    /**
+     * Registers express effectiveness models for the Benders sub problem.
+     * 为 Benders 子问题注册快递效能模型。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @param solution The current solution vector from the master problem. / 来自主问题的当前解向量
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
@@ -90,6 +113,14 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Flushes express effectiveness for the Benders sub problem (no-op).
+     * 刷新 Benders 子问题的快递效能（空实现）。
+     *
+     * @param model The linear meta model. / 线性元模型
+     * @param solution The current solution vector. / 当前解向量
+     * @return The result of the flush operation. / 刷新操作的结果
+    */
     private fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

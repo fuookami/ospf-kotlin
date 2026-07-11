@@ -13,7 +13,7 @@
  * 支持的数值类型 / Supported number types:
  * - Flt64: 64位浮点数 / 64-bit floating-point
  * - FltX: 高精度浮点数 / High-precision floating-point
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  *
  * 用于表示含有符号变量的线性表达式物理量。
  * Used to represent linear expression quantities with symbol variables.
- */
+*/
 typealias QuantityLinearFlt64 = Quantity<LinearPolynomial<Flt64>>
 
 /**
@@ -46,7 +46,7 @@ typealias QuantityLinearFlt64 = Quantity<LinearPolynomial<Flt64>>
  *
  * 用于表示含有符号变量的二次表达式物理量。
  * Used to represent quadratic expression quantities with symbol variables.
- */
+*/
 typealias QuantityQuadraticFlt64 = Quantity<QuadraticPolynomial<Flt64>>
 
 /**
@@ -58,7 +58,7 @@ typealias QuantityQuadraticFlt64 = Quantity<QuadraticPolynomial<Flt64>>
  *
  * 用于表示含有符号变量的规范多项式物理量。
  * Used to represent canonical polynomial quantities with symbol variables.
- */
+*/
 typealias QuantityCanonicalFlt64 = Quantity<CanonicalPolynomial<Flt64>>
 
 /**
@@ -67,7 +67,7 @@ typealias QuantityCanonicalFlt64 = Quantity<CanonicalPolynomial<Flt64>>
  *
  * 高精度版本的线性多项式物理量。
  * High-precision version of linear polynomial quantity.
- */
+*/
 typealias QuantityLinearFltX = Quantity<LinearPolynomial<FltX>>
 
 /**
@@ -76,7 +76,7 @@ typealias QuantityLinearFltX = Quantity<LinearPolynomial<FltX>>
  *
  * 高精度版本的二次多项式物理量。
  * High-precision version of quadratic polynomial quantity.
- */
+*/
 typealias QuantityQuadraticFltX = Quantity<QuadraticPolynomial<FltX>>
 
 /**
@@ -85,5 +85,5 @@ typealias QuantityQuadraticFltX = Quantity<QuadraticPolynomial<FltX>>
  *
  * 高精度版本的规范多项式物理量。
  * High-precision version of canonical polynomial quantity.
- */
+*/
 typealias QuantityCanonicalFltX = Quantity<CanonicalPolynomial<FltX>>

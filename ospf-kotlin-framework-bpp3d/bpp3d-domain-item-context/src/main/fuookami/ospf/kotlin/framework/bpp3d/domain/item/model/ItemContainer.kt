@@ -1,7 +1,7 @@
 /**
  * Item container model.
  * 货物容器模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
@@ -9,7 +9,10 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-
+/**
+ * ItemContainer interface.
+ * ItemContainer接口。
+*/
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, FltX>, ItemMergeUnit, Eq<ItemContainer<S>> {
     val items: List<QuantityPlacement3<Item, FltX>> get() = dump()
 
@@ -38,7 +41,18 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S, F
     // inherit from CuboidUnit<Block>
     override val enabledOrientations: List<Orientation> get() = listOf(Orientation.Upright)
 
+/**
+ * dump.
+ * dump。
+ * @param offset position offset for the dumped placements / 转储放置的位置偏移
+*/
     fun dump(offset: QuantityPoint3<FltX> = point3FltX()) = units.dump(offset)
+
+/**
+ * Dumps absolutely.
+ * 转储Absolutely。
+ * @param offset position offset for the dumped placements / 转储放置的位置偏移
+*/
     fun dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()) = units.dumpAbsolutely(offset)
 
     override fun view(orientation: Orientation): CuboidView<S, FltX>? = CuboidView(copy(), orientation)

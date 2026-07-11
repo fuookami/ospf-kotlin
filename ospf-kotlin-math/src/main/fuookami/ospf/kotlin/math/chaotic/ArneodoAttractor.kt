@@ -9,7 +9,7 @@
  * The Arneodo attractor is a three-dimensional continuous-time chaotic system proposed by Arneodo et al.
  * This system features cubic nonlinear terms and is an important model for studying low-dimensional chaotic systems.
  * Commonly used for fundamental chaos dynamics research and educational demonstrations.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property delta 系统参数 delta / System parameter delta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ArneodoAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -56,7 +56,7 @@ data class ArneodoAttractor<V : FloatingNumber<V>>(
 /**
  * Arneodo 吸引子生成器
  * Arneodo Attractor Generator
- */
+*/
 data class ArneodoAttractorGenerator(
     val arneodoAttractor: ArneodoAttractor<Flt64> = ArneodoAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

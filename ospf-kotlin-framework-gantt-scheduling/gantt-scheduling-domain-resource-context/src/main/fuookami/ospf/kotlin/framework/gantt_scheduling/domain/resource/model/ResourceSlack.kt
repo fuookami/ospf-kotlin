@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.core.variable.*
  *
  * @param value 常量值 / Constant value
  * @return 常量线性多项式 / Constant linear polynomial
- */
+*/
 internal fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
     return LinearPolynomial(emptyList(), value)
 }
@@ -29,7 +29,7 @@ internal fun constantPolynomial(value: Flt64): LinearPolynomial<Flt64> {
  * @param constraint 是否作为约束 / Whether to add as constraint
  * @param name 名称 / Name
  * @return 资源松弛函数适配器 / Resource slack function adapter
- */
+*/
 internal fun resourceSlack(
     x: LinearIntermediateSymbol<Flt64>,
     threshold: Flt64,

@@ -31,15 +31,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Capital investment optimization: maximize profit subject to capital and liability constraints.
  *
  * @see https://fuookami.github.io/ospf/examples/example1.html
- */
+*/
 data object Demo1 {
+
     /**
      * 具有资本、负债和利润属性的公司。A company with capital, liability, and profit attributes.
      *
      * @property capital 资本额 / Capital amount
      * @property liability 负债额 / Liability amount
      * @property profit 利润额 / Profit amount
-     */
+    */
     data class Company(
         val capital: Flt64,
         val liability: Flt64,
@@ -76,7 +77,7 @@ data object Demo1 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -98,7 +99,7 @@ data object Demo1 {
      * 为每家公司初始化二元决策变量。/ Initializes binary decision variables for each company.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = BinVariable1("x", Shape1(companies.size))
         for (c in companies) {
@@ -112,7 +113,7 @@ data object Demo1 {
      * 创建资本、负债和利润的线性表达式符号。/ Creates linear expression symbols for capital, liability, and profit.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         capital = LinearExpressionSymbol(
             sum(companies) { it.capital * x[it] },
@@ -138,7 +139,7 @@ data object Demo1 {
      * 设置目标函数以最大化总利润。/ Sets the objective to maximize total profit.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit)
         return ok
@@ -148,7 +149,7 @@ data object Demo1 {
      * 添加资本下界和负债上界约束。/ Adds capital lower bound and liability upper bound constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         metaModel.addConstraint(capital geq minCapital)
         metaModel.addConstraint(liability leq maxLiability)
@@ -159,7 +160,7 @@ data object Demo1 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -182,7 +183,7 @@ data object Demo1 {
      * 从解中提取选中的公司。/ Extracts the selected companies from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val ret = ArrayList<Company>()
         for (token in metaModel.tokens.tokens) {

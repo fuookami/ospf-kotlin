@@ -4,7 +4,7 @@
  *
  * 定义 BPP3D 领域的语义化错误类型，替代裸 ErrorCode + message 构造。
  * Defines semantic error types for the BPP3D domain, replacing bare ErrorCode + message constructions.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.error
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.error.*
  * Used for capability-not-supported errors in the BPP3D domain.
  *
  * @property capability 不支持的能力 / The unsupported capability
- */
+*/
 class Bpp3dCapabilityError(
     val capability: String? = null
 ) : Err<ErrorCode>(
@@ -33,7 +33,7 @@ class Bpp3dCapabilityError(
  * Used for solving-related errors in the BPP3D domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class Bpp3dSolvingError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -49,7 +49,7 @@ class Bpp3dSolvingError(
  * Used for internal logic errors in the BPP3D domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class Bpp3dInternalError(
     val detail: String? = null
 ) : Err<ErrorCode>(
@@ -65,7 +65,7 @@ class Bpp3dInternalError(
  * Used for parameter validation errors in the BPP3D domain.
  *
  * @property detail 错误详情 / Error detail
- */
+*/
 class Bpp3dValidationError(
     val detail: String? = null
 ) : Err<ErrorCode>(

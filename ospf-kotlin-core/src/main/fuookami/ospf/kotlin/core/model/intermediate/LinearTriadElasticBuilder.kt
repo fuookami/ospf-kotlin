@@ -1,7 +1,7 @@
 /**
  * 线性三元模型弹性构建器
  * Linear triad model elastic builder
- */
+*/
 package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.operator.abs
  * @param minmaxSlack 是否添加最小最大松弛变量 / Whether to add minmax slack variable
  * @param minSlackAmount 最小松弛量约束（二元变量阈值，松弛量阈值）/ Minimum slack amount constraint (binary threshold, slack threshold)
  * @return 弹性模型 / Elastic model
- */
+*/
 internal fun LinearTriadModel.buildElasticModel(
     minmaxSlack: Boolean,
     minSlackAmount: Pair<UInt64, Flt64>?

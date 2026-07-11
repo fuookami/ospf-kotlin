@@ -11,7 +11,7 @@
  * Usage scenarios:
  * - Ensuring Channel is properly closed after use
  * - Used with try-with-resources or use function
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.channels.*
@@ -27,10 +27,11 @@ import kotlinx.coroutines.channels.*
  *
  * @param T Channel 元素类型 / Channel element type
  * @param channel 被包装的 Channel 实例 / Wrapped Channel instance
- */
+*/
 class ChannelGuard<T>(
     val channel: Channel<T>
 ) : AutoCloseable {
+
     /**
      * 关闭 Channel
      *
@@ -39,7 +40,7 @@ class ChannelGuard<T>(
      *
      * 实现 AutoCloseable 接口的关闭方法，用于 RAII 资源管理。
      * Implementation of AutoCloseable close method for RAII resource management.
-     */
+    */
     override fun close() {
         channel.close()
     }
@@ -51,7 +52,7 @@ class ChannelGuard<T>(
      * 获取底层 Channel 的迭代器。
      *
      * @return Channel 的迭代器 / Channel iterator
-     */
+    */
     operator fun iterator() = channel.iterator()
 
     /**
@@ -61,7 +62,7 @@ class ChannelGuard<T>(
      * 从 Channel 接收一个元素（如果为空则挂起）。
      *
      * @return 接收到的元素 / Received element
-     */
+    */
     suspend fun receive() = channel.receive()
 
     /**
@@ -71,6 +72,6 @@ class ChannelGuard<T>(
      * 尝试从 Channel 接收一个元素（非挂起操作）。
      *
      * @return Channel 结果对象 / Channel result object
-     */
+    */
     fun tryReceive() = channel.tryReceive()
 }

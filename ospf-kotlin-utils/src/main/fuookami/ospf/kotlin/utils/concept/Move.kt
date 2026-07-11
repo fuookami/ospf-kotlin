@@ -8,7 +8,7 @@
  * from the current instance to a new instance, similar to C++ move semantics.
  * 此接口定义了一个移动操作，将资源的所有权从当前实例转移到新实例，
  * 类似于 C++ 的移动语义。
- */
+*/
 package fuookami.ospf.kotlin.utils.concept
 
 /**
@@ -23,8 +23,9 @@ package fuookami.ospf.kotlin.utils.concept
  * 原实例保持在有效但未指定的状态。
  *
  * @param Self 实现此接口的类型本身 / The type implementing this interface
- */
+*/
 interface Movable<Self> {
+
     /**
      * 执行移动操作
      *
@@ -32,7 +33,7 @@ interface Movable<Self> {
      * 执行移动操作，返回一个带有转移状态的新实例。
      *
      * @return 移动后的新实例 / The new instance after the move
-     */
+    */
     fun move(): Self
 }
 
@@ -45,5 +46,5 @@ interface Movable<Self> {
  * @param T 可移动类型 / The movable type
  * @param ele 要移动的元素 / The element to move
  * @return 移动后的新实例 / The new instance after the move
- */
+*/
 fun <T : Movable<T>> move(ele: T) = ele.move()

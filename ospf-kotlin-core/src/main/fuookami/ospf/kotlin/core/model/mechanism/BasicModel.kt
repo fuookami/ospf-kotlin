@@ -1,7 +1,7 @@
 /**
  * 模型基础层
  * Model base layer
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property name 模型名称 / Model name
  * @property tokens 可变符号表 / Mutable token table
- */
+*/
 open class BasicModel<V>(
     open val name: String,
     open val tokens: AbstractMutableTokenTable<V>
@@ -46,7 +46,7 @@ open class BasicModel<V>(
      *
      * @param item 待添加的变量项 / The variable item to add
      * @return 操作结果 / The operation result
-     */
+    */
     open fun add(item: AbstractVariableItem<*, *>): Try = tokens.add(item)
 
     /**
@@ -55,7 +55,7 @@ open class BasicModel<V>(
      *
      * @param items 待添加的变量项集合 / The collection of variable items to add
      * @return 操作结果 / The operation result
-     */
+    */
     open fun add(items: Iterable<AbstractVariableItem<*, *>>): Try = tokens.add(items)
 
     // ── Symbol management ────────────────────────────────────────────────
@@ -66,7 +66,7 @@ open class BasicModel<V>(
      *
      * @param symbol 待添加的符号 / The symbol to add
      * @return 操作结果 / The operation result
-     */
+    */
     fun addSymbol(symbol: IntermediateSymbol<*>): Try {
         symbols.add(symbol)
         return tokens.add(symbol)
@@ -79,7 +79,7 @@ open class BasicModel<V>(
      * @param symbol       要添加的符号 / The symbol to add
      * @param dependencies 该符号所依赖的符号集合 / The set of symbols this symbol depends on
      * @return 操作结果 / The operation result
-     */
+    */
     fun addSymbolWithDependencies(
         symbol: IntermediateSymbol<*>,
         dependencies: Set<IntermediateSymbol<*>>
@@ -110,7 +110,7 @@ open class BasicModel<V>(
      * Remove a symbol from the model.
      *
      * @param symbol 待移除的符号 / The symbol to remove
-     */
+    */
     fun removeSymbol(symbol: IntermediateSymbol<*>) {
         symbols.remove(symbol)
         tokens.remove(symbol)
@@ -123,7 +123,7 @@ open class BasicModel<V>(
      * Flush model state; when [force] is `true`, also clear cached solution data.
      *
      * @param force 是否强制清除已缓存的求解结果 / Whether to force clear cached solution data
-     */
+    */
     open fun flush(force: Boolean) {
         if (force) {
             tokens.clearSolution()

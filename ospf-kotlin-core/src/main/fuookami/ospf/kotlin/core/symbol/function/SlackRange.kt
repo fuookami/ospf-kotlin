@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SlackRangeFunction]，为区间约束引入正/负松弛变量。
  *
  * Provides [SlackRangeFunction] for introducing positive/negative slack variables for range constraints.
- */
+*/
 
 /**
  * 松弛范围函数：使用松弛变量将 x 约束在 [lb, ub] 范围内。
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SlackRangeFunction<V>(
     val x: LinearPolynomial<V>,
     val lb: LinearPolynomial<V>,
@@ -125,7 +125,7 @@ class SlackRangeFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛范围函数实例 / slack range function instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             lb: LinearPolynomial<V>,
@@ -151,7 +151,7 @@ class SlackRangeFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 线性函数符号适配器 / linear function symbol adapter
-         */
+        */
         @JvmStatic
         fun <V> fromLinearIntermediateSymbol(
             x: LinearIntermediateSymbol<V>,

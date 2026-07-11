@@ -2,7 +2,7 @@
  * Continuous radius model component that unifies variable creation, registration,
  * and result extraction for both native and PWL paths.
  * 连续半径模型组件，统一管理 native 和 PWL 两条路径的变量创建、注册与结果提取。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
  *
  * @property prototype 连续半径 solver 变量原型 / continuous-radius solver variable prototype
  * @property variable 真实 solver 连续变量 / real solver continuous variable
- */
+*/
 data class ContinuousRadiusSolverVariable(
     val prototype: ContinuousCylinderRadiusSolverPrototype,
     val variable: RealVar
@@ -44,7 +44,7 @@ data class ContinuousRadiusSolverVariable(
  * @property pwlApproximation PWL 近似函数（断点/误差）/ PWL approximation function (breakpoints/errors)
  * @property envelope 保守半径 envelope / conservative radius envelope
  * @property config PWL 配置 / PWL config
- */
+*/
 data class PWLContinuousRadiusSolverVariable(
     val prototype: ContinuousCylinderRadiusSolverPrototype,
     val radiusVariable: RealVar,
@@ -53,6 +53,7 @@ data class PWLContinuousRadiusSolverVariable(
     val envelope: ConservativeRadiusEnvelope,
     val config: PWLRadiusApproximationConfig
 ) {
+
     /** 变量名 / variable name */
     val variableName: String get() = prototype.variableName
 
@@ -60,9 +61,11 @@ data class PWLContinuousRadiusSolverVariable(
     val radiusSquaredVariable get() = pwlFunction.resultVar
 
     /**
-     * 生成 PWL 约束描述（用于诊断和调试）。
      * Generate PWL constraint descriptions (for diagnostics and debugging).
-     */
+     * 生成 PWL 约束描述（用于诊断和调试）。
+     *
+     * @return 约束描述列表 / constraint description list
+    */
     fun constraintDescriptions(): List<String> {
         val descriptions = ArrayList<String>()
         descriptions.add("PWL($variableName): q = f(r) via UnivariateLinearPiecewiseFunction, r in [${envelope.rMin.toDouble()}, ${envelope.rMax.toDouble()}]")
@@ -84,7 +87,7 @@ data class PWLContinuousRadiusSolverVariable(
  *
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @return solver 变量列表 / solver variable list
- */
+*/
 fun continuousRadiusSolverVariables(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>
 ): List<ContinuousRadiusSolverVariable> {
@@ -108,7 +111,7 @@ fun continuousRadiusSolverVariables(
  * @param prototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @param config PWL 配置 / PWL config
  * @return PWL solver 变量列表 / PWL solver variable list
- */
+*/
 fun pwlContinuousRadiusSolverVariables(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     config: PWLRadiusApproximationConfig = PWLRadiusApproximationConfig()
@@ -172,7 +175,7 @@ fun pwlContinuousRadiusSolverVariables(
  * @property modelRegistrationBlockedVariables 暂未注册进 solver model 的变量 / variables not yet registered into solver model
  * @property registeredVariables 已注册进 solver model 的变量（native path）/ variables registered into solver model (native path)
  * @property pwlRegisteredVariables 已通过 PWL 路径注册进 solver model 的变量 / variables registered via PWL path
- */
+*/
 data class ContinuousRadiusSolverVariableRegistrationPlan(
     val variableNames: List<String>,
     val boundDescriptions: List<String>,
@@ -183,12 +186,13 @@ data class ContinuousRadiusSolverVariableRegistrationPlan(
     val registeredVariables: List<ContinuousRadiusSolverVariable> = emptyList(),
     val pwlRegisteredVariables: List<PWLContinuousRadiusSolverVariable> = emptyList()
 ) {
+
     /**
      * 转为诊断信息。
      * Convert to diagnostic info.
      *
      * @return 诊断信息 / diagnostic info
-     */
+    */
     fun info(): Map<String, String> {
         val blockedReason = if (modelRegistrationBlockedVariables.isEmpty()) {
             ""
@@ -220,6 +224,12 @@ data class ContinuousRadiusSolverVariableRegistrationPlan(
         )
     }
 
+    /**
+     * Format this double value in scientific notation.
+     * 将此双精度值格式化为科学计数法。
+     *
+     * @return 科学计数法字符串 / scientific notation string
+    */
     private fun Double.formatScientific(): String {
         return if (this == 0.0) "0" else String.format("%.4e", this)
     }
@@ -233,7 +243,7 @@ data class ContinuousRadiusSolverVariableRegistrationPlan(
  * @param solverVariables solver 变量列表（native path）/ solver variable list (native path)
  * @param pwlSolverVariables PWL solver 变量列表 / PWL solver variable list
  * @return 注册计划 / registration plan
- */
+*/
 fun continuousRadiusSolverVariableRegistrationPlan(
     prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     solverVariables: List<ContinuousRadiusSolverVariable> = emptyList(),
@@ -289,6 +299,12 @@ fun continuousRadiusSolverVariableRegistrationPlan(
     )
 }
 
+/**
+ * Generate a bound description string for this prototype.
+ * 为此原型生成上下界描述字符串。
+ *
+ * @return 上下界描述 / bound description
+*/
 private fun ContinuousCylinderRadiusSolverPrototype.registrationBoundDescription(): String {
     val selectedRadius = initialRadius
     if (selectedRadius != null && gaps.isEmpty()) {
@@ -304,6 +320,12 @@ private fun ContinuousCylinderRadiusSolverPrototype.registrationBoundDescription
     return "$variableName:$lowerText..$upperText"
 }
 
+/**
+ * Generate a selected-radius description string for this prototype, if an initial radius is set.
+ * 为此原型生成已选半径描述字符串（若已设置初始半径）。
+ *
+ * @return 已选半径描述，若无初始半径则返回 null / selected-radius description, or null if no initial radius
+*/
 private fun ContinuousCylinderRadiusSolverPrototype.registrationSelectedRadiusDescription(): String? {
     val selectedRadius = initialRadius ?: return null
     return "$variableName:${selectedRadius.value.toDouble()} ${selectedRadius.unit.symbol}"
@@ -322,7 +344,7 @@ private fun ContinuousCylinderRadiusSolverPrototype.registrationSelectedRadiusDe
  * @property isWithinEnvelope 是否在 envelope 范围内 / whether within envelope range
  * @property envelope 保守半径 envelope / conservative radius envelope
  * @property pwlApproximation PWL 近似函数 / PWL approximation function
- */
+*/
 data class PWLExtractedRadius(
     val variableName: String,
     val solverRadius: FltX,
@@ -334,26 +356,37 @@ data class PWLExtractedRadius(
     val envelope: ConservativeRadiusEnvelope,
     val pwlApproximation: PWLRadiusSquaredApproximation
 ) {
+
     /**
-     * 计算真实圆柱体积（使用 solver 选择的半径）。
      * Compute actual cylinder volume using solver-selected radius.
-     */
+     * 计算真实圆柱体积（使用 solver 选择的半径）。
+     *
+     * @param height 圆柱高度 / cylinder height
+     * @param pi 圆周率 / pi constant
+     * @return 真实体积 / actual volume
+    */
     fun actualVolume(height: FltX, pi: FltX): FltX {
         return pi * actualRadiusSquared * height
     }
 
     /**
-     * 计算 PWL 近似体积（使用 q ≈ r²）。
-     * Compute PWL approximate volume using q ≈ r².
-     */
+     * Compute PWL approximate volume using q ~ r^2.
+     * 计算 PWL 近似体积（使用 q ~ r^2）。
+     *
+     * @param height 圆柱高度 / cylinder height
+     * @param pi 圆周率 / pi constant
+     * @return PWL 近似体积 / PWL approximate volume
+    */
     fun pwlVolume(height: FltX, pi: FltX): FltX {
         return pi * solverRadiusSquared * height
     }
 
     /**
-     * 转为诊断信息。
      * Convert to diagnostic info.
-     */
+     * 转为诊断信息。
+     *
+     * @return 诊断信息映射 / diagnostic info map
+    */
     fun info(): Map<String, String> {
         return mapOf(
             "pwl_radius_${variableName}_r" to solverRadius.toDouble().toString(),
@@ -379,11 +412,12 @@ data class PWLExtractedRadius(
  *
  * @property prototypes 连续半径 solver 变量原型列表 / continuous-radius solver variable prototypes
  * @property config PWL 近似配置 / PWL approximation config
- */
+*/
 class ContinuousRadiusModelComponent(
     val prototypes: List<ContinuousCylinderRadiusSolverPrototype>,
     val config: PWLRadiusApproximationConfig = PWLRadiusApproximationConfig()
 ) {
+
     /** native 路径 solver 变量 / native path solver variables */
     val nativeVariables: List<ContinuousRadiusSolverVariable> by lazy {
         continuousRadiusSolverVariables(prototypes)
@@ -417,7 +451,7 @@ class ContinuousRadiusModelComponent(
      *
      * @param model 线性元模型 / linear meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun register(
         model: LinearMetaModel<FltX>
     ): Try {
@@ -538,7 +572,7 @@ class ContinuousRadiusModelComponent(
      *
      * @param model 线性元模型（求解后）/ linear meta model (after solving)
      * @return 变量名到 solver 选择值的映射 / variable name to solver-selected value map
-     */
+    */
     fun extractNativeResults(model: LinearMetaModel<FltX>): Map<String, FltX> {
         val results = LinkedHashMap<String, FltX>()
         for (solverVar in nativeVariables) {
@@ -556,7 +590,7 @@ class ContinuousRadiusModelComponent(
      *
      * @param model 线性元模型（求解后）/ linear meta model (after solving)
      * @return opaque Map，外层 key 为变量名，内层 key 为结果字段 / opaque Map, outer key = variable name, inner key = result field
-     */
+    */
     fun extractPWLResults(model: LinearMetaModel<FltX>): Map<String, Map<String, FltX>> {
         if (pwlVariables.isEmpty()) return emptyMap()
 
@@ -592,7 +626,7 @@ class ContinuousRadiusModelComponent(
      * Get registration plan diagnostic info.
      *
      * @return 诊断信息 / diagnostic info
-     */
+    */
     fun info(): Map<String, String> = registrationPlan.info()
 
     /**
@@ -604,7 +638,7 @@ class ContinuousRadiusModelComponent(
      * constraint counts, and error statistics across all PWL variables.
      *
      * @return 模型规模诊断信息 / model scale diagnostic info
-     */
+    */
     fun modelScaleInfo(): Map<String, String> {
         if (pwlVariables.isEmpty()) {
             return mapOf(

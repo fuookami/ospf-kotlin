@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * 恢复求解状态 / Recovery solve status
- */
+*/
 enum class Csp1dRecoveryStatus {
     /** 普通恢复求解完成 / Normal recovery solve completed */
     Solved,
@@ -31,7 +31,7 @@ enum class Csp1dRecoveryStatus {
 
 /**
  * warm start 处理状态 / Warm start handling status
- */
+*/
 enum class Csp1dWarmStartStatus {
     /** 未提供 warm start / Warm start was not provided */
     NotProvided,
@@ -51,7 +51,7 @@ enum class Csp1dWarmStartStatus {
  * @param V 数值类型 / Numeric value type
  * @property cuttingPlans 预热方案池 / Warm-start cutting plan pool
  * @property previousSolution 上一轮解，会提取与当前问题兼容的方案和使用量 / Previous solution whose current-problem-compatible plans and usages are extracted
- */
+*/
 data class Csp1dWarmStart<V : RealNumber<V>>(
     val cuttingPlans: List<CuttingPlan<V>> = emptyList(),
     val previousSolution: Csp1dSolution<V>? = null
@@ -61,7 +61,7 @@ data class Csp1dWarmStart<V : RealNumber<V>>(
  * CSP1D 恢复选项 / CSP1D recovery options
  *
  * @property retryWithoutWarmStart warm start 不可用时是否退回普通求解 / Whether to retry normal solve when warm start is unusable
- */
+*/
 data class Csp1dRecoveryOptions(
     val retryWithoutWarmStart: Boolean = true
 )
@@ -74,7 +74,7 @@ data class Csp1dRecoveryOptions(
  * @property solveConfig 显式求解配置 / Explicit solve configuration
  * @property warmStart warm start 输入 / Warm start input
  * @property options 恢复选项 / Recovery options
- */
+*/
 data class Csp1dRecoveryInput<V : RealNumber<V>>(
     val problem: Csp1dProblem<V>,
     val solveConfig: Csp1dSolveConfig<V>? = null,
@@ -92,7 +92,7 @@ data class Csp1dRecoveryInput<V : RealNumber<V>>(
  * @property appliedWarmStartPlanCount 已应用 warm start 方案数 / Applied warm-start plan count
  * @property appliedWarmStartUsageCount 已应用 warm start 使用量条目数 / Applied warm-start usage entry count
  * @property message 补充说明 / Additional message
- */
+*/
 data class Csp1dRecoveryTrace(
     val status: Csp1dRecoveryStatus,
     val warmStartStatus: Csp1dWarmStartStatus,
@@ -109,7 +109,7 @@ data class Csp1dRecoveryTrace(
  * @param V 数值类型 / Numeric value type
  * @property solution 求解结果 / Solution
  * @property trace 恢复追踪 / Recovery trace
- */
+*/
 data class Csp1dRecoveryResult<V : RealNumber<V>>(
     val solution: Csp1dSolution<V>,
     val trace: Csp1dRecoveryTrace
@@ -123,7 +123,7 @@ data class Csp1dRecoveryResult<V : RealNumber<V>>(
  * @property solveConfig 显式求解配置 / Explicit solve configuration
  * @property warmStart warm start 输入 / Warm start input
  * @property cuttingPlans 已校验兼容的 warm start 方案池 / Compatible warm-start cutting plan pool
- */
+*/
 data class Csp1dWarmStartAdapterInput<V : RealNumber<V>>(
     val problem: Csp1dProblem<V>,
     val solveConfig: Csp1dSolveConfig<V>?,
@@ -140,7 +140,7 @@ data class Csp1dWarmStartAdapterInput<V : RealNumber<V>>(
  * @property appliedPlanCount 已应用方案数 / Applied plan count
  * @property appliedUsageCount 已应用使用量条目数 / Applied usage entry count
  * @property message 补充说明 / Additional message
- */
+*/
 data class Csp1dWarmStartAdapterResult<V : RealNumber<V>>(
     val initialGenerator: Csp1dInitialCuttingPlanGenerator<V>?,
     val initialPlanUsages: List<CuttingPlanUsage<V>> = emptyList(),
@@ -153,14 +153,15 @@ data class Csp1dWarmStartAdapterResult<V : RealNumber<V>>(
  * CSP1D warm start adapter / CSP1D warm start adapter
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 fun interface Csp1dWarmStartAdapter<V : RealNumber<V>> {
+
     /**
      * 应用 warm start / Apply warm start
      *
      * @param input adapter 输入 / Adapter input
      * @return adapter 结果 / Adapter result
-     */
+    */
     fun apply(input: Csp1dWarmStartAdapterInput<V>): Csp1dWarmStartAdapterResult<V>
 
     companion object {
@@ -169,7 +170,7 @@ fun interface Csp1dWarmStartAdapter<V : RealNumber<V>> {
          *
          * @param V 数值类型 / Numeric value type
          * @return warm start adapter / Warm start adapter
-         */
+        */
         fun <V : RealNumber<V>> unsupported(): Csp1dWarmStartAdapter<V> {
             return Csp1dWarmStartAdapter {
                 Csp1dWarmStartAdapterResult(
@@ -188,7 +189,7 @@ fun interface Csp1dWarmStartAdapter<V : RealNumber<V>> {
  * @param V 数值类型 / Numeric value type
  * @property fallbackGenerator 追加的普通初始方案生成器 / Appended normal initial plan generator
  * @property appendFallbackPlans 是否追加普通初始方案 / Whether to append normal initial plans
- */
+*/
 class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
     private val fallbackGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
     private val appendFallbackPlans: Boolean = true
@@ -211,6 +212,13 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
         )
     }
 
+    /**
+     * Extract warm-start plan usages compatible with the current problem from the previous solution.
+     * 从上一轮解中提取与当前问题兼容的 warm start 方案使用量。
+     *
+     * @param input warm start adapter input containing the previous solution and compatible cutting plans / 包含上一轮解和兼容切割方案的 warm start adapter 输入
+     * @return compatible cutting plan usages from the previous solution, or empty list if no previous solution exists / 上一轮解中兼容的切割方案使用量，若无上一轮解则返回空列表
+    */
     private fun warmStartPlanUsages(input: Csp1dWarmStartAdapterInput<V>): List<CuttingPlanUsage<V>> {
         val previousSolution = input.warmStart.previousSolution ?: return emptyList()
         val compatiblePlanKeys = input.cuttingPlans.map { it.canonicalKey() }.toSet()
@@ -225,7 +233,7 @@ class Csp1dWarmStartPlanPoolAdapter<V : RealNumber<V>>(
  *
  * @param message 异常信息 / Exception message
  * @property trace 失败时的恢复追踪 / Recovery trace at failure
- */
+*/
 class Csp1dRecoveryFallbackDisabledException(
     message: String,
     val trace: Csp1dRecoveryTrace
@@ -237,7 +245,7 @@ class Csp1dRecoveryFallbackDisabledException(
  * @param message 异常信息 / Exception message
  * @property trace 失败时的恢复追踪 / Recovery trace at failure
  * @param cause 原始异常 / Original exception
- */
+*/
 class Csp1dRecoverySolveException(
     message: String,
     val trace: Csp1dRecoveryTrace,
@@ -248,19 +256,20 @@ class Csp1dRecoverySolveException(
  * CSP1D 恢复求解入口 / CSP1D recovery entry point
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class Csp1dRecovery<V : RealNumber<V>>(
     private val solver: ColumnGenerationSolver,
     private val milp: Csp1dMilp<V> = Csp1dMilp(solver),
     private val warmStartAdapter: Csp1dWarmStartAdapter<V> = Csp1dWarmStartAdapter.unsupported()
 ) {
+
     /**
      * 在异常恢复场景下重新求解 / Re-solve for recovery scenarios
      *
      * @param problem 问题定义 / Problem definition
      * @param solveConfig 显式求解配置 / Explicit solve configuration
      * @return 求解结果 / Solution
-     */
+    */
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -278,7 +287,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
      *
      * @param input 恢复输入 / Recovery input
      * @return 恢复结果 / Recovery result
-     */
+    */
     suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Ret<Csp1dRecoveryResult<V>> {
         val warmStart = csp1dResolveWarmStart(
             input = input,
@@ -362,7 +371,7 @@ class Csp1dRecovery<V : RealNumber<V>>(
  * @property wasteConfig 默认 waste 建模配置 / Default waste modeling config
  * @property lengthConfig 默认 length 建模配置 / Default length modeling config
  * @property warmStartAdapter warm start adapter / Warm start adapter
- */
+*/
 class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
     private val solver: ColumnGenerationSolver,
     private val initialGenerator: Csp1dInitialCuttingPlanGenerator<V> = SimpleInitialCuttingPlanGenerator(),
@@ -389,7 +398,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
      * @param problem 问题定义 / Problem definition
      * @param solveConfig 显式求解配置 / Explicit solve configuration
      * @return 求解结果 / Solution
-     */
+    */
     suspend fun solve(
         problem: Csp1dProblem<V>,
         solveConfig: Csp1dSolveConfig<V>? = null
@@ -407,7 +416,7 @@ class Csp1dColumnGenerationRecovery<V : RealNumber<V>>(
      *
      * @param input 恢复输入 / Recovery input
      * @return 恢复结果 / Recovery result
-     */
+    */
     suspend fun solveWithTrace(input: Csp1dRecoveryInput<V>): Ret<Csp1dRecoveryResult<V>> {
         val warmStart = csp1dResolveWarmStart(
             input = input,
@@ -598,11 +607,25 @@ private fun <V : RealNumber<V>> csp1dIsWarmStartCompatible(
     return true
 }
 
+/**
+ * Check whether the given warm start status requires a fallback to normal solve.
+ * 判断给定的 warm start 状态是否需要退回普通求解。
+ *
+ * @param status warm start handling status to evaluate / 待评估的 warm start 处理状态
+ * @return true if the status indicates warm start cannot be applied and fallback is needed / 若状态表明 warm start 无法应用且需要退回普通求解则返回 true
+*/
 private fun csp1dRequiresFallback(status: Csp1dWarmStartStatus): Boolean {
     return status == Csp1dWarmStartStatus.Invalid ||
             status == Csp1dWarmStartStatus.AdapterUnsupported
 }
 
+/**
+ * Generate a human-readable message describing the warm start outcome.
+ * 生成描述 warm start 结果的可读消息。
+ *
+ * @param status warm start handling status / warm start 处理状态
+ * @return descriptive message for the warm start status, or null if no warm start was provided / warm start 状态的描述消息，若未提供 warm start 则返回 null
+*/
 private fun csp1dWarmStartMessage(status: Csp1dWarmStartStatus): String? {
     return when (status) {
         Csp1dWarmStartStatus.NotProvided -> null
@@ -613,6 +636,14 @@ private fun csp1dWarmStartMessage(status: Csp1dWarmStartStatus): String? {
     }
 }
 
+/**
+ * Build a recovery trace for the case where fallback is disabled and warm start cannot be applied.
+ * 构建禁用 fallback 且 warm start 无法应用时的恢复追踪。
+ *
+ * @param status warm start handling status that triggered the fallback-disabled path / 触发禁用 fallback 路径的 warm start 处理状态
+ * @param planCount number of warm start plans that were available / 可用的 warm start 方案数量
+ * @return recovery trace indicating fallback was disabled / 表明 fallback 已禁用的恢复追踪
+*/
 private fun csp1dFallbackDisabledTrace(
     status: Csp1dWarmStartStatus,
     planCount: Int64
@@ -628,6 +659,13 @@ private fun csp1dFallbackDisabledTrace(
     )
 }
 
+/**
+ * Generate a human-readable message for the fallback-disabled scenario.
+ * 生成禁用 fallback 场景的可读消息。
+ *
+ * @param status warm start handling status that caused fallback to be required / 导致需要 fallback 的 warm start 处理状态
+ * @return descriptive message explaining why fallback was disabled / 解释为何 fallback 被禁用的描述消息
+*/
 private fun csp1dFallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
     return when (status) {
         Csp1dWarmStartStatus.AdapterUnsupported -> "Warm start is compatible but current adapter does not support applying it; fallback is disabled"
@@ -636,12 +674,20 @@ private fun csp1dFallbackDisabledMessage(status: Csp1dWarmStartStatus): String {
     }
 }
 
+/**
+ * Internal resolution of warm start: selected plans, final status, and adapter result.
+ * 内部 warm start 解析结果：已选方案、最终状态和适配器结果。
+*/
 private data class Csp1dWarmStartResolution<V : RealNumber<V>>(
     val plans: List<CuttingPlan<V>>,
     val status: Csp1dWarmStartStatus,
     val adapterResult: Csp1dWarmStartAdapterResult<V>?
 )
 
+/**
+ * Internal selection result of warm start plans with an optional pre-determined status.
+ * 内部 warm start 方案选择结果，附带可选的预确定状态。
+*/
 private data class Csp1dWarmStartPlanSelection<V : RealNumber<V>>(
     val plans: List<CuttingPlan<V>>,
     val status: Csp1dWarmStartStatus? = null

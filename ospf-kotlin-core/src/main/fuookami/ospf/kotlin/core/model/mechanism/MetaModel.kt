@@ -1,7 +1,7 @@
 /**
  * 元模型
  * Meta model
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -30,7 +30,7 @@ private val solverValueConverter = IntoValue.fromConverter(Flt64)
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
  * based on configuration. Used by [AbstractMetaModel] to construct the token
  * table before passing it to the [BasicModel] superclass constructor.
- */
+*/
 private fun <V> createTokenTable(
     category: Category,
     concurrent: Boolean,
@@ -70,7 +70,7 @@ private fun <V> createTokenTable(
  * @property subObjects 子目标列表 / Sub-objective list
  * @property tokens 可变符号表 / Mutable token table
  * @property symbolDependencies 符号依赖关系 / Symbol dependency map
- */
+*/
 sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
 
@@ -84,7 +84,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * @property name 子目标名称 / Sub-objective name
      * @property displayName 显示名称 / Display name
      * @property polynomial 线性多项式 / Linear polynomial
-     */
+    */
     class SubObject<V>(
         val parent: MetaModel<V>,
         val category: ObjectCategory,
@@ -98,7 +98,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
          *
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
          * @return 求值结果（含常数项），若任一变量结果未知且 zeroIfNone 为 false 则返回 null / The evaluation result (including constant), or null if any variable result is unknown and zeroIfNone is false
-         */
+        */
         fun evaluate(zeroIfNone: Boolean = false): V? {
             return evaluate(
                 tokenTable = parent.tokens,
@@ -113,7 +113,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
          * @param tokenTable 符号表 / The token table
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
          * @return 求值结果（含常数项）/ The evaluation result (including constant)
-         */
+        */
         fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
@@ -134,7 +134,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
          * @param results    解向量 / The solution vector
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
          * @return 求值结果（含常数项）/ The evaluation result (including constant)
-         */
+        */
         fun evaluate(results: List<V>, zeroIfNone: Boolean = false): V? {
             return evaluate(
                 results = results,
@@ -151,7 +151,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
          * @param tokenTable 符号表 / The token table
          * @param zeroIfNone 当结果未知时是否返回零 / Whether to return zero when result is unknown
          * @return 求值结果（含常数项）/ The evaluation result (including constant)
-         */
+        */
         fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
@@ -170,7 +170,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
          * Flush the sub-objective cache state.
          *
          * @param force 是否强制清除缓存 / Whether to force clear the cache
-         */
+        */
         fun flush(force: Boolean = false) {
             // Math polynomials don't have caching / 数学多项式无缓存
         }
@@ -203,7 +203,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      *
      * @param symbol 中间符号 / The intermediate symbol
      * @return 操作结果 / The operation result
-     */
+    */
     fun add(symbol: IntermediateSymbol<*>): Try {
         return tokens.add(symbol)
     }
@@ -214,7 +214,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      *
      * @param symbols 中间符号迭代器 / The intermediate symbols
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
     fun add(symbols: Iterable<IntermediateSymbol<*>>): Try {
@@ -365,7 +365,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * Remove an intermediate symbol from the token table.
      *
      * @param symbol 中间符号 / The intermediate symbol
-     */
+    */
     fun remove(symbol: IntermediateSymbol<*>) {
         tokens.remove(symbol)
     }
@@ -375,15 +375,16 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * Register a constraint group; subsequently added constraints will belong to this group.
      *
      * @param group 约束组 / The constraint group
-     */
+    */
     fun registerConstraintGroup(group: MetaConstraintGroup)
+
     /**
      * 获取指定约束组在约束列表中的索引范围。
      * Get the index range of the specified constraint group in the constraint list.
      *
      * @param group 约束组 / The constraint group
      * @return 索引范围，若不存在则返回 null / The index range, or null if not found
-     */
+    */
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
     /**
@@ -392,7 +393,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      *
      * @param group 约束组 / The constraint group
      * @return 约束列表 / The constraint list
-     */
+    */
     fun constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint> {
         return indicesOfConstraintGroup(group)?.let { indices ->
             indices.map { constraints[it] }
@@ -416,7 +417,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * Flush the meta model state; when [force] is `true`, also clear cached solution data.
      *
      * @param force 是否强制清除缓存 / Whether to force clear the cache
-     */
+    */
     fun flush(force: Boolean = false) {
         if (force) {
             tokens.clearSolution()
@@ -439,7 +440,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * Export the model to the default file in the current directory.
      *
      * @return 操作结果 / The operation result
-     */
+    */
     suspend fun export(): Try {
         return export("$name.opm")
     }
@@ -450,7 +451,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      *
      * @param name 文件名 / The file name
      * @return 操作结果 / The operation result
-     */
+    */
     suspend fun export(name: String): Try {
         return export(Path(".").resolve(name))
     }
@@ -462,7 +463,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * @param path   文件路径 / The file path
      * @param unfold 是否展开模型 / Whether to unfold the model
      * @return 操作结果 / The operation result
-     */
+    */
     suspend fun export(path: String, unfold: Boolean): Try {
         return export(
             Path(".").resolve(name), if (unfold) {
@@ -480,7 +481,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * @param path   文件路径 / The file path
      * @param unfold 展开层级 / The unfold level
      * @return 操作结果 / The operation result
-     */
+    */
     suspend fun export(path: String, unfold: UInt64): Try {
         return export(Path(".").resolve(name), unfold)
     }
@@ -492,7 +493,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
      * @param path   文件路径对象 / The file path object
      * @param unfold 展开层级 / The unfold level
      * @return 操作结果 / The operation result
-     */
+    */
     suspend fun export(path: Path, unfold: UInt64 = UInt64.zero): Try {
         return exportMetaModel(metaModel = this, path = path, unfold = unfold)
     }
@@ -510,8 +511,9 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
  * Supports adding linear constraints and partition constraints.
  *
  * @param V 数值类型 / The number type
- */
+*/
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 使用变量添加约束。
      * Add a constraint using a variable.
@@ -524,7 +526,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param args         附加参数 / Additional arguments
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintVariableWithGroup")
     fun addConstraint(
@@ -562,7 +564,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param args         附加参数 / Additional arguments
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintLinearPolynomialWithGroup")
     fun addConstraint(
@@ -598,7 +600,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param args         附加参数 / Additional arguments
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         constraint: LinearIntermediateSymbol<V>,
         group: MetaConstraintGroup?,
@@ -635,7 +637,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param priority     约束优先级 / The constraint priority
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
@@ -658,7 +660,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param displayName 约束显示名称 / The constraint display name
      * @param args        附加参数 / Additional arguments
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -693,7 +695,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param displayName 约束显示名称 / The constraint display name
      * @param args        附加参数 / Additional arguments
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
@@ -728,7 +730,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * @param displayName 约束显示名称 / The constraint display name
      * @param args        附加参数 / Additional arguments
      * @return 操作结果 / The operation result
-     */
+    */
     fun partition(
         polynomial: LinearPolynomial<V>,
         group: MetaConstraintGroup?,
@@ -757,8 +759,9 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
  * Extends linear meta model, supports adding quadratic constraints and partition constraints.
  *
  * @param V 数值类型 / The number type
- */
+*/
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 使用二次多项式添加约束。
      * Add a constraint using a quadratic polynomial.
@@ -771,7 +774,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @param args         附加参数 / Additional arguments
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         constraint: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,
@@ -805,7 +808,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @param args         附加参数 / Additional arguments
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         constraint: QuadraticIntermediateSymbol<V>,
         group: MetaConstraintGroup?,
@@ -841,7 +844,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @param priority     约束优先级 / The constraint priority
      * @param withRangeSet 是否包含范围集 / Whether to include range set
      * @return 操作结果 / The operation result
-     */
+    */
     fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
@@ -864,7 +867,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @param displayName 约束显示名称 / The constraint display name
      * @param args        附加参数 / Additional arguments
      * @return 操作结果 / The operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
@@ -899,7 +902,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * @param displayName 约束显示名称 / The constraint display name
      * @param args        附加参数 / Additional arguments
      * @return 操作结果 / The operation result
-     */
+    */
     fun partition(
         polynomial: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,
@@ -929,7 +932,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
  * @property dumpBlocking 是否阻塞式转储 / Whether to use blocking dump
  * @property withRangeSet 是否包含范围集 / Whether to include range set
  * @property checkTokenExists 是否检查符号存在性 / Whether to check token existence
- */
+*/
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
@@ -949,7 +952,7 @@ data class MetaModelConfiguration(
  * @property category 模型类别（线性/二次）/ Model category (linear/quadratic)
  * @property configuration 元模型配置 / Meta model configuration
  * @property converter 值转换器 / Value converter
- */
+*/
 abstract class AbstractMetaModel<V>(
     val category: Category,
     internal val configuration: MetaModelConfiguration,
@@ -1024,7 +1027,7 @@ abstract class AbstractMetaModel<V>(
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
  * @param configuration 元模型配置 / Meta model configuration
  * @param converter 值转换器 / Value converter
- */
+*/
 class LinearMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -1052,7 +1055,7 @@ class LinearMetaModel<V>(
      * @param name        目标名称 / The objective name
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addObject(
         category: ObjectCategory,
         polynomial: LinearPolynomial<V>,
@@ -1074,7 +1077,7 @@ class LinearMetaModel<V>(
     /**
      * 使用 LinearFlattenData 添加目标函数（新 API）
      * Add objective using LinearFlattenData (new API)
-     */
+    */
     override fun addObject(
         category: ObjectCategory,
         flattenData: LinearFlattenData<V>,
@@ -1095,7 +1098,7 @@ class LinearMetaModel<V>(
     /**
      * 使用数学 LinearInequality 添加约束（LinearModel 接口）
      * Add constraint using math LinearInequality (LinearModel interface)
-     */
+    */
     override fun addConstraint(
         relation: LinearInequality<V>,
         lazy: Boolean,
@@ -1122,7 +1125,7 @@ class LinearMetaModel<V>(
     /**
      * 使用数学 LinearInequality 添加约束（新 API）
      * Add constraint using math LinearInequality (new API)
-     */
+    */
     override fun addConstraint(
         relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
@@ -1157,7 +1160,7 @@ class LinearMetaModel<V>(
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
          * @return 线性元模型实例 / The linear meta model instance
-         */
+        */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -1178,7 +1181,7 @@ class LinearMetaModel<V>(
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
          * @return 线性元模型实例 / The linear meta model instance
-         */
+        */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,
@@ -1205,7 +1208,7 @@ class LinearMetaModel<V>(
  * @property objectCategory 目标类型（最小化/最大化）/ Objective category (minimize/maximize)
  * @param configuration 元模型配置 / Meta model configuration
  * @param converter 值转换器 / Value converter
- */
+*/
 class QuadraticMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -1227,7 +1230,7 @@ class QuadraticMetaModel<V>(
     /**
      * 添加数学 LinearInequality 约束 - 内部转换为 QuadraticInequality
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
-     */
+    */
     override fun addConstraint(
         relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
@@ -1264,7 +1267,7 @@ class QuadraticMetaModel<V>(
     /**
      * 使用数学 LinearInequality 添加约束（LinearModel 接口）
      * Add constraint using math LinearInequality (LinearModel interface)
-     */
+    */
     override fun addConstraint(
         relation: LinearInequality<V>,
         lazy: Boolean,
@@ -1287,7 +1290,7 @@ class QuadraticMetaModel<V>(
     /**
      * 使用数学 QuadraticInequality 添加约束（QuadraticModel 接口）
      * Add constraint using math QuadraticInequality (QuadraticModel interface)
-     */
+    */
     override fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         lazy: Boolean,
@@ -1312,7 +1315,7 @@ class QuadraticMetaModel<V>(
      * 内部转换为 QuadraticFlattenData。
      * Add objective using LinearFlattenData (new API - LinearModel interface).
      * Converts to QuadraticFlattenData internally.
-     */
+    */
     override fun addObject(
         category: ObjectCategory,
         flattenData: LinearFlattenData<V>,
@@ -1330,7 +1333,7 @@ class QuadraticMetaModel<V>(
     /**
      * 使用数学 QuadraticInequality 添加约束（新 API）
      * Add constraint using math QuadraticInequality (new API)
-     */
+    */
     override fun addConstraint(
         relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
@@ -1365,7 +1368,7 @@ class QuadraticMetaModel<V>(
      * @param name        目标名称 / The objective name
      * @param displayName 目标显示名称（可为 null） / The objective display name (nullable)
      * @return 操作结果 / The operation result
-     */
+    */
     fun addObject(
         category: ObjectCategory,
         polynomial: QuadraticPolynomial<V>,
@@ -1408,7 +1411,7 @@ class QuadraticMetaModel<V>(
      * 使用转换器将 Flt64 系数转换为 V 类型。
      * Add objective using QuadraticFlattenData (new API).
      * Converts Flt64 coefficients to V values using converter.
-     */
+    */
     override fun addObject(
         category: ObjectCategory,
         flattenData: QuadraticFlattenData<V>,
@@ -1435,7 +1438,7 @@ class QuadraticMetaModel<V>(
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
          * @return 二次元模型实例 / The quadratic meta model instance
-         */
+        */
         operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -1456,7 +1459,7 @@ class QuadraticMetaModel<V>(
          * @param objectCategory  优化方向 / The optimization direction
          * @param configuration   元模型配置 / The meta model configuration
          * @return 二次元模型实例 / The quadratic meta model instance
-         */
+        */
         operator fun <V> invoke(
             name: String,
             converter: Flt64ValueConverter<V>,

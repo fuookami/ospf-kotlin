@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  *
  * @param C 资源容量类型 / Resource capacity type
  * @param V 值类型 / Value type
- */
+*/
 interface CapacityActionResource<C : AbstractResourceCapacity<V>, V> where V : RealNumber<V>, V : NumberField<V> {
 
     /**
@@ -25,7 +25,7 @@ interface CapacityActionResource<C : AbstractResourceCapacity<V>, V> where V : R
      * @param action 生产动作 / Production action
      * @param time 时间范围 / Time range
      * @return 单位操作时间的资源消耗 / Resource consumption per unit operation time
-     */
+    */
     fun <A : ProductionAction> usedBy(action: A, time: TimeRange): V
 }
 
@@ -39,7 +39,7 @@ interface CapacityActionResource<C : AbstractResourceCapacity<V>, V> where V : R
  * @property resource 资源 / Resource
  * @property resourceCapacity 资源容量 / Resource capacity
  * @property indexInRule 规则内索引 / Index in rule
- */
+*/
 data class CapacityActionResourceTimeSlot<
         R,
         C : AbstractResourceCapacity<V>,
@@ -57,7 +57,7 @@ data class CapacityActionResourceTimeSlot<
      *
      * @param action 生产动作 / Production action
      * @return 资源消耗量裸值 / Resource consumption raw value
-     */
+    */
     fun <A : ProductionAction> usedBy(action: A): V = resource.usedBy(action, time)
 
     override fun subOf(subTime: TimeRange): CapacityActionResourceTimeSlot<R, C, V>? {

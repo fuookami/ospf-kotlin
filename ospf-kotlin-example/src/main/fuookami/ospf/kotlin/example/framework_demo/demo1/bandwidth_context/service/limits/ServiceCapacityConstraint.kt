@@ -15,13 +15,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
 
 /**
- * 约束每个普通节点的流出到服务容量（当服务被分配时）。Constrains the out-flow at each normal node to the service capacity when the service is assigned.
+ * Constrains the out-flow at each normal node to the service capacity when the service is assigned.
+ * 约束每个普通节点的流出到服务容量（当服务被分配时）。
  *
- * @property nodes 参数。
- * @property services 参数。
- * @property assignment 参数。
- * @property serviceBandwidth 参数。
- */
+ * @property nodes the list of network nodes / 网络节点列表
+ * @property services the list of services / 服务列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property serviceBandwidth the service bandwidth model / 服务带宽模型
+*/
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,
     private val services: List<Service>,

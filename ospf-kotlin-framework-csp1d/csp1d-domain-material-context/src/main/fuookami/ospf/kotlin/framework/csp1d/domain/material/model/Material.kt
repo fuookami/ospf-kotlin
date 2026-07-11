@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property unitWeight 单位重量 / Unit weight
  * @property machineId 设备标识 / Machine identifier
  * @property availableBatches 可用批次数，主问题按物料方案使用量求和建模 / Available batches modeled by material plan usage sum in master problem
- */
+*/
 data class Material<V : RealNumber<V>>(
     override val id: MaterialId,
     val name: String,
@@ -38,7 +38,7 @@ data class Material<V : RealNumber<V>>(
      *
      * @param plan 切割方案 / Cutting plan
      * @return 是否满足 / Whether enabled
-     */
+    */
     fun enabled(plan: CuttingPlan<V>): Boolean {
         if (!enabledWithoutWidthCheck(plan)) {
             return false
@@ -59,7 +59,7 @@ data class Material<V : RealNumber<V>>(
      *
      * @param plan 切割方案 / Cutting plan
      * @return 是否满足 / Whether enabled
-     */
+    */
     fun enabledWithoutWidthCheck(plan: CuttingPlan<V>): Boolean {
         if (plan.material.id != id) {
             return false
@@ -76,7 +76,7 @@ data class Material<V : RealNumber<V>>(
      * @param plan 切割方案 / Cutting plan
      * @param machines 可用设备列表 / Available machines
      * @return 是否满足 / Whether enabled
-     */
+    */
     fun enabled(
         plan: CuttingPlan<V>,
         machines: List<Machine<V>>
@@ -99,7 +99,7 @@ data class Material<V : RealNumber<V>>(
      * @param plan 切割方案 / Cutting plan
      * @param machines 可用设备列表 / Available machines
      * @return 是否满足 / Whether enabled
-     */
+    */
     fun enabledWithoutWidthCheck(
         plan: CuttingPlan<V>,
         machines: List<Machine<V>>

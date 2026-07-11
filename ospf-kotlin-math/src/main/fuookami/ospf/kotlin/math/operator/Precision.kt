@@ -20,7 +20,7 @@
  *     if (a eq b) { /* a 和b 在精度范围内相等 */ }
  * }
  * ```
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -40,16 +40,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param T 数值类型，必须是实数、加法群且支持绝对值运算
  * @property precision 比较精度，用于判断两个数是否相等
  *
- * @param T Numeric type, must be a real number, plus group, and support absolute value operation
- * @property precision Comparison precision used to determine if two numbers are equal
- */
+*/
 class Precision<T>(
     precision: T
 ) where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> {
+
     /**
      * 比较精度（取绝对值确保非负）
      * Comparison precision (absolute value ensures non-negative)
-     */
+    */
     private val precision = precision.abs()
 
     /**
@@ -59,9 +58,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果两数之差的绝对值小于等于精度则返回 true
      *
-     * @param other The other number to compare with
      * @return True if the absolute difference is less than or equal to precision
-     */
+    */
     infix fun T.equal(other: T): Boolean {
         return (this - other).abs() <= precision
     }
@@ -73,9 +71,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 比较结果，可以是 Equal、Less 戌Greater
      *
-     * @param other The other number to compare with
      * @return Comparison result, can be Equal, Less, or Greater
-     */
+    */
     infix fun T.order(other: T): Order {
         return if (this eq other) {
             Order.Equal
@@ -96,9 +93,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果两数之差的绝对值大于精度则返回 true
      *
-     * @param other The other number to compare with
      * @return True if the absolute difference is greater than precision
-     */
+    */
     infix fun T.unequal(other: T): Boolean {
         return (this - other).abs() > precision
     }
@@ -110,9 +106,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果当前数明显小于另一个数（差值大于等于精度）则返囌true
      *
-     * @param other The other number to compare with
      * @return True if current number is distinctly less than the other (difference >= precision)
-     */
+    */
     infix fun T.less(other: T): Boolean {
         return (other - this) >= precision
     }
@@ -124,9 +119,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果当前数小于等于另一个数（差值小于等于精度）则返囌true
      *
-     * @param other The other number to compare with
      * @return True if current number is less than or equal to the other (difference <= precision)
-     */
+    */
     infix fun T.lessEqual(other: T): Boolean {
         return (this - other) <= precision
     }
@@ -138,9 +132,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果当前数明显大于另一个数（差值大于精度）则返囌true
      *
-     * @param other The other number to compare with
      * @return True if current number is distinctly greater than the other (difference > precision)
-     */
+    */
     infix fun T.greater(other: T): Boolean {
         return (this - other) > precision
     }
@@ -152,9 +145,8 @@ class Precision<T>(
      * @param other 要比较的另一个数
      * @return 如果当前数大于等于另一个数（差值小于等于精度）则返囌true
      *
-     * @param other The other number to compare with
      * @return True if current number is greater than or equal to the other (difference <= precision)
-     */
+    */
     infix fun T.greaterEqual(other: T): Boolean {
         return (other - this) <= precision
     }
@@ -169,11 +161,8 @@ class Precision<T>(
  * @param precision 比较精度，默认使用类型的十进制精庌
  * @return 精度比较工具实例
  *
- * @param T Numeric type
- * @param constants Real number constants provider
- * @param precision Comparison precision, defaults to the type's decimal precision
  * @return Precision comparison utility instance
- */
+*/
 fun <T> withPrecision(
     constants: RealNumberConstants<T>,
     precision: T = constants.decimalPrecision
@@ -187,10 +176,8 @@ fun <T> withPrecision(
  * @param precision 比较精度，如果为 null 则使用类型的默认精度
  * @return 精度比较工具实例
  *
- * @param T Numeric type
- * @param precision Comparison precision, if null uses the type's default precision
  * @return Precision comparison utility instance
- */
+*/
 inline fun <reified T> withPrecision(
     precision: T? = null
 ): Ret<Precision<T>> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> {

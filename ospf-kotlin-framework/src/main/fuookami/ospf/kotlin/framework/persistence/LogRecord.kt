@@ -9,7 +9,7 @@
  *
  * ORM 特有的 Entity/Table/DAO/Saving 实现已迁移至 plugin-persistence-ktorm 模块。
  * ORM-specific Entity/Table/DAO/Saving implementations have been migrated to the plugin-persistence-ktorm module.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import java.io.ByteArrayInputStream
@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.framework.log.LogRecordType
  * @property time 时间 / Time
  * @property availableTime 有效时间 / Available time
  * @property value 日志内容（字节） / Log content (bytes)
- */
+*/
 data class LogRecordBytePO(
     val app: String,
     val version: String,
@@ -81,7 +81,7 @@ data class LogRecordBytePO(
  * @property time 时间 / Time
  * @property availableTime 有效时间 / Available time
  * @property value 日志内容（字符串） / Log content (string)
- */
+*/
 data class LogRecordStringPO(
     val app: String,
     val version: String,
@@ -96,7 +96,7 @@ data class LogRecordStringPO(
 /**
  * 从 LogRecordBytePO 创建 LogRecordPO（使用默认反序列化器）
  * Create LogRecordPO from LogRecordBytePO (using default deserializer)
- */
+*/
 inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(po: LogRecordBytePO): LogRecordPO<T>? {
     return this(po) {
         val stream = ByteArrayInputStream(it)
@@ -107,7 +107,7 @@ inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(po: LogRecord
 /**
  * 从 LogRecordBytePO 创建 LogRecordPO（使用自定义反序列化函数）
  * Create LogRecordPO from LogRecordBytePO (using custom deserializer)
- */
+*/
 inline operator fun <reified T : Any> LogRecordPO.Companion.invoke(
     po: LogRecordBytePO,
     deserializer: (ByteArray) -> T

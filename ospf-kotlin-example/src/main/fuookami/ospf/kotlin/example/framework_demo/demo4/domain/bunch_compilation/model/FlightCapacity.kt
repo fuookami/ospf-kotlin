@@ -19,11 +19,11 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 航班容量表达式模型，跟踪航班任务束中的旅客和货物容量用于列生成公式。/ Models flight capacity expressions tracking passenger and cargo capacity
  * across flight task bunches for the column generation formulation.
  *
-  * @property tasks 参数。
-  * @property compilation 参数。
-  * @property withPassenger 参数。
-  * @property withCargo 参数。
- */
+ * @property tasks Flight tasks / 航班任务
+ * @property compilation Compilation model / 编译模型
+ * @property withPassenger Whether passenger capacity is tracked / 是否跟踪旅客容量
+ * @property withCargo Whether cargo capacity is tracked / 是否跟踪货物容量
+*/
 class FlightCapacity(
     private val tasks: List<FlightTask>,
     private val compilation: Compilation,
@@ -35,10 +35,10 @@ class FlightCapacity(
 
     /**
      * 向模型注册旅客和货物容量符号。/ Registers passenger and cargo capacity symbols with the model.
- *
-     * @param model 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param model Linear meta model / 线性元模型
+     * @return Registration result / 注册结果
+    */
     fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (withPassenger) {
             if (!::passenger.isInitialized) {
@@ -97,11 +97,11 @@ class FlightCapacity(
 
     /**
      * 向容量表达式添加新束的列。/ Adds columns for new bunches to the capacity expressions.
- *
-     * @param iteration 参数。
-     * @param bunches 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param iteration Current iteration index / 当前迭代索引
+     * @param bunches New flight task bunches / 新的航班任务束
+     * @return Column addition result / 列添加结果
+    */
     fun addColumns(
         iteration: UInt64,
         bunches: List<FlightTaskBunch>,

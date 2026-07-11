@@ -4,7 +4,7 @@
  *
  * 提供泛型 Ring<T> 多项式解析的公共入口函数。
  * Provides generic Ring<T> polynomial parsing public entry functions.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
  * @param isZero 零值判断函数 / Zero-check function
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 解析后的规范多项式 / Parsed canonical polynomial
- */
+*/
 fun <T> parse(
     input: String,
     numberParser: NumberParser<T>,
@@ -49,7 +49,7 @@ fun <T> parse(
  * @param symbolOf 符号解析函数 / Symbol resolution function
  * @param isZero 零值判断函数 / Zero-check function
  * @return 线性多项式或 null / Linear polynomial or null
- */
+*/
 fun <T> parseLinearPolynomialOrNull(
     input: String,
     numberParser: NumberParser<T>,
@@ -73,7 +73,7 @@ fun <T> parseLinearPolynomialOrNull(
  * @param isZero 零值判断函数 / Zero-check function
  * @param symbolComparator 符号排序比较器 / Symbol ordering comparator
  * @return 二次多项式或 null / Quadratic polynomial or null
- */
+*/
 fun <T> parseQuadraticPolynomialOrNull(
     input: String,
     numberParser: NumberParser<T>,

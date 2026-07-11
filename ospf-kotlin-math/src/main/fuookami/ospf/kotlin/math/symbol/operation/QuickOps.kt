@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * 提供基于 Flt64ValueConverter 的泛型算术运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
  * Provides generic arithmetic operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
- */
+*/
 
 /**
  * 泛型快捷运算
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
  * @property converter Flt64 to V converter / Flt64 到 V 的转换器
- */
+*/
 class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
     // ========== Flt64 arithmetic ==========
     // Flt64 算术运算 / Flt64 arithmetic operators
@@ -35,7 +35,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Flt64.times(rhs: Symbol): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(this), rhs)
 
@@ -44,7 +44,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧 Flt64 值 / Right-hand side Flt64 value
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Symbol.times(rhs: Flt64): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(rhs), this)
 
@@ -56,7 +56,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Int.times(rhs: Symbol): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(Flt64(this.toDouble())), rhs)
 
@@ -65,7 +65,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧 Int 值 / Right-hand side Int value
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Symbol.times(rhs: Int): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(Flt64(rhs.toDouble())), this)
 
@@ -74,7 +74,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Int.minus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(-converter.one, rhs)), converter.intoValue(Flt64(this.toDouble())))
 
@@ -83,7 +83,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Int.plus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, rhs)), converter.intoValue(Flt64(this.toDouble())))
 
@@ -95,7 +95,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Double.times(rhs: Symbol): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(Flt64(this)), rhs)
 
@@ -104,7 +104,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧 Double 值 / Right-hand side Double value
      * @return 线性单项式 / Linear monomial
-     */
+    */
     operator fun Symbol.times(rhs: Double): LinearMonomial<V> =
         LinearMonomial(converter.intoValue(Flt64(rhs)), this)
 
@@ -113,7 +113,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Double.minus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(-converter.one, rhs)), converter.intoValue(Flt64(this)))
 
@@ -122,7 +122,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Double.plus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, rhs)), converter.intoValue(Flt64(this)))
 
@@ -138,7 +138,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Symbol.plus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, this), LinearMonomial(converter.one, rhs)), converter.zero)
 
@@ -147,7 +147,7 @@ class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : Numbe
      *
      * @param rhs 右侧符号 / Right-hand side symbol
      * @return 线性多项式 / Linear polynomial
-     */
+    */
     operator fun Symbol.minus(rhs: Symbol): LinearPolynomial<V> =
         LinearPolynomial(listOf(LinearMonomial(converter.one, this), LinearMonomial(-converter.one, rhs)), converter.zero)
 }

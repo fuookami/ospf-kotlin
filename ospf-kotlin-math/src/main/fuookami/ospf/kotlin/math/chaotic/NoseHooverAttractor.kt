@@ -1,7 +1,7 @@
 /**
  * Nose-Hoover 吸引子
  * Nose-Hoover Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property h 时间步长 / Time step size
- */
+*/
 data class NoseHooverAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -38,7 +38,7 @@ data class NoseHooverAttractor<V : FloatingNumber<V>>(val alpha: V, val h: V) :
  * Nose-Hoover Attractor Generator
  *
  * @property attractor Nose-Hoover 吸引子实例 / Nose-Hoover attractor instance
- */
+*/
 data class NoseHooverAttractorGenerator(
     val attractor: NoseHooverAttractor<Flt64> = NoseHooverAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

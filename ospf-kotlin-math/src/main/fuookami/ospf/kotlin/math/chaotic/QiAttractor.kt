@@ -1,7 +1,7 @@
 /**
  * Qi 吸引子（四维超混沌）
  * Qi Attractor (4D Hyperchaotic)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class QiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val delta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim4, V>, Point<Dim4, V>> {
     override operator fun invoke(p: Point<Dim4, V>): Point<Dim4, V> {
@@ -52,7 +52,7 @@ data class QiAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val del
  *
  * @property attractor the Qi attractor instance / Qi 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class QiAttractorGenerator(
     val attractor: QiAttractor<Flt64> = QiAttractor(),
     private var _x: Point<Dim4, Flt64> = point4(

@@ -4,7 +4,7 @@
  *
  * 定义三维几何空间中的主平面枚举（XY、XZ、YZ），为纯几何概念，可跨域迁移。
  * Defines principal plane enum (XY, XZ, YZ) in 3D geometric space, a pure geometry concept migratable across domains.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 /**
@@ -14,7 +14,7 @@ package fuookami.ospf.kotlin.math.geometry
  * @property firstAxis 平面第一轴 / First axis of the plane
  * @property secondAxis 平面第二轴 / Second axis of the plane
  * @property normalAxis 平面法向轴 / Normal axis of the plane
- */
+*/
 enum class AxisPlane3(
     val firstAxis: Axis3,
     val secondAxis: Axis3,
@@ -33,7 +33,7 @@ enum class AxisPlane3(
      *
      * @param axis 待检测的轴 / The axis to check
      * @return 是否属于该平面 / Whether the axis belongs to this plane
-     */
+    */
     fun contains(axis: Axis3): Boolean {
         return axis == firstAxis || axis == secondAxis
     }

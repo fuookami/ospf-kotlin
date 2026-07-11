@@ -1,7 +1,7 @@
 /**
  * PWL 半径平方近似函数。
  * PWL radius-squared approximation function.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -17,17 +17,20 @@ import fuookami.ospf.kotlin.math.algebra.number.FltX
  * @property achievedMaxRelativeError 达到的最大相对误差 / achieved maximum relative error
  * @property meetsTolerance 是否满足误差容限 / whether tolerance is met
  * @property iterations 推导迭代次数 / derivation iteration count
- */
+*/
 data class SegmentCountDerivation(
     val recommendedSegments: Int,
     val achievedMaxRelativeError: FltX,
     val meetsTolerance: Boolean,
     val iterations: Int
 ) {
+
     /**
      * 转为诊断信息。
      * Convert to diagnostic info.
-     */
+     *
+     * @return diagnostic key-value map / 诊断键值映射
+    */
     fun info(): Map<String, String> = mapOf(
         "pwl_derived_segments" to recommendedSegments.toString(),
         "pwl_derived_achieved_max_rel_error" to achievedMaxRelativeError.toDouble().toString(),
@@ -51,7 +54,7 @@ data class SegmentCountDerivation(
  * @property intercepts 各段截距 / intercepts per segment
  * @property maxRelativeError 最大相对误差 / maximum relative error
  * @property maxAbsoluteError 最大绝对误差 / maximum absolute error
- */
+*/
 data class PWLRadiusSquaredApproximation(
     val breakpoints: List<FltX>,
     val slopes: List<FltX>,
@@ -85,7 +88,7 @@ data class PWLRadiusSquaredApproximation(
          * @param relativeErrorTolerance 目标相对误差容限 / target relative error tolerance
          * @param maxSegments 最大段数 / maximum segment count
          * @return 段数推导结果 / segment count derivation result
-         */
+        */
         fun deriveSegmentCount(
             rMin: FltX,
             rMax: FltX,
@@ -135,6 +138,7 @@ data class PWLRadiusSquaredApproximation(
                 iterations = iterations
             )
         }
+
         /**
          * 从半径区间构建 PWL 近似函数。
          * Build PWL approximation from radius interval.
@@ -143,7 +147,7 @@ data class PWLRadiusSquaredApproximation(
          * @param rMax 半径上界 / radius upper bound
          * @param config PWL 配置 / PWL config
          * @return PWL 近似函数 / PWL approximation
-         */
+        */
         fun fromRadiusInterval(
             rMin: FltX,
             rMax: FltX,
@@ -185,6 +189,13 @@ data class PWLRadiusSquaredApproximation(
             )
         }
 
+/**
+ * Validates customBreakpoints.
+ * 验证CustomBreakpoints。
+ * @param breakpoints custom breakpoint list to validate / 待验证的自定义断点列表
+ * @param rMin radius lower bound / 半径下界
+ * @param rMax radius upper bound / 半径上界
+*/
         private fun validateCustomBreakpoints(
             breakpoints: List<FltX>,
             rMin: FltX,
@@ -206,7 +217,12 @@ data class PWLRadiusSquaredApproximation(
         /**
          * 根据策略生成断点。
          * Generate breakpoints based on the chosen strategy.
-         */
+         *
+         * @param rMin radius lower bound / 半径下界
+         * @param rMax radius upper bound / 半径上界
+         * @param config PWL approximation configuration / PWL 近似配置
+         * @return generated breakpoint list / 生成的断点列表
+        */
         private fun generateBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -228,7 +244,12 @@ data class PWLRadiusSquaredApproximation(
         /**
          * 生成均匀分布断点。
          * Generate uniformly distributed breakpoints.
-         */
+         *
+         * @param rMin radius lower bound / 半径下界
+         * @param rMax radius upper bound / 半径上界
+         * @param numSegments number of segments / 分段数
+         * @return uniformly distributed breakpoint list / 均匀分布的断点列表
+        */
         private fun generateUniformBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -242,7 +263,12 @@ data class PWLRadiusSquaredApproximation(
          * Chebyshev-like 断点分布：在 r 小处（r² 的相对误差更敏感）集中更多断点。
          * Chebyshev-like breakpoint distribution: concentrate more breakpoints near rMin
          * where the relative error of r² is more sensitive.
-         */
+         *
+         * @param rMin radius lower bound / 半径下界
+         * @param rMax radius upper bound / 半径上界
+         * @param numSegments number of segments / 分段数
+         * @return Chebyshev-like distributed breakpoint list / Chebyshev 类分布的断点列表
+        */
         private fun generateAdaptiveBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -266,7 +292,13 @@ data class PWLRadiusSquaredApproximation(
          * 误差驱动断点生成：从均匀分布开始，迭代地在相对误差最大的段添加中点。
          * Error-driven breakpoint generation: start from uniform, iteratively add midpoints
          * to segments with the highest relative error.
-         */
+         *
+         * @param rMin radius lower bound / 半径下界
+         * @param rMax radius upper bound / 半径上界
+         * @param relativeTolerance target relative error tolerance / 目标相对误差容限
+         * @param maxSegments maximum segment count / 最大段数
+         * @return error-driven breakpoint list / 误差驱动生成的断点列表
+        */
         private fun generateErrorDrivenBreakpoints(
             rMin: FltX,
             rMax: FltX,
@@ -301,7 +333,12 @@ data class PWLRadiusSquaredApproximation(
         /**
          * 计算各段最大相对误差。
          * Compute maximum relative errors per segment.
-         */
+         *
+         * @param breakpoints breakpoint list defining the PWL segments / 定义 PWL 分段的断点列表
+         * @param slopes per-segment chord slopes / 各段弦斜率
+         * @param intercepts per-segment chord intercepts / 各段弦截距
+         * @return global maximum relative error and per-segment relative error list / 全局最大相对误差与各段相对误差列表
+        */
         private fun computeSegmentRelativeErrors(
             breakpoints: List<FltX>,
             slopes: List<FltX>,
@@ -336,7 +373,12 @@ data class PWLRadiusSquaredApproximation(
         /**
          * 计算所有段的最大相对误差和绝对误差。
          * Compute maximum relative and absolute errors across all segments.
-         */
+         *
+         * @param breakpoints breakpoint list defining the PWL segments / 定义 PWL 分段的断点列表
+         * @param slopes per-segment chord slopes / 各段弦斜率
+         * @param intercepts per-segment chord intercepts / 各段弦截距
+         * @return maximum relative error and maximum absolute error across all segments / 所有段的最大相对误差和最大绝对误差
+        */
         private fun computeMaxErrors(
             breakpoints: List<FltX>,
             slopes: List<FltX>,
@@ -376,7 +418,7 @@ data class PWLRadiusSquaredApproximation(
      *
      * @param r 半径值 / radius value
      * @return 近似 r² 的结果 / approximated r² value
-     */
+    */
     fun evaluate(r: FltX): FltX {
         // Binary search for the correct segment
         val bp = breakpoints
@@ -402,7 +444,7 @@ data class PWLRadiusSquaredApproximation(
      *
      * @param r 半径值 / radius value
      * @return 实际误差 / actual error
-     */
+    */
     fun actualError(r: FltX): FltX {
         val q = evaluate(r)
         val actualRSquared = r * r
@@ -415,7 +457,7 @@ data class PWLRadiusSquaredApproximation(
      *
      * @param r 半径值 / radius value
      * @return 实际相对误差 / actual relative error
-     */
+    */
     fun actualRelativeError(r: FltX): FltX {
         val absError = actualError(r)
         val actualRSquared = r * r

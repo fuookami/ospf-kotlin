@@ -31,14 +31,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Facility location: find the point minimizing total Manhattan distance to settlements.
  *
  * @see https://fuookami.github.io/ospf/examples/example9.html
- */
+*/
 data object Demo9 {
+
     /**
      * 具有 x 和 y 坐标的定居点。A settlement with x and y coordinates.
      *
      * @property x X 坐标 / X coordinate
      * @property y Y 坐标 / Y coordinate
-     */
+    */
     data class Settlement(
         val x: Flt64,
         val y: Flt64
@@ -74,7 +75,7 @@ data object Demo9 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -96,7 +97,7 @@ data object Demo9 {
      * 初始化设施位置的整数决策变量。/ Initializes integer decision variables for the facility position.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = IntVar("x")
         y = IntVar("y")
@@ -109,7 +110,7 @@ data object Demo9 {
      * 创建 x 轴和 y 轴的绝对距离符号，然后求和。/ Creates absolute distance symbols for x and y axes, then sums them.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         dx = LinearIntermediateSymbols1<Flt64>("dx", Shape1(settlements.size)) { i, _ ->
             exampleAbsoluteSlack(
@@ -145,7 +146,7 @@ data object Demo9 {
      * 设置目标函数以最小化总曼哈顿距离。/ Sets the objective to minimize total Manhattan distance.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(sum(distance[_a]))
         return ok
@@ -155,7 +156,7 @@ data object Demo9 {
      * 无需额外约束。/ No additional constraints needed.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         return ok
     }
@@ -164,7 +165,7 @@ data object Demo9 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -187,7 +188,7 @@ data object Demo9 {
      * 从解中提取最优设施位置。/ Extracts the optimal facility position from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val position = ArrayList<Flt64>()
         for (token in metaModel.tokens.tokens) {

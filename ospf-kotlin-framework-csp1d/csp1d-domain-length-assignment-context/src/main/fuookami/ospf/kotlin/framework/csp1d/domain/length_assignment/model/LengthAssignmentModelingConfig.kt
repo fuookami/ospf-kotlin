@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.ProductId
  * @property overLengthUpperBound Over-length upper bound per product id, missing for no limit / 超长上限，按产品 ID 口径，缺省表示无上限
  * @property totalLengthPenalty Total assigned length penalty weight / 总卷长惩罚权重
  * @property batchMinPenalty Batch minimization penalty weight for dynamic-length products / 批次最小化惩罚权重（动态长度产品）
- */
+*/
 data class LengthAssignmentModelingConfig<V : RealNumber<V>>(
     val dynamicProductIds: Set<ProductId> = emptySet(),
     val assignedLengthLowerBound: Map<ProductId, V> = emptyMap(),
@@ -37,7 +37,7 @@ data class LengthAssignmentModelingConfig<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property assignedLengths 动态长度产品的卷长分配值 / Assigned lengths for dynamic-length products
  * @property overLengths 超长产品值 / Over-length values for products exceeding bounds
- */
+*/
 data class LengthAssignmentModelingResult<V : RealNumber<V>>(
     val assignedLengths: List<ModeledAssignedLength<V>> = emptyList(),
     val overLengths: List<ModeledOverLength<V>> = emptyList()
@@ -49,7 +49,7 @@ data class LengthAssignmentModelingResult<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property productId 产品 ID / Product id
  * @property assignedLength 分配的卷长值 / Assigned length value
- */
+*/
 data class ModeledAssignedLength<V : RealNumber<V>>(
     val productId: ProductId,
     val assignedLength: V
@@ -61,7 +61,7 @@ data class ModeledAssignedLength<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property productId 产品 ID / Product id
  * @property overLength 超长值 / Over-length value
- */
+*/
 data class ModeledOverLength<V : RealNumber<V>>(
     val productId: ProductId,
     val overLength: V

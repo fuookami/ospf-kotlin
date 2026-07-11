@@ -7,7 +7,7 @@
  *
  * A chaotic attractor system describing wave modulation instability in non-equilibrium media.
  * Commonly used for non-equilibrium physics, wave dynamics, and complex systems analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property alpha 系统参数 alpha / System parameter alpha
  * @property gamma 系统参数 gamma / System parameter gamma
  * @property h 时间步长 / Time step size
- */
+*/
 data class RabinovichFabrikantAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val gamma: V,
@@ -54,7 +54,7 @@ data class RabinovichFabrikantAttractor<V : FloatingNumber<V>>(
  * Rabinovich-Fabrikant Attractor Generator
  *
  * @property attractor Rabinovich-Fabrikant 吸引子实例 / Rabinovich-Fabrikant attractor instance
- */
+*/
 data class RabinovichFabrikantAttractorGenerator(
     val attractor: RabinovichFabrikantAttractor<Flt64> = RabinovichFabrikantAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

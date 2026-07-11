@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 这是 CSP1D 建模注册模式的默认实现，同时支持 MILP 和 LP 两种模式。
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class Csp1dProduceContext<V : RealNumber<V>>(
     override val produce: ProduceAggregation<V>,
     val yield: YieldAggregation<V>?,
@@ -133,6 +133,11 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         return ok
     }
 
+    /**
+     * Assembles and sets the objective function on the model.
+     * 组装并设置模型的目标函数。
+     * @param model the linear meta-model to set the objective on / 设置目标函数的线性元模型
+    */
     private fun setObjective(model: LinearMetaModel<Flt64>) {
         val monomials = ArrayList<LinearMonomial<Flt64>>()
 
@@ -170,7 +175,9 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     /**
      * 应用 warm start 初始解 / Apply warm start initial solution
-     */
+     *
+     * @param model the linear meta-model to apply the warm start solution to / 应用 warm start 初始解的线性元模型
+    */
     private fun applyWarmStart(model: LinearMetaModel<Flt64>) {
         val usageByKey = warmStartUsageByKey()
         if (usageByKey.isEmpty()) return
@@ -187,6 +194,11 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * Aggregates warm-start plan usages by their canonical key.
+     * 按规范键聚合 warm-start 方案使用量。
+     * @return a map from cutting plan canonical key to its warm start usage amount / 切割方案规范键到 warm start 使用量的映射
+    */
     private fun warmStartUsageByKey(): Map<CuttingPlanCanonicalKey, UInt64> {
         val result = LinkedHashMap<CuttingPlanCanonicalKey, UInt64>()
         for (usage in warmStartPlanUsages) {
@@ -233,7 +245,10 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     /**
      * 提取设备使用量 / Extract machine usages
-     */
+     *
+     * @param selectedPlans the list of selected cutting plan usages / 已选中的切割方案使用量列表
+     * @return the list of machine capacity usages for each machine / 各设备的产能使用量列表
+    */
     private fun extractMachineUsages(
         selectedPlans: List<CuttingPlanUsage<V>>
     ): List<MachineCapacityUsage<V>> {
@@ -268,21 +283,30 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
     /**
      * 提取 yield 建模结果 / Extract yield modeling result
-     */
+     *
+     * @param model the solved linear meta-model to extract yield result from / 提取 yield 建模结果的已求解线性元模型
+     * @return the yield modeling result, or null if yield is not configured / yield 建模结果，若未配置 yield 则返回 null
+    */
     fun extractYieldResult(model: AbstractLinearMetaModel<Flt64>): YieldModelingResult<V>? {
         return yield?.extractResult(model)
     }
 
     /**
      * 提取 length 建模结果 / Extract length modeling result
-     */
+     *
+     * @param model the solved linear meta-model to extract length result from / 提取 length 建模结果的已求解线性元模型
+     * @return the length assignment modeling result, or null if length is not configured / length 建模结果，若未配置 length 则返回 null
+    */
     fun extractLengthResult(model: AbstractLinearMetaModel<Flt64>): LengthAssignmentModelingResult<V>? {
         return length?.extractResult(model)
     }
 
     /**
      * 提取 waste 建模结果 / Extract waste modeling result
-     */
+     *
+     * @param model the solved linear meta-model to extract waste result from / 提取 waste 建模结果的已求解线性元模型
+     * @return the waste minimization result, or null if waste is not configured or has no penalty / waste 最小化结果，若未配置 waste 或无惩罚项则返回 null
+    */
     fun extractWasteResult(model: AbstractLinearMetaModel<Flt64>): WasteMinimizationResult<V>? {
         val wasteAgg = waste ?: return null
         if (!wasteAgg.hasAnyPenalty) return null
@@ -476,7 +500,10 @@ class Csp1dProduceContext<V : RealNumber<V>>(
      * cannot be executed. It only works for dual solutions whose constraints already carry shadow price keys
      * in constraint.args. Recommend using
      * Csp1dShadowPriceLifecycle.extractFromDualSolution(model, dualSolution) for the CGPipeline primary path.
-     */
+     *
+     * @param dualSolution the map from LP constraints to their dual values / LP 约束到对偶值的映射
+     * @return the shadow price map for pricing consumption / 供定价使用的影子价格映射
+    */
     fun extractShadowPriceMap(
         dualSolution: Map<fuookami.ospf.kotlin.core.model.mechanism.Constraint<Flt64, Linear>, Flt64>
     ): ShadowPriceMap<V> {
@@ -494,6 +521,14 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         return ShadowPriceMap(prices)
     }
 
+    /**
+     * Reads the solved batch count for a cutting plan at the given index.
+     * 读取给定索引处切割方案的求解批次数量。
+     * @param model the solved linear meta-model to read the solution from / 读取求解结果的线性元模型
+     * @param index the index of the cutting plan variable in the produce aggregation / 切割方案变量在产出聚合中的索引
+     * @return the rounded non-negative batch count for the plan, or zero if unsolved / 方案的取整非负批次数量，未求解则为零
+    */
+
     // ===== 辅助方法 =====
 
     private fun solutionAmount(
@@ -505,6 +540,13 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         return UInt64(value.roundToLong().coerceAtLeast(0).toULong())
     }
 
+    /**
+     * Computes the rest material value for a cutting plan using the given measurement strategy.
+     * 使用给定度量策略计算切割方案的余料价值。
+     * @param plan the cutting plan to compute rest material value for / 计算余料价值的切割方案
+     * @param measure the rest material measurement strategy / 余料度量策略
+     * @return the computed rest material value, or null if required data is missing / 计算得到的余料价值，缺少必要数据时返回 null
+    */
     private fun restMaterialValue(
         plan: CuttingPlan<V>,
         measure: DomainRestMaterialMeasure
@@ -519,6 +561,13 @@ class Csp1dProduceContext<V : RealNumber<V>>(
         }
     }
 
+    /**
+     * Computes the width value used as an over-production area proxy for a product demand.
+     * 计算产品需求中用作超产面积代理的宽度值。
+     * @param demand the product demand to compute over-production area width for / 计算超产面积宽度的产品需求
+     * @param measure the over-production area measurement strategy / 超产面积度量策略
+     * @return the width value for over-production area proxy, or null if unavailable / 超产面积代理的宽度值，不可用时返回 null
+    */
     private fun overProductionAreaWidthValue(
         demand: ProductDemand<V>,
         measure: DomainOverProductionAreaMeasure
@@ -535,7 +584,7 @@ class Csp1dProduceContext<V : RealNumber<V>>(
 
 /**
  * Csp1dProduceContext 构建器 / Csp1dProduceContext builder
- */
+*/
 class Csp1dProduceContextBuilder<V : RealNumber<V>>(
     private val input: ProduceInput<V>
 ) {
@@ -553,7 +602,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param config yield 建模配置 / Yield modeling config
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun yieldConfig(config: YieldModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._yieldConfig = config
         return this
@@ -564,7 +613,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param config waste 建模配置 / Waste modeling config
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun wasteConfig(config: WasteMinimizationConfig<V>): Csp1dProduceContextBuilder<V> {
         this._wasteConfig = config
         return this
@@ -575,7 +624,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param config length 建模配置 / Length modeling config
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun lengthConfig(config: LengthAssignmentModelingConfig<V>): Csp1dProduceContextBuilder<V> {
         this._lengthConfig = config
         return this
@@ -586,7 +635,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param mode 建模模式 / Modeling mode
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun mode(mode: Csp1dModelingMode): Csp1dProduceContextBuilder<V> {
         this._mode = mode
         return this
@@ -597,7 +646,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param isFinalMilp 是否为最终 MILP / Whether this is final MILP
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun isFinalMilp(isFinalMilp: Boolean): Csp1dProduceContextBuilder<V> {
         this._isFinalMilp = isFinalMilp
         return this
@@ -608,7 +657,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param pipeline 约束管线 / Constraint pipeline
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun extraPipeline(pipeline: Pipeline<LinearMetaModel<Flt64>>): Csp1dProduceContextBuilder<V> {
         _extraPipelines.add(pipeline)
         return this
@@ -619,7 +668,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      *
      * @param policy 目标函数策略 / Objective policy
      * @return 构建器自身 / Builder itself
-     */
+    */
     fun objectivePolicy(policy: Csp1dObjectivePolicy<V>): Csp1dProduceContextBuilder<V> {
         _objectivePolicies.add(policy)
         return this
@@ -629,7 +678,9 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      * 追加建模扩展，build 时自动解析 context-aware pipeline / Add a modeling extension
      *
      * @param extension 建模扩展 / Modeling extension
-     */
+     *
+     * @return the builder itself for method chaining / 构建器自身，用于链式调用
+    */
     fun extension(extension: Csp1dModelingExtension<V>): Csp1dProduceContextBuilder<V> {
         _extensions.add(extension)
         return this
@@ -642,7 +693,7 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
      * Resolves all extension pipelines, assembles produce/yield/waste/length aggregations with constraint pipelines, and returns the complete modeling context.
      *
      * @return CSP1D 产出模型上下文 / CSP1D produce model context
-     */
+    */
     fun build(): Csp1dProduceContext<V> {
         val yieldCfg = _yieldConfig
         val wasteCfg = _wasteConfig
@@ -800,7 +851,10 @@ class Csp1dProduceContextBuilder<V : RealNumber<V>>(
 
     /**
      * 从输入数据推导领域数值样本 / Derive a domain value sample from input data
-     */
+     *
+     * @param input the produce input data to derive the sample from / 推导样本的产出输入数据
+     * @return a domain value sample for type conversion, or failure if no value can be derived / 用于类型转换的领域数值样本，无法推导时返回失败
+    */
     private fun resolveDomainValueSample(input: ProduceInput<V>): Ret<V> {
         // 优先从 demand 的 quantity 获取 / Prefer demand quantity
         input.demands.firstOrNull()?.quantity?.value?.let { return Ok(it) }

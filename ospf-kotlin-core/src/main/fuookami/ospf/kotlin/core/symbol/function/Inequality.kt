@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [InequalityFunction]，判断不等式是否满足并返回二值指示变量。
  *
  * Provides [InequalityFunction] for checking inequality satisfaction and returning a binary indicator.
- */
+*/
 
 /**
  * 不等式满足指示函数。
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class InequalityFunction<V>(
     val lhs: LinearPolynomial<V>,
     val rhs: V,
@@ -176,7 +176,7 @@ class InequalityFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [InequalityFunction] 实例 / [InequalityFunction] instance
-         */
+        */
         operator fun <V> invoke(
             lhs: LinearPolynomial<V>,
             rhs: V,

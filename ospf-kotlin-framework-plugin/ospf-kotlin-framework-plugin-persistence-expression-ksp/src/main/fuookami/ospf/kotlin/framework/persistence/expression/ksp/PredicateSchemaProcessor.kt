@@ -1,7 +1,7 @@
 /**
  * 谓词 schema KSP processor
  * Predicate schema KSP processor
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.ksp
 
 import java.io.OutputStreamWriter
@@ -27,18 +27,19 @@ import com.google.devtools.ksp.validate
  *
  * @property codeGenerator KSP 代码生成器 / KSP code generator
  * @property logger KSP 日志器 / KSP logger
- */
+*/
 class PredicateSchemaProcessor(
     private val codeGenerator: CodeGenerator,
     private val logger: KSPLogger
 ) : SymbolProcessor {
+
     /**
      * 处理带注解的符号
      * Process annotated symbols
      *
      * @param resolver KSP 解析器 / KSP resolver
      * @return 延迟处理的符号列表 / List of deferred symbols
-     */
+    */
     override fun process(resolver: Resolver): List<KSAnnotated> {
         val symbols = resolver.getSymbolsWithAnnotation(PredicateEntityAnnotation)
         val deferred = mutableListOf<KSAnnotated>()
@@ -55,7 +56,7 @@ class PredicateSchemaProcessor(
     /**
      * 符号访问器，处理类声明
      * Symbol visitor for processing class declarations
-     */
+    */
     private inner class Visitor : KSVisitorVoid() {
         /**
          * 访问类声明，生成 schema 代码文件
@@ -63,7 +64,7 @@ class PredicateSchemaProcessor(
          *
          * @param classDeclaration 类声明 / Class declaration
          * @param data 附加数据（未使用）/ Additional data (unused)
-         */
+        */
         override fun visitClassDeclaration(classDeclaration: KSClassDeclaration, data: Unit) {
             val model = classDeclaration.toModel() ?: return
             val sourceFile = classDeclaration.containingFile
@@ -87,7 +88,7 @@ class PredicateSchemaProcessor(
          * Convert class declaration to predicate schema model
          *
          * @return 谓词 schema 模型，验证失败时返回 null / Predicate schema model, or null if validation fails
-         */
+        */
         private fun KSClassDeclaration.toModel(): PredicateSchemaModel? {
             val entityName = simpleName.asString()
             val packageName = packageName.asString()
@@ -183,7 +184,7 @@ class PredicateSchemaProcessor(
          * @param entityName 实体类名 / Entity class name
          * @param declaration 类声明 / Class declaration
          * @return 是否通过验证 / Whether validation passes
-         */
+        */
         private fun validateEntity(entityName: String, declaration: KSClassDeclaration): Boolean {
             if (declaration.parentDeclaration is KSDeclaration) {
                 logger.error("Predicate entity $entityName cannot be a nested class", declaration)
@@ -207,7 +208,7 @@ class PredicateSchemaProcessor(
          * @param schemaName schema 名称 / Schema name
          * @param declaration 类声明 / Class declaration
          * @return 是否通过验证 / Whether validation passes
-         */
+        */
         private fun validateSchemaName(schemaName: String, declaration: KSClassDeclaration): Boolean {
             if (!schemaName.isRegularKotlinIdentifier()) {
                 logger.error(
@@ -224,7 +225,7 @@ class PredicateSchemaProcessor(
          * Check if property is a visible schema property
          *
          * @return 是否可见 / Whether visible
-         */
+        */
         private fun KSPropertyDeclaration.isVisibleSchemaProperty(): Boolean {
             return simpleName.asString().isNotBlank()
         }
@@ -234,7 +235,7 @@ class PredicateSchemaProcessor(
          * Get predicate field name of property (specified via @PredicateField annotation)
          *
          * @return 后端字段名，未注解时返回 null / Backend field name, or null if not annotated
-         */
+        */
         private fun KSPropertyDeclaration.predicateFieldName(): String? {
             return annotations.firstOrNull {
                 it.annotationType.resolve().declaration.qualifiedName?.asString() == PredicateFieldAnnotation
@@ -249,7 +250,7 @@ class PredicateSchemaProcessor(
  *
  * @param name 参数名 / Argument name
  * @return 参数值，不存在时返回 null / Argument value, or null if not present
- */
+*/
 private fun com.google.devtools.ksp.symbol.KSAnnotation.stringArgument(name: String): String? {
     return arguments.firstOrNull { it.name?.asString() == name }?.value as? String
 }
@@ -260,7 +261,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.stringArgument(name: Str
  *
  * @param name 参数名 / Argument name
  * @return 参数值，不存在时返回 null / Argument value, or null if not present
- */
+*/
 private fun com.google.devtools.ksp.symbol.KSAnnotation.booleanArgument(name: String): Boolean? {
     return arguments.firstOrNull { it.name?.asString() == name }?.value as? Boolean
 }
@@ -271,7 +272,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.booleanArgument(name: St
  *
  * @param name 参数名 / Parameter name
  * @return 枚举条目名称，不存在时返回 null / Enum entry name, or null if not present
- */
+*/
 private fun com.google.devtools.ksp.symbol.KSAnnotation.enumArgument(name: String): String? {
     val value = arguments.firstOrNull { it.name?.asString() == name }?.value
     return (value as? com.google.devtools.ksp.symbol.KSName)?.asString()
@@ -285,7 +286,7 @@ private fun com.google.devtools.ksp.symbol.KSAnnotation.enumArgument(name: Strin
  * @param propertyName Kotlin 属性名 / Kotlin property name
  * @param namingStrategy 命名策略 / Naming strategy
  * @return 后端列名 / Backend column name
- */
+*/
 private fun applyNamingStrategy(propertyName: String, namingStrategy: KspColumnNamingStrategy): String {
     return when (namingStrategy) {
         KspColumnNamingStrategy.Identity -> propertyName
@@ -299,7 +300,7 @@ private fun applyNamingStrategy(propertyName: String, namingStrategy: KspColumnN
  *
  * @param name 驼峰命名 / Camel case name
  * @return 蛇形命名 / Snake case name
- */
+*/
 private fun camelToSnakeCase(name: String): String {
     return buildString {
         for ((index, char) in name.withIndex()) {
@@ -351,7 +352,7 @@ private val regularIdentifier = Regex("[A-Za-z_][A-Za-z0-9_]*")
  * Check if string is a valid regular Kotlin identifier
  *
  * @return 是否合法 / Whether valid
- */
+*/
 private fun String.isRegularKotlinIdentifier(): Boolean {
     return matches(regularIdentifier) && this !in kotlinKeywords
 }
@@ -361,7 +362,7 @@ private fun String.isRegularKotlinIdentifier(): Boolean {
  * Convert string to valid Kotlin identifier, wrapping keywords with backticks
  *
  * @return 合法标识符，不合法时返回 null / Valid identifier, or null if invalid
- */
+*/
 private fun String.kotlinIdentifierOrNull(): String? {
     if (matches(regularIdentifier)) {
         return if (this in kotlinKeywords) {

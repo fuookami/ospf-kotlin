@@ -9,7 +9,7 @@
  * - StandardAtmosphericPressure: 1 atm = 101325 Pa（精确值）/ 1 atm = 101325 Pa (exact)
  * - Bar: 1 bar = 10⁵ Pa
  * - MeterMercury: 1 mHg = 0.76 atm
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -23,10 +23,12 @@ import fuookami.ospf.kotlin.quantities.dimension.Pressure
  *
  * 符号 / Symbol: Pa
  * 换算关系 / Conversion: 1 Pa = 1 N/m² = 1 kg/(m·s²)
- */
+*/
 object Pascal : DerivedPhysicalUnit(Newton / SquareMeter) {
+
     /** 单位名称：pascal / Unit name: pascal */
     override val name = "pascal"
+
     /** 单位符号：Pa / Unit symbol: Pa */
     override val symbol = "Pa"
 
@@ -42,10 +44,12 @@ object Pascal : DerivedPhysicalUnit(Newton / SquareMeter) {
  *
  * 符号 / Symbol: hPa
  * 换算关系 / Conversion: 1 hPa = 100 Pa
- */
+*/
 object Hectopascal : DerivedPhysicalUnit(Pascal * Scale.hecto) {
+
     /** 单位名称：hectopascal / Unit name: hectopascal */
     override val name = "hectopascal"
+
     /** 单位符号：hPa / Unit symbol: hPa */
     override val symbol = "hPa"
 
@@ -61,10 +65,12 @@ object Hectopascal : DerivedPhysicalUnit(Pascal * Scale.hecto) {
  *
  * 符号 / Symbol: kPa
  * 换算关系 / Conversion: 1 kPa = 1000 Pa
- */
+*/
 object Kilopascal : DerivedPhysicalUnit(Pascal * Scale.kilo) {
+
     /** 单位名称：kilopascal / Unit name: kilopascal */
     override val name = "kilopascal"
+
     /** 单位符号：kPa / Unit symbol: kPa */
     override val symbol = "kPa"
 
@@ -80,10 +86,12 @@ object Kilopascal : DerivedPhysicalUnit(Pascal * Scale.kilo) {
  *
  * 符号 / Symbol: MPa
  * 换算关系 / Conversion: 1 MPa = 10⁶ Pa = 1000000 Pa
- */
+*/
 object Megapascal : DerivedPhysicalUnit(Pascal * Scale.mega) {
+
     /** 单位名称：megapascal / Unit name: megapascal */
     override val name = "megapascal"
+
     /** 单位符号：MPa / Unit symbol: MPa */
     override val symbol = "MPa"
 
@@ -99,10 +107,12 @@ object Megapascal : DerivedPhysicalUnit(Pascal * Scale.mega) {
  *
  * 符号 / Symbol: atm
  * 换算关系 / Conversion: 1 atm = 101325 Pa（精确值）/ 1 atm = 101325 Pa (exact)
- */
+*/
 object StandardAtmosphericPressure : DerivedPhysicalUnit(Pascal * 101325) {
+
     /** 单位名称：standard atmospheric pressure / Unit name: standard atmospheric pressure */
     override val name = "standard atmospheric pressure"
+
     /** 单位符号：atm / Unit symbol: atm */
     override val symbol = "atm"
 
@@ -118,10 +128,12 @@ object StandardAtmosphericPressure : DerivedPhysicalUnit(Pascal * 101325) {
  *
  * 符号 / Symbol: mHg
  * 换算关系 / Conversion: 1 mHg = 0.76 atm = 760 mmHg
- */
+*/
 object MeterMercury : DerivedPhysicalUnit(StandardAtmosphericPressure * 0.76) {
+
     /** 单位名称：meter mercury / Unit name: meter mercury */
     override val name = "meter mercury"
+
     /** 单位符号：mHg / Unit symbol: mHg */
     override val symbol = "mHg"
 
@@ -137,10 +149,12 @@ object MeterMercury : DerivedPhysicalUnit(StandardAtmosphericPressure * 0.76) {
  *
  * 符号 / Symbol: mmHg
  * 换算关系 / Conversion: 1 mmHg = 1/1000 mHg ≈ 133.322 Pa
- */
+*/
 object MillimeterMercury : DerivedPhysicalUnit(MeterMercury * Scale.milli) {
+
     /** 单位名称：millimeter mercury / Unit name: millimeter mercury */
     override val name = "millimeter mercury"
+
     /** 单位符号：mmHg / Unit symbol: mmHg */
     override val symbol = "mmHg"
 
@@ -156,10 +170,12 @@ object MillimeterMercury : DerivedPhysicalUnit(MeterMercury * Scale.milli) {
  *
  * 符号 / Symbol: inHg
  * 换算关系 / Conversion: 1 inHg ≈ 3386.39 Pa
- */
+*/
 object InchOfMercury : DerivedPhysicalUnit(MeterMercury / Meter.to(Inch)!!) {
+
     /** 单位名称：inch of mercury / Unit name: inch of mercury */
     override val name = "inch of mercury"
+
     /** 单位符号：inHg / Unit symbol: inHg */
     override val symbol = "inHg"
 
@@ -175,10 +191,12 @@ object InchOfMercury : DerivedPhysicalUnit(MeterMercury / Meter.to(Inch)!!) {
  *
  * 符号 / Symbol: bar
  * 换算关系 / Conversion: 1 bar = 10⁵ Pa = 100 kPa
- */
+*/
 object Bar : DerivedPhysicalUnit(Pascal * Scale(10, 5)) {
+
     /** 单位名称：bar / Unit name: bar */
     override val name = "bar"
+
     /** 单位符号：bar / Unit symbol: bar */
     override val symbol = "bar"
 
@@ -194,10 +212,12 @@ object Bar : DerivedPhysicalUnit(Pascal * Scale(10, 5)) {
  *
  * 符号 / Symbol: mbar
  * 换算关系 / Conversion: 1 mbar = 10⁻³ bar = 100 Pa = 1 hPa
- */
+*/
 object Millibar : DerivedPhysicalUnit(Bar * Scale.milli) {
+
     /** 单位名称：millibar / Unit name: millibar */
     override val name = "millibar"
+
     /** 单位符号：mbar / Unit symbol: mbar */
     override val symbol = "mbar"
 

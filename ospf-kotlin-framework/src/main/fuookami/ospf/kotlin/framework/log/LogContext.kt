@@ -6,7 +6,7 @@
  *
  * 提供日志推送和保存的上下文管理。
  * Provides context management for log pushing and saving.
- */
+*/
 package fuookami.ospf.kotlin.framework.log
 
 import java.util.*
@@ -24,8 +24,9 @@ import fuookami.ospf.kotlin.utils.serialization.writeJson
 /**
  * 日志推送接口
  * Log pushing interface
- */
+*/
 interface Pushing {
+
     /**
      * 推送日志记录（使用序列化器）
      * Push log record (using serializer)
@@ -34,7 +35,7 @@ interface Pushing {
      * @param serializer 序列化器 / Serializer
      * @param T 日志值类型 / Log value type
      * @return 操作结果 / Operation result
-     */
+    */
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try {
         val json = Json {
             ignoreUnknownKeys = true
@@ -52,7 +53,7 @@ interface Pushing {
      * @param serializer 自定义序列化函数 / Custom serialization function
      * @param T 日志值类型 / Log value type
      * @return 操作结果 / Operation result
-     */
+    */
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (LogRecordPO<T>) -> String): Try
 }
 
@@ -63,7 +64,7 @@ interface Pushing {
  * @param value 日志记录 / Log record
  * @param T 日志值类型 / Log value type
  * @return 操作结果 / Operation result
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline operator fun <reified T : Any> Pushing.invoke(value: LogRecordPO<T>): Try {
     return this(value, T::class.serializer())
@@ -72,8 +73,9 @@ inline operator fun <reified T : Any> Pushing.invoke(value: LogRecordPO<T>): Try
 /**
  * 日志保存接口
  * Log saving interface
- */
+*/
 interface Saving {
+
     /**
      * 保存日志记录（使用序列化器）
      * Save log record (using serializer)
@@ -82,7 +84,7 @@ interface Saving {
      * @param serializer 序列化器 / Serializer
      * @param T 日志值类型 / Log value type
      * @return 操作结果 / Operation result
-     */
+    */
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: KSerializer<T>): Try
 
     /**
@@ -93,7 +95,7 @@ interface Saving {
      * @param serializer 字符串序列化函数 / String serialization function
      * @param T 日志值类型 / Log value type
      * @return 操作结果 / Operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsString")
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> String): Try {
@@ -108,7 +110,7 @@ interface Saving {
      * @param serializer 字节数组序列化函数 / Byte array serialization function
      * @param T 日志值类型 / Log value type
      * @return 操作结果 / Operation result
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("saveAsBytes")
     operator fun <T : Any> invoke(value: LogRecordPO<T>, serializer: (T) -> ByteArray): Try {
@@ -123,7 +125,7 @@ interface Saving {
  * @param value 日志记录 / Log record
  * @param T 日志值类型 / Log value type
  * @return 操作结果 / Operation result
- */
+*/
 @OptIn(InternalSerializationApi::class)
 inline operator fun <reified T : Any> Saving.invoke(value: LogRecordPO<T>): Try {
     return this(value, T::class.serializer())
@@ -138,7 +140,7 @@ inline operator fun <reified T : Any> Saving.invoke(value: LogRecordPO<T>): Try 
  * @property requestId 请求标识 / Request identifier
  * @property pushing 推送器，可为 null / Pusher, nullable
  * @property saving 保存器，可为 null / Saver, nullable
- */
+*/
 data class LogContextBuilder(
     var app: String = "",
     var version: String = "",
@@ -146,12 +148,13 @@ data class LogContextBuilder(
     var pushing: Pushing? = null,
     val saving: Saving? = null
 ) {
+
     /**
      * 构建日志上下文
      * Build log context
      *
      * @return 日志上下文 / Log context
-     */
+    */
     operator fun invoke(): LogContext {
         return LogContext(
             app = app,
@@ -172,7 +175,7 @@ data class LogContextBuilder(
  * @property serviceId 服务标识 / Service identifier
  * @property pushing 推送器，可为 null / Pusher, nullable
  * @property saving 保存器，可为 null / Saver, nullable
- */
+*/
 class LogContext private constructor(
     val app: String,
     val version: String,
@@ -193,7 +196,7 @@ class LogContext private constructor(
          * @param pushing 推送器，可为 null / Pusher, nullable
          * @param saving 保存器，可为 null / Saver, nullable
          * @return 日志上下文 / Log context
-         */
+        */
         operator fun invoke(
             app: String = "",
             version: String,
@@ -217,7 +220,7 @@ class LogContext private constructor(
          *
          * @param builder 构建器配置块 / Builder configuration block
          * @return 日志上下文 / Log context
-         */
+        */
         fun build(builder: LogContextBuilder.() -> Unit): LogContext {
             val context = LogContextBuilder()
             builder(context)
@@ -241,7 +244,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     @OptIn(InternalSerializationApi::class)
     inline fun <reified T : Any> push(
         step: String,
@@ -273,7 +276,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     fun <T : Any> push(
         step: String,
         serializer: KSerializer<T>,
@@ -305,7 +308,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     fun <T : Any> push(
         step: String,
         serializer: (LogRecordPO<T>) -> String,
@@ -353,7 +356,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     @OptIn(InternalSerializationApi::class)
     inline fun <reified T : Any> save(
         step: String,
@@ -380,7 +383,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     fun <T : Any> save(
         step: String,
         serializer: KSerializer<T>,
@@ -429,7 +432,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     @JvmName("saveAsString")
     fun <T : Any> save(
         step: String,
@@ -479,7 +482,7 @@ class LogContext private constructor(
      * @param type 日志类型，默认 Info / Log type, default Info
      * @param availableTime 可用时长，默认 90 天 / Available duration, default 90 days
      * @param T 日志值类型 / Log value type
-     */
+    */
     @JvmName("saveAsBytes")
     fun <T : Any> save(
         step: String,

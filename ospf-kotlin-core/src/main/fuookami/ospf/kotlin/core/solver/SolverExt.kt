@@ -1,7 +1,7 @@
 /**
  * 求解器扩展函数
  * Solver extension functions
- */
+*/
 package fuookami.ospf.kotlin.core.solver
 
 import java.util.concurrent.CompletableFuture
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.solver.output.*
  *
  * @param model 线性三元模型视图 / Linear triad model view
  * @return 求解结果 / Solve result
- */
+*/
 suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
@@ -35,7 +35,7 @@ suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<Feasibl
  * @param model 线性三元模型视图 / Linear triad model view
  * @param options 求解选项 / Solve options
  * @return 求解结果 / Solve result
- */
+*/
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
@@ -66,7 +66,7 @@ suspend fun AbstractLinearSolver.solveWithOptions(
  *
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @return 求解结果 / Solve result
- */
+*/
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
@@ -78,7 +78,7 @@ suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<
  * @param model 二次四元模型视图 / Quadratic tetrad model view
  * @param options 求解选项 / Solve options
  * @return 求解结果 / Solve result
- */
+*/
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
@@ -111,7 +111,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
  * @param options 求解选项 / Solve options
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
- */
+*/
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -181,7 +181,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
  * @param options 求解选项 / Solve options
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果与解列表 / Solve result with solution list
- */
+*/
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -281,7 +281,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
  * @param options 求解选项 / Solve options
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果（可能包含 IIS）/ Solve result (may contain IIS)
- */
+*/
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -351,7 +351,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
  * @param options 求解选项 / Solve options
  * @param iisConfig IIS 配置 / IIS configuration
  * @return 求解结果与解列表 / Solve result with solution list
- */
+*/
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -449,7 +449,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
  *
  * @param result 包含求解器输出与解列表的配对结果 / A paired result containing solver output and solution list
  * @return 仅包含求解器输出的求解结果 / Solve result containing only the solver output
- */
+*/
 private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>): Ret<FeasibleSolverOutput<Flt64>> {
     return when (result) {
         is Ok -> {
@@ -474,7 +474,7 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<Flt64>, List<Li
  * @param options 求解选项 / Solve options
  * @param callBack 可选的回调函数 / Optional callback function
  * @return 异步求解结果 / Async solve result
- */
+*/
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -495,7 +495,7 @@ fun AbstractLinearSolver.solveAsync(
  * @param options 求解选项 / Solve options
  * @param callBack 可选的回调函数 / Optional callback function
  * @return 异步求解结果 / Async solve result
- */
+*/
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,

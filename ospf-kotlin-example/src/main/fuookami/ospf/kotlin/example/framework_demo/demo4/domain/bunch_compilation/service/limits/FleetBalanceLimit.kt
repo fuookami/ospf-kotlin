@@ -30,20 +30,21 @@ private data class FleetBalanceShadowPriceKey(
 /**
  * 实现列生成车队平衡约束和最小化的管线。Pipeline implementing fleet balance constraints and minimization for column generation.
  *
- * @property fleetBalance 参数。
- * @property coefficient 参数。
- */
+ * @property fleetBalance Fleet balance model / 车队平衡模型
+ * @property coefficient Penalty coefficient function / 惩罚系数函数
+*/
 class FleetBalanceLimit(
     private val fleetBalance: FleetBalance,
     private val coefficient: (Airport, AircraftMinorType) -> Flt64,
     override val name: String = "fleet_balance_limit"
 ) : CGPipeline {
+
     /**
      * 向模型添加机队平衡约束和最小化目标。/ Adds fleet balance constraints and minimization objective to the model.
- *
-     * @param model 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param model Linear meta model / 线性元模型
+     * @return Invocation result / 调用结果
+    */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((l, checkPoint) in fleetBalance.limits.withIndex()) {
             when (val result = model.addConstraint(
@@ -90,9 +91,9 @@ class FleetBalanceLimit(
 
     /**
      * 返回机队平衡约束的影子价格提取器。/ Returns the shadow price extractor for fleet balance constraints.
- *
-     * @return 返回结果。
-     */
+     *
+     * @return Shadow price extractor / 影子价格提取器
+    */
     override fun extractor(): ShadowPriceExtractor? {
         return { map, args: ShadowPriceArguments ->
             when (args) {
@@ -116,12 +117,12 @@ class FleetBalanceLimit(
 
     /**
      * 用求解模型的对偶值刷新影子价格映射。/ Refreshes the shadow price map with dual values from the solved model.
- *
-     * @param shadowPriceMap 参数。
-     * @param model 参数。
-     * @param shadowPrices 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param shadowPriceMap Shadow price map / 影子价格映射
+     * @param model Solved linear meta model / 已求解的线性元模型
+     * @param shadowPrices Dual solution values / 对偶解值
+     * @return Refresh result / 刷新结果
+    */
     override fun refresh(
         shadowPriceMap: ShadowPriceMap,
         model: AbstractLinearMetaModel<Flt64>,

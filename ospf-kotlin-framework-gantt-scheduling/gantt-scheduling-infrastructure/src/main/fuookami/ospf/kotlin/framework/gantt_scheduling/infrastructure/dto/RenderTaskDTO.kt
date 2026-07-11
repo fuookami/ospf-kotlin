@@ -2,7 +2,7 @@
 
 /**
  * 甘特图渲染任务DTO / Gantt chart rendering task DTOs
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.dto
 
 import kotlin.time.Instant
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.serialization.DateTimeSerializer
 
 /**
  * 甘特图渲染任务类别 / Gantt render task category
- */
+*/
 enum class GanttRenderTaskCategory {
     /** 正常 / Normal */
     Normal,
@@ -31,7 +31,7 @@ enum class GanttRenderTaskCategory {
  * @property startTime 开始时间 / Start time
  * @property endTime 结束时间 / End time
  * @property info 附加信息 / Additional info
- */
+*/
 @OptIn(kotlin.time.ExperimentalTime::class)
 @Serializable
 data class GanttRenderSubTaskDTO(
@@ -61,7 +61,7 @@ data class GanttRenderSubTaskDTO(
  * @property resources 资源映射 / Resources mapping
  * @property info 附加信息 / Additional info
  * @property subTasks 子任务列表 / Sub-tasks list
- */
+*/
 @OptIn(kotlin.time.ExperimentalTime::class)
 @Serializable
 data class GanttRenderTaskDTO(
@@ -89,7 +89,7 @@ data class GanttRenderTaskDTO(
  * 甘特图渲染模式DTO / Gantt render schema DTO
  *
  * @property tasks 任务列表 / Tasks list
- */
+*/
 @Serializable
 data class GanttRenderSchemaDTO(
     val tasks: List<GanttRenderTaskDTO> = emptyList()

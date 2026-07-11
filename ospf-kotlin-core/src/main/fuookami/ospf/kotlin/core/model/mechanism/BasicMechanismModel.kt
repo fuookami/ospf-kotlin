@@ -1,7 +1,7 @@
 /**
  * 机制模型基础层
  * Mechanism model base layer
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenTable
  *
  * @property name 模型名称 / Model name
  * @property tokens 符号表 / Token table
- */
+*/
 open class BasicMechanismModel<V>(
     open val name: String,
     open val tokens: AbstractTokenTable<V>

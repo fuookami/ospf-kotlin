@@ -18,18 +18,19 @@ import fuookami.ospf.kotlin.utils.functional.*
 /**
  * One-dimensional Cutting Stock Problem solved via column generation with SCIP.
  * 使用 SCIP 通过列生成求解的一维切割库存问题。
- */
+*/
 class CSP {
+
     /**
      * The length of the raw material stock.
      * 原材料长度。
-     */
+    */
     private val rawLength = 1000.0
 
     /**
      * The list of raw product specifications with width and demand.
      * 具有宽度和需求的原始产品规格列表。
-     */
+    */
     private val rawProducts: List<RawProduct> = listOf(
         RawProduct(width = 450.0, demand = 97.0),
         RawProduct(width = 360.0, demand = 610.0),
@@ -110,7 +111,7 @@ class CSP {
      *
      * @property width the width of the product / 产品宽度
      * @property demand the demand quantity for the product / 产品需求量
-     */
+    */
     private data class RawProduct(
         val width: Double,
         val demand: Double

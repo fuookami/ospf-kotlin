@@ -1,7 +1,7 @@
 /**
  * 机制模型目标函数构建支持
  * Mechanism model objective function building support
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
  * @param metaModel 线性元模型 / Linear meta model
  * @param tokens 符号表 / Token table
  * @return 线性子目标列表 / List of linear sub-objectives
- */
+*/
 internal fun <V> buildLinearObjectiveSubObjects(
     metaModel: LinearMetaModel<V>,
     tokens: AbstractTokenTable<V>
@@ -63,7 +63,7 @@ internal fun <V> buildLinearObjectiveSubObjects(
  * @param metaModel 二次元模型 / Quadratic meta model
  * @param tokens 符号表 / Token table
  * @return 二次子目标列表 / List of quadratic sub-objectives
- */
+*/
 internal fun <V> buildQuadraticObjectiveSubObjects(
     metaModel: QuadraticMetaModel<V>,
     tokens: AbstractTokenTable<V>

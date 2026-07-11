@@ -3,7 +3,7 @@
  *
  * Extension functions for nullable value handling.
  * 可空值处理的扩展函数。
- */
+*/
 package fuookami.ospf.kotlin.utils.functional
 
 /**
@@ -15,7 +15,7 @@ package fuookami.ospf.kotlin.utils.functional
  * @param T 值的类型 / The type of the value
  * @param default 默认值提供者 / The default value provider
  * @return 非空时的原值，否则为默认值 / The original value if non-null, otherwise the default value
- */
+*/
 fun <T> T?.ifNull(default: () -> T): T = this ?: default()
 
 /**
@@ -27,7 +27,7 @@ fun <T> T?.ifNull(default: () -> T): T = this ?: default()
  * @param T 集合元素的类型 / The type of collection elements
  * @param default 默认集合 / The default collection
  * @return 非空非 null 时的原集合，否则为默认集合 / The original collection if non-null and non-empty, otherwise the default collection
- */
+*/
 fun <T> Collection<T>?.ifNullOrEmpty(default: Collection<T>): Collection<T> = this?.ifEmpty { default } ?: default
 
 /**
@@ -39,5 +39,5 @@ fun <T> Collection<T>?.ifNullOrEmpty(default: Collection<T>): Collection<T> = th
  * @param T 集合元素的类型 / The type of collection elements
  * @param default 默认集合提供者 / The default collection provider
  * @return 非空非 null 时的原集合，否则为默认值 / The original collection if non-null and non-empty, otherwise the default value
- */
+*/
 fun <T> Collection<T>?.ifNullOrEmpty(default: () -> Collection<T>): Collection<T> = this?.ifEmpty { default() } ?: default()

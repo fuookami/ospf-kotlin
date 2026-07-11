@@ -9,7 +9,7 @@
  * The Burke-Shaw attractor is a three-dimensional continuous-time chaotic system proposed by Burke and Shaw.
  * This system generates chaotic behavior through nonlinear terms, with trajectories forming unique attractor structures in three-dimensional space.
  * Commonly used for chaotic system research, nonlinear dynamics analysis, and chaotic signal processing.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property nu 系统参数 nu / System parameter nu
  * @property h 时间步长 / Time step size
- */
+*/
 data class BurkeShawAttractor<V : FloatingNumber<V>>(
     val zeta: V,
     val nu: V,
@@ -53,7 +53,7 @@ data class BurkeShawAttractor<V : FloatingNumber<V>>(
 /**
  * Burke-Shaw 吸引子生成器
  * Burke-Shaw Attractor Generator
- */
+*/
 data class BurkeShawAttractorGenerator(
     val burkeShawAttractor: BurkeShawAttractor<Flt64> = BurkeShawAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

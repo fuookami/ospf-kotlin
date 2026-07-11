@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [BalanceTernaryzationFunction]，将输入映射到 {-1, 0, 1}。
  *
  * Provides [BalanceTernaryzationFunction] for mapping inputs to {-1, 0, 1}.
- */
+*/
 
 /**
  * 平衡三值化函数：将 x 映射为 sign(x) 取值 {-1, 0, 1}。
@@ -47,7 +47,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
  * @property fallbackLower 输入无有限下界时的分段回退下界 / fallback lower breakpoint when input has no finite lower bound
  * @property fallbackUpper 输入无有限上界时的分段回退上界 / fallback upper breakpoint when input has no finite upper bound
- */
+*/
 class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,
     val epsilon: Flt64 = Flt64(1e-6),
@@ -144,7 +144,7 @@ class BalanceTernaryzationFunction<V>(
          * @param fallbackLower 输入无有限下界时的分段回退下界 / fallback lower breakpoint when input has no finite lower bound
          * @param fallbackUpper 输入无有限上界时的分段回退上界 / fallback upper breakpoint when input has no finite upper bound
          * @return [BalanceTernaryzationFunction] 实例 / [BalanceTernaryzationFunction] instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             epsilon: Flt64 = Flt64(1e-6),

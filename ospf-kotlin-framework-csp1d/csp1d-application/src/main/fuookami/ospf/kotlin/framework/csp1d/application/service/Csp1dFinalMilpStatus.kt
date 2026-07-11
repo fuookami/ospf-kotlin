@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.framework.csp1d.application.service
 
 /**
  * 最终 MILP 求解状态 / Final MILP solve status
- */
+*/
 enum class Csp1dFinalMilpStatus {
     /** 尚未尝试最终 MILP / Final MILP is not attempted */
     NotAttempted,

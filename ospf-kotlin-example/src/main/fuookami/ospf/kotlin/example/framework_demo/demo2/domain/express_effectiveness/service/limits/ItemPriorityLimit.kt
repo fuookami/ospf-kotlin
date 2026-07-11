@@ -15,14 +15,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiv
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 /**
- * 通过基于绝对顺序将项目匹配到位置来最大化总优先级分数。Maximizes the total priority score by matching items to positions based on absolute order.
+ * Maximizes the total priority score by matching items to positions based on absolute order.
+ * 通过基于绝对顺序将项目匹配到位置来最大化总优先级分数。
  *
- * @property items 参数。
- * @property positions 参数。
- * @property unloading 参数。
- * @property stowage 参数。
- * @property coefficient 参数。
- */
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property unloading The absolute order model for priority coefficients. / 绝对顺序优先级系数模型
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property coefficient Function computing the priority coefficient for each item. / 计算每个货物项优先级系数的函数
+*/
 class ItemPriorityLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.multiarray.vectorUnchecked
  * @property dense 密集可变多数组 / dense mutable multi-array
  * @property sparse 稀疏分块多数组 / sparse block multi-array
  * @property sourceList 源数据列表 / source data list
- */
+*/
 @State(Scope.Thread)
 @BenchmarkMode(Mode.AverageTime)
 @OutputTimeUnit(TimeUnit.MICROSECONDS)
@@ -69,7 +69,7 @@ open class MultiArrayHotPathBenchmark {
      * Performs get and contains operations on the sparse block multi-array
      *
      * @return 包含元素的累加和 / accumulated sum of contained elements
-     */
+    */
     @Benchmark
     fun blockGetAndContains(): Int {
         var sum = 0
@@ -86,7 +86,7 @@ open class MultiArrayHotPathBenchmark {
      * Performs set and remove operations on the sparse block multi-array
      *
      * @return 被移除的元素数与数组当前大小之和 / sum of removed element count and current array size
-     */
+    */
     @Benchmark
     fun blockSetAndRemove(): Int {
         var touched = 0
@@ -106,7 +106,7 @@ open class MultiArrayHotPathBenchmark {
      * Creates a mutable multi-array from a list in row-major order and accesses the middle element
      *
      * @return 中间位置元素的值 / value at the middle position
-     */
+    */
     @Benchmark
     fun fromListRowMajor(): Int {
         val arr = MutableMultiArray.fromList(shape, sourceList, AccessOrder.RowMajor).value!!
@@ -118,7 +118,7 @@ open class MultiArrayHotPathBenchmark {
      * Flattens the dense array in column-major order and returns the list size
      *
      * @return 展平后列表的大小 / size of the flattened list
-     */
+    */
     @Benchmark
     fun flattenColumnMajor(): Int {
         val list = dense.flatten(AccessOrder.ColumnMajor)

@@ -1,7 +1,7 @@
 /**
  * Hexaly column generation solver implementation
  * Hexaly 列生成求解器实现
- */
+*/
 package fuookami.ospf.kotlin.core.solver.hexaly
 
 import kotlinx.coroutines.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
  *
  * @property config solver configuration / 中文 求解器配置
  * @property callBack Hexaly solver callback manager / 中文 Hexaly 求解器回调管理器
- */
+*/
 class HexalyColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
     private val callBack: HexalySolverCallBack = HexalySolverCallBack()

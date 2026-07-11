@@ -18,14 +18,12 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 计算每个货物位置的线性密度（单位长度重量）并将其注册到模型。Computes linear density (weight per unit length) for each cargo position and registers it with the model.
+ * Computes linear density (weight per unit length) for each cargo position and registers it with the model.
+ * 计算每个货物位置的线性密度（单位长度重量）并将其注册到模型。
  *
- * @property aircraftModel 参数。
- * @property limitsZones 参数。
- * @property limitLines 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property limitsZones The list of linear density limit zones. / 线性密度限制区域列表
+ * @property limitLines The list of linear density limit lines. / 线性密度限制线列表
+*/
 class LinearDensity(
     private val aircraftModel: AircraftModel,
     val limitsZones: List<LimitZone>,
@@ -33,6 +31,17 @@ class LinearDensity(
     private val positions: List<Position>,
     private val load: Load
 ) {
+
+    /**
+     * A zone with linear density limits.
+     * 具有线性密度限制的区域。
+     *
+     * @property name The name of the limit zone. / 限制区域名称
+     * @property locations The set of deck locations in this zone. / 此区域中的甲板位置集合
+     * @property frontArm The front arm of the zone. / 区域的前力臂
+     * @property backArm The back arm of the zone. / 区域的后力臂
+     * @property maxLinearDensity The maximum allowed linear density. / 最大允许线性密度
+    */
     data class LimitZone(
         val name: String,
         val locations: Set<DeckLocation>,
@@ -41,6 +50,14 @@ class LinearDensity(
         val maxLinearDensity: Quantity<Flt64>
     )
 
+    /**
+     * A limit line within a linear density zone.
+     * 线性密度区域内的限制线。
+     *
+     * @property zone The parent limit zone. / 父限制区域
+     * @property arm The arm position of this line. / 此线的力臂位置
+     * @property positions The positions covered by this line. / 此线覆盖的位置
+    */
     data class LimitLine(
         val zone: LimitZone,
         val arm: Quantity<Flt64>,
@@ -60,6 +77,13 @@ class LinearDensity(
 
     lateinit var linearDensity: QuantityLinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers the linear density symbols with the given model.
+     * 将线性密度符号注册到给定模型中。
+     *
+     * @param model The linear meta model to register with. / 要注册的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

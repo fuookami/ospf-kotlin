@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * Provides [MaskingFunction], [MaskingWithPolyMaskFunction], and [MaskingRangeFunction]
  * for linearized modeling of y = x * mask (where mask is binary).
- */
+*/
 
 /**
  * 掩码函数：y = x * mask，其中 mask 为二值变量。
@@ -41,7 +41,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MaskingFunction<V>(
     val input: LinearPolynomial<V>,
     val mask: AbstractVariableItem<*, *>,
@@ -135,7 +135,7 @@ class MaskingFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 线性函数符号适配器 / linear function symbol adapter
-         */
+        */
         fun <V> withMaskVarName(
             input: LinearPolynomial<V>,
             maskVarName: String,
@@ -162,7 +162,7 @@ class MaskingFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 线性函数符号适配器 / linear function symbol adapter
-         */
+        */
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         fun <V> fromLinearIntermediateSymbol(
@@ -195,7 +195,7 @@ class MaskingFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 带多项式掩码的掩码函数 / masking function with polynomial mask
-         */
+        */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun <V> fromLinearPolynomials(
@@ -231,7 +231,7 @@ class MaskingFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MaskingWithPolyMaskFunction<V>(
     val input: LinearPolynomial<V>,
     val maskPoly: LinearPolynomial<V>,
@@ -265,7 +265,7 @@ class MaskingWithPolyMaskFunction<V>(
      * @param tokenTable 令牌表 / token table
      * @param converter 值类型转换器 / value type converter
      * @return 预计算的求解器结果，或 null / pre-computed solver result, or null
-     */
+    */
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val targetValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (targetValues.isNullOrEmpty()) {
@@ -283,21 +283,23 @@ class MaskingWithPolyMaskFunction<V>(
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /** 使用 Flt64 结果列表求值（始终返回 null）。 / Evaluate with Flt64 results list (always returns null).
      * @param results Flt64 结果列表 / Flt64 results list
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
      * @return 始终返回 null / always returns null
-     */
+    */
     internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+
     /** 使用 Flt64 值映射求值。 / Evaluate with Flt64 value map.
      * @param values Flt64 值映射 / Flt64 value map
      * @param tokenList Flt64 令牌列表 / Flt64 token list
      * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
      * @return 求值结果，或 null / evaluation result, or null
-     */
+    */
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         return delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter))?.let { converter.fromValue(it) }
     }
@@ -336,24 +338,26 @@ class MaskingWithPolyMaskFunction<V>(
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate().evaluate(values)
     }
+
     /** 使用 Flt64 结果列表进行求解器求值。 / Evaluate solver with Flt64 results list.
      * @param results Flt64 结果列表 / Flt64 results list
      * @param tokenTable 令牌表 / token table
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
      * @return 求值结果，或 null / evaluation result, or null
-     */
+    */
     internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val targetResults = results.map { converter.intoValue(it) }
         return evaluate(targetResults, tokenTable, converter, zeroIfNone)
     }
+
     /** 使用 Flt64 值映射进行求解器求值。 / Evaluate solver with Flt64 value map.
      * @param values Flt64 值映射 / Flt64 value map
      * @param tokenTable 令牌表 / token table
      * @param converter 值类型转换器 / value type converter
      * @param zeroIfNone 无值时是否返回零 / whether to return zero when value is absent
      * @return 求值结果，或 null / evaluation result, or null
-     */
+    */
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val v = delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
@@ -361,7 +365,7 @@ class MaskingWithPolyMaskFunction<V>(
 
     /** 委托给自身作为 MathFunctionSymbol。 / Delegate to self as MathFunctionSymbol.
      * @return 自身作为 MathFunctionSymbol 实例 / self as a MathFunctionSymbol instance
-     */
+    */
     private fun delegate(): MathFunctionSymbol<V> = this
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -432,7 +436,7 @@ class MaskingWithPolyMaskFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MaskingRangeFunction<V>(
     val mask: LinearPolynomial<V>,
     val lower: V,

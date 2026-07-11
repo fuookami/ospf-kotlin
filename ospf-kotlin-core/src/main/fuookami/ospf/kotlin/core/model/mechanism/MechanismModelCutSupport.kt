@@ -1,7 +1,7 @@
 /**
  * 机制模型割平面构造支持
  * Mechanism model cut-construction support
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import org.apache.logging.log4j.kotlin.KotlinLogger
@@ -20,20 +20,20 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
  *
  * @property first 第一个变量项 / First variable item
  * @property second 第二个变量项 / Second variable item
- */
+*/
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,
     val second: AbstractVariableItem<*, *>
 ) {
     companion object {
         /**
-     * 根据变量标识符排序构造有序变量对。
-     * Construct an ordered variable pair by sorting on variable identifiers.
-     *
-     * @param lhs 左侧变量项 / Left-hand side variable item
-     * @param rhs 右侧变量项 / Right-hand side variable item
-     * @return 有序变量对 / Ordered variable pair
-     */
+         * 根据变量标识符排序构造有序变量对。
+         * Construct an ordered variable pair by sorting on variable identifiers.
+         *
+         * @param lhs 左侧变量项 / Left-hand side variable item
+         * @param rhs 右侧变量项 / Right-hand side variable item
+         * @return 有序变量对 / Ordered variable pair
+        */
     fun of(
             lhs: AbstractVariableItem<*, *>,
             rhs: AbstractVariableItem<*, *>
@@ -63,7 +63,7 @@ private data class OrderedVariablePair(
  * @param zero 零值 / Zero value
  * @param one 一值 / One value
  * @return 线性不等式列表 / List of linear inequalities
- */
+*/
 internal fun <V> buildLinearOptimalCut(
     constraints: List<LinearConstraintImpl<V>>,
     objectCategory: ObjectCategory,
@@ -121,7 +121,7 @@ internal fun <V> buildLinearOptimalCut(
  * @param one 一值 / One value
  * @param logger 日志记录器 / Logger
  * @return 线性不等式列表 / List of linear inequalities
- */
+*/
 internal fun <V> buildLinearFeasibleCut(
     constraints: List<LinearConstraintImpl<V>>,
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -177,7 +177,7 @@ internal fun <V> buildLinearFeasibleCut(
  * @param zero 零值 / Zero value
  * @param one 一值 / One value
  * @return cut 列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
- */
+*/
 internal fun <V> buildQuadraticOptimalCut(
     constraints: List<QuadraticConstraintImpl<V>>,
     objectCategory: ObjectCategory,
@@ -279,7 +279,7 @@ internal fun <V> buildQuadraticOptimalCut(
  * @param one 一值 / One value
  * @param logger 日志记录器 / Logger
  * @return cut 列表（线性或二次不等式）/ List of cuts (linear or quadratic inequalities)
- */
+*/
 internal fun <V> buildQuadraticFeasibleCut(
     constraints: List<QuadraticConstraintImpl<V>>,
     fixedVariables: Map<AbstractVariableItem<*, *>, V>,

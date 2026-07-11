@@ -31,7 +31,7 @@ enum class GurobiConstraintSign {
          *
          * @param sign 内部约束关系 / internal constraint relation
          * @return Gurobi 约束符号 / Gurobi constraint sign
-         */
+        */
         operator fun invoke(sign: ConstraintRelation): GurobiConstraintSign {
             return when (sign) {
                 ConstraintRelation.GreaterEqual -> {
@@ -53,6 +53,6 @@ enum class GurobiConstraintSign {
      * 转换为 Gurobi 约束符号字符 / Convert to Gurobi constraint sign character
      *
      * @return Gurobi 约束符号字符 / Gurobi constraint sign character
-     */
+    */
     abstract fun toGurobiConstraintSign(): Char
 }

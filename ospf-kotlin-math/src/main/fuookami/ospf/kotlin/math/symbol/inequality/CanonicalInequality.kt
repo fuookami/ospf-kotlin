@@ -7,7 +7,7 @@
  * Defines inequalities in canonical form, where both sides are canonical polynomials.
  * Canonical inequalities support polynomials of any degree,
  * representing the most general form of inequalities.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
@@ -28,18 +28,19 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  * @property lhs 左侧规范多项弌/ Left-hand canonical polynomial
  * @property rhs 右侧规范多项弌/ Right-hand canonical polynomial
  * @property comparison 比较运算笌/ Comparison operator
- */
+*/
 data class CanonicalInequality<T : Ring<T>>(
     val lhs: CanonicalPolynomial<T>,
     val rhs: CanonicalPolynomial<T>,
     val comparison: Comparison
 ) {
+
     /**
      * 返回反转后的不等式（交换左右两侧并反转比较运算符）。
      * Returns the reversed inequality (swaps left and right sides and reverses the comparison operator).
      *
      * @return 反转后的规范不等式 / The reversed canonical inequality
-     */
+    */
     fun reverse(): CanonicalInequality<T> {
         return CanonicalInequality(
             lhs = rhs,

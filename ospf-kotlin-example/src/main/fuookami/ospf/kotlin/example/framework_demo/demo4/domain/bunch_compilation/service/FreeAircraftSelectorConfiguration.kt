@@ -7,14 +7,14 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 /**
  * 自由飞机选择器的配置参数。Configuration parameters for the free aircraft selector.
  *
- * @property badReducedAmount 缩减成本策略释放数。
- * @property highCostAmount 高成本策略释放数。
- * @property highAircraftChangeAmount 高变更策略释放数。
- * @property randAmount 随机策略释放数。
- * @property tabuAmount 禁忌列表容量。
- * @property fixBar 缩减成本阈值。
- * @property randomSeed 随机种子。
- */
+ * @property badReducedAmount Number of aircraft released by reduced cost strategy / 缩减成本策略释放数
+ * @property highCostAmount Number of aircraft released by high cost strategy / 高成本策略释放数
+ * @property highAircraftChangeAmount Number of aircraft released by high change strategy / 高变更策略释放数
+ * @property randAmount Number of aircraft released by random strategy / 随机策略释放数
+ * @property tabuAmount Tabu list capacity / 禁忌列表容量
+ * @property fixBar Reduced cost threshold / 缩减成本阈值
+ * @property randomSeed Random seed / 随机种子
+*/
 data class FreeAircraftSelectorConfiguration(
     val badReducedAmount: UInt64 = UInt64(3UL),
     val highCostAmount: UInt64 = UInt64(3UL),

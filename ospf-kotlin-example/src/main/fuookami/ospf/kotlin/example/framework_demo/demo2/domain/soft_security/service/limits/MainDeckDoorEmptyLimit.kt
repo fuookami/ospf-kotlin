@@ -14,6 +14,16 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+/**
+ * Minimizes stowage at positions beside main deck doors to keep door areas clear.
+ * 最小化主甲板门旁位置的装载以保持门区畅通。
+ *
+ * @property items The list of cargo items / 货物项目列表
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property deck The main deck configuration with door ubieties / 带有门位置的主甲板配置
+ * @property stowage The stowage assignment matrix / 装载分配矩阵
+ * @property coefficient The penalty coefficient function per item / 每个项目的惩罚系数函数
+*/
 class MainDeckDoorEmptyLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

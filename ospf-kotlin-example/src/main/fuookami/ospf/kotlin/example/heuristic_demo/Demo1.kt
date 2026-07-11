@@ -15,12 +15,13 @@ import fuookami.ospf.kotlin.core.variable.*
 
 /** 演示基于 PSO 的启发式优化在单变量无约束模型上的应用。Demonstrates PSO-based heuristic optimization on a single-variable unconstrained model. */
 class Demo1 {
+
     /**
      * 通过 PSO 构建最小化 (x - 1)^2 的 CallBackModel 并返回结果。
      * Builds a CallBackModel minimizing (x - 1)^2 via PSO and returns the result.
      *
-     * @return 返回结果。
-     */
+     * @return PSO solver execution result / PSO 求解器执行结果
+    */
     operator fun invoke(): Try {
         val model = CallBackModel(converter = IntoValue.Identity)
         val x = RealVar("x")

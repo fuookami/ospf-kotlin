@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
  * 已移植策略：badReducedCost、highCost、highAircraftChange、random+tabu。
  * 未移植策略（demo4 批次缺少对应指标）：noBusy、highCostDensity、highFlowControlCost、highDelay、airportClose。
  *
- * @property aggregation 批次编译聚合。
- * @property configuration 选择器配置。
- */
+ * @property aggregation The bunch compilation aggregation / 批次编译聚合
+ * @property configuration The selector configuration / 选择器配置
+*/
 class FreeAircraftSelector(
     private val aggregation: Aggregation,
     private val configuration: FreeAircraftSelectorConfiguration = FreeAircraftSelectorConfiguration()
@@ -28,12 +28,12 @@ class FreeAircraftSelector(
     /**
      * 从固定批次中选择要释放的飞机。Selects aircraft to free from the given fixed bunches.
      *
-     * @param fixedBunches 当前固定的批次集合。
-     * @param hiddenExecutors 当前隐藏的执行器。
-     * @param shadowPriceMap 影子价格映射。
-     * @param model 已求解的线性模型。
-     * @return 要释放的飞机集合。
-     */
+     * @param fixedBunches The current set of fixed bunches / 当前固定的批次集合
+     * @param hiddenExecutors The current set of hidden executors / 当前隐藏的执行器集合
+     * @param shadowPriceMap The shadow price map / 影子价格映射
+     * @param model The solved linear model / 已求解的线性模型
+     * @return The set of aircraft to free, or an error / 要释放的飞机集合，或错误
+    */
     operator fun invoke(
         fixedBunches: Set<FlightTaskBunch>,
         hiddenExecutors: Set<Aircraft>,
@@ -70,6 +70,14 @@ class FreeAircraftSelector(
         return Ok(freeAircrafts)
     }
 
+    /**
+     * Frees aircraft whose bunches have bad (positive) reduced cost. / 释放其批次具有较差（正）检验成本的飞机。
+     *
+     * @param fixedBunches The mutable list of fixed bunches, sorted in place / 固定批次的可变列表，原地排序
+     * @param freeAircrafts The mutable set of aircraft to free / 待释放飞机的可变集合
+     * @param shadowPriceMap The shadow price map for computing reduced costs / 用于计算检验成本的影子价格映射
+     * @return Success or failure / 成功或失败
+    */
     private fun freeBadReducedCostAircrafts(
         fixedBunches: MutableList<FlightTaskBunch>,
         freeAircrafts: MutableSet<Aircraft>,
@@ -93,6 +101,13 @@ class FreeAircraftSelector(
         return ok
     }
 
+    /**
+     * Frees aircraft whose bunches have the highest cost. / 释放其批次具有最高成本的飞机。
+     *
+     * @param fixedBunches The mutable list of fixed bunches, sorted in place / 固定批次的可变列表，原地排序
+     * @param freeAircrafts The mutable set of aircraft to free / 待释放飞机的可变集合
+     * @return Success or failure / 成功或失败
+    */
     private fun freeHighCostAircrafts(
         fixedBunches: MutableList<FlightTaskBunch>,
         freeAircrafts: MutableSet<Aircraft>
@@ -101,6 +116,13 @@ class FreeAircraftSelector(
         return freeByStrategy(fixedBunches, freeAircrafts, configuration.highCostAmount)
     }
 
+    /**
+     * Frees aircraft whose bunches have the highest aircraft change count. / 释放其批次具有最高换机次数的飞机。
+     *
+     * @param fixedBunches The mutable list of fixed bunches, sorted in place / 固定批次的可变列表，原地排序
+     * @param freeAircrafts The mutable set of aircraft to free / 待释放飞机的可变集合
+     * @return Success or failure / 成功或失败
+    */
     private fun freeHighAircraftChangeAircrafts(
         fixedBunches: MutableList<FlightTaskBunch>,
         freeAircrafts: MutableSet<Aircraft>
@@ -109,6 +131,13 @@ class FreeAircraftSelector(
         return freeByStrategy(fixedBunches, freeAircrafts, configuration.highAircraftChangeAmount)
     }
 
+    /**
+     * Frees aircraft randomly with tabu exclusion. / 随机释放飞机，带禁忌排除。
+     *
+     * @param fixedBunches The mutable list of fixed bunches / 固定批次的可变列表
+     * @param freeAircrafts The mutable set of aircraft to free / 待释放飞机的可变集合
+     * @return Success or failure / 成功或失败
+    */
     private fun freeRandAircrafts(
         fixedBunches: MutableList<FlightTaskBunch>,
         freeAircrafts: MutableSet<Aircraft>
@@ -134,6 +163,14 @@ class FreeAircraftSelector(
         return ok
     }
 
+    /**
+     * Frees aircraft from sorted bunches up to a maximum amount, respecting tabu. / 从已排序的批次中释放飞机，直到达到最大数量，遵守禁忌。
+     *
+     * @param fixedBunches The list of fixed bunches (pre-sorted by strategy) / 固定批次列表（已按策略排序）
+     * @param freeAircrafts The mutable set of aircraft to free / 待释放飞机的可变集合
+     * @param maximumAmount The maximum number of aircraft to free / 释放飞机的最大数量
+     * @return Success or failure / 成功或失败
+    */
     private fun freeByStrategy(
         fixedBunches: List<FlightTaskBunch>,
         freeAircrafts: MutableSet<Aircraft>,
@@ -154,6 +191,11 @@ class FreeAircraftSelector(
         return ok
     }
 
+    /**
+     * Adds an aircraft to the tabu list, evicting the oldest entry if full. / 将飞机加入禁忌列表，若已满则淘汰最旧条目。
+     *
+     * @param aircraft The aircraft to add to the tabu list / 要加入禁忌列表的飞机
+    */
     private fun taboo(aircraft: Aircraft) {
         if (tabuAircrafts.size == configuration.tabuAmount.toInt()) {
             tabuAircrafts.removeFirst()
@@ -161,6 +203,12 @@ class FreeAircraftSelector(
         tabuAircrafts.add(aircraft)
     }
 
+    /**
+     * Checks whether an aircraft is currently in the tabu list. / 检查飞机当前是否在禁忌列表中。
+     *
+     * @param aircraft The aircraft to check / 要检查的飞机
+     * @return True if the aircraft is tabu, false otherwise / 如果飞机在禁忌列表中则返回 true，否则返回 false
+    */
     private fun tabu(aircraft: Aircraft): Boolean {
         return tabuAircrafts.contains(aircraft)
     }

@@ -28,7 +28,7 @@ import kotlin.time.Duration
  * @param threshold 阈值提取器 / Threshold extractor
  * @param coefficient 切换时间系数提取器 / Extractor for switch time coefficient
  * @param name 管道名称 / Pipeline name
- */
+*/
 class SwitchTimeMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         T : AbstractTask<E, A>,
@@ -42,6 +42,7 @@ class SwitchTimeMinimization<
     private val coefficient: Extractor<Flt64?, Pair<T, T>> = { Flt64.one },
     override val name: String = "switch_time_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
+
     /**
      * 通过 solver 时间窗口边界创建切换时间最小化 / Create switch time minimization from a solver time-window boundary
      *
@@ -51,7 +52,7 @@ class SwitchTimeMinimization<
      * @param threshold 阈值提取器 / Threshold extractor
      * @param coefficient 切换时间系数提取器 / Extractor for switch time coefficient
      * @param name 管道名称 / Pipeline name
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,

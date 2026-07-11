@@ -14,7 +14,7 @@
  * 支持的数值类型 / Supported number types:
  * - Flt64: 64位浮点数 / 64-bit floating-point
  * - FltX: 高精度浮点数 / High-precision floating-point
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -46,7 +46,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
- */
+*/
 @JvmName("convertQuantityLinearFlt64")
 fun Quantity<LinearPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<LinearPolynomial<Flt64>>? {
     if (this.unit == unit) return this
@@ -72,7 +72,7 @@ fun Quantity<LinearPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<LinearPol
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
- */
+*/
 @JvmName("convertQuantityLinearFltX")
 fun Quantity<LinearPolynomial<FltX>>.to(unit: PhysicalUnit): Quantity<LinearPolynomial<FltX>>? {
     if (this.unit == unit) return this
@@ -104,7 +104,7 @@ fun Quantity<LinearPolynomial<FltX>>.to(unit: PhysicalUnit): Quantity<LinearPoly
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
- */
+*/
 @JvmName("convertQuantityQuadraticFlt64")
 fun Quantity<QuadraticPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<QuadraticPolynomial<Flt64>>? {
     if (this.unit == unit) return this
@@ -134,7 +134,7 @@ fun Quantity<QuadraticPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<Quadra
  *
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果量纲不匹配 / Converted quantity, or null if dimensions don't match
- */
+*/
 @JvmName("convertQuantityCanonicalFlt64")
 fun Quantity<CanonicalPolynomial<Flt64>>.to(unit: PhysicalUnit): Quantity<CanonicalPolynomial<Flt64>>? {
     if (this.unit == unit) return this
@@ -201,7 +201,7 @@ private fun <P> Quantity<P>.convertSymbolQuantityOperandSafe(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
- */
+*/
 @JvmName("plusQuantityLinearFlt64")
 operator fun Quantity<LinearPolynomial<Flt64>>.plus(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -215,7 +215,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.plus(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
- */
+*/
 @JvmName("plusQuantityLinearFlt64Safe")
 fun Quantity<LinearPolynomial<Flt64>>.plusSafe(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -234,7 +234,7 @@ fun Quantity<LinearPolynomial<Flt64>>.plusSafe(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
- */
+*/
 @JvmName("plusQuantityLinearFlt64OrNull")
 fun Quantity<LinearPolynomial<Flt64>>.plusOrNull(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -248,7 +248,7 @@ fun Quantity<LinearPolynomial<Flt64>>.plusOrNull(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
- */
+*/
 @JvmName("minusQuantityLinearFlt64")
 operator fun Quantity<LinearPolynomial<Flt64>>.minus(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -262,7 +262,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.minus(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
- */
+*/
 @JvmName("minusQuantityLinearFlt64Safe")
 fun Quantity<LinearPolynomial<Flt64>>.minusSafe(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -281,7 +281,7 @@ fun Quantity<LinearPolynomial<Flt64>>.minusSafe(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
- */
+*/
 @JvmName("minusQuantityLinearFlt64OrNull")
 fun Quantity<LinearPolynomial<Flt64>>.minusOrNull(
     other: Quantity<LinearPolynomial<Flt64>>
@@ -295,7 +295,7 @@ fun Quantity<LinearPolynomial<Flt64>>.minusOrNull(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
- */
+*/
 @JvmName("plusQuantityLinearFltX")
 operator fun Quantity<LinearPolynomial<FltX>>.plus(
     other: Quantity<LinearPolynomial<FltX>>
@@ -309,7 +309,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.plus(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量结果 / Sum quantity result
- */
+*/
 @JvmName("plusQuantityLinearFltXSafe")
 fun Quantity<LinearPolynomial<FltX>>.plusSafe(
     other: Quantity<LinearPolynomial<FltX>>
@@ -328,7 +328,7 @@ fun Quantity<LinearPolynomial<FltX>>.plusSafe(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相加后的物理量，失败时返回 null / Sum quantity, or null on failure
- */
+*/
 @JvmName("plusQuantityLinearFltXOrNull")
 fun Quantity<LinearPolynomial<FltX>>.plusOrNull(
     other: Quantity<LinearPolynomial<FltX>>
@@ -342,7 +342,7 @@ fun Quantity<LinearPolynomial<FltX>>.plusOrNull(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
- */
+*/
 @JvmName("minusQuantityLinearFltX")
 operator fun Quantity<LinearPolynomial<FltX>>.minus(
     other: Quantity<LinearPolynomial<FltX>>
@@ -356,7 +356,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.minus(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量结果 / Difference quantity result
- */
+*/
 @JvmName("minusQuantityLinearFltXSafe")
 fun Quantity<LinearPolynomial<FltX>>.minusSafe(
     other: Quantity<LinearPolynomial<FltX>>
@@ -375,7 +375,7 @@ fun Quantity<LinearPolynomial<FltX>>.minusSafe(
  *
  * @param other 另一个物理量 / Another quantity
  * @return 相减后的物理量，失败时返回 null / Difference quantity, or null on failure
- */
+*/
 @JvmName("minusQuantityLinearFltXOrNull")
 fun Quantity<LinearPolynomial<FltX>>.minusOrNull(
     other: Quantity<LinearPolynomial<FltX>>
@@ -400,7 +400,7 @@ fun Quantity<LinearPolynomial<FltX>>.minusOrNull(
  *
  * @param scalar 标量值 / Scalar value
  * @return 相乘后的物理量 / Product quantity
- */
+*/
 @JvmName("timesQuantityLinearFlt64Scalar")
 operator fun Quantity<LinearPolynomial<Flt64>>.times(scalar: Flt64): Quantity<LinearPolynomial<Flt64>> {
     return Quantity(
@@ -415,7 +415,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.times(scalar: Flt64): Quantity<Li
  *
  * @param quantity 物理量 / Quantity
  * @return 相乘后的物理量 / Product quantity
- */
+*/
 @JvmName("timesScalarQuantityLinearFlt64")
 operator fun Flt64.times(quantity: Quantity<LinearPolynomial<Flt64>>): Quantity<LinearPolynomial<Flt64>> {
     return quantity * this
@@ -427,7 +427,7 @@ operator fun Flt64.times(quantity: Quantity<LinearPolynomial<Flt64>>): Quantity<
  *
  * @param scalar 标量值 / Scalar value
  * @return 相除后的物理量 / Quotient quantity
- */
+*/
 @JvmName("divQuantityLinearFlt64Scalar")
 operator fun Quantity<LinearPolynomial<Flt64>>.div(scalar: Flt64): Quantity<LinearPolynomial<Flt64>> {
     return Quantity(
@@ -442,7 +442,7 @@ operator fun Quantity<LinearPolynomial<Flt64>>.div(scalar: Flt64): Quantity<Line
  *
  * @param scalar 标量值 / Scalar value
  * @return 相乘后的物理量 / Product quantity
- */
+*/
 @JvmName("timesQuantityLinearFltXScalar")
 operator fun Quantity<LinearPolynomial<FltX>>.times(scalar: FltX): Quantity<LinearPolynomial<FltX>> {
     return Quantity(
@@ -457,7 +457,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.times(scalar: FltX): Quantity<Line
  *
  * @param quantity 物理量 / Quantity
  * @return 相乘后的物理量 / Product quantity
- */
+*/
 @JvmName("timesScalarQuantityLinearFltX")
 operator fun FltX.times(quantity: Quantity<LinearPolynomial<FltX>>): Quantity<LinearPolynomial<FltX>> {
     return quantity * this
@@ -469,7 +469,7 @@ operator fun FltX.times(quantity: Quantity<LinearPolynomial<FltX>>): Quantity<Li
  *
  * @param scalar 标量值 / Scalar value
  * @return 相除后的物理量 / Quotient quantity
- */
+*/
 @JvmName("divQuantityLinearFltXScalar")
 operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<LinearPolynomial<FltX>> {
     return Quantity(
@@ -499,7 +499,7 @@ operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<Linear
  *
  * @param values 符号到值的映射 / Symbol to value mapping
  * @return 求值后的物理量，如果无法求值返回 null / Evaluated quantity, or null if evaluation failed
- */
+*/
 @JvmName("evaluateQuantityLinearFlt64")
 fun Quantity<LinearPolynomial<Flt64>>.evaluate(values: Map<Symbol, Flt64>): Quantity<Flt64>? {
     val evaluated = this.value.evaluate(MapValueProvider(values)) ?: return null

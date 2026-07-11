@@ -15,6 +15,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiv
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Maximizes the adjacency of same-destination cargos across adjacent positions.
+ * 最大化相邻位置上同目的地货物的相邻性。
+ *
+ * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
+ * @property destinations The list of destination IATA codes. / 目的地 IATA 代码列表
+ * @property loading The transfer adjacent loading model providing adjacency symbols. / 提供相邻性符号的转运装载模型
+ * @property coefficient Function computing the reward coefficient for each destination-position pair. / 计算每个目的地-位置对奖励系数的函数
+*/
 class SameDestinationAdjacent(
     private val adjacentPositions: List<PositionPair>,
     private val destinations: List<IATA>,

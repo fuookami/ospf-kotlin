@@ -2,7 +2,7 @@
 
 /**
  * 执行者及其初始可用性 / Executor and its initial usability
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.Instant
@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
  * @param A 分配策略类型 / The assignment policy type
  * @property lastTask 上一个任务 / The last task
  * @property enabledTime 可用时间 / The enabled time
- */
+*/
 open class ExecutorInitialUsability<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -25,6 +25,7 @@ open class ExecutorInitialUsability<
     open val lastTask: T?,
     val enabledTime: Instant
 ) {
+
     /** 是否处于可用状态 / Whether the executor is on */
     open val on: Boolean get() = lastTask != null
 }
@@ -34,13 +35,15 @@ open class ExecutorInitialUsability<
  *
  * @property id 执行者ID / The executor ID
  * @property name 执行者名称 / The executor name
- */
+*/
 open class Executor(
     open val id: ExecutorId,
     open val name: String
 ) : ManualIndexed() {
+
     /** 实际ID / The actual ID */
     open val actualId: ExecutorId by ::id
+
     /** 显示名称 / The display name */
     open val displayName: String by ::name
 }

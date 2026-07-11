@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 /**
  * 货物高度组合器，用于在装箱过程中匹配符合高度约束的货物组合。
  * Item height combinator for matching item combinations that satisfy height constraints during bin packing.
- */
+*/
 data object ItemHeightCombinator {
     private val logger = logger()
     private val defaultTowSumOffset = FltX(300.0)
@@ -29,7 +29,7 @@ data object ItemHeightCombinator {
      * @param heights 候选高度列表 / list of candidate heights
      * @param offset 软约束偏移量 / soft constraint offset
      * @return 符合条件的二元组列表，按与目标高度差值的升序排列 / list of qualified pairs sorted by distance to target height
-     */
+    */
     fun twoSum(
         height: FltX,
         heights: List<FltX>,
@@ -62,7 +62,7 @@ data object ItemHeightCombinator {
      * @param heights 候选高度列表 / list of candidate heights
      * @param offset 软约束偏移量 / soft constraint offset
      * @return 符合条件的三元组列表，按与目标高度差值的升序排列 / list of qualified triples sorted by distance to target height
-     */
+    */
     fun threeSum(
         height: FltX,
         heights: List<FltX>,
@@ -103,7 +103,7 @@ data object ItemHeightCombinator {
      * @param restWeight 剩余重量限制 / remaining weight limit
      * @param averageWeight 平均重量参考值 / average weight reference value
      * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
-     */
+    */
     suspend fun getItemCombination(
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
@@ -187,7 +187,7 @@ data object ItemHeightCombinator {
      * @param restWeight 剩余重量限制 / remaining weight limit
      * @param averageWeight 平均重量参考值 / average weight reference value
      * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
-     */
+    */
     suspend fun getItemCombination(
         itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,

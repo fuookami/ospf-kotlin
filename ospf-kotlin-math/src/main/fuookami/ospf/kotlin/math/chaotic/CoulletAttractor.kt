@@ -9,7 +9,7 @@
  * The Coullet attractor is a three-dimensional chaotic system proposed by Coullet, featuring cubic nonlinear terms.
  * This system serves as an important model for studying low-dimensional chaotic systems, exhibiting typical chaotic dynamical properties.
  * Commonly used for chaos dynamics research, nonlinear systems analysis, and educational demonstrations.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class CoulletAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -59,7 +59,7 @@ data class CoulletAttractor<V : FloatingNumber<V>>(
 /**
  * Coullet 吸引子生成器
  * Coullet Attractor Generator
- */
+*/
 data class CoulletAttractorGenerator(
     val coulletAttractor: CoulletAttractor<Flt64> = CoulletAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -234,7 +234,7 @@ class GurobiLinearBendersDecompositionSolver(
  * @property config 求解器配置 / solver configuration
  * @property linearCallBack 线性求解器回调 / linear solver callback
  * @property quadraticCallBack 二次求解器回调 / quadratic solver callback
- */
+*/
 class GurobiBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
     private val linearCallBack: GurobiLinearSolverCallBack = GurobiLinearSolverCallBack(),

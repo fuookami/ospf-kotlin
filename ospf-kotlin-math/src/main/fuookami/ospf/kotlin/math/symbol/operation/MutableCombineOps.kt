@@ -6,7 +6,7 @@
  * 支持快速累积模式：先使甌+= 累积，最后一次性合并。
  * Provides in-place like-term combination operations for mutable polynomials.
  * Supports FastSum pattern: accumulate with +=, then combine once at the end.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
  *
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
- */
+*/
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
@@ -45,7 +45,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
  * @param rhs 要累加的多项式 / Polynomial to add
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
- */
+*/
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
     rhs: LinearPolynomial<T>,
     zero: T,
@@ -65,7 +65,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
  * @param rhs 要减去的多项式 / Polynomial to subtract
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
- */
+*/
 fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
     rhs: LinearPolynomial<T>,
     zero: T,
@@ -89,7 +89,7 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.minusAssignAndCombine(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -108,7 +108,7 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
     rhs: QuadraticPolynomial<T>,
     zero: T,
@@ -130,7 +130,7 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.addAssignAndCombine(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssignAndCombine(
     rhs: QuadraticPolynomial<T>,
     zero: T,
@@ -158,7 +158,7 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssignAndCombine(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -178,7 +178,7 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.addAssignAndCombine(
     rhs: CanonicalPolynomial<T>,
     zero: T,
@@ -200,7 +200,7 @@ fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.addAssignAndCombine(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
- */
+*/
 fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.minusAssignAndCombine(
     rhs: CanonicalPolynomial<T>,
     zero: T,

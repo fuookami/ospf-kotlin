@@ -14,6 +14,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Minimizes trailer circling, where items from the same trailer are loaded in reverse order across adjacent positions.
+ * 最小化拖车环绕，即同一拖车上的货物在相邻位置以相反顺序装载的情况。
+ *
+ * @property orderedItemsInTrailers The list of ordered item pairs within the same trailer. / 同一拖车内的有序货物项对列表
+ * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
+ * @property loading The trailer loading model providing circling symbols. / 提供环绕符号的拖车装载模型
+ * @property coefficient Function computing the penalty coefficient for each item-position pair. / 计算每个货物项-位置对惩罚系数的函数
+*/
 class TrailerCirclingLimit(
     private val orderedItemsInTrailers: List<ItemPair>,
     private val adjacentPositions: List<PositionPair>,

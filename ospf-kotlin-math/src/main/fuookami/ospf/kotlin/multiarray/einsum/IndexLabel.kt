@@ -9,7 +9,7 @@
  * 圌Kotlin 中使用枚举和运行时列表实现类似功能。
  * In Rust, type-level programming is used for compile-time index tracking.
  * In Kotlin, enums and runtime lists are used for similar functionality.
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 // ============================================================================
@@ -44,27 +44,34 @@ package fuookami.ospf.kotlin.multiarray.einsum
  * println(i.name)  // "i"
  * println(i.id)    // 0
  * ```
- */
+*/
 enum class IndexLabel(
     /**
      * 索引名称（用于调试和显示，
      * Index name (for debugging and display)
-     */
+    */
     val labelName: String,
+
     /**
      * 索引的唯一标识笌
      * Unique identifier for the index
      *
      * 用于在运行时比较索引是否相同。
      * Used to compare indices at runtime.
-     */
+    */
     val id: Int
 ) {
+    /** First dimension index / 第一维度索引 */
     I("i", 0),
+    /** Second dimension index / 第二维度索引 */
     J("j", 1),
+    /** Third dimension index / 第三维度索引 */
     K("k", 2),
+    /** Fourth dimension index / 第四维度索引 */
     L("l", 3),
+    /** Fifth dimension index / 第五维度索引 */
     M("m", 4),
+    /** Sixth dimension index / 第六维度索引 */
     N("n", 5);
 
     companion object {
@@ -74,7 +81,7 @@ enum class IndexLabel(
          *
          * @param name 索引名称（如 "i", "j", "k"，
          * @return 对应的索引标签，如果不存在则返回 null
-         */
+        */
         fun fromName(name: String): IndexLabel? {
             return values().find { it.labelName == name }
         }
@@ -85,7 +92,7 @@ enum class IndexLabel(
          *
          * @param id 索引 ID，-5，
          * @return 对应的索引标签，如果不存在则返回 null
-         */
+        */
         fun fromId(id: Int): IndexLabel? {
             return values().find { it.id == id }
         }
@@ -117,26 +124,27 @@ enum class IndexLabel(
  * ```
  *
  * @param indices 索引标签数组
- */
+*/
 data class IndexList(
     val indices: List<IndexLabel>
 ) {
+
     /**
      * 列表长度
      * List length
-     */
+    */
     val length: Int = indices.size
 
     /**
      * 将索引列表转换为索引 ID 列表
      * Convert index list to list of index IDs
-     */
+    */
     val ids: List<Int> = indices.map { it.id }
 
     /**
      * 将索引列表转换为名称字符串
      * Convert index list to name string
-     */
+    */
     val names: String = indices.joinToString(", ") { it.labelName }
 
     /**
@@ -144,7 +152,7 @@ data class IndexList(
      * Check if empty
      *
      * @return 如果为空则返回true / true if empty
-     */
+    */
     fun isEmpty(): Boolean = indices.isEmpty()
 
     /**
@@ -153,7 +161,7 @@ data class IndexList(
      *
      * @param label 要检查的索引标签
      * @return 如果包含则返回true
-     */
+    */
     fun contains(label: IndexLabel): Boolean = indices.contains(label)
 
     /**
@@ -162,7 +170,7 @@ data class IndexList(
      *
      * @param id 要检查的索引 ID
      * @return 如果包含则返回true
-     */
+    */
     fun containsId(id: Int): Boolean = ids.contains(id)
 
     /**
@@ -171,7 +179,7 @@ data class IndexList(
      *
      * @param label 索引标签
      * @return 该索引在列表中的位置，如果不存在则返回null
-     */
+    */
     fun positionOf(label: IndexLabel): Int? = indices.indexOf(label).let { if (it >= 0) it else null }
 
     /**
@@ -180,14 +188,14 @@ data class IndexList(
      *
      * @param id 索引 ID
      * @return 该索引在列表中的位置，如果不存在则返回null
-     */
+    */
     fun positionOfId(id: Int): Int? = ids.indexOf(id).let { if (it >= 0) it else null }
 
     companion object {
         /**
          * 空索引列表
          * Empty index list
-         */
+        */
         val Empty = IndexList(emptyList())
 
         /**
@@ -196,7 +204,7 @@ data class IndexList(
          *
          * @param labels the index labels / 索引标签
          * @return the created index list / 创建的索引列表
-         */
+        */
         fun of(vararg labels: IndexLabel): IndexList = IndexList(labels.toList())
 
         /**
@@ -205,7 +213,7 @@ data class IndexList(
          *
          * @param ids the index IDs / 索引 ID 列表
          * @return the created index list / 创建的索引列表
-         */
+        */
         fun fromIds(ids: List<Int>): IndexList {
             return IndexList(ids.mapNotNull { IndexLabel.fromId(it) })
         }
@@ -216,7 +224,7 @@ data class IndexList(
          *
          * @param names 索引名称字符串（妌"i,j,k" 戌"ijk"，
          * @return 解析后的索引列表
-         */
+        */
         fun fromNames(names: String): IndexList {
             val trimmed = names.trim()
             if (trimmed.isEmpty()) return Empty
@@ -259,7 +267,7 @@ data class IndexList(
  * @param lhs 左操作数的索引列表
  * @param rhs 右操作数的索引列表
  * @return 公共索引列表
- */
+*/
 fun findCommonIndices(lhs: IndexList, rhs: IndexList): IndexList {
     val common = lhs.indices.filter { rhs.contains(it) }
     return IndexList(common)
@@ -283,7 +291,7 @@ fun findCommonIndices(lhs: IndexList, rhs: IndexList): IndexList {
  * @param indices 原索引列表
  * @param toRemove 要移除的索引列表
  * @return 移除指定索引后的新列表
- */
+*/
 fun removeIndices(indices: IndexList, toRemove: IndexList): IndexList {
     return IndexList(indices.indices.filter { !toRemove.contains(it) })
 }
@@ -295,7 +303,7 @@ fun removeIndices(indices: IndexList, toRemove: IndexList): IndexList {
  * @param lhs 左操作数的索引列表
  * @param rhs 右操作数的索引列表
  * @return 合并后的唯一索引列表
- */
+*/
 fun mergeIndices(lhs: IndexList, rhs: IndexList): IndexList {
     val merged = lhs.indices.toMutableList()
     for (idx in rhs.indices) {

@@ -21,7 +21,7 @@
  * Divisors returns all factors that divide n, including 1 and n itself.
  * Euler's totient function (eulerTotient) counts positive integers less than n coprime to n,
  * formula: phi(n) = n * (1 - 1/p1) * (1 - 1/p2) * ..., where pi are prime factors of n.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -108,7 +108,7 @@ private fun <I> factorizeWithPrimes(
  * @param num 待分解的整数 / Integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 质因数分解结果列表，每个元素为 (质数, 指数) 对 / List of (prime, exponent) pairs
- */
+*/
 fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     // Compute sqrt(num) + 1 as the upper bound for prime candidates / 计算 sqrt(num) + 1 作为质数候选的上界
     val sqrtULong = (num.toFlt64().sqrt() as Flt64).floor().toUInt64().value + 1UL
@@ -135,7 +135,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
  * @param num 待分解的 UInt64 整数 / UInt64 integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 质因数分解结果列表，每个元素为 (质数, 指数) 对 / List of (prime, exponent) pairs
- */
+*/
 fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pair<UInt64, Int>> {
     if (num <= UInt64.one) {
         return emptyList()
@@ -154,7 +154,7 @@ fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pai
  * @param num 待分解的整数 / Integer to factorize
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 质因数分解结果列表，每个元素为 (质数, 指数) 对 / List of (prime, exponent) pairs
- */
+*/
 fun <I> factorize(
     num: I,
     constants: RealNumberConstants<I>
@@ -168,7 +168,7 @@ fun <I> factorize(
  *
  * @param num 待分解的整数 / Integer to factorize
  * @return 质因数分解结果列表 / List of (prime, exponent) pairs
- */
+*/
 inline fun <reified I> factorize(num: I): Ret<List<Pair<I, Int>>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     return resolveRealNumberConstantsSafe<I>("Factorization").mapResolved { constants ->
         factorize(
@@ -203,7 +203,7 @@ fun <I> defactorizeImpl(
  * @param factors 质因数分解结果 / Factorization result
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 还原后的整数 / Restored integer
- */
+*/
 fun <I> defactorize(
     factors: Iterable<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -217,7 +217,7 @@ fun <I> defactorize(
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 还原后的整数 / Restored integer
- */
+*/
 inline fun <reified I> defactorize(
     factors: Iterable<Pair<I, Int>>
 ): Ret<I> where I : Integer<I>, I : Pow<I> {
@@ -267,7 +267,7 @@ fun <I> divisorsImpl(
  * @param factors 质因数分解结果 / Factorization result
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 所有因数列表 / List of all divisors
- */
+*/
 fun <I> divisors(
     factors: List<Pair<I, Int>>,
     constants: RealNumberConstants<I>
@@ -281,7 +281,7 @@ fun <I> divisors(
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 所有因数列表 / List of all divisors
- */
+*/
 inline fun <reified I> divisors(
     factors: List<Pair<I, Int>>
 ): Ret<List<I>> where I : Integer<I>, I : Pow<I> {
@@ -300,7 +300,7 @@ inline fun <reified I> divisors(
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 所有因数列表 / List of all divisors
- */
+*/
 fun <I> divisors(
     num: I,
     constants: RealNumberConstants<I>
@@ -314,7 +314,7 @@ fun <I> divisors(
  *
  * @param num 目标整数 / Target integer
  * @return 所有因数列表 / List of all divisors
- */
+*/
 inline fun <reified I> divisors(
     num: I
 ): Ret<List<I>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
@@ -332,7 +332,7 @@ inline fun <reified I> divisors(
  *
  * @param factors 质因数分解结果 / Factorization result
  * @return 因数个数 / Number of divisors
- */
+*/
 fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> {
     var count = 1
     for ((_, index) in factors) {
@@ -350,7 +350,7 @@ fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> 
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 因数个数 / Number of divisors
- */
+*/
 fun <I> divisorCount(
     num: I,
     constants: RealNumberConstants<I>
@@ -364,7 +364,7 @@ fun <I> divisorCount(
  *
  * @param num 目标整数 / Target integer
  * @return 因数个数 / Number of divisors
- */
+*/
 inline fun <reified I> divisorCount(
     num: I
 ): Ret<Int> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
@@ -399,7 +399,7 @@ fun <I> eulerTotientImpl(
  * @param num 目标整数 / Target integer
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 欧拉函数值 / Euler's totient value
- */
+*/
 fun <I> eulerTotient(
     num: I,
     constants: RealNumberConstants<I>
@@ -413,7 +413,7 @@ fun <I> eulerTotient(
  *
  * @param num 目标整数 / Target integer
  * @return 欧拉函数值 / Euler's totient value
- */
+*/
 inline fun <reified I> eulerTotient(
     num: I
 ): Ret<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {

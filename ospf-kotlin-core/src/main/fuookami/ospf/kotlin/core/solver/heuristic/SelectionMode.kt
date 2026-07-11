@@ -1,7 +1,7 @@
 /**
  * 选择模式接口与实现
  * Selection mode interface and implementations
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
@@ -17,8 +17,9 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 计算种群中应选择的个体数量。
      * Calculate the number of individuals to select from the population.
@@ -28,7 +29,7 @@ interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V>
      * @param population 种群 / Population
      * @param model 回调模型接口 / Callback model interface
      * @return 选择数量 / Selection count
-     */
+    */
     operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: Population<T, ObjValue, V>,
@@ -42,7 +43,7 @@ interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V>
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 class StaticSelectionMode<ObjValue, V>() : SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
@@ -56,7 +57,7 @@ class StaticSelectionMode<ObjValue, V>() : SelectionMode<ObjValue, V> where V : 
 /**
  * 自适应动态选择模式，根据适应度和密度动态调整选择数量。
  * Adaptive dynamic selection mode, dynamically adjusting selection count based on fitness and density.
- */
+*/
 data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64, Flt64> {
     override operator fun <T : Individual<Flt64, Flt64>> invoke(
         iteration: Iteration,

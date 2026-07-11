@@ -4,7 +4,7 @@
  *
  * 定义三维几何空间中的长方体形状，由宽、高、深三个维度定义。
  * Defines a cuboid shape in 3D geometric space, defined by width, height, and depth dimensions.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
  * @property width 宽度（X 轴） / Width (X axis)
  * @property height 高度（Y 轴） / Height (Y axis)
  * @property depth 深度（Z 轴） / Depth (Z axis)
- */
+*/
 data class Cuboid3<V : FloatingNumber<V>>(
     val width: V,
     val height: V,
@@ -33,7 +33,7 @@ data class Cuboid3<V : FloatingNumber<V>>(
      * Create a bounding box at the origin
      *
      * @return 原点处的包围盒 / The bounding box at the origin
-     */
+    */
     fun atOrigin(): Box3<V> = Box3.atOrigin(this)
 
     /**
@@ -44,7 +44,7 @@ data class Cuboid3<V : FloatingNumber<V>>(
      * @param y Y 坐标 / Y coordinate
      * @param z Z 坐标 / Z coordinate
      * @return 指定位置的包围盒 / The bounding box at the specified position
-     */
+    */
     fun at(
         x: V,
         y: V,
@@ -57,7 +57,7 @@ data class Cuboid3<V : FloatingNumber<V>>(
      *
      * @param axis 目标轴 / The target axis
      * @return 沿该轴的尺寸 / The dimension along the axis
-     */
+    */
     fun along(axis: Axis3): V {
         return when (axis) {
             Axis3.X -> width

@@ -1,6 +1,6 @@
 /**
  * 符号缓存上下文 / Token cache context
- */
+*/
 package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
@@ -19,7 +19,7 @@ import java.util.*
  * @param T 数值环类型 / The ring type
  * @property monomials 线性单项式列表 / List of linear monomials
  * @property constant 常数项 / Constant term
- */
+*/
 data class LinearFlattenData<T : Ring<T>>(
     val monomials: List<LinearMonomial<T>>,
     val constant: T
@@ -32,7 +32,7 @@ data class LinearFlattenData<T : Ring<T>>(
  * @param T 数值环类型 / The ring type
  * @property monomials 二次单项式列表 / List of quadratic monomials
  * @property constant 常数项 / Constant term
- */
+*/
 data class QuadraticFlattenData<T : Ring<T>>(
     val monomials: List<QuadraticMonomial<T>>,
     val constant: T
@@ -43,16 +43,17 @@ data class QuadraticFlattenData<T : Ring<T>>(
  * Linear flatten cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
- */
+*/
 class LinearFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
 ) {
+
     /**
      * 检查缓存中是否包含指定键 / Checks whether the cache contains the specified key
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否包含 / Whether contains
-     */
+    */
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
@@ -62,7 +63,7 @@ class LinearFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存数据，不存在返回 null / Cached data, or null if absent
-     */
+    */
     fun get(cacheKey: Any): LinearFlattenData<V>? {
         return cache[cacheKey]
     }
@@ -72,7 +73,7 @@ class LinearFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @param value 缓存数据 / Cached data
-     */
+    */
     fun put(cacheKey: Any, value: LinearFlattenData<V>?) {
         cache[cacheKey] = value
     }
@@ -82,7 +83,7 @@ class LinearFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被移除的数据，不存在返回 null / Removed data, or null if absent
-     */
+    */
     fun remove(cacheKey: Any): LinearFlattenData<V>? {
         return cache.remove(cacheKey)
     }
@@ -91,7 +92,7 @@ class LinearFlattenContext<V : Ring<V>>(
      * 获取所有缓存键的快照 / Gets a snapshot of all cache keys
      *
      * @return 缓存键集合 / Set of cache keys
-     */
+    */
     fun keys(): Set<Any> {
         return cache.keys.toSet()
     }
@@ -107,16 +108,17 @@ class LinearFlattenContext<V : Ring<V>>(
  * Quadratic flatten cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
- */
+*/
 class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
 ) {
+
     /**
      * 检查缓存中是否包含指定键 / Checks whether the cache contains the specified key
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否包含 / Whether contains
-     */
+    */
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
@@ -126,7 +128,7 @@ class QuadraticFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存数据，不存在返回 null / Cached data, or null if absent
-     */
+    */
     fun get(cacheKey: Any): QuadraticFlattenData<V>? {
         return cache[cacheKey]
     }
@@ -136,7 +138,7 @@ class QuadraticFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @param value 缓存数据 / Cached data
-     */
+    */
     fun put(cacheKey: Any, value: QuadraticFlattenData<V>?) {
         cache[cacheKey] = value
     }
@@ -146,7 +148,7 @@ class QuadraticFlattenContext<V : Ring<V>>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被移除的数据，不存在返回 null / Removed data, or null if absent
-     */
+    */
     fun remove(cacheKey: Any): QuadraticFlattenData<V>? {
         return cache.remove(cacheKey)
     }
@@ -155,7 +157,7 @@ class QuadraticFlattenContext<V : Ring<V>>(
      * 获取所有缓存键的快照 / Gets a snapshot of all cache keys
      *
      * @return 缓存键集合 / Set of cache keys
-     */
+    */
     fun keys(): Set<Any> {
         return cache.keys.toSet()
     }
@@ -172,11 +174,12 @@ class QuadraticFlattenContext<V : Ring<V>>(
  *
  * @property solutionCache 按 solution 维度的缓存 / Cache by solution dimension
  * @property fixedValueCache 按 fixedValues 维度的缓存 / Cache by fixedValues dimension
- */
+*/
 class ValueCacheContext<V : RealNumber<V>>(
     private val solutionCache: MutableMap<Pair<Any, List<V>?>, V?> = HashMap(),
     private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, V>>, V?> = HashMap()
 ) {
+
     /** 清空所有缓存 / Clears all caches */
     fun clear() {
         solutionCache.clear()
@@ -189,7 +192,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param cacheKey 缓存键 / Cache key
      * @param solution 解的列表 / Solution list
      * @return 是否包含 / Whether contains
-     */
+    */
     fun cached(cacheKey: Any, solution: List<V>? = null): Boolean {
         return solutionCache.containsKey(cacheKey to solution)
     }
@@ -200,7 +203,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param cacheKey 缓存键 / Cache key
      * @param fixedValues 固定值映射 / Fixed values map
      * @return 是否包含 / Whether contains
-     */
+    */
     fun cached(cacheKey: Any, fixedValues: Map<Symbol, V>): Boolean {
         return fixedValueCache.containsKey(cacheKey to fixedValues)
     }
@@ -211,7 +214,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param cacheKey 缓存键 / Cache key
      * @param solution 解的列表 / Solution list
      * @return 缓存值 / Cached value
-     */
+    */
     fun value(cacheKey: Any, solution: List<V>? = null): V? {
         return solutionCache[cacheKey to solution]
     }
@@ -222,7 +225,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param cacheKey 缓存键 / Cache key
      * @param fixedValues 固定值映射 / Fixed values map
      * @return 缓存值 / Cached value
-     */
+    */
     fun value(cacheKey: Any, fixedValues: Map<Symbol, V>): V? {
         return fixedValueCache[cacheKey to fixedValues]
     }
@@ -234,7 +237,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param solution 解的列表 / Solution list
      * @param value 要缓存的值 / Value to cache
      * @return 存入的值 / The stored value
-     */
+    */
     fun put(cacheKey: Any, solution: List<V>? = null, value: V): V {
         solutionCache[cacheKey to solution] = value
         return value
@@ -247,7 +250,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param fixedValues 固定值映射 / Fixed values map
      * @param value 要缓存的值 / Value to cache
      * @return 存入的值 / The stored value
-     */
+    */
     fun put(cacheKey: Any, fixedValues: Map<Symbol, V>, value: V): V {
         fixedValueCache[cacheKey to fixedValues] = value
         return value
@@ -258,7 +261,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      *
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param solution 解的列表 / Solution list
-     */
+    */
     fun putAll(symbols: Map<out Any, V>, solution: List<V>? = null) {
         solutionCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to solution) to value
@@ -270,7 +273,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      *
      * @param symbols 符号到值的映射 / Symbol-to-value map
      * @param fixedValues 固定值映射 / Fixed values map
-     */
+    */
     fun putAll(symbols: Map<out Any, V>, fixedValues: Map<Symbol, V>) {
         fixedValueCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to fixedValues) to value
@@ -282,7 +285,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      *
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param solution 解的列表 / Solution list
-     */
+    */
     fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<V>? = null) {
         solutionCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
@@ -296,7 +299,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      *
      * @param symbols 符号到惰性值的映射 / Symbol-to-lazy-value map
      * @param fixedValues 固定值映射 / Fixed values map
-     */
+    */
     fun putAllLazy(symbols: Map<out Any, () -> V?>, fixedValues: Map<Symbol, V>) {
         fixedValueCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
@@ -312,7 +315,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param solution 解的列表 / Solution list
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun getOrPut(cacheKey: Any, solution: List<V>? = null, value: () -> V?): V? {
         var cachedValue = solutionCache[cacheKey to solution]
         if (cachedValue == null) {
@@ -331,7 +334,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * @param fixedValues 固定值映射 / Fixed values map
      * @param value 惰性求值工厂 / Lazy value factory
      * @return 缓存值 / Cached value
-     */
+    */
     fun getOrPut(cacheKey: Any, fixedValues: Map<Symbol, V>, value: () -> V?): V? {
         var cachedValue = fixedValueCache[cacheKey to fixedValues]
         if (cachedValue == null) {
@@ -347,7 +350,7 @@ class ValueCacheContext<V : RealNumber<V>>(
      * 移除指定键在所有维度的缓存 / Removes caches for the specified key across all dimensions
      *
      * @param cacheKey 缓存键 / Cache key
-     */
+    */
     fun remove(cacheKey: Any) {
         solutionCache.keys.removeAll { it.first == cacheKey }
         fixedValueCache.keys.removeAll { it.first == cacheKey }
@@ -359,16 +362,17 @@ class ValueCacheContext<V : RealNumber<V>>(
  * Range cache context.
  *
  * @property cache 内部缓存映射 / Internal cache map
- */
+*/
 class RangeCacheContext<V>(
     private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 检查缓存中是否包含指定键 / Checks whether the cache contains the specified key
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 是否包含 / Whether contains
-     */
+    */
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
@@ -378,7 +382,7 @@ class RangeCacheContext<V>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 缓存数据，不存在返回 null / Cached data, or null if absent
-     */
+    */
     fun get(cacheKey: Any): ExpressionRange<V>? {
         return cache[cacheKey]
     }
@@ -388,7 +392,7 @@ class RangeCacheContext<V>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @param value 缓存数据 / Cached data
-     */
+    */
     fun put(cacheKey: Any, value: ExpressionRange<V>?) {
         cache[cacheKey] = value
     }
@@ -398,7 +402,7 @@ class RangeCacheContext<V>(
      *
      * @param cacheKey 缓存键 / Cache key
      * @return 被移除的数据，不存在返回 null / Removed data, or null if absent
-     */
+    */
     fun remove(cacheKey: Any): ExpressionRange<V>? {
         return cache.remove(cacheKey)
     }
@@ -407,7 +411,7 @@ class RangeCacheContext<V>(
      * 获取所有缓存键的快照 / Gets a snapshot of all cache keys
      *
      * @return 缓存键集合 / Set of cache keys
-     */
+    */
     fun keys(): Set<Any> {
         return cache.keys.toSet()
     }
@@ -426,18 +430,19 @@ class RangeCacheContext<V>(
  * @property quadraticFlatten 二次展开缓存 / Quadratic flatten cache
  * @property value 值缓存 / Value cache
  * @property range 范围缓存 / Range cache
- */
+*/
 data class TokenCacheContexts<V>(
     val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),
     val quadraticFlatten: QuadraticFlattenContext<V> = QuadraticFlattenContext(),
     val value: ValueCacheContext<V> = ValueCacheContext(),
     val range: RangeCacheContext<V> = RangeCacheContext()
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 获取所有已绑定符号的集合 / Gets the set of all bound symbols
      *
      * @return 符号集合 / Set of symbols
-     */
+    */
     fun boundSymbols(): Set<Any> {
         return linearFlatten.keys() + quadraticFlatten.keys() + range.keys()
     }
@@ -446,7 +451,7 @@ data class TokenCacheContexts<V>(
      * 获取所有已绑定的中间符号 / Gets all bound intermediate symbols
      *
      * @return 中间符号集合 / Set of intermediate symbols
-     */
+    */
     fun boundIntermediateSymbols(): Set<IntermediateSymbol<*>> {
         return boundSymbols().mapNotNull { it as? IntermediateSymbol<*> }.toSet()
     }
@@ -495,7 +500,7 @@ private val symbolTokenTableContext = Collections.synchronizedMap(
  *
  * @param symbol 中间符号 / Intermediate symbol
  * @param tokenTable 符号表 / Token table
- */
+*/
 internal fun <V> bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<V>) where V : RealNumber<V>, V : NumberField<V> {
     val oldTokenTable = symbolTokenTableContext[symbol]
     if (oldTokenTable != null && oldTokenTable != tokenTable) {
@@ -512,7 +517,7 @@ internal fun <V> bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable
  *
  * @param symbol 中间符号 / Intermediate symbol
  * @param tokenTable 符号表 / Token table
- */
+*/
 internal fun <V> unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<V>) where V : RealNumber<V>, V : NumberField<V> {
     if (symbolTokenTableContext[symbol] == tokenTable) {
         symbolTokenTableContext.remove(symbol)
@@ -524,7 +529,7 @@ internal fun <V> unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTab
  *
  * @param symbol 中间符号 / Intermediate symbol
  * @return 绑定的符号表，或 null / Bound token table, or null
- */
+*/
 internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractTokenTable<*>? {
     return symbolTokenTableContext[symbol]
 }
@@ -533,7 +538,7 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
  * 将线性展开数据转换为二次展开数据 / Converts linear flatten data to quadratic flatten data
  *
  * @return 二次展开数据 / Quadratic flatten data
- */
+*/
 internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlattenData<V> where V : RealNumber<V>, V : NumberField<V> {
     val monomials = this.monomials.mapNotNull {
         val sym = it.symbol as? AbstractVariableItem<*, *> ?: return@mapNotNull null

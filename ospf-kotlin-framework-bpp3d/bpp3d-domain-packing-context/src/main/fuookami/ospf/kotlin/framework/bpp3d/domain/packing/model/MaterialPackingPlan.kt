@@ -1,7 +1,7 @@
 /**
  * Material packing plan model.
  * 物料装箱计划模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.model.*
  * 最小化总体积的权重。
  * @property slackWeight The weight for minimizing material slack (over-coverage).
  * 最小化物料过剩（过度覆盖）的权重。
- */
+*/
 data class MaterialPackingObjectiveConfig(
     val packageCountWeight: FltX = materialPackingScalar(1_000_000.0),
     val volumeWeight: FltX = materialPackingScalar(1_000.0),
@@ -38,7 +38,7 @@ data class MaterialPackingObjectiveConfig(
  * 物料的需求数量。
  * @property weight The demanded weight of the material, nullable.
  * 物料的需求重量，可为空。
- */
+*/
 data class MaterialPackingDemand<V : FloatingNumber<V>>(
     val material: Material<FltX>,
     val amount: UInt64 = UInt64.zero,
@@ -63,7 +63,7 @@ data class MaterialPackingDemand<V : FloatingNumber<V>>(
  * 生成物品的仓库位置，可为空。
  * @property packageAttribute The package attribute for generated items, nullable.
  * 生成物品的包装属性，可为空。
- */
+*/
 data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
     val id: String,
     val program: PackingProgram<V>,
@@ -82,7 +82,7 @@ data class MaterialPackingProgramCandidate<V : FloatingNumber<V>>(
  * 被选中的候选方案。
  * @property amount The number of packages selected for this candidate.
  * 此候选方案被选中的包数量。
- */
+*/
 data class PackageSelection(
     val candidate: MaterialPackingProgramCandidate<*>,
     val amount: UInt64
@@ -98,7 +98,7 @@ data class PackageSelection(
  * 被分配的物料键。
  * @property amount The amount of material assigned.
  * 分配的物料数量。
- */
+*/
 data class MaterialPackingAssignment(
     val candidate: MaterialPackingProgramCandidate<*>,
     val material: MaterialKey,
@@ -115,7 +115,7 @@ data class MaterialPackingAssignment(
  * 此物品的数量。
  * @property pending Whether this item is pending (not fully assigned).
  * 此物品是否待定（未完全分配）。
- */
+*/
 data class PackagedItem(
     val item: ActualItem,
     val amount: UInt64,
@@ -125,7 +125,7 @@ data class PackagedItem(
 /**
  * Status of the material packing solve.
  * 物料包装求解状态。
- */
+*/
 enum class MaterialPackingStatus {
     Optimal,
     Infeasible
@@ -147,7 +147,7 @@ enum class MaterialPackingStatus {
  * 被选中的包总数。
  * @property rawStatus The raw solver status string, nullable.
  * 原始求解器状态字符串，可为空。
- */
+*/
 data class MaterialPackingSolveInfo(
     val status: MaterialPackingStatus,
     val objective: FltX? = null,
@@ -175,7 +175,7 @@ data class MaterialPackingSolveInfo(
  * 按物料键归一化的需求数量。
  * @property solveInfo The solve information for this plan.
  * 此计划的求解信息。
- */
+*/
 data class MaterialPackingPlan(
     val packages: List<Package<*>>,
     val packagedItems: List<PackagedItem>,

@@ -30,7 +30,7 @@ abstract class GurobiSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun init(
         server: String,
         password: String,
@@ -67,7 +67,7 @@ abstract class GurobiSolver : AutoCloseable {
      * @param name 模型名称 / model name
      * @param callBack 创建环境回调函数 / creating environment callback function
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun init(
         name: String,
         callBack: CreatingEnvironmentFunction? = null
@@ -93,7 +93,7 @@ abstract class GurobiSolver : AutoCloseable {
      * 执行 Gurobi 求解 / Execute Gurobi solving
      *
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun solve(): Try {
         return try {
             grbModel.optimize()
@@ -109,7 +109,7 @@ abstract class GurobiSolver : AutoCloseable {
      * 分析 Gurobi 求解状态 / Analyze Gurobi solving status
      *
      * @return 操作结果 / operation result
-     */
+    */
     protected suspend fun analyzeStatus(): Try {
         return try {
             status = when (grbModel.get(GRB.IntAttr.Status)) {

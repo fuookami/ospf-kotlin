@@ -4,7 +4,7 @@
  *
  * 提供域代数结构定律验证类，验证乘法交换律和乘法逆元存在性，继承臌RingLaw 验证环定律。
  * Provides field algebraic structure law validation class, verifying multiplicative commutativity and multiplicative inverse existence, inheriting from RingLaw for ring law verification.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
@@ -27,7 +27,7 @@ package fuookami.ospf.kotlin.math.algebra.law
  * @property reciprocal 乘法取逆运算 / Multiplicative reciprocal operation
  * @property isZero 判断元素是否为零元的谓词 / Predicate to check if an element is zero
  * @property equal 相等性判定谓词 / Equality predicate
- */
+*/
 class FieldLaw<Self>(
     private val samples: Collection<Self>,
     private val add: (Self, Self) -> Self,
@@ -54,7 +54,7 @@ class FieldLaw<Self>(
      * Verify multiplicative commutativity
      *
      * @return 对所有采样元素满足乘法交换律返回 true / True if multiplicative commutativity holds for all sampled elements
-     */
+    */
     fun multiplicativeCommutative(): Boolean {
         for (lhs in samples) {
             for (rhs in samples) {
@@ -71,7 +71,7 @@ class FieldLaw<Self>(
      * Verify multiplicative inverse existence
      *
      * @return 对所有非零采样元素满足乘法逆元性质返回 true / True if multiplicative inverse holds for all non-zero sampled elements
-     */
+    */
     fun multiplicativeInverse(): Boolean {
         for (value in samples) {
             if (isZero(value)) {
@@ -93,7 +93,7 @@ class FieldLaw<Self>(
      * Validate all field laws (including ring laws)
      *
      * @return 所有域公理均满足返回 true / True if all field axioms hold
-     */
+    */
     fun validate(): Boolean {
         return ring.validate()
             && multiplicativeCommutative()

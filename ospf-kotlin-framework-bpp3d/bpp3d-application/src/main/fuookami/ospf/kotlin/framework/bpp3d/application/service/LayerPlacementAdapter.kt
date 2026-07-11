@@ -1,7 +1,7 @@
 /**
  * 层放置适配器。
  * Layer placement adapter.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.CirclePackin
  *
  * @param z 层深度坐标，默认为原点 / layer depth coordinate, defaults to origin
  * @return 层放置 / layer placement
- */
+*/
 internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): Ret<QuantityPlacement3<BinLayer, FltX>> {
     when (val result = ensureGeneratedCylinderCandidatePath(
         layer = this
@@ -35,7 +35,7 @@ internal fun BinLayer.toLayerPlacement(z: Quantity<FltX>? = null): Ret<QuantityP
  *
  * @param z 层深度坐标 / layer depth coordinate
  * @return 层放置 / layer placement
- */
+*/
 internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null): QuantityPlacement3<BinLayer, FltX> {
     val position = if (z == null) {
         point3FltX()
@@ -55,7 +55,7 @@ internal fun BinLayer.toKnownCoordinateLayerPlacement(z: Quantity<FltX>? = null)
  * @param layer 待放置的箱层 / bin layer to place
  * @param z 层深度坐标，默认为原点 / layer depth coordinate, defaults to origin
  * @return 包含已放置层的箱体 / bin with the placed layer
- */
+*/
 internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<FltX>? = null): Ret<Bin<BinLayer, FltX>> {
     val placement = when (val result = layer.toLayerPlacement(z)) {
         is Ok -> result.value
@@ -78,7 +78,7 @@ internal fun Bin<BinLayer, FltX>.withPlacedLayer(layer: BinLayer, z: Quantity<Fl
  * @param z Z 坐标，默认为原点 / Z coordinate, defaults to origin
  * @param orientation 放置朝向 / placement orientation
  * @return 物品放置 / item placement
- */
+*/
 internal fun Item.toItemPlacement(
     x: Quantity<FltX>? = null,
     y: Quantity<FltX>? = null,
@@ -104,7 +104,7 @@ internal fun Item.toItemPlacement(
  *
  * @param layer 待校验的箱层 / bin layer to validate
  * @return 校验结果 / validation result
- */
+*/
 internal fun ensureGeneratedCylinderCandidatePath(layer: BinLayer): Try {
     for (placement in layer.units) {
         if (placement.unit !is Item) {

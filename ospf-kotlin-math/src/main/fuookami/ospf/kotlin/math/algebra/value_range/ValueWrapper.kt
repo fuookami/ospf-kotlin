@@ -4,7 +4,7 @@
  *
  * 定义值包装器类，用于处理值范围边界中的普通值、正无穷和负无穷，支持序列化、算术运算和比较操作。
  * Defines value wrapper class for handling normal values, positive infinity, and negative infinity in value range boundaries, with support for serialization, arithmetic operations, and comparison operations.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import kotlinx.serialization.*
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * 用于在全局范围内标识正无穷值。
  * Used to identify positive infinity values globally.
- */
+*/
 data object Infinity
 
 /**
@@ -34,7 +34,7 @@ data object Infinity
  *
  * 用于在全局范围内标识负无穷值。
  * Used to identify negative infinity values globally.
- */
+*/
 data object NegativeInfinity
 
 /**
@@ -43,7 +43,7 @@ data object NegativeInfinity
  *
  * 内部使用的全局正无穷类型别名。
  * Internal global positive infinity type alias.
- */
+*/
 internal typealias GlobalInfinity = Infinity
 
 /**
@@ -52,7 +52,7 @@ internal typealias GlobalInfinity = Infinity
  *
  * 内部使用的全局负无穷类型别名。
  * Internal global negative infinity type alias.
- */
+*/
 internal typealias GlobalNegativeInfinity = NegativeInfinity
 
 /**
@@ -65,7 +65,7 @@ internal typealias GlobalNegativeInfinity = NegativeInfinity
  * @param T 数值类型，必须是实数和数域
  * @property valueSerializer 基础值的序列化器
  * @property constants 数值常量对豌
- */
+*/
 class ValueWrapperSerializer<T>(
     private val valueSerializer: KSerializer<T>,
     internal val constants: RealNumberConstants<T>
@@ -77,7 +77,7 @@ class ValueWrapperSerializer<T>(
          *
          * @param constants 数值常量对豌
          * @return 新的 ValueWrapperSerializer 实例
-         */
+        */
         @OptIn(InternalSerializationApi::class)
         inline operator fun <reified T> invoke(
             constants: RealNumberConstants<T>
@@ -91,7 +91,7 @@ class ValueWrapperSerializer<T>(
          *
          * @return 新的 ValueWrapperSerializer 实例解析结果
          * @return The ValueWrapperSerializer resolution result
-         */
+        */
         @OptIn(InternalSerializationApi::class)
         inline operator fun <reified T> invoke(): Ret<ValueWrapperSerializer<T>> where T : RealNumber<T>, T : NumberField<T> {
             return resolveRealNumberConstantsSafe<T>("ValueWrapper").mapResolved { constants ->
@@ -106,7 +106,7 @@ class ValueWrapperSerializer<T>(
      *
      * 定义了三种可能的序列化形式：Value、Infinity 和NegativeInfinity。
      * Defines three possible serialization forms: Value, Infinity, and NegativeInfinity.
-     */
+    */
     @OptIn(InternalSerializationApi::class, ExperimentalSerializationApi::class)
     override val descriptor: SerialDescriptor = buildSerialDescriptor("ValueWrapper<T>", PolymorphicKind.SEALED) {
         element("Value", valueSerializer.descriptor)
@@ -130,7 +130,7 @@ class ValueWrapperSerializer<T>(
      *
      * @param encoder JSON 编码噌
      * @param value 要序列化的值包装器
-     */
+    */
     override fun serialize(encoder: Encoder, value: ValueWrapper<T>) {
         val jsonEncoder = requireJsonEncoder(encoder, "ValueWrapperSerializer")
         val element = when (value) {
@@ -157,7 +157,7 @@ class ValueWrapperSerializer<T>(
      *
      * @param decoder JSON 解码噌
      * @return 解析后的值包装器
-     */
+    */
     override fun deserialize(decoder: Decoder): ValueWrapper<T> {
         val jsonDecoder = requireJsonDecoder(decoder, "ValueWrapperSerializer")
         val element = jsonDecoder.decodeJsonElement()
@@ -193,7 +193,7 @@ class ValueWrapperSerializer<T>(
  *
  * @param T 数值类型，必须是实数和数域
  * @property constants 数值常量对豌
- */
+*/
 sealed class ValueWrapper<T>(
     val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueWrapper<T>>, Ord<ValueWrapper<T>>, Eq<ValueWrapper<T>>,
@@ -207,7 +207,7 @@ sealed class ValueWrapper<T>(
          *
          * @param value 要包装的数倌
          * @return 创建结果（成功返回值包装器，失败返回错误）
-         */
+        */
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -235,7 +235,7 @@ sealed class ValueWrapper<T>(
          * @param value 要包装的数倌
          * @param constants 数值常量对豌
          * @return 创建结果（成功返回值包装器，失败返回错误）
-         */
+        */
         operator fun <T> invoke(
             value: T,
             constants: RealNumberConstants<T>
@@ -254,7 +254,7 @@ sealed class ValueWrapper<T>(
          *
          * @return 正无穷值包装器解析结果
          * @return The positive infinity value wrapper resolution result
-         */
+        */
         inline operator fun <reified T> invoke(
             _inf: GlobalInfinity
         ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -270,7 +270,7 @@ sealed class ValueWrapper<T>(
          * @param _inf 正无穷标讌
          * @param constants 数值常量对豌
          * @return 正无穷值包装器
-         */
+        */
         operator fun <T> invoke(
             _inf: GlobalInfinity,
             constants: RealNumberConstants<T>
@@ -284,7 +284,7 @@ sealed class ValueWrapper<T>(
          *
          * @return 负无穷值包装器解析结果
          * @return The negative infinity value wrapper resolution result
-         */
+        */
         @Suppress("UNCHECKED_AS")
         inline operator fun <reified T> invoke(
             _negInf: GlobalNegativeInfinity
@@ -301,7 +301,7 @@ sealed class ValueWrapper<T>(
          * @param _negInf 负无穷标讌
          * @param constants 数值常量对豌
          * @return 负无穷值包装器
-         */
+        */
         operator fun <T> invoke(
             _negInf: GlobalNegativeInfinity,
             constants: RealNumberConstants<T>
@@ -313,19 +313,19 @@ sealed class ValueWrapper<T>(
     /**
      * 是否为正无穷
      * Whether is positive infinity
-     */
+    */
     val isInfinity get() = this is Infinity
 
     /**
      * 是否为负无穷
      * Whether is negative infinity
-     */
+    */
     val isNegativeInfinity get() = this is NegativeInfinity
 
     /**
      * 是否为无穷（正无穷或负无穷）
      * Whether is infinity (positive or negative infinity)
-     */
+    */
     val isInfinityOrNegativeInfinity by lazy { isInfinity || isNegativeInfinity }
 
     /**
@@ -334,7 +334,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要添加的数倌
      * @return 新的值包装器
-     */
+    */
     abstract operator fun plus(rhs: T): ValueWrapper<T>?
 
     /**
@@ -343,7 +343,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要减去的数倌
      * @return 新的值包装器
-     */
+    */
     abstract operator fun minus(rhs: T): ValueWrapper<T>?
 
     /**
@@ -352,7 +352,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要乘的数倌
      * @return 新的值包装器
-     */
+    */
     abstract operator fun times(rhs: T): ValueWrapper<T>?
 
     /**
@@ -361,7 +361,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要除的数倌
      * @return 新的值包装器
-     */
+    */
     abstract operator fun div(rhs: T): ValueWrapper<T>?
 
     /**
@@ -369,7 +369,7 @@ sealed class ValueWrapper<T>(
      * Converts to Flt64 type
      *
      * @return Flt64 类型的数倌
-     */
+    */
     abstract fun toFlt64(): Flt64
 
     /**
@@ -380,7 +380,7 @@ sealed class ValueWrapper<T>(
      * If it's an infinity value, returns corresponding number constant (may be null).
      *
      * @return 实际数倌
-     */
+    */
     fun unwrap(): T {
         return when (this) {
             is Value<T> -> {
@@ -405,7 +405,7 @@ sealed class ValueWrapper<T>(
      * If it's an infinity value and constant is null, returns null.
      *
      * @return 实际数值，戌null
-     */
+    */
     fun unwrapOrNull(): T? {
         return when (this) {
             is Value<T> -> {
@@ -428,7 +428,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要比较的数倌
      * @return 是否相等
-     */
+    */
     fun eqOrNull(rhs: T): Boolean? {
         return when (rhs) {
             constants.infinity -> this is Infinity
@@ -444,7 +444,7 @@ sealed class ValueWrapper<T>(
      *
      * @param rhs 要比较的数值
      * @return 是否相等，NaN 返回 false
-     */
+    */
     infix fun eq(rhs: T): Boolean {
         return eqOrNull(rhs) == true
     }
@@ -458,7 +458,7 @@ sealed class ValueWrapper<T>(
      *
      * @param T 数值类垌
      * @property value 包装的数倌
-     */
+    */
     class Value<T>(val value: T, constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
         init {
@@ -472,7 +472,7 @@ sealed class ValueWrapper<T>(
          * Copies value wrapper
          *
          * @return 新的值包装器副本
-         */
+        */
         override fun copy() = Value(value.copy(), constants)
 
         /**
@@ -480,7 +480,7 @@ sealed class ValueWrapper<T>(
          * Clones value wrapper
          *
          * @return 克隆的值包装器
-         */
+        */
         public override fun clone() = copy()
 
         /**
@@ -489,7 +489,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
-         */
+        */
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = when (rhs) {
             is Value -> value.eq(rhs.value)
             else -> false
@@ -504,7 +504,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
-         */
+        */
         override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
             is Value -> value.ord(rhs.value)
             is Infinity -> orderOf(-1)
@@ -517,7 +517,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 要添加的数倌
          * @return 新的值包装器
-         */
+        */
         override fun plus(rhs: T): ValueWrapper<T>? = ValueWrapper(value + rhs, constants).value
 
         /**
@@ -526,7 +526,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
-         */
+        */
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> ValueWrapper(value + rhs.value, constants).value
             is Infinity -> Infinity(constants)
@@ -539,7 +539,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 要减去的数倌
          * @return 新的值包装器
-         */
+        */
         override fun minus(rhs: T): ValueWrapper<T>? = ValueWrapper(value - rhs, constants).value
 
         /**
@@ -548,7 +548,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
-         */
+        */
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> ValueWrapper(value - rhs.value, constants).value
             is Infinity -> NegativeInfinity(constants)
@@ -561,7 +561,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 要乘的数倌
          * @return 新的值包装器
-         */
+        */
         override fun times(rhs: T): ValueWrapper<T>? = ValueWrapper(value * rhs, constants).value
 
         /**
@@ -570,7 +570,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
-         */
+        */
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> ValueWrapper(value * rhs.value, constants).value
             is Infinity -> if (value < constants.zero) {
@@ -596,7 +596,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 要除的数倌
          * @return 新的值包装器
-         */
+        */
         override fun div(rhs: T): ValueWrapper<T>? = ValueWrapper(value / rhs, constants).value
 
         /**
@@ -608,7 +608,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 新的值包装器
-         */
+        */
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> ValueWrapper(value / rhs.value, constants).value
             is Infinity -> if (value < constants.zero) {
@@ -633,7 +633,7 @@ sealed class ValueWrapper<T>(
          * Gets string representation
          *
          * @return 数值的字符串形弌
-         */
+        */
         override fun toString() = "$value"
 
         /**
@@ -641,7 +641,7 @@ sealed class ValueWrapper<T>(
          * Converts to Flt64 type
          *
          * @return Flt64 类型的数倌
-         */
+        */
         override fun toFlt64() = value.toFlt64()
     }
 
@@ -653,7 +653,7 @@ sealed class ValueWrapper<T>(
      * Represents positive infinity, greater than any normal value.
      *
      * @param T 数值类垌
-     */
+    */
     class Infinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
         /**
@@ -661,7 +661,7 @@ sealed class ValueWrapper<T>(
          * Copies value wrapper
          *
          * @return 新的正无穷值包装器副本
-         */
+        */
         override fun copy() = Infinity(constants)
 
         /**
@@ -669,7 +669,7 @@ sealed class ValueWrapper<T>(
          * Clones value wrapper
          *
          * @return 克隆的正无穷值包装器
-         */
+        */
         public override fun clone() = copy()
 
         /**
@@ -681,7 +681,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
-         */
+        */
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is Infinity
 
         /**
@@ -693,7 +693,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
-         */
+        */
         override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
             is Infinity -> orderOf(0)
             else -> orderOf(1)
@@ -709,7 +709,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要添加的数倌
          * @return 正无穷值包装器
          * @throws IllegalArgumentException 当加丌NaN 或负无穷旌
-         */
+        */
         override fun plus(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> null
@@ -726,7 +726,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当加上负无穷旌
-         */
+        */
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> Infinity(constants)
             is Infinity -> Infinity(constants)
@@ -743,7 +743,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要减去的数倌
          * @return 正无穷值包装器
          * @throws IllegalArgumentException 当减厌NaN 或正无穷旌
-         */
+        */
         override fun minus(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.infinity -> null
@@ -760,7 +760,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当减去正无穷旌
-         */
+        */
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> Infinity(constants)
             is Infinity -> null
@@ -777,7 +777,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要乘的数倌
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
-         */
+        */
         override fun times(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> NegativeInfinity(constants)
@@ -800,7 +800,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
-         */
+        */
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 NegativeInfinity(constants)
@@ -824,7 +824,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要除的数倌
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除仌NaN、无穷或零时
-         */
+        */
         override fun div(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.infinity -> null
@@ -847,7 +847,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除以无穷或零时
-         */
+        */
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 NegativeInfinity(constants)
@@ -866,7 +866,7 @@ sealed class ValueWrapper<T>(
          * Gets string representation
          *
          * @return "inf"
-         */
+        */
         override fun toString() = "inf"
 
         /**
@@ -874,7 +874,7 @@ sealed class ValueWrapper<T>(
          * Converts to Flt64 type
          *
          * @return Flt64 类型的正无穷
-         */
+        */
         override fun toFlt64() = Flt64.infinity
     }
 
@@ -886,7 +886,7 @@ sealed class ValueWrapper<T>(
      * Represents negative infinity, less than any normal value.
      *
      * @param T 数值类垌
-     */
+    */
     class NegativeInfinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
         /**
@@ -894,7 +894,7 @@ sealed class ValueWrapper<T>(
          * Copies value wrapper
          *
          * @return 新的负无穷值包装器副本
-         */
+        */
         override fun copy() = NegativeInfinity(constants)
 
         /**
@@ -902,7 +902,7 @@ sealed class ValueWrapper<T>(
          * Clones value wrapper
          *
          * @return 克隆的负无穷值包装器
-         */
+        */
         public override fun clone() = copy()
 
         /**
@@ -914,7 +914,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 是否相等
-         */
+        */
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity
 
         /**
@@ -926,7 +926,7 @@ sealed class ValueWrapper<T>(
          *
          * @param rhs 另一个值包装器
          * @return 比较结果
-         */
+        */
         override fun partialOrd(rhs: ValueWrapper<T>) = when (rhs) {
             is NegativeInfinity -> orderOf(0)
             else -> orderOf(-1)
@@ -942,7 +942,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要添加的数倌
          * @return 负无穷值包装器
          * @throws IllegalArgumentException 当加丌NaN 或正无穷旌
-         */
+        */
         override fun plus(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.infinity -> null
@@ -959,7 +959,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当加上正无穷旌
-         */
+        */
         override fun plus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> NegativeInfinity(constants)
             is Infinity -> null
@@ -976,7 +976,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要减去的数倌
          * @return 负无穷值包装器
          * @throws IllegalArgumentException 当减厌NaN 或负无穷旌
-         */
+        */
         override fun minus(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> null
@@ -993,7 +993,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当减去负无穷旌
-         */
+        */
         override fun minus(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> NegativeInfinity(constants)
             is Infinity -> NegativeInfinity(constants)
@@ -1010,7 +1010,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要乘的数倌
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
-         */
+        */
         override fun times(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> Infinity(constants)
@@ -1033,7 +1033,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当乘仌NaN 旌
-         */
+        */
         override fun times(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 Infinity(constants)
@@ -1057,7 +1057,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 要除的数倌
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除仌NaN、无穷或零时
-         */
+        */
         override fun div(rhs: T): ValueWrapper<T>? = when (rhs) {
             rhs.constants.nan -> null
             rhs.constants.negativeInfinity -> null
@@ -1080,7 +1080,7 @@ sealed class ValueWrapper<T>(
          * @param rhs 另一个值包装器
          * @return 新的值包装器
          * @throws IllegalArgumentException 当除以无穷或零时
-         */
+        */
         override fun div(rhs: ValueWrapper<T>): ValueWrapper<T>? = when (rhs) {
             is Value -> if (rhs.value < rhs.constants.zero) {
                 Infinity(constants)
@@ -1099,7 +1099,7 @@ sealed class ValueWrapper<T>(
          * Gets string representation
          *
          * @return "-inf"
-         */
+        */
         override fun toString() = "-inf"
 
         /**
@@ -1107,7 +1107,7 @@ sealed class ValueWrapper<T>(
          * Converts to Flt64 type
          *
          * @return Flt64 类型的负无穷
-         */
+        */
         override fun toFlt64() = Flt64.negativeInfinity
     }
 }
@@ -1117,7 +1117,7 @@ sealed class ValueWrapper<T>(
  * Negation operation for Flt32 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperFlt32")
 operator fun ValueWrapper<Flt32>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1130,7 +1130,7 @@ operator fun ValueWrapper<Flt32>.unaryMinus() = when (this) {
  * Negation operation for Flt64 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperFlt64")
 operator fun ValueWrapper<Flt64>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1143,7 +1143,7 @@ operator fun ValueWrapper<Flt64>.unaryMinus() = when (this) {
  * Negation operation for FltX typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperFltX")
 operator fun ValueWrapper<FltX>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1156,7 +1156,7 @@ operator fun ValueWrapper<FltX>.unaryMinus() = when (this) {
  * Negation operation for Int8 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperInt8")
 operator fun ValueWrapper<Int8>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1169,7 +1169,7 @@ operator fun ValueWrapper<Int8>.unaryMinus() = when (this) {
  * Negation operation for Int16 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperInt16")
 operator fun ValueWrapper<Int16>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1182,7 +1182,7 @@ operator fun ValueWrapper<Int16>.unaryMinus() = when (this) {
  * Negation operation for Int32 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperInt32")
 operator fun ValueWrapper<Int32>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1195,7 +1195,7 @@ operator fun ValueWrapper<Int32>.unaryMinus() = when (this) {
  * Negation operation for Int64 typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperInt64")
 operator fun ValueWrapper<Int64>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
@@ -1208,7 +1208,7 @@ operator fun ValueWrapper<Int64>.unaryMinus() = when (this) {
  * Negation operation for IntX typed value wrapper
  *
  * @return 取负后的新值包装器
- */
+*/
 @JvmName("negValueWrapperIntX")
 operator fun ValueWrapper<IntX>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)

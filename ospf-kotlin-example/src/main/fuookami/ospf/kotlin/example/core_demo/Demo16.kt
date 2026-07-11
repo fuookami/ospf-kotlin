@@ -31,15 +31,16 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Production scheduling: minimize production, storage, and delay delivery costs across months.
  *
  * @see https://fuookami.github.io/ospf/examples/example16.html
- */
+*/
 data object Demo16 {
+
     /**
      * 具有月份索引、生产率和需求的生产周期。A production period with month index, productivity, and demand.
      *
      * @property month 月份索引 / Month index
      * @property productivity 生产率 / Productivity
      * @property demand 需求量 / Demand quantity
-     */
+    */
     data class Produce(
         val month: UInt64,
         val productivity: UInt64,
@@ -85,7 +86,7 @@ data object Demo16 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -107,7 +108,7 @@ data object Demo16 {
      * 初始化期间间的生产分配变量。/ Initializes production allocation variables between periods.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(produces.size, produces.size))
         metaModel.add(x)
@@ -119,7 +120,7 @@ data object Demo16 {
      * 创建生产、供应、延迟交付、库存和生产成本符号。/ Creates production, supply, delay delivery, storage, and production cost symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         produce = LinearIntermediateSymbols1<Flt64>(
             "produce",
@@ -186,7 +187,7 @@ data object Demo16 {
      * 设置目标函数以最小化总成本（生产 + 库存 + 延迟）。/ Sets the objective to minimize total cost (production + storage + delay).
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(
             delayDeliveryCost + storageCost + produceCost,
@@ -200,7 +201,7 @@ data object Demo16 {
      * 添加需求满足和生产力约束。/ Adds demand satisfaction and productivity capacity constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (p in produces) {
             metaModel.addConstraint(
@@ -223,7 +224,7 @@ data object Demo16 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -247,7 +248,7 @@ data object Demo16 {
      * 从解中提取生产分配矩阵。/ Extracts the production allocation matrix from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val solution = HashMap<UInt64, HashMap<UInt64, UInt64>>()
         for (token in metaModel.tokens.tokens) {

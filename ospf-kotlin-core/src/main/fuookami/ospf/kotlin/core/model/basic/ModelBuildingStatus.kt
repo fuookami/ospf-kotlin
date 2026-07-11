@@ -1,7 +1,7 @@
 /**
  * 模型构建状态
  * Model building status
- */
+*/
 package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -15,13 +15,14 @@ import fuookami.ospf.kotlin.math.algebra.number.*
  * @property stage     当前构建阶段 / Current building stage
  * @property ready     已就绪数量 / Number of ready items
  * @property total     总数量 / Total number of items
- */
+*/
 data class ModelBuildingStatus(
     val modelName: String,
     val stage: ModelBuildingStage,
     val ready: UInt64,
     val total: UInt64
 ) {
+
     /** 构建进度 / Build progress */
     val progress: Flt64
         get() = if (total neq UInt64.zero) {

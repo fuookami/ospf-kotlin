@@ -1,7 +1,7 @@
 /**
  * Better layer maximization objective.
  * 更优层最大化目标。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Precis
  * @property assignment 精确赋值 / precise assignment
  * @property coefficient 层与箱子的系数函数 / coefficient function for layer and bin
  * @property name 约束名称 / constraint name
- */
+*/
 class BetterLayerMaximization(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>,
@@ -29,13 +29,14 @@ class BetterLayerMaximization(
     private val coefficient: (BinLayer, Bin<BinLayer, FltX>) -> FltX,
     val name: String = "better_layer_maximization"
 ) {
+
     /**
      * Add objective to model.
      * 将目标添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun invoke(model: MetaModel<FltX>): Try {
         val linearModel = model as AbstractLinearMetaModel<FltX>
         when (val result = linearModel.maximize(

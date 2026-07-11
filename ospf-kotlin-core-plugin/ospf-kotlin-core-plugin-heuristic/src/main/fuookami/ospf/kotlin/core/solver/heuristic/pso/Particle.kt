@@ -54,7 +54,7 @@ data class Particle<ObjValue, V>(
      * @param policy 启发式策略 / heuristic policy
      * @param model 回调模型 / callback model
      * @return 新粒子 / new particle
-     */
+    */
     fun new(
         newVelocity: List<Flt64>,
         iteration: Iteration,

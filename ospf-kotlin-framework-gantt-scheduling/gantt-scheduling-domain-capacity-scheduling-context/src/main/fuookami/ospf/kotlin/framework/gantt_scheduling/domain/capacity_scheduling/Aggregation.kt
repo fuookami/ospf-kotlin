@@ -4,7 +4,7 @@
  *
  * 聚合产能调度相关的数据和逻辑。
  * Aggregates data and logic related to capacity scheduling.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
@@ -25,50 +25,52 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
  *
  * @param V 数值类型 / Numeric type
  * @param A 生产动作类型 / Production action type
- */
+*/
 class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
+
     /**
      * 生产动作列表
      * List of production actions
-     */
+    */
     val actions: List<A>,
 
     /**
      * 时隙列表
      * List of time slots
-     */
+    */
     val slots: List<TimeSlot>,
 
     /**
      * 时间窗口
      * Time window
-     */
+    */
     val timeWindow: TimeWindow<V>
 ) {
+
     /**
      * 按执行器分组的动作
      * Actions grouped by executor
-     */
+    */
     val actionsByExecutor: Map<ExecutorId, List<A>> = actions.groupBy { it.executor.id }
 
     /**
      * 时隙数量
      * Number of time slots
-     */
+    */
     val slotCount: Int
         get() = slots.size
 
     /**
      * 动作数量
      * Number of actions
-     */
+    */
     val actionCount: Int
         get() = actions.size
 
     /**
      * 执行器数量
      * Number of executors
-     */
+    */
     val executorCount: Int
         get() = actionsByExecutor.size
 
@@ -78,7 +80,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param executorId Executor identifier / 执行器标识
      * @return List of actions for the executor / 该执行器的动作列表
-     */
+    */
     fun actionsForExecutor(executorId: ExecutorId): List<A> {
         return actionsByExecutor[executorId] ?: emptyList()
     }
@@ -88,7 +90,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      * 计算所有动作和时隙的总产能值。
      *
      * @return Total capacity value / 总产能值
-     */
+    */
     private fun totalCapacityValue(): V {
         val zero = timeWindow.fromDouble(0.0)
         var total = zero
@@ -110,7 +112,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param unit 产能单位 / Capacity unit
      * @return Total capacity as Quantity<V> / 总产能物理量
-     */
+    */
     fun totalCapacityQuantity(unit: PhysicalUnit = NoneUnit): CapacityQuantity<V> {
         return Quantity(totalCapacityValue(), unit)
     }
@@ -121,7 +123,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param slot Time slot / 时隙
      * @return Index of the time slot / 时隙索引
-     */
+    */
     fun indexOfSlot(slot: TimeSlot): Int {
         return slots.indexOf(slot)
     }
@@ -132,7 +134,7 @@ class CapacitySchedulingAggregation<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param action Production action / 生产动作
      * @return Index of the action / 动作索引
-     */
+    */
     fun indexOfAction(action: A): Int {
         return actions.indexOf(action)
     }

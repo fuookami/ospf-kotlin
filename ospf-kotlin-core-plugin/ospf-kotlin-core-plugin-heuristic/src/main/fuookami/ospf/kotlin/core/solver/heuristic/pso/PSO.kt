@@ -27,6 +27,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 /** 粒子群优化器策略接口 / Particle Swarm Optimizer policy interface */
 interface AbstractPSOPolicy<ObjValue, V> :
     AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+
     /**
      * 加速粒子 / Accelerate particle
      *
@@ -35,7 +36,7 @@ interface AbstractPSOPolicy<ObjValue, V> :
      * @param bestParticle 全局最优粒子 / global best particle
      * @param model 回调模型 / callback model
      * @return 加速后的粒子 / accelerated particle
-     */
+    */
     fun accelerate(
         iteration: Iteration,
         particle: Particle<ObjValue, V>,
@@ -61,7 +62,7 @@ interface AbstractPSOPolicy<ObjValue, V> :
  * @property c2 全局学习因子 / global learning factor
  * @property maxVelocity 最大速度 / maximum velocity
  * @property randomGenerator 随机数生成器 / random number generator
- */
+*/
 open class PSOPolicy<ObjValue, V>(
     val w: Flt64 = Flt64(0.4),
     val c1: Flt64 = Flt64.two,
@@ -134,6 +135,7 @@ open class PSOPolicy<ObjValue, V>(
 }
 
 @OptIn(ExperimentalTime::class)
+
 /**
  * 粒子群优化算法
  *
@@ -150,7 +152,7 @@ open class PSOPolicy<ObjValue, V>(
  * @property particleAmount 粒子数量 / particle amount
  * @property solutionAmount 期望解的数量 / desired number of solutions
  * @property policy 粒子群策略 / PSO policy
- */
+*/
 class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
@@ -180,7 +182,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
      * @param initialVelocityGenerator 初始速度生成器 / initial velocity generator
      * @param runningCallBack 运行回调函数 / running callback function
      * @return 最优个体列表 / best individual list
-     */
+    */
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
@@ -263,5 +265,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
 
 /** 单目标粒子群优化器类型 / Single-objective Particle Swarm Optimization type */
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64, Flt64>
+
 /** 多目标粒子群优化器类型 / Multi-objective Particle Swarm Optimization type */
 typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>

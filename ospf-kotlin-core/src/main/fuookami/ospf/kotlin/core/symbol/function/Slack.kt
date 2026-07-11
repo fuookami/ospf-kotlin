@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SlackFunction]，为不等式引入正/负松弛变量。
  *
  * Provides [SlackFunction] for introducing positive/negative slack variables for inequalities.
- */
+*/
 
 /**
  * 松弛变量函数 / Slack variable function
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property posVar 正松弛变量 / Positive slack variable
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SlackFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
@@ -99,7 +99,7 @@ class SlackFunction<V>(
      *
      * @param baseName 变量基础名称 / base variable name
      * @return 创建的变量项 / the created variable item
-     */
+    */
     private fun createVariable(baseName: String): AbstractVariableItem<*, *> {
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
@@ -175,7 +175,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
@@ -217,7 +217,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-         */
+        */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
             y: LinearPolynomial<V>,
@@ -259,7 +259,7 @@ class SlackFunction<V>(
          * @param name 此函数的唯一名称 / unique name for this function
          * @param displayName 可选的人类可读显示名称 / optional human-readable display name
          * @return 松弛函数实例 / slack function instance
-         */
+        */
         operator fun <V> invoke(
             x: ToLinearPolynomial<V>,
             y: ToLinearPolynomial<V>,

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.quantities.quantity.*
  * @param V 数值类型 / Numeric value type
  * @property width 宽度值域 / Width value range
  * @property step 步进值 / Step value
- */
+*/
 data class WidthRange<V : RealNumber<V>>(
     val width: QuantityRange<V>,
     val step: Quantity<V>
@@ -30,7 +30,7 @@ data class WidthRange<V : RealNumber<V>>(
      *
      * @param productWidth 产品宽度 / Product width to check
      * @return 是否可分切 / Whether cuttable
-     */
+    */
     fun canCut(productWidth: Quantity<V>): Boolean {
         val order = productWidth partialOrd upperBound
         return order != null && order !is Order.Greater

@@ -9,7 +9,7 @@
  * Chua's attractor is a famous chaotic system proposed by Leon O. Chua, serving as the mathematical model for Chua's circuit.
  * This system generates chaotic behavior through piecewise linear nonlinear functions and is one of the first chaotic systems experimentally observed.
  * Commonly used for chaotic circuit research, chaos encryption, and electronic engineering education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property epsilon 分段线性参数 epsilon / Piecewise linear parameter epsilon
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class ChuaAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -64,7 +64,7 @@ data class ChuaAttractor<V : FloatingNumber<V>>(
 /**
  * 蔡氏吸引子生成器
  * Chua's Attractor Generator
- */
+*/
 data class ChuaAttractorGenerator(
     val chuaAttractor: ChuaAttractor<Flt64> = ChuaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

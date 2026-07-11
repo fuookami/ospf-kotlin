@@ -1,7 +1,7 @@
 /**
  * 装箱渲染适配器。
  * Packing renderer adapter.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.packing.service
 
 import kotlin.math.PI
@@ -17,12 +17,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.packing.PackingResult
 /**
  * 装箱渲染适配器，将装箱结果转换为渲染 DTO。
  * Packing renderer adapter, converts packing results to rendering DTOs.
- */
+*/
 class PackingRendererAdapter {
+
     /**
      * 将装箱形状类型转换为渲染形状类型 DTO。
      * Convert packing shape type to rendering shape type DTO.
-     */
+     *
+     * @return corresponding render shape type DTO / 对应的渲染形状类型 DTO
+    */
     private fun PackingShapeType.toRenderShapeType(): RenderShapeTypeDTO {
         return when (this) {
             PackingShapeType.Cuboid -> RenderShapeTypeDTO.Cuboid
@@ -33,7 +36,9 @@ class PackingRendererAdapter {
     /**
      * 将装箱算法形状类型转换为渲染算法形状类型 DTO。
      * Convert packing algorithm shape type to rendering algorithm shape type DTO.
-     */
+     *
+     * @return corresponding render algorithm shape type DTO / 对应的渲染算法形状类型 DTO
+    */
     private fun PackingAlgorithmShapeType.toRenderAlgorithmShapeType(): RenderAlgorithmShapeTypeDTO {
         return when (this) {
             PackingAlgorithmShapeType.Cuboid -> RenderAlgorithmShapeTypeDTO.Cuboid
@@ -46,7 +51,9 @@ class PackingRendererAdapter {
     /**
      * 将 Axis3 枚举转换为渲染轴 DTO。
      * Convert Axis3 enum to rendering axis DTO.
-     */
+     *
+     * @return corresponding render axis DTO / 对应的渲染轴 DTO
+    */
     private fun Axis3.toRenderAxis3(): RenderAxis3DTO {
         return when (this) {
             Axis3.X -> RenderAxis3DTO.X
@@ -63,7 +70,7 @@ class PackingRendererAdapter {
      * @param solverRadiusByVariableName 按变量名索引的半径选择结果 / radius selection results indexed by variable name
      * @param solverRadiusByUniqueKey 按唯一键索引的半径选择结果 / radius selection results indexed by unique key
      * @return 半径选择结果，若未找到则返回 null / radius selection result, or null if not found
-     */
+    */
     private fun solverRadiusSelectionResult(
         item: Item,
         solverRadiusByVariableName: Map<String, CylinderRadiusSelectionResult>,
@@ -88,7 +95,7 @@ class PackingRendererAdapter {
      *
      * @param result 装箱结果 / packing result
      * @return 渲染方案 DTO / rendering schema DTO
-     */
+    */
     fun toSchema(result: PackingResult): Ret<SchemaDTO> {
         return toSchema(result, emptyList())
     }
@@ -100,7 +107,7 @@ class PackingRendererAdapter {
      * @param result 装箱结果 / packing result
      * @param continuousRadiusSelectionResults 连续半径已选择结果列表 / continuous-radius selection results
      * @return 渲染方案 DTO / rendering schema DTO
-     */
+    */
     fun toSchema(
         result: PackingResult,
         continuousRadiusSelectionResults: List<CylinderRadiusSelectionResult>

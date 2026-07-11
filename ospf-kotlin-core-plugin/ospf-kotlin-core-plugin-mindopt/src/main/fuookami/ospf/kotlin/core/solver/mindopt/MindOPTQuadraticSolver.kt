@@ -28,7 +28,7 @@ import com.alibaba.damo.mindopt.*
  * MindOPT 二次求解器
  *
  * @property callBack Quadratic solver callback / 二次求解器回调
- */
+*/
 class MindOPTQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
     private val callBack: MindOPTQuadraticSolverCallBack? = null,
@@ -97,7 +97,7 @@ class MindOPTQuadraticSolver(
  * @property config Solver configuration / 求解器配置
  * @property callBack Quadratic solver callback / 二次求解器回调
  * @property statusCallBack Solving status callback / 求解状态回调
- */
+*/
 private class MindOPTQuadraticSolverImpl(
     private val config: SolverConfig,
     private val callBack: MindOPTQuadraticSolverCallBack? = null,
@@ -148,7 +148,7 @@ private class MindOPTQuadraticSolverImpl(
      *
      * @param model Quadratic tetrad model view / 二次四元组模型视图
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         return try {
             warnIgnoredConstraintPriority("mindopt", model.nonNullConstraintPriorityAmount())
@@ -292,7 +292,7 @@ private class MindOPTQuadraticSolverImpl(
      *
      * @param model Quadratic tetrad model view / 二次四元组模型视图
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun configure(model: QuadraticTetradModelView): Try {
         return try {
             mindoptModel.set(MDO.DoubleParam.MaxTime, config.time.toDouble(DurationUnit.SECONDS))
@@ -399,7 +399,7 @@ private class MindOPTQuadraticSolverImpl(
      * 分析二次求解结果并提取解
      *
      * @return Operation result / 操作结果
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         return try {
             if (status.succeeded) {

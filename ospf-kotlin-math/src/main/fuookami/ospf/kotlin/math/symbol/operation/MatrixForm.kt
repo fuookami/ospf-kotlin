@@ -6,7 +6,7 @@
  * 支持线性和二次多项式的矩阵表示与反向还原。
  * Provides conversion of polynomials to matrix form (c/d vectors and Q matrix).
  * Supports matrix representation and reverse reconstruction for linear and quadratic polynomials.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * @property c 系数向量 / Coefficient vector
  * @property d 常数项 / Constant term
  * @property order 符号顺序 / Symbol order
- */
+*/
 data class LinearMatrixForm<T>(
     val c: List<T>,
     val d: T,
@@ -49,7 +49,7 @@ data class LinearMatrixForm<T>(
  * @property c 一次项系数向量 / Linear coefficient vector
  * @property d 常数项 / Constant term
  * @property order 符号顺序 / Symbol order
- */
+*/
 data class QuadraticMatrixForm<T>(
     val q: List<List<T>>,
     val c: List<T>,
@@ -63,7 +63,7 @@ data class QuadraticMatrixForm<T>(
  *
  * @param order 符号顺序列表 / Symbol order list
  * @throws IllegalArgumentException 若存在重复符号 / If duplicate symbols exist
- */
+*/
 private fun validateOrder(order: List<Symbol>) {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
@@ -76,7 +76,7 @@ private fun validateOrder(order: List<Symbol>) {
  *
  * @param order the symbol order list to validate / 要验证的符号顺序列表
  * @return ok if valid, Failed if duplicate symbols exist / 验证通过返回 ok，存在重复符号返回 Failed
- */
+*/
 private fun validateOrderRet(order: List<Symbol>): Try {
     return if (order.toSet().size == order.size) {
         ok
@@ -92,7 +92,7 @@ private fun validateOrderRet(order: List<Symbol>): Try {
  * @param symbol the symbol to look up / 要查找的符号
  * @param indexOfSymbol the map from symbol to index / 符号到索引的映射
  * @return the index of the symbol, or Failed if not found / 符号的索引，未找到则返回 Failed
- */
+*/
 private fun requireSymbolIndex(
     symbol: Symbol,
     indexOfSymbol: Map<Symbol, Int>
@@ -109,7 +109,7 @@ private fun requireSymbolIndex(
  * @param c 系数向量 / Coefficient vector
  * @param order 符号顺序列表 / Symbol order list
  * @throws IllegalArgumentException 若维度不匹配 / If dimensions mismatch
- */
+*/
 private fun <T> validateLinearMatrixDimensions(c: List<T>, order: List<Symbol>) {
     require(c.size == order.size) {
         "Linear matrix form dimension mismatch: c.size=${c.size}, order.size=${order.size}."
@@ -124,7 +124,7 @@ private fun <T> validateLinearMatrixDimensions(c: List<T>, order: List<Symbol>) 
  * @param c 一次项系数向量 / Linear coefficient vector
  * @param order 符号顺序列表 / Symbol order list
  * @throws IllegalArgumentException 若维度不匹配 / If dimensions mismatch
- */
+*/
 private fun <T> validateQuadraticMatrixDimensions(q: List<List<T>>, c: List<T>, order: List<Symbol>) {
     val n = order.size
     require(q.size == n) {
@@ -147,7 +147,7 @@ private fun <T> validateQuadraticMatrixDimensions(q: List<List<T>>, c: List<T>, 
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @return 线性矩阵形式 / Linear matrix form
- */
+*/
 fun <T> LinearPolynomial<T>.toMatrixForm(
     order: List<Symbol>,
     zero: T,
@@ -187,7 +187,7 @@ fun <T> LinearPolynomial<T>.toMatrixForm(
  * @param zero 零值 / Zero value
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @return 线性多项式 / Linear polynomial
- */
+*/
 fun <T> linearPolynomialFromMatrixForm(
     c: List<T>,
     d: T,
@@ -217,7 +217,7 @@ fun <T> linearPolynomialFromMatrixForm(
  * @param zero 零值 / Zero value
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @return 线性多项式 / Linear polynomial
- */
+*/
 fun <T> linearPolynomialFromMatrixForm(
     form: LinearMatrixForm<T>,
     zero: T,
@@ -243,7 +243,7 @@ fun <T> linearPolynomialFromMatrixForm(
  * @param isZero 判断零的函数 / Function to check if value is zero
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次矩阵形式 / Quadratic matrix form
- */
+*/
 fun <T> QuadraticPolynomial<T>.toMatrixForm(
     order: List<Symbol>,
     zero: T,
@@ -310,7 +310,7 @@ fun <T> QuadraticPolynomial<T>.toMatrixForm(
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次矩阵形式 / Quadratic matrix form
  * @throws IllegalArgumentException 若多项式超过二次 / If polynomial exceeds quadratic
- */
+*/
 fun <T> CanonicalPolynomial<T>.toMatrixForm(
     order: List<Symbol>,
     zero: T,
@@ -357,7 +357,7 @@ fun <T> CanonicalPolynomial<T>.toMatrixForm(
  * @param mergeOffDiagonal 非对角项合并函数 / Off-diagonal merge function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 fun <T> quadraticPolynomialFromMatrixForm(
     q: List<List<T>>,
     c: List<T>,
@@ -423,7 +423,7 @@ fun <T> quadraticPolynomialFromMatrixForm(
  * @param mergeOffDiagonal 非对角项合并函数 / Off-diagonal merge function
  * @param symbolComparator 符号比较器 / Symbol comparator
  * @return 二次多项式 / Quadratic polynomial
- */
+*/
 fun <T> quadraticPolynomialFromMatrixForm(
     form: QuadraticMatrixForm<T>,
     zero: T,

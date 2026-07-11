@@ -8,7 +8,7 @@
  * that delegates to copy, since copying is a valid implementation of moving.
  * 此接口扩展了 Movable，并提供了默认的移动实现委托给复制，
  * 因为复制是移动的有效实现方式。
- */
+*/
 package fuookami.ospf.kotlin.utils.concept
 
 /**
@@ -23,8 +23,9 @@ package fuookami.ospf.kotlin.utils.concept
  * 默认的移动实现委托给复制。
  *
  * @param Self 实现此接口的类型本身 / The type implementing this interface
- */
+*/
 interface Copyable<Self> : Movable<Self> {
+
     /**
      * 默认移动实现，委托给复制
      *
@@ -32,7 +33,7 @@ interface Copyable<Self> : Movable<Self> {
      * 默认的移动实现委托给复制。
      *
      * @return 复制后的新实例 / A copy of the instance
-     */
+    */
     override fun move() = copy()
 
     /**
@@ -42,7 +43,7 @@ interface Copyable<Self> : Movable<Self> {
      * 创建实例的深拷贝。
      *
      * @return 复制后的新实例 / A copy of the instance
-     */
+    */
     fun copy(): Self
 }
 
@@ -55,7 +56,7 @@ interface Copyable<Self> : Movable<Self> {
  * @param T 可复制类型 / The copyable type
  * @param ele 要复制的元素 / The element to copy
  * @return 复制后的新实例 / A copy of the element
- */
+*/
 @JvmName("copyNotNull")
 fun <T : Copyable<T>> copy(ele: T) = ele.copy()
 
@@ -69,7 +70,7 @@ fun <T : Copyable<T>> copy(ele: T) = ele.copy()
  * @param ele 要复制的可空元素 / The nullable element to copy
  * @return 复制后的新实例，如果输入为 null 则返回 null /
  *         A copy of the element, or null if the input was null
- */
+*/
 @JvmName("copyNullable")
 fun <T : Copyable<T>> copy(ele: T?) = ele?.copy()
 
@@ -82,7 +83,7 @@ fun <T : Copyable<T>> copy(ele: T?) = ele?.copy()
  * @param T 可复制类型 / The copyable type
  * @param default 默认值提供函数 / Function to provide the default value
  * @return 复制后的实例或默认值 / A copy of the element or the default value
- */
+*/
 @JvmName("copyIfNotNullOrT")
 fun <T : Copyable<T>> T?.copyIfNotNullOr(default: () -> T): T = this?.copy() ?: default()
 
@@ -96,5 +97,5 @@ fun <T : Copyable<T>> T?.copyIfNotNullOr(default: () -> T): T = this?.copy() ?: 
  * @param ele 要复制的可空元素 / The nullable element to copy
  * @param default 默认值提供函数 / Function to provide the default value
  * @return 复制后的实例或默认值 / A copy of the element or the default value
- */
+*/
 fun <T : Copyable<T>> copyIfNotNullOr(ele: T?, default: () -> T): T = ele?.copy() ?: default()

@@ -1,7 +1,7 @@
 /**
  * 目标值归一化接口与实现
  * Objective normalization interface and implementations
- */
+*/
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
@@ -17,8 +17,9 @@ import fuookami.ospf.kotlin.utils.functional.sum
  *
  * @param ObjValue 目标值类型 / Objective value type
  * @param V 值类型 / Value type
- */
+*/
 interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+
     /**
      * 将目标值列表归一化为权重。
      * Normalize objective value list into weights.
@@ -26,7 +27,7 @@ interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : Numbe
      * @param model 回调模型接口 / Callback model interface
      * @param objs 目标值列表 / Objective value list
      * @return 归一化后的权重列表 / Normalized weight list
-     */
+    */
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         objs: List<ObjValue>
@@ -36,7 +37,7 @@ interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : Numbe
 /**
  * 最小-最大归一化，将目标值映射到 [0, 1] 区间。
  * Min-max normalization, mapping objective values to [0, 1] range.
- */
+*/
 data object MinMaxNormalization : ObjectiveNormalization<Flt64, Flt64> {
     override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<Flt64>): List<Flt64> {
         val minObj = objs.min()
@@ -52,7 +53,7 @@ data object MinMaxNormalization : ObjectiveNormalization<Flt64, Flt64> {
 /**
  * 求和归一化，将目标值转换为占比权重。
  * Sum normalization, converting objective values to proportionate weights.
- */
+*/
 data object SumNormalization : ObjectiveNormalization<Flt64, Flt64> {
     override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<Flt64>): List<Flt64> {
         val minObj = objs.min()

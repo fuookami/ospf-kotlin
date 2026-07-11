@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.framework.csp1d.domain.material.model.*
  * @param V 数值类型 / Numeric value type
  * @property plan 切割方案 / Cutting plan
  * @property restWidth 剩余幅宽 / Remaining width
- */
+*/
 data class RestWidthWaste<V : RealNumber<V>>(
     val plan: CuttingPlan<V>,
     val restWidth: Quantity<V>
@@ -22,7 +22,7 @@ data class RestWidthWaste<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property plan 切割方案 / Cutting plan
  * @property restMaterial 余料面积代理（按业务单位）/ Rest material area proxy in business unit
- */
+*/
 data class RestMaterialWaste<V : RealNumber<V>>(
     val plan: CuttingPlan<V>,
     val restMaterial: Quantity<V>
@@ -34,7 +34,7 @@ data class RestMaterialWaste<V : RealNumber<V>>(
  * @param V 数值类型 / Numeric value type
  * @property product 产品 / Product
  * @property wasteArea 浪费面积代理 / Waste area proxy
- */
+*/
 data class OverProductionAreaWaste<V : RealNumber<V>>(
     val product: Product<V>,
     val wasteArea: Quantity<V>
@@ -44,14 +44,15 @@ data class OverProductionAreaWaste<V : RealNumber<V>>(
  * 浪费最小化目标 / Waste minimization objective
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 sealed interface WasteMinimizationObjective<V : RealNumber<V>> {
+
     /**
      * 最小化余宽 / Minimize rest width
      *
      * @param V 数值类型 / Numeric value type
      * @property weight 目标权重 / Objective weight
-     */
+    */
     data class MinimizeRestWidth<V : RealNumber<V>>(
         val weight: V
     ) : WasteMinimizationObjective<V>
@@ -61,7 +62,7 @@ sealed interface WasteMinimizationObjective<V : RealNumber<V>> {
      *
      * @param V 数值类型 / Numeric value type
      * @property weight 目标权重 / Objective weight
-     */
+    */
     data class MinimizeRestMaterial<V : RealNumber<V>>(
         val weight: V
     ) : WasteMinimizationObjective<V>
@@ -71,7 +72,7 @@ sealed interface WasteMinimizationObjective<V : RealNumber<V>> {
      *
      * @param V 数值类型 / Numeric value type
      * @property weight 目标权重 / Objective weight
-     */
+    */
     data class MinimizeCost<V : RealNumber<V>>(
         val weight: V
     ) : WasteMinimizationObjective<V>
@@ -81,7 +82,7 @@ sealed interface WasteMinimizationObjective<V : RealNumber<V>> {
      *
      * @param V 数值类型 / Numeric value type
      * @property weight 目标权重 / Objective weight
-     */
+    */
     data class MinimizeOverProductionArea<V : RealNumber<V>>(
         val weight: V
     ) : WasteMinimizationObjective<V>

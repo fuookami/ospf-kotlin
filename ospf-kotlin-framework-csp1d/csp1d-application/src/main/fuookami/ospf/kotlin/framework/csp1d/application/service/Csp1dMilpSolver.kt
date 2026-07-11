@@ -21,10 +21,15 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * Register modeling logic through Csp1dProduceContext; this solver is only responsible for
  * model creation, context registration, solve invocation, and exception safety.
- */
+*/
 class Csp1dMilpSolver(
     private val solver: ColumnGenerationSolver
 ) {
+
+/**
+ * MilpResult data class.
+ * MilpResult数据类。
+*/
     data class MilpResult<V : RealNumber<V>>(
         val produce: Produce<V>,
         val yieldResult: YieldModelingResult<V>? = null,
@@ -40,7 +45,7 @@ class Csp1dMilpSolver(
      * @property model LP 模型 / the LP model
      * @property lpOutput LP 求解器输出 / the LP solver output
      * @property frameworkShadowPriceMap 框架层影子价格映射 / the framework shadow price map
-     */
+    */
     data class LpResult<V : RealNumber<V>>(
         val shadowPrices: ShadowPriceMap<V>,
         val model: LinearMetaModel<Flt64>,
@@ -210,7 +215,7 @@ class Csp1dMilpSolver(
     /**
      * 从 ProduceInput 推导 V 样本值，用于影子价格 Flt64 → V 转换
      * Derive V sample value from ProduceInput for shadow price Flt64 → V conversion
-     */
+    */
     private fun <V : RealNumber<V>> resolveDomainValueSampleForLP(input: ProduceInput<V>): Ret<V> {
         input.demands.firstOrNull()?.quantity?.value?.let { return Ok(it) }
         input.materials.firstOrNull()?.widthRange?.lowerBound?.value?.let { return Ok(it) }
@@ -223,7 +228,7 @@ class Csp1dMilpSolver(
 
     /**
      * 为缺省的 assignedLengthLowerBound/UpperBound 提供默认推导 / Provide default derivation for missing assignedLengthLowerBound/UpperBound
-     */
+    */
     private fun <V : RealNumber<V>> resolveDefaultLengthBounds(
         input: ProduceInput<V>,
         lengthConfig: LengthAssignmentModelingConfig<V>?

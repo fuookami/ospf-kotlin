@@ -1,7 +1,7 @@
 /**
  * 三涡卷统一混沌系统
  * Three-Scroll Unified Chaotic System (TSUCS)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property rho 系统参数 rho / System parameter rho
  * @property h 时间步长 / Time step size
- */
+*/
 data class ThreeScrollUnifiedChaoticSystemTsucs1Attractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val epsilon: V, val zeta: V, val rho: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -55,7 +55,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1Attractor<V : FloatingNumber<V>>
  * Three-Scroll Unified Chaotic System TSUCS1 attractor generator
  *
  * @property attractor TSUCS1 吸引子实例 / TSUCS1 attractor instance
- */
+*/
 data class ThreeScrollUnifiedChaoticSystemTsucs1AttractorGenerator(
     val attractor: ThreeScrollUnifiedChaoticSystemTsucs1Attractor<Flt64> = ThreeScrollUnifiedChaoticSystemTsucs1Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(
@@ -78,6 +78,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1AttractorGenerator(
         val x = _x.copy(); _x = attractor(x); return x
     }
 }
+
 /**
  * 三涡卷统一混沌系统 TSUCS2
  * Three-Scroll Unified Chaotic System TSUCS2
@@ -88,8 +89,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs1AttractorGenerator(
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property rho 系统参数 rho / System parameter rho
  * @property h 时间步长 / Time step size
- */
-
+*/
 data class ThreeScrollUnifiedChaoticSystemTsucs2Attractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val zeta: V, val rho: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -122,7 +122,7 @@ data class ThreeScrollUnifiedChaoticSystemTsucs2Attractor<V : FloatingNumber<V>>
  * Three-Scroll Unified Chaotic System TSUCS2 attractor generator
  *
  * @property attractor TSUCS2 吸引子实例 / TSUCS2 attractor instance
- */
+*/
 data class ThreeScrollUnifiedChaoticSystemTsucs2AttractorGenerator(
     val attractor: ThreeScrollUnifiedChaoticSystemTsucs2Attractor<Flt64> = ThreeScrollUnifiedChaoticSystemTsucs2Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(

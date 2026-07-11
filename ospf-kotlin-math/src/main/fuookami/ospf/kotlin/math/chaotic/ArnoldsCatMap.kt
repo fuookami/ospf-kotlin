@@ -1,7 +1,7 @@
 /**
  * Arnold 猫映射
  * Arnold's Cat Map
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
 
 /**
  * @property two 常量 2 / Constant 2
- */
+*/
 data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
         val one = x[0].constants.one
@@ -31,7 +31,7 @@ data class ArnoldsCatMap<V : FloatingNumber<V>>(val two: V) : Extractor<Point<Di
  *
  * @property map Arnold 猫映射实例 / Arnold's Cat Map instance
  * @property _x 当前状态点 / Current state point
- */
+*/
 data class ArnoldsCatMapGenerator(
     val map: ArnoldsCatMap<Flt64> = ArnoldsCatMap(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -8,7 +8,7 @@
  *
  * 成本 = sum(action.unitCost * x[action, slot])
  * Cost = sum(action.unitCost * x[action, slot])
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -31,38 +31,40 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  *
  * @param V 数值类型 / Numeric type
  * @param A 生产动作类型 / Production action type
- */
+*/
 class CapacityCostMinimization<V : RealNumber<V>, A : ProductionAction>(
+
     /**
      * 产能编译对象
      * Capacity compilation object
-     */
+    */
     private val capacity: Capacity<A>,
 
     /**
      * 生产动作列表
      * List of production actions
-     */
+    */
     private val actions: List<A>,
 
     /**
      * 时隙列表
      * List of time slots
-     */
+    */
     private val slots: List<TimeSlot>,
 
     /**
      * 时间窗口
      * Time window
-     */
+    */
     private val timeWindow: TimeWindow<V>,
 
     /**
      * 目标名称
      * Objective name
-     */
+    */
     val name: String = "capacity_cost_minimization"
 ) {
+
     /**
      * 应用目标到模型
      * Apply objective to model
@@ -72,7 +74,7 @@ class CapacityCostMinimization<V : RealNumber<V>, A : ProductionAction>(
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         val costSymbol = when (capacity) {
             is CapacityCompilation<*, *> -> capacity.cost

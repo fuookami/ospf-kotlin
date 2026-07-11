@@ -10,26 +10,26 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 产出偏差聚合根 / Yield deviation aggregation root
- *
- * 管理 yield slack 变量（under_production_i, over_production_i），
- * 替代 Csp1dMilpSolver 中的 YieldSlackVars 内部类。
+ * Yield deviation aggregation root.
+ * 产出偏差聚合根
  *
  * Manage yield slack variables (under_production_i, over_production_i),
  * replacing the YieldSlackVars inner class in Csp1dMilpSolver.
+ * 管理 yield slack 变量（under_production_i, over_production_i），
+ * 替代 Csp1dMilpSolver 中的 YieldSlackVars 内部类。
  *
- * @param V 数值类型 / Numeric value type
- * @property config 产出建模配置 / Yield modeling configuration
- * @property demands 需求列表 / Demand list
- * @property needsOverSlackForOverArea 是否因超产面积惩罚需要超产 slack / Whether over-production slack is needed for over-production area penalty
- */
+ * @param V Numeric value type / 数值类型
+ * @property config Yield modeling configuration / 产出建模配置
+ * @property demands Demand list / 需求列表
+ * @property needsOverSlackForOverArea Whether over-production slack is needed for over-production area penalty / 是否因超产面积惩罚需要超产 slack
+*/
 class YieldAggregation<V : RealNumber<V>>(
     val config: YieldModelingConfig<V>,
     val demands: List<ProductDemand<V>>,
     val needsOverSlackForOverArea: Boolean = false
 ) : Csp1dAggregation<V> {
 
-    /** 欠产松弛变量，按 demand 索引；不需要时为 null / Under-production slack variables, indexed by demand; null when not needed */
+    /** Under-production slack variables, indexed by demand; null when not needed / 中文欠产松弛变量，按 demand 索引；不需要时为 null */
     val underProduction: List<URealVar?> = demands.mapIndexed { demandIndex, demand ->
         val demandKey = demandShadowPriceKey(demand)
         if (config.underProductionPenalty.containsKey(demandKey)) {
@@ -39,7 +39,7 @@ class YieldAggregation<V : RealNumber<V>>(
         }
     }
 
-    /** 超产松弛变量，按 demand 索引；不需要时为 null / Over-production slack variables, indexed by demand; null when not needed */
+    /** Over-production slack variables, indexed by demand; null when not needed / 中文超产松弛变量，按 demand 索引；不需要时为 null */
     val overProduction: List<URealVar?> = demands.mapIndexed { demandIndex, demand ->
         val demandKey = demandShadowPriceKey(demand)
         val needsOverSlack = config.overProductionPenalty.containsKey(demandKey) ||
@@ -52,14 +52,15 @@ class YieldAggregation<V : RealNumber<V>>(
         }
     }
 
-    /** 是否存在任何 slack 变量 / Whether any slack variables exist */
+    /** Whether any slack variables exist / 中文是否存在任何 slack 变量 */
     val hasAny: Boolean get() = underProduction.any { it != null } || overProduction.any { it != null }
 
     override val cuttingPlans: List<CuttingPlan<V>> = emptyList()
 
     /**
-     * 注册到元模型 / Register to meta model
-     */
+     * Register to meta model.
+     * 注册到元模型
+    */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         for (var_ in underProduction.filterNotNull()) {
             when (val result = model.add(var_)) {
@@ -79,11 +80,12 @@ class YieldAggregation<V : RealNumber<V>>(
     }
 
     /**
-     * 提取产出建模结果 / Extract yield modeling result
+     * Extract yield modeling result from solver solution.
+     * 提取产出建模结果
      *
-     * @param model 求解后的线性元模型 / Solved linear meta model
-     * @return 产出建模结果，若无偏差变量则为 null / Yield modeling result, or null if no slack variables exist
-     */
+     * @param model Solved linear meta model / 求解后的线性元模型
+     * @return Yield modeling result, or null if no slack variables exist / 产出建模结果，若无偏差变量则为 null
+    */
     fun extractResult(model: AbstractLinearMetaModel<Flt64>): YieldModelingResult<V>? {
         val underProductions = ArrayList<ModeledUnderProduction<V>>()
         val overProductions = ArrayList<ModeledOverProduction<V>>()
@@ -122,11 +124,12 @@ class YieldAggregation<V : RealNumber<V>>(
 
     companion object {
         /**
-         * 生成需求影子价格键 / Generate demand shadow price key
+         * Generate demand shadow price key.
+         * 生成需求影子价格键
          *
-         * @param demand 产品需求 / Product demand
-         * @return 需求影子价格键 / Demand shadow price key
-         */
+         * @param demand Product demand / 产品需求
+         * @return Demand shadow price key / 需求影子价格键
+        */
         internal fun demandShadowPriceKey(demand: ProductDemand<*>): ProductDemandShadowPriceKey {
             return ProductDemandShadowPriceKey(
                 productId = demand.product.id,

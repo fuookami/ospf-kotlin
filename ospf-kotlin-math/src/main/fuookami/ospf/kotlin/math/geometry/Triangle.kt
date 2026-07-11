@@ -6,7 +6,7 @@
  * 支持边长、周长、面积、重心、退化检测等操作。
  * Defines triangle data structure in geometric space, composed of three vertices.
  * Supports side length, perimeter, area, centroid, degeneracy detection, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * @property p1 第一个顶点 / First vertex
  * @property p2 第二个顶点 / Second vertex
  * @property p3 第三个顶点 / Third vertex
- */
+*/
 class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,
     val p2: P,
@@ -40,8 +40,10 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
 
     /** 第一条边（p1 -> p2） / First edge (p1 -> p2) */
     val e1: Edge<P, D, V> get() = Edge(p1, p2)
+
     /** 第二条边（p2 -> p3） / Second edge (p2 -> p3) */
     val e2: Edge<P, D, V> get() = Edge(p2, p3)
+
     /** 第三条边（p3 -> p1） / Third edge (p3 -> p1) */
     val e3: Edge<P, D, V> get() = Edge(p3, p1)
 
@@ -55,12 +57,12 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val perimeter: V by lazy { e1.length + e2.length + e3.length }
 
     /**
-     * 将坐标列表转换为点类型
-     * Cast a coordinate list to the point type
+     * Cast a coordinate list to the point type.
+     * 将坐标列表转换为点类型。
      *
-     * @param position 坐标列表 / The coordinate list
-     * @return 转换后的点 / The casted point
-     */
+     * @param position the coordinate list / 坐标列表
+     * @return the casted point / 转换后的点
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
         // 安全不变量：P 受限于 Point<D, V>，构造结果保持相同维度与数值类型。
@@ -69,12 +71,12 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 将计算结果转换为目标数值类型
-     * Cast the calculation result to the target numeric type
+     * Cast the calculation result to the target numeric type.
+     * 将计算结果转换为目标数值类型。
      *
-     * @param value 计算结果 / The calculation result
-     * @return 转换后的数值 / The casted numeric value
-     */
+     * @param value the calculation result / 计算结果
+     * @return the casted numeric value / 转换后的数值
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castValue(value: Any?): V {
         // 安全不变量：当前三角形数值泛型为 V，sqrt 结果与输入域一致。
@@ -124,7 +126,7 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
  * Compute 2D triangle area (cross product method)
  *
  * @return 三角形面积 / The triangle area
- */
+*/
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
     val v1x = p2.x - p1.x
     val v1y = p2.y - p1.y
@@ -140,7 +142,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
  *
  * @param point 待检测的点 / The point to check
  * @return 点是否在三角形内 / Whether the point is inside the triangle
- */
+*/
 infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
     val v0x = p3.x - p1.x
     val v0y = p3.y - p1.y
@@ -171,7 +173,7 @@ infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<D
  * Compute the circumcircle of a 2D triangle
  *
  * @return 外接圆 / The circumcircle
- */
+*/
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcircle(): Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64> {
     return Circle.circumcircleOf(this)
 }
@@ -181,7 +183,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcircle(): Circle<Point<Dim2,
  * Compute the circumcenter of a 2D triangle
  *
  * @return 外心点 / The circumcenter point
- */
+*/
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcenter(): Point<Dim2, Flt64> {
     val cc = circumcircle()
     return cc.center
@@ -192,7 +194,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcenter(): Point<Dim2, Flt64>
  * Compute the incenter of a 2D triangle
  *
  * @return 内心点 / The incenter point
- */
+*/
 fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
     val a = e2.length
     val b = e3.length
@@ -214,7 +216,7 @@ fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
  * Compute 3D triangle area (cross product method)
  *
  * @return 三角形面积 / The triangle area
- */
+*/
 fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)
@@ -227,7 +229,7 @@ fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
  * Compute the normal vector (unit) of a 3D triangle, returns null if degenerate
  *
  * @return 法向量（退化时返回 null） / The normal vector (null if degenerate)
- */
+*/
 fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.normal(): Vector<Dim3, Flt64>? {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)

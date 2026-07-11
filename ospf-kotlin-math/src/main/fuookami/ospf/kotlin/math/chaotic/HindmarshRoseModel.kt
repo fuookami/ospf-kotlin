@@ -1,7 +1,7 @@
 /**
  * Hindmarsh-Rose 神经元模型
  * Hindmarsh-Rose Neuron Model
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property xr 静息电位 / Resting potential
  * @property i 外部输入电流 / External input current
  * @property h 时间步长 / Time step size
- */
+*/
 data class HindmarshRoseModel<V : FloatingNumber<V>>(
     val a: V, val b: V, val c: V, val d: V, val s: V, val r: V, val xr: V, val i: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -61,7 +61,7 @@ data class HindmarshRoseModel<V : FloatingNumber<V>>(
  *
  * @property attractor the Hindmarsh-Rose neuron model instance / Hindmarsh-Rose 神经元模型实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class HindmarshRoseModelGenerator(
     val attractor: HindmarshRoseModel<Flt64> = HindmarshRoseModel(),
     private var _x: Point<Dim3, Flt64> = point3(

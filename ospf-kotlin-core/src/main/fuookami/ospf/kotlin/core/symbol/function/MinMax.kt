@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [MinMaxFunction] 和 [MaxMinFunction]，用于优化上下文中的最小-最大值建模。
  *
  * Provides [MinMaxFunction] and [MaxMinFunction] for min-max value modeling in optimization contexts.
- */
+*/
 
 /**
  * 最小-最大值函数：result = max(polynomials[0], polynomials[1], ...)。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MinMaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
@@ -83,7 +83,7 @@ class MinMaxFunction<V>(
         /**
          * 类型化符号工厂：将中间符号列表转换为线性多项式。
          * Generic symbol factory: converts intermediate symbols to linear polynomials.
-         */
+        */
         @JvmStatic
         @JvmName("fromSymbols")
         fun <V> fromSymbols(
@@ -119,7 +119,7 @@ class MinMaxFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MaxMinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
@@ -165,7 +165,7 @@ class MaxMinFunction<V>(
         /**
          * 类型化符号工厂：将中间符号列表转换为线性多项式。
          * Generic symbol factory: converts intermediate symbols to linear polynomials.
-         */
+        */
         @JvmStatic
         @JvmName("fromSymbols")
         fun <V> fromSymbols(

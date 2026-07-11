@@ -15,6 +15,15 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
+/**
+ * Payload model managing estimated and actual payload calculations for main deck,
+ * lower deck, and total payload across different stowage modes.
+ * 业载模型，管理不同装载模式下主舱、下舱和总业载的预估和实际业载计算。
+ *
+ * @property plannedPayload the planned payload weight / 计划业载重量
+ * @property maxPayload the maximum payload weight / 最大业载重量
+ * @property computedPayload the computed payload weight, or null if not yet computed / 已计算的业载重量，未计算时为 null
+*/
 class Payload(
     val plannedPayload: Quantity<Flt64>,
     val maxPayload: Quantity<Flt64>,
@@ -39,7 +48,7 @@ class Payload(
      * @param stowageMode 装载模式 / stowage mode
      * @param model 线性元模型 / linear meta model
      * @return 成功或失败 / success or failure
-     */
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>

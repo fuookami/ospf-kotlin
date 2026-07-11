@@ -17,15 +17,14 @@ import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
- * 计算每个飞行阶段的纵向扭矩、横向扭矩、CLIM 和指数。Computes longitudinal torque, lateral torque, CLIM, and index for each flight phase.
+ * Computes longitudinal torque, lateral torque, CLIM, and index for each flight phase.
+ * 计算每个飞行阶段的纵向扭矩、横向扭矩、CLIM 和指数。
  *
- * @property aircraftModel 参数。
- * @property fuselage 参数。
- * @property fuel 参数。
- * @property formula 参数。
- * @property positions 参数。
- * @property load 参数。
- */
+ * @property longitudinalTorque Longitudinal torque per flight phase / 每个飞行阶段的纵向扭矩
+ * @property lateralTorque Lateral torque for wide-body aircraft / 宽体飞机的横向扭矩
+ * @property clim CLIM value for wide-body aircraft / 宽体飞机的 CLIM 值
+ * @property index Index per flight phase / 每个飞行阶段的指数
+*/
 class Torque(
     private val aircraftModel: AircraftModel,
     private val fuselage: Fuselage,
@@ -39,6 +38,13 @@ class Torque(
     lateinit var clim: QuantityLinearIntermediateSymbol<Flt64>
     lateinit var index: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
 
+    /**
+     * Registers longitudinal torque, lateral torque, CLIM, and index symbols into the optimization model.
+     * 将纵向扭矩、横向扭矩、CLIM 和指数符号注册到优化模型中。
+     *
+     * @param model The linear meta-model to register symbols into / 要注册符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

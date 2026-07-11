@@ -1,15 +1,15 @@
 /**
  * Unsigned Integer Module
- * 中文无符号整数模块
+ * 无符号整数模块
  *
  * This module defines the unsigned integer type system, including UInt8, UInt16, UInt32, UInt64, and UIntX (arbitrary precision unsigned integer).
  * These types provide full support for arithmetic operations, comparison operations, type conversions, and mathematical functions.
  * Unsigned integers can only represent non-negative values, suitable for scenarios where positive values need to be ensured.
  *
- * 中文本模块定义了无符号整数的类型系统，包括 UInt8、UInt16、UInt32、UInt64 和 UIntX（任意精度无符号整数）。
- * 中文这些类型提供了完整的算术运算、比较操作、类型转换以及数学函数支持。
- * 中文无符号整数只能表示非负值，适用于需要确保数值为正的场景。
- */
+ * 本模块定义了无符号整数的类型系统，包括 UInt8、UInt16、UInt32、UInt64 和 UIntX（任意精度无符号整数）。
+ * 这些类型提供了完整的算术运算、比较操作、类型转换以及数学函数支持。
+ * 无符号整数只能表示非负值，适用于需要确保数值为正的场景。
+*/
 package fuookami.ospf.kotlin.math.algebra.number
 
 import java.math.BigInteger
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 
 /**
  * Calculate the logarithm of an unsigned integer using a floating-point base
- * 中文使用浮点基数计算无符号整数的对数
+ * 使用浮点基数计算无符号整数的对数
  *
  * @param floatValue The Float value representation
  *                   中文Float 值表示
@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *               中文源类型名称，用于错误信息
  * @return The logarithm result as a floating-point number; null if cannot be calculated
  *         中文对数结果，以浮点数表示；如果无法计算则返回 null
- */
+*/
 private fun uIntegerLogByFloatingBase(
     floatValue: Float,
     doubleValue: Double,
@@ -56,7 +56,7 @@ private fun uIntegerLogByFloatingBase(
 
 /**
  * Calculate the power of an unsigned integer using a floating-point index
- * 中文使用浮点指数计算无符号整数的幂
+ * 使用浮点指数计算无符号整数的幂
  *
  * @param floatValue The Float value representation
  *                   中文Float 值表示
@@ -70,7 +70,7 @@ private fun uIntegerLogByFloatingBase(
  *               中文源类型名称，用于错误信息
  * @return The power operation result as a floating-point number
  *         中文幂运算结果，以浮点数表示
- */
+*/
 private fun uIntegerPowByFloatingIndex(
     floatValue: Float,
     doubleValue: Double,
@@ -99,17 +99,19 @@ private fun uIntegerPowByFloatingIndex(
  *
  * @param Self 实现此接口的具体类型
  *             The concrete type implementing this interface
- */
+*/
 interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<Self> {
+
     /** 绝对值（返回自身）/ Absolute value (returns self) */
     override fun abs() = copy()
+
     /**
      * 可空倒数；仅对 1 有效
      * Nullable reciprocal; only valid for 1
      *
      * @return 倒数值，仅对单位值返回自身副本，否则返回 null
      *         The reciprocal value, returns a copy of itself for unit value, null otherwise
-     */
+    */
     fun reciprocalOrNull(): Self? = when (this) {
         constants.one -> constants.one.copy()
         else -> null
@@ -121,7 +123,7 @@ interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<S
      *
      * @return 安全倒数结果，对单位值返回 Ok，对非单位值返回 Failed
      *         The safe reciprocal result, returns Ok for unit value, Failed for non-unit value
-     */
+    */
     fun reciprocalSafe(): Ret<Self> {
         return reciprocalOrNull()?.let { ok(it) }
             ?: Failed(
@@ -139,25 +141,31 @@ interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<S
 
     /** 自增 / Increment */
     override operator fun inc(): Self = this + constants.one
+
     /** 自减 / Decrement */
     override operator fun dec(): Self = this - constants.one
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(Flt64.ten)
+
     /** 二进制对数（以 2 为底）/ Binary logarithm (base 2) */
     override fun lg2() = log(Flt64.two)
+
     /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(Flt64.e)
 
     /** 计算整数次幂 / Calculate integer power */
     override fun pow(index: Int) = pow(copy(), index, constants)
+
     /** 平方 / Square */
     override fun sqr() = pow(2)
+
     /** 立方 / Cube */
     override fun cub() = pow(3)
 
     /** 平方根 / Square root */
     override fun sqrt() = pow(Flt64.two.reciprocal())
+
     /** 立方根 / Cube root */
     override fun cbrt() = pow(Flt64.three.reciprocal())
 
@@ -166,58 +174,79 @@ interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<S
 
     /** 正弦 / Sine */
     override fun sin(): FloatingNumber<*> = toFlt64().sin()
+
     /** 余弦 / Cosine */
     override fun cos(): FloatingNumber<*> = toFlt64().cos()
+
     /** 正割 / Secant */
     override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+
     /** 余割 / Cosecant */
     override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+
     /** 正切 / Tangent */
     override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+
     /** 余切 / Cotangent */
     override fun cot(): FloatingNumber<*>? = toFlt64().cot()
 
     /** 反正弦 / Arcsine */
     override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+
     /** 反余弦 / Arccosine */
     override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+
     /** 反正割 / Arcsecant */
     override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+
     /** 反余割 / Arccosecant */
     override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+
     /** 反正切 / Arctangent */
     override fun atan(): FloatingNumber<*> = toFlt64().atan()
+
     /** 反余切 / Arccotangent */
     override fun acot(): FloatingNumber<*>? = toFlt64().acot()
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech(): FloatingNumber<*> = toFlt64().sech()
+
     /** 双曲余割 / Hyperbolic cosecant */
     override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+
     /** 双曲余切 / Hyperbolic cotangent */
     override fun coth(): FloatingNumber<*>? = toFlt64().coth()
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+
     /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+
     /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+
     /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+
     /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+
     /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
 
     /** 创建整数范围 / Create integer range */
     override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
+
     /** 创建不包含终点的整数范围 / Create integer range excluding end */
     override infix fun until(rhs: Self) = if (rhs == constants.zero) {
         this.rangeTo(rhs)
@@ -232,7 +261,7 @@ interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<S
  *
  * 用于 UInt8 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the UInt8 type in the Kotlin serialization framework.
- */
+*/
 data object UInt8Serializer : KSerializer<UInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt8", PrimitiveKind.INT)
 
@@ -257,17 +286,18 @@ data object UInt8Serializer : KSerializer<UInt8> {
  *
  * @property value 内部的 UByte 值
  *                 The internal UByte value
- */
+*/
 @JvmInline
 @Serializable(with = UInt8Serializer::class)
 value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
+
     /**
      * 从 Boolean 构造 UInt8 的构造函数
      * Constructor for UInt8 from Boolean
      *
      * @param value Boolean 值，true 对应 1，false 对应 0
      *              Boolean value, true corresponds to 1, false corresponds to 0
-     */
+    */
     constructor(value: Boolean) : this(
         if (value) {
             1U
@@ -282,7 +312,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : RealNumberConstants<UInt8> {
         @JvmStatic
         override val zero: UInt8 get() = UInt8(0U)
@@ -316,6 +346,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -324,7 +355,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int): String = value.toString(radix)
 
     /**
@@ -335,8 +366,9 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: UInt8) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -345,7 +377,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: UInt8) = (value.compareTo(rhs.value) == 0)
 
     /** 取负（模运算）/ Negation (modular) */
@@ -359,8 +391,9 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: UInt8) = UInt8((value + rhs.value).toUByte())
+
     /**
      * 减法
      * Subtraction
@@ -369,8 +402,9 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: UInt8) = UInt8((value - rhs.value).toUByte())
+
     /**
      * 乘法
      * Multiplication
@@ -379,8 +413,9 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: UInt8) = UInt8((value * rhs.value).toUByte())
+
     /**
      * 除法
      * Division
@@ -389,8 +424,9 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: UInt8) = UInt8((value / rhs.value).toUByte())
+
     /**
      * 取余
      * Remainder
@@ -399,7 +435,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: UInt8) = UInt8((value % rhs.value).toUByte())
 
     /**
@@ -410,7 +446,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt8")
@@ -423,37 +459,47 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt8")
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toLong())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = copy()
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toLong())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toDouble())
 }
@@ -464,7 +510,7 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
  *
  * 用于 UInt16 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the UInt16 type in the Kotlin serialization framework.
- */
+*/
 data object UInt16Serializer : KSerializer<UInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt16", PrimitiveKind.INT)
 
@@ -489,17 +535,18 @@ data object UInt16Serializer : KSerializer<UInt16> {
  *
  * @property value 内部的 UShort 值
  *                 The internal UShort value
- */
+*/
 @JvmInline
 @Serializable(with = UInt16Serializer::class)
 value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Copyable<UInt16> {
+
     /**
      * UInt16 常量对象
      * UInt16 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : RealNumberConstants<UInt16> {
         @JvmStatic
         override val zero: UInt16 get() = UInt16(0U)
@@ -533,6 +580,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -541,7 +589,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -552,8 +600,9 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: UInt16) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -562,7 +611,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: UInt16) = (value.compareTo(rhs.value) == 0)
 
     /** 取负（模运算）/ Negation (modular) */
@@ -576,8 +625,9 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: UInt16) = UInt16((value + rhs.value).toUShort())
+
     /**
      * 减法
      * Subtraction
@@ -586,8 +636,9 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: UInt16) = UInt16((value - rhs.value).toUShort())
+
     /**
      * 乘法
      * Multiplication
@@ -596,8 +647,9 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: UInt16) = UInt16((value * rhs.value).toUShort())
+
     /**
      * 除法
      * Division
@@ -606,8 +658,9 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: UInt16) = UInt16((value / rhs.value).toUShort())
+
     /**
      * 取余
      * Remainder
@@ -616,7 +669,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: UInt16) = UInt16((value % rhs.value).toUShort())
 
     /**
@@ -627,7 +680,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt16")
@@ -640,37 +693,47 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt16")
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toLong())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = copy()
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toLong())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toDouble())
 }
@@ -681,7 +744,7 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
  *
  * 用于 UInt32 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the UInt32 type in the Kotlin serialization framework.
- */
+*/
 data object UInt32Serializer : KSerializer<UInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt32", PrimitiveKind.INT)
 
@@ -706,17 +769,18 @@ data object UInt32Serializer : KSerializer<UInt32> {
  *
  * @property value 内部的 UInt 值
  *                 The internal UInt value
- */
+*/
 @JvmInline
 @Serializable(with = UInt32Serializer::class)
 value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copyable<UInt32> {
+
     /**
      * UInt32 常量对象
      * UInt32 Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : RealNumberConstants<UInt32> {
         @JvmStatic
         override val zero: UInt32 get() = UInt32(0U)
@@ -750,6 +814,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -758,7 +823,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -769,8 +834,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: UInt32) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -779,7 +845,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: UInt32) = (value.compareTo(rhs.value) == 0)
 
     /** 取负（模运算）/ Negation (modular) */
@@ -793,8 +859,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: UInt32) = UInt32(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -803,8 +870,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: UInt32) = UInt32(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -813,8 +881,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: UInt32) = UInt32(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -823,8 +892,9 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: UInt32) = UInt32(value / rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -833,7 +903,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: UInt32) = UInt32(value % rhs.value)
 
     /**
@@ -844,7 +914,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt32")
@@ -857,42 +927,53 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt32")
 
     /** 转换为原始 Int 值 / Convert to raw Int value */
     fun toInt() = value.toInt()
+
     /** 转换为 Long / Convert to Long */
     fun toLong() = value.toLong()
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toLong())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = copy()
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toLong())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toDouble())
 }
@@ -903,7 +984,7 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
  *
  * 用于 UInt64 类型的 Kotlin 序列化框架序列化器。
  * Serializer for the UInt64 type in the Kotlin serialization framework.
- */
+*/
 data object UInt64Serializer : KSerializer<UInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt64", PrimitiveKind.LONG)
 
@@ -928,17 +1009,18 @@ data object UInt64Serializer : KSerializer<UInt64> {
  *
  * @property value 内部的 ULong 值
  *                 The internal ULong value
- */
+*/
 @JvmInline
 @Serializable(with = UInt64Serializer::class)
 value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copyable<UInt64> {
+
     /**
      * 从 Int 构造 UInt64 的构造函数
      * Constructor for UInt64 from Int
      *
      * @param value Int 值
      *              The Int value
-     */
+    */
     constructor(value: Int) : this(value.toULong())
 
     /**
@@ -947,7 +1029,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : RealNumberConstants<UInt64> {
         @JvmStatic
         override val zero: UInt64 get() = UInt64(0UL)
@@ -981,6 +1063,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -989,7 +1072,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int) = value.toString(radix)
 
     /**
@@ -1000,8 +1083,9 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: UInt64) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -1010,7 +1094,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: UInt64) = (value.compareTo(rhs.value) == 0)
 
     /** 取负（模运算）/ Negation (modular) */
@@ -1024,8 +1108,9 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: UInt64) = UInt64(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -1034,8 +1119,9 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: UInt64) = UInt64(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -1044,8 +1130,9 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: UInt64) = UInt64(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -1054,8 +1141,9 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: UInt64) = UInt64(value / rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -1064,7 +1152,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: UInt64) = UInt64(value % rhs.value)
 
     /**
@@ -1075,7 +1163,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt64")
@@ -1088,15 +1176,17 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? =
         uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt64")
 
     /** 转换为 Int / Convert to Int */
     fun toInt() = value.toInt()
+
     /** 转换为 Long / Convert to Long */
     fun toLong() = value.toLong()
+
     /** 转换为原始 ULong 值 / Convert to raw ULong value */
     fun toULong() = value
 
@@ -1105,30 +1195,40 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value.toString())
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = copy()
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = UIntX(value.toString())
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toString())
 }
@@ -1142,7 +1242,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
  *
  * Serializer for the UIntX (arbitrary precision unsigned integer) type in the Kotlin serialization framework.
  * Uses string format for serialization and deserialization to support unsigned integers of arbitrary size.
- */
+*/
 data object UIntXSerializer : KSerializer<UIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UIntX", PrimitiveKind.STRING)
 
@@ -1171,17 +1271,18 @@ data object UIntXSerializer : KSerializer<UIntX> {
  *
  * @property value 内部的 BigInteger 值，必须为非负数
  *                 The internal BigInteger value, must be non-negative
- */
+*/
 @JvmInline
 @Serializable(with = UIntXSerializer::class)
 value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
+
     /**
      * UIntX 常量对象
      * UIntX Constants Object
      *
      * 提供常用的数值常量。
      * Provides common numeric constants.
-     */
+    */
     companion object : RealNumberConstants<UIntX> {
         @JvmStatic
         override val zero: UIntX get() = UIntX(0L)
@@ -1213,7 +1314,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value 原始整数值 / Raw integer value
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun of(value: BigInteger): Ret<UIntX> {
             return if (value < BigInteger.ZERO) {
                 Failed(
@@ -1231,7 +1332,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value Long 值 / Long value
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun of(value: Long): Ret<UIntX> {
             return of(BigInteger.valueOf(value))
         }
@@ -1243,7 +1344,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          * @param value 字符串表示 / String representation
          * @param radix 进制基数 / Radix base
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun of(value: String, radix: Int = 10): Ret<UIntX> {
             if (radix !in Character.MIN_RADIX..Character.MAX_RADIX) {
                 return Failed(
@@ -1264,7 +1365,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value 原始整数值 / Raw integer value
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun ofSafe(value: BigInteger): Ret<UIntX> {
             return of(value)
         }
@@ -1275,7 +1376,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value Long 值 / Long value
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun ofSafe(value: Long): Ret<UIntX> {
             return of(value)
         }
@@ -1287,7 +1388,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          * @param value 字符串表示 / String representation
          * @param radix 进制基数 / Radix base
          * @return UIntX 创建结果 / UIntX creation result
-         */
+        */
         fun ofSafe(value: String, radix: Int = 10): Ret<UIntX> {
             return of(value, radix)
         }
@@ -1298,7 +1399,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value 原始整数值 / Raw integer value
          * @return UIntX 或 null / UIntX or null
-         */
+        */
         fun ofOrNull(value: BigInteger): UIntX? {
             return when (val result = of(value)) {
                 is Ok -> result.value
@@ -1313,7 +1414,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          *
          * @param value Long 值 / Long value
          * @return UIntX 或 null / UIntX or null
-         */
+        */
         fun ofOrNull(value: Long): UIntX? {
             return ofOrNull(BigInteger.valueOf(value))
         }
@@ -1325,7 +1426,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
          * @param value 字符串表示 / String representation
          * @param radix 进制基数 / Radix base
          * @return UIntX 或 null / UIntX or null
-         */
+        */
         fun ofOrNull(value: String, radix: Int = 10): UIntX? {
             return when (val result = of(value, radix)) {
                 is Ok -> result.value
@@ -1341,7 +1442,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *
      * @param value Long 值，必须为非负数
      *              The Long value, must be non-negative
-     */
+    */
     constructor(value: Long) : this(BigInteger.valueOf(value))
 
     /**
@@ -1352,7 +1453,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *              The string representation of the value
      * @param radix 进制基数，默认为 10
      *              The radix base, defaults to 10
-     */
+    */
     constructor(value: String, radix: Int = 10) : this(BigInteger(value, radix))
 
     init {
@@ -1371,6 +1472,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
 
     /** 转换为字符串 / Convert to string */
     override fun toString() = value.toString()
+
     /**
      * 以指定进制转换为字符串
      * Convert to string with specified radix
@@ -1379,7 +1481,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *              The radix base
      * @return 指定进制的字符串表示
      *         The string representation in the specified radix
-     */
+    */
     fun toString(radix: Int): String = value.toString(radix)
 
     /**
@@ -1390,8 +1492,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side value to compare
      * @return 比较结果
      *         The comparison result
-     */
+    */
     override fun partialOrd(rhs: UIntX) = orderOf(value.compareTo(rhs.value))
+
     /**
      * 相等性比较
      * Equality comparison
@@ -1400,7 +1503,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side value to compare
      * @return 是否相等
      *         Whether they are equal
-     */
+    */
     override fun partialEq(rhs: UIntX) = (value.compareTo(rhs.value) == 0)
 
     /** 取负（模运算）/ Negation (modular) */
@@ -1414,8 +1517,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side operand
      * @return 相加结果
      *         The sum result
-     */
+    */
     override operator fun plus(rhs: UIntX) = UIntX(value + rhs.value)
+
     /**
      * 减法
      * Subtraction
@@ -1424,8 +1528,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side operand
      * @return 相减结果
      *         The subtraction result
-     */
+    */
     override operator fun minus(rhs: UIntX) = UIntX(value - rhs.value)
+
     /**
      * 乘法
      * Multiplication
@@ -1434,8 +1539,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side operand
      * @return 相乘结果
      *         The multiplication result
-     */
+    */
     override operator fun times(rhs: UIntX) = UIntX(value * rhs.value)
+
     /**
      * 除法
      * Division
@@ -1444,8 +1550,9 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side operand (divisor)
      * @return 相除结果
      *         The division result
-     */
+    */
     override operator fun div(rhs: UIntX) = UIntX(value / rhs.value)
+
     /**
      * 取余
      * Remainder
@@ -1454,7 +1561,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *            The right-hand side operand (divisor)
      * @return 余数
      *         The remainder
-     */
+    */
     override operator fun rem(rhs: UIntX) = UIntX(value % rhs.value)
 
     /**
@@ -1465,7 +1572,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *             The logarithm base
      * @return 对数结果
      *         The logarithm result
-     */
+    */
     @kotlin.jvm.Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
         is Flt32 -> toFltX().log(base)
@@ -1476,6 +1583,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
 
     /** 常用对数（以 10 为底）/ Common logarithm (base 10) */
     override fun lg() = log(FltX(10.0)) as FltX
+
     /** 自然对数（以 e 为底）/ Natural logarithm (base e) */
     override fun ln() = log(FltX.e) as FltX
 
@@ -1487,7 +1595,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
      *              The exponent
      * @return 幂运算结果
      *         The power result
-     */
+    */
     @kotlin.jvm.Throws(IllegalArgumentException::class)
     override fun pow(index: FloatingNumber<*>): FloatingNumber<*>? = when (index) {
         is Flt32 -> toFltX().pow(index)
@@ -1498,89 +1606,121 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
 
     /** 平方根 / Square root */
     override fun sqrt() = pow(FltX(1.0 / 2.0)) as FltX
+
     /** 立方根 / Cube root */
     override fun cbrt() = pow(FltX(1.0 / 3.0)) as FltX
+
     /** 指数函数 e^x / Exponential function e^x */
     override fun exp() = toFltX().exp()
 
     /** 正弦 / Sine */
     override fun sin() = toFltX().sin()
+
     /** 余弦 / Cosine */
     override fun cos() = toFltX().cos()
+
     /** 正割 / Secant */
     override fun sec() = toFltX().sec()
+
     /** 余割 / Cosecant */
     override fun csc() = toFltX().csc()
+
     /** 正切 / Tangent */
     override fun tan() = toFltX().tan()
+
     /** 余切 / Cotangent */
     override fun cot() = toFltX().cot()
 
     /** 反正弦 / Arcsine */
     override fun asin() = toFltX().asin()
+
     /** 反余弦 / Arccosine */
     override fun acos() = toFltX().acos()
+
     /** 反正割 / Arcsecant */
     override fun asec() = toFltX().asec()
+
     /** 反余割 / Arccosecant */
     override fun acsc() = toFltX().acsc()
+
     /** 反正切 / Arctangent */
     override fun atan() = toFltX().atan()
+
     /** 反余切 / Arccotangent */
     override fun acot() = toFltX().acot()
 
     /** 双曲正弦 / Hyperbolic sine */
     override fun sinh() = toFltX().sinh()
+
     /** 双曲余弦 / Hyperbolic cosine */
     override fun cosh() = toFltX().cosh()
+
     /** 双曲正割 / Hyperbolic secant */
     override fun sech() = toFltX().sech()
+
     /** 双曲余割 / Hyperbolic cosecant */
     override fun csch() = toFltX().csch()
+
     /** 双曲正切 / Hyperbolic tangent */
     override fun tanh() = toFltX().tanh()
+
     /** 双曲余切 / Hyperbolic cotangent */
     override fun coth() = toFltX().coth()
 
     /** 反双曲正弦 / Inverse hyperbolic sine */
     override fun asinh() = toFltX().asinh()
+
     /** 反双曲余弦 / Inverse hyperbolic cosine */
     override fun acosh() = toFltX().acosh()
+
     /** 反双曲正割 / Inverse hyperbolic secant */
     override fun asech() = toFltX().asech()
+
     /** 反双曲余割 / Inverse hyperbolic cosecant */
     override fun acsch() = toFltX().acsch()
+
     /** 反双曲正切 / Inverse hyperbolic tangent */
     override fun atanh() = toFltX().atanh()
+
     /** 反双曲余切 / Inverse hyperbolic cotangent */
     override fun acoth() = toFltX().acoth()
 
     /** 转换为 Int8 / Convert to Int8 */
     override fun toInt8() = Int8(value.toByte())
+
     /** 转换为 Int16 / Convert to Int16 */
     override fun toInt16() = Int16(value.toShort())
+
     /** 转换为 Int32 / Convert to Int32 */
     override fun toInt32() = Int32(value.toInt())
+
     /** 转换为 Int64 / Convert to Int64 */
     override fun toInt64() = Int64(value.toLong())
+
     /** 转换为 IntX / Convert to IntX */
     override fun toIntX() = IntX(value)
 
     /** 转换为 UInt8 / Convert to UInt8 */
     override fun toUInt8() = UInt8(value.toLong().toUByte())
+
     /** 转换为 UInt16 / Convert to UInt16 */
     override fun toUInt16() = UInt16(value.toLong().toUShort())
+
     /** 转换为 UInt32 / Convert to UInt32 */
     override fun toUInt32() = UInt32(value.toLong().toUInt())
+
     /** 转换为 UInt64 / Convert to UInt64 */
     override fun toUInt64() = UInt64(value.toLong().toULong())
+
     /** 转换为 UIntX / Convert to UIntX */
     override fun toUIntX() = copy()
 
     /** 转换为 Flt32 / Convert to Flt32 */
     override fun toFlt32() = Flt32(value.toFloat())
+
     /** 转换为 Flt64 / Convert to Flt64 */
     override fun toFlt64() = Flt64(value.toDouble())
+
     /** 转换为 FltX / Convert to FltX */
     override fun toFltX() = FltX(value.toBigDecimal())
 }
@@ -1591,7 +1731,7 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
  *
  * @return 如果为 true 则返回 UInt8.one，否则返回 UInt8.zero
  *         Returns UInt8.one if true, otherwise UInt8.zero
- */
+*/
 fun Boolean.toUInt8() = if (this) {
     UInt8.one
 } else {
@@ -1604,7 +1744,7 @@ fun Boolean.toUInt8() = if (this) {
  *
  * @return 如果为 true 则返回 UInt64.one，否则返回 UInt64.zero
  *         Returns UInt64.one if true, otherwise UInt64.zero
- */
+*/
 fun Boolean.toUInt64() = if (this) {
     UInt64.one
 } else {
@@ -1617,7 +1757,7 @@ fun Boolean.toUInt64() = if (this) {
  *
  * @return UInt8 值
  *         The UInt8 value
- */
+*/
 fun String.toUInt8() = UInt8(toUByte())
 
 /**
@@ -1626,7 +1766,7 @@ fun String.toUInt8() = UInt8(toUByte())
  *
  * @return UInt8 值或 null
  *         The UInt8 value or null
- */
+*/
 fun String.toUInt8OrNull() = toUByteOrNull()?.let { UInt8(it) }
 
 /**
@@ -1635,7 +1775,7 @@ fun String.toUInt8OrNull() = toUByteOrNull()?.let { UInt8(it) }
  *
  * @return UInt16 值
  *         The UInt16 value
- */
+*/
 fun String.toUInt16() = UInt16(toUShort())
 
 /**
@@ -1644,7 +1784,7 @@ fun String.toUInt16() = UInt16(toUShort())
  *
  * @return UInt16 值或 null
  *         The UInt16 value or null
- */
+*/
 fun String.toUInt16OrNull() = toUShortOrNull()?.let { UInt16(it) }
 
 /**
@@ -1653,7 +1793,7 @@ fun String.toUInt16OrNull() = toUShortOrNull()?.let { UInt16(it) }
  *
  * @return UInt32 值
  *         The UInt32 value
- */
+*/
 fun String.toUInt32() = UInt32(toUInt())
 
 /**
@@ -1662,7 +1802,7 @@ fun String.toUInt32() = UInt32(toUInt())
  *
  * @return UInt32 值或 null
  *         The UInt32 value or null
- */
+*/
 fun String.toUInt32OrNull() = toUIntOrNull()?.let { UInt32(it) }
 
 /**
@@ -1671,7 +1811,7 @@ fun String.toUInt32OrNull() = toUIntOrNull()?.let { UInt32(it) }
  *
  * @return UInt64 值
  *         The UInt64 value
- */
+*/
 fun String.toUInt64() = UInt64(toULong())
 
 /**
@@ -1680,7 +1820,7 @@ fun String.toUInt64() = UInt64(toULong())
  *
  * @return UInt64 值或 null
  *         The UInt64 value or null
- */
+*/
 fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
 
 /**
@@ -1691,7 +1831,7 @@ fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
  *              The radix base, defaults to 10
  * @return UIntX 转换结果
  *         The UIntX conversion result
- */
+*/
 fun String.toUIntX(radix: Int = 10) = UIntX.of(this, radix)
 
 /**
@@ -1702,5 +1842,5 @@ fun String.toUIntX(radix: Int = 10) = UIntX.of(this, radix)
  *              The radix base, defaults to 10
  * @return UIntX 值或 null
  *         The UIntX value or null
- */
+*/
 fun String.toUIntXOrNull(radix: Int = 10) = UIntX.ofOrNull(this, radix)

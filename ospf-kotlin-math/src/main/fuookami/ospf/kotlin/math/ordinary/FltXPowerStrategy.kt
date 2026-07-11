@@ -19,7 +19,7 @@
  * Power function pow(base, index): implemented via ln and exp, pow(base, index) = exp(index * ln(base)).
  * Boundary cases: ln(x <= 0) returns null (logarithm undefined); negative integer exponent throws exception.
  * FltXSeriesResult includes computed value, iteration count, and convergence status for debugging and analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param value 计算结果值 / Computed value
  * @param iterations 迭代次数 / Number of iterations
  * @param converged 是否收敛 / Whether the series converged
- */
+*/
 data class FltXSeriesResult(
     val value: FltX,
     val iterations: Int,
@@ -49,15 +49,16 @@ data class FltXSeriesResult(
  *
  * 提供 FltX 高精度浮点数的幂运算、指数和对数计算。
  * Provides high-precision power, exponential, and logarithm operations for FltX.
- */
+*/
 object FltXPowerStrategy {
+
     /**
      * 根据精度位数计算默认精度阈值
      * Compute default precision threshold from digit count
      *
      * @param digits 精度位数 / Number of precision digits
      * @return 默认精度阈值 / Default precision threshold
-     */
+    */
     fun defaultPrecision(digits: Int): FltX {
         val normalizedDigits = if (digits <= 0) {
             1
@@ -82,7 +83,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 自然对数值，x <= 0 时返回 null / Natural logarithm value, or null if x <= 0
-     */
+    */
     fun ln(
         x: FltX,
         digits: Int,
@@ -99,7 +100,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 包含结果和迭代统计的 FltXSeriesResult，x <= 0 时返回 null / FltXSeriesResult with value and stats, or null if x <= 0
-     */
+    */
     fun lnWithStats(
         x: FltX,
         digits: Int,
@@ -139,7 +140,7 @@ object FltXPowerStrategy {
      * @param precision the convergence precision threshold / 收敛精度阈值
      * @param maxIterations the maximum number of iterations / 最大迭代次数
      * @return the series computation result / 级数计算结果
-     */
+    */
     private fun lnUnitInterval(
         x: FltX,
         scale: Int,
@@ -174,7 +175,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 指数值 / Exponential value
-     */
+    */
     fun exp(
         index: FltX,
         digits: Int,
@@ -191,7 +192,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 包含结果和迭代统计的 FltXSeriesResult / FltXSeriesResult with value and stats
-     */
+    */
     fun expWithStats(
         index: FltX,
         digits: Int,
@@ -231,7 +232,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 幂函数值结果 / Power value result
-     */
+    */
     fun pow(
         base: FltX,
         index: FltX,
@@ -258,7 +259,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 幂函数值结果 / Power value result
-     */
+    */
     fun powSafe(
         base: FltX,
         index: FltX,
@@ -289,7 +290,7 @@ object FltXPowerStrategy {
      * @param precision 收敛精度阈值 / Convergence precision threshold
      * @param maxIterations 最大迭代次数 / Maximum iterations
      * @return 幂函数值，未定义时返回 null / Power value, or null if undefined
-     */
+    */
     fun powOrNull(
         base: FltX,
         index: FltX,

@@ -4,7 +4,7 @@
  *
  * 定义查询排序规则，支持多字段、方向和空值顺序�?
  * Defines query sorting rules, supporting multiple fields, directions, and nulls order.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression
 
 import kotlin.reflect.KProperty1
@@ -20,7 +20,7 @@ import kotlin.reflect.KProperty1
  * ```kotlin
  * val sort = SortBy.asc("name") + SortBy.desc("createdAt", NullsOrder.NullsLast)
  * ```
- */
+*/
 data class SortBy(
     val items: List<SortItem>
 ) {
@@ -28,7 +28,7 @@ data class SortBy(
         /**
          * 空排�?
          * Empty sort
-         */
+        */
         val empty = SortBy(emptyList())
 
         /**
@@ -38,7 +38,7 @@ data class SortBy(
          * @param path 字段路径 / Field path
          * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
          * @return 排序定义 / Sort definition
-         */
+        */
         fun asc(path: String, nulls: NullsOrder? = null): SortBy =
             SortBy(listOf(SortItem(path, SortDirection.Asc, nulls)))
 
@@ -49,7 +49,7 @@ data class SortBy(
          * @param path 字段路径 / Field path
          * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
          * @return 排序定义 / Sort definition
-         */
+        */
         fun desc(path: String, nulls: NullsOrder? = null): SortBy =
             SortBy(listOf(SortItem(path, SortDirection.Desc, nulls)))
 
@@ -60,7 +60,7 @@ data class SortBy(
          * @param property 属性引用 / Property reference
          * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
          * @return 排序定义 / Sort definition
-         */
+        */
         fun <E, T> asc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
             asc(property.name, nulls)
 
@@ -71,7 +71,7 @@ data class SortBy(
          * @param property 属性引用 / Property reference
          * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
          * @return 排序定义 / Sort definition
-         */
+        */
         fun <E, T> desc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
             desc(property.name, nulls)
 
@@ -81,7 +81,7 @@ data class SortBy(
          *
          * @param paths 字段路径列表 / Field path list
          * @return 排序定义 / Sort definition
-         */
+        */
         fun asc(vararg paths: String): SortBy =
             SortBy(paths.map { SortItem(it, SortDirection.Asc) })
 
@@ -91,7 +91,7 @@ data class SortBy(
          *
          * @param paths 字段路径列表 / Field path list
          * @return 排序定义 / Sort definition
-         */
+        */
         fun desc(vararg paths: String): SortBy =
             SortBy(paths.map { SortItem(it, SortDirection.Desc) })
 
@@ -101,7 +101,7 @@ data class SortBy(
          *
          * @param properties 属性引用列表 / Property reference list
          * @return 排序定义 / Sort definition
-         */
+        */
         fun <E> asc(vararg properties: KProperty1<E, *>): SortBy =
             SortBy(properties.map { SortItem(it.name, SortDirection.Asc) })
 
@@ -111,7 +111,7 @@ data class SortBy(
          *
          * @param properties 属性引用列表 / Property reference list
          * @return 排序定义 / Sort definition
-         */
+        */
         fun <E> desc(vararg properties: KProperty1<E, *>): SortBy =
             SortBy(properties.map { SortItem(it.name, SortDirection.Desc) })
     }
@@ -119,7 +119,7 @@ data class SortBy(
     /**
      * 组合多个排序
      * Combine multiple sorts
-     */
+    */
     operator fun plus(other: SortBy): SortBy = SortBy(items + other.items)
 
     /**
@@ -129,7 +129,7 @@ data class SortBy(
      * @param path 字段路径 / Field path
      * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
      * @return 排序定义 / Sort definition
-     */
+    */
     fun thenAsc(path: String, nulls: NullsOrder? = null): SortBy =
         SortBy(items + SortItem(path, SortDirection.Asc, nulls))
 
@@ -140,34 +140,38 @@ data class SortBy(
      * @param path 字段路径 / Field path
      * @param nulls 空值排序策略（可为 null） / Nulls order strategy (nullable)
      * @return 排序定义 / Sort definition
-     */
+    */
     fun thenDesc(path: String, nulls: NullsOrder? = null): SortBy =
         SortBy(items + SortItem(path, SortDirection.Desc, nulls))
 
     /**
      * 添加属性升序排序
      * Add ascending property sort item
-     */
+    */
     fun <E, T> thenAsc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
         thenAsc(property.name, nulls)
 
     /**
      * 添加属性降序排序
      * Add descending property sort item
-     */
+    */
     fun <E, T> thenDesc(property: KProperty1<E, T>, nulls: NullsOrder? = null): SortBy =
         thenDesc(property.name, nulls)
 
     /**
-     * 是否为空
-     * Check if empty
-     */
+     * Check if empty.
+     * 检查是否为空。
+     *
+     * @return true if empty / 如果为空则返回 true
+    */
     fun isEmpty(): Boolean = items.isEmpty()
 
     /**
-     * 是否非空
-     * Check if not empty
-     */
+     * Check if not empty.
+     * 检查是否非空。
+     *
+     * @return true if not empty / 如果非空则返回 true
+    */
     fun isNotEmpty(): Boolean = items.isNotEmpty()
 }
 
@@ -181,7 +185,7 @@ data class SortBy(
  * @property path 字段路径 / Field path
  * @property direction 排序方向 / Sort direction
  * @property nulls 空值排序策�?/ Nulls order strategy
- */
+*/
 data class SortItem(
     val path: String,
     val direction: SortDirection,
@@ -191,36 +195,36 @@ data class SortItem(
 /**
  * 排序方向
  * Sort Direction
- */
+*/
 enum class SortDirection {
     /**
      * 升序（从小到大）
      * Ascending (small to large)
-     */
+    */
     Asc,
 
     /**
      * 降序（从大到小）
      * Descending (large to small)
-     */
+    */
     Desc
 }
 
 /**
  * 空值排序策�?
  * Nulls Order Strategy
- */
+*/
 enum class NullsOrder {
     /**
      * 空值排在前�?
      * Nulls first
-     */
+    */
     NullsFirst,
 
     /**
      * 空值排在后�?
      * Nulls last
-     */
+    */
     NullsLast
 }
 
@@ -230,36 +234,39 @@ enum class NullsOrder {
  *
  * 用于检测数据库是否支持 NULLS FIRST/LAST 语法�?
  * Used to detect if database supports NULLS FIRST/LAST syntax.
- */
+*/
 enum class NullsOrderSupport {
     /**
      * 自动检�?
      * Auto detect based on database type
-     */
+    */
     Auto,
 
     /**
      * 总是支持
      * Always supported
-     */
+    */
     Always,
 
     /**
      * 从不支持，使用降级策�?
      * Never supported, use fallback strategy
-     */
+    */
     Never,
 
     /**
      * 仅在升序时支�?
      * Only supported for ascending order
-     */
+    */
     OnlyAsc;
 
     /**
-     * 检查是否支持指定排序项的空值排�?
-     * Check if nulls order is supported for the given sort item
-     */
+     * Check if nulls order is supported for the given sort item.
+     * 检查是否支持指定排序项的空值排序。
+     *
+     * @param item the sort item to check / 要检查的排序项
+     * @return true if supported / 是否支持
+    */
     fun isSupported(item: SortItem): Boolean {
         return when (this) {
             Auto -> true  // 需要根据数据库类型判断 / Need to check based on database type

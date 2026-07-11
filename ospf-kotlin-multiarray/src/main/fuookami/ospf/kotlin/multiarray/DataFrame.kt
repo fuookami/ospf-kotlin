@@ -32,7 +32,7 @@
  *   Structured data storage
  *
  * @see MultiArray
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -47,7 +47,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param T 值类型 / Value type
  * @property value 包装的值 / Wrapped value
- */
+*/
 data class NullableValue<T>(val value: T?) {
     override fun toString(): String = value?.toString() ?: "null"
 }
@@ -67,7 +67,7 @@ data class NullableValue<T>(val value: T?) {
  * @param nrows 行数 / Number of rows
  * @param ncols 列数 / Number of columns
  * @param columnNames 列名列表 / List of column names
- */
+*/
 class DataFrame<T>(
     val nrows: Int,
     val ncols: Int,
@@ -95,7 +95,7 @@ class DataFrame<T>(
      * Get number of rows
      *
      * @return 行数 / Number of rows
-     */
+    */
     fun getNRows(): Int = nrows
 
     /**
@@ -103,7 +103,7 @@ class DataFrame<T>(
      * Get number of columns
      *
      * @return 列数 / Number of columns
-     */
+    */
     fun getNCols(): Int = ncols
 
     /**
@@ -112,7 +112,7 @@ class DataFrame<T>(
      *
      * @param name 列名 / Column name
      * @return 列索引，若列名不存在则返回 null / Column index, or null if column name not found
-     */
+    */
     fun getColumnIndex(name: String): Int? = columnIndex[name]
 
     /**
@@ -121,7 +121,7 @@ class DataFrame<T>(
      *
      * @param columnName 未找到的列名 / The column name not found
      * @return 失败结果 / Failure result
-     */
+    */
     private fun columnNotFound(columnName: String): Failed<Nothing, ErrorCode, Error<ErrorCode>> {
         return Failed(ErrorCode.DataNotFound, "列名不存在：$columnName / Column name not found")
     }
@@ -133,7 +133,7 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param col 列索引 / Column index
      * @return 值 / Value
-     */
+    */
     fun get(row: Int, col: Int): T? {
         require(row in 0 until nrows && col in 0 until ncols) {
             "索引越界：($row, $col) / Index out of bounds"
@@ -148,7 +148,7 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
      * @return 值 / Value
-     */
+    */
     fun getByNameOrNull(row: Int, columnName: String): T? {
         val col = columnIndex[columnName] ?: return null
         return get(row, col)
@@ -161,7 +161,7 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
      * @return 获取结果 / Get result
-     */
+    */
     fun getByNameSafe(row: Int, columnName: String): Ret<T?> {
         val col = columnIndex[columnName] ?: return columnNotFound(columnName)
         return Ok(get(row, col))
@@ -174,7 +174,7 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
      * @return 获取结果 / Get result
-     */
+    */
     fun getByName(row: Int, columnName: String): Ret<T?> {
         return getByNameSafe(
             row = row,
@@ -189,7 +189,7 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param col 列索引 / Column index
      * @param value 要设置的值 / Value to set
-     */
+    */
     fun set(row: Int, col: Int, value: T?) {
         require(row in 0 until nrows && col in 0 until ncols) {
             "索引越界：($row, $col) / Index out of bounds"
@@ -204,7 +204,9 @@ class DataFrame<T>(
      * @param row 行索引 / Row index
      * @param columnName 列名 / Column name
      * @param value 要设置的值 / Value to set
-     */
+     *
+     * @return Success if column exists and value was set, failure otherwise / 列存在且设置成功时返回成功，否则返回失败
+    */
     fun setByNameSafe(row: Int, columnName: String, value: T?): Try {
         val col = columnIndex[columnName] ?: return columnNotFound(columnName)
         set(row, col, value)
@@ -219,7 +221,7 @@ class DataFrame<T>(
      * @param columnName 列名 / Column name
      * @param value 要设置的值 / Value to set
      * @return 设置结果 / Set result
-     */
+    */
     fun setByName(row: Int, columnName: String, value: T?): Try {
         return setByNameSafe(
             row = row,
@@ -234,7 +236,7 @@ class DataFrame<T>(
      *
      * @param row 行索引 / Row index
      * @return 行数据 / Row data
-     */
+    */
     fun getRow(row: Int): List<T?> {
         require(row in 0 until nrows) { "行索引越界：$row / Row index out of bounds" }
         return data[row].toList()
@@ -246,7 +248,7 @@ class DataFrame<T>(
      *
      * @param col 列索引 / Column index
      * @return 列数据 / Column data
-     */
+    */
     fun getColumn(col: Int): List<T?> {
         require(col in 0 until ncols) { "列索引越界：$col / Column index out of bounds" }
         return (0 until nrows).map { data[it][col] }
@@ -258,7 +260,7 @@ class DataFrame<T>(
      *
      * @param columnName 列名 / Column name
      * @return 列数据 / Column data
-     */
+    */
     fun getColumnByNameOrNull(columnName: String): List<T?>? {
         val col = columnIndex[columnName] ?: return null
         return getColumn(col)
@@ -270,7 +272,7 @@ class DataFrame<T>(
      *
      * @param columnName 列名 / Column name
      * @return 列数据结果 / Column data result
-     */
+    */
     fun getColumnByNameSafe(columnName: String): Ret<List<T?>> {
         val col = columnIndex[columnName] ?: return columnNotFound(columnName)
         return Ok(getColumn(col))
@@ -282,7 +284,7 @@ class DataFrame<T>(
      *
      * @param columnName 列名 / Column name
      * @return 列数据结果 / Column data result
-     */
+    */
     fun getColumnByName(columnName: String): Ret<List<T?>> {
         return getColumnByNameSafe(columnName)
     }
@@ -295,7 +297,7 @@ class DataFrame<T>(
      * Uses wrapper class NullableValue to store potentially null values.
      *
      * @return 包含可空值的二维多维数组 / 2D multi-array with nullable values
-     */
+    */
     fun toNullableMultiArray(): MultiArray2<NullableValue<T>> {
         val array = MutableMultiArray2<NullableValue<T>>(Shape2(nrows, ncols)) { _, _ -> NullableValue(null) }
         for (i in 0 until nrows) {
@@ -313,7 +315,7 @@ class DataFrame<T>(
      * @param rows 行范围 / Row range
      * @param cols 列范围 / Column range
      * @return 子 DataFrame / Sub DataFrame
-     */
+    */
     fun subDataFrame(
         rows: IntRange = 0 until nrows,
         cols: IntRange = 0 until ncols
@@ -337,7 +339,7 @@ class DataFrame<T>(
      *
      * @param columnNames 要选择的列名 / Column names to select
      * @return 包含指定列的 DataFrame / DataFrame with selected columns
-     */
+    */
     fun selectSafe(vararg columnNames: String): Ret<DataFrame<T>> {
         val colIndices = ArrayList<Int>()
         for (name in columnNames) {
@@ -362,7 +364,7 @@ class DataFrame<T>(
      *
      * @param columnNames 要选择的列名 / Column names to select
      * @return 包含指定列的 DataFrame 结果 / DataFrame result with selected columns
-     */
+    */
     fun select(vararg columnNames: String): Ret<DataFrame<T>> {
         return selectSafe(*columnNames)
     }
@@ -373,7 +375,7 @@ class DataFrame<T>(
      *
      * @param predicate 行过滤谓词 / Row filter predicate
      * @return 过滤后的 DataFrame / Filtered DataFrame
-     */
+    */
     fun filter(predicate: (List<T?>) -> Boolean): DataFrame<T> {
         val selectedRows = (0 until nrows).filter { row ->
             predicate(getRow(row))
@@ -397,7 +399,7 @@ class DataFrame<T>(
      *
      * @param values 新行的值 / Values for the new row
      * @return 添加行后的新 DataFrame / New DataFrame with added row
-     */
+    */
     fun copyWithAddedRow(values: List<T?>): DataFrame<T> {
         require(values.size == ncols) {
             "值的数量 ($values.size) 必须等于列数 ($ncols) / Value count must equal column count"
@@ -425,7 +427,7 @@ class DataFrame<T>(
      * Convert to Map representation
      *
      * @return 列名到列数据的映射 / Mapping from column name to column data
-     */
+    */
     fun toMapOrNull(): Map<String, List<T?>>? {
         val ret = LinkedHashMap<String, List<T?>>()
         for (name in columnNames) {
@@ -439,7 +441,7 @@ class DataFrame<T>(
      * Safely convert to Map representation
      *
      * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
-     */
+    */
     fun toMapSafe(): Ret<Map<String, List<T?>>> {
         val ret = LinkedHashMap<String, List<T?>>()
         for (name in columnNames) {
@@ -457,7 +459,7 @@ class DataFrame<T>(
      * Convert to Map representation
      *
      * @return 列名到列数据映射的结果 / Result of mapping from column name to column data
-     */
+    */
     fun toMap(): Ret<Map<String, List<T?>>> {
         return toMapSafe()
     }
@@ -465,7 +467,7 @@ class DataFrame<T>(
     /**
      * 迭代器 - 按行迭代
      * Iterator - iterate by row
-     */
+    */
     override fun iterator(): Iterator<Collection<T?>> {
         return data.map { it.toList() }.iterator()
     }
@@ -475,7 +477,7 @@ class DataFrame<T>(
     /**
      * 检查是否包含元素
      * Check if contains all elements
-     */
+    */
     override fun containsAll(elements: Collection<Collection<T?>>): Boolean {
         return elements.all { row -> data.contains(row) }
     }
@@ -489,7 +491,7 @@ class DataFrame<T>(
     /**
      * 字符串表示
      * String representation
-     */
+    */
     override fun toString(): String {
         val sb = StringBuilder()
         // 表头 / Header
@@ -521,7 +523,7 @@ class DataFrame<T>(
          *
          * @param data 列名到列数据的映射 / Mapping from column name to column data
          * @return DataFrame 实例 / DataFrame instance
-         */
+        */
         fun <T> fromMap(data: Map<String, List<T?>>): DataFrame<T> {
             val columnNames = data.keys.toList()
             val nrows = data.values.firstOrNull()?.size ?: 0
@@ -549,7 +551,7 @@ class DataFrame<T>(
          *
          * @param columnNames 列名 / Column names
          * @return 空 DataFrame / Empty DataFrame
-         */
+        */
         fun <T> empty(vararg columnNames: String): DataFrame<T> {
             return DataFrame(0, columnNames.size, columnNames.toList())
         }
@@ -561,7 +563,7 @@ class DataFrame<T>(
          * @param columnNames 列名 / Column names
          * @param block 构建器块 / Builder block
          * @return DataFrame 实例 / DataFrame instance
-         */
+        */
         inline fun <T> build(
             vararg columnNames: String,
             block: DataFrameBuilder<T>.() -> Unit
@@ -579,7 +581,7 @@ class DataFrame<T>(
  *
  * @param T 元素类型 / Element type
  * @param columnNames 列名列表 / List of column names
- */
+*/
 class DataFrameBuilder<T>(
     private val columnNames: List<String>
 ) {
@@ -590,7 +592,7 @@ class DataFrameBuilder<T>(
      * Add a row of data
      *
      * @param values 行数据 / Row data
-     */
+    */
     fun row(vararg values: T?) {
         require(values.size == columnNames.size) {
             "值的数量 (${values.size}) 必须等于列数 (${columnNames.size}) / Value count must equal column count"
@@ -603,7 +605,7 @@ class DataFrameBuilder<T>(
      * Add multiple rows of data
      *
      * @param values 多行数据 / Multiple rows of data
-     */
+    */
     fun rows(values: List<List<T?>>) {
         for (row in values) {
             require(row.size == columnNames.size) {
@@ -616,7 +618,9 @@ class DataFrameBuilder<T>(
     /**
      * 构建 DataFrame
      * Build DataFrame
-     */
+     *
+     * @return Constructed DataFrame instance / 构建的 DataFrame 实例
+    */
     fun build(): DataFrame<T> {
         val df = DataFrame<T>(rows.size, columnNames.size, columnNames)
         for ((rowIdx, row) in rows.withIndex()) {
@@ -634,7 +638,7 @@ class DataFrameBuilder<T>(
  *
  * @param columns 列名到列数据的键值对 / Pairs of column name to column data
  * @return DataFrame 实例 / DataFrame instance
- */
+*/
 fun <T> dataFrameOf(
     vararg columns: Pair<String, List<T?>>
 ): DataFrame<T> {
@@ -649,7 +653,7 @@ fun <T> dataFrameOf(
  * @param columnNames 列名列表 / List of column names
  * @param rows 行数据列表 / List of row data
  * @return DataFrame 实例 / DataFrame instance
- */
+*/
 fun <T> dataFrameFromRows(
     columnNames: List<String>,
     rows: List<List<T?>>

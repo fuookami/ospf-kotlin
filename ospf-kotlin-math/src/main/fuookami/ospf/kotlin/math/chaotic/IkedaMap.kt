@@ -1,7 +1,7 @@
 /**
  * 池田映射（2D 版本）
  * Ikeda Map (2D version)
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property u 系统参数 u / System parameter u
  * @property t0 常量 0.4 / Constant 0.4
  * @property t1 常量 6.0 / Constant 6.0
- */
+*/
 data class IkedaMap<V : FloatingNumber<V>>(val u: V, val t0: V, val t1: V) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
     @Suppress("UNCHECKED_CAST")
     override operator fun invoke(p: Point<Dim2, V>): Point<Dim2, V> {
@@ -41,7 +41,7 @@ data class IkedaMap<V : FloatingNumber<V>>(val u: V, val t0: V, val t1: V) : Ext
 /**
  * 池田映射生成器
  * Ikeda Map Generator
- */
+*/
 data class IkedaMapGenerator(
     val map: IkedaMap<Flt64> = IkedaMap(),
     private var _x: Point<Dim2, Flt64> = point2(

@@ -15,20 +15,24 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 
 /**
- * 聚合适航和安全约束（包括密度限制、包络线和重量约束）。Aggregates airworthiness and safety constraints including density limits, envelopes, and weight constraints.
+ * Aggregates airworthiness and safety constraints including density limits, envelopes, and weight constraints.
+ * 聚合适航和安全约束（包括密度限制、包络线和重量约束）。
  *
- * @property internal val aircraftModel 参数。
- * @property internal val fuselage 参数。
- * @property internal val positions 参数。
- * @property linearDensityLimitZones 参数。
- * @property surfaceDensityLimitZones 参数。
- * @property maxZoneLoadWeight 参数。
- * @property maxCumulativeLoadWeight 参数。
- * @property maxUnsymmetricalLinearDensity 参数。
- * @property maxCLIMPoints 参数。
- * @property minLowPayloadPoints 参数。
- * @property envelopeBuilders 参数。
- */
+ * @property aircraftModel The aircraft model specification. / 飞机型号规格
+ * @property fuselage The fuselage configuration. / 机身配置
+ * @property positions The list of cargo positions. / 货物位置列表
+ * @property maxZoneLoadWeight Maximum load weight per fuselage zone. / 每个机身区域的最大载荷重量
+ * @property maxCumulativeLoadWeight Maximum cumulative load weight constraints. / 最大累积载荷重量约束
+ * @property maxUnsymmetricalLinearDensity Maximum unsymmetrical linear density constraints, nullable. / 最大不对称线性密度约束，可为空
+ * @property maxAdjacentLoadGap Maximum allowed load gap between adjacent positions, nullable. / 相邻位置之间允许的最大载荷间隙，可为空
+ * @property load The load model. / 载荷模型
+ * @property payload The payload model. / 载荷量模型
+ * @property totalWeight The total weight model. / 总重量模型
+ * @property ballast The ballast model, nullable. / 配重模型，可为空
+ * @property torque The torque model. / 扭矩模型
+ * @property horizontalStabilizers Map of horizontal stabilizer keys to stabilizers. / 水平安定面键值到安定面的映射
+ * @property stowage The stowage model, nullable. / 装载模型，可为空
+*/
 class Aggregation(
     internal val aircraftModel: AircraftModel,
     internal val fuselage: Fuselage,
@@ -84,6 +88,14 @@ class Aggregation(
         envelopeBuilders(phase, totalWeight)
     }
 
+    /**
+     * Registers all airworthiness and safety constraints with the given model.
+     * 将所有适航和安全约束注册到给定模型中。
+     *
+     * @param stowageMode The stowage mode to use. / 使用的装载模式
+     * @param model The linear meta model to register constraints with. / 要注册约束的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun register(
         stowageMode: StowageMode,
         model: AbstractLinearMetaModel<Flt64>
@@ -157,12 +169,27 @@ class Aggregation(
         return ok
     }
 
+    /**
+     * Registers constraints for the Benders decomposition master problem.
+     * 为 Benders 分解主问题注册约束。
+     *
+     * @param model The linear meta model for the master problem. / Benders 主问题的线性元模型
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         return ok
     }
 
+    /**
+     * Registers constraints for the Benders decomposition sub-problem.
+     * 为 Benders 分解子问题注册约束。
+     *
+     * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
+     * @param solution The solution from the master problem. / 主问题的解
+     * @return Success or failure result. / 成功或失败结果
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
@@ -170,6 +197,14 @@ class Aggregation(
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
+    /**
+     * Flushes state for the Benders decomposition sub-problem.
+     * 为 Benders 分解子问题刷新状态。
+     *
+     * @param model The linear meta model for the sub-problem. / Benders 子问题的线性元模型
+     * @param solution The solution from the master problem. / 主问题的解
+     * @return Success or failure result. / 成功或失败结果
+    */
     private fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

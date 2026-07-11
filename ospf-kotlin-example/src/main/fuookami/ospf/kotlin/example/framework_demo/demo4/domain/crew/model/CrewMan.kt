@@ -15,7 +15,7 @@ sealed interface AbstractCrewMan {
 /**
  * 通过工号标识的非飞行员机组成员（具有池化实例管理）。A non-pilot crew member identified by worker number, with pooled instance management.
  *
- */
+*/
 data class CrewMan(
     override val workerNo: WorkerNo,
     override val name: String,
@@ -28,10 +28,10 @@ data class CrewMan(
 
         /**
          * 通过工号从池中获取机组成员。Retrieves a [CrewMan] by worker number from the pool.
- *
-         * @param workerNo 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param workerNo Worker number to look up / 要查找的工号
+         * @return The matching CrewMan, or null if not found / 匹配的机组人员，未找到则返回 null
+        */
         operator fun invoke(workerNo: WorkerNo): CrewMan? {
             return pool[workerNo]
         }

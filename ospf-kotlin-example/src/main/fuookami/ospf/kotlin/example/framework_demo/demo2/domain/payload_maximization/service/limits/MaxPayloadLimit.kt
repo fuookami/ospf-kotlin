@@ -14,12 +14,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
 /**
- * 将估计载荷作为目标函数最大化（带可选奖励系数）。Maximizes the estimated payload as an objective function with an optional reward coefficient.
+ * Maximizes the estimated payload as an objective function with an optional reward coefficient.
+ * 将估计载荷作为目标函数最大化（带可选奖励系数）。
  *
- * @property aircraftModel 参数。
- * @property payload 参数。
- * @property coefficient 参数。
- */
+ * @property aircraftModel The aircraft model reference / 飞机模型引用
+ * @property payload The payload to be maximized / 待最大化的载荷
+ * @property coefficient The reward coefficient function for the objective / 目标函数的奖励系数函数
+*/
 class MaxPayloadLimit(
     private val aircraftModel: AircraftModel,
     private val payload: Payload,

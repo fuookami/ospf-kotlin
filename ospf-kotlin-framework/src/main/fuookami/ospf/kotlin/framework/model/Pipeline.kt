@@ -5,7 +5,7 @@
  * 定义约束管线、列生成管线和启发式分析管线的接口层次。
  * Defines the interface hierarchy for constraint pipelines, column generation pipelines,
  * and heuristic analysis pipelines.
- */
+*/
 package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.model.basic.Model
@@ -21,14 +21,15 @@ import fuookami.ospf.kotlin.utils.functional.sum
  * Constraint pipeline interface
  *
  * @param M 模型类型 / Model type
- */
+*/
 interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
+
     /**
      * 注册管线到模型
      * Register pipeline to model
      *
      * @param model 目标模型 / Target model
-     */
+    */
     fun register(model: M) {
         if (model is MetaModel<*>) {
             model.registerConstraintGroup(this)
@@ -41,7 +42,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
      *
      * @param model 目标模型 / Target model
      * @return 操作结果 / Operation result
-     */
+    */
     operator fun invoke(model: M): Try
 
     /**
@@ -50,7 +51,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
      *
      * @param iis 线性三元模型视图 / Linear triad model view
      * @return 不可行原因列表 / List of infeasible reasons
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("linearInfeasibleReasons")
     fun infeasibleReasons(iis: LinearTriadModelView): List<String> {
@@ -63,7 +64,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
      *
      * @param iis 二次四元模型视图 / Quadratic tetrad model view
      * @return 不可行原因列表 / List of infeasible reasons
-     */
+    */
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("quadraticInfeasibleReasons")
     fun infeasibleReasons(iis: QuadraticTetradModelView): List<String> {
@@ -78,7 +79,7 @@ interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
  * @param Args 参数类型 / Argument type
  * @param Model 元模型类型 / Meta model type
  * @param Map 影子价格映射类型 / Shadow price map type
- */
+*/
 interface CGPipeline<
         in Args : Any,
         in Model : MetaModel<*>,
@@ -96,7 +97,7 @@ interface CGPipeline<
          * @param Model 元模型类型 / Meta model type
          * @param Map 映射类型 / Map type
          * @return 操作结果 / Operation result
-         */
+        */
         fun <
                 Model : MetaModel<*>,
                 Map : AbstractShadowPriceMap<*, Map>
@@ -126,7 +127,7 @@ interface CGPipeline<
      * Get shadow price extractor
      *
      * @return 影子价格提取器，可能为 null / Shadow price extractor, may be null
-     */
+    */
     fun extractor(): ShadowPriceExtractor<@UnsafeVariance Args, @UnsafeVariance Map>? {
         return null
     }
@@ -139,7 +140,7 @@ interface CGPipeline<
      * @param model 元模型 / Meta model
      * @param shadowPrices 对偶解 / Dual solution
      * @return 操作结果 / Operation result
-     */
+    */
     fun refresh(shadowPriceMap: Map, model: Model, shadowPrices: MetaDualSolution): Try {
         val thisShadowPrices = this.run { model.constraintsOfGroup() }
             .mapNotNull {
@@ -173,15 +174,16 @@ interface CGPipeline<
  * Heuristic analysis pipeline interface
  *
  * @param M 模型类型 / Model type
- */
+*/
 interface HAPipeline<in M : Model<*>> : Pipeline<M> {
+
     /**
      * 启发式分析目标值
      * Heuristic analysis objective value
      *
      * @property tag 目标标签 / Objective tag
      * @property value 目标值 / Objective value
-     */
+    */
     data class Obj(
         val tag: String,
         val value: Flt64
@@ -193,7 +195,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      *
      * @param model 目标模型 / Target model
      * @return 操作结果 / Operation result
-     */
+    */
     override operator fun invoke(model: M): Try = ok
 
     /**
@@ -203,7 +205,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
      * @return 启发式分析目标值 / Heuristic analysis objective value
-     */
+    */
     operator fun invoke(model: M, solution: List<Flt64>): Ret<Obj> =
         when (val obj = calculate(model, solution)) {
             is Ok -> if (obj.value != null) {
@@ -224,7 +226,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
      * @return 目标值，可能为 null / Objective value, may be null
-     */
+    */
     fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
 
     /**
@@ -234,7 +236,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
      * @param model 目标模型 / Target model
      * @param solution 解向量 / Solution vector
      * @return 操作结果 / Operation result
-     */
+    */
     fun check(model: M, solution: List<Flt64>): Try = when (val obj = calculate(model, solution)) {
         is Ok -> if (obj.value != null) {
             ok
@@ -253,7 +255,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
  * Pipeline list type alias
  *
  * @param M 模型类型 / Model type
- */
+*/
 typealias PipelineList<M> = List<Pipeline<M>>
 
 /**
@@ -263,7 +265,7 @@ typealias PipelineList<M> = List<Pipeline<M>>
  * @param model 目标模型 / Target model
  * @param M 模型类型 / Model type
  * @return 操作结果 / Operation result
- */
+*/
 operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
     for (pipeline in this) {
         pipeline.register(model)
@@ -288,13 +290,14 @@ operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
  * @param Args 参数类型 / Argument type
  * @param Model 模型类型 / Model type
  * @param Map 映射类型 / Map type
- */
+*/
 typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>
+
 /**
  * 启发式分析管线列表类型别名
  * Heuristic analysis pipeline list type alias
  *
  * @param M 模型类型 / Model type
- */
+*/
 typealias HAPipelineList<M> = List<HAPipeline<M>>
 

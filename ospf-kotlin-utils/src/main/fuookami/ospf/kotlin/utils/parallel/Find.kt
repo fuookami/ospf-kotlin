@@ -2,7 +2,7 @@
  * 并行查找操作
  *
  * Parallel find operations (first, firstOrNull, last, lastOrNull) with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 第一个满足条件的元素或错误 / First element satisfying the predicate or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryFirstParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -46,7 +46,7 @@ suspend inline fun <T> Iterable<T>.tryFirstParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 第一个满足条件的元素或错误集合 / First element satisfying the predicate or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -71,7 +71,7 @@ suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 第一个满足条件的元素或 null / First element satisfying the predicate or null
- */
+*/
 suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -95,7 +95,7 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 第一个满足条件的元素或 null 或错误 / First element satisfying the predicate or null or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -125,7 +125,7 @@ suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 第一个满足条件的元素或 null 或错误集合 / First element satisfying the predicate or null or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -169,7 +169,7 @@ suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 第一个非空转换结果或错误 / First non-null result or error
- */
+*/
 suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -193,7 +193,7 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 第一个非空转换结果或错误集合 / First non-null result or error collection
- */
+*/
 suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -219,7 +219,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（可能返回空值）/ Extractor function (may return null)
  * @return 第一个非空转换结果或 null / First non-null result or null
- */
+*/
 suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
@@ -244,7 +244,7 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 第一个非空转换结果或 null 或错误 / First non-null result or null or error
- */
+*/
 suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -275,7 +275,7 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 第一个非空转换结果或 null 或错误集合 / First non-null result or null or error collection
- */
+*/
 suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -318,7 +318,7 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或错误 / Last element satisfying the predicate or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryLastParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -341,7 +341,7 @@ suspend inline fun <T> Iterable<T>.tryLastParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或错误集合 / Last element satisfying the predicate or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryLastParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -366,7 +366,7 @@ suspend inline fun <T> Iterable<T>.exTryLastParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 最后一个满足条件的元素或 null / Last element satisfying the predicate or null
- */
+*/
 suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -390,7 +390,7 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或 null 或错误 / Last element satisfying the predicate or null or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -420,7 +420,7 @@ suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或 null 或错误集合 / Last element satisfying the predicate or null or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -464,7 +464,7 @@ suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 最后一个非空转换结果或错误 / Last non-null result or error
- */
+*/
 suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -488,7 +488,7 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 最后一个非空转换结果或错误集合 / Last non-null result or error collection
- */
+*/
 suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -514,7 +514,7 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（可能返回空值）/ Extractor function (may return null)
  * @return 最后一个非空转换结果或 null / Last non-null result or null
- */
+*/
 suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
@@ -540,7 +540,7 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 最后一个非空转换结果或 null 或错误 / Last non-null result or null or error
- */
+*/
 suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -572,7 +572,7 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param extractor 转换函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
  * @return 最后一个非空转换结果或 null 或错误集合 / Last non-null result or null or error collection
- */
+*/
 suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -617,7 +617,7 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 满足条件的元素或 null / Element satisfying the predicate or null
- */
+*/
 suspend inline fun <T> Iterable<T>.findParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -635,7 +635,7 @@ suspend inline fun <T> Iterable<T>.findParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 满足条件的元素或 null 或错误 / Element satisfying the predicate or null or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryFindParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -653,7 +653,7 @@ suspend inline fun <T> Iterable<T>.tryFindParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 满足条件的元素或 null 或错误集合 / Element satisfying the predicate or null or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryFindParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -671,7 +671,7 @@ suspend inline fun <T> Iterable<T>.exTryFindParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件 / Predicate function
  * @return 最后一个满足条件的元素或 null / Last element satisfying the predicate or null
- */
+*/
 suspend inline fun <T> Iterable<T>.findLastParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -689,7 +689,7 @@ suspend inline fun <T> Iterable<T>.findLastParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或 null 或错误 / Last element satisfying the predicate or null or error
- */
+*/
 suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -707,7 +707,7 @@ suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
  * @return 最后一个满足条件的元素或 null 或错误集合 / Last element satisfying the predicate or null or error collection
- */
+*/
 suspend inline fun <T> Iterable<T>.exTryFindLastParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>

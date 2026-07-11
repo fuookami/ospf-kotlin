@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * Provides Big-M constant definitions and linearization helper functions
  * for nonzero indicator constraints and simple indicator constraints.
- */
+*/
 
 /** 默认 Big-M 线性化常量。 / Default Big-M constant for linearization. */
 const val BIG_M_DEFAULT: Double = 1_000_000.0
@@ -45,11 +45,12 @@ val STRICT_BOUNDARY: Double = NONZERO_TOLERANCE * 16 + Math.pow(2.0, -52.0) * 16
  *
  * @property lower 下界 / lower bound
  * @property upper 上界 / upper bound
- */
+*/
 data class LinearPolynomialBounds<V>(
     val lower: V,
     val upper: V
 ) where V : RealNumber<V>, V : NumberField<V> {
+
     /** 最大绝对值上界。 / Upper bound of the absolute value. */
     val absMax: V
         get() {
@@ -65,7 +66,7 @@ data class LinearPolynomialBounds<V>(
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最大值 / the maximum value
- */
+*/
 private fun maxOf(values: Iterable<Flt64>): Flt64 {
     val iterator = values.iterator()
     require(iterator.hasNext()) { "values must not be empty" }
@@ -85,7 +86,7 @@ private fun maxOf(values: Iterable<Flt64>): Flt64 {
  *
  * @param values 非空的可迭代值集合 / non-empty iterable of values
  * @return 最小值 / the minimum value
- */
+*/
 private fun minOf(values: Iterable<Flt64>): Flt64 {
     val iterator = values.iterator()
     require(iterator.hasNext()) { "values must not be empty" }
@@ -105,7 +106,7 @@ private fun minOf(values: Iterable<Flt64>): Flt64 {
  *
  * @param symbol 待查询的符号 / the symbol to query
  * @return 符号的有限上下界对，若符号无有限范围则返回 null / pair of finite lower and upper bounds, or null if the symbol has no finite range
- */
+*/
 private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
     val range = when (symbol) {
         is AbstractVariableItem<*, *> -> symbol.range.valueRange
@@ -123,7 +124,7 @@ private fun symbolFiniteBounds(symbol: Symbol): Pair<Flt64, Flt64>? {
  * Evaluate a linear polynomial given a map of Symbol -> V values.
  * 如果多项式中的任何符号不在映射中，则返回 null。
  * Returns null if any symbol in the polynomial is missing from the map.
- */
+*/
 fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
     var result = constant
     for (m in monomials) {
@@ -142,7 +143,7 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
  *
  * @param converter 值类型转换器 / value type converter
  * @return 线性多项式上下界，或 null / linear polynomial bounds, or null
- */
+*/
 fun <V> LinearPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
@@ -174,7 +175,7 @@ fun <V> LinearPolynomial<V>.finiteBounds(
  *
  * @param converter 值类型转换器 / value type converter
  * @return 二次多项式上下界，或 null / quadratic polynomial bounds, or null
- */
+*/
 fun <V> QuadraticPolynomial<V>.finiteBounds(
     converter: IntoValue<V>
 ): LinearPolynomialBounds<V>? where V : RealNumber<V>, V : NumberField<V> {
@@ -227,7 +228,7 @@ fun <V> QuadraticPolynomial<V>.finiteBounds(
 /**
  * 将一个候选 Big-M 调整为至少 [BIG_M_MIN]。
  * Clamp a candidate Big-M to at least [BIG_M_MIN].
- */
+*/
 fun <V> ensurePositiveBigM(
     value: V,
     converter: IntoValue<V>
@@ -246,7 +247,7 @@ private fun <V> relaxBigM(
 /**
  * 线性多项式默认 Big-M：优先使用有限范围的最大绝对值。
  * Default Big-M for a linear polynomial: finite-range absolute maximum first.
- */
+*/
 fun <V> LinearPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -257,7 +258,7 @@ fun <V> LinearPolynomial<V>.defaultBigM(
 /**
  * 二次多项式默认 Big-M：优先使用有限范围的最大绝对值。
  * Default Big-M for a quadratic polynomial: finite-range absolute maximum first.
- */
+*/
 fun <V> QuadraticPolynomial<V>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -268,7 +269,7 @@ fun <V> QuadraticPolynomial<V>.defaultBigM(
 /**
  * 多个线性多项式默认 Big-M：取各自有限范围最大绝对值的最大值。
  * Default Big-M for linear polynomials: max absolute bound across all inputs.
- */
+*/
 fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
     converter: IntoValue<V>,
     fallback: V = converter.intoValue(Flt64(BIG_M_DEFAULT))
@@ -288,7 +289,7 @@ fun <V> Iterable<LinearPolynomial<V>>.defaultBigM(
 /**
  * 构建线性不等式两侧差值 lhs-rhs。
  * Build the lhs-rhs difference polynomial for a linear inequality.
- */
+*/
 fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         lhs.monomials + rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
@@ -301,7 +302,7 @@ fun <V> LinearInequality<V>.differencePolynomial(): LinearPolynomial<V> where V 
  * Add a list of constraints to the model, returning early on failure.
  * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
- */
+*/
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
@@ -318,7 +319,7 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
  * Add a list of V-generic constraints directly to a V-generic MechanismModel.
  * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
- */
+*/
 internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
@@ -335,7 +336,7 @@ internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constrai
  * Add a list of V-generic quadratic constraints directly to a V-generic QuadraticMechanismModel.
  * 成功时返回 null，失败时返回错误结果。
  * Returns null on success, or the error result on failure.
- */
+*/
 internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
@@ -361,7 +362,7 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  * 这避免了 V -> Flt64 -> V 的往返转换，并在泛型路径中保持中间符号约束为 V 类型。
  * This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints parameterized as V inside generic paths.
- */
+*/
 fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indVar: AbstractVariableItem<*, *>,
@@ -413,7 +414,7 @@ fun <V> nonzeroIndicatorConstraints(
  * When `indicator = 1`: poly is within tolerance.
  * 当 `indicator = 0` 时：poly 至少偏离 [strictBoundary]。
  * When `indicator = 0`: poly deviates by at least [strictBoundary].
- */
+*/
 fun <V> zeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -463,7 +464,7 @@ fun <V> zeroIndicatorConstraints(
  * When `indicator = 1`: poly >= tolerance.
  * 当 `indicator = 0` 时：poly <= 0。
  * When `indicator = 0`: poly <= 0.
- */
+*/
 fun <V> positiveIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -498,7 +499,7 @@ fun <V> positiveIndicatorConstraints(
  * When `indicator = 1`: poly >= 0.
  * 当 `indicator = 0` 时：poly <= -tolerance。
  * When `indicator = 0`: poly <= -tolerance.
- */
+*/
 fun <V> nonnegativeIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indicator: AbstractVariableItem<*, *>,
@@ -533,7 +534,7 @@ fun <V> nonnegativeIndicatorConstraints(
  * For LE: when indicator=1, poly <= rhs is enforced.
  * 对于 GE：当 indicator=1 时，强制 poly >= rhs。
  * For GE: when indicator=1, poly >= rhs is enforced.
- */
+*/
 fun <V> simpleIndicatorConstraints(
     ineq: LinearInequality<V>,
     indicator: AbstractVariableItem<*, *>,

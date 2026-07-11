@@ -7,7 +7,7 @@
  * Defines CSP1D shadow price keys, arguments interface, abstract map and
  * column generation pipeline type aliases, aligned with the framework's
  * AbstractShadowPriceMap / CGPipeline hierarchy.
- */
+*/
 package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import kotlin.reflect.KClass
@@ -21,13 +21,14 @@ import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
  *
  * 继承框架 ShadowPriceKey，提供 limit 属性用于约束限制类型标识。
  * Inherits from framework ShadowPriceKey, providing limit property for constraint limit type identification.
- */
+*/
 sealed class Csp1dShadowPriceKey(
     limit: KClass<*>
 ) : fuookami.ospf.kotlin.framework.model.ShadowPriceKey(limit) {
+
     /**
      * 键名称 / Key name
-     */
+    */
     abstract val name: String
 }
 
@@ -36,7 +37,7 @@ sealed class Csp1dShadowPriceKey(
  *
  * @property productId 产品 ID / Product id
  * @property unitSymbol 需求单位符号 / Demand unit symbol
- */
+*/
 data class ProductDemandShadowPriceKey(
     val productId: ProductId,
     val unitSymbol: String
@@ -46,7 +47,7 @@ data class ProductDemandShadowPriceKey(
 
 /**
  * 物料用量影子价格键 / Material usage shadow price key
- */
+*/
 data class MaterialUsageShadowPriceKey(
     val materialId: MaterialId
 ) : Csp1dShadowPriceKey(MaterialUsageShadowPriceKey::class) {
@@ -55,7 +56,7 @@ data class MaterialUsageShadowPriceKey(
 
 /**
  * 设备批次数影子价格键 / Machine batch count shadow price key
- */
+*/
 data class MachineBatchShadowPriceKey(
     val machineId: MachineId
 ) : Csp1dShadowPriceKey(MachineBatchShadowPriceKey::class) {
@@ -64,7 +65,7 @@ data class MachineBatchShadowPriceKey(
 
 /**
  * 设备业务产能影子价格键 / Machine business capacity shadow price key
- */
+*/
 data class MachineCapacityShadowPriceKey(
     val machineId: MachineId
 ) : Csp1dShadowPriceKey(MachineCapacityShadowPriceKey::class) {
@@ -76,7 +77,7 @@ data class MachineCapacityShadowPriceKey(
  *
  * @property productId 产品 ID / Product id
  * @property unitSymbol 需求单位符号 / Demand unit symbol
- */
+*/
 data class YieldOverProductionBoundShadowPriceKey(
     val productId: ProductId,
     val unitSymbol: String
@@ -89,14 +90,14 @@ data class YieldOverProductionBoundShadowPriceKey(
  *
  * 用于列生成管线计算 reduced cost 时传递参数。
  * Used for passing arguments when computing reduced cost in column generation pipelines.
- */
+*/
 interface AbstractCsp1dShadowPriceArguments
 
 /**
  * 切割方案影子价格参数 / Cutting plan shadow price arguments
  *
  * @property plan 切割方案 / Cutting plan
- */
+*/
 data class Csp1dCuttingPlanShadowPriceArguments<V : RealNumber<V>>(
     val plan: CuttingPlan<V>
 ) : AbstractCsp1dShadowPriceArguments
@@ -108,7 +109,7 @@ data class Csp1dCuttingPlanShadowPriceArguments<V : RealNumber<V>>(
  * Inherits from framework AbstractShadowPriceMap, aligned with CGPipeline / extractShadowPrice hierarchy.
  *
  * @param Args 参数类型 / Arguments type
- */
+*/
 open class AbstractCsp1dShadowPriceMap<
         out Args : AbstractCsp1dShadowPriceArguments
         > : AbstractShadowPriceMap<
@@ -123,16 +124,17 @@ open class AbstractCsp1dShadowPriceMap<
  * AbstractShadowPriceMap lifecycle.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 data class ShadowPriceMap<V : RealNumber<V>>(
     val values: Map<Csp1dShadowPriceKey, V> = emptyMap()
 ) {
+
     /**
      * 查询影子价格 / Get shadow price by key
      *
      * @param key 影子价格键 / Shadow price key
      * @return 对应影子价格 / Matched shadow price
-     */
+    */
     operator fun get(key: Csp1dShadowPriceKey): V? = values[key]
 }
 
@@ -143,7 +145,7 @@ data class ShadowPriceMap<V : RealNumber<V>>(
  * @param shadowPriceMap 框架影子价格映射 / Framework shadow price map
  * @param converter Flt64 到 V 的转换函数 / Conversion function from Flt64 to V
  * @return 轻量级影子价格映射 / Lightweight shadow price map
- */
+*/
 fun <V : RealNumber<V>> AbstractCsp1dShadowPriceMap<*>.toShadowPriceMap(
     converter: (Flt64) -> V
 ): ShadowPriceMap<V> {

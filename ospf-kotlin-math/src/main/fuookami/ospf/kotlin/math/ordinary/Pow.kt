@@ -23,7 +23,7 @@
  * Exponential function exp(index): Taylor series exp(x) = 1 + x + x^2/2! + x^3/3! + ...
  * Boundary cases: index = 0 returns one; negative integer exponent not supported for TimesSemiGroup types.
  * Supports configurable precision via digits and precision parameters.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import java.math.RoundingMode
@@ -112,7 +112,7 @@ private tailrec fun <T : TimesGroup<T>> powNegImpl(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值结果 / Power value result
- */
+*/
 fun <T> pow(
     base: T,
     index: Int,
@@ -139,7 +139,7 @@ fun <T> pow(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值结果 / Power value result
- */
+*/
 fun <T> powSafe(
     base: T,
     index: Int,
@@ -170,7 +170,7 @@ fun <T> powSafe(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值，负指数时返回 null / Power value, or null for negative exponent
- */
+*/
 fun <T> powOrNull(
     base: T,
     index: Int,
@@ -203,7 +203,7 @@ fun <T> powOrNull(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值 / Power value
- */
+*/
 fun <T> pow(
     base: T,
     index: Int,
@@ -231,6 +231,7 @@ fun <T> pow(
         constants.one
     }
 }
+
 /**
  * 计算正整数指数幂（自动解析常量）
  * Compute positive integer exponent power (auto-resolve constants)
@@ -240,7 +241,7 @@ fun <T> pow(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值 / Power value
- */
+*/
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -267,7 +268,7 @@ inline fun <reified T> pow(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值结果 / Power value result
- */
+*/
 inline fun <reified T> powSafe(
     base: T,
     index: Int,
@@ -294,7 +295,7 @@ inline fun <reified T> powSafe(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值，负指数时返回 null / Power value, or null for negative exponent
- */
+*/
 inline fun <reified T> powOrNull(
     base: T,
     index: Int,
@@ -310,6 +311,7 @@ inline fun <reified T> powOrNull(
         precision = precision
     )
 }
+
 /**
  * 计算整数指数幂（支持负指数，自动解析常量）
  * Compute integer exponent power (auto-resolve constants)
@@ -319,7 +321,7 @@ inline fun <reified T> powOrNull(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值 / Power value
- */
+*/
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -347,7 +349,7 @@ inline fun <reified T> pow(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值 / Power value
- */
+*/
 fun <T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -368,6 +370,7 @@ fun <T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
+
 /**
  * 计算浮点指数幂（自动解析常量）
  * Compute floating-point exponent power (auto-resolve constants)
@@ -377,7 +380,7 @@ fun <T : FloatingNumber<T>> powf(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 幂函数值 / Power value
- */
+*/
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -394,6 +397,7 @@ inline fun <reified T : FloatingNumber<T>> powf(
         )
     }
 }
+
 /**
  * 计算指数函数 exp(index)，使用泰勒级数展开
  * Compute exponential function exp(index) using Taylor series
@@ -403,7 +407,7 @@ inline fun <reified T : FloatingNumber<T>> powf(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 指数值 / Exponential value
- */
+*/
 fun <T : FloatingNumber<T>> exp(
     index: T,
     constants: FloatingNumberConstants<T>,
@@ -426,6 +430,7 @@ fun <T : FloatingNumber<T>> exp(
     }
     return value
 }
+
 /**
  * 计算指数函数 exp(index)（自动解析常量）
  * Compute exponential function (auto-resolve constants)
@@ -434,7 +439,7 @@ fun <T : FloatingNumber<T>> exp(
  * @param digits 精度位数 / Number of precision digits
  * @param precision 收敛精度阈值 / Convergence precision threshold
  * @return 指数值 / Exponential value
- */
+*/
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
     digits: Int = index.constants.decimalDigits ?: 0,

@@ -5,7 +5,7 @@
  *
  * Provides merge, multiply, and normalize operations for linear and quadratic
  * expressions, used during model construction for expression expansion.
- */
+*/
 package fuookami.ospf.kotlin.core.symbol.flatten
 
 import fuookami.ospf.kotlin.math.symbol.monomial.*
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
  * - Merge: Combine like terms (same variable/key)
  * - Multiply: Expand product of expressions
  * - Normalize: Clean up and canonicalize expressions
- */
+*/
 
 // ========== Merge Operations ==========
 
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
  * @param monomials 待合并的线性单项式列表 / List of linear monomials to merge
  * @param constant 基础常量值 / Base constant value
  * @return 合并后的 LinearFlattenData，系数已合并 / Merged LinearFlattenData with combined coefficients
- */
+*/
 internal fun mergeLinearMonomials(
     monomials: List<LinearMonomial<Flt64>>,
     constant: Flt64
@@ -71,7 +71,7 @@ internal fun mergeLinearMonomials(
  * @param flattenDataList 待合并的扁平化数据列表 / List of flatten data to merge
  * @param initialConstant 初始常量值 / Initial constant value
  * @return 合并后的 LinearFlattenData / Merged LinearFlattenData
- */
+*/
 internal fun mergeLinearFlattenDataFlt64(
     flattenDataList: List<LinearFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
@@ -110,7 +110,7 @@ internal fun mergeLinearFlattenDataFlt64(
  * @param monomials 待合并的二次单项式列表 / List of quadratic monomials to merge
  * @param constant 基础常量值 / Base constant value
  * @return 合并后的 QuadraticFlattenData，系数已合并 / Merged QuadraticFlattenData with combined coefficients
- */
+*/
 internal fun mergeQuadraticMonomials(
     monomials: List<QuadraticMonomial<Flt64>>,
     constant: Flt64
@@ -158,7 +158,7 @@ internal fun mergeQuadraticMonomials(
  * @param flattenDataList 待合并的二次扁平化数据列表 / List of quadratic flatten data to merge
  * @param initialConstant 初始常量值 / Initial constant value
  * @return 合并后的 QuadraticFlattenData / Merged QuadraticFlattenData
- */
+*/
 internal fun mergeQuadraticFlattenDataFlt64(
     flattenDataList: List<QuadraticFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
@@ -211,7 +211,7 @@ internal fun mergeQuadraticFlattenDataFlt64(
  * @param lhs 左侧线性扁平化数据 / Left-hand linear flatten data
  * @param rhs 右侧线性扁平化数据 / Right-hand linear flatten data
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
- */
+*/
 internal fun multiplyLinear(
     lhs: LinearFlattenData<Flt64>,
     rhs: LinearFlattenData<Flt64>
@@ -265,7 +265,7 @@ internal fun multiplyLinear(
  * @param linear 线性扁平化数据 / Linear flatten data
  * @param quadratic 二次扁平化数据 / Quadratic flatten data
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
- */
+*/
 internal fun multiplyLinearQuadratic(
     linear: LinearFlattenData<Flt64>,
     quadratic: QuadraticFlattenData<Flt64>
@@ -318,7 +318,7 @@ internal fun multiplyLinearQuadratic(
  * @param lhs 左侧二次扁平化数据 / Left-hand quadratic flatten data
  * @param rhs 右侧二次扁平化数据 / Right-hand quadratic flatten data
  * @return 相乘后的二次扁平化数据 / Quadratic flatten data resulting from multiplication
- */
+*/
 internal fun multiplyQuadratic(
     lhs: QuadraticFlattenData<Flt64>,
     rhs: QuadraticFlattenData<Flt64>
@@ -360,7 +360,7 @@ internal fun multiplyQuadratic(
  *
  * @param data 待归一化的线性扁平化数据 / Linear flatten data to normalize
  * @return 归一化后的线性扁平化数据 / Normalized linear flatten data
- */
+*/
 internal fun normalizeLinear(data: LinearFlattenData<Flt64>): LinearFlattenData<Flt64> {
     return LinearFlattenData(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },
@@ -374,7 +374,7 @@ internal fun normalizeLinear(data: LinearFlattenData<Flt64>): LinearFlattenData<
  *
  * @param data 待归一化的二次扁平化数据 / Quadratic flatten data to normalize
  * @return 归一化后的二次扁平化数据 / Normalized quadratic flatten data
- */
+*/
 internal fun normalizeQuadratic(data: QuadraticFlattenData<Flt64>): QuadraticFlattenData<Flt64> {
     return mergeQuadraticMonomials(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },

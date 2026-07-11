@@ -22,6 +22,19 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Models trailer-based loading constraints including trailer change and trailer circling.
+ * 建模基于拖车的装载约束，包括拖车更换和拖车环绕。
+ *
+ * @property items The list of cargo items. / 货物项列表
+ * @property positions The list of stowage positions. / 配载位置列表
+ * @property trailers The list of trailers. / 拖车列表
+ * @property orderedItemsInTrailers The list of ordered item pairs within the same trailer. / 同一拖车内的有序货物项对列表
+ * @property adjacentPositions The list of adjacent position pairs. / 相邻位置对列表
+ * @property orderedTrailers The list of ordered trailer pairs. / 有序拖车对列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property load The load model for cargo assignment. / 货物分配的装载模型
+*/
 class TrailerLoading(
     private val items: List<Item>,
     private val positions: List<Position>,
@@ -48,6 +61,13 @@ class TrailerLoading(
     lateinit var trailerChange: LinearIntermediateSymbols2<Flt64>
     lateinit var trailerCircling: LinearIntermediateSymbols2<Flt64>
 
+    /**
+     * Registers the trailer change and trailer circling intermediate symbols into the optimization model.
+     * 将拖车更换和拖车环绕中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

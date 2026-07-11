@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @param threshold 阈值函数 / Threshold function
  * @param coefficient 成本系数函数 / Cost coefficient function
  * @param name 管道名称 / Pipeline name
- */
+*/
 class ResourceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,
@@ -52,7 +52,7 @@ class ResourceOverQuantityMinimization<
      *
      * @param model 线性元模型 / Linear meta model
      * @return 成功与否 / Success or failure
-     */
+    */
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (slots.isNotEmpty()) {
             val cost = MutableLinearPolynomial(constant = Flt64.zero)

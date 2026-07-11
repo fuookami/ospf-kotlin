@@ -5,7 +5,7 @@
  *
  * 每个顺序位置最多只能有一个动作不为0。
  * Each order position can have at most one action with non-zero allocation.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
@@ -33,7 +33,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
  * @property slots 时隙列表 / List of time slots
  * @property maxOrderPerSlot 每时隙最大顺序数 / Maximum order per slot
  * @property name 约束名称 / Constraint name
- */
+*/
 class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
     private val compilation: CapacityOrderCompilation<V, A>,
     private val actions: List<A>,
@@ -41,13 +41,14 @@ class OrderConstraint<V : RealNumber<V>, A : ProductionAction>(
     private val maxOrderPerSlot: UInt64,
     val name: String = "order"
 ) {
+
     /**
      * 应用约束到模型
      * Apply constraint to model
      *
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
-     */
+    */
     operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         val x = compilation.x
         val b = compilation.b

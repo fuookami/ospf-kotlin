@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.error.*
  * - 使用各种比较器类型查找最小/最大值
  * - 使用自定义比较器排序
  * - 具有空值安全性的关联操作
- */
+*/
 
 /** 根据键从键值对列表中获取值 / Get value by key from a pair list */
 operator fun <K, V> List<Pair<K, V>>.get(key: K): V? {
@@ -1011,7 +1011,7 @@ inline fun <K, V> Map<K, V>.toSortedMapWithPartialThreeWayComparator(
  * Sum of durations
  *
  * @return 持续时间总和 / Sum of durations
- */
+*/
 fun Iterable<Duration>.sum(): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + duration }
 }

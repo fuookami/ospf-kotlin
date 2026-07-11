@@ -43,7 +43,7 @@
  *
  * @see MultiArray
  * @see Shape
- */
+*/
 package fuookami.ospf.kotlin.multiarray
 
 /**
@@ -57,7 +57,7 @@ package fuookami.ospf.kotlin.multiarray
  *
  * @property indices 索引数组 / Index array
  * @property hash 预计算的哈希值 / Precomputed hash value
- */
+*/
 private class IndexKey private constructor(
     private val indices: IntArray,
     private val hash: Int
@@ -72,7 +72,7 @@ private class IndexKey private constructor(
          *
          * @param indices 索引数组 / Index array
          * @return 持久化的索引键 / Persistent index key
-         */
+        */
         fun persistent(indices: IntArray): IndexKey {
             return IndexKey(indices.copyOf(), indices.contentHashCode())
         }
@@ -86,7 +86,7 @@ private class IndexKey private constructor(
          *
          * @param indices 索引数组 / Index array
          * @return 瞬态的索引键 / Transient index key
-         */
+        */
         fun transient(indices: IntArray): IndexKey {
             return IndexKey(indices, indices.contentHashCode())
         }
@@ -97,7 +97,7 @@ private class IndexKey private constructor(
      * 转换为 IntArray 表示
      *
      * @return 索引数组的引用 / Reference to the index array
-     */
+    */
     fun asIntArray(): IntArray = indices
 
     /**
@@ -105,7 +105,7 @@ private class IndexKey private constructor(
      * 转换为 List 表示，用于外部 API
      *
      * @return 索引的不可变列表 / Immutable list of indices
-     */
+    */
     fun toListKey(): List<Int> = indices.toList()
 
     override fun equals(other: Any?): Boolean {
@@ -124,7 +124,7 @@ private class IndexKey private constructor(
 /**
  * Internal token object to restrict BlockMultiArray constructor access
  * 内部令牌对象，用于限制 BlockMultiArray 构造函数的访问
- */
+*/
 private object InternalIndexKeyBlocks
 
 /**
@@ -132,7 +132,7 @@ private object InternalIndexKeyBlocks
  * Convert Map with List<Int> keys to Map with IndexKey keys
  *
  * @return 以 IndexKey 为键的可变映射 / Mutable map with IndexKey as keys
- */
+*/
 private fun <T : Any> Map<List<Int>, T>.toIndexKeyBlocks(): MutableMap<IndexKey, T> {
     val converted = LinkedHashMap<IndexKey, T>(size)
     for ((indices, value) in this) {
@@ -149,7 +149,7 @@ private fun <T : Any> Map<List<Int>, T>.toIndexKeyBlocks(): MutableMap<IndexKey,
  * @param S 形状类型 / Shape type
  * @param shape 数组形状 / Array shape
  * @param blocks 分块存储映射 / Block storage map
- */
+*/
 class BlockMultiArray<T : Any, S : Shape> private constructor(
     val shape: S,
     private val blocks: MutableMap<IndexKey, T>,
@@ -169,7 +169,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      *
      * @param indices 向量索引 / Vector indices
      * @return 元素值，如果不存在则返回 null / Element value, or null if not exists
-     */
+    */
     operator fun get(vararg indices: Int): T? {
         return blocks[IndexKey.transient(indices)]
     }
@@ -180,7 +180,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      *
      * @param indices 向量索引 / Vector indices
      * @param value 要设置的值 / Value to set
-     */
+    */
     operator fun set(indices: IntArray, value: T) {
         blocks[IndexKey.persistent(indices)] = value
     }
@@ -192,7 +192,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      * @param indices 向量索引 / Vector indices
      * @param defaultValue 默认值生成器 / Default value generator
      * @return 元素值 / Element value
-     */
+    */
     fun getOrSet(indices: IntArray, defaultValue: () -> T): T {
         val key = IndexKey.transient(indices)
         val existed = blocks[key]
@@ -210,7 +210,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      *
      * @param indices 向量索引 / Vector indices
      * @return 是否存在 / Whether exists
-     */
+    */
     fun contains(indices: IntArray): Boolean {
         return blocks.containsKey(IndexKey.transient(indices))
     }
@@ -221,7 +221,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      *
      * @param indices 向量索引 / Vector indices
      * @return 被移除的元素，如果不存在则返回 null / Removed element, or null if not exists
-     */
+    */
     fun remove(indices: IntArray): T? {
         return blocks.remove(IndexKey.transient(indices))
     }
@@ -229,7 +229,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     /**
      * 清除所有元素
      * Clear all elements
-     */
+    */
     fun clear() {
         blocks.clear()
     }
@@ -237,25 +237,25 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     /**
      * 已存储的元素数量
      * Number of stored elements
-     */
+    */
     override val size: Int get() = blocks.size
 
     /**
      * 检查是否为空
      * Check if empty
-     */
+    */
     override fun isEmpty(): Boolean = blocks.isEmpty()
 
     /**
      * 迭代器 - 只迭代已存储的值
      * Iterator - only iterates stored values
-     */
+    */
     override fun iterator(): Iterator<T> = blocks.values.iterator()
 
     /**
      * 检查是否包含所有元素
      * Check if contains all elements
-     */
+    */
     override fun containsAll(elements: Collection<T>): Boolean {
         return blocks.values.containsAll(elements)
     }
@@ -263,7 +263,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
     /**
      * 检查是否包含指定元素
      * Check if contains specified element
-     */
+    */
     override fun contains(element: T): Boolean {
         return blocks.values.contains(element)
     }
@@ -273,7 +273,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      * Get all stored indices
      *
      * @return 已存储的索引集合 / Set of stored indices
-     */
+    */
     fun indices(): Set<List<Int>> = blocks.keys
         .mapTo(LinkedHashSet(blocks.size)) { it.toListKey() }
 
@@ -283,7 +283,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
      *
      * @param defaultValue 默认填充值 / Default fill value
      * @return 不可变多维数组 / Immutable multi-array
-     */
+    */
     fun toMultiArray(defaultValue: T): MultiArray<T, S> {
         // Initialize with default value instead of uninitialized / 使用默认值初始化而非未初始化
         val array = MutableMultiArray.newWith(shape, defaultValue)
@@ -304,7 +304,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
          * @param array 源多维数组 / Source multi-array
          * @param filter 元素过滤器，仅存储满足条件的元素 / Element filter, only stores elements satisfying the condition
          * @return 分块多维数组 / Block multi-array
-         */
+        */
         fun <T : Any, S : Shape> fromMultiArray(
             array: MultiArray<T, S>,
             filter: (T) -> Boolean = { true }
@@ -326,7 +326,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
          *
          * @param shape 数组形状 / Array shape
          * @return 空的分块多维数组 / Empty block multi-array
-         */
+        */
         fun <T : Any, S : Shape> empty(shape: S): BlockMultiArray<T, S> {
             return BlockMultiArray(shape)
         }

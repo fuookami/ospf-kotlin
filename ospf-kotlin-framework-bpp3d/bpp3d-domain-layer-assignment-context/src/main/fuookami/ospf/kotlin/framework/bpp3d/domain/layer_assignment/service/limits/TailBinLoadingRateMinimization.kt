@@ -1,7 +1,7 @@
 /**
  * Tail bin loading rate minimization objective.
  * 尾箱装载率最小化目标。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
  * @property capacity 容量符号 / capacity symbols
  * @property coefficient 箱子系数函数 / bin coefficient function
  * @property name 约束名称 / constraint name
- */
+*/
 class TailBinLoadingRateMinimization(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val assignment: PreciseAssignment,
@@ -29,13 +29,14 @@ class TailBinLoadingRateMinimization(
     private val coefficient: (Bin<BinLayer, FltX>) -> FltX,
     val name: String = "tail_bin_loading_rate_minimization"
 ) {
+
     /**
      * Add objective to model.
      * 将目标添加到模型。
      *
      * @param model 元模型 / meta model
      * @return 操作结果 / operation result
-     */
+    */
     fun invoke(model: MetaModel<FltX>): Try {
         val linearModel = model as AbstractLinearMetaModel<FltX>
         when (val result = linearModel.minimize(

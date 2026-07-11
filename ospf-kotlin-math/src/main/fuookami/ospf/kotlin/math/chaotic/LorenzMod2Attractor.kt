@@ -1,7 +1,7 @@
 /**
  * Lorenz 修正 2 吸引子
  * Lorenz Mod 2 Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property delta 系统参数 delta / System parameter delta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class LorenzMod2Attractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val delta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -50,7 +50,7 @@ data class LorenzMod2Attractor<V : FloatingNumber<V>>(val alpha: V, val beta: V,
  *
  * @property attractor the Lorenz Mod 2 attractor instance / Lorenz 修正 2 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class LorenzMod2AttractorGenerator(
     val attractor: LorenzMod2Attractor<Flt64> = LorenzMod2Attractor(),
     private var _x: Point<Dim3, Flt64> = point3(

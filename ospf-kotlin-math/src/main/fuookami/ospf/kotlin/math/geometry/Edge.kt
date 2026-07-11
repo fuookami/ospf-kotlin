@@ -6,7 +6,7 @@
  * 边是几何图形的基本元素，支持长度计算、中点查找、相交检测等操作。
  * Defines edge data structure in geometric space, representing a line segment connecting two points.
  * An edge is a fundamental element of geometric shapes, supporting length calculation, midpoint finding, intersection detection, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
  * @param V 数值类型 / Number type
  * @property from 起点 / Starting point
  * @property to 终点 / Ending point
- */
+*/
 data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val from: P,
     val to: P
@@ -39,7 +39,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     /**
      * 边的长度（欧几里得距离）
      * The length of the edge (Euclidean distance)
-     */
+    */
     val length by lazy { from distance to }
 
     /**
@@ -48,7 +48,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      *
      * @param distance 距离度量策略，默认为欧几里得距离 / The distance metric strategy, defaults to Euclidean
      * @return 边的长度 / The length of the edge
-     */
+    */
     fun length(distance: Distance = Distance.Euclidean): V {
         return distance(from, to)
     }
@@ -56,7 +56,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     /**
      * The squared length of the edge.
      * 边的长度平方。
-     */
+    */
     val lengthSquared: V by lazy {
         val v = from[0]
         from.indices.sumOf(v.constants) { i ->
@@ -77,12 +77,12 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     /**
-     * 将坐标列表转换为点类型
-     * Cast a coordinate list to the point type
+     * Cast a coordinate list to the point type.
+     * 将坐标列表转换为点类型。
      *
-     * @param position 坐标列表 / The coordinate list
-     * @return 转换后的点 / The casted point
-     */
+     * @param position the coordinate list / 坐标列表
+     * @return the casted point / 转换后的点
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castPoint(position: List<V>): P {
         // 安全不变量：P 约束为 Point<D, V>，此处只改变具体子类型视图，不改变坐标维度与数值类型。
@@ -95,7 +95,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * Compute the midpoint of the edge
      *
      * @return 中点 / The midpoint
-     */
+    */
     fun midpoint(): P {
         val v = from[0]
         val two = v.constants.two
@@ -108,7 +108,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      *
      * @param t 参数值（0 为起点，1 为终点） / The parameter value (0 for start, 1 for end)
      * @return 边上对应位置的点 / The point at the corresponding position on the edge
-     */
+    */
     fun pointAt(t: V): P {
         return castPoint(from.indices.map { from[it] + t * (to[it] - from[it]) })
     }
@@ -120,7 +120,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * @param point 待检测的点 / The point to check
      * @param epsilon 容差值，默认为 decimalPrecision / The tolerance value, defaults to decimalPrecision
      * @return 点是否在边上 / Whether the point is on the edge
-     */
+    */
     fun containsPoint(point: P, epsilon: V = from[0].constants.decimalPrecision): Boolean {
         val distToFrom = point distance from
         val distToTo = point distance to
@@ -133,7 +133,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      *
      * @param other 另一条边 / The other edge
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     infix fun approxEq(other: Edge<P, D, V>): Boolean {
         return from.approxEq(other.from) && to.approxEq(other.to)
     }
@@ -145,7 +145,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * @param other 另一条边 / The other edge
      * @param epsilon 容差值 / The tolerance value
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     fun approxEq(other: Edge<P, D, V>, epsilon: V): Boolean {
         return from.approxEq(other.from, epsilon) && to.approxEq(other.to, epsilon)
     }
@@ -156,7 +156,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      *
      * @param other 另一条边 / The other edge
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     infix fun approxEqUndirected(other: Edge<P, D, V>): Boolean {
         return (from.approxEq(other.from) && to.approxEq(other.to))
             || (from.approxEq(other.to) && to.approxEq(other.from))
@@ -169,7 +169,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
      * @param other 另一条边 / The other edge
      * @param epsilon 容差值 / The tolerance value
      * @return 是否近似相等 / Whether approximately equal
-     */
+    */
     fun approxEqUndirected(other: Edge<P, D, V>, epsilon: V): Boolean {
         return (from.approxEq(other.from, epsilon) && to.approxEq(other.to, epsilon))
             || (from.approxEq(other.to, epsilon) && to.approxEq(other.from, epsilon))
@@ -184,7 +184,7 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
  *
  * @param other 另一条边 / The other edge
  * @return 是否相交 / Whether they intersect
- */
+*/
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     return intersectionPoint(other) != null
 }
@@ -195,7 +195,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim
  *
  * @param other 另一条边 / The other edge
  * @return 交点，无交点返回 null / The intersection point, or null if none
- */
+*/
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Point<Dim2, Flt64>? {
     val p1 = from
     val p2 = to
@@ -232,7 +232,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Po
  *
  * @param point 给定的点 / The given point
  * @return 边上最近的点 / The closest point on the edge
- */
+*/
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
     val direction = this.direction
     val dx = point.x - from.x
@@ -261,7 +261,7 @@ infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, 
  *
  * @param point 给定的点 / The given point
  * @return 边到该点的距离 / The distance from the edge to the point
- */
+*/
 infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.distanceToPoint(point: Point<Dim2, Flt64>): Flt64 {
     val closest = closestPoint(point)
     return point distance closest

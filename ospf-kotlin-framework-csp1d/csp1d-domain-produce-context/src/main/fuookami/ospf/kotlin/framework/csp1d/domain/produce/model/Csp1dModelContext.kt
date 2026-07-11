@@ -20,8 +20,9 @@ import fuookami.ospf.kotlin.framework.model.Pipeline
  * from solver hard-coding.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dModelContext<V : RealNumber<V>> {
+
     /**
      * 注册到元模型 / Register to meta model
      *
@@ -30,7 +31,7 @@ interface Csp1dModelContext<V : RealNumber<V>> {
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
@@ -38,7 +39,7 @@ interface Csp1dModelContext<V : RealNumber<V>> {
      *
      * @param model 元模型 / Meta model
      * @return 主问题产出 / Master problem output
-     */
+    */
     fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<Produce<V>>
 }
 
@@ -50,8 +51,9 @@ interface Csp1dModelContext<V : RealNumber<V>> {
  * addColumns, extractShadowPrice, removeColumns.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
+
     /**
      * 添加列（新切割方案） / Add columns (new cutting plans)
      *
@@ -65,7 +67,7 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
      * @param newPlans 新切割方案列表 / New cutting plan list
      * @param model 元模型 / Meta model
      * @return 去重后的新方案列表 / Deduplicated new plan list
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newPlans: List<CuttingPlan<V>>,
@@ -86,7 +88,7 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
      * @param model 元模型 / Meta model
      * @param shadowPrices 对偶解 / Dual solution
      * @return 操作结果 / Operation result
-     */
+    */
     fun extractShadowPrice(
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
@@ -104,11 +106,12 @@ interface Csp1dIterativeContext<V : RealNumber<V>> : Csp1dModelContext<V> {
  * same unit length, same width, width difference, material compatibility via this interface.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dExtraModelContext<V : RealNumber<V>> : Csp1dModelContext<V> {
+
     /**
      * 基础上下文 / Base context
-     */
+    */
     val baseContext: Csp1dModelContext<V>
 }
 
@@ -120,7 +123,7 @@ interface Csp1dExtraModelContext<V : RealNumber<V>> : Csp1dModelContext<V> {
  * during column generation iteration.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dExtraIterativeContext<V : RealNumber<V>> : Csp1dIterativeContext<V>, Csp1dExtraModelContext<V> {
     override val baseContext: Csp1dIterativeContext<V>
 }
@@ -134,7 +137,7 @@ interface Csp1dExtraIterativeContext<V : RealNumber<V>> : Csp1dIterativeContext<
  * Distinguish between normal MILP and column generation LP relaxation modeling paths.
  * LP mode does not add yield/length slack variables, keeping demand >= constraints
  * for shadow price extraction.
- */
+*/
 enum class Csp1dModelingMode {
     /** 普通 MILP 模式 / Normal MILP mode */
     MILP,
@@ -148,7 +151,7 @@ enum class Csp1dModelingMode {
  * 扩展管线可注册到哪些求解阶段。默认 ALL 表示所有阶段均生效。
  * Extension pipelines can be registered to specific solve stages.
  * Default ALL means the extension applies to all stages.
- */
+*/
 enum class Csp1dExtensionMode {
     /** 普通 MILP / Normal MILP */
     MILP,
@@ -165,7 +168,7 @@ enum class Csp1dExtensionMode {
      * @param mode 建模模式 / Modeling mode
      * @param isFinalMilp 是否为列生成最终 MILP / Whether this is a column generation final MILP
      * @return true 表示匹配 / true if matches
-     */
+    */
     fun matches(mode: Csp1dModelingMode, isFinalMilp: Boolean = false): Boolean {
         return when (this) {
             MILP -> mode == Csp1dModelingMode.MILP && !isFinalMilp
@@ -191,7 +194,7 @@ enum class Csp1dExtensionMode {
  * @property pipeline 扩展管线，当 contextAwarePipeline 存在且 resolvePipeline 收到 context 时被忽略 / Extension pipeline, ignored when contextAwarePipeline is present and resolvePipeline receives a context
  * @property mode 扩展适用模式 / Extension applicable mode
  * @property contextAwarePipeline 上下文感知扩展管线工厂，接收 Csp1dModelingContext 返回 Pipeline；优先于 pipeline 使用 / Context-aware pipeline factory, receives Csp1dModelingContext and returns Pipeline; takes priority over pipeline when present
- */
+*/
 data class Csp1dModelingExtension<V : RealNumber<V>>(
     val pipeline: Pipeline<LinearMetaModel<Flt64>>? = null,
     val mode: Csp1dExtensionMode = Csp1dExtensionMode.ALL,
@@ -214,7 +217,7 @@ data class Csp1dModelingExtension<V : RealNumber<V>>(
      *
      * @param context 建模上下文 / Modeling context
      * @return 解析后的管线 / Resolved pipeline
-     */
+    */
     fun resolvePipeline(context: Csp1dModelingContext<V>? = null): Pipeline<LinearMetaModel<Flt64>> {
         return if (contextAwarePipeline != null && context != null) {
             contextAwarePipeline(context)
@@ -236,8 +239,9 @@ data class Csp1dModelingExtension<V : RealNumber<V>>(
  * data through this interface without closure capture.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dModelingContext<V : RealNumber<V>> {
+
     /** 建模模式（MILP 或 LP 松弛）/ Modeling mode (MILP or LP relaxation) */
     val mode: Csp1dModelingMode
 
@@ -267,7 +271,7 @@ interface Csp1dModelingContext<V : RealNumber<V>> {
      *
      * @param value 浮点数值 / Floating point value
      * @return 领域数值 / Domain value
-     */
+    */
     fun toDomainValue(value: Flt64): V
 }
 
@@ -282,8 +286,9 @@ interface Csp1dModelingContext<V : RealNumber<V>> {
  * Csp1dProduceContext.addColumns can invoke it on the same master model.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dIncrementalPipeline<V : RealNumber<V>> : Pipeline<LinearMetaModel<Flt64>> {
+
     /**
      * 新增列后的增量刷新 / Incremental refresh after adding columns
      *
@@ -292,7 +297,7 @@ interface Csp1dIncrementalPipeline<V : RealNumber<V>> : Pipeline<LinearMetaModel
      * @param newPlans 已完成去重并注册的新增方案 / Newly added plans after deduplication and registration
      * @param model 元模型 / Meta model
      * @return 增量刷新结果 / Incremental refresh result
-     */
+    */
     suspend fun addColumns(
         context: Csp1dModelingContext<V>,
         iteration: UInt64,
@@ -313,8 +318,9 @@ interface Csp1dIncrementalPipeline<V : RealNumber<V>> : Pipeline<LinearMetaModel
  * Provides same-material/same-machine plan index sets for cross-plan constraint registration.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dPlanJudgmentContext<V : RealNumber<V>> : Csp1dDomainCalculationContext<V> {
+
     /** 同物料的所有方案索引 / All plan indices for same material */
     val sameMaterialPlanIndices: List<Int>
 
@@ -337,8 +343,9 @@ interface Csp1dPlanJudgmentContext<V : RealNumber<V>> : Csp1dDomainCalculationCo
  * base objective coefficients. Default implementation does not modify any objective.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dObjectivePolicy<V : RealNumber<V>> {
+
     /** 策略名称 / Policy name */
     val name: String
 
@@ -349,7 +356,7 @@ interface Csp1dObjectivePolicy<V : RealNumber<V>> {
      * @param context 领域计算上下文 / Domain calculation context
      * @param baseCoefficient 基础系数 / Base coefficient
      * @return 修正后的系数 / Modified coefficient
-     */
+    */
     fun modifyBatchCoefficient(context: Csp1dDomainCalculationContext<V>, baseCoefficient: Flt64): Flt64 = baseCoefficient
 }
 
@@ -364,8 +371,9 @@ interface Csp1dObjectivePolicy<V : RealNumber<V>> {
  * change any generation behavior.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dGenerationStrategy<V : RealNumber<V>> {
+
     /** 策略名称 / Policy name */
     val name: String
 
@@ -376,7 +384,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
      * @param candidate 候选方案 / Candidate plan
      * @param existingPlans 现有方案池 / Existing plan pool
      * @return true 表示接受 / true if accepted
-     */
+    */
     fun acceptCandidate(candidate: CuttingPlan<V>, existingPlans: List<CuttingPlan<V>>): Boolean = true
 
     /**
@@ -388,7 +396,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
      *
      * @param candidate 候选方案 / Candidate plan
      * @return 自定义 canonical key 字符串，或 null 使用默认 / Custom canonical key string, or null for default
-     */
+    */
     fun canonicalKeyFor(candidate: CuttingPlan<V>): String? = null
 
     /**
@@ -404,7 +412,7 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
      * @param candidate 候选方案 / Candidate plan
      * @param existingPlans 现有方案池 / Existing plan pool
      * @return true 表示通过 dominance 判断 / true if passes dominance check
-     */
+    */
     fun acceptDominance(candidate: CuttingPlan<V>, existingPlans: List<CuttingPlan<V>>): Boolean = true
 }
 
@@ -419,8 +427,9 @@ interface Csp1dGenerationStrategy<V : RealNumber<V>> {
  * Default implementation does not change any pricing behavior.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dPricingPolicy<V : RealNumber<V>> {
+
     /** 策略名称 / Policy name */
     val name: String
 
@@ -431,7 +440,7 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
      * @param candidate 候选方案 / Candidate plan
      * @param baseCost 基础成本 / Base cost
      * @return 修正后的成本 / Modified cost
-     */
+    */
     fun modifyCost(candidate: CuttingPlan<V>, baseCost: V): V = baseCost
 
     /**
@@ -441,7 +450,7 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
      * @param candidate 候选方案 / Candidate plan
      * @param baseBenefit 基础对偶收益 / Base dual benefit
      * @return 修正后的收益 / Modified benefit
-     */
+    */
     fun modifyBenefit(candidate: CuttingPlan<V>, baseBenefit: V): V = baseBenefit
 
     /**
@@ -458,7 +467,7 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
      * @param benefit 对偶收益 / Dual benefit
      * @param cost 目标成本 / Objective cost
      * @return null 使用默认判断，true/false 强制结果 / null for default, true/false to force
-     */
+    */
     fun isImproving(candidate: CuttingPlan<V>, benefit: V, cost: V): Boolean? = null
 }
 
@@ -473,8 +482,9 @@ interface Csp1dPricingPolicy<V : RealNumber<V>> {
  * for flow control decisions.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dFlowContext<V : RealNumber<V>> {
+
     /** 当前迭代号（0-based）/ Current iteration number (0-based) */
     val iteration: Int64
 
@@ -501,7 +511,7 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
      *
      * 非 recovery 场景默认为 0。下游 policy 可据此判断 warm start 可复用方案规模。
      * Default 0 in non-recovery scenarios. Downstream can use this to gauge warm-start reusable plan scale.
-     */
+    */
     val warmStartPlanCount: Int64 get() = Int64.zero
 
     /**
@@ -509,7 +519,7 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
      *
      * 非 recovery 场景默认为 false。当 warm start 不可用（Invalid 或 AdapterUnsupported）时为 true。
      * Default false in non-recovery scenarios. True when warm start is unusable (Invalid or AdapterUnsupported).
-     */
+    */
     val warmStartRequiresFallback: Boolean get() = false
 }
 
@@ -526,8 +536,9 @@ interface Csp1dFlowContext<V : RealNumber<V>> {
  * Default implementation preserves current hard-coded behavior.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dFlowPolicy<V : RealNumber<V>> {
+
     /** 策略名称 / Policy name */
     val name: String
 
@@ -537,7 +548,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      *
      * @param plans 初始方案列表 / Initial plan list
      * @return 过滤后的方案列表 / Filtered plan list
-     */
+    */
     fun filterInitialPlans(plans: List<CuttingPlan<V>>): List<CuttingPlan<V>> = plans
 
     /**
@@ -549,7 +560,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param context 流程上下文 / Flow context
      * @param plans 初始方案列表 / Initial plan list
      * @return 过滤后的方案列表 / Filtered plan list
-     */
+    */
     fun filterInitialPlans(context: Csp1dFlowContext<V>, plans: List<CuttingPlan<V>>): List<CuttingPlan<V>> =
         filterInitialPlans(plans)
 
@@ -560,7 +571,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param existing 已有方案 / Existing plan
      * @param candidate 候选方案 / Candidate plan
      * @return true 表示等价 / true if equivalent
-     */
+    */
     fun isEquivalent(existing: CuttingPlan<V>, candidate: CuttingPlan<V>): Boolean = false
 
     /**
@@ -573,7 +584,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param existing 已有方案 / Existing plan
      * @param candidate 候选方案 / Candidate plan
      * @return true 表示等价 / true if equivalent
-     */
+    */
     fun isEquivalent(context: Csp1dFlowContext<V>, existing: CuttingPlan<V>, candidate: CuttingPlan<V>): Boolean =
         isEquivalent(existing, candidate)
 
@@ -587,7 +598,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      *
      * @param context 流程上下文 / Flow context
      * @return true 表示应停止迭代 / true if iteration should stop
-     */
+    */
     fun shouldStopIteration(context: Csp1dFlowContext<V>): Boolean = false
 
     /**
@@ -601,7 +612,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param defaultReason 默认终止原因 / Default termination reason
      * @param defaultMessage 默认消息 / Default message
      * @return (终止原因名, 消息) 对 / (reason name, message) pair
-     */
+    */
     fun selectTermination(
         context: Csp1dFlowContext<V>,
         defaultReason: String,
@@ -615,7 +626,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param context 流程上下文 / Flow context
      * @param defaultDecision 默认决策 / Default decision
      * @return true 表示接受 partial / true to accept partial
-     */
+    */
     fun acceptPartial(context: Csp1dFlowContext<V>, defaultDecision: Boolean): Boolean = defaultDecision
 
     /**
@@ -625,7 +636,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
      * @param context 流程上下文 / Flow context
      * @param defaultDecision 默认决策 / Default decision
      * @return true 表示启用 / true to enable
-     */
+    */
     fun allowRecoveryFallback(context: Csp1dFlowContext<V>, defaultDecision: Boolean): Boolean = defaultDecision
 }
 
@@ -636,7 +647,7 @@ interface Csp1dFlowPolicy<V : RealNumber<V>> {
  * @param context 流程上下文 / Flow context
  * @param plans 初始方案列表 / Initial plan list
  * @return 过滤后的方案列表 / Filtered plan list
- */
+*/
 fun <V : RealNumber<V>> filterInitialPlansByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>,
@@ -653,7 +664,7 @@ fun <V : RealNumber<V>> filterInitialPlansByPolicies(
  * @param existing 已有方案 / Existing plan
  * @param candidate 候选方案 / Candidate plan
  * @return true 表示等价 / true if equivalent
- */
+*/
 fun <V : RealNumber<V>> isEquivalentByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>,
@@ -669,7 +680,7 @@ fun <V : RealNumber<V>> isEquivalentByPolicies(
  * @param policies 流程策略列表 / Flow policy list
  * @param context 流程上下文 / Flow context
  * @return true 表示应停止 / true if should stop
- */
+*/
 fun <V : RealNumber<V>> shouldStopByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>
@@ -685,7 +696,7 @@ fun <V : RealNumber<V>> shouldStopByPolicies(
  * @param defaultReason 默认终止原因 / Default termination reason
  * @param defaultMessage 默认消息 / Default message
  * @return (终止原因名, 消息) 对 / (reason name, message) pair
- */
+*/
 fun <V : RealNumber<V>> selectTerminationByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>,
@@ -704,7 +715,7 @@ fun <V : RealNumber<V>> selectTerminationByPolicies(
  * @param context 流程上下文 / Flow context
  * @param defaultDecision 默认决策 / Default decision
  * @return true 表示接受 partial / true to accept partial
- */
+*/
 fun <V : RealNumber<V>> acceptPartialByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>,
@@ -720,7 +731,7 @@ fun <V : RealNumber<V>> acceptPartialByPolicies(
  * @param context 流程上下文 / Flow context
  * @param defaultDecision 默认决策 / Default decision
  * @return true 表示启用 / true to enable
- */
+*/
 fun <V : RealNumber<V>> allowRecoveryFallbackByPolicies(
     policies: List<Csp1dFlowPolicy<V>>,
     context: Csp1dFlowContext<V>,
@@ -741,8 +752,9 @@ fun <V : RealNumber<V>> allowRecoveryFallbackByPolicies(
  * Default empty policy does not change existing solution, KPI, or render output.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 interface Csp1dExtractionPolicy<V : RealNumber<V>> {
+
     /** 策略名称 / Policy name */
     val name: String
 
@@ -761,7 +773,7 @@ interface Csp1dExtractionPolicy<V : RealNumber<V>> {
      * @param terminationReason 列生成终止原因名 / Column generation termination reason name
      * @param finalMilpStatus 最终 MILP 状态名 / Final MILP status name
      * @param pricingStatistics pricing 生成统计 / Pricing generation statistics
-     */
+    */
     fun enrichOutput(
         details: MutableMap<String, String>,
         renderKpi: MutableMap<String, String>,
@@ -790,8 +802,9 @@ interface Csp1dExtractionPolicy<V : RealNumber<V>> {
  * Default empty implementation does not change existing solver behavior.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 data class Csp1dExtensionSet<V : RealNumber<V>>(
+
     /** 建模扩展管线列表 / Modeling extension pipeline list */
     val modelingExtensions: List<Csp1dModelingExtension<V>> = emptyList(),
 
@@ -817,7 +830,7 @@ data class Csp1dExtensionSet<V : RealNumber<V>>(
         /** 空扩展包 / Empty extension set
          *
          * @return 空的扩展包实例 / Empty extension set instance
-         */
+        */
         fun <V : RealNumber<V>> empty(): Csp1dExtensionSet<V> = Csp1dExtensionSet()
     }
 }

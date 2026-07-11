@@ -1,7 +1,7 @@
 /**
  * Placement factory and bottom-overlap helpers.
  * 放置构造与底面重叠辅助。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
  * @param projection 多态投影 / polymorphic projection
  * @param position 放置坐标 / placement position
  * @return 多态二维放置 / polymorphic 2D placement
- */
+*/
 fun <T : Cuboid<T, FltX>, P : ProjectivePlane> placement2Of(
     projection: Projection<T, FltX, P>,
     position: QuantityPoint2<FltX>
@@ -35,7 +35,7 @@ fun <T : Cuboid<T, FltX>, P : ProjectivePlane> placement2Of(
  * @param projection item 投影 / item projection
  * @param position 放置坐标 / placement position
  * @return item 二维放置 / item 2D placement
- */
+*/
 fun <P : ProjectivePlane> itemPlacement2Of(
     projection: Projection<Item, FltX, P>,
     position: QuantityPoint2<FltX>
@@ -53,7 +53,7 @@ fun <P : ProjectivePlane> itemPlacement2Of(
  * @param projection block 投影 / block projection
  * @param position 放置坐标 / placement position
  * @return Block 二维放置 / Block 2D placement
- */
+*/
 fun <P : ProjectivePlane> blockPlacement2Of(
     projection: Projection<Block, FltX, P>,
     position: QuantityPoint2<FltX>
@@ -81,7 +81,7 @@ private fun <T : Cuboid<T, FltX>> placement3Of(
  * @param view item 视图 / item view
  * @param position 放置坐标 / placement position
  * @return item 三维放置 / item 3D placement
- */
+*/
 fun itemPlacement3Of(
     view: ItemView,
     position: QuantityPoint3<FltX>
@@ -100,7 +100,7 @@ fun itemPlacement3Of(
  * @param position 放置坐标 / placement position
  * @param orientation 放置姿态 / placement orientation
  * @return item 三维放置 / item 3D placement
- */
+*/
 fun itemPlacement3Of(
     item: Item,
     position: QuantityPoint3<FltX>,
@@ -119,7 +119,7 @@ fun itemPlacement3Of(
  * @param view layer 视图 / layer view
  * @param position 放置坐标 / placement position
  * @return BinLayer 三维放置 / BinLayer 3D placement
- */
+*/
 fun binLayerPlacementOf(
     view: CuboidView<BinLayer, FltX>,
     position: QuantityPoint3<FltX>
@@ -137,7 +137,7 @@ fun binLayerPlacementOf(
  * @param view block 视图 / block view
  * @param position 放置坐标 / placement position
  * @return Block 三维放置 / Block 3D placement
- */
+*/
 fun blockPlacement3Of(
     view: CuboidView<Block, FltX>,
     position: QuantityPoint3<FltX>
@@ -152,10 +152,23 @@ private fun <T : Cuboid<T, FltX>> QuantityPlacement3<T, FltX>.bottomPlacement():
     return QuantityPlacement2(this, Bottom)
 }
 
+/**
+ * Checks whether this placement overlaps with another on the bottom projection plane.
+ * 检查此放置是否与另一个放置在底面投影上重叠。
+ *
+ * @param other the placement to check overlap against / 待检查重叠的另一个放置
+ * @return whether the two placements overlap on the bottom plane / 两个放置是否在底面投影上重叠
+*/
 fun QuantityPlacement3<*, FltX>.overlappedOnBottom(other: QuantityPlacement3<*, FltX>): Boolean {
     return bottomPlacement().overlapped(other.bottomPlacement()).value == true
 }
 
+/**
+ * Iterable.
+ * Iterable。
+ * @param target target placement / 目标放置
+ * @return placements overlapping the target on the bottom / 在底面与目标重叠的放置列表
+*/
 fun Iterable<QuantityPlacement3<*, FltX>>.filterBottomOverlapped(
     target: QuantityPlacement3<*, FltX>
 ): List<QuantityPlacement3<*, FltX>> {

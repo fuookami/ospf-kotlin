@@ -9,7 +9,7 @@
  * The Bogdanov map is a two-dimensional discrete chaotic map proposed by Bogdanov.
  * This map is related to the Bogdanov-Takens bifurcation and serves as an important model for studying bifurcation behavior in two-dimensional maps.
  * Commonly used for bifurcation theory research, chaos boundary analysis, and nonlinear dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property epsilon 系统参数 epsilon / System parameter epsilon
  * @property kappa 系统参数 kappa / System parameter kappa
  * @property mu 系统参数 mu / System parameter mu
- */
+*/
 data class BogdanovMap<V : FloatingNumber<V>>(
     val epsilon: V,
     val kappa: V,
@@ -52,7 +52,7 @@ data class BogdanovMap<V : FloatingNumber<V>>(
 /**
  * Bogdanov 映射生成噌
  * Bogdanov Map Generator
- */
+*/
 data class BogdanovMapGenerator(
     val bogdanovMap: BogdanovMap<Flt64> = BogdanovMap(),
     private var _x: Point<Dim2, Flt64> = point2(

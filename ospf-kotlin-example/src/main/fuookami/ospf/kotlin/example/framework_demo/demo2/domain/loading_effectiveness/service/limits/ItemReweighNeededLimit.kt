@@ -15,6 +15,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
+/**
+ * Minimizes the loading of items that still need reweighing, prioritizing already-weighed items.
+ * 最小化仍需复重的货物的装载量，优先装载已复重的货物。
+ *
+ * @property items The list of cargo items. / 货物项列表
+ * @property stowage The stowage assignment model. / 配载分配模型
+ * @property coefficient Function computing the penalty coefficient for each item. / 计算每个货物项惩罚系数的函数
+*/
 class ItemReweighNeededLimit(
     private val items: List<Item>,
     private val stowage: Stowage,

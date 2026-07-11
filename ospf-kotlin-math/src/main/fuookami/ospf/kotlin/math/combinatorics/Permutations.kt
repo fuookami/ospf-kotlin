@@ -17,7 +17,7 @@
  *
  * 应用场景：调度问题、排序优化、序列搜索等。
  * Applications: scheduling problems, ordering optimization, sequence search, etc.
- */
+*/
 package fuookami.ospf.kotlin.math.combinatorics
 
 import java.util.Collections.swap
@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
  * @param callBack 每个排列生成时的回调函数（可选） / Callback function invoked for each generated permutation (optional)
  * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
  * @return 所有全排列的列表 / List of all full permutations
- */
+*/
 fun <T> permute(
     input: List<T>,
     callBack: ((List<T>) -> Unit)? = null,
@@ -77,7 +77,7 @@ fun <T> permute(
  * @param n 元素总数 / Total number of elements
  * @param choose 选取的元素个数（默认为 n，即全排列） / Number of elements to choose (defaults to n for full permutations)
  * @return 排列数 / The permutation count
- */
+*/
 fun permuteCount(n: Int, choose: Int = n): Long {
     if (choose < 0 || choose > n) {
         return 0L
@@ -95,7 +95,7 @@ fun permuteCount(n: Int, choose: Int = n): Long {
  *
  * @param input 输入列表 / The input list
  * @return 所有全排列的惰性序列 / Lazy sequence of all full permutations
- */
+*/
 fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
     yieldAll(permuteSequence(input, input.size))
 }
@@ -107,7 +107,7 @@ fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
  * @param input 输入列表 / The input list
  * @param choose 每个排列的元素个数 / Number of elements per permutation
  * @return 指定大小排列的惰性序列 / Lazy sequence of permutations of specified size
- */
+*/
 fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
     if (choose < 0 || choose > input.size) {
         return@sequence
@@ -123,7 +123,7 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
     /**
      * 深度优先搜索生成排列
      * Depth-first search for permutation generation
-     */
+    */
     suspend fun SequenceScope<List<T>>.dfs() {
         if (path.size == choose) {
             yield(path.toList())
@@ -152,7 +152,7 @@ fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequen
  * @param callBack 每个排列生成时的回调函数（可选） / Callback function invoked for each generated permutation (optional)
  * @param stopped 判断是否提前终止的函数（可选） / Function to determine whether to stop early (optional)
  * @return 指定大小的所有排列列表 / List of all permutations of specified size
- */
+*/
 fun <T> permute(
     input: List<T>,
     choose: Int,
@@ -177,7 +177,7 @@ fun <T> permute(
  * @param input 输入列表 / The input list
  * @param scope 协程作用域（默认使用组合异步作用域） / Coroutine scope (defaults to combinatorics async scope)
  * @return 通道守护，用于异步接收排列结果 / Channel guard for receiving permutation results asynchronously
- */
+*/
 fun <T> permuteAsync(
     input: List<T>,
     scope: CoroutineScope = combinatoricsAsyncScope

@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param executors 执行器列表 / List of executors
  * @param compilation 任务编译结果 / Task compilation result
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskTimeConflictConstraint<
         T : AbstractTask<E, A>,
         E : Executor,
@@ -33,6 +33,8 @@ class TaskTimeConflictConstraint<
     private val compilation: TaskCompilation<T, E, A>,
     override val name: String = "task_time_conflict"
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+
+    /** 经过筛选和排序的任务列表（仅含不可提前/延迟且有固定时间的任务） / Filtered and sorted task list (only tasks with fixed time, no advance/delay) */
     val tasks = tasks
         .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
         .sortedBy {

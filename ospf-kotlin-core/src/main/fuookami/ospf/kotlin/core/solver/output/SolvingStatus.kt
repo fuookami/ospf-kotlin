@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 求解状态数据结构 / Solving status data structure */
 package fuookami.ospf.kotlin.core.solver.output
 
@@ -30,7 +31,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
  * @property bestBound 最优界（可选）/ Best bound (optional)
  * @property mipGap MIP 间隙 / MIP gap
  * @property solveTime 求解时间 / Solve time
- */
+*/
 data class SolvingStatus(
     val solver: String,
     val solverIndex: UInt64 = UInt64.zero,

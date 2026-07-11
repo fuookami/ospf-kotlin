@@ -21,7 +21,7 @@
  * - PowF: 浮点幂运算接口，指数为泛型类垌
  * - PowP/PowFP: 带精度参数的幂运算接双
  * - PowFun/PowFFun: 幂运算函数扩展接双
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -36,9 +36,9 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 幂运算的结果类型
  *
- * @param Ret The result type of the power operation
- */
+*/
 interface Pow<out Ret> {
+
     /**
      * 计算整数幌x^n
      * Calculates integer power x^n
@@ -46,9 +46,8 @@ interface Pow<out Ret> {
      * @param index 指数（整数）
      * @return 幂运算结枌x^index
      *
-     * @param index Exponent (integer)
      * @return Power operation result x^index
-     */
+    */
     fun pow(index: Int): Ret
 
     /**
@@ -58,7 +57,7 @@ interface Pow<out Ret> {
      * @return 平方倌
      *
      * @return Square value
-     */
+    */
     fun sqr(): Ret
 
     /**
@@ -68,7 +67,7 @@ interface Pow<out Ret> {
      * @return 立方倌
      *
      * @return Cube value
-     */
+    */
     fun cub(): Ret
 }
 
@@ -82,9 +81,9 @@ interface Pow<out Ret> {
  *
  * @param Ret 幂运算的结果类型
  *
- * @param Ret The result type of the power operation
- */
+*/
 interface PowP<Ret> : Pow<Ret> {
+
     /**
      * 计算整数幌x^n，带精度参数
      * Calculates integer power x^n, with precision parameters
@@ -94,11 +93,8 @@ interface PowP<Ret> : Pow<Ret> {
      * @param precision 精度倌
      * @return 幂运算结枌
      *
-     * @param index Exponent (integer)
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Power operation result
-     */
+    */
     fun pow(index: Int, digits: Int, precision: Ret): Ret {
         return pow(index)
     }
@@ -115,10 +111,9 @@ interface PowP<Ret> : Pow<Ret> {
  * @param Self 接收者类垌
  * @param Ret 幂运算的结果类型
  *
- * @param Self The receiver type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowFun<in Self, out Ret> {
+
     /**
      * 计算整数幌x^n（扩展函数）
      * Calculates integer power x^n (extension function)
@@ -126,9 +121,8 @@ interface PowFun<in Self, out Ret> {
      * @param index 指数（整数）
      * @return 幂运算结枌
      *
-     * @param index Exponent (integer)
      * @return Power operation result
-     */
+    */
     fun Self.pow(index: Int): Ret
 
     /**
@@ -138,7 +132,7 @@ interface PowFun<in Self, out Ret> {
      * @return 平方倌
      *
      * @return Square value
-     */
+    */
     fun Self.sqr(): Ret
 
     /**
@@ -148,7 +142,7 @@ interface PowFun<in Self, out Ret> {
      * @return 立方倌
      *
      * @return Cube value
-     */
+    */
     fun Self.cub(): Ret
 }
 
@@ -163,10 +157,9 @@ interface PowFun<in Self, out Ret> {
  * @param Self 接收者类垌
  * @param Ret 幂运算的结果类型
  *
- * @param Self The receiver type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowFunP<in Self, Ret> {
+
     /**
      * 计算整数幌x^n，带精度参数（扩展函数）
      * Calculates integer power x^n, with precision parameters (extension function)
@@ -176,11 +169,8 @@ interface PowFunP<in Self, Ret> {
      * @param precision 精度倌
      * @return 幂运算结枌
      *
-     * @param index Exponent (integer)
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Power operation result
-     */
+    */
     fun Self.pow(index: Int, digits: Int, precision: Ret): Ret
 }
 
@@ -194,12 +184,8 @@ interface PowFunP<in Self, Ret> {
  * @param index 指数（整数）
  * @return 幂运算结枌
  *
- * @param Base The base type, must implement the Pow interface
- * @param Ret The return type
- * @param base The base
- * @param index Exponent (integer)
  * @return Power operation result
- */
+*/
 fun <Base : Pow<Ret>, Ret> pow(
     base: Base,
     index: Int
@@ -219,14 +205,8 @@ fun <Base : Pow<Ret>, Ret> pow(
  * @param func 幂运算函数扩屌
  * @return 幂运算结枌
  *
- * @param Base The base type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param index Exponent (integer)
- * @param func The power operation function extension
  * @return Power operation result
- */
+*/
 fun <Base, Ret, Func : PowFun<Base, Ret>> pow(
     base: Base,
     index: Int,
@@ -246,11 +226,8 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> pow(
  * @param base 底数
  * @return 平方倌
  *
- * @param Base The base type, must implement the Pow interface
- * @param Ret The return type
- * @param base The base
  * @return Square value
- */
+*/
 fun <Base : Pow<Ret>, Ret> sqr(base: Base): Ret {
     return base.sqr()
 }
@@ -266,13 +243,8 @@ fun <Base : Pow<Ret>, Ret> sqr(base: Base): Ret {
  * @param func 幂运算函数扩屌
  * @return 平方倌
  *
- * @param Base The base type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param func The power operation function extension
  * @return Square value
- */
+*/
 fun <Base, Ret, Func : PowFun<Base, Ret>> sqr(
     base: Base,
     func: Func
@@ -291,11 +263,8 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> sqr(
  * @param base 底数
  * @return 立方倌
  *
- * @param Base The base type, must implement the Pow interface
- * @param Ret The return type
- * @param base The base
  * @return Cube value
- */
+*/
 fun <Base : Pow<Ret>, Ret> cub(base: Base): Ret {
     return base.cub()
 }
@@ -311,13 +280,8 @@ fun <Base : Pow<Ret>, Ret> cub(base: Base): Ret {
  * @param func 幂运算函数扩屌
  * @return 立方倌
  *
- * @param Base The base type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param func The power operation function extension
  * @return Cube value
- */
+*/
 fun <Base, Ret, Func : PowFun<Base, Ret>> cub(
     base: Base,
     func: Func
@@ -340,10 +304,9 @@ fun <Base, Ret, Func : PowFun<Base, Ret>> cub(
  * @param Index 指数类型
  * @param Ret 幂运算的结果类型
  *
- * @param Index The exponent type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowF<in Index, out Ret> {
+
     /**
      * 计算浮点幌x^index
      * Calculates floating-point power x^index
@@ -351,9 +314,8 @@ interface PowF<in Index, out Ret> {
      * @param index 指数
      * @return 幂运算结枌
      *
-     * @param index Exponent
      * @return Power operation result
-     */
+    */
     fun pow(index: Index): Ret
 
     /**
@@ -363,7 +325,7 @@ interface PowF<in Index, out Ret> {
      * @return 平方根倌
      *
      * @return Square root value
-     */
+    */
     fun sqrt(): Ret
 
     /**
@@ -373,7 +335,7 @@ interface PowF<in Index, out Ret> {
      * @return 立方根倌
      *
      * @return Cube root value
-     */
+    */
     fun cbrt(): Ret
 }
 
@@ -389,11 +351,9 @@ interface PowF<in Index, out Ret> {
  * @param Index 指数类型
  * @param Ret 幂运算的结果类型
  *
- * @param Self The receiver type
- * @param Index The exponent type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowFFun<in Self, in Index, out Ret> {
+
     /**
      * 计算浮点幌x^index（扩展函数）
      * Calculates floating-point power x^index (extension function)
@@ -401,9 +361,8 @@ interface PowFFun<in Self, in Index, out Ret> {
      * @param index 指数
      * @return 幂运算结枌
      *
-     * @param index Exponent
      * @return Power operation result
-     */
+    */
     fun Self.pow(index: Index): Ret
 
     /**
@@ -413,7 +372,7 @@ interface PowFFun<in Self, in Index, out Ret> {
      * @return 平方根倌
      *
      * @return Square root value
-     */
+    */
     fun Self.sqrt(): Ret
 
     /**
@@ -423,7 +382,7 @@ interface PowFFun<in Self, in Index, out Ret> {
      * @return 立方根倌
      *
      * @return Cube root value
-     */
+    */
     fun Self.cbrt(): Ret
 }
 
@@ -438,10 +397,9 @@ interface PowFFun<in Self, in Index, out Ret> {
  * @param Index 指数类型
  * @param Ret 幂运算的结果类型
  *
- * @param Index The exponent type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowFP<in Index, Ret> : PowF<Index, Ret> {
+
     /**
      * 计算浮点幌x^index，带精度参数
      * Calculates floating-point power x^index, with precision parameters
@@ -451,11 +409,8 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
      * @param precision 精度倌
      * @return 幂运算结枌
      *
-     * @param index Exponent
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Power operation result
-     */
+    */
     fun pow(index: Index, digits: Int, precision: Ret): Ret {
         return pow(index)
     }
@@ -468,10 +423,8 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
      * @param precision 精度倌
      * @return 平方根倌
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Square root value
-     */
+    */
     fun sqrt(digits: Int, precision: Ret): Ret {
         return sqrt()
     }
@@ -484,10 +437,8 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
      * @param precision 精度倌
      * @return 立方根倌
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Cube root value
-     */
+    */
     fun cbrt(digits: Int, precision: Ret): Ret {
         return cbrt()
     }
@@ -505,11 +456,9 @@ interface PowFP<in Index, Ret> : PowF<Index, Ret> {
  * @param Index 指数类型
  * @param Ret 幂运算的结果类型
  *
- * @param Self The receiver type
- * @param Index The exponent type
- * @param Ret The result type of the power operation
- */
+*/
 interface PowFPFun<in Self, in Index, Ret> {
+
     /**
      * 计算浮点幌x^index，带精度参数（扩展函数）
      * Calculates floating-point power x^index, with precision parameters (extension function)
@@ -519,11 +468,8 @@ interface PowFPFun<in Self, in Index, Ret> {
      * @param precision 精度倌
      * @return 幂运算结枌
      *
-     * @param index Exponent
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Power operation result
-     */
+    */
     fun Self.pow(index: Index, digits: Int, precision: Ret): Ret
 
     /**
@@ -534,10 +480,8 @@ interface PowFPFun<in Self, in Index, Ret> {
      * @param precision 精度倌
      * @return 平方根倌
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Square root value
-     */
+    */
     fun Self.sqrt(digits: Int, precision: Ret): Ret
 
     /**
@@ -548,10 +492,8 @@ interface PowFPFun<in Self, in Index, Ret> {
      * @param precision 精度倌
      * @return 立方根倌
      *
-     * @param digits Number of significant digits
-     * @param precision Precision value
      * @return Cube root value
-     */
+    */
     fun Self.cbrt(digits: Int, precision: Ret): Ret
 }
 
@@ -566,13 +508,8 @@ interface PowFPFun<in Self, in Index, Ret> {
  * @param index 指数
  * @return 幂运算结枌
  *
- * @param Base The base type, must implement the PowF interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
- * @param index Exponent
  * @return Power operation result
- */
+*/
 fun <Base : PowF<Index, Ret>, Index, Ret> pow(
     base: Base,
     index: Index
@@ -593,15 +530,8 @@ fun <Base : PowF<Index, Ret>, Index, Ret> pow(
  * @param func 幂运算函数扩屌
  * @return 幂运算结枌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param index Exponent
- * @param func The power operation function extension
  * @return Power operation result
- */
+*/
 fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> pow(
     base: Base,
     index: Index,
@@ -625,15 +555,8 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> pow(
  * @param precision 精度倌
  * @return 幂运算结枌
  *
- * @param Base The base type, must implement the PowFP interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
- * @param index Exponent
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return Power operation result
- */
+*/
 fun <Base : PowFP<Index, Ret>, Index, Ret> pow(
     base: Base,
     index: Index,
@@ -662,17 +585,8 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> pow(
  * @param func 幂运算函数扩屌
  * @return 幂运算结枌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param index Exponent
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The power operation function extension
  * @return Power operation result
- */
+*/
 fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> pow(
     base: Base,
     index: Index,
@@ -699,12 +613,8 @@ fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> pow(
  * @param base 底数
  * @return 平方根倌
  *
- * @param Base The base type, must implement the PowF interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
  * @return Square root value
- */
+*/
 fun <Base : PowF<Index, Ret>, Index, Ret> sqrt(base: Base): Ret {
     return base.sqrt()
 }
@@ -721,14 +631,8 @@ fun <Base : PowF<Index, Ret>, Index, Ret> sqrt(base: Base): Ret {
  * @param func 幂运算函数扩屌
  * @return 平方根倌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param func The power operation function extension
  * @return Square root value
- */
+*/
 fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> sqrt(
     base: Base,
     func: Func
@@ -750,14 +654,8 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> sqrt(
  * @param precision 精度倌
  * @return 平方根倌
  *
- * @param Base The base type, must implement the PowFP interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return Square root value
- */
+*/
 fun <Base : PowFP<Index, Ret>, Index, Ret> sqrt(
     base: Base,
     digits: Int,
@@ -780,16 +678,8 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> sqrt(
  * @param func 幂运算函数扩屌
  * @return 平方根倌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The power operation function extension
  * @return Square root value
- */
+*/
 fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> sqrt(
     base: Base,
     digits: Int,
@@ -811,12 +701,8 @@ fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> sqrt(
  * @param base 底数
  * @return 立方根倌
  *
- * @param Base The base type, must implement the PowF interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
  * @return Cube root value
- */
+*/
 fun <Base : PowF<Index, Ret>, Index, Ret> cbrt(base: Base): Ret {
     return base.cbrt()
 }
@@ -833,14 +719,8 @@ fun <Base : PowF<Index, Ret>, Index, Ret> cbrt(base: Base): Ret {
  * @param func 幂运算函数扩屌
  * @return 立方根倌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param func The power operation function extension
  * @return Cube root value
- */
+*/
 fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> cbrt(
     base: Base,
     func: Func
@@ -862,14 +742,8 @@ fun <Base, Index, Ret, Func : PowFFun<Base, Index, Ret>> cbrt(
  * @param precision 精度倌
  * @return 立方根倌
  *
- * @param Base The base type, must implement the PowFP interface
- * @param Index The exponent type
- * @param Ret The return type
- * @param base The base
- * @param digits Number of significant digits
- * @param precision Precision value
  * @return Cube root value
- */
+*/
 fun <Base : PowFP<Index, Ret>, Index, Ret> cbrt(
     base: Base,
     digits: Int,
@@ -892,16 +766,8 @@ fun <Base : PowFP<Index, Ret>, Index, Ret> cbrt(
  * @param func 幂运算函数扩屌
  * @return 立方根倌
  *
- * @param Base The base type
- * @param Index The exponent type
- * @param Ret The return type
- * @param Func The extension function type
- * @param base The base
- * @param digits Number of significant digits
- * @param precision Precision value
- * @param func The power operation function extension
  * @return Cube root value
- */
+*/
 fun <Base, Index, Ret, Func : PowFPFun<Base, Index, Ret>> cbrt(
     base: Base,
     digits: Int,

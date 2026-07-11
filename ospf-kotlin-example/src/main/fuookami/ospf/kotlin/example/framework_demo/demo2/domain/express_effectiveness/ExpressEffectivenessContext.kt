@@ -13,13 +13,34 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.StowageC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
+/**
+ * Type alias for the aircraft domain aggregation.
+ * 飞行器域聚合类型别名
+*/
 internal typealias AircraftAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.Aggregation
+
+/**
+ * Type alias for the stowage domain aggregation.
+ * 配载域聚合类型别名
+*/
 internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.Aggregation
 
-/** 管理优化项目优先级排序的快递效能约束的上下文。Context for managing express effectiveness constraints that optimize item priority ordering. */
+/**
+ * Context for managing express effectiveness constraints that optimize item priority ordering.
+ * 管理优化项目优先级排序的快递效能约束的上下文。
+*/
 class ExpressEffectivenessContext {
     lateinit var aggregation: Aggregation
 
+    /**
+     * Initializes the express effectiveness context from aircraft and stowage contexts.
+     * 从飞行器和配载上下文初始化快递效能上下文。
+     *
+     * @param aircraftContext The aircraft domain context. / 飞行器域上下文
+     * @param stowageContext The stowage domain context. / 配载域上下文
+     * @param input The request DTO containing input parameters. / 包含输入参数的请求 DTO
+     * @return The result of the initialization operation. / 初始化操作的结果
+    */
     fun init(
         aircraftContext: AircraftContext,
         stowageContext: StowageContext,
@@ -48,6 +69,15 @@ class ExpressEffectivenessContext {
         return ok
     }
 
+    /**
+     * Registers express effectiveness constraints and pipelines into the model.
+     * 将快递效能约束和管线注册到模型中。
+     *
+     * @param stowageMode The stowage mode determining which constraints to apply. / 决定应用哪些约束的装载模式
+     * @param parameter The parameter configuration for constraint generation. / 约束生成的参数配置
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
@@ -103,6 +133,13 @@ class ExpressEffectivenessContext {
         return ok
     }
 
+    /**
+     * Registers express effectiveness constraints for the Benders master problem.
+     * 为 Benders 主问题注册快递效能约束。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersMP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
@@ -113,12 +150,27 @@ class ExpressEffectivenessContext {
         )
     }
 
+    /**
+     * Registers express effectiveness for the Benders sub problem (no-op).
+     * 为 Benders 子问题注册快递效能（空实现）。
+     *
+     * @param model The linear meta model to register into. / 要注册到的线性元模型
+     * @return The result of the registration operation. / 注册操作的结果
+    */
     fun registerForBendersSP(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         return ok
     }
 
+    /**
+     * Flushes express effectiveness for the Benders sub problem (no-op).
+     * 刷新 Benders 子问题的快递效能（空实现）。
+     *
+     * @param model The linear meta model. / 线性元模型
+     * @param solution The current solution vector. / 当前解向量
+     * @return The result of the flush operation. / 刷新操作的结果
+    */
     fun flushForBendersSP(
         model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>

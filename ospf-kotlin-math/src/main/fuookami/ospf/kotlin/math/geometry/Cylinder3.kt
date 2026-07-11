@@ -4,7 +4,7 @@
  *
  * 定义三维几何空间中的圆柱体和轴对齐线段数据结构。
  * Defines cylinder and axis-aligned line segment data structures in 3D geometric space.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property axis 对齐的轴 / The aligned axis
  * @property from 起始值 / Start value
  * @property to 终止值 / End value
- */
+*/
 data class AxisLine3<V : FloatingNumber<V>>(
     val axis: Axis3,
     val from: V,
@@ -33,12 +33,13 @@ data class AxisLine3<V : FloatingNumber<V>>(
  * @property radius 半径 / The radius
  * @property height 高度 / The height
  * @property axis 对齐轴 / The alignment axis
- */
+*/
 data class Cylinder3<V : FloatingNumber<V>>(
     val radius: V,
     val height: V,
     val axis: Axis3
 ) : Shape3<V> {
+
     /** 直径 / The diameter */
     val diameter: V get() = quantityPlus(radius, radius)
 
@@ -57,7 +58,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      *
      * @param axis 目标轴 / The target axis
      * @return 沿该轴的尺寸 / The dimension along the axis
-     */
+    */
     fun along(axis: Axis3): V {
         return if (axis == this.axis) {
             height
@@ -80,7 +81,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      *
      * @param plane 目标平面 / The target plane
      * @return 投影形状 / The projection shape
-     */
+    */
     fun projectionOn(plane: AxisPlane3): Projection2<V> {
         return if (plane.contains(axis)) {
             Rectangle2(
@@ -98,7 +99,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      *
      * @param pi 圆周率值 / The pi value
      * @return 底面积 / The base area
-     */
+    */
     fun baseArea(pi: V): V = (radius * radius) * pi
 
     /**
@@ -107,7 +108,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      *
      * @param pi 圆周率值 / The pi value
      * @return 体积 / The volume
-     */
+    */
     fun volume(pi: V): V = baseArea(pi) * height
 
     /**
@@ -116,7 +117,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      *
      * @param permutation 轴置换方案 / The axis permutation
      * @return 置换后的圆柱结果 / The permuted cylinder result
-     */
+    */
     fun permute(permutation: AxisPermutation3): Ret<Cylinder3<V>> = permutation.apply(this)
 
     /**
@@ -124,7 +125,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      * Create a bounding box at the origin
      *
      * @return 原点处的包围盒 / The bounding box at the origin
-     */
+    */
     fun boundingBoxAtOrigin(): Box3<V> = Box3.atOrigin(boundingCuboid)
 
     /**
@@ -135,7 +136,7 @@ data class Cylinder3<V : FloatingNumber<V>>(
      * @param y Y 坐标 / Y coordinate
      * @param z Z 坐标 / Z coordinate
      * @return 指定位置的包围盒 / The bounding box at the specified position
-     */
+    */
     fun toBoundingBox(
         x: V,
         y: V,
@@ -156,5 +157,5 @@ data class Cylinder3<V : FloatingNumber<V>>(
  *
  * @param V 数值类型 / The numeric type
  * @see Cylinder3
- */
+*/
 typealias AxisAlignedCylinder3<V> = Cylinder3<V>

@@ -9,7 +9,7 @@
  * The capacitance equation is a chaotic model describing nonlinear dynamical behavior in capacitive circuits.
  * This equation introduces nonlinearity through piecewise linear functions, simulating chaotic oscillation phenomena in electronic circuits.
  * Commonly used for nonlinear circuit analysis, chaotic circuit design, and electronic system dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property d 分段线性参数 d / Piecewise linear parameter d
  * @property e 分段线性参数 e / Piecewise linear parameter e
  * @property h 时间步长 / Time step size
- */
+*/
 data class CapacitanceEquation<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -70,7 +70,7 @@ data class CapacitanceEquation<V : FloatingNumber<V>>(
 /**
  * 电容方程生成器
  * Capacitance Equation Generator
- */
+*/
 data class CapacitanceEquationGenerator(
     val capacitanceEquation: CapacitanceEquation<Flt64> = CapacitanceEquation(),
     private var _x: Point<Dim3, Flt64> = point3(

@@ -3,7 +3,7 @@
  *
  * 本模块定义消耗相关的接口和类，用于建模原料消耗、储备约束及影子价格提取。
  * This module defines consumption-related interfaces and classes for modeling material consumption, reserve constraints, and shadow price extraction.
- */
+*/
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -35,6 +35,12 @@ interface Consumption {
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
+/**
+ * Register consumption variables (over-quantity and less-quantity) into the linear meta model.
+ * 将消耗变量（超量和不足量）注册到线性元模型中。
+ * @param model Linear meta model to register consumption variables into / 要注册消耗变量的线性元模型
+ * @return Operation result / 操作结果
+*/
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 
     /**
@@ -47,7 +53,7 @@ interface Consumption {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 消耗量物理量 / Consumption quantity
-     */
+    */
     fun <C : AbstractMaterial, V : RealNumber<V>> solvedQuantity(
         material: C,
         model: MetaModel<Flt64>,
@@ -71,7 +77,7 @@ interface Consumption {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 消耗超量物理量 / Consumption over-quantity
-     */
+    */
     fun <C : AbstractMaterial, V : RealNumber<V>> solvedOverQuantity(
         material: C,
         model: MetaModel<Flt64>,
@@ -95,7 +101,7 @@ interface Consumption {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 数量单位 / Quantity unit
      * @return 消耗不足量物理量 / Consumption less-quantity
-     */
+    */
     fun <C : AbstractMaterial, V : RealNumber<V>> solvedLessQuantity(
         material: C,
         model: MetaModel<Flt64>,
@@ -133,7 +139,7 @@ private fun <V : RealNumber<V>> LinearIntermediateSymbol<Flt64>.materialQuantity
  * @param C 消耗材料类型 / Consumption material type
  * @param V 值类型 / Value type
  * @param materials 材料与储备列表 / List of materials and reserves
- */
+*/
 abstract class AbstractConsumption<
         out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
@@ -263,7 +269,7 @@ abstract class AbstractConsumption<
      * @param shadowPriceMap 影子价格表 / Shadow price map
      * @param shadowPrices 原始影子价格（对偶变量的解）/ Raw shadow prices (dual solution)
      * @return 成功与否 / Success or failure
-     */
+    */
     fun <Map : AbstractShadowPriceMap<*, Map>> refresh(
         shadowPriceMap: Map,
         shadowPrices: MetaDualSolution
@@ -322,7 +328,7 @@ abstract class AbstractConsumption<
  * @param materials 材料与储备列表 / List of materials and reserves
  * @param overEnabled 是否启用超量 / Whether over quantity is enabled
  * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
- */
+*/
 class TaskSchedulingConsumption<
         out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,
@@ -356,7 +362,7 @@ class TaskSchedulingConsumption<
  * @param C 消耗材料类型 / Consumption material type
  * @param V 值类型 / Value type
  * @param materials 材料与储备列表 / List of materials and reserves
- */
+*/
 class BunchSchedulingConsumption<
         out T : ProductionTask<E, A, P, C, V>,
         out E : Executor,

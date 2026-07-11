@@ -4,13 +4,13 @@
  *
  * 定义物理量的取值域（连续或离散），并提供乘法、除法和幂次合成规则。
  * Defines quantity value domains (continuous or discrete) and provides multiplication, division, and power composition rules.
- */
+*/
 package fuookami.ospf.kotlin.quantities.dimension
 
 /**
  * 物理量取值域，用于表达该量应按连续值还是离散值处理。
  * Quantity value domain, used to mark whether a quantity should be treated as continuous or discrete.
- */
+*/
 enum class QuantityDomain {
     /** 连续量 / Continuous quantity */
     Continuous,
@@ -25,7 +25,7 @@ enum class QuantityDomain {
  *
  * @param other 另一个取值域 / The other value domain
  * @return 合成后的取值域 / The resulting value domain
- */
+*/
 operator fun QuantityDomain.times(other: QuantityDomain): QuantityDomain {
     return if (this == QuantityDomain.Discrete && other == QuantityDomain.Discrete) {
         QuantityDomain.Discrete
@@ -40,7 +40,7 @@ operator fun QuantityDomain.times(other: QuantityDomain): QuantityDomain {
  *
  * @param other 另一个取值域 / The other value domain
  * @return 合成后的取值域（始终为连续） / The resulting value domain (always continuous)
- */
+*/
 operator fun QuantityDomain.div(other: QuantityDomain): QuantityDomain {
     return QuantityDomain.Continuous
 }
@@ -51,7 +51,7 @@ operator fun QuantityDomain.div(other: QuantityDomain): QuantityDomain {
  *
  * @param index 幂次指数 / The power exponent
  * @return 合成后的取值域 / The resulting value domain
- */
+*/
 fun QuantityDomain.pow(index: Int): QuantityDomain {
     return when {
         index <= 0 -> QuantityDomain.Continuous

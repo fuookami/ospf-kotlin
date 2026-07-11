@@ -7,7 +7,7 @@
  * Provides factorization functionality for univariate quadratic polynomials.
  * Includes coefficient extraction, root finding, and factorization operations,
  * factorizing ax² + bx + c into a(x - r₌(x - r₌.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
  *
  * 表示形式：ax² + bx + c
  * Representation: ax² + bx + c
- */
+*/
 data class QuadraticCoefficients<T>(
     val a: T,  // 二次项系敌/ Quadratic coefficient
     val b: T,  // 一次项系数 / Linear coefficient
@@ -43,7 +43,7 @@ data class QuadraticCoefficients<T>(
  *
  * @return 系数元组 (a, b, c, symbol)，如果多项式不是单变量的则返囌null
  * @return Coefficient tuple (a, b, c, symbol), or null if not univariate
- */
+*/
 fun <T> QuadraticPolynomial<T>.extractUnivariateCoefficients(): QuadraticCoefficients<T>?
     where T : Field<T>, T : RealNumber<T> {
 
@@ -85,7 +85,7 @@ fun <T> QuadraticPolynomial<T>.extractUnivariateCoefficients(): QuadraticCoeffic
 /**
  * 多项式的栌
  * Roots of a polynomial
- */
+*/
 data class PolynomialRoots<T>(
     val roots: List<T>,
     val discriminant: T,
@@ -100,7 +100,7 @@ data class PolynomialRoots<T>(
  *
  * @param coefficients 二次多项式系敌/ Quadratic polynomial coefficients
  * @return 根的列表，。 戌2 个实根）/ List of roots (0, 1, or 2 real roots)
- */
+*/
 fun <T> solveQuadratic(coefficients: QuadraticCoefficients<T>): PolynomialRoots<T>
     where T : Field<T>, T : FloatingNumber<T> {
 
@@ -155,7 +155,7 @@ private fun <T> castToFloatingType(value: Any?): T where T : Field<T>, T : Float
 /**
  * 一元二次多项式求根（便捷方法）
  * Find roots of univariate quadratic polynomial (convenience method)
- */
+*/
 fun <T> QuadraticPolynomial<T>.solve(): PolynomialRoots<T>?
     where T : Field<T>, T : FloatingNumber<T> {
 
@@ -180,7 +180,7 @@ fun <T> QuadraticPolynomial<T>.solve(): PolynomialRoots<T>?
  *
  * 表示形式：a(x - r₌(x - r₌
  * Representation: a(x - r₌(x - r₌
- */
+*/
 data class QuadraticFactorization<T>(
     val leadingCoefficient: T,  // 首项系数 / Leading coefficient
     val factors: List<LinearFactor<T>>,  // 一次因弌/ Linear factors
@@ -190,7 +190,7 @@ data class QuadraticFactorization<T>(
 /**
  * 一次因弌(x - root)
  * Linear factor (x - root)
- */
+*/
 data class LinearFactor<T>(
     val root: T  // 栌/ Root
 )
@@ -205,7 +205,7 @@ data class LinearFactor<T>(
  * @param coefficients 二次多项式系敌/ Quadratic polynomial coefficients
  * @return 因式分解结果，如果无法分解则返回 null
  * @return Factorization result, or null if cannot factorize
- */
+*/
 fun <T> factorizeQuadratic(coefficients: QuadraticCoefficients<T>): QuadraticFactorization<T>?
     where T : Field<T>, T : FloatingNumber<T> {
 
@@ -239,7 +239,7 @@ fun <T> factorizeQuadratic(coefficients: QuadraticCoefficients<T>): QuadraticFac
 /**
  * 一元二次多项式因式分解（便捷方法）
  * Factorize univariate quadratic polynomial (convenience method)
- */
+*/
 fun <T> QuadraticPolynomial<T>.factorize(): QuadraticFactorization<T>?
     where T : Field<T>, T : FloatingNumber<T> {
 
@@ -259,7 +259,7 @@ fun <T> QuadraticPolynomial<T>.factorize(): QuadraticFactorization<T>?
 /**
  * 将因式分解结果展开回多项式
  * Expand factorization result back to polynomial
- */
+*/
 fun <T> QuadraticFactorization<T>.expand(): QuadraticPolynomial<T>
     where T : Field<T>, T : RealNumber<T> {
 

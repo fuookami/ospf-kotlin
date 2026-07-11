@@ -19,7 +19,7 @@
  * PrimeCache class implements extensible prime caching with dynamic sieve expansion,
  * for large numbers beyond cache range, uses trial division with cached primes for fast detection.
  * Thread-safe: uses synchronized lock to ensure safe multi-threaded access.
- */
+*/
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -42,7 +42,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property isPrime 素性标记数组，isPrime[i] 为 true 表示 i 是素数 / Primality flag array; isPrime[i] is true if i is prime
  * @property primes 已缓存的素数列表 / List of cached primes
  * @property lock 线程同步锁 / Thread synchronization lock
- */
+*/
 class PrimeCache {
     private var current = UInt64.zero
     private lateinit var isPrime: BooleanArray
@@ -64,7 +64,7 @@ class PrimeCache {
      * First marks composites in the new interval using known primes, then scans the new interval to collect newly found primes.
      *
      * @param new 新的筛法上界 / New sieve upper bound
-     */
+    */
     private fun extendSieve(new: UInt64) {
         synchronized(lock) {
             if (new <= current) return
@@ -127,7 +127,7 @@ class PrimeCache {
      *
      * @param limit 素数上界 / Prime upper bound
      * @return 不超过 limit 的素数列表 / List of primes up to limit
-     */
+    */
     fun getPrimes(limit: UInt64): List<UInt64> {
         synchronized(lock) {
             if (limit > current) {
@@ -143,7 +143,7 @@ class PrimeCache {
      *
      * @param num 待判定的数 / Number to check
      * @return 是素数返回 true，否则返回 false / True if prime, false otherwise
-     */
+    */
     fun isPrime(num: UInt64): Boolean {
         if (num <= UInt64.one) {
             return false
@@ -175,7 +175,7 @@ class PrimeCache {
      *
      * @param n 待判定的正整数 / Positive integer to check
      * @return 是素数返回 true，否则返回 false / True if prime, false otherwise
-     */
+    */
     private fun isPrimeQuickCheck(n: UInt64): Boolean {
         if (n <= UInt64.one) {
             return false
@@ -215,7 +215,7 @@ class PrimeCache {
      * Algorithm complexity O(n log log n).
      *
      * @param limit 筛法上界 / Sieve upper bound
-     */
+    */
     private fun sieve(limit: UInt64) {
         if (limit <= current) return
 
@@ -256,7 +256,7 @@ internal val cache = PrimeCache()
  *
  * @param limit 素数上界 / Prime upper bound
  * @return 不超过 limit 的素数列表 / List of primes up to limit
- */
+*/
 fun getPrimesUpTo(limit: UInt64): List<UInt64> {
 
     return cache.getPrimes(limit)
@@ -269,7 +269,7 @@ fun getPrimesUpTo(limit: UInt64): List<UInt64> {
  * @param I 整数类型 / Integer type
  * @param num 待判定的数 / Number to check
  * @return 是素数返回 true，否则返回 false / True if prime, false otherwise
- */
+*/
 fun <I> isPrime(num: I): Boolean where I : Integer<I> {
 
     return cache.isPrime(num.toUInt64())
@@ -283,7 +283,7 @@ fun <I> isPrime(num: I): Boolean where I : Integer<I> {
  * @param num 素数上界 / Prime upper bound
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 不超过 num 的素数列表 / List of primes up to num
- */
+*/
 fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where I : Integer<I> {
     var current = constants.one
     val primes = ArrayList<I>()
@@ -304,7 +304,7 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
  * @param num 素数上界 / Prime upper bound
  * @param constants 数值常量提供器 / Real number constants provider
  * @return 不超过 num 的素数列表 / List of primes up to num
- */
+*/
 fun <I> getPrimes(num: I, constants: RealNumberConstants<I>): List<I> where I : Integer<I> {
 
     return getPrimesImpl(num, constants)
@@ -317,7 +317,7 @@ fun <I> getPrimes(num: I, constants: RealNumberConstants<I>): List<I> where I : 
  * @param I 整数类型 / Integer type
  * @param num 素数上界 / Prime upper bound
  * @return 不超过 num 的素数列表 / List of primes up to num
- */
+*/
 inline fun <reified I> getPrimes(num: I): Ret<List<I>> where I : Integer<I> {
     return resolveRealNumberConstantsSafe<I>("Prime").mapResolved { constants ->
         getPrimes(

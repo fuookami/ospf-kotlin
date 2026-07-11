@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 启发式策略接口与基类 / Heuristic policy interface and base class */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
@@ -12,8 +13,9 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 /**
  * 启发式策略的抽象接口，定义值约束、状态更新和终止判断。
  * Abstract interface for heuristic policies, defining value coercion, state updates, and termination checks.
- */
+*/
 interface AbstractHeuristicPolicy {
+
     /**
      * 将 Flt64 值约束到变量边界内。
      * Coerce a Flt64 value within the variable bounds.
@@ -23,7 +25,7 @@ interface AbstractHeuristicPolicy {
      * @param value 待约束的值 / Value to coerce
      * @param model 回调模型接口 / Callback model interface
      * @return 约束后的值 / Coerced value
-     */
+    */
     fun coerceIn(
         iteration: Iteration,
         index: Int,
@@ -45,7 +47,7 @@ interface AbstractHeuristicPolicy {
      * @param model 回调模型接口 / Callback model interface
      * @param converter 值转换器 / Value converter
      * @return 约束后的值 / Coerced value
-     */
+    */
     fun <V> coerceIn(
         iteration: Iteration,
         index: Int,
@@ -68,7 +70,7 @@ interface AbstractHeuristicPolicy {
      * @param goodIndividuals 优良个体列表 / Good individuals list
      * @param populations 种群列表 / Populations list
      * @param model 回调模型接口 / Callback model interface
-     */
+    */
     fun update(
         iteration: Iteration,
         better: Boolean,
@@ -85,7 +87,7 @@ interface AbstractHeuristicPolicy {
      *
      * @param iteration 当前迭代 / Current iteration
      * @return 是否终止 / Whether to terminate
-     */
+    */
     fun finished(iteration: Iteration): Boolean
 }
 
@@ -96,7 +98,7 @@ interface AbstractHeuristicPolicy {
  * @property iterationLimit 最大迭代次数 / Maximum iteration count
  * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count
  * @property timeLimit 时间限制 / Time limit
- */
+*/
 abstract class HeuristicPolicy(
     val iterationLimit: UInt64 = UInt64.maximum,
     val notBetterIterationLimit: UInt64 = UInt64.maximum,

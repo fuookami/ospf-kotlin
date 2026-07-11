@@ -13,7 +13,7 @@
  *
  * 注意：零的倒数未定义，实现在处理此情况时应返回 null 或 Result 失败。
  * Note: The reciprocal of zero is undefined; implementations should return null or a Result failure for this case.
- */
+*/
 package fuookami.ospf.kotlin.math.operator
 
 /**
@@ -28,9 +28,9 @@ package fuookami.ospf.kotlin.math.operator
  *
  * @param Ret 倒数运算的结果类垌
  *
- * @param Ret The result type of the reciprocal operation
- */
+*/
 interface Reciprocal<out Ret> {
+
     /**
      * 计算倒数 1/x
      * Calculates the reciprocal 1/x
@@ -38,6 +38,6 @@ interface Reciprocal<out Ret> {
      * @return 当前值的倒数
      *
      * @return The reciprocal of the current value
-     */
+    */
     fun reciprocal(): Ret
 }

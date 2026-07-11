@@ -1,6 +1,6 @@
 /**
  * 成本模型，支持可变和不可变成本 / Cost model supporting mutable and immutable costs
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.error.GanttSchedulingLifecycleError
@@ -22,7 +22,7 @@ typealias CostQuantity<V> = Quantity<V>
  * @property tag 标签 / The tag
  * @property costQuantity 成本物理量 / The cost quantity
  * @property message 消息 / The message
- */
+*/
 data class CostItem<V : RealNumber<V>>(
     val tag: String,
     val costQuantity: CostQuantity<V>? = null,
@@ -35,7 +35,7 @@ data class CostItem<V : RealNumber<V>>(
      *
      * @param unit 成本单位 / Cost unit
      * @return 成本项物理量 / Cost item quantity
-     */
+    */
     fun quantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
         return costQuantity?.let { Quantity(it.value, unit) }
     }
@@ -47,7 +47,9 @@ data class CostItem<V : RealNumber<V>>(
  * 成本接口，支持迭代和复制 / Cost interface supporting iteration and copying
  *
  * @param V 数值类型 / The numeric type
- */
+ * @property items 成本项列表 / The list of cost items
+ * @property costSum 成本总和物理量 / The sum cost quantity
+*/
 sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<V>> {
     companion object {
         operator fun <V : RealNumber<V>> invoke(
@@ -66,7 +68,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
          * @param items 成本项列表 / The list of cost items
          * @param costSum 成本总和物理量 / The sum cost quantity
          * @return 不可变成本 / Immutable cost
-         */
+        */
         operator fun <V : RealNumber<V>> invoke(
             items: List<CostItem<V>>,
             costSum: CostQuantity<V>?
@@ -79,7 +81,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
 
         /**
          * 创建空成本 / Create an empty cost with zero sum
-         */
+        */
         operator fun <V : RealNumber<V>> invoke(
             constants: RealNumberConstants<V>
         ): ImmutableCost<V> {
@@ -99,7 +101,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
      *
      * @param unit 成本单位 / Cost unit
      * @return 总成本物理量 / Sum cost quantity
-     */
+    */
     fun sumQuantity(unit: PhysicalUnit = NoneUnit): CostQuantity<V>? {
         return costSum?.let { Quantity(it.value, unit) }
     }
@@ -109,7 +111,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
      *
      * @param default 成本缺失时使用的默认 solver 值 / Default solver value when cost is absent
      * @return solver 成本值，缺失时返回 default / Solver cost value, or default when absent
-     */
+    */
     fun solverCostOrNull(default: Flt64? = null): Flt64? = costSum?.value?.toFlt64() ?: default
 
     /**
@@ -117,7 +119,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
      *
      * @param default 成本缺失时使用的默认 solver 值 / Default solver value when cost is absent
      * @return solver 成本值 / Solver cost value
-     */
+    */
     fun solverCost(default: Flt64? = null): Ret<Flt64> {
         val value = costSum?.value?.toFlt64() ?: default
         return if (value != null) {
@@ -127,6 +129,11 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
         }
     }
 
+/**
+ * asMutable.
+ * asMutable。
+ * @return This cost as a MutableCost, or null if it is immutable / 将此成本转换为可变成本，不可变时返回null
+*/
     fun asMutable(): MutableCost<V>? {
         return when (this) {
             is MutableCost -> {
@@ -157,7 +164,7 @@ sealed interface Cost<V : RealNumber<V>> : Iterable<CostItem<V>>, Copyable<Cost<
  * @property constants 数值常量 / The numeric constants
  * @property items 成本项列表 / The list of cost items
  * @property costSum 成本总和物理量 / The sum cost quantity
- */
+*/
 class MutableCost<V : RealNumber<V>>(
     val constants: RealNumberConstants<V>,
     override val items: MutableList<CostItem<V>> = ArrayList(),
@@ -208,7 +215,7 @@ class MutableCost<V : RealNumber<V>>(
  * @param V 数值类型 / The numeric type
  * @property items 成本项列表 / The list of cost items
  * @property costSum 成本总和物理量 / The sum cost quantity
- */
+*/
 data class ImmutableCost<V : RealNumber<V>>(
     override val items: List<CostItem<V>>,
     override val costSum: CostQuantity<V>? = if (items.isNotEmpty() && items.all { it.costQuantity != null }) {

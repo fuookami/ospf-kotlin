@@ -13,17 +13,18 @@ import fuookami.ospf.kotlin.utils.functional.Order
  *
  * @param V 数值类型 / Numeric value type
  * @property arithmetic 物理量算术策略 / Quantity arithmetic strategy
- */
+*/
 class CostarFiller<V : RealNumber<V>>(
     private val arithmetic: QuantityArithmetic<V>
 ) {
+
     /**
      * 尝试为切割方案填充配规 / Try to fill a cutting plan with costars
      *
      * @param plan 原始方案 / Original plan
      * @param costars 可用配规列表 / Available costars
      * @return 填充后的方案列表（可能多个方案因为不同配规组合）/ Filled plan list
-     */
+    */
     fun fill(plan: CuttingPlan<V>, costars: List<Costar<V>>): List<CuttingPlan<V>> {
         if (costars.isEmpty()) return listOf(plan)
         val restWidth = plan.restWidth ?: return listOf(plan)
@@ -51,7 +52,7 @@ class CostarFiller<V : RealNumber<V>>(
      * @param costarIndex 当前配规索引 / Current costar index
      * @param plan 原始方案 / Original plan
      * @param results 结果收集列表 / Result collection list
-     */
+    */
     private fun fillDFS(
         currentSlices: MutableList<CuttingPlanSlice<V>>,
         remainingWidth: Quantity<V>,
@@ -118,7 +119,7 @@ class CostarFiller<V : RealNumber<V>>(
      * @param original 原始方案 / Original plan
      * @param slices 切片列表 / List of slices
      * @return 新构建的方案 / Newly built plan
-     */
+    */
     private fun buildPlan(
         original: CuttingPlan<V>,
         slices: List<CuttingPlanSlice<V>>
@@ -138,7 +139,7 @@ class CostarFiller<V : RealNumber<V>>(
      * @param costarWidth 配规宽度 / Costar width
      * @param remainingWidth 剩余宽度 / Remaining width
      * @return 最大填充数量 / Maximum fillable amount
-     */
+    */
     private fun computeMaxCostarAmount(costarWidth: Quantity<V>, remainingWidth: Quantity<V>): UInt64 {
         if (costarWidth.value partialOrd remainingWidth.value is Order.Greater) return UInt64.zero
         var count = UInt64.zero
@@ -156,7 +157,7 @@ class CostarFiller<V : RealNumber<V>>(
      * @param width 配规宽度 / Costar width
      * @param times 重复次数 / Number of times to repeat
      * @return 累加后的总宽度 / Accumulated total width
-     */
+    */
     private fun repeatWidth(width: Quantity<V>, times: UInt64): Quantity<V> {
         var result = arithmetic.zero(width.unit)
         repeat(times.toInt()) {

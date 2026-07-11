@@ -1,7 +1,7 @@
 /**
  * Layer assignment capacity model.
  * 层分配容量模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -21,17 +21,21 @@ private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 /**
  * Capacity interface, provides symbolic expressions for load weight, volume, depth and loading rate.
  * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
- */
+*/
 interface Capacity {
+
     /** 装载重量符号 / load weight symbols */
     val loadWeight: LinearIntermediateSymbols1<FltX>
+
     /** 装载体积符号 / load volume symbols */
     val loadVolume: LinearIntermediateSymbols1<FltX>
+
     /** 装载深度符号 / load depth symbols */
     val loadDepth: LinearIntermediateSymbols1<FltX>
 
     /** 装载率符号 / loading rate symbols */
     val loadingRate: LinearIntermediateSymbols1<FltX>
+
     /** 尾箱装载率符号 / tail loading rate symbols */
     val tailLoadingRate: LinearIntermediateSymbols1<FltX>
 }
@@ -44,7 +48,7 @@ interface Capacity {
  * @property layers 层列表 / layer list
  * @property assignment 精确赋值 / precise assignment
  * @property solverValueAdapter 求解器值适配器 / solver value adapter
- */
+*/
 class PreciseLoadCapacity(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>,
@@ -64,7 +68,7 @@ class PreciseLoadCapacity(
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
-     */
+    */
     fun register(model: MetaModel<FltX>): Try {
         if (!::loadWeight.isInitialized) {
             loadWeight = LinearIntermediateSymbols1<FltX>(

@@ -4,7 +4,7 @@
  *
  * 提供电流量纲的 SI 单位定义，包括安培、毫安、微安、千安等。
  * Provides SI unit definitions for electric current dimension, including ampere, milliampere, microampere, kiloampere, etc.
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Current
  *             straight parallel conductors of infinite length, of negligible
  *             circular cross-section, and placed 1 meter apart in vacuum, would
  *             produce between these conductors a force equal to 2×10⁻⁷ newton per meter of length.
- */
+*/
 object Ampere : PhysicalUnit() {
     override val name = "ampere"
     override val symbol = "A"
@@ -38,7 +38,7 @@ object Ampere : PhysicalUnit() {
  *
  * 定义：1 mA = 10⁻³ A
  * Definition: 1 mA = 10⁻³ A
- */
+*/
 object Milliampere : DerivedPhysicalUnit(Ampere * Scale.milli) {
     override val name = "milliampere"
     override val symbol = "mA"
@@ -52,7 +52,7 @@ object Milliampere : DerivedPhysicalUnit(Ampere * Scale.milli) {
  *
  * 定义：1 µA = 10⁻⁶ A
  * Definition: 1 µA = 10⁻⁶ A
- */
+*/
 object Microampere : DerivedPhysicalUnit(Ampere * Scale.micro) {
     override val name = "microampere"
     override val symbol = "µA"
@@ -66,7 +66,7 @@ object Microampere : DerivedPhysicalUnit(Ampere * Scale.micro) {
  *
  * 定义：1 kA = 10³ A
  * Definition: 1 kA = 10³ A
- */
+*/
 object Kiloampere : DerivedPhysicalUnit(Ampere * Scale.kilo) {
     override val name = "kiloampere"
     override val symbol = "kA"

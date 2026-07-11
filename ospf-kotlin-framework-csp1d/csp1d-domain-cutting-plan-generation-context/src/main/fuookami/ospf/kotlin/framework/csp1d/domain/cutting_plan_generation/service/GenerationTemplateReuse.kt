@@ -15,11 +15,20 @@ internal fun <V : RealNumber<V>> canReuseMaterialSliceTemplates(
     }
 }
 
+/**
+ * GenerationSliceTemplateRecorder class.
+ * GenerationSliceTemplateRecorder类。
+*/
 internal class GenerationSliceTemplateRecorder<V : RealNumber<V>> {
     private val recordedTemplates = ArrayList<List<CuttingPlanSlice<V>>>()
 
     val templates: List<List<CuttingPlanSlice<V>>> get() = recordedTemplates
 
+/**
+ * record.
+ * record。
+ * @param slices the list of cutting plan slices to record as a template / 要记录为模板的切割方案切片列表
+*/
     fun record(slices: List<CuttingPlanSlice<V>>) {
         recordedTemplates.add(ArrayList(slices))
     }

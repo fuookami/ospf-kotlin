@@ -1,7 +1,7 @@
 /**
  * Volume minimization objective.
  * 体积最小化目标。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.framework.model.CGPipeline
  * @property assignment 不精确赋值 / imprecise assignment
  * @property coefficient 体积系数 / volume coefficient
  * @property name 管道名称 / pipeline name
- */
+*/
 open class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<FltX, T>,
         T : Cuboid<T, FltX>
@@ -31,13 +31,14 @@ open class VolumeMinimization<
     private val coefficient: FltX,
     override val name: String = "volume_minimization",
 ) : CGPipeline<Args, AbstractLinearMetaModel<FltX>, AbstractBPP3DShadowPriceMap<Args, FltX, T>> {
+
     /**
      * Add objective to model.
      * 将目标添加到模型。
      *
      * @param model 线性元模型 / linear meta model
      * @return 操作结果 / operation result
-     */
+    */
     override fun invoke(model: AbstractLinearMetaModel<FltX>): Try {
         when (val result = model.minimize(
             monomial = LinearMonomial(coefficient, assignment.volume),
@@ -66,7 +67,7 @@ open class VolumeMinimization<
  * @param coefficient 体积系数 / volume coefficient
  * @param name 管道名称 / pipeline name
  * @return Item 专用体积最小化目标 / item-only volume minimization objective
- */
+*/
 fun itemVolumeMinimization(
     assignment: ImpreciseAssignment,
     coefficient: FltX,
@@ -86,7 +87,7 @@ fun itemVolumeMinimization(
  * @property assignment 不精确赋值 / imprecise assignment
  * @property coefficient 体积系数 / volume coefficient
  * @property name 管道名称 / pipeline name
- */
+*/
 class ItemVolumeMinimization(
     private val assignment: ImpreciseAssignment,
     private val coefficient: FltX,

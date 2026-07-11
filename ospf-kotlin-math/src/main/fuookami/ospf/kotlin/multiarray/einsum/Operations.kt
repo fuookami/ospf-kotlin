@@ -4,7 +4,7 @@
  *
  * 提供矩阵乘法、点积、迹等常见运算的便捷函数。
  * Provides convenience functions for common operations like matrix multiplication, dot product, and trace.
- */
+*/
 package fuookami.ospf.kotlin.multiarray.einsum
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  *
  * @param error einsum 错误 / Einsum error
  * @return 失败的 Ret 结果 / Failed Ret result
- */
+*/
 @PublishedApi
 internal fun <T> einsumFailed(error: EinsumError): Ret<T> {
     return Failed(ErrorCode.IllegalArgument, error.message)
@@ -33,7 +33,7 @@ internal fun <T> einsumFailed(error: EinsumError): Ret<T> {
  *
  * @param message 错误描述 / Error description
  * @return 失败的 Ret 结果 / Failed Ret result
- */
+*/
 @PublishedApi
 internal fun <T> einsumFailed(message: String): Ret<T> {
     return Failed(ErrorCode.IllegalArgument, message)
@@ -82,7 +82,7 @@ internal inline fun <reified T : Ring<T>> defaultZero(): Ret<T> {
  * @param b 右矩阵，形状 [k, n]
  * @param zero 零值（用于初始化）
  * @return 结果矩阵，形状[m, n] / Result matrix with shape [m, n]
- */
+*/
 fun <T : Ring<T>> matmul(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
@@ -152,7 +152,7 @@ fun <T : Ring<T>> matmul(
  * @param a 左矩阌
  * @param b 右矩阌
  * @return 结果矩阵
- */
+*/
 inline fun <reified T : Ring<T>> matmul(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
@@ -195,7 +195,7 @@ inline fun <reified T : Ring<T>> matmul(
  * @param b 第二个向量
  * @param zero 零值
  * @return 点积结果（标量）/ Dot product result
- */
+*/
 fun <T : Ring<T>> dot(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
@@ -237,7 +237,7 @@ fun <T : Ring<T>> dot(
 /**
  * 点积（使用默认零值）
  * Dot product (using default zero)
- */
+*/
 inline fun <reified T : Ring<T>> dot(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
@@ -280,7 +280,7 @@ inline fun <reified T : Ring<T>> dot(
  * @param a 方阵
  * @param zero 零值
  * @return 迹（标量）/ Trace scalar
- */
+*/
 fun <T : Ring<T>> trace(
     a: AbstractMultiArray<T, *>,
     zero: T
@@ -308,7 +308,7 @@ fun <T : Ring<T>> trace(
 /**
  * 迹（使用默认零值）
  * Trace (using default zero)
- */
+*/
 inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): Ret<T> {
     return when (val zero = defaultZero<T>()) {
         is Ok -> trace(a, zero.value)
@@ -349,7 +349,7 @@ inline fun <reified T : Ring<T>> trace(a: AbstractMultiArray<T, *>): Ret<T> {
  * @param b 第二个向量
  * @param zero 零值
  * @return 外积矩阵 / Outer product matrix
- */
+*/
 fun <T : Ring<T>> outer(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>,
@@ -392,7 +392,7 @@ fun <T : Ring<T>> outer(
 /**
  * 外积（使用默认零值）
  * Outer product (using default zero)
- */
+*/
 inline fun <reified T : Ring<T>> outer(
     a: AbstractMultiArray<T, *>,
     b: AbstractMultiArray<T, *>
@@ -434,7 +434,7 @@ inline fun <reified T : Ring<T>> outer(
  *
  * @param a 输入矩阵
  * @return 转置矩阵 / Transposed matrix
- */
+*/
 fun <T : Any> transpose(a: AbstractMultiArray<T, *>): Ret<MultiArray<T, DynShape>> {
     val shape = IntArray(a.shape.dimension) { a.shape[it] }
 
@@ -495,7 +495,7 @@ fun <T : Any> transpose(a: AbstractMultiArray<T, *>): Ret<MultiArray<T, DynShape
  * @param axisB 第二个张量的缩并轴
  * @param zero 零值
  * @return 缩并结果 / Contraction result
- */
+*/
 fun <T : Ring<T>> contract(
     a: AbstractMultiArray<T, *>,
     axisA: Int,
@@ -608,7 +608,7 @@ fun <T : Ring<T>> contract(
 /**
  * 缩并（使用默认零值）
  * Contract (using default zero)
- */
+*/
 inline fun <reified T : Ring<T>> contract(
     a: AbstractMultiArray<T, *>,
     axisA: Int,
@@ -633,7 +633,7 @@ inline fun <reified T : Ring<T>> contract(
  * @param linear 线性索引
  * @param shape 形状列表
  * @return 坐标列表
- */
+*/
 internal fun linearToCoords(linear: Int, shape: List<Int>): List<Int> {
     val ndim = shape.size
     if (ndim == 0) return emptyList()
@@ -661,7 +661,7 @@ internal fun linearToCoords(linear: Int, shape: List<Int>): List<Int> {
  * @param coords 坐标列表
  * @param shape 形状列表
  * @return 线性索引
- */
+*/
 internal fun coordsToLinear(coords: List<Int>, shape: List<Int>): Int {
     if (coords.isEmpty() || shape.isEmpty()) return 0
 
@@ -689,7 +689,7 @@ internal fun coordsToLinear(coords: List<Int>, shape: List<Int>): Int {
  *
  * @param shape 形状数组
  * @return stride 数组
- */
+*/
 internal fun computeStrides(shape: IntArray): IntArray {
     val strides = IntArray(shape.size)
     var stride = 1

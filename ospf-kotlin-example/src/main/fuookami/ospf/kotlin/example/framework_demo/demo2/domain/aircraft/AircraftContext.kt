@@ -5,18 +5,19 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 
 /**
- * 管理飞机域数据的上下文，从输入初始化聚合并导出装载顺序。
  * Context for managing aircraft domain data, initializing aggregation from input and exporting loading orders.
- */
+ * 管理飞机域数据的上下文，从输入初始化聚合并导出装载顺序。
+*/
 class AircraftContext {
     lateinit var aggregation: Aggregation
 
     /**
-     * 使用输入数据初始化聚合。
      * Initialize aggregation with input data.
-     * @param input 请求输入数据 / Request input data
-     * @return 操作结果 / Result of the operation
-     */
+     * 使用输入数据初始化聚合。
+     *
+     * @param input The request input data. / 请求输入数据
+     * @return The result of the operation. / 操作结果
+    */
     fun init(
         input: RequestDTO
     ): Try {
@@ -38,11 +39,12 @@ class AircraftContext {
     }
 
     /**
-     * 导出装载顺序。
      * Export loading orders.
-     * @param input 请求输入数据 / Request input data
-     * @return 装载顺序响应 / Loading order response
-     */
+     * 导出装载顺序。
+     *
+     * @param input The request input data. / 请求输入数据
+     * @return The loading order response. / 装载顺序响应
+    */
     fun exportLoadingOrders(
         input: RequestDTO
     ): Ret<LoadingOrderResponseDTO> {

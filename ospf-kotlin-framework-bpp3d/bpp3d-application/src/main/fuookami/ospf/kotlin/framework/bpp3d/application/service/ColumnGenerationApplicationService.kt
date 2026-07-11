@@ -1,7 +1,7 @@
 /**
  * 列生成应用服务。
  * Column generation application service.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 /**
  * 物料装箱混合需求策略。
  * Material packing mixed demand policy.
- */
+*/
 enum class MaterialPackingMixedDemandPolicy {
     /** 拒绝混合需求 / reject mixed demands */
     Reject,
@@ -36,7 +36,7 @@ enum class MaterialPackingMixedDemandPolicy {
  *
  * @param quantity 量纲值 / quantity value
  * @return FltX 量纲值 / FltX quantity value
- */
+*/
 private fun <T : FloatingNumber<T>> toFltXQuantity(
     quantity: Quantity<T>
 ): Quantity<FltX> {
@@ -66,7 +66,7 @@ private fun <T : FloatingNumber<T>> toFltXQuantity(
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 列生成应用请求 / column generation application request
- */
+*/
 fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
     itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
     materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
@@ -142,7 +142,7 @@ fun <T : FloatingNumber<T>> columnGenerationApplicationRequestFromQuantity(
  * @property cgConfig 列生成配置 / column generation config
  * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @property executorConfig 执行器配置 / executor config
- */
+*/
 data class ColumnGenerationApplicationRequest(
     val itemDemands: List<Pair<Item, UInt64>>,
     val materialAmountDemands: List<Pair<Material<FltX>, UInt64>> = emptyList(),
@@ -181,7 +181,7 @@ data class ColumnGenerationApplicationRequest(
  * @property cgConfig 列生成配置 / column generation config
  * @property depthBoundaryLayerOrientationPolicy 深度边界层轴向/朝向策略 / depth boundary layer axis/orientation policy
  * @property executorConfig 执行器配置 / executor config
- */
+*/
 data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
     val itemDemands: List<Pair<QuantityItem<T>, UInt64>>,
     val materialAmountDemands: List<Pair<QuantityMaterial<T>, UInt64>> = emptyList(),
@@ -208,7 +208,7 @@ data class ColumnGenerationQuantityApplicationRequest<T : FloatingNumber<T>>(
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 模型应用请求 / model application request
- */
+*/
 fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toModelRequest(
     materialCache: MutableMap<QuantityMaterial<T>, Material<FltX>> = LinkedHashMap(),
     itemCache: MutableMap<QuantityItem<T>, ActualItem> = LinkedHashMap()
@@ -241,7 +241,7 @@ fun <T : FloatingNumber<T>> ColumnGenerationQuantityApplicationRequest<T>.toMode
  * @property result 列生成结果 / column generation result
  * @property packingSnapshot 装箱快照（可选） / packing snapshot (optional)
  * @property materialPackingPlan 物料装箱计划（可选） / material packing plan (optional)
- */
+*/
 data class ColumnGenerationApplicationResponse(
     val result: ColumnGenerationResult<FltX>,
     val packingSnapshot: ColumnGenerationPackingSnapshot?,
@@ -254,7 +254,7 @@ data class ColumnGenerationApplicationResponse(
  *
  * @property solver 列生成求解器 / column generation solver
  * @property materialPackingSolverExecutor 物料装箱求解器执行器 / material packing solver executor
- */
+*/
 class ColumnGenerationApplicationService(
     private val solver: ColumnGenerationSolver,
     private val materialPackingSolverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
@@ -265,7 +265,7 @@ class ColumnGenerationApplicationService(
          * Get default layer generator list.
          *
          * @return 层生成器列表 / layer generator list
-         */
+        */
         fun defaultLayerGenerators(): List<Bpp3dLayerGenerator<FltX>> {
             return listOf(
                 BlockLayerGenerator(),
@@ -287,7 +287,7 @@ class ColumnGenerationApplicationService(
      * @param packingAnalyzer 装箱分析器（可选） / packing analyzer (optional)
      * @param solutionAnalyzer 解分析器（可选） / solution analyzer (optional)
      * @return 应用响应 / application response
-     */
+    */
     suspend fun solve(
         request: ColumnGenerationApplicationRequest,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
@@ -412,7 +412,7 @@ class ColumnGenerationApplicationService(
      * @param packingAnalyzer 装箱分析器（可选） / packing analyzer (optional)
      * @param solutionAnalyzer 解分析器（可选） / solution analyzer (optional)
      * @return 应用响应 / application response
-     */
+    */
     suspend fun <T : FloatingNumber<T>> solve(
         request: ColumnGenerationQuantityApplicationRequest<T>,
         packingAnalyzer: ColumnGenerationPackingAnalyzer? = null,
@@ -432,7 +432,7 @@ class ColumnGenerationApplicationService(
      * @param base 基础货物需求列表 / base item demand list
      * @param extra 额外货物需求列表 / extra item demand list
      * @return 合并后的货物需求列表 / merged item demand list
-     */
+    */
     private fun mergeItemDemands(
         base: List<Pair<Item, UInt64>>,
         extra: List<Pair<Item, UInt64>>
@@ -453,7 +453,7 @@ class ColumnGenerationApplicationService(
      *
      * @param request 列生成应用请求 / column generation application request
      * @return 物料键到物料的映射 / mapping from material key to material
-     */
+    */
     private fun buildProgramMaterialCatalog(
         request: ColumnGenerationApplicationRequest
     ): Map<MaterialKey, Material<FltX>> {
@@ -476,7 +476,7 @@ class ColumnGenerationApplicationService(
      *
      * @param request 列生成应用请求 / column generation application request
      * @return 合并后的执行器配置 / resolved executor config
-     */
+    */
     private fun resolveExecutorConfig(
         request: ColumnGenerationApplicationRequest
     ): ColumnGenerationStandardExecutorConfig {

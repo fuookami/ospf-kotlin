@@ -31,14 +31,15 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Production optimization: maximize profit with material and production difference constraints.
  *
  * @see     https://fuookami.github.io/ospf/examples/example4.html
- */
+*/
 data object Demo4 {
+
     /**
      * 具有可用数量的物料。
      * A material with an available quantity.
      *
      * @property available 可用数量。
-     */
+    */
     data class Material(val available: Flt64) : AutoIndexed(Material::class)
 
     /**
@@ -48,7 +49,7 @@ data object Demo4 {
      * @property profit 利润。
      * @property maxYield 最大产量。
      * @property use 物料使用。
-     */
+    */
     data class Product(
         val profit: Flt64,
         val maxYield: Flt64,
@@ -95,7 +96,7 @@ data object Demo4 {
      * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -117,7 +118,7 @@ data object Demo4 {
      * 初始化产品数量的实值决策变量。/ Initializes real-valued decision variables for product quantities.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = RealVariable1("x", Shape1(products.size))
         for (p in products) {
@@ -131,7 +132,7 @@ data object Demo4 {
      * 创建利润和物料使用表达式符号。/ Creates profit and material usage expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         profit = LinearExpressionSymbol(
             sum(products) { p -> p.profit * x[p] },
@@ -155,7 +156,7 @@ data object Demo4 {
      * 设置目标函数以最大化利润。/ Sets the objective to maximize profit.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.maximize(profit, "profit")
         return ok
@@ -165,7 +166,7 @@ data object Demo4 {
      * 添加物料可用性和生产差异约束。/ Adds material availability and production difference constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (p in products) {
             x[p].range.ls(p.maxYield)
@@ -191,7 +192,7 @@ data object Demo4 {
      * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -214,7 +215,7 @@ data object Demo4 {
      * 从解中提取产品数量。/ Extracts the product quantities from the solution.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val ret = HashMap<Material, Flt64>()
         for (token in metaModel.tokens.tokens) {

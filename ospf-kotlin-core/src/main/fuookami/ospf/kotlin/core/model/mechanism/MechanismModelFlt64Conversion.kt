@@ -1,7 +1,7 @@
 /**
  * 机制模型 Flt64 转换
  * Mechanism model Flt64 conversion
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param model 目标线性机制模型 / target linear mechanism model
  * @return 注册结果 / registration result
- */
+*/
 internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsLinearStar(this, model)
 }
@@ -36,7 +36,7 @@ internal fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: Abstr
  *
  * @param model 目标二次机制模型 / target quadratic mechanism model
  * @return 注册结果 / registration result
- */
+*/
 internal fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractQuadraticMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
@@ -288,7 +288,7 @@ internal fun <V> toFlt64FixedVariables(
  *
  * 转换前会验证模型是具体机制模型子类，未知类型返回 Failed。
  * Validates concrete mechanism-model subclasses and returns Failed for unexpected types.
- */
+*/
 internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {

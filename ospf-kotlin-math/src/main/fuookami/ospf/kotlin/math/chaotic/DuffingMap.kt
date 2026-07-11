@@ -9,7 +9,7 @@
  * The Duffing map is a two-dimensional chaotic map derived from the discretization of the Duffing oscillator.
  * This map exhibits complex chaotic dynamical behavior, closely related to the Duffing equation.
  * Commonly used for nonlinear dynamics research and chaos synchronization studies.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property a 系统参数 a / System parameter a
  * @property b 系统参数 b / System parameter b
- */
+*/
 data class DuffingMap<V : FloatingNumber<V>>(
     val a: V,
     val b: V
@@ -53,7 +53,7 @@ data class DuffingMap<V : FloatingNumber<V>>(
 /**
  * 达芬映射生成器
  * Duffing Map Generator
- */
+*/
 data class DuffingMapGenerator(
     val duffingMap: DuffingMap<Flt64> = DuffingMap(),
     private var _x: Point<Dim2, Flt64> = point2(

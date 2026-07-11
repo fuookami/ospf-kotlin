@@ -20,7 +20,7 @@ import kotlinx.serialization.KSerializer
  *   - [DiscreteDurationSerializer]: Discrete time unit serializer using Long type
  * - [ContinuousDurationSerializer]: 连续时间单位序列化器，使用 Double 类型
  *   - [ContinuousDurationSerializer]: Continuous time unit serializer using Double type
- */
+*/
 
 /**
  * Duration 序列化器
@@ -28,7 +28,7 @@ import kotlinx.serialization.KSerializer
  * 用于将 Duration 序列化为 ISO 8601 持续时间格式的字符串（如 "PT1H30M"、"PT0.5S"）。
  *
  * Serializes Duration to ISO 8601 duration format string (e.g. "PT1H30M", "PT0.5S").
- */
+*/
 data object DurationSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Duration", PrimitiveKind.STRING)
 
@@ -64,15 +64,16 @@ data object DurationSerializer : KSerializer<Duration> {
  * ```
  *
  * @property unit 时间单位 / Time unit
- */
+*/
 open class DiscreteDurationSerializer(val unit: DurationUnit) : KSerializer<Duration> {
+
     /**
      * 序列化描述符
      *
      * Serialization descriptor.
      * 描述序列化的原始类型为 LONG。
      * Describes the serialization primitive type as LONG.
-     */
+    */
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Discrete kotlin.time.Duration", PrimitiveKind.LONG)
 
@@ -84,7 +85,7 @@ open class DiscreteDurationSerializer(val unit: DurationUnit) : KSerializer<Dura
      *
      * @param decoder 解码器 / Decoder
      * @return 反序列化的 Duration / Deserialized Duration
-     */
+    */
     override fun deserialize(decoder: Decoder): Duration {
         return decoder.decodeLong().toDuration(unit)
     }
@@ -97,7 +98,7 @@ open class DiscreteDurationSerializer(val unit: DurationUnit) : KSerializer<Dura
      *
      * @param encoder 编码器 / Encoder
      * @param value 要序列化的 Duration / Duration to serialize
-     */
+    */
     override fun serialize(encoder: Encoder, value: Duration) {
         encoder.encodeLong(value.toLong(unit))
     }
@@ -126,15 +127,16 @@ open class DiscreteDurationSerializer(val unit: DurationUnit) : KSerializer<Dura
  * ```
  *
  * @property unit 时间单位 / Time unit
- */
+*/
 open class ContinuousDurationSerializer(val unit: DurationUnit) : KSerializer<Duration> {
+
     /**
      * 序列化描述符
      *
      * Serialization descriptor.
      * 描述序列化的原始类型为 DOUBLE。
      * Describes the serialization primitive type as DOUBLE.
-     */
+    */
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("Discrete kotlin.time.Duration", PrimitiveKind.DOUBLE)
 
@@ -146,7 +148,7 @@ open class ContinuousDurationSerializer(val unit: DurationUnit) : KSerializer<Du
      *
      * @param decoder 解码器 / Decoder
      * @return 反序列化的 Duration / Deserialized Duration
-     */
+    */
     override fun deserialize(decoder: Decoder): Duration {
         return decoder.decodeDouble().toDuration(unit)
     }
@@ -159,7 +161,7 @@ open class ContinuousDurationSerializer(val unit: DurationUnit) : KSerializer<Du
      *
      * @param encoder 编码器 / Encoder
      * @param value 要序列化的 Duration / Duration to serialize
-     */
+    */
     override fun serialize(encoder: Encoder, value: Duration) {
         encoder.encodeDouble(value.toDouble(unit))
     }

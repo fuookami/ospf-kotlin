@@ -3,7 +3,7 @@
  *
  * 本文件定义 ProductionAction 与产出消耗之间的关系接口，以及相关扩展函数。
  * This file defines the interface between ProductionAction and produce/consumption, along with related extension functions.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -18,22 +18,23 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  *
  * 此接口定义生产动作与产品产量、原料消耗之间的关系。
  * This interface defines the relationship between production actions and product output/material consumption.
- */
+*/
 interface CapacityActionProduce<
         P : AbstractMaterial,
         C : AbstractMaterial,
         V : RealNumber<V>
         > {
+
     /**
      * 生产动作对应的产品产量（单位操作时间的产量）
      * Product produce per unit operation time
-     */
+    */
     val produce: Map<P, V>
 
     /**
      * 生产动作对应的原料消耗（单位操作时间的消耗）
      * Material consumption per unit operation time
-     */
+    */
     val consumption: Map<C, V>
 }
 
@@ -43,7 +44,7 @@ interface CapacityActionProduce<
  *
  * Reads the unit-produce map from a production action for product-side lookup.
  * Production action material types are bound by the corresponding column/produce construction path.
- */
+*/
 @Suppress("UNCHECKED_CAST")
 fun <P : AbstractMaterial, V : RealNumber<V>> unitProduceMapOf(
     action: ProductionAction
@@ -58,7 +59,7 @@ fun <P : AbstractMaterial, V : RealNumber<V>> unitProduceMapOf(
  *
  * Reads the unit-consumption map from a production action for material-side lookup.
  * Production action material types are bound by the corresponding column/produce construction path.
- */
+*/
 @Suppress("UNCHECKED_CAST")
 fun <C : AbstractMaterial, V : RealNumber<V>> unitConsumptionMapOf(
     action: ProductionAction
@@ -74,7 +75,7 @@ fun <C : AbstractMaterial, V : RealNumber<V>> unitConsumptionMapOf(
  * @param product 产品 / Product
  * @param amountValue 分配数量到领域数值的转换 / Allocation amount to domain value converter
  * @return 产量 / Produce amount
- */
+*/
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial, V : RealNumber<V>>
         CapacityColumn<E, A, V>.produce(
     product: P,
@@ -95,7 +96,7 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial, V : RealNumber<V>
  * @param material 原料 / Material
  * @param amountValue 分配数量到领域数值的转换 / Allocation amount to domain value converter
  * @return 消耗量 / Consumption amount
- */
+*/
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>>
         CapacityColumn<E, A, V>.consumption(
     material: C,
@@ -115,7 +116,7 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial, V : RealNumber<V>
  *
  * @param product 产品 / Product
  * @return 产量 / Produce amount
- */
+*/
 fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.produce(product: P): Flt64 {
     return produce(product) { it.toSolverFlt64() }
@@ -127,7 +128,7 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
  *
  * @param material 原料 / Material
  * @return 消耗量 / Consumption amount
- */
+*/
 fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
         CapacityColumn<E, A, Flt64>.consumption(material: C): Flt64 {
     return consumption(material) { it.toSolverFlt64() }

@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 粒子群启发式求解器 / Particle swarm heuristic solver */
 package fuookami.ospf.kotlin.core.solver.heuristic
 
@@ -14,7 +15,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 /**
  * 启发式求解状态枚举。
  * Heuristic solution status enum.
- */
+*/
 enum class HeuristicSolutionStatus {
     /** 可行 / Feasible */
     Feasible,
@@ -32,7 +33,7 @@ enum class HeuristicSolutionStatus {
  * @property bestObjective 最优目标值（可选）/ Best objective value (optional)
  * @property status 求解状态 / Solution status
  * @property iteration 迭代信息 / Iteration info
- */
+*/
 data class HeuristicResult<ObjValue, V>(
     val bestSolution: Solution<V>?,
     val bestObjective: ObjValue?,
@@ -47,7 +48,7 @@ data class HeuristicResult<ObjValue, V>(
  * @property iterationLimit 最大迭代次数 / Maximum iteration count
  * @property notBetterIterationLimit 最大无改进迭代次数 / Maximum no-improvement iteration count
  * @property timeLimit 时间限制 / Time limit
- */
+*/
 class BasicHeuristicPolicy(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
@@ -69,7 +70,7 @@ class BasicHeuristicPolicy(
  * @property velocity 速度 / Velocity
  * @property bestPosition 历史最优位置 / Historical best position
  * @property bestFitness 历史最优适应度 / Historical best fitness
- */
+*/
 data class Particle<ObjValue, V>(
     val fitness: ObjValue,
     val solution: Solution<V>,
@@ -94,7 +95,7 @@ data class Particle<ObjValue, V>(
  * @property randomGenerator 随机数生成器 / Random number generator
  * @property initialVelocityGenerator 初始速度生成器 / Initial velocity generator
  * @property converter 值转换器 / Value converter
- */
+*/
 class ParticleSwarmHeuristicSolver<ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100),
     val solutionAmount: UInt64 = UInt64.one,
@@ -115,7 +116,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      *
      * @param randomGenerator 新的随机数生成器 / New random number generator
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
-     */
+    */
     fun withRandomGenerator(randomGenerator: Generator<Flt64>): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
@@ -137,7 +138,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      *
      * @param initialVelocityGenerator 新的初始速度生成器 / New initial velocity generator
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
-     */
+    */
     fun withInitialVelocityGenerator(
         initialVelocityGenerator: (index: Int) -> Flt64
     ): ParticleSwarmHeuristicSolver<ObjValue, V> {
@@ -161,7 +162,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      *
      * @param enabled 是否启用 / Whether to enable
      * @return 新的粒子群求解器实例 / New particle swarm solver instance
-     */
+    */
     fun withSolveOnObjectiveMiss(enabled: Boolean): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
@@ -182,7 +183,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * Generate random number.
      *
      * @return 随机浮点值 / Random float value
-     */
+    */
     private fun random(): Flt64 = randomGenerator() ?: Flt64.zero
 
     /**
@@ -191,7 +192,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      *
      * @param value 待限制的速度值 / The velocity value to clamp
      * @return 限制后的速度值 / The clamped velocity value
-     */
+    */
     private fun clampVelocity(value: Flt64): Flt64 {
         return if (value gr maxVelocity) {
             maxVelocity
@@ -208,7 +209,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      *
      * @param particle 待转换的粒子 / The particle to convert
      * @return 包含适应度的解 / Solution with fitness
-     */
+    */
     private fun toIndividual(particle: Particle<ObjValue, V>): SolutionWithFitness<ObjValue, V> {
         return SolutionWithFitness(
             solution = particle.solution,
@@ -223,7 +224,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param model    回调模型接口 / Callback model interface
      * @param solution 待评估的解 / The solution to evaluate
      * @return 适应度值，如果解不可行则返回 null / Fitness value, or null if the solution is infeasible
-     */
+    */
     private fun evaluateFitness(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
@@ -245,7 +246,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param model    回调模型接口 / Callback model interface
      * @param solution 解 / The solution
      * @return 粒子对象，如果无法构建则返回 null / Particle object, or null if it cannot be built
-     */
+    */
     private fun buildParticle(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
@@ -266,7 +267,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param lhs   左值 / Left-hand value
      * @param rhs   右值 / Right-hand value
      * @return 如果 lhs 优于 rhs 则为 true / true if lhs is better than rhs
-     */
+    */
     private fun better(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         lhs: ObjValue,
@@ -282,7 +283,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param model     回调模型接口 / Callback model interface
      * @param particles 待排序的粒子列表 / The list of particles to sort
      * @return 排序后的粒子列表 / The sorted list of particles
-     */
+    */
     private fun sortedParticles(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         particles: List<Particle<ObjValue, V>>
@@ -306,7 +307,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param model        回调模型接口 / Callback model interface
      * @param policy       启发式策略 / Heuristic policy
      * @return 更新后的新粒子 / The updated new particle
-     */
+    */
     private fun accelerate(
         iteration: Iteration,
         particle: Particle<ObjValue, V>,
@@ -368,7 +369,7 @@ class ParticleSwarmHeuristicSolver<ObjValue, V>(
      * @param model 回调模型接口 / Callback model interface
      * @param policy 启发式策略 / Heuristic policy
      * @return 求解结果 / Solve result
-     */
+    */
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<*, ObjValue, V>,
         policy: AbstractHeuristicPolicy = BasicHeuristicPolicy()

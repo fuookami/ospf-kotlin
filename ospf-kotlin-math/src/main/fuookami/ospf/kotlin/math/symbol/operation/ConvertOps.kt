@@ -7,7 +7,7 @@
  * Provides core implementation for monomial and polynomial type conversions.
  * Includes promotion conversions (linear to quadratic to canonical)
  * and demotion conversions (canonical to quadratic to linear).
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.*
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * Convert a linear monomial to a quadratic monomial.
  *
  * @return 对应的二次单项式 / Corresponding quadratic monomial
- */
+*/
 fun <T> LinearMonomial<T>.toQuadraticMonomial(): QuadraticMonomial<T> where T : Ring<T> {
     return QuadraticMonomial(
         coefficient = coefficient,
@@ -40,7 +40,7 @@ fun <T> LinearMonomial<T>.toQuadraticMonomial(): QuadraticMonomial<T> where T : 
  * Convert a linear monomial to a canonical monomial.
  *
  * @return 对应的规范单项式 / Corresponding canonical monomial
- */
+*/
 fun <T> LinearMonomial<T>.toCanonicalMonomial(): CanonicalMonomial<T> where T : Ring<T> {
     return CanonicalMonomial(
         coefficient = coefficient,
@@ -53,7 +53,7 @@ fun <T> LinearMonomial<T>.toCanonicalMonomial(): CanonicalMonomial<T> where T : 
  * Convert a quadratic monomial to a linear monomial if possible.
  *
  * @return 线性单项式，若为真正的二次项则返回 null / Linear monomial, or null if truly quadratic
- */
+*/
 fun <T> QuadraticMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where T : Ring<T> {
     if (isQuadratic) {
         return null
@@ -70,7 +70,7 @@ fun <T> QuadraticMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where 
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 对应的规范单项式 / Corresponding canonical monomial
- */
+*/
 fun <T> QuadraticMonomial<T>.toCanonicalMonomial(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalMonomial<T> where T : Ring<T> {
@@ -92,7 +92,7 @@ fun <T> QuadraticMonomial<T>.toCanonicalMonomial(
  * Convert a canonical monomial to a linear monomial if possible.
  *
  * @return 线性单项式，若次数不为 1 则返回 null / Linear monomial, or null if degree is not 1
- */
+*/
 fun <T> CanonicalMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where T : Ring<T> {
     if (degree != 1) {
         return null
@@ -110,7 +110,7 @@ fun <T> CanonicalMonomial<T>.toLinearMonomialOrNull(): LinearMonomial<T>? where 
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 二次单项式，若次数超过 2 则返回 null / Quadratic monomial, or null if degree exceeds 2
- */
+*/
 fun <T> CanonicalMonomial<T>.toQuadraticMonomialOrNull(
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticMonomial<T>? where T : Ring<T> {
@@ -150,7 +150,7 @@ fun <T> CanonicalMonomial<T>.toQuadraticMonomialOrNull(
  *
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 对应的规范多项式 / Corresponding canonical polynomial
- */
+*/
 fun <T> QuadraticPolynomial<T>.toCanonicalPolynomial(
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<T> where T : Ring<T> {
@@ -167,7 +167,7 @@ fun <T> QuadraticPolynomial<T>.toCanonicalPolynomial(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 线性多项式，若含有高于一次的项则返回 null / Linear polynomial, or null if higher-degree terms exist
- */
+*/
 fun <T> CanonicalPolynomial<T>.toLinearPolynomialOrNull(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
@@ -207,7 +207,7 @@ fun <T> CanonicalPolynomial<T>.toLinearPolynomialOrNull(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 二次多项式，若含有高于二次的项则返回 null / Quadratic polynomial, or null if higher-degree terms exist
- */
+*/
 fun <T> CanonicalPolynomial<T>.toQuadraticPolynomialOrNull(
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
@@ -248,7 +248,7 @@ fun <T> CanonicalPolynomial<T>.toQuadraticPolynomialOrNull(
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 相减后的线性多项式 / Resulting linear polynomial after subtraction
- */
+*/
 fun <T> LinearPolynomial<T>.subtractLinear(
     rhs: LinearPolynomial<T>,
     zero: T,
@@ -274,7 +274,7 @@ fun <T> LinearPolynomial<T>.subtractLinear(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 相减后的规范多项式 / Resulting canonical polynomial after subtraction
- */
+*/
 fun <T> CanonicalPolynomial<T>.subtractCanonical(
     rhs: CanonicalPolynomial<T>,
     zero: T,

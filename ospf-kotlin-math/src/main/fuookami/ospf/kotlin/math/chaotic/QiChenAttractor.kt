@@ -1,7 +1,7 @@
 /**
  * Qi-Chen 吸引子
  * Qi-Chen Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property beta 系统参数 beta / System parameter beta
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class QiChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val zeta: V, val h: V) :
     Extractor<Point<Dim3, V>, Point<Dim3, V>> {
     override operator fun invoke(p: Point<Dim3, V>): Point<Dim3, V> {
@@ -48,7 +48,7 @@ data class QiChenAttractor<V : FloatingNumber<V>>(val alpha: V, val beta: V, val
  *
  * @property attractor the Qi-Chen attractor instance / Qi-Chen 吸引子实例
  * @property _x the internal state variable for iteration / 迭代用的内部状态变量
- */
+*/
 data class QiChenAttractorGenerator(
     val attractor: QiChenAttractor<Flt64> = QiChenAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

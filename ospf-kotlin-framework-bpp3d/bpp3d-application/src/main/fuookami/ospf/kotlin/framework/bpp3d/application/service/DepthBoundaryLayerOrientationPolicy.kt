@@ -1,7 +1,7 @@
 /**
  * 深度边界层方向策略。
  * Depth boundary layer orientation policy.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -19,13 +19,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
  * @property lastLayerAllowedCylinderAxes depth 方向最后一个 layer 允许的圆柱轴向 / allowed cylinder axes on the last depth layer
  * @property firstLayerAllowedCuboidOrientations depth 方向第一个 layer 允许的长方体朝向 / allowed cuboid orientations on the first depth layer
  * @property lastLayerAllowedCuboidOrientations depth 方向最后一个 layer 允许的长方体朝向 / allowed cuboid orientations on the last depth layer
- */
+*/
 data class DepthBoundaryLayerOrientationPolicy(
     val firstLayerAllowedCylinderAxes: Set<Axis3>? = null,
     val lastLayerAllowedCylinderAxes: Set<Axis3>? = null,
     val firstLayerAllowedCuboidOrientations: Set<Orientation>? = null,
     val lastLayerAllowedCuboidOrientations: Set<Orientation>? = null
 ) {
+
     /** 是否启用深度边界层方向约束 / Whether depth boundary layer orientation constraints are enabled */
     val enabled: Boolean
         get() = firstLayerAllowedCylinderAxes != null
@@ -58,7 +59,7 @@ data class DepthBoundaryLayerOrientationPolicy(
      *
      * @param bins 待校验的容器列表 / list of bins to validate
      * @return 校验结果 / validation result
-     */
+    */
     internal fun ensureSatisfied(bins: List<Bin<BinLayer, FltX>>): Try {
         if (!enabled) {
             return ok
@@ -98,7 +99,7 @@ data class DepthBoundaryLayerOrientationPolicy(
      * @param side 边界层侧别 / boundary layer side
      * @param placement 层放置信息 / layer placement info
      * @return 校验结果 / validation result
-     */
+    */
     private fun ensureBoundaryLayerSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
@@ -143,7 +144,7 @@ data class DepthBoundaryLayerOrientationPolicy(
      * @param allowedCylinderAxes 允许的圆柱轴向集合 / allowed cylinder axes set
      * @param allowedCuboidOrientations 允许的长方体朝向集合 / allowed cuboid orientations set
      * @return 校验结果 / validation result
-     */
+    */
     private fun ensureBoundaryUnitSatisfied(
         binIndex: Int,
         side: DepthBoundaryLayerSide,
@@ -181,7 +182,7 @@ data class DepthBoundaryLayerOrientationPolicy(
      * Get a description string for the boundary unit, preferring the actual item ID.
      *
      * @return 边界单元的描述字符串 / description string of the boundary unit
-     */
+    */
     private fun Any.describeBoundaryUnit(): String {
         return (this as? ActualItem)?.id?.toString() ?: toString()
     }
@@ -193,7 +194,7 @@ data class DepthBoundaryLayerOrientationPolicy(
          *
          * @param values 待校验的集合 / the set to validate
          * @param fieldName 字段名称，用于错误信息 / field name used in error message
-         */
+        */
         private fun requireNonEmpty(values: Set<*>?, fieldName: String) {
             require(values == null || values.isNotEmpty()) {
                 "Depth boundary layer orientation policy $fieldName must be null or non-empty."
@@ -204,10 +205,12 @@ data class DepthBoundaryLayerOrientationPolicy(
 
 /** 深度边界层侧别 / Depth boundary layer side
  * @property label 侧别的显示标签 / display label of the side
- */
+*/
 private enum class DepthBoundaryLayerSide(val label: String) {
+
     /** 第一层 / First layer */
     First("first"),
+
     /** 最后一层 / Last layer */
     Last("last")
 }

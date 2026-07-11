@@ -1,7 +1,7 @@
 /**
  * 列生成算法。
  * Column generation algorithm.
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
 import kotlin.time.*
@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
  * @property timeLimit 时间限制 / time limit
  * @property maxColumnsPerIteration 每次迭代最大列数 / max columns per iteration
  * @property finalMilpEnabled 是否启用最终 MILP 求解 / whether to enable final MILP solving
- */
+*/
 data class ColumnGenerationConfig(
     val iterationLimit: Int = 128,
     val timeLimit: Duration = Duration.INFINITE,
@@ -40,7 +40,7 @@ data class ColumnGenerationConfig(
  * @property continuousRadiusSolverPrototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @property continuousRadiusSolverResults 连续半径 solver 选出结果 / continuous-radius solver selected results
  * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
- */
+*/
 data class ColumnGenerationState<V>(
     val iteration: Int,
     val columns: List<BinLayer>,
@@ -58,7 +58,7 @@ data class ColumnGenerationState<V>(
  *
  * @param items 货物列表 / item list
  * @return 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
- */
+*/
 fun continuousRadiusSolverPrototypesFromItems(
     items: List<Item>
 ): List<ContinuousCylinderRadiusSolverPrototype> {
@@ -79,7 +79,7 @@ fun continuousRadiusSolverPrototypesFromItems(
  *
  * @param info 信息映射 / info map
  * @return solver 选出半径映射 / solver-selected radius map
- */
+*/
 fun extractContinuousRadiusSolverResultsFromInfo(
     info: Map<String, String>
 ): Map<String, FltX> {
@@ -102,7 +102,7 @@ fun extractContinuousRadiusSolverResultsFromInfo(
  * @property shadowPrices 影子价格 / shadow prices
  * @property objective 目标值（可选） / objective value (optional)
  * @property info 附加信息 / additional info
- */
+*/
 data class ColumnGenerationLpResult<V>(
     val shadowPrices: Map<DemandModeKey, V>,
     val objective: V? = null,
@@ -119,7 +119,7 @@ data class ColumnGenerationLpResult<V>(
  * @property objective 目标值（可选） / objective value (optional)
  * @property info 附加信息 / additional info
  * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
- */
+*/
 data class ColumnGenerationFinalResult<V>(
     val columns: List<BinLayer>,
     val bins: List<Bin<BinLayer, FltX>> = emptyList(),
@@ -147,7 +147,7 @@ data class ColumnGenerationFinalResult<V>(
  * @property finalInfo 最终求解信息 / final solve info
  * @property continuousRadiusSolverResults 连续半径 solver 选出结果 / continuous-radius solver selected results
  * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
- */
+*/
 data class ColumnGenerationResult<V>(
     val columns: List<BinLayer>,
     val iterationCount: Int,
@@ -170,15 +170,16 @@ data class ColumnGenerationResult<V>(
  * Column generation RMP solver.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 fun interface ColumnGenerationRmpSolver<V> {
+
     /**
      * 求解 RMP。
      * Solve RMP.
      *
      * @param state 列生成状态 / column generation state
      * @return LP 求解结果 / LP solve result
-     */
+    */
     suspend fun solve(state: ColumnGenerationState<V>): Ret<ColumnGenerationLpResult<V>>
 }
 
@@ -187,15 +188,16 @@ fun interface ColumnGenerationRmpSolver<V> {
  * Column generation final MILP solver.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 fun interface ColumnGenerationFinalSolver<V> {
+
     /**
      * 求解最终 MILP。
      * Solve final MILP.
      *
      * @param state 列生成状态 / column generation state
      * @return 最终求解结果 / final solve result
-     */
+    */
     suspend fun solve(state: ColumnGenerationState<V>): Ret<ColumnGenerationFinalResult<V>>
 }
 
@@ -204,15 +206,16 @@ fun interface ColumnGenerationFinalSolver<V> {
  * Column generation solution analyzer.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 fun interface ColumnGenerationSolutionAnalyzer<V> {
+
     /**
      * 分析当前状态。
      * Analyze current state.
      *
      * @param state 列生成状态 / column generation state
      * @return 分析结果 / analysis result
-     */
+    */
     suspend fun analyze(state: ColumnGenerationState<V>): Try
 }
 
@@ -221,14 +224,15 @@ fun interface ColumnGenerationSolutionAnalyzer<V> {
  * Column generation heartbeat callback.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 fun interface ColumnGenerationHeartbeat<V> {
+
     /**
      * 心跳回调。
      * Heartbeat callback.
      *
      * @param state 列生成状态 / column generation state
-     */
+    */
     suspend fun invoke(state: ColumnGenerationState<V>)
 }
 
@@ -237,8 +241,9 @@ fun interface ColumnGenerationHeartbeat<V> {
  * Column generation layer request builder.
  *
  * @param V 数值类型 / numeric type
- */
+*/
 fun interface ColumnGenerationLayerRequestBuilder<V> {
+
     /**
      * 构建层生成请求。
      * Build layer generation request.
@@ -247,7 +252,7 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
      * @param items 货物列表 / item list
      * @param config 列生成配置 / column generation config
      * @return 层生成请求 / layer generation request
-     */
+    */
     suspend fun build(
         state: ColumnGenerationState<V>,
         items: List<Item>,
@@ -275,7 +280,7 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
  * @property solveFinalMilpWithResult 最终 MILP 求解并返回完整结果函数（可选） / final MILP solve with full result function (optional)
  * @property analyzeSolution 解分析函数 / solution analysis function
  * @property onIterationHeartbeat 迭代心跳回调函数 / iteration heartbeat callback function
- */
+*/
 class ColumnGenerationAlgorithm<V>(
     private val layerGenerator: Bpp3dLayerGenerator<V>,
     private val rmpSolver: ColumnGenerationRmpSolver<V>? = null,
@@ -293,6 +298,7 @@ class ColumnGenerationAlgorithm<V>(
     private val analyzeSolution: suspend (ColumnGenerationState<V>) -> Unit = {},
     private val onIterationHeartbeat: suspend (ColumnGenerationState<V>) -> Unit = {}
 ) {
+
     /**
      * 执行列生成求解。
      * Execute column generation solving.
@@ -300,7 +306,7 @@ class ColumnGenerationAlgorithm<V>(
      * @param items 货物列表 / item list
      * @param config 列生成配置 / column generation config
      * @return 列生成结果 / column generation result
-     */
+    */
     suspend fun solve(
         items: List<Item>,
         config: ColumnGenerationConfig = ColumnGenerationConfig()
@@ -470,7 +476,7 @@ class ColumnGenerationAlgorithm<V>(
  * @param materialCache 物料缓存 / material cache
  * @param itemCache 货物缓存 / item cache
  * @return 列生成结果 / column generation result
- */
+*/
 suspend fun <V, T : FloatingNumber<T>> ColumnGenerationAlgorithm<V>.solveQuantity(
     items: List<QuantityItem<T>>,
     config: ColumnGenerationConfig = ColumnGenerationConfig(),

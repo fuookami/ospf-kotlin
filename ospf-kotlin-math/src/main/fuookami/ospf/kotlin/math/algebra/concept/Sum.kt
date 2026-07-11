@@ -12,7 +12,7 @@
  * This extension works for any type T that:
  * 1. Implements Plus<T, T> (supports + operator)
  * 2. Has a companion object with a zero constant (via HasZero<T>)
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.math.algebra.number.Int32
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @return 所有元素的和
  * @return The sum of all elements
- */
+*/
 fun <T> Iterable<T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
     var result = firstOrNull()?.constants?.zero ?: return first().constants.zero
     for (element in this) {
@@ -47,7 +47,7 @@ fun <T> Iterable<T>.sum(): T where T : Plus<T, T>, T : Arithmetic<T> {
  *
  * @return 所有元素的和结果
  * @return The sum result of all elements
- */
+*/
 fun <T> Array<out T>.sumSafe(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
     if (isEmpty()) {
         return Failed(ErrorCode.DataEmpty, "Cannot compute sum of empty array without explicit zero.")
@@ -64,7 +64,7 @@ fun <T> Array<out T>.sumSafe(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
  * Sums all elements in an array, returning null for empty arrays.
  *
  * @return 所有元素的和或 null / The sum of all elements, or null
- */
+*/
 fun <T> Array<out T>.sumOrNull(): T? where T : Plus<T, T>, T : Arithmetic<T> {
     if (isEmpty()) {
         return null
@@ -81,7 +81,7 @@ fun <T> Array<out T>.sumOrNull(): T? where T : Plus<T, T>, T : Arithmetic<T> {
  * Sums all elements in an array.
  *
  * @return 所有元素的和结果 / The sum result of all elements
- */
+*/
 fun <T> Array<out T>.sum(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
     return sumSafe()
 }
@@ -92,10 +92,9 @@ fun <T> Array<out T>.sum(): Ret<T> where T : Plus<T, T>, T : Arithmetic<T> {
  * Sums with explicit zero for empty collections.
  *
  * @param zero 空集合时的零倌
- * @param zero The zero value for empty collections
  * @return 所有元素的和
  * @return The sum of all elements
- */
+*/
 fun <T> Iterable<T>.sumWithZero(zero: T): T where T : Plus<T, T> {
     var result = zero
     for (element in this) {
@@ -111,7 +110,7 @@ fun <T> Iterable<T>.sumWithZero(zero: T): T where T : Plus<T, T> {
  *
  * @return 所朌Int32 值的和
  * @return The sum of all Int32 values
- */
+*/
 fun Iterable<Int32>.sumInt32(): Int32 {
     var result = Int32.zero
     for (element in this) {
@@ -127,5 +126,5 @@ fun Iterable<Int32>.sumInt32(): Int32 {
  *
  * @return 所朌Int32 值的和
  * @return The sum of all Int32 values
- */
+*/
 fun Collection<Int32>.sum(): Int32 = sumInt32()

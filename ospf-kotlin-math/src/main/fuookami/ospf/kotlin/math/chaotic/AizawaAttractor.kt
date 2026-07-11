@@ -9,7 +9,7 @@
  * The Aizawa attractor is a three-dimensional continuous-time chaotic system proposed by Hiroshi Aizawa in 1982.
  * This system exhibits unique chaotic behavior, with trajectories forming beautiful spiral-like attractor structures in 3D space.
  * Commonly used for chaotic signal generation, nonlinear dynamics research, and chaos synchronization applications.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property epsilon 系统参数 epsilon / System parameter epsilon
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property h 时间步长 / Time step size
- */
+*/
 data class AizawaAttractor<V : FloatingNumber<V>>(
     val alpha: V,
     val beta: V,
@@ -67,7 +67,7 @@ data class AizawaAttractor<V : FloatingNumber<V>>(
 /**
  * Aizawa 吸引子生成器
  * Aizawa Attractor Generator
- */
+*/
 data class AizawaAttractorGenerator(
     val aizawaAttractor: AizawaAttractor<Flt64> = AizawaAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

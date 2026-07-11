@@ -3,7 +3,7 @@
  *
  * 本文件定义生产数量约束管道及影子价格键，用于建模产品产量的上下限约束。
  * This file defines produce quantity constraint pipeline and shadow price key for modeling product output lower/upper bound constraints.
- */
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @param P 产品类型 / Product type
  * @param product 产品 / Product
- */
+*/
 data class ProduceQuantityShadowPriceKey<P : AbstractMaterial>(
     val product: P
 ) : ShadowPriceKey(ProduceQuantityShadowPriceKey::class)
@@ -37,7 +37,7 @@ data class ProduceQuantityShadowPriceKey<P : AbstractMaterial>(
  * @param produce 生产对象 / Produce object
  * @param shadowPriceArguments 影子价格参数提取器 / Shadow price arguments extractor
  * @param name 管道名称 / Pipeline name
- */
+*/
 class ProduceQuantityConstraint<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

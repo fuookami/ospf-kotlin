@@ -35,14 +35,14 @@ class TransferPlan internal constructor(
 
         /**
          * 使用给定参数创建 [TransferPlan]，为单飞机集调整状态。Creates a [TransferPlan] with the given parameters, adjusting status for single-aircraft sets.
- *
-         * @param dep 参数。
-         * @param arr 参数。
-         * @param timeWindow 参数。
-         * @param aircrafts 参数。
-         * @param duration 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param dep The departure airport / 出发机场
+         * @param arr The arrival airport / 到达机场
+         * @param timeWindow The time window for the transfer / 中转的时间窗口
+         * @param aircrafts The set of enabled aircraft / 启用的飞机集合
+         * @param duration The optional flight duration / 可选的飞行时长
+         * @return The created transfer plan / 创建的中转计划
+        */
         operator fun invoke(
             dep: Airport,
             arr: Airport,
@@ -88,10 +88,10 @@ class TransferPlan internal constructor(
 
     /**
      * 检查给定飞机是否对此中转计划启用。Checks whether the given aircraft is enabled for this transfer plan.
- *
-     * @param aircraft 参数。
-     * @return 返回结果。
-     */
+     *
+     * @param aircraft The aircraft to check / 要检查的飞机
+     * @return true if the aircraft is enabled, false otherwise / 如果飞机启用则为true，否则为false
+    */
     fun enabled(aircraft: Aircraft): Boolean {
         return enabledAircrafts.contains(aircraft)
     }
@@ -112,21 +112,21 @@ class Transfer internal constructor(
     companion object {
         /**
          * 从计划创建 [Transfer]（恒等构造函数）。Creates a [Transfer] from a plan (identity constructor).
- *
-         * @param plan 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param plan The transfer plan / 中转计划
+         * @return The created transfer / 创建的中转
+        */
         operator fun invoke(plan: Transfer): Transfer {
             return Transfer(plan = plan)
         }
 
         /**
          * 创建应用给定恢复策略的已恢复 [Transfer]。Creates a recovered [Transfer] applying the given recovery policy.
- *
-         * @param origin 参数。
-         * @param recoveryPolicy 参数。
-         * @return 返回结果。
-         */
+         *
+         * @param origin The original transfer / 原始中转
+         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
+         * @return The recovered transfer instance / 恢复后的中转实例
+        */
         operator fun invoke(origin: Transfer, recoveryPolicy: FlightTaskAssignment): Transfer {
             val recoveryAircraft =
                 if (origin.plan.aircraft != null && (recoveryPolicy.aircraft == null || recoveryPolicy.aircraft == origin.plan.aircraft)) {

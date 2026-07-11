@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [OneOfFunction]，实现恰好一个输入多项式非零的约束建模。
  *
  * Provides [OneOfFunction] for modeling the constraint that exactly one input polynomial is nonzero.
- */
+*/
 
 /**
  * 选一函数：恰好一个输入多项式必须非零。
@@ -44,7 +44,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class OneOfFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,

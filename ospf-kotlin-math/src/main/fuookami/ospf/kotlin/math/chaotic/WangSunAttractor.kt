@@ -1,7 +1,7 @@
 /**
  * Wang-Sun 吸引子
  * Wang-Sun Attractor
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property zeta 系统参数 zeta / System parameter zeta
  * @property xi 系统参数 xi / System parameter xi
  * @property h 时间步长 / Time step size
- */
+*/
 data class WangSunAttractor<V : FloatingNumber<V>>(
     val alpha: V, val beta: V, val delta: V, val epsilon: V, val zeta: V, val xi: V, val h: V
 ) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
@@ -52,7 +52,7 @@ data class WangSunAttractor<V : FloatingNumber<V>>(
 /**
  * Wang-Sun 吸引子生成器
  * Wang-Sun Attractor Generator
- */
+*/
 data class WangSunAttractorGenerator(
     val attractor: WangSunAttractor<Flt64> = WangSunAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

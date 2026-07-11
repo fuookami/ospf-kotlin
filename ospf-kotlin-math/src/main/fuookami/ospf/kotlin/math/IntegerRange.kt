@@ -4,7 +4,7 @@
  *
  * 为任意整数类型提供可迭代的区间实现，支持指定步长的正向和反向迭代。
  * Provides iterable range implementation for arbitrary integer types, supporting forward and backward iteration with specified steps.
- */
+*/
 package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
  * @param step 步长
  * @param constants 数值常量
  * @return 最后一个元素，步长非法时返回 null
- */
+*/
 private fun <I> getProgressionLastElementOrNull(
     start: I,
     end: I,
@@ -49,7 +49,7 @@ private fun <I> getProgressionLastElementOrNull(
  * Integer iterator
  *
  * @param I 整数类型
- */
+*/
 internal class IntegerIterator<I>(
     first: I,
     last: I,
@@ -98,7 +98,7 @@ internal class IntegerIterator<I>(
  * @property start 起始值
  * @property endInclusive 结束值（包含）
  * @property step 步长
- */
+*/
 class IntegerRange<I>(
     override val start: I,
     override val endInclusive: I,
@@ -124,7 +124,7 @@ class IntegerRange<I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
-     */
+    */
     infix fun step(step: I): IntegerRange<I> {
         return IntegerRange(
             start = start,
@@ -140,7 +140,7 @@ class IntegerRange<I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间结果 / Result of new range with specified step size
-     */
+    */
     fun stepSafe(step: I): Ret<IntegerRange<I>> {
         return if (!isValidIntegerStep(step)) {
             Failed(ErrorCode.IllegalArgument, invalidIntegerStepMessage(step))
@@ -162,7 +162,7 @@ class IntegerRange<I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间或 null / New range with specified step size, or null
-     */
+    */
     fun stepOrNull(step: I): IntegerRange<I>? {
         return if (!isValidIntegerStep(step)) {
             null
@@ -226,7 +226,7 @@ class IntegerRange<I>(
  *
  * @param NI 数值整数类型
  * @param I 整数类型
- */
+*/
 internal class NumericIntegerIterator<NI, I>(
     first: I,
     last: I,
@@ -245,6 +245,7 @@ internal class NumericIntegerIterator<NI, I>(
 
     /** 是否有下一个元素 / Whether there is a next element */
     override fun hasNext() = impl.hasNext()
+
     /** 获取下一个元素 / Get the next element */
     override fun next(): NI = ctor(impl.next())
 }
@@ -260,7 +261,7 @@ internal class NumericIntegerIterator<NI, I>(
  * @param I 整数类型
  * @property start 起始值
  * @property endInclusive 结束值（包含）
- */
+*/
 class NumericUIntegerRange<NI, I>(
     override val start: NI,
     override val endInclusive: NI,
@@ -289,7 +290,7 @@ class NumericUIntegerRange<NI, I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间 / New range with specified step size
-     */
+    */
     infix fun step(step: NI): NumericUIntegerRange<NI, I> {
         return NumericUIntegerRange(
             start = start,
@@ -307,7 +308,7 @@ class NumericUIntegerRange<NI, I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间结果 / Result of new range with specified step size
-     */
+    */
     fun stepSafe(step: NI): Ret<NumericUIntegerRange<NI, I>> {
         val integerStep = converter(step)
         return if (!isValidIntegerStep(integerStep)) {
@@ -332,7 +333,7 @@ class NumericUIntegerRange<NI, I>(
      *
      * @param step 步长值 / Step size value
      * @return 指定步长后的新区间或 null / New range with specified step size, or null
-     */
+    */
     fun stepOrNull(step: NI): NumericUIntegerRange<NI, I>? {
         val integerStep = converter(step)
         return if (!isValidIntegerStep(integerStep)) {

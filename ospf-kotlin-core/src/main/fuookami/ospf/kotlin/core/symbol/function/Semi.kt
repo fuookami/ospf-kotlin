@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * 提供 [SemiFunction]，建模 y = 0 或 lb <= y <= ub 的半连续变量。
  *
  * Provides [SemiFunction] for modeling semi-continuous variables where y = 0 or lb <= y <= ub.
- */
+*/
 
 /**
  * 半连续变量函数。
@@ -37,7 +37,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class SemiFunction<V>(
     lb: V? = null,
     ub: V? = null,
@@ -90,7 +90,7 @@ class SemiFunction<V>(
          * @param name 函数名称 / function name
          * @param displayName 可选显示名称 / optional display name
          * @return [SemiFunction] 实例 / [SemiFunction] instance
-         */
+        */
         fun <V> from(
             variable: AbstractVariableItem<*, *>,
             lb: V? = null,

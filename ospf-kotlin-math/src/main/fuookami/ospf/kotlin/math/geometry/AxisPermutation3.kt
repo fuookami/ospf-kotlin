@@ -4,7 +4,7 @@
  *
  * 定义三维几何空间中的轴置换，为纯几何概念，支持宽高深轴的交换与映射。
  * Defines axis permutation in 3D geometric space, a pure geometry concept supporting width/height/depth axis swapping and mapping.
- */
+*/
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -18,7 +18,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @property widthAxis 宽度对应的轴 / The axis corresponding to width
  * @property heightAxis 高度对应的轴 / The axis corresponding to height
  * @property depthAxis 深度对应的轴 / The axis corresponding to depth
- */
+*/
 data class AxisPermutation3(
     val widthAxis: Axis3,
     val heightAxis: Axis3,
@@ -33,14 +33,19 @@ data class AxisPermutation3(
     companion object {
         /** 恒等置换 / Identity permutation */
         val XYZ = AxisPermutation3(Axis3.X, Axis3.Y, Axis3.Z)
+
         /** 完全反转 / Full reversal */
         val ZYX = AxisPermutation3(Axis3.Z, Axis3.Y, Axis3.X)
+
         /** Y-X-Z 置换 / Y-X-Z permutation */
         val YXZ = AxisPermutation3(Axis3.Y, Axis3.X, Axis3.Z)
+
         /** Z-X-Y 置换 / Z-X-Y permutation */
         val ZXY = AxisPermutation3(Axis3.Z, Axis3.X, Axis3.Y)
+
         /** X-Z-Y 置换 / X-Z-Y permutation */
         val XZY = AxisPermutation3(Axis3.X, Axis3.Z, Axis3.Y)
+
         /** Y-Z-X 置换 / Y-Z-X permutation */
         val YZX = AxisPermutation3(Axis3.Y, Axis3.Z, Axis3.X)
     }
@@ -52,7 +57,7 @@ data class AxisPermutation3(
      * @param V 数值类型 / The numeric type
      * @param cuboid 待置换的长方体 / The cuboid to permute
      * @return 置换后的长方体 / The permuted cuboid
-     */
+    */
     fun <V : FloatingNumber<V>> apply(cuboid: Cuboid3<V>): Cuboid3<V> {
         return Cuboid3(
             width = cuboid.along(widthAxis),
@@ -68,7 +73,7 @@ data class AxisPermutation3(
      * @param V 数值类型 / The numeric type
      * @param cylinder 待置换的圆柱 / The cylinder to permute
      * @return 置换后的圆柱结果 / The permuted cylinder result
-     */
+    */
     fun <V : FloatingNumber<V>> apply(cylinder: Cylinder3<V>): Ret<Cylinder3<V>> {
         return mapAxis(cylinder.axis).map { axis ->
             cylinder.copy(axis = axis)
@@ -81,7 +86,7 @@ data class AxisPermutation3(
      *
      * @param axis 原始轴 / The original axis
      * @return 置换后的标准轴结果 / The permuted standard axis result
-     */
+    */
     fun mapAxis(axis: Axis3): Ret<Axis3> {
         return if (axis == widthAxis) {
             Ok(Axis3.X)

@@ -2,7 +2,7 @@
  * 并行最小最大值操作
  *
  * Parallel min-max operations (returns both min and max in one pass) with concurrency control.
- */
+*/
 package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.error.*
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最大值元素或错误 / Element with maximum value or error
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -48,7 +48,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最大值元素或错误集合 / Element with maximum value or error collection
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -74,7 +74,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数 / Selector function
  * @return 最大值元素或 null / Element with maximum value or null
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendExtractor<R, T>
@@ -107,7 +107,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最大值元素或 null 或错误 / Element with maximum value or null or error
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -146,7 +146,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMaxByOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最大值元素或 null 或错误集合 / Element with maximum value or null or error collection
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -201,7 +201,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMaxByOrNullParallelly
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最小值元素或错误 / Element with minimum value or error
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -225,7 +225,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最小值元素或错误集合 / Element with minimum value or error collection
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -251,7 +251,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数 / Selector function
  * @return 最小值元素或 null / Element with minimum value or null
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendExtractor<R, T>
@@ -284,7 +284,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minByOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最小值元素或 null 或错误 / Element with minimum value or null or error
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
@@ -323,7 +323,7 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinByOrNullParallelly(
  * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
  * @param selector 选择器函数（返回 Ret）/ Selector function (returns Ret)
  * @return 最小值元素或 null 或错误集合 / Element with minimum value or null or error collection
- */
+*/
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinByOrNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>

@@ -10,7 +10,7 @@
  * - Celsius: °C = K - 273.15 (仿射单位 / Affine unit)
  * - Fahrenheit: °F = °C × 9/5 + 32 (仿射单位 / Affine unit)
  * - Rankine: °R = K × 9/5 (线性单位 / Linear unit)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -37,7 +37,7 @@ private val fahrenheitAffineOffset = FltX(273.15) - FltX(32L) * fahrenheitLinear
  *
  * 来源：SI 七个基本单位之一
  * Source: One of the seven SI base units
- */
+*/
 object Kelvin : PhysicalUnit() {
     override val name: String = "kelvin"
     override val symbol: String = "K"
@@ -64,7 +64,7 @@ object Kelvin : PhysicalUnit() {
  *
  * 来源：常用温度单位，基于水的冰点（0°C）和沸点（100°C）
  * Source: Common temperature unit, based on water's freezing point (0°C) and boiling point (100°C)
- */
+*/
 object Celsius : PhysicalUnit() {
     override val name: String = "celsius"
     override val symbol: String = "°C"
@@ -96,7 +96,7 @@ object Celsius : PhysicalUnit() {
  *
  * 来源：常用温度单位，主要使用于美国
  * Source: Common temperature unit, primarily used in the United States
- */
+*/
 object Fahrenheit : PhysicalUnit() {
     override val name: String = "fahrenheit"
     override val symbol: String = "°F"
@@ -126,7 +126,7 @@ object Fahrenheit : PhysicalUnit() {
  *
  * 来源：热力学温度单位，华氏温标的绝对温标
  * Source: Thermodynamic temperature unit, absolute scale of Fahrenheit
- */
+*/
 object Rankine : PhysicalUnit() {
     override val name: String = "rankine"
     override val symbol: String = "°R"

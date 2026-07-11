@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
  * @property items the list of cargo items to be stowed / 待装载的货物项目列表
  * @property positions the list of available stowage positions / 可用装载位置列表
  * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
- */
+*/
 class StowageLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

@@ -4,7 +4,7 @@
  *
  * 定义算术类型的核心接口，支持复制、相等比较和常量访问。
  * Defines core interfaces for arithmetic types, supporting copying, equality comparison, and constant access.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -18,13 +18,13 @@ import fuookami.ospf.kotlin.utils.functional.PartialEq
  * Basic interface for arithmetic types, providing constant access and equivalence checking.
  *
  * @param Self 算术类型
- * @param Self The arithmetic type
- */
+*/
 interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
+
     /**
      * 算术常量
      * Arithmetic constants
-     */
+    */
     val constants: ArithmeticConstants<Self>
 
     /**
@@ -32,10 +32,9 @@ interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
      * Equivalence checking
      *
      * @param rhs 另一个值
-     * @param rhs The other value
      * @return 是否等价
      * @return Whether the values are equivalent
-     */
+    */
     infix fun equiv(rhs: Self): Boolean
 }
 
@@ -47,6 +46,5 @@ interface Arithmetic<Self> : Copyable<Self>, PartialEq<Self> {
  * Provides basic constants for arithmetic types.
  *
  * @param Self 算术类型
- * @param Self The arithmetic type
- */
+*/
 interface ArithmeticConstants<Self> : ArithmeticConst<Self>

@@ -4,7 +4,7 @@
  *
  * 提供 SQLite 数据源的初始化和管理功能。
  * Provides SQLite datasource initialization and management functionality.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence
 
 import kotlinx.serialization.Serializable
@@ -18,7 +18,7 @@ import org.ktorm.support.sqlite.SQLiteDialect
  * SQLite client key
  *
  * @property name 客户端名称 / Client name
- */
+*/
 data class SqliteClientKey(
     val name: String
 )
@@ -33,7 +33,7 @@ data class SqliteClientKey(
  * @property maxTotal 最大连接数 / Maximum total connections
  * @property maxIdle 最大空闲连接数 / Maximum idle connections
  * @property maxOpenPreparedStatements 最大预编译语句数 / Maximum open prepared statements
- */
+*/
 data class SqliteConfigBuilder(
     var url: String? = null,
     var name: String? = null,
@@ -49,7 +49,7 @@ data class SqliteConfigBuilder(
      * Build SQLite configuration
      *
      * @return 配置实例，参数不完整时返回 null / Configuration instance, or null if parameters are incomplete
-     */
+    */
     operator fun invoke(): SqliteConfig? {
         return try {
             SqliteConfig(
@@ -79,7 +79,7 @@ data class SqliteConfigBuilder(
  * @property maxTotal 最大连接数 / Maximum total connections
  * @property maxIdle 最大空闲连接数 / Maximum idle connections
  * @property maxOpenPreparedStatements 最大预编译语句数 / Maximum open prepared statements
- */
+*/
 @Serializable
 data class SqliteConfig(
     val url: String,
@@ -89,6 +89,7 @@ data class SqliteConfig(
     val maxIdle: Int = 10,
     val maxOpenPreparedStatements: Int = 100
 ) {
+
     /** 客户端键 / Client key */
     val key get() = SqliteClientKey(name = name)
 }
@@ -99,7 +100,7 @@ data class SqliteConfig(
  *
  * 管理多个 SQLite 数据源实例，按名称索引。
  * Manages multiple SQLite datasource instances, indexed by name.
- */
+*/
 object Sqlite {
     @get:Synchronized
     private val clients: MutableMap<SqliteClientKey, BasicDataSource> = HashMap()
@@ -110,7 +111,7 @@ object Sqlite {
      *
      * @param builder 配置构建器 lambda / Configuration builder lambda
      * @return Ktorm 数据库实例，初始化失败时返回 null / Ktorm database instance, or null if initialization fails
-     */
+    */
     @Synchronized
     fun init(builder: SqliteConfigBuilder.() -> Unit): Database? {
         val config = SqliteConfigBuilder()
@@ -124,7 +125,7 @@ object Sqlite {
      *
      * @param config SQLite 配置 / SQLite configuration
      * @return Ktorm 数据库实例，创建失败时返回 null / Ktorm database instance, or null if creation fails
-     */
+    */
     @Synchronized
     operator fun invoke(config: SqliteConfig): Database? {
         if (clients.containsKey(config.key)) {
@@ -156,7 +157,7 @@ object Sqlite {
      *
      * @param key 客户端键（为 null 时返回第一个）/ Client key (returns first if null)
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(key: SqliteClientKey? = null): Database? {
         return (if (key != null) {
@@ -174,7 +175,7 @@ object Sqlite {
      *
      * @param name 客户端名称 / Client name
      * @return Ktorm 数据库实例，未找到时返回 null / Ktorm database instance, or null if not found
-     */
+    */
     @Synchronized
     operator fun invoke(name: String): Database? {
         return clients.filterKeys { it.name == name }.entries.firstOrNull()?.value?.let {

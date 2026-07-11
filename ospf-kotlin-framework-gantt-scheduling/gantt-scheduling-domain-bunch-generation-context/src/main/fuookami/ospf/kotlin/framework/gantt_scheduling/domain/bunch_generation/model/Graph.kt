@@ -1,4 +1,5 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
+
 /** 任务束生成图模型 / Bunch generation graph model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
@@ -10,12 +11,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * 节点密封类 / Node sealed class
  *
  * @param index 节点索引 / Node index
- */
+ *
+ * @property index the index property / index属性
+*/
 sealed class Node(val index: UInt64) {
+
     /**
      * Companion object providing index constants for root and end nodes.
      * 提供根节点和终止节点索引常量的伴生对象
-     */
+    */
     companion object {
         internal val root: UInt64 = UInt64.zero
         internal val end: UInt64 = UInt64.maximum
@@ -49,7 +53,7 @@ object EndNode : Node(end) {
  * @param arg 附加参数 / Additional argument
  * @param time 时间点 / Time point
  * @param index 节点索引 / Node index
- */
+*/
 class TaskNode<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, Arg>(
     val task: T,
     val arg: Arg,
@@ -64,7 +68,7 @@ class TaskNode<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>, Ar
  *
  * @param from 起始节点 / Source node
  * @param to 目标节点 / Target node
- */
+*/
 data class Edge(
     val from: Node,
     val to: Node
@@ -77,7 +81,7 @@ data class Edge(
  *
  * @param _nodes 节点映射 / Node map
  * @param _edges 边映射 / Edge map
- */
+*/
 class Graph(
     private val _nodes: MutableMap<UInt64, Node> = HashMap(),
     private val _edges: MutableMap<Node, MutableSet<Edge>> = HashMap()
@@ -89,7 +93,7 @@ class Graph(
      * 添加节点 / Add node
      *
      * @param node 节点 / Node
-     */
+    */
     fun put(node: Node) {
         _nodes[node.index] = node
     }
@@ -99,7 +103,7 @@ class Graph(
      *
      * @param from 起始节点 / Source node
      * @param to 目标节点 / Target node
-     */
+    */
     fun put(from: Node, to: Node) {
         if (!_edges.containsKey(from)) {
             _edges[from] = HashSet()
@@ -112,7 +116,7 @@ class Graph(
      *
      * @param index 节点索引 / Node index
      * @return 节点或null / Node or null
-     */
+    */
     operator fun get(index: UInt64): Node? {
         return nodes[index]
     }
@@ -122,7 +126,7 @@ class Graph(
      *
      * @param node 节点 / Node
      * @return 边集合 / Set of edges
-     */
+    */
     operator fun get(node: Node): Set<Edge> {
         return edges[node] ?: emptySet()
     }
@@ -133,7 +137,7 @@ class Graph(
      * @param from 起始节点 / Source node
      * @param to 目标节点 / Target node
      * @return 是否连接 / Whether connected
-     */
+    */
     fun connected(from: Node, to: Node): Boolean {
         return edges[from]?.contains(Edge(from, to)) ?: false
     }
@@ -142,7 +146,7 @@ class Graph(
      * 反转图 / Reverse graph
      *
      * @return 反转后的图 / Reversed graph
-     */
+    */
     fun reverse(): Graph {
         val nodes = this._nodes.toMutableMap()
         val edges = HashMap<Node, MutableSet<Edge>>()

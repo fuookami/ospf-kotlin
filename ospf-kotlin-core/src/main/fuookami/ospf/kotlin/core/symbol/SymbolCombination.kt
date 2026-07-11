@@ -5,7 +5,7 @@
  *
  * 提供基于多维数组的中间符号组合容器及工厂方法。
  * Provides multi-array-based intermediate symbol combination containers and factory methods.
- */
+*/
 package fuookami.ospf.kotlin.core.symbol
 
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * creation and management of multi-dimensional arrays of linear/quadratic
  * expression symbols and intermediate symbols. Also provides [map] / [flatMap]
  * convenience factory functions.
- */
+*/
 
 /**
  * 符号组合抽象接口 / Abstract symbol combination interface
@@ -34,10 +34,16 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
  * @property dimension 维度数 / Number of dimensions
  * @property identifier 全局唯一标识符 / Globally unique identifier
  * @property shape 数组形状 / Array shape
- */
+*/
 interface AbstractSymbolCombination<S : Shape> {
+
+    /** Number of dimensions in the combination / 组合中的维度数 */
     val dimension: Int
+
+    /** Globally unique identifier / 全局唯一标识符 */
     val identifier: UInt64
+
+    /** Array shape defining the structure / 定义结构的数组形状 */
     val shape: Shape
 }
 
@@ -52,7 +58,7 @@ interface AbstractSymbolCombination<S : Shape> {
  * @property name 组合名称 / Combination name
  * @param shape 数组形状 / Array shape
  * @param ctor 符号构造函数 / Symbol constructor function
- */
+*/
 class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     val name: String,
     shape: S,
@@ -89,7 +95,7 @@ class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
  * @property name 组合名称 / Combination name
  * @param shape 数组形状 / Array shape
  * @param ctor 量纲符号构造函数 / Quantity symbol constructor function
- */
+*/
 class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     val name: String,
     shape: S,
@@ -118,69 +124,94 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
 
 /** 一维线性表达式符号组合 / 1D linear expression symbol combination */
 typealias LinearExpressionSymbols1<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape1>
+
 /** 二维线性表达式符号组合 / 2D linear expression symbol combination */
 typealias LinearExpressionSymbols2<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape2>
+
 /** 三维线性表达式符号组合 / 3D linear expression symbol combination */
 typealias LinearExpressionSymbols3<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape3>
+
 /** 四维线性表达式符号组合 / 4D linear expression symbol combination */
 typealias LinearExpressionSymbols4<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape4>
+
 /** 动态维度线性表达式符号组合 / Dynamic-dimension linear expression symbol combination */
 typealias DynLinearExpressionSymbols<V> = SymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
 /** 一维量纲线性表达式符号组合 / 1D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols1<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape1>
+
 /** 二维量纲线性表达式符号组合 / 2D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols2<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape2>
+
 /** 三维量纲线性表达式符号组合 / 3D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols3<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape3>
+
 /** 四维量纲线性表达式符号组合 / 4D quantity linear expression symbol combination */
 typealias QuantityLinearExpressionSymbols4<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape4>
+
 /** 动态维度量纲线性表达式符号组合 / Dynamic-dimension quantity linear expression symbol combination */
 typealias DynQuantityLinearExpressionSymbols<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
 /** 一维线性中间符号组合 / 1D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols1<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+
 /** 二维线性中间符号组合 / 2D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols2<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+
 /** 三维线性中间符号组合 / 3D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols3<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+
 /** 四维线性中间符号组合 / 4D linear intermediate symbol combination */
 typealias LinearIntermediateSymbols4<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+
 /** 动态维度线性中间符号组合 / Dynamic-dimension linear intermediate symbol combination */
 typealias DynLinearIntermediateSymbols<V> = SymbolCombination<LinearIntermediateSymbol<V>, DynShape>
 
 /** 一维量纲线性中间符号组合 / 1D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols1<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+
 /** 二维量纲线性中间符号组合 / 2D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols2<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+
 /** 三维量纲线性中间符号组合 / 3D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols3<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+
 /** 四维量纲线性中间符号组合 / 4D quantity linear intermediate symbol combination */
 typealias QuantityLinearIntermediateSymbols4<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+
 /** 动态维度量纲线性中间符号组合 / Dynamic-dimension quantity linear intermediate symbol combination */
 typealias DynQuantityLinearIntermediateSymbols<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, DynShape>
+
 /** 量纲线性中间符号 / Quantity linear intermediate symbol */
 typealias QuantityLinearIntermediateSymbol<V> = Quantity<LinearIntermediateSymbol<V>>
 
 /** 一维二次表达式符号组合 / 1D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols1<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+
 /** 二维二次表达式符号组合 / 2D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols2<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+
 /** 三维二次表达式符号组合 / 3D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols3<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+
 /** 四维二次表达式符号组合 / 4D quadratic expression symbol combination */
 typealias QuadraticExpressionSymbols4<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+
 /** 动态维度二次表达式符号组合 / Dynamic-dimension quadratic expression symbol combination */
 typealias DynQuadraticExpressionSymbols<V> = SymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
 /** 一维量纲二次表达式符号组合 / 1D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols1<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+
 /** 二维量纲二次表达式符号组合 / 2D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols2<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+
 /** 三维量纲二次表达式符号组合 / 3D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols3<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+
 /** 四维量纲二次表达式符号组合 / 4D quantity quadratic expression symbol combination */
 typealias QuantityQuadraticExpressionSymbols4<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+
 /** 动态维度量纲二次表达式符号组合 / Dynamic-dimension quantity quadratic expression symbol combination */
 typealias DynQuantityQuadraticExpressionSymbols<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
@@ -191,7 +222,7 @@ typealias DynQuantityQuadraticExpressionSymbols<V> = QuantitySymbolCombination<Q
  * @param name 基础名称 / Base name
  * @param indices 索引数组 / Indices array
  * @return 生成的符号名称 / Generated symbol name
- */
+*/
 private fun symbolName(name: String, indices: IntArray): String {
     return "${name}_${indices.joinToString("_") { "$it" }}"
 }
@@ -203,7 +234,7 @@ private fun symbolName(name: String, indices: IntArray): String {
  * @param name 符号名称 / Symbol name
  * @param zero 零值 / Zero value
  * @return 空的线性表达式符号 / Empty linear expression symbol
- */
+*/
 private fun <V> emptyLinearExpressionSymbol(
     name: String,
     zero: V
@@ -224,7 +255,7 @@ private fun <V> emptyLinearExpressionSymbol(
  * @param name 符号名称 / Symbol name
  * @param zero 零值 / Zero value
  * @return 空的二次表达式符号 / Empty quadratic expression symbol
- */
+*/
 private fun <V> emptyQuadraticExpressionSymbol(
     name: String,
     zero: V
@@ -246,7 +277,7 @@ private fun <V> emptyQuadraticExpressionSymbol(
  * @param polynomial 线性多项式 / Linear polynomial
  * @param name 符号名称 / Symbol name
  * @return 线性表达式符号 / Linear expression symbol
- */
+*/
 private fun <V> linearExpressionSymbol(
     polynomial: LinearPolynomial<V>,
     name: String
@@ -266,8 +297,9 @@ private fun <V> linearExpressionSymbol(
  * 提供创建各维度空线性表达式符号组合的工厂方法。
  *
  * Provides factory methods for creating empty linear expression symbol combinations of various dimensions.
- */
+*/
 data object LinearIntermediateSymbols {
+
     /**
      * 创建一维线性表达式符号组合。
      * Create 1D linear expression symbol combination.
@@ -276,7 +308,7 @@ data object LinearIntermediateSymbols {
      * @param shape 一维形状 / 1D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 一维线性表达式符号组合 / 1D linear expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape1,
@@ -298,7 +330,7 @@ data object LinearIntermediateSymbols {
      * @param shape 二维形状 / 2D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 二维线性表达式符号组合 / 2D linear expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape2,
@@ -320,7 +352,7 @@ data object LinearIntermediateSymbols {
      * @param shape 三维形状 / 3D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 三维线性表达式符号组合 / 3D linear expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape3,
@@ -342,7 +374,7 @@ data object LinearIntermediateSymbols {
      * @param shape 四维形状 / 4D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 四维线性表达式符号组合 / 4D linear expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape4,
@@ -364,7 +396,7 @@ data object LinearIntermediateSymbols {
      * @param shape 动态形状 / Dynamic shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 动态维度线性表达式符号组合 / Dynamic-dimension linear expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: DynShape,
@@ -385,8 +417,9 @@ data object LinearIntermediateSymbols {
  * 提供创建各维度空二次表达式符号组合的工厂方法。
  *
  * Provides factory methods for creating empty quadratic expression symbol combinations of various dimensions.
- */
+*/
 data object QuadraticIntermediateSymbols {
+
     /**
      * 创建一维二次表达式符号组合。
      * Create 1D quadratic expression symbol combination.
@@ -395,7 +428,7 @@ data object QuadraticIntermediateSymbols {
      * @param shape 一维形状 / 1D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 一维二次表达式符号组合 / 1D quadratic expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape1,
@@ -417,7 +450,7 @@ data object QuadraticIntermediateSymbols {
      * @param shape 二维形状 / 2D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 二维二次表达式符号组合 / 2D quadratic expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape2,
@@ -439,7 +472,7 @@ data object QuadraticIntermediateSymbols {
      * @param shape 三维形状 / 3D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 三维二次表达式符号组合 / 3D quadratic expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape3,
@@ -461,7 +494,7 @@ data object QuadraticIntermediateSymbols {
      * @param shape 四维形状 / 4D shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 四维二次表达式符号组合 / 4D quadratic expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: Shape4,
@@ -483,7 +516,7 @@ data object QuadraticIntermediateSymbols {
      * @param shape 动态形状 / Dynamic shape
      * @param constants 实数常量定义 / Real number constants definition
      * @return 动态维度二次表达式符号组合 / Dynamic-dimension quadratic expression symbol combination
-     */
+    */
     operator fun <V> invoke(
         name: String,
         shape: DynShape,
@@ -507,7 +540,7 @@ data object QuadraticIntermediateSymbols {
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 一维线性表达式符号组合 / 1D linear expression symbol combination
- */
+*/
 fun <T, V> map(
     name: String,
     objs: Iterable<T>,
@@ -535,7 +568,7 @@ fun <T, V> map(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 一维线性表达式符号组合 / 1D linear expression symbol combination
- */
+*/
 fun <T, V> flatMap(
     name: String,
     objs: Iterable<T>,
@@ -564,7 +597,7 @@ fun <T, V> flatMap(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 二维线性表达式符号组合 / 2D linear expression symbol combination
- */
+*/
 fun <T1, T2, V> map(
     name: String,
     objs1: Iterable<T1>,
@@ -595,7 +628,7 @@ fun <T1, T2, V> map(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 二维线性表达式符号组合 / 2D linear expression symbol combination
- */
+*/
 fun <T1, T2, V> flatMap(
     name: String,
     objs1: Iterable<T1>,
@@ -627,7 +660,7 @@ fun <T1, T2, V> flatMap(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 三维线性表达式符号组合 / 3D linear expression symbol combination
- */
+*/
 fun <T1, T2, T3, V> map(
     name: String,
     objs1: Iterable<T1>,
@@ -667,7 +700,7 @@ fun <T1, T2, T3, V> map(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 三维线性表达式符号组合 / 3D linear expression symbol combination
- */
+*/
 fun <T1, T2, T3, V> flatMap(
     name: String,
     objs1: Iterable<T1>,
@@ -708,7 +741,7 @@ fun <T1, T2, T3, V> flatMap(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 四维线性表达式符号组合 / 4D linear expression symbol combination
- */
+*/
 fun <T1, T2, T3, T4, V> map(
     name: String,
     objs1: Iterable<T1>,
@@ -753,7 +786,7 @@ fun <T1, T2, T3, T4, V> map(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 四维线性表达式符号组合 / 4D linear expression symbol combination
- */
+*/
 fun <T1, T2, T3, T4, V> flatMap(
     name: String,
     objs1: Iterable<T1>,
@@ -795,7 +828,7 @@ fun <T1, T2, T3, T4, V> flatMap(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 动态维度线性表达式符号组合 / Dynamic-dimension linear expression symbol combination
- */
+*/
 @JvmName("mapDynSymbols")
 fun <V> map(
     name: String,
@@ -824,7 +857,7 @@ fun <V> map(
  * @param ctor 线性多项式构造函数 / Linear polynomial constructor
  * @param suffix 名称后缀函数 / Name suffix function
  * @return 动态维度线性表达式符号组合 / Dynamic-dimension linear expression symbol combination
- */
+*/
 @JvmName("flatMapDynSymbols")
 fun <V> flatMap(
     name: String,

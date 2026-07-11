@@ -9,7 +9,7 @@
  * The coupled Lorenz attractor is a chaotic system composed of two mutually coupled Lorenz systems.
  * Through coupling parameters, the two Lorenz systems interact, exhibiting complex synchronization and chaotic dynamical behavior.
  * Commonly used for chaos synchronization research, complex network dynamics, and coupled systems analysis.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property epsilon 耦合强度参数 / Coupling strength parameter
  * @property omicron 系统参数 omicron / System parameter omicron
  * @property h 时间步长 / Time step size
- */
+*/
 data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
     val beta: V,
     val gamma1: V,
@@ -57,7 +57,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
      * @param gamma 系统参数 gamma / System parameter gamma
      * @param x 当前状态点 / Current state point
      * @return y 方向的导数值 / Derivative value in the y direction
-     */
+    */
     private fun dy(gamma: V, x: Point<Dim3, V>): V {
         return gamma * x[0] - x[1] - x[0] * x[2]
     }
@@ -68,7 +68,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
      *
      * @param x 当前状态点 / Current state point
      * @return z 方向的导数值 / Derivative value in the z direction
-     */
+    */
     private fun dz(x: Point<Dim3, V>): V {
         return beta * x[2] + x[0] * x[1]
     }
@@ -90,7 +90,7 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
 /**
  * 耦合洛伦兹吸引子生成器
  * Coupled Lorenz Attractor Generator
- */
+*/
 data class CoupledLorenzAttractorGenerator(
     val coupledLorenzAttractor: CoupledLorenzAttractor<Flt64> = CoupledLorenzAttractor(),
     private var _x: Point<Dim3, Flt64> = point3(

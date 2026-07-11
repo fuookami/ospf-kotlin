@@ -4,7 +4,7 @@
  *
  * 将 BooleanExpression 翻译为 MyBatis-Plus Wrapper 条件。
  * Translates BooleanExpression to MyBatis-Plus Wrapper conditions.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import fuookami.ospf.kotlin.framework.persistence.expression.*
@@ -19,7 +19,7 @@ import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper
 /**
  * 列名解析器
  * Column Name Resolver
- */
+*/
 typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
 
 /**
@@ -32,7 +32,7 @@ typealias MybatisColumnNameResolver = PersistenceFieldResolver<String>
  * @param T 实体类型 / Entity type
  * @property resolveColumnName 列名解析函数 / Column name resolver function
  * @property unsupportedPredicatePolicy 不支持谓词时的策略 / Policy for unsupported predicates
- */
+*/
 class MybatisBooleanTranslator<T : Any>(
     private val resolveColumnName: MybatisColumnNameResolver,
     private val unsupportedPredicatePolicy: UnsupportedPredicatePolicy = UnsupportedPredicatePolicy.AlwaysFalse
@@ -46,7 +46,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 查询 Wrapper / MyBatis-Plus query wrapper
      * @param expr 布尔表达式 / Boolean expression
      * @return 应用条件后的 QueryWrapper / QueryWrapper with condition applied
-     */
+    */
     fun translate(wrapper: QueryWrapper<T>, expr: BooleanExpression): Ret<QueryWrapper<T>> {
         return translateInternal(wrapper, expr)
     }
@@ -58,7 +58,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 更新 Wrapper / MyBatis-Plus update wrapper
      * @param expr 布尔表达式 / Boolean expression
      * @return 应用条件后的 UpdateWrapper / UpdateWrapper with condition applied
-     */
+    */
     fun translate(wrapper: UpdateWrapper<T>, expr: BooleanExpression): Ret<UpdateWrapper<T>> {
         return translateInternal(wrapper, expr)
     }
@@ -70,7 +70,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 布尔表达式 / Boolean expression
      * @return 应用条件后的 Wrapper / Wrapper with condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateInternal(wrapper: W, expr: BooleanExpression): Ret<W> {
         return when (expr) {
             is BooleanConstant -> translateConstant(wrapper, expr)
@@ -92,7 +92,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 常量布尔表达式 / Constant boolean expression
      * @return 应用常量条件后的 Wrapper / Wrapper with constant condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateConstant(wrapper: W, expr: BooleanConstant): Ret<W> {
         return Ok(when (expr.value) {
             Trivalent.True -> wrapper
@@ -139,7 +139,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 比较表达式 / Comparison expression
      * @return 应用比较条件后的 Wrapper / Wrapper with comparison condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateComparison(wrapper: W, expr: Comparison<*>): Ret<W> {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -200,7 +200,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr IN 表达式 / IN expression
      * @return 应用 IN 条件后的 Wrapper / Wrapper with IN condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateIn(wrapper: W, expr: InExpression<*>): Ret<W> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported(wrapper, "IN value must be a column reference", expr)
@@ -227,7 +227,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 模式匹配表达式 / Pattern match expression
      * @return 应用模式匹配条件后的 Wrapper / Wrapper with pattern match condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translatePatternMatch(wrapper: W, expr: PatternMatch<*>): Ret<W> {
         val ref = expr.value as? ScalarReference<*>
             ?: return unsupported(wrapper, "Pattern value must be a column reference", expr)
@@ -260,7 +260,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr 空值检查表达式 / Null check expression
      * @return 应用空值检查条件后的 Wrapper / Wrapper with null check condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateNullCheck(wrapper: W, expr: NullCheck): Ret<W> {
         val column = resolveColumnName(expr.path.value)
             ?: return unsupported(wrapper, "Unresolved null-check path: ${expr.path.value}", expr)
@@ -279,7 +279,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr AND 表达式 / AND expression
      * @return 应用 AND 条件后的 Wrapper / Wrapper with AND condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateAnd(wrapper: W, expr: AndExpression): Ret<W> {
         var result = wrapper
         for (operand in expr.operands) {
@@ -295,7 +295,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr OR 表达式 / OR expression
      * @return 应用 OR 条件后的 Wrapper / Wrapper with OR condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateOr(wrapper: W, expr: OrExpression): Ret<W> {
         if (expr.operands.isEmpty()) return Ok(wrapper)
 
@@ -319,7 +319,7 @@ class MybatisBooleanTranslator<T : Any>(
      * @param wrapper MyBatis-Plus 条件 Wrapper / MyBatis-Plus condition wrapper
      * @param expr NOT 表达式 / NOT expression
      * @return 应用 NOT 条件后的 Wrapper / Wrapper with NOT condition applied
-     */
+    */
     private fun <W : AbstractWrapper<T, String, W>> translateNot(wrapper: W, expr: NotExpression): Ret<W> {
         return Ok(wrapper.not { innerWrapper ->
             translateInternal(innerWrapper, expr.operand).value ?: innerWrapper

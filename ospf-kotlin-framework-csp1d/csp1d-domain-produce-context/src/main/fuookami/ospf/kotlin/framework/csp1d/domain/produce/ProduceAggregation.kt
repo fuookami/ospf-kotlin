@@ -26,8 +26,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  * addition of new plans with deduplication.
  *
  * @param V 数值类型 / Numeric value type
- */
+*/
 class CuttingPlanAggregation<V : RealNumber<V>> {
+
     /** 每次迭代新增的方案 / Plans added per iteration */
     val plansIteration: MutableList<List<CuttingPlan<V>>> = ArrayList()
 
@@ -42,7 +43,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
 
     /**
      * 最近一次迭代的方案 / Plans from the last iteration
-     */
+    */
     val lastIterationPlans: List<CuttingPlan<V>> get() = plansIteration.lastOrNull { it.isNotEmpty() } ?: emptyList()
 
     /**
@@ -52,7 +53,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
      *
      * @param newPlans 新方案列表 / New plan list
      * @return 去重后实际新增的方案 / Deduplicated newly added plans
-     */
+    */
     fun addColumns(newPlans: List<CuttingPlan<V>>): List<CuttingPlan<V>> {
         val unduplicatedPlans = newPlans.filter { candidate ->
             candidate.id !in registeredIds && candidate.canonicalKey() !in registeredKeys
@@ -70,7 +71,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
      * 添加初始方案（注册时调用）/ Add initial plans (called during registration)
      *
      * @param initialPlans 初始方案列表 / Initial plan list
-     */
+    */
     fun addInitialPlans(initialPlans: List<CuttingPlan<V>>) {
         for (plan in initialPlans) {
             plans.add(plan)
@@ -106,7 +107,7 @@ class CuttingPlanAggregation<V : RealNumber<V>> {
  * @property demands 需求列表 / Demand list
  * @property materials 物料列表 / Material list
  * @property machines 设备列表 / Machine list
- */
+*/
 class ProduceAggregation<V : RealNumber<V>>(
     override val cuttingPlans: List<CuttingPlan<V>>,
     val demands: List<ProductDemand<V>>,
@@ -131,7 +132,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      *
      * One intermediate symbol per demand, representing sum(contribution_j * x_j).
      * Constraint pipelines reference this symbol instead of x variables directly.
-     */
+    */
     lateinit var demandQuantity: LinearExpressionSymbols1<Flt64>
 
     /**
@@ -140,7 +141,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      * 每个物料一个中间符号，表示 sum(x_j where plan_j.material == material_i)。
      *
      * One intermediate symbol per material, representing sum(x_j where plan_j.material == material_i).
-     */
+    */
     lateinit var materialQuantity: LinearExpressionSymbols1<Flt64>
 
     /**
@@ -149,7 +150,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      * 每个设备一个中间符号，表示 sum(x_j where plan_j.machineId == machine_i)。
      *
      * One intermediate symbol per machine, representing sum(x_j where plan_j.machineId == machine_i).
-     */
+    */
     lateinit var machineBatchQuantity: LinearExpressionSymbols1<Flt64>
 
     /**
@@ -158,7 +159,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      * 每个设备一个中间符号，表示 sum(consumption_j * x_j where plan_j.machineId == machine_i)。
      *
      * One intermediate symbol per machine, representing sum(consumption_j * x_j where plan_j.machineId == machine_i).
-     */
+    */
     lateinit var machineCapacityQuantity: LinearExpressionSymbols1<Flt64>
 
     /** 方案数量 / Plan count */
@@ -166,7 +167,7 @@ class ProduceAggregation<V : RealNumber<V>>(
 
     /**
      * 获取指定索引的变量（初始 x 组，nullable）/ Get variable at specified index (from initial x group, nullable)
-     */
+    */
     operator fun get(index: Int) = _x.firstOrNull()?.get(index)
 
     /**
@@ -174,7 +175,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      *
      * @param index 变量索引 / Variable index
      * @return 变量引用，未注册时返回错误 / Variable reference, or error if not registered
-     */
+    */
     fun getAt(index: Int): Ret<UIntVariable1> {
         val value = _x.firstOrNull()
         return if (value != null && index < value.shape.size) {
@@ -186,12 +187,12 @@ class ProduceAggregation<V : RealNumber<V>>(
 
     /**
      * 获取所有 x 变量组 / Get all x variable groups
-     */
+    */
     val xGroups: List<UIntVariable1> get() = _x
 
     /**
      * 获取所有 batch 中间符号组 / Get all batch intermediate symbol groups
-     */
+    */
     val batchGroups: List<LinearExpressionSymbols1<Flt64>> get() = _batch
 
     /**
@@ -202,7 +203,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      *
      * @param model 线性元模型 / Linear meta model
      * @return 操作结果 / Operation result
-     */
+    */
     override fun register(model: LinearMetaModel<Flt64>): Try {
         // 初始化迭代聚合 / Initialize iterative aggregation
         aggregation.addInitialPlans(cuttingPlans)
@@ -371,7 +372,7 @@ class ProduceAggregation<V : RealNumber<V>>(
      * @param newPlans 新方案列表 / New plan list
      * @param model 线性元模型 / Linear meta model
      * @return 去重后新增的方案 / Deduplicated newly added plans
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newPlans: List<CuttingPlan<V>>,
@@ -469,6 +470,6 @@ class ProduceAggregation<V : RealNumber<V>>(
 
     /**
      * 获取所有已注册的方案（含迭代新增）/ Get all registered plans (including iteratively added)
-     */
+    */
     val allPlans: List<CuttingPlan<V>> get() = aggregation.plans
 }

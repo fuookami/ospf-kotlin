@@ -1,7 +1,7 @@
 /**
  * Layer assignment model.
  * 层分配赋值模型。
- */
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.utils.functional.*
@@ -26,7 +26,7 @@ private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
  * @property items 货物需求映射 / item demand map
  * @property aggregation 层聚合 / layer aggregation
  * @property solverValueAdapter 求解器值适配器 / solver value adapter
- */
+*/
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,
     private val aggregation: LayerAggregation,
@@ -47,7 +47,7 @@ class ImpreciseAssignment(
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
-     */
+    */
     fun register(model: MetaModel<FltX>): Try {
         if (!::volume.isInitialized) {
             volume = LinearExpressionSymbol(FltX.zero, name = "volume")
@@ -75,7 +75,7 @@ class ImpreciseAssignment(
      * @param newLayers 新层列表 / new layer list
      * @param model 线性元模型 / linear meta model
      * @return 去重后新增的层 / deduplicated newly added layers
-     */
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
@@ -128,18 +128,21 @@ class ImpreciseAssignment(
  *
  * @property bins 箱子列表 / bin list
  * @property layers 层列表 / layer list
- */
+*/
 class PreciseAssignment(
     private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>
 ) {
+
     /** 赋值变量矩阵 / assignment variable matrix */
     lateinit var x: UIntVariable2
 
     /** 二值化中间符号 / binary intermediate symbols */
     lateinit var u: LinearIntermediateSymbols2<FltX>
+
     /** 箱子使用符号 / bin usage symbols */
     lateinit var v: LinearIntermediateSymbols1<FltX>
+
     /** 尾箱标记变量 / tail bin marker variable */
     lateinit var tail: BinVariable1
 
@@ -149,7 +152,7 @@ class PreciseAssignment(
      *
      * @param model 元模型 / meta model
      * @return 注册结果 / registration result
-     */
+    */
     fun register(model: MetaModel<FltX>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(

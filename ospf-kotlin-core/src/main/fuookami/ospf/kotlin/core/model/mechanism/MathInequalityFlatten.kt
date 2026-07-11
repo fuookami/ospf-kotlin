@@ -1,7 +1,7 @@
 /**
  * 不等式扁平化工具
  * Inequality flattening utilities
- */
+*/
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -34,7 +34,7 @@ private val solverValueConverter = object : IntoValue<Flt64> {
  * - [LinearIntermediateSymbol]: 其多项式单项式按原系数缩放后递归展开，常量也缩放累加
  *   its monomials are scaled by the original coefficient and recursively expanded
  * - 其他符号类型：视为错误（返回 [Failed] 结果）/ Other symbol types: treated as an error
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<LinearMonomial<V>>, V>>
         where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
@@ -63,7 +63,7 @@ private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<
  * 将中间符号展开的常量累加到多项式常量中。
  * Expand all monomials in a [LinearPolynomial], returning only variable-item monomials.
  * Accumulates constants from intermediate symbol expansion into the polynomial's constant.
- */
+*/
 private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<List<LinearMonomial<V>>, V>>
         where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     val expanded = mutableListOf<LinearMonomial<V>>()
@@ -78,6 +78,16 @@ private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<L
     return Result.success(Pair(expanded, totalConstant))
 }
 
+/**
+ * Merges a linear monomial into the accumulated map, combining coefficients for the same variable key.
+ * 将线性单项式合并到累积映射中，对相同变量键的系数进行累加。
+ *
+ * @param merged Mutable map accumulating merged monomials / 累积合并单项式的可变映射
+ * @param mono The monomial to merge / 要合并的单项式
+ * @param coefficient The coefficient to apply / 要应用的系数
+ * @param side Which side of the inequality ("lhs" or "rhs") for error messages / 不等式的哪一侧（"lhs" 或 "rhs"），用于错误消息
+ * @return Result success or failure / 结果成功或失败
+*/
 private fun <T> mergeLinearMonomial(
     merged: MutableMap<VariableItemKey, LinearMonomial<T>>,
     mono: LinearMonomial<*>,
@@ -98,6 +108,15 @@ private fun <T> mergeLinearMonomial(
     return Result.success(Unit)
 }
 
+/**
+ * Merges a quadratic monomial into the accumulated map, combining coefficients for the same key.
+ * 将二次单项式合并到累积映射中，对相同键的系数进行累加。
+ *
+ * @param merged Mutable map accumulating merged monomials / 累积合并单项式的可变映射
+ * @param key The canonical key for the monomial / 单项式的规范键
+ * @param mono The monomial to merge / 要合并的单项式
+ * @param coefficient The coefficient to apply / 要应用的系数
+*/
 private fun <T> mergeQuadraticMonomial(
     merged: MutableMap<QuadraticMonomialKey, QuadraticMonomial<T>>,
     key: QuadraticMonomialKey,
@@ -130,7 +149,7 @@ private fun <T> mergeQuadraticMonomial(
  * 不支持的符号类型会产生 [Failed] 结果而非 [ClassCastException]。
  * Intermediate symbols are recursively expanded before merging.
  * Unsupported symbol types produce a [Failed] result instead of a [ClassCastException].
- */
+*/
 internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlattenData<V>>
         where V : RealNumber<V>, V : NumberField<V> {
     val (lhsExpanded, lhsExtra) = expandLinearPolynomial(lhs).getOrElse { return Result.failure(it) }
@@ -166,7 +185,7 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlatten
  * 将 lhs - rhs 转换为单一二次形式。
  * Flatten a V-generic [QuadraticInequalityOf] into [QuadraticFlattenData]<V> (identity flatten, no conversion).
  * Converts lhs - rhs into a single quadratic form.
- */
+*/
 internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFlattenData<V>
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<V>>()
@@ -205,7 +224,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
  * 中间符号在合并前递归展开。不支持的符号类型会产生 [Failed] 结果。
  * Intermediate symbols are recursively expanded before merging.
  * Unsupported symbol types produce a [Failed] result instead of a [ClassCastException].
- */
+*/
 internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): Result<LinearFlattenData<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
     val (lhsExpanded, lhsExtra) = expandLinearPolynomial(lhs).getOrElse { return Result.failure(it) }
@@ -243,7 +262,7 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
  * Flatten a V-generic [QuadraticInequalityOf] into [QuadraticFlattenData]<Flt64> using an explicit converter.
  *
  * 将 lhs - rhs 转换为单一二次形式。/ Converts lhs - rhs into a single quadratic form.
- */
+*/
 internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<Flt64>>()
@@ -291,7 +310,7 @@ internal val QuadraticInequalityOf<Flt64>.sign: Comparison get() = comparison
  * Flattens lhs - rhs into a single linear form.
  *
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
- */
+*/
 internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64>>
     get() = toLinearFlattenDataFlt64(solverValueConverter)
 
@@ -303,7 +322,7 @@ internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64
  * Flattens lhs - rhs into a single quadratic form.
  *
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
- */
+*/
 internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt64>
     get() = toQuadraticFlattenDataFlt64(solverValueConverter)
 
@@ -315,12 +334,19 @@ internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt6
  *
  * @property sym1Id 第一个符号的 identityHashCode / identityHashCode of first symbol
  * @property sym2Id 第二个符号的 identityHashCode（null 表示线性项）/ identityHashCode of second symbol (null for linear term)
- */
+*/
 private data class QuadraticMonomialKey(
     val sym1Id: Int,
     val sym2Id: Int?
 ) {
     companion object {
+        /**
+         * Creates a merging key from a V-generic quadratic monomial.
+         * 从 V 泛型二次单项式创建合并键。
+         *
+         * @param mono The V-generic quadratic monomial / V 泛型二次单项式
+         * @return The canonical key for merging / 用于合并的规范键
+        */
         @JvmName("fromGeneric")
         fun <V> from(mono: QuadraticMonomial<V>): QuadraticMonomialKey
                 where V : RealNumber<V>, V : NumberField<V> {
@@ -333,6 +359,14 @@ private data class QuadraticMonomialKey(
             }
         }
 
+        /**
+         * Creates a merging key from a V-generic quadratic monomial with an explicit converter.
+         * 使用显式转换器从 V 泛型二次单项式创建合并键。
+         *
+         * @param mono The V-generic quadratic monomial / V 泛型二次单项式
+         * @param converter Value converter (unused, kept for API consistency) / 值转换器（未使用，保留以保持 API 一致性）
+         * @return The canonical key for merging / 用于合并的规范键
+        */
         @JvmName("fromGenericWithConverter")
         fun <V> from(mono: QuadraticMonomial<V>, @Suppress("UNUSED_PARAMETER") converter: IntoValue<V>): QuadraticMonomialKey
                 where V : RealNumber<V>, V : NumberField<V> {
@@ -351,7 +385,7 @@ private data class QuadraticMonomialKey(
          *
          * @param mono Flt64 类型的二次单项式 / the Flt64 quadratic monomial
          * @return 用于合并的规范键 / the canonical key for merging
-         */
+        */
         @JvmName("fromFlt64")
         private fun from(mono: QuadraticMonomial<Flt64>): QuadraticMonomialKey {
             val id1 = System.identityHashCode(mono.symbol1)
@@ -374,7 +408,7 @@ private data class QuadraticMonomialKey(
  * Used when only one side of the inequality is needed.
  *
  * @return 扁平化的线性数据 / the flattened linear data
- */
+*/
 internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
     return LinearFlattenData<Flt64>(
         monomials = monomials.map { LinearMonomial(it.coefficient, it.symbol) },
@@ -389,7 +423,7 @@ internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
  * Used when only one side of the inequality is needed.
  *
  * @return 扁平化的二次数据 / the flattened quadratic data
- */
+*/
 internal fun QuadraticPolynomial<Flt64>.toFlattenData(): QuadraticFlattenData<Flt64> {
     return QuadraticFlattenData<Flt64>(
         monomials = monomials.map {

@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * Provides [MaxFunction], [MinFunction], [MinMaxFunction], and [MaxMinFunction]
  * for linearized modeling of maximum and minimum values.
- */
+*/
 
 // ========== Max Function ==========
 
@@ -41,7 +41,7 @@ import fuookami.ospf.kotlin.utils.functional.*
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
@@ -180,7 +180,7 @@ class MaxFunction<V>(
  * @param converter 值类型转换器 / value type converter
  * @property name 此函数的唯一名称 / unique name for this function
  * @property displayName 可选的人类可读显示名称 / optional human-readable display name
- */
+*/
 class MinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,

@@ -22,6 +22,17 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Models the divide-empty-loading pattern for adjacent positions to minimize empty cargo gaps.
+ * 对相邻位置之间的空载分割模式建模以最小化空载间隙。
+ *
+ * @property positions The list of stowage positions / 装载位置列表
+ * @property adjacentPositions The list of adjacent position pairs / 相邻位置对列表
+ * @property load The load distribution data / 载荷分布数据
+ * @property emptyBetweenCargo Intermediate symbols for empty slots between cargo / 货物之间空位的中间符号
+ * @property emptyCargoBetweenCargo Intermediate symbols for empty cargo between cargo / 货物之间空货的中间符号
+ * @property emptyBetweenEmptyCargo Intermediate symbols for empty slots between empty cargo / 空货之间空位的中间符号
+*/
 class DivideEmptyLoading(
     private val positions: List<Position>,
     internal val adjacentPositions: List<PositionPair>,
@@ -40,6 +51,13 @@ class DivideEmptyLoading(
     lateinit var emptyCargoBetweenCargo: LinearIntermediateSymbols1<Flt64>
     lateinit var emptyBetweenEmptyCargo: LinearIntermediateSymbols1<Flt64>
 
+    /**
+     * Registers divide-empty-loading intermediate symbols into the optimization model.
+     * 将空载分割中间符号注册到优化模型中。
+     *
+     * @param model The linear meta model to register into / 要注册到的线性元模型
+     * @return Success or failure result / 成功或失败结果
+    */
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {

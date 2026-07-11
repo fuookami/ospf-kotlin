@@ -9,7 +9,7 @@
  * Arnold tongue is an important mathematical concept describing frequency locking phenomena in circle maps, proposed by Vladimir Arnold.
  * In parameter space, Arnold tongues exhibit the structure of frequency locking regions, serving as an important tool for studying synchronization phenomena in nonlinear oscillators.
  * Commonly used for phase-locked loop analysis, synchronization dynamics research, and nonlinear dynamics education.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  *
  * @property omega 频率参数 / Frequency parameter
  * @property kappa 耦合强度参数 / Coupling strength parameter
- */
+*/
 data class ArnoldTongue<V : FloatingNumber<V>>(
     val omega: V,
     val kappa: V
@@ -37,15 +37,15 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
     }
 
     /**
-     * 将三角函数运算结果转换为类型 V
-     * Cast trigonometric operation result to type V
+     * Cast trigonometric operation result to type V.
+     * 将三角函数运算结果转换为类型 V。
      *
-     * 安全不变量：V 实现 FloatingNumber<V>，且三角函数运算返回与输入同一数值族的实例。
      * Safety invariant: V implements FloatingNumber<V>, and trigonometric operations return values from the same numeric family as the input.
+     * 安全不变量：V 实现 FloatingNumber<V>，且三角函数运算返回与输入同一数值族的实例。
      *
-     * @param value 三角函数运算的结果值 / The result value from trigonometric operation
-     * @return 转换后的类型 V / The cast value of type V
-     */
+     * @param value the result value from trigonometric operation / 三角函数运算的结果值
+     * @return the cast value of type V / 转换后的类型 V
+    */
     @Suppress("UNCHECKED_CAST")
     private fun castToNumber(value: Any): V {
         return value as V
@@ -56,10 +56,10 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
          * Creates an ArnoldTongue instance with Flt64 parameters.
          * 创建使用 Flt64 参数的 Arnold 舌实例。
          *
-         * @param omega the frequency parameter / 频率参数
-         * @param kappa the coupling strength parameter / 耦合强度参数
+         * @param omega angular frequency of the circle map / 圆映射的角频率
+         * @param kappa nonlinear coupling strength controlling the width of Arnold tongues / 控制阿诺德舌宽度的非线性耦合强度
          * @return a new ArnoldTongue instance / 新的 Arnold 舌实例
-         */
+        */
         operator fun invoke(
             omega: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)
@@ -72,7 +72,7 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
 /**
  * Arnold 舌生成器
  * Arnold Tongue Generator
- */
+*/
 data class ArnoldTongueGenerator(
     val arnoldTongue: ArnoldTongue<Flt64> = ArnoldTongue(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

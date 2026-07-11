@@ -7,7 +7,7 @@
  * Provides core implementation for polynomial differentiation.
  * Supports derivative and gradient computation for linear, quadratic,
  * and canonical polynomials, based on Ring type constraints.
- */
+*/
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import kotlin.math.abs
@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
  * @param amount 缩放倍数（可为负） / Scale amount (may be negative)
  * @param zero 类型零值 / Zero value for the type
  * @return 缩放后的值 / Scaled result
- */
+*/
 private fun <T> scaleByIntWithSign(
     value: T,
     amount: Int,
@@ -57,7 +57,7 @@ private fun <T> scaleByIntWithSign(
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @return 导数值 / The derivative value
- */
+*/
 fun <T> LinearMonomial<T>.derivativeLinear(
     symbol: Symbol,
     zero: T
@@ -76,7 +76,7 @@ fun <T> LinearMonomial<T>.derivativeLinear(
  * @param symbol 求导变量 / The variable to differentiate with respect to
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @return 导数值 / The derivative value
- */
+*/
 fun <T> LinearPolynomial<T>.derivativeLinear(
     symbol: Symbol,
     zero: T
@@ -95,7 +95,7 @@ fun <T> LinearPolynomial<T>.derivativeLinear(
  * @param order 符号顺序列表 / Ordered list of symbols
  * @param zero 系数类型的零值 / Zero value for the coefficient type
  * @return 各符号偏导数组成的列表 / List of partial derivatives for each symbol
- */
+*/
 fun <T> LinearPolynomial<T>.gradientLinear(
     order: List<Symbol>,
     zero: T
@@ -112,7 +112,7 @@ fun <T> LinearPolynomial<T>.gradientLinear(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 导数（线性多项式） / The derivative as a linear polynomial
- */
+*/
 fun <T> QuadraticMonomial<T>.derivativeQuadratic(
     symbol: Symbol,
     zero: T,
@@ -164,7 +164,7 @@ fun <T> QuadraticMonomial<T>.derivativeQuadratic(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 导数（线性多项式） / The derivative as a linear polynomial
- */
+*/
 fun <T> QuadraticPolynomial<T>.derivativeQuadratic(
     symbol: Symbol,
     zero: T,
@@ -203,7 +203,7 @@ fun <T> QuadraticPolynomial<T>.derivativeQuadratic(
  * @param combineTerms 是否合并同类项 / Whether to combine like terms
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @return 各符号偏导数组成的列表 / List of partial derivatives for each symbol
- */
+*/
 fun <T> QuadraticPolynomial<T>.gradientQuadratic(
     order: List<Symbol>,
     zero: T,
@@ -223,7 +223,7 @@ fun <T> QuadraticPolynomial<T>.gradientQuadratic(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 导数（规范多项式） / The derivative as a canonical polynomial
- */
+*/
 fun <T> CanonicalMonomial<T>.derivativeCanonical(
     symbol: Symbol,
     zero: T,
@@ -270,7 +270,7 @@ fun <T> CanonicalMonomial<T>.derivativeCanonical(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 导数（规范多项式） / The derivative as a canonical polynomial
- */
+*/
 fun <T> CanonicalPolynomial<T>.derivativeCanonical(
     symbol: Symbol,
     zero: T,
@@ -311,7 +311,7 @@ fun <T> CanonicalPolynomial<T>.derivativeCanonical(
  * @param isZero 判断值是否为零的谓词 / Predicate to check if a value is zero
  * @param symbolComparator 符号排序比较器（可选） / Comparator for symbol ordering (optional)
  * @return 各符号偏导数组成的列表 / List of partial derivatives for each symbol
- */
+*/
 fun <T> CanonicalPolynomial<T>.gradientCanonical(
     order: List<Symbol>,
     zero: T,

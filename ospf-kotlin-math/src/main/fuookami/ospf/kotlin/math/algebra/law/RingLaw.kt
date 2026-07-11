@@ -4,7 +4,7 @@
  *
  * 提供环代数结构定律验证类，验证加法交换律、乘法结合律、乘法单位元存在性和分配律，继承臌GroupLaw 验证群定律。
  * Provides ring algebraic structure law validation class, verifying additive commutativity, multiplicative associativity, multiplicative identity existence, and distributivity, inheriting from GroupLaw for group law verification.
- */
+*/
 package fuookami.ospf.kotlin.math.algebra.law
 
 /**
@@ -25,7 +25,7 @@ package fuookami.ospf.kotlin.math.algebra.law
  * @property one 乘法单位元（幺元） / Multiplicative identity (one element)
  * @property negate 加法取反运算 / Additive negation operation
  * @property equal 相等性判定谓词 / Equality predicate
- */
+*/
 class RingLaw<Self>(
     private val samples: Collection<Self>,
     private val add: (Self, Self) -> Self,
@@ -48,7 +48,7 @@ class RingLaw<Self>(
      * Verify additive commutativity
      *
      * @return 对所有采样元素满足加法交换律返回 true / True if additive commutativity holds for all sampled elements
-     */
+    */
     fun additiveCommutative(): Boolean {
         for (lhs in samples) {
             for (rhs in samples) {
@@ -65,7 +65,7 @@ class RingLaw<Self>(
      * Verify multiplicative associativity
      *
      * @return 对所有采样元素满足乘法结合律返回 true / True if multiplicative associativity holds for all sampled elements
-     */
+    */
     fun multiplicativeAssociative(): Boolean {
         for (lhs in samples) {
             for (mid in samples) {
@@ -86,7 +86,7 @@ class RingLaw<Self>(
      * Verify multiplicative identity existence
      *
      * @return 对所有采样元素满足乘法单位元性质返回 true / True if multiplicative identity holds for all sampled elements
-     */
+    */
     fun multiplicativeIdentity(): Boolean {
         for (value in samples) {
             if (!equal(mul(value, one), value)) {
@@ -104,7 +104,7 @@ class RingLaw<Self>(
      * Verify distributivity
      *
      * @return 对所有采样元素满足分配律返回 true / True if distributivity holds for all sampled elements
-     */
+    */
     fun distributive(): Boolean {
         for (lhs in samples) {
             for (mid in samples) {
@@ -131,7 +131,7 @@ class RingLaw<Self>(
      * Validate all ring laws (including group laws)
      *
      * @return 所有环公理均满足返回 true / True if all ring axioms hold
-     */
+    */
     fun validate(): Boolean {
         return additiveGroup.validate()
             && additiveCommutative()

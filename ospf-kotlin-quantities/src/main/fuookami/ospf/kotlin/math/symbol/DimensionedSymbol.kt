@@ -16,7 +16,7 @@
  * val time = DimensionedSymbol("t", "time", DerivedQuantity.Time, Second)
  * val speedDimension = distance.divideBy(time)  // DerivedQuantity.Speed
  * ```
- */
+*/
 package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
@@ -43,7 +43,7 @@ import fuookami.ospf.kotlin.quantities.dimension.*
  * @property displayName 显示名称（可选）/ Display name (optional)
  * @property quantity 量纲 / Dimension
  * @property preferredUnit 首选单位（可选）/ Preferred unit (optional)
- */
+*/
 data class DimensionedSymbol(
     override val name: String,
     override val displayName: String? = null,
@@ -70,7 +70,7 @@ data class DimensionedSymbol(
      *
      * @param other 另一个符号 / Another symbol
      * @return 是否可以相加 / Whether can be added
-     */
+    */
     fun canAddTo(other: DimensionedSymbol): Boolean {
         return this.quantity == other.quantity
     }
@@ -88,7 +88,7 @@ data class DimensionedSymbol(
      *
      * @param other 另一个符号 / Another symbol
      * @return 相乘后的量纲 / Dimension after multiplication
-     */
+    */
     fun multiplyWith(other: DimensionedSymbol): DerivedQuantity {
         return this.quantity * other.quantity
     }
@@ -106,7 +106,7 @@ data class DimensionedSymbol(
      *
      * @param other 另一个符号 / Another symbol
      * @return 相除后的量纲 / Dimension after division
-     */
+    */
     fun divideBy(other: DimensionedSymbol): DerivedQuantity {
         return this.quantity / other.quantity
     }

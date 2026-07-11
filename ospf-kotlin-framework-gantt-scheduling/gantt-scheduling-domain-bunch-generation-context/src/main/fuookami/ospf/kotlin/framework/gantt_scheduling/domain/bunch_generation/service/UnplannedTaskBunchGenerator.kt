@@ -6,6 +6,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
  *
  * 用于生成非计划任务的任务束。
  * Used to generate task bunches for unplanned tasks.
- */
+*/
 class UnplannedTaskBunchGenerator {
 }

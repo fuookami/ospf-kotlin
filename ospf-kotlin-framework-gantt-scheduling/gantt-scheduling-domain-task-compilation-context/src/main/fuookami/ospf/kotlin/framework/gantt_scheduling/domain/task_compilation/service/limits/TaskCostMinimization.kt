@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
  * @param A 分配策略类型 / Assignment policy type
  * @param compilation 迭代任务编译结果 / Iterative task compilation result
  * @param name 管道名称 / Pipeline name
- */
+*/
 class TaskCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
         E : Executor,

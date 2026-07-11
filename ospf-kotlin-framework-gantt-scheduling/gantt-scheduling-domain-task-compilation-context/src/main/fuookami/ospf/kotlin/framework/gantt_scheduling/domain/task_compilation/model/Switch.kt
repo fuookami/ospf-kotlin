@@ -26,7 +26,7 @@ typealias SwitchTimeQuantity<V> = Quantity<V>
  * @param result 约束输入结果 / Constraint input result
  * @param onFailure 失败时的回调函数 / Callback function on failure
  * @return 成功时返回约束输入，失败时返回 null / Constraint input on success, null on failure
- */
+*/
 private fun captureLinearConstraintInput(
     result: Ret<LinearConstraintInput<Flt64>>,
     onFailure: (Try) -> Unit
@@ -47,7 +47,11 @@ private fun captureLinearConstraintInput(
 
 /** 切换接口 / Switch interface */
 interface Switch {
+
+    /** Switch indicator between executor, previous task and next task / 执行者、前序任务与后序任务之间的切换指示符号 */
     val switch: LinearIntermediateSymbols3<Flt64>
+
+    /** Switch time between previous task and next task / 前序任务与后序任务之间的切换时间符号 */
     val switchTime: LinearIntermediateSymbols2<Flt64>
 
     /**
@@ -55,7 +59,7 @@ interface Switch {
      *
      * @param model 元模型 / Meta model
      * @return 操作结果 / Operation result
-     */
+    */
     fun register(model: MetaModel<Flt64>): Try
 
     /**
@@ -71,7 +75,7 @@ interface Switch {
      * @param adapter solver 数值适配器 / Solver value adapter
      * @param unit 时间单位 / Time unit
      * @return 切换时间物理量 / Switch time quantity
-     */
+    */
     fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -104,7 +108,7 @@ interface Switch {
  * @param executors 执行器列表 / List of executors
  * @param compilation 任务编译结果 / Task compilation result
  * @param taskTime 任务时间对象 / Task time object
- */
+*/
 class TaskSchedulingSwitch<
         out T : AbstractTask<E, A>,
         out E : Executor,
@@ -116,6 +120,7 @@ class TaskSchedulingSwitch<
     private val compilation: TaskCompilation<T, E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
+
     /**
      * 通过 solver 时间窗口边界创建任务调度切换 / Create task scheduling switch from a solver time-window boundary
      *
@@ -124,7 +129,7 @@ class TaskSchedulingSwitch<
      * @param executors 执行器列表 / List of executors
      * @param compilation 任务编译结果 / Task compilation result
      * @param taskTime 任务时间对象 / Task time object
-     */
+    */
     constructor(
         timeBoundary: SolverTimeWindowBoundary,
         tasks: List<T>,

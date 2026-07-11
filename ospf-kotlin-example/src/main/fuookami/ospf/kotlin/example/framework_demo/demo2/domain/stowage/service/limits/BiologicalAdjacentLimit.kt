@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Po
  * @property neighbours the list of adjacent position pairs / 相邻位置对列表
  * @property biologicalLimit the biological cargo compatibility rules / 生物货物兼容性规则
  * @property stowage the stowage decision variable matrix / 装载决策变量矩阵
- */
+*/
 class BiologicalAdjacentLimit(
     private val items: List<Item>,
     private val positions: List<Position>,

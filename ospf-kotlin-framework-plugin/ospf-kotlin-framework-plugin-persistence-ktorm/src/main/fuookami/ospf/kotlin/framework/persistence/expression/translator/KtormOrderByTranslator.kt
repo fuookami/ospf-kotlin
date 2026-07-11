@@ -4,7 +4,7 @@
  *
  * 将 SortBy 翻译为 Ktorm ORDER BY 子句。
  * Translates SortBy to Ktorm ORDER BY clause.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.ktorm.dsl.*
@@ -22,11 +22,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  *
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
- */
+*/
 class KtormOrderByTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
 ) {
+
     /**
      * 应用排序到查询
      * Apply sort to query
@@ -34,7 +35,7 @@ class KtormOrderByTranslator(
      * @param query Ktorm 查询对象 / Ktorm query object
      * @param sortBy 排序条件 / Sort conditions
      * @return 应用排序后的查询对象 / Query object with sort applied
-     */
+    */
     fun apply(query: Query, sortBy: SortBy): Ret<Query> {
         if (sortBy.isEmpty()) return Ok(query)
 
@@ -57,7 +58,7 @@ class KtormOrderByTranslator(
      *
      * @param item 排序项 / Sort item
      * @return 排序表达式列表 / List of order by expressions
-     */
+    */
     private fun buildOrders(item: SortItem): Ret<List<OrderByExpression>> {
         val column = resolveColumn(item.path) ?: return Failed(
             ErrorCode.IllegalArgument,

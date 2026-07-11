@@ -12,7 +12,7 @@
  * - MeterPerSecond: m/s, SI derived unit for velocity
  * - Mach: Speed of sound at sea level (≈340.3 m/s)
  * - LightSpeed: c = 299,792,458 m/s (exact)
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Velocity
@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Velocity
  *
  * 来源：SI 导出速度单位
  * Source: SI derived velocity unit
- */
+*/
 object CentimeterPerSecond : DerivedPhysicalUnit(Centimeter / Second) {
     override val name = "centimeter per second"
     override val symbol = "cmps"
@@ -55,7 +55,7 @@ object CentimeterPerSecond : DerivedPhysicalUnit(Centimeter / Second) {
  *
  * 来源：SI 导出单位，速度的国际单位
  * Source: SI derived unit, international unit for velocity
- */
+*/
 object MeterPerSecond : DerivedPhysicalUnit(Meter / Second) {
     override val name = "meter per second"
     override val symbol = "mps"
@@ -78,7 +78,7 @@ object MeterPerSecond : DerivedPhysicalUnit(Meter / Second) {
  *
  * 来源：SI 导出速度单位，常用于航天和天文学
  * Source: SI derived velocity unit, commonly used in aerospace and astronomy
- */
+*/
 object KilometerPerSecond : DerivedPhysicalUnit(Kilometer / Second) {
     override val name = "kilometer per second"
     override val symbol = "kmps"
@@ -101,7 +101,7 @@ object KilometerPerSecond : DerivedPhysicalUnit(Kilometer / Second) {
  *
  * 来源：常用速度单位，广泛用于车辆速度表示
  * Source: Common velocity unit, widely used for vehicle speed representation
- */
+*/
 object KilometerPerHour : DerivedPhysicalUnit(Kilometer / Hour) {
     override val name = "kilometers per hour"
     override val symbol = "kmph"
@@ -124,7 +124,7 @@ object KilometerPerHour : DerivedPhysicalUnit(Kilometer / Hour) {
  *
  * 来源：航空领域常用单位，以恩斯特·马赫命名
  * Source: Common unit in aviation, named after Ernst Mach
- */
+*/
 object Mach : DerivedPhysicalUnit(MeterPerSecond * 340.3) {
     override val name = "mach"
     override val symbol = "ma"
@@ -147,7 +147,7 @@ object Mach : DerivedPhysicalUnit(MeterPerSecond * 340.3) {
  *
  * 来源：航海和航空领域常用速度单位
  * Source: Common velocity unit in maritime and aviation
- */
+*/
 object Knot : DerivedPhysicalUnit(NauticalMile / Hour) {
     override val name = "knot"
     override val symbol = "kn"
@@ -170,7 +170,7 @@ object Knot : DerivedPhysicalUnit(NauticalMile / Hour) {
  *
  * 来源：法国使用的航海速度单位
  * Source: Maritime velocity unit used in France
- */
+*/
 object FRKnot : DerivedPhysicalUnit(FRNauticalMile / Hour) {
     override val name = "fr knot"
     override val symbol = "fr.kn"
@@ -193,7 +193,7 @@ object FRKnot : DerivedPhysicalUnit(FRNauticalMile / Hour) {
  *
  * 来源：英国使用的航海速度单位
  * Source: Maritime velocity unit used in the UK
- */
+*/
 object UKKnot : DerivedPhysicalUnit(UKNauticalMile / Hour) {
     override val name = "uk knot"
     override val symbol = "uk.kn"
@@ -216,7 +216,7 @@ object UKKnot : DerivedPhysicalUnit(UKNauticalMile / Hour) {
  *
  * 来源：俄罗斯使用的航海速度单位
  * Source: Maritime velocity unit used in Russia
- */
+*/
 object RUKnot : DerivedPhysicalUnit(RUNauticalMile / Hour) {
     override val name = "ru knot"
     override val symbol = "ru.kn"
@@ -239,7 +239,7 @@ object RUKnot : DerivedPhysicalUnit(RUNauticalMile / Hour) {
  *
  * 来源：美国使用的航海速度单位
  * Source: Maritime velocity unit used in the US
- */
+*/
 object USKnot : DerivedPhysicalUnit(USNauticalMile / Hour) {
     override val name = "us knot"
     override val symbol = "us.kn"
@@ -262,7 +262,7 @@ object USKnot : DerivedPhysicalUnit(USNauticalMile / Hour) {
  *
  * 来源：物理学基本常数，相对论中的速度上限
  * Source: Fundamental constant in physics, speed limit in relativity
- */
+*/
 object LightSpeed : DerivedPhysicalUnit(LightSecond / Second) {
     override val name = "lightspeed"
     override val symbol = "c"
@@ -285,7 +285,7 @@ object LightSpeed : DerivedPhysicalUnit(LightSecond / Second) {
  *
  * 来源：英制速度单位
  * Source: Imperial velocity unit
- */
+*/
 object InchPerSecond : DerivedPhysicalUnit(Inch / Second) {
     override val name = "inch per second"
     override val symbol = "ips"
@@ -308,7 +308,7 @@ object InchPerSecond : DerivedPhysicalUnit(Inch / Second) {
  *
  * 来源：英制速度单位，常用于美国工程领域
  * Source: Imperial velocity unit, commonly used in US engineering
- */
+*/
 object FootPerSecond : DerivedPhysicalUnit(Foot / Second) {
     override val name = "foot per second"
     override val symbol = "fps"
@@ -331,7 +331,7 @@ object FootPerSecond : DerivedPhysicalUnit(Foot / Second) {
  *
  * 来源：英制速度单位，广泛用于美国和英国的车辆速度表示
  * Source: Imperial velocity unit, widely used for vehicle speed in the US and UK
- */
+*/
 object MilePerHour : DerivedPhysicalUnit(Mile / Hour) {
     override val name = "mile per hour"
     override val symbol = "mph"

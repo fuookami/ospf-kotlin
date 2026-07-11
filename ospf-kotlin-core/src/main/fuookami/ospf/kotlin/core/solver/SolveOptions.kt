@@ -1,7 +1,7 @@
 /**
  * 求解选项配置
  * Solve options configuration
- */
+*/
 package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -17,13 +17,14 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
  * @property modelBuildingStatusCallBack 模型构建状态回调 / Model building status callback
  * @property solvingStatusCallBack 求解状态回调 / Solving status callback
  * @property valueConversionPolicy 值转换策略 / Value conversion policy
- */
+*/
 data class SolveOptions(
     val solutionAmount: UInt64? = null,
     val modelBuildingStatusCallBack: ModelBuildingStatusCallBack? = null,
     val solvingStatusCallBack: SolvingStatusCallBack? = null,
     val valueConversionPolicy: SolveValueConversionPolicy? = null
 ) {
+
     /** 有效的值转换策略 / Effective value conversion policy */
     val effectiveValueConversionPolicy: SolveValueConversionPolicy
         get() = valueConversionPolicy ?: SolveValueConversionPolicy.AllowRounding
@@ -40,7 +41,7 @@ data class SolveOptions(
          * Build solve options.
          *
          * @return 求解选项实例 / Solve options instance
-         */
+        */
         fun build(): SolveOptions {
             return SolveOptions(
                 solutionAmount = solutionAmount,
@@ -57,7 +58,7 @@ data class SolveOptions(
          * Create a solve options builder.
          *
          * @return 构建器实例 / Builder instance
-         */
+        */
         fun builder(): Builder {
             return Builder()
         }
@@ -68,7 +69,7 @@ data class SolveOptions(
          *
          * @param block 构建器配置块 / Builder configuration block
          * @return 求解选项实例 / Solve options instance
-         */
+        */
         fun build(block: Builder.() -> Unit): SolveOptions {
             return Builder().apply(block).build()
         }

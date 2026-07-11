@@ -4,7 +4,7 @@
  *
  * 将 UpdateAssignment 翻译为 Ktorm UPDATE SET 子句。
  * Translates UpdateAssignment to Ktorm UPDATE SET clause.
- */
+*/
 package fuookami.ospf.kotlin.framework.persistence.expression.translator
 
 import org.ktorm.database.Database
@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.framework.persistence.expression.*
  *
  * @param column 列声明表达式 / Column declaring expression
  * @param value 要设置的值 / Value to set
- */
+*/
 @Suppress("UNCHECKED_CAST")
 private fun UpdateStatementBuilder.setDynamicValue(column: ColumnDeclaring<*>, value: Any?) {
     set(column as Column<Any>, value)
@@ -34,11 +34,12 @@ private fun UpdateStatementBuilder.setDynamicValue(column: ColumnDeclaring<*>, v
  *
  * @property resolveColumn 列解析函数 / Column resolver function
  * @property table Ktorm 表定义 / Ktorm table definition
- */
+*/
 class KtormUpdateTranslator(
     private val resolveColumn: KtormColumnResolver,
     private val table: Table<*>
 ) {
+
     /**
      * 执行更新语句
      * Execute update statement
@@ -47,7 +48,7 @@ class KtormUpdateTranslator(
      * @param whereCondition WHERE 条件 / WHERE condition
      * @param assignments 更新赋值列表 / Update assignment list
      * @return 受影响的行数 / Number of affected rows
-     */
+    */
     fun executeUpdate(
         database: Database,
         whereCondition: ColumnDeclaring<Boolean>?,

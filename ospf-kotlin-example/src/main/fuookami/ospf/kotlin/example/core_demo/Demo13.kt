@@ -31,13 +31,14 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * Vehicle routing: minimize distribution distance from centers to dealers with truck capacity.
  *
  * @see https://fuookami.github.io/ospf/examples/example13.html
- */
+*/
 data object Demo13 {
+
     /**
      * 具有需求量的经销商。A dealer with a demand quantity.
      *
      * @property demand 需求量 / Demand quantity
-     */
+    */
     data class Dealer(
         val demand: UInt64
     ) : AutoIndexed(Dealer::class)
@@ -47,7 +48,7 @@ data object Demo13 {
      *
      * @property supply 供应量 / Supply quantity
      * @property distance 到各经销商距离 / Distance to dealers
-     */
+    */
     data class DistributionCenter(
         val supply: UInt64,
         val distance: Map<Dealer, UInt64>
@@ -117,7 +118,7 @@ data object Demo13 {
      * Runs all sub-processes sequentially to build, solve, and analyze the model.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     suspend operator fun invoke(): Try {
         for (process in subProcesses) {
             when (val result = process()) {
@@ -140,7 +141,7 @@ data object Demo13 {
      * Initializes shipment and truck count variables.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initVariable(): Try {
         x = UIntVariable2("x", Shape2(dealers.size, distributionCenters.size))
         metaModel.add(x)
@@ -156,7 +157,7 @@ data object Demo13 {
      * Creates transport, receive, and cost expression symbols.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initSymbol(): Try {
         trans = LinearIntermediateSymbols1<Flt64>(
             "trans",
@@ -201,7 +202,7 @@ data object Demo13 {
      * Sets the objective to minimize total distribution distance.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initObject(): Try {
         metaModel.minimize(cost, "cost")
 
@@ -213,7 +214,7 @@ data object Demo13 {
      * Adds supply, demand, and truck capacity constraints.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun initConstraint(): Try {
         for (distributionCenter in distributionCenters) {
             metaModel.addConstraint(
@@ -246,7 +247,7 @@ data object Demo13 {
      * Solves the linear model using the SCIP solver.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
         when (val ret = solveLinearMetaModel(solver, metaModel)) {
@@ -271,7 +272,7 @@ data object Demo13 {
      * Extracts the shipment quantities per distribution center and dealer.
      *
      * @return 操作结果 / Operation result
-     */
+    */
     private suspend fun analyzeSolution(): Try {
         val trans: MutableMap<DistributionCenter, MutableMap<Dealer, UInt64>> = hashMapOf()
         for (token in metaModel.tokens.tokens) {

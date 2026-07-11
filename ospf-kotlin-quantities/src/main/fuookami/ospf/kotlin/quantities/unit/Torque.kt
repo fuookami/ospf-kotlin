@@ -8,7 +8,7 @@
  * Source: SI derived unit and common torque unit definitions
  * - Newton meter: N·m, SI derived unit for torque
  * - Kilogram force meter: kgf·m, engineering unit for torque
- */
+*/
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.quantities.dimension.Torque
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.quantities.dimension.Torque
  *
  * 来源：SI 导出单位，扭矩的国际单位
  * Source: SI derived unit, international unit for torque
- */
+*/
 object NewtonMeter : DerivedPhysicalUnit(Newton * Meter) {
     override val name = "newton meter"
     override val symbol = "N·m"
@@ -51,7 +51,7 @@ object NewtonMeter : DerivedPhysicalUnit(Newton * Meter) {
  *
  * 来源：工程单位制，常用于机械工程
  * Source: Engineering unit system, commonly used in mechanical engineering
- */
+*/
 object KilogramForceMeter : DerivedPhysicalUnit(KilogramForce * Meter) {
     override val name = "kilogram meter"
     override val symbol = "kgf·m"

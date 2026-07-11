@@ -9,7 +9,7 @@
  * The circuit chaotic model is a simplified model describing chaotic dynamical behavior in electronic circuits.
  * This model simulates chaotic oscillations in circuits through nonlinear terms, exhibiting complex dynamical phenomena in electronic systems.
  * Commonly used for electronic circuit chaos analysis, chaotic circuit design, and electronic system dynamics research.
- */
+*/
 package fuookami.ospf.kotlin.math.chaotic
 
 import kotlin.random.Random
@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.math.nextFlt64
  * @property b 系统参数 b / System parameter b
  * @property c 系统参数 c / System parameter c
  * @property d 非线性参数 d / Nonlinear parameter d
- */
+*/
 data class CircuitChaotic<V : FloatingNumber<V>>(
     val a: V,
     val b: V,
@@ -53,7 +53,7 @@ data class CircuitChaotic<V : FloatingNumber<V>>(
 /**
  * 电路混沌模型生成噌
  * Circuit Chaotic Model Generator
- */
+*/
 data class CircuitChaoticGenerator(
     val circuitChaotic: CircuitChaotic<Flt64> = CircuitChaotic(),
     private var _x: Point<Dim2, Flt64> = point2(

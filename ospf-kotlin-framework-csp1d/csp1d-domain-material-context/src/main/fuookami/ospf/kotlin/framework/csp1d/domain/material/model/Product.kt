@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
  * @property unitWeight 单位重量 / Unit weight
  * @property maxOverProduceLength 最大超产长度 / Maximum overproduce length
  * @property dynamicLength 是否动态长度 / Whether length is dynamic
- */
+*/
 open class Product<V : RealNumber<V>>(
     override val id: ProductId,
     val name: String,
@@ -39,7 +39,7 @@ open class Product<V : RealNumber<V>>(
          * @param weight 重量 / Weight
          * @param maxOverProduceLength 最大超产长度 / Maximum overproduce length
          * @return 产品实例 / Product instance
-         */
+        */
         operator fun <V : RealNumber<V>> invoke(
             id: ProductId,
             name: String,
@@ -68,7 +68,7 @@ open class Product<V : RealNumber<V>>(
          * @param width 宽度列表 / List of widths
          * @param unitWeight 单位重量 / Unit weight
          * @return 动态长度产品实例 / Dynamic-length product instance
-         */
+        */
         fun <V : RealNumber<V>> dynamicLengthOf(
             id: ProductId,
             name: String,
@@ -96,7 +96,7 @@ open class Product<V : RealNumber<V>>(
          * @param maxOverProduceLength 最大超产长度（无单位）/ Maximum overproduce length without unit
          * @param unit 统一单位 / Shared unit
          * @return FltX 产品实例 / FltX product instance
-         */
+        */
         fun legacy(
             id: ProductId,
             name: String,
@@ -127,6 +127,12 @@ open class Product<V : RealNumber<V>>(
 
     private val explicitWeight = weight
 
+    /**
+     * Computes the maximum width across all width dimensions.
+     * 中文计算所有宽度维度中的最大宽度。
+     *
+     * @return the maximum width quantity, or null if no widths exist / 最大宽度数量，若无宽度则返回null
+    */
     fun maxWidth(): Quantity<V>? {
         return width.reduceOrNull { lhs, rhs ->
             max(lhs, rhs) ?: lhs
@@ -149,7 +155,7 @@ open class Product<V : RealNumber<V>>(
      * @param width 宽度 / Width
      * @param length 长度 / Length
      * @return 重量 / Weight
-     */
+    */
     fun weight(
         width: Quantity<V>,
         length: Quantity<V>? = this.length
