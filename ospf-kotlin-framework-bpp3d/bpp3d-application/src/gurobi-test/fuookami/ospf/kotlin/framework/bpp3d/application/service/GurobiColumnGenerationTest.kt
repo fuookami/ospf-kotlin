@@ -309,7 +309,7 @@ class GurobiColumnGenerationTest {
 
     private fun layerBin(
         items: List<ActualItem>,
-        typeCode: String = "BIN-GUROBI",
+        typeCode: BinTypeId = binTypeIdOf("BIN-GUROBI"),
         depthInMeter: FltX = FltX(3.0),
         binType: BinType<FltX>? = null,
         widthInMeter: FltX = FltX(3.0)
@@ -903,7 +903,7 @@ class GurobiColumnGenerationTest {
                 capacity = FltX(1500.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
-                typeCode = "BIN-GUROBI-CSV-$groupIndex"
+                typeCode = binTypeIdOf("BIN-GUROBI-CSV-$groupIndex")
             )
             finalBins.add(
                 layerBinOf(
@@ -948,7 +948,7 @@ class GurobiColumnGenerationTest {
             }
         }
 
-        val sortedItems = itemsById.values.sortedBy { it.id }
+        val sortedItems = itemsById.values.sortedBy { it.id.toString() }
         val itemDemands = sortedItems.map { actualItem ->
             Pair(actualItem, UInt64.one)
         }
@@ -1141,9 +1141,9 @@ class GurobiColumnGenerationTest {
         val itemsById = scenario.itemDemands.associate { (item, _) ->
             item.id to item
         }
-        val cylinderItem = itemsById["item-cylinder"]
+        val cylinderItem = itemsById[itemIdOf("item-cylinder")]
             ?: throw IllegalStateException("missing item-cylinder in scenario")
-        val cuboidItem = itemsById["item-cuboid"]
+        val cuboidItem = itemsById[itemIdOf("item-cuboid")]
             ?: throw IllegalStateException("missing item-cuboid in scenario")
         val cylinderSpec = cylinderItem.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
             ?: throw IllegalStateException("item-cylinder shape spec should be VerticalCylinder")
@@ -1225,9 +1225,9 @@ class GurobiColumnGenerationTest {
         val itemDemandsById = scenario.itemDemands.associate { (item, demand) ->
             item.id to Pair(item, demand)
         }
-        val cylinderEntry = itemDemandsById["item-material-width-0"]
+        val cylinderEntry = itemDemandsById[itemIdOf("item-material-width-0")]
             ?: throw IllegalStateException("missing cylinder entry")
-        val cuboidEntry = itemDemandsById["item-material-width-1"]
+        val cuboidEntry = itemDemandsById[itemIdOf("item-material-width-1")]
             ?: throw IllegalStateException("missing cuboid entry")
         val cylinderSpec = cylinderEntry.first.packageShape.shapeSpec as? PackageShapeSpec.VerticalCylinder
             ?: throw IllegalStateException("item-material-width-0 should be VerticalCylinder")
@@ -1294,9 +1294,9 @@ class GurobiColumnGenerationTest {
         val itemsById = scenario.itemDemands.associate { (item, _) ->
             item.id to item
         }
-        val itemX = itemsById["item-material-width-0"]
+        val itemX = itemsById[itemIdOf("item-material-width-0")]
             ?: throw IllegalStateException("missing item-material-width-0")
-        val itemZ = itemsById["item-material-width-1"]
+        val itemZ = itemsById[itemIdOf("item-material-width-1")]
             ?: throw IllegalStateException("missing item-material-width-1")
 
         assertEquals(
@@ -1389,10 +1389,10 @@ class GurobiColumnGenerationTest {
             MAT-A,1000,1,vertical_cylinder,0.3,INVALID
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+        val exception = assertFailsWith<IllegalStateException> {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
-        assertTrue(exception.message?.contains("invalid axis") == true)
+        assertEquals(exception.message?.contains("invalid axis"), true)
     }
 
     @Test
@@ -1445,11 +1445,11 @@ class GurobiColumnGenerationTest {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
 
-        assertTrue(
+        assertEquals(
             exception.message
-                ?.contains("selected or initial radius must be greater than or equal to lower bound") == true
+                ?.contains("selected or initial radius must be greater than or equal to lower bound"), true
         )
-        assertTrue(exception.message?.contains("prefer-large-radius") == true)
+        assertEquals(exception.message?.contains("prefer-large-radius"), true)
     }
 
     @Test
@@ -1498,11 +1498,11 @@ class GurobiColumnGenerationTest {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
 
-        assertTrue(
+        assertEquals(
             exception.message
-                ?.contains("selected or initial radius must be greater than or equal to lower bound") == true
+                ?.contains("selected or initial radius must be greater than or equal to lower bound"), true
         )
-        assertTrue(exception.message?.contains("prefer-large-radius") == true)
+        assertEquals(exception.message?.contains("prefer-large-radius"), true)
     }
 
     @Test
@@ -1669,8 +1669,8 @@ class GurobiColumnGenerationTest {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
 
-        assertTrue(exception.message?.contains("duplicated csv columns") == true)
-        assertTrue(exception.message?.contains("width") == true)
+        assertEquals(exception.message?.contains("duplicated csv columns"), true)
+        assertEquals(exception.message?.contains("width"), true)
     }
 
     @Test
@@ -1711,12 +1711,12 @@ class GurobiColumnGenerationTest {
             0,0,item-a,MAT-A,Material-A,1.0,Q
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+        val exception = assertFailsWith<IllegalStateException> {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
 
-        assertTrue(exception.message?.contains("invalid axis in first_layer_allowed_cylinder_axes") == true)
-        assertTrue(exception.message?.contains("Q") == true)
+        assertEquals(exception.message?.contains("invalid axis in first_layer_allowed_cylinder_axes"), true)
+        assertEquals(exception.message?.contains("Q"), true)
     }
 
     @Test
@@ -1726,12 +1726,12 @@ class GurobiColumnGenerationTest {
             0,0,item-a,MAT-A,Material-A,1.0,Diagonal
         """.trimIndent()
 
-        val exception = kotlin.test.assertFailsWith<IllegalStateException> {
+        val exception = assertFailsWith<IllegalStateException> {
             loadCsvDrivenScenarioFromCsvText(csv)
         }
 
-        assertTrue(exception.message?.contains("invalid orientation in last_layer_allowed_cuboid_orientations") == true)
-        assertTrue(exception.message?.contains("Diagonal") == true)
+        assertEquals(exception.message?.contains("invalid orientation in last_layer_allowed_cuboid_orientations"), true)
+        assertEquals(exception.message?.contains("Diagonal"), true)
     }
 
     @Test
@@ -1748,7 +1748,7 @@ class GurobiColumnGenerationTest {
                 declaredScenarioKind = CsvScenarioKind.GroupedLayer
             )
         }
-        assertTrue(exception.message?.contains("scenario kind mismatch") == true)
+        assertEquals(exception.message?.contains("scenario kind mismatch"), true)
     }
 
     @Test
@@ -1780,8 +1780,8 @@ class GurobiColumnGenerationTest {
             .toSet()
         assertEquals(
             setOf(
-                "item-horizontal-support-a",
-                "item-horizontal-support-b"
+                itemIdOf("item-horizontal-support-a"),
+                itemIdOf("item-horizontal-support-b")
             ),
             supportIds
         )
@@ -1808,8 +1808,8 @@ class GurobiColumnGenerationTest {
             .toSet()
         assertEquals(
             setOf(
-                "item-horizontal-z-support-a",
-                "item-horizontal-z-support-b"
+                itemIdOf("item-horizontal-z-support-a"),
+                itemIdOf("item-horizontal-z-support-b")
             ),
             supportIds
         )
@@ -1840,9 +1840,9 @@ class GurobiColumnGenerationTest {
             .toSet()
         assertEquals(
             setOf(
-                "item-horizontal-hanging-multi-support-a",
-                "item-horizontal-hanging-multi-support-b",
-                "item-horizontal-hanging-multi-support-c"
+                itemIdOf("item-horizontal-hanging-multi-support-a"),
+                itemIdOf("item-horizontal-hanging-multi-support-b"),
+                itemIdOf("item-horizontal-hanging-multi-support-c")
             ),
             supportIds
         )
@@ -2264,7 +2264,7 @@ class GurobiColumnGenerationTest {
             capacity = maxOf(FltX(totalAmount.toLong().toDouble()), FltX.one) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI-MATERIAL-WIDTH"
+            typeCode = binTypeIdOf("BIN-GUROBI-MATERIAL-WIDTH")
         )
         val finalBins: List<Bin<BinLayer, FltX>> = listOf(
             layerBinOf(
@@ -2556,9 +2556,7 @@ class GurobiColumnGenerationTest {
                 "missing dataset suite properties: $pathsPropertyName or $directoryPropertyName"
             )
         val directory = resolveExistingDatasetDirectory(directoryPath)
-        if (directory == null) {
-            throw IllegalStateException("invalid dataset directory path: $directoryPath")
-        }
+            ?: throw IllegalStateException("invalid dataset directory path: $directoryPath")
         val files = directory
             .listFiles { file ->
                 file.isFile && file.extension.equals(
@@ -2712,7 +2710,7 @@ class GurobiColumnGenerationTest {
             finalBins = listOf(
                 layerBinOf(
                     shape = seedBin.type,
-                    units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
+                    units = emptyList(),
                     batchNo = seedBin.batchNo
                 )
             )
@@ -2787,7 +2785,7 @@ class GurobiColumnGenerationTest {
                 finalBins = listOf(
                     layerBinOf(
                         shape = seedBin.type,
-                        units = emptyList<QuantityPlacement3<BinLayer, FltX>>(),
+                        units = emptyList(),
                         batchNo = seedBin.batchNo
                     )
                 ),
@@ -2847,7 +2845,7 @@ class GurobiColumnGenerationTest {
             capacity = FltX(20.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI-HORIZONTAL"
+            typeCode = binTypeIdOf("BIN-GUROBI-HORIZONTAL")
         )
         val itemDemands = listOf(
             Pair(itemX, UInt64.one),
@@ -2970,7 +2968,7 @@ class GurobiColumnGenerationTest {
             capacity = FltX(30.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI-HORIZONTAL-HETEROGENEOUS-STACK"
+            typeCode = binTypeIdOf("BIN-GUROBI-HORIZONTAL-HETEROGENEOUS-STACK")
         )
         val itemDemands = listOf(
             Pair(supportA, UInt64.one),
@@ -3049,7 +3047,7 @@ class GurobiColumnGenerationTest {
         val itemB = item("item-gurobi-b", materialB)
         val seedBin = layerBin(
             items = listOf(itemA, itemB),
-            typeCode = "BIN-GUROBI-MULTI"
+            typeCode = binTypeIdOf("BIN-GUROBI-MULTI")
         )
         val seedLayer = seedBin.units.first().unit
         val itemDemands = listOf(
@@ -3118,7 +3116,7 @@ class GurobiColumnGenerationTest {
             capacity = FltX(300.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI-MEDIUM"
+            typeCode = binTypeIdOf("BIN-GUROBI-MEDIUM")
         )
         val materials = (0 until materialCount).map { index ->
             Material(
@@ -3227,7 +3225,7 @@ class GurobiColumnGenerationTest {
             capacity = FltX(600.0) * Kilogram,
             longitudinalBalance = null,
             lateralBalance = null,
-            typeCode = "BIN-GUROBI-LARGE"
+            typeCode = binTypeIdOf("BIN-GUROBI-LARGE")
         )
         val materials = (0 until materialCount).map { index ->
             Material(
@@ -3348,7 +3346,7 @@ class GurobiColumnGenerationTest {
                 capacity = FltX(600.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
-                typeCode = "BIN-GUROBI-MIXED-$index"
+                typeCode = binTypeIdOf("BIN-GUROBI-MIXED-$index")
             )
         }
         val layers = ArrayList<BinLayer>()
@@ -3787,7 +3785,7 @@ class GurobiColumnGenerationTest {
                 capacity = FltX(1200.0) * Kilogram,
                 longitudinalBalance = null,
                 lateralBalance = null,
-                typeCode = "BIN-GUROBI-MIXED-WEIGHT-$index"
+                typeCode = binTypeIdOf("BIN-GUROBI-MIXED-WEIGHT-$index")
             )
         }
         val layers = ArrayList<BinLayer>()
