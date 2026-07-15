@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.72</version>
+        <version>1.1.0</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -13,15 +13,57 @@
     <name>ospf-kotlin-core</name>
     <artifactId>ospf-kotlin-core</artifactId>
 
+    <properties>
+        <ospf.kotlin.test.excludedGroups>slow,very-slow</ospf.kotlin.test.excludedGroups>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
             <artifactId>ospf-kotlin-utils</artifactId>
             <version>${project.version}</version>
         </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-math</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-quantities</artifactId>
+            <version>${project.version}</version>
+        </dependency>
     </dependencies>
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>
+        <testSourceDirectory>src/test</testSourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <excludedGroups>${ospf.kotlin.test.excludedGroups}</excludedGroups>
+                    <systemPropertyVariables>
+                        <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>with-slow-tests</id>
+            <properties>
+                <ospf.kotlin.test.excludedGroups>very-slow</ospf.kotlin.test.excludedGroups>
+            </properties>
+        </profile>
+        <profile>
+            <id>with-all-slow-tests</id>
+            <properties>
+                <ospf.kotlin.test.excludedGroups></ospf.kotlin.test.excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
 </project>

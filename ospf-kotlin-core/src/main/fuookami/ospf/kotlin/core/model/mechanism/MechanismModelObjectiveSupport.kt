@@ -1,0 +1,114 @@
+/**
+ * 机制模型目标函数构建支持
+ * Mechanism model objective function building support
+*/
+package fuookami.ospf.kotlin.core.model.mechanism
+
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+
+/**
+ * 构建线性目标子对象列表
+ * Build linear objective sub-object list
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 线性元模型 / Linear meta model
+ * @param tokens 符号表 / Token table
+ * @return 线性子目标列表 / List of linear sub-objectives
+*/
+internal fun <V> buildLinearObjectiveSubObjects(
+    metaModel: LinearMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): List<LinearSubObject<V>> where V : RealNumber<V>, V : NumberField<V> {
+    if (metaModel.flattenSubObjects.isNotEmpty()) {
+        return metaModel.flattenSubObjects.map { source ->
+            LinearSubObject(
+                category = source.category,
+                cells = ArrayList(
+                    createLinearCells(
+                        source.linearTerms().map { (coefficient, symbol) ->
+                            LinearMonomial(metaModel.converter.fromValue(coefficient), symbol)
+                        },
+                        tokens,
+                        metaModel.converter
+                    )
+                ),
+                _constant = source.constant,
+                name = source.name,
+            )
+        }
+    }
+    return metaModel._subObjects.map {
+        LinearSubObject(
+            category = it.category,
+            flattenData = LinearFlattenData(
+                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                it.polynomial.constant
+            ),
+            tokens = tokens,
+            name = it.name,
+            converter = metaModel.converter
+        )
+    }
+}
+
+/**
+ * 构建二次目标子对象列表
+ * Build quadratic objective sub-object list
+ *
+ * @param V 数值类型 / The number type
+ * @param metaModel 二次元模型 / Quadratic meta model
+ * @param tokens 符号表 / Token table
+ * @return 二次子目标列表 / List of quadratic sub-objectives
+*/
+internal fun <V> buildQuadraticObjectiveSubObjects(
+    metaModel: QuadraticMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): List<QuadraticSubObject<V>> where V : RealNumber<V>, V : NumberField<V> {
+    if (metaModel.flattenSubObjects.isNotEmpty()) {
+        return metaModel.flattenSubObjects.map { source ->
+            QuadraticSubObject(
+                category = source.category,
+                cells = ArrayList(
+                    source.flattenData.monomials.mapNotNull { monomial ->
+                        val variable1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: return@mapNotNull null
+                        val token1 = tokens.find(variable1) ?: return@mapNotNull null
+                        val token2 = if (monomial.symbol2 != null) {
+                            tokens.find(monomial.symbol2 as? AbstractVariableItem<*, *> ?: return@mapNotNull null) ?: return@mapNotNull null
+                        } else {
+                            null
+                        }
+                        if (monomial.coefficient eq metaModel.converter.zero) {
+                            null
+                        } else {
+                            QuadraticCellImpl(
+                                tokenTable = tokens,
+                                _coefficientFlt64 = metaModel.converter.fromValue(monomial.coefficient),
+                                token1 = token1,
+                                token2 = token2,
+                                converter = metaModel.converter
+                            )
+                        }
+                    }
+                ),
+                _constant = source.flattenData.constant,
+                name = source.name
+            )
+        }
+    }
+    return metaModel._subObjects.map {
+        QuadraticSubObject(
+            category = it.category,
+            flattenData = LinearFlattenData(
+                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                it.polynomial.constant
+            ).toQuadraticFlattenData(),
+            tokens = tokens,
+            name = it.name,
+            converter = metaModel.converter
+        )
+    }
+}
