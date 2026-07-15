@@ -1,0 +1,95 @@
+{
+  "kpi": {
+    "case": "manual-mixed-shape-visual-check",
+    "purpose": "cuboid and vertical cylinder visual check"
+  },
+  "loadingPlans": [
+    {
+      "group": [
+        "manual-renderer-check"
+      ],
+      "name": "Manual Mixed Shape Check",
+      "typeCode": "BIN-MIXED-CHECK",
+      "width": 1200,
+      "height": 900,
+      "depth": 800,
+      "loadingRate": 0.1325,
+      "weight": 75,
+      "volume": 114247779.61,
+      "items": [
+        {
+          "name": "Box-Origin",
+          "packageType": "Carton",
+          "width": 300,
+          "height": 250,
+          "depth": 300,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "weight": 20,
+          "loadingOrder": 0,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": 300,
+          "boundingHeight": 250,
+          "boundingDepth": 300,
+          "actualVolume": 22500000,
+          "info": {
+            "expected": "lower-left-front cuboid, min corner at 0,0,0"
+          }
+        },
+        {
+          "name": "Cylinder-Y-Floor",
+          "packageType": "Drum",
+          "width": 300,
+          "height": 600,
+          "depth": 300,
+          "x": 360,
+          "y": 0,
+          "z": 0,
+          "weight": 35,
+          "loadingOrder": 1,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "VerticalCylinder",
+          "radius": 150,
+          "diameter": 300,
+          "axis": "Y",
+          "boundingWidth": 300,
+          "boundingHeight": 600,
+          "boundingDepth": 300,
+          "actualVolume": 42411500.82,
+          "info": {
+            "expected": "upright cylinder, circular faces on top and bottom, standing on y=0"
+          }
+        },
+        {
+          "name": "Box-Behind",
+          "packageType": "Carton",
+          "width": 250,
+          "height": 200,
+          "depth": 250,
+          "x": 760,
+          "y": 0,
+          "z": 420,
+          "weight": 20,
+          "loadingOrder": 2,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": 250,
+          "boundingHeight": 200,
+          "boundingDepth": 250,
+          "actualVolume": 12500000,
+          "info": {
+            "expected": "separate cuboid near the back side, no overlap with cylinder"
+          }
+        }
+      ],
+      "info": {
+        "source": "ospf-kotlin manual renderer confirmation"
+      }
+    }
+  ]
+}

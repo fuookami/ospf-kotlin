@@ -1,0 +1,5 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,width_meter,height_meter,depth_meter
+0,0,item-horizontal-hanging-multi-support-a,MAT-HHMS,Material-HHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-hanging-multi-support-b,MAT-HHMS,Material-HHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-hanging-multi-support-c,MAT-HHMS,Material-HHMS,1.0,cuboid,,,0.4,0.2,0.2
+0,0,item-horizontal-hanging-multi-cylinder,MAT-HHMC,Material-HHMC,1.0,vertical_cylinder,0.5,X,1.0,1.0,1.0

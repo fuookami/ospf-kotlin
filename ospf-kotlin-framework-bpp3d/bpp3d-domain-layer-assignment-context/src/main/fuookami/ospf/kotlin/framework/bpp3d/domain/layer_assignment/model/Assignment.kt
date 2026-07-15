@@ -1,19 +1,36 @@
+/**
+ * Layer assignment model.
+ * 层分配赋值模型。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
+private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
+
+/**
+ * Imprecise assignment, used for column generation RMP phase.
+ * 不精确赋值，用于列生成 RMP 阶段。
+ *
+ * @property items 货物需求映射 / item demand map
+ * @property aggregation 层聚合 / layer aggregation
+ * @property solverValueAdapter 求解器值适配器 / solver value adapter
+*/
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,
-    private val aggregation: LayerAggregation
+    private val aggregation: LayerAggregation,
+    private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) {
     val layers: List<BinLayer> by aggregation::layers
     val lastIterationLayers: List<BinLayer> by aggregation::lastIterationLayers
@@ -21,11 +38,19 @@ class ImpreciseAssignment(
     private val _x = ArrayList<UIntVariable1>()
     val x: List<UIntVariable1> by ::_x
 
-    lateinit var volume: LinearExpressionSymbol
+    /** 体积符号 / volume symbol */
+    lateinit var volume: LinearExpressionSymbol<FltX>
 
-    fun register(model: MetaModel): Try {
+    /**
+     * Register assignment symbols to model.
+     * 注册赋值符号到模型。
+     *
+     * @param model 元模型 / meta model
+     * @return 注册结果 / registration result
+    */
+    fun register(model: MetaModel<FltX>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(name = "volume")
+            volume = LinearExpressionSymbol(FltX.zero, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}
@@ -33,15 +58,28 @@ class ImpreciseAssignment(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
     }
 
+    /**
+     * Add new columns to assignment model.
+     * 添加新列到赋值模型。
+     *
+     * @param iteration 迭代次数 / iteration count
+     * @param newLayers 新层列表 / new layer list
+     * @param model 线性元模型 / linear meta model
+     * @return 去重后新增的层 / deduplicated newly added layers
+    */
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<FltX>
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -65,6 +103,10 @@ class ImpreciseAssignment(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (unduplicatedLayers.isEmpty()) {
@@ -72,23 +114,46 @@ class ImpreciseAssignment(
         }
 
         volume.flush()
-        volume.asMutable() += sum(unduplicatedLayers.map { it.volume * xi[it] })
+        volume.asMutable() += sum(unduplicatedLayers.map {
+            LinearMonomial(solverValueAdapter.volumeToSolver(it.volume), xi[it])
+        })
 
         return Ok(unduplicatedLayers)
     }
 }
 
+/**
+ * Precise assignment, used for final MILP solving phase.
+ * 精确赋值，用于最终 MILP 求解阶段。
+ *
+ * @property bins 箱子列表 / bin list
+ * @property layers 层列表 / layer list
+*/
 class PreciseAssignment(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>
 ) {
+
+    /** 赋值变量矩阵 / assignment variable matrix */
     lateinit var x: UIntVariable2
 
-    lateinit var u: LinearIntermediateSymbols2
-    lateinit var v: LinearIntermediateSymbols1
+    /** 二值化中间符号 / binary intermediate symbols */
+    lateinit var u: LinearIntermediateSymbols2<FltX>
+
+    /** 箱子使用符号 / bin usage symbols */
+    lateinit var v: LinearIntermediateSymbols1<FltX>
+
+    /** 尾箱标记变量 / tail bin marker variable */
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModel): Try {
+    /**
+     * Register assignment symbols to model.
+     * 注册赋值符号到模型。
+     *
+     * @param model 元模型 / meta model
+     * @return 注册结果 / registration result
+    */
+    fun register(model: MetaModel<FltX>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -96,7 +161,7 @@ class PreciseAssignment(
             )
             for ((i, bin) in bins.withIndex()) {
                 for ((j, layer) in layers.withIndex()) {
-                    if (layer.bin != bin.shape || !bin.enabled(layer)) {
+                    if (layer.bin != bin.type || !bin.enabled(layer)) {
                         x[i, j].range.eq(UInt64.zero)
                     } else {
                         x[i, j].range.leq((bin.depth / layer.depth).ceil().toUInt64())
@@ -106,12 +171,16 @@ class PreciseAssignment(
         }
         for ((i, bin) in bins.withIndex()) {
             for ((j, layer) in layers.withIndex()) {
-                if (layer.bin == bin.shape && bin.enabled(layer)) {
+                if (layer.bin == bin.type && bin.enabled(layer)) {
                     when (val result = model.add(x[i, j])) {
                         is Ok -> {}
 
                         is Failed -> {
                             return Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
                         }
                     }
                 }
@@ -119,13 +188,17 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2(
+            u = LinearIntermediateSymbols2<FltX>(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
-                BinaryzationFunction(
-                    x = LinearPolynomial(x[v[0], v[1]]),
-                    name = "u_$v",
+                LinearFunctionSymbolAdapter(
+                    delegate = BinaryzationFunction(
+                        polynomial = LinearMonomial(FltX.one, x[v[0], v[1]]).toLinearPolynomial(),
+                        converter = flt64Converter,
+                        name = "u_$v",
+                    ),
+                    converter = flt64Converter
                 )
             }
         }
@@ -135,16 +208,24 @@ class PreciseAssignment(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1(
+            v = LinearIntermediateSymbols1<FltX>(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->
-                BinaryzationFunction(
-                    x = sum(x[i, _a]),
-                    name = "v_$i",
+                LinearFunctionSymbolAdapter(
+                    delegate = BinaryzationFunction(
+                        polynomial = sum(x[i, _a].map { LinearMonomial(FltX.one, it) }),
+                        converter = flt64Converter,
+                        name = "v_$i",
+                    ),
+                    converter = flt64Converter
                 )
             }
         }
@@ -153,6 +234,10 @@ class PreciseAssignment(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -167,6 +252,10 @@ class PreciseAssignment(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

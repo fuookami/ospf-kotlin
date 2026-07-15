@@ -1,0 +1,4 @@
+material,width,amount,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
+MAT-PWL-K,1200,2,MAT-PWL-K,Material-PWL-K,1.0,vertical_cylinder,0.35,0.45,cylinder_pwl_k,Y
+MAT-PWL-L,1000,1,MAT-PWL-L,Material-PWL-L,1.5,cuboid,,,,,
+MAT-PWL-M,900,1,MAT-PWL-M,Material-PWL-M,1.2,vertical_cylinder,0.25,0.35,cylinder_pwl_m,AXIS3.Y

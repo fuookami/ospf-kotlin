@@ -1,44 +1,83 @@
+/**
+ * Layer assignment capacity model.
+ * 层分配容量模型。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
-interface Capacity {
-    val loadWeight: LinearIntermediateSymbols1
-    val loadVolume: LinearIntermediateSymbols1
-    val loadDepth: LinearIntermediateSymbols1
+private val flt64Converter: IntoValue<FltX> = IntoValue.fromConverter(FltX)
 
-    val loadingRate: LinearIntermediateSymbols1
-    val tailLoadingRate: LinearIntermediateSymbols1
+/**
+ * Capacity interface, provides symbolic expressions for load weight, volume, depth and loading rate.
+ * 容量接口，提供装载重量、体积、深度及装载率的符号表达。
+*/
+interface Capacity {
+
+    /** 装载重量符号 / load weight symbols */
+    val loadWeight: LinearIntermediateSymbols1<FltX>
+
+    /** 装载体积符号 / load volume symbols */
+    val loadVolume: LinearIntermediateSymbols1<FltX>
+
+    /** 装载深度符号 / load depth symbols */
+    val loadDepth: LinearIntermediateSymbols1<FltX>
+
+    /** 装载率符号 / loading rate symbols */
+    val loadingRate: LinearIntermediateSymbols1<FltX>
+
+    /** 尾箱装载率符号 / tail loading rate symbols */
+    val tailLoadingRate: LinearIntermediateSymbols1<FltX>
 }
 
+/**
+ * Precise load capacity, computes capacity metrics per bin based on precise assignment.
+ * 精确装载容量，基于精确分配计算各箱子的容量指标。
+ *
+ * @property bins 箱子列表 / bin list
+ * @property layers 层列表 / layer list
+ * @property assignment 精确赋值 / precise assignment
+ * @property solverValueAdapter 求解器值适配器 / solver value adapter
+*/
 class PreciseLoadCapacity(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>,
-    private val assignment: PreciseAssignment
+    private val assignment: PreciseAssignment,
+    private val solverValueAdapter: Bpp3dSolverValueAdapter = DefaultBpp3dSolverValueAdapter
 ) : Capacity {
-    override lateinit var loadWeight: LinearIntermediateSymbols1
-    override lateinit var loadVolume: LinearIntermediateSymbols1
-    override lateinit var loadDepth: LinearIntermediateSymbols1
+    override lateinit var loadWeight: LinearIntermediateSymbols1<FltX>
+    override lateinit var loadVolume: LinearIntermediateSymbols1<FltX>
+    override lateinit var loadDepth: LinearIntermediateSymbols1<FltX>
 
-    override lateinit var loadingRate: LinearIntermediateSymbols1
-    override lateinit var tailLoadingRate: LinearIntermediateSymbols1
+    override lateinit var loadingRate: LinearIntermediateSymbols1<FltX>
+    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<FltX>
 
-    fun register(model: MetaModel): Try {
+    /**
+     * Register capacity symbols to model.
+     * 注册容量符号到模型。
+     *
+     * @param model 元模型 / meta model
+     * @return 注册结果 / registration result
+    */
+    fun register(model: MetaModel<FltX>): Try {
         if (!::loadWeight.isInitialized) {
-            loadWeight = LinearIntermediateSymbols1(
+            loadWeight = LinearIntermediateSymbols1<FltX>(
                 name = "load_weight",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.weight * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.weightToSolver(layer.weight), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_weight_${i}"
                 )
@@ -50,16 +89,20 @@ class PreciseLoadCapacity(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::loadVolume.isInitialized) {
-            loadVolume = LinearIntermediateSymbols1(
+            loadVolume = LinearIntermediateSymbols1<FltX>(
                 name = "load_volume",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.volume * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_volume_${i}"
                 )
@@ -71,16 +114,20 @@ class PreciseLoadCapacity(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::loadDepth.isInitialized) {
-            loadDepth = LinearIntermediateSymbols1(
+            loadDepth = LinearIntermediateSymbols1<FltX>(
                 name = "load_depth",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.depth * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.depthToSolver(layer.depth), assignment.x[i, j])), FltX.zero)
                     }),
                     name = "load_depth_${i}"
                 )
@@ -92,38 +139,50 @@ class PreciseLoadCapacity(
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::loadingRate.isInitialized) {
-            loadingRate = LinearIntermediateSymbols1(
+            loadingRate = LinearIntermediateSymbols1<FltX>(
                 name = "loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.volume * assignment.x[i, j]
-                    }) / bins[i].volume,
+                        LinearPolynomial(listOf(LinearMonomial(solverValueAdapter.volumeToSolver(layer.volume), assignment.x[i, j])), FltX.zero)
+                    }) / solverValueAdapter.volumeToSolver(bins[i].volume),
                     name = "loading_rate_${i}"
                 )
             }
         }
-        when (val result = model.add(loadDepth)) {
+        when (val result = model.add(loadingRate)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::tailLoadingRate.isInitialized) {
-            tailLoadingRate = LinearIntermediateSymbols1(
+            tailLoadingRate = LinearIntermediateSymbols1<FltX>(
                 name = "tail_loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
-                MaskingFunction(
-                    x = loadingRate[i],
-                    mask = assignment.tail[i],
-                    name = "tail_loading_rate_${i}"
+                LinearFunctionSymbolAdapter(
+                    delegate = MaskingFunction(
+                        input = loadingRate[i].toLinearPolynomial(),
+                        mask = assignment.tail[i],
+                        converter = flt64Converter,
+                        name = "tail_loading_rate_${i}"
+                    ),
+                    converter = flt64Converter
                 )
             }
         }
@@ -132,6 +191,10 @@ class PreciseLoadCapacity(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

@@ -1,78 +1,87 @@
+/**
+ * Tail bin assignment constraint.
+ * 尾箱分配约束。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 
+/**
+ * Tail bin assignment constraint, ensures tail bin marking is consistent with assignment.
+ * 尾箱分配约束，确保尾箱标记与分配一致。
+ *
+ * @property bins 箱子列表 / bin list
+ * @property assignment 精确赋值 / precise assignment
+ * @property name 约束名称 / constraint name
+*/
 class TailBinAssignmentConstraint(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val assignment: PreciseAssignment,
-    override val name: String = "tail_bin_assignment_constraint"
-) : Pipeline<AbstractLinearMetaModel> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
-        for (i in bins.indices) {
+    val name: String = "tail_bin_assignment_constraint"
+) {
+
+    /**
+     * Add constraint to model.
+     * 将约束添加到模型。
+     *
+     * @param model 元模型 / meta model
+     * @return 操作结果 / operation result
+    */
+    fun invoke(model: MetaModel<FltX>): Try {
+        val linearModel = model as AbstractLinearMetaModel<FltX>
+        for ((i, bin) in bins.withIndex()) {
             if (i == bins.lastIndex) {
-                when (val result = model.addConstraint(
-                    assignment.tail[i] geq assignment.v[i],
-                    name = "${name}_lb_${i}"
+                val lhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(layerAssignmentOne(), assignment.v[i])),
+                    constant = layerAssignmentZero()
+                )
+                val rhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(layerAssignmentOne(), assignment.tail[i])),
+                    constant = layerAssignmentZero()
+                )
+                when (val result = linearModel.addConstraint(
+                    relation = LinearInequality(lhs, rhs, Comparison.LE),
+                    name = "${name}_${i}"
                 )) {
                     is Ok -> {}
 
                     is Failed -> {
                         return Failed(result.error)
                     }
-                }
-            } else if (i != 0) {
-                if (bins[i - 1].shape == bins[i].shape && bins[i].shape != bins[i + 1].shape) {
-                    when (val result = model.addConstraint(
-                        assignment.tail[i] geq assignment.v[i],
-                        name = "${name}_lb_${i}"
-                    )) {
-                        is Ok -> {}
 
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-                    }
-                } else if (bins[i - 1].shape == bins[i].shape && bins[i].shape == bins[i + 1].shape) {
-                    when (val result = model.addConstraint(
-                        assignment.tail[i] geq (assignment.v[i] - assignment.v[i + 1]),
-                        name = "${name}_lb_${i}"
-                    )) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-                    }
-                } else if (bins[i - 1].shape != bins[i].shape && bins[i].shape != bins[i + 1].shape) {
-                    when (val result = model.addConstraint(
-                        assignment.tail[i] geq assignment.v[i],
-                        name = "${name}_lb_${i}"
-                    )) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
+                    is Fatal -> {
+                        return Fatal(result.errors)
                     }
                 }
-            }
-        }
+            } else {
+                val lhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(layerAssignmentOne(), assignment.tail[i])),
+                    constant = layerAssignmentZero()
+                )
+                val rhs = LinearPolynomial(
+                    monomials = listOf(LinearMonomial(layerAssignmentOne(), assignment.v[i + 1])),
+                    constant = layerAssignmentZero()
+                )
+                when (val result = linearModel.addConstraint(
+                    relation = LinearInequality(lhs, rhs, Comparison.LE),
+                    name = "${name}_${i}"
+                )) {
+                    is Ok -> {}
 
-        for (i in bins.indices) {
-            when (val result = model.addConstraint(
-                assignment.tail[i] leq assignment.v[i],
-                name = "${name}_ub_${i}"
-            )) {
-                is Ok -> {}
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
 
-                is Failed -> {
-                    return Failed(result.error)
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
         }

@@ -1,0 +1,239 @@
+# OSPF Kotlin Framework BPP3D（中文）
+
+:us: [English](README.md) | :cn: 简体中文
+
+## 子模块
+
+| 模块 | 描述 |
+| --- | --- |
+| [bpp3d-infrastructure](bpp3d-infrastructure/README_ch.md) | 基础设施层：几何原语、类型别名和工具函数，供所有子模块共享。 |
+| [bpp3d-domain-item-context](bpp3d-domain-item-context/README_ch.md) | 物品领域上下文：物品、包装、物料、箱位、层、装箱方案模型及列生成模型组件。 |
+| [bpp3d-domain-bla-context](bpp3d-domain-bla-context/README_ch.md) | 底部向上左对齐分配（BLA）放置算法上下文。 |
+| [bpp3d-domain-block-loading-context](bpp3d-domain-block-loading-context/README_ch.md) | 块装载上下文：块生成算法和搜索策略，用于装箱候选构建。 |
+| [bpp3d-domain-layer-assignment-context](bpp3d-domain-layer-assignment-context/README_ch.md) | 层分配上下文：将物品分配到箱位的列生成模型，含约束管线。 |
+| [bpp3d-domain-layer-generation-context](bpp3d-domain-layer-generation-context/README_ch.md) | 层生成上下文：候选箱层生成（circle packing、回退、堆叠）。 |
+| [bpp3d-domain-packing-context](bpp3d-domain-packing-context/README_ch.md) | 装箱上下文：最终装箱流程、几何验证、渲染器输出和方案组装。 |
+| [bpp3d-application](bpp3d-application/README_ch.md) | 应用层：组合所有领域上下文的列生成工作流编排。 |
+
+## 模块范围
+
+`ospf-kotlin-framework-bpp3d` 是 OSPF Kotlin 的 BPP3D 领域框架。
+当前重点能力：
+
+1. 长方体装箱基线能力。
+2. 竖直圆柱 MVP（`Axis3.Y`）及 shape-aware 几何判定。
+3. `Axis3.X` / `Axis3.Z` 横向圆柱固定半径/离散半径可通过 axis-aware circle-packing grid 和保守的单支撑/单条或重复窄支撑线 hanging/同类重复多支撑/异构多支撑 supported-stack 生成候选，并进入 column generation。
+4. 在最终坐标已确定的已知坐标装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
+5. 横向圆柱在贴地或下方长方体支撑区间覆盖完整轴向及底部支撑线时，可通过保守的 3D stacking/hanging 支撑检查。
+
+## 圆柱几何语义
+
+当前 MVP 的语义约束：
+
+1. 固定半径和离散半径的 `Axis3.X` / `Axis3.Z` 横向圆柱可进入 axis-aware circle-packing 网格生成候选路径，以及保守的长方体 supported-stack/hanging 路径，包括单个全长支撑、同类重复多支撑、异构支撑区间，以及单条或同类重复窄长方体支撑线 hanging 覆盖完整轴向。其它候选生成、block loading、无坐标 hanging 和 pile 支撑路径仍只支持竖直圆柱（`Axis3.Y`），除非某条路径另行明确说明。
+2. 最终装箱转换/渲染路径和泛型已知坐标分析入口可以接受通过生成候选或已知坐标进入的 `Axis3.X` / `Axis3.Z` 横向圆柱，并由 `PackingGeometryGuard` 执行真实轴对齐圆柱几何校验。
+3. 横向圆柱必须贴在箱底，或由下方长方体支撑区间覆盖完整圆柱轴向及底部支撑线；无支撑或局部支撑的横向圆柱会在最终校验和 3D stacking 支撑检查中被拒绝。
+4. 单个 `BinLayer` 内不能混放多个圆柱轴向；同一 bin 的不同 layer 可以使用不同轴向。
+5. 已支持的竖直圆柱路径中，底面重叠与支撑使用真实 footprint 几何。
+6. `radiusWeightFunctionKey` 只有在同时具备类型化的已选择半径结果、确定的 `radius` 且该半径满足声明的半径/直径边界时才能进入生产，并继续回写 final validation 和 renderer `actualVolume`；仅区间型连续半径变量已经具备类型化 solver 变量原型和 RMP/final/analyzer 共享注册计划用于诊断，isSolverRegisterable 的变量直接注册为 `RealVar` solver 变量，isPWLRegisterable 的变量通过 PWL 近似路径注册（连续 `r` 变量 + 半径上下界约束 + core `UnivariateLinearPiecewiseFunction` 符号（通过 `model.add(pwlSymbol)` 注册） + `rMax` 保守 envelope + `PWLRadiusSelectionMetadata` 回写真实 `π·r²·h` 体积和 PWL 诊断信息），PWL 函数约束应由 core mechanism model 生命周期展开，不应回流 application 约束拼装；其余通过类型化缺口合同报告拒绝。固定半径和离散半径候选仍保持支持。
+7. 渲染输出中的装载率基于 `actualVolume` 计算，不仅依赖外接长方体体积；`BoundingCuboid` 兼容映射已移除，横向圆柱使用原生 `HorizontalCylinderX`/`HorizontalCylinderZ` 算法形状类型。
+
+明确非目标与剩余工作：
+
+1. 圆柱任意三维旋转不是当前目标。
+2. 部分长方体导向搜索算法仍在迁移为完全 shape-polymorphic 实现。
+3. solver 原生连续半径优化完整闭环仍在推进；当前 column generation 模型选择的是已生成的具体 `BinLayer` 列。连续半径元数据已有类型化 solver 变量原型，并已进入 `ColumnGenerationState`、RMP/final solve info、packing snapshot KPI，以及带变量上下界、已选择半径边界校验和模型注册阻断诊断的共享 solver 注册计划。满足 PWL 近似路径条件的 interval-only 连续半径变量已注册到 solver 模型，并接入 `rMax` 保守 footprint、PWL/真实体积、final MILP 选择和 renderer `actualVolume`；其它 interval-only 符号半径变量仍通过缺口合同报告。
+4. 外部 renderer 源码不属于本仓；本模块负责输出外部 renderer 消费的 shape metadata，且外部 renderer 现在已支持原生 X/Y/Z 圆柱和 `actualVolume` 展示语义。
+
+重构进度请查看 [daily.md](./daily.md)。
+
+## 圆柱轴向支持矩阵
+
+| 轴向 | 含义 | 当前状态 |
+| --- | --- | --- |
+| `Axis3.Y` | 竖直圆柱；装载平面上的 footprint 为圆。 | 已在带门禁的竖直圆柱路径支持，并使用真实 footprint 校验。 |
+| `Axis3.X` | 横向圆柱，轴向沿 X；截面圆位于 YZ 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、同类重复窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
+| `Axis3.Z` | 横向圆柱，轴向沿 Z；截面圆位于 XY 平面。 | 支持固定/离散半径的 axis-aware circle-packing 网格候选、保守的单支撑、同类重复窄支撑线 hanging、同类重复多支撑或异构多支撑轴向覆盖 generated supported-stack/hanging 候选、已知坐标最终装箱/渲染路径，以及贴地/长方体支撑覆盖下的 3D stacking 检查；无坐标 hanging 和 cuboid-only 生成路径仍不支持。 |
+
+## Shape 路径支持矩阵
+
+生产路径标签和 unsupported 文案集中在 `CylinderCapabilityPath` / `CylinderShapeContract`。
+候选生成、cuboid-only search/merge、支撑检查、已知坐标终态校验、renderer 终态校验和 depth boundary 终态校验必须使用共享契约，不允许散落维护路径字符串。横向圆柱长方体支撑覆盖已集中到 infrastructure 合同，并由 generated stacking 检查和 final packing/rendering 几何门禁共同复用。
+strict quantity 边界脚本会拒绝已删除的固定数值别名、material packing 数值别名、layer/depth-limit 兼容别名和兼容捷径回流，新代码应直接使用 shape-polymorphic 或 solver-polymorphic API。
+
+| 路径 | 长方体 | `Axis3.Y` 圆柱 | `Axis3.X` / `Axis3.Z` 圆柱 |
+| --- | --- | --- | --- |
+| 显式 final bins / 已知坐标装箱 | 支持 | 支持，并使用真实几何 guard | 支持，并使用真实几何 guard，要求贴地或长方体支撑区间覆盖完整轴向 |
+| 泛型已知坐标分析 | 支持，可选 depth boundary 最终校验 | 支持，并使用真实几何 guard 与可选 depth boundary 最终校验 | 支持，并使用真实几何 guard，要求贴地或长方体支撑区间覆盖完整轴向，可选 depth boundary 最终校验 |
+| 默认生成候选的 layer placement adapter | 支持 | 支持 | 仅支持已验证的 axis-aware 生成候选；手工伪造候选会被拒绝 |
+| layer generation fallback / circle packing / pile | 支持 | 支持竖直圆柱候选；pile 支撑仅限直立 `Axis3.Y` 圆柱 | circle packing 支持固定/离散半径的 axis-aware 横向网格候选和保守的单支撑/同类重复窄支撑线 hanging/同类重复多支撑/异构多支撑轴向覆盖 supported-stack/hanging 候选；fallback 和 pile 仍不支持 |
+| BLA placement | 支持当前已生成 layer | 仅通过已验证的竖直圆柱生成层支持 | 仅通过已验证的 axis-aware circle-packing 生成层支持 |
+| simple block generation | 支持 | 仅支持直立 `Axis3.Y` 圆柱 | 不支持 |
+| DFS / MLHS space splitting | 支持 cuboid-only 路径 | 不支持 | 不支持 |
+| stacking / hanging 支撑语义 | 支持长方体语义 | 仅在明确 guard 的直立 `Axis3.Y` 支撑检查中受限支持 | 3D stacking/hanging 支持贴地或长方体支撑区间覆盖完整轴向及底部支撑线；无坐标 hanging、未覆盖底部支撑线的径向局部支撑和底部圆柱支撑仍不支持 |
+| packing program / material packing | 支持，并在生成 item 时保留 `PackingProgram.shape.shapeSpec` | 作为 item shape metadata 保留；后续能力服从 item/generated/final-path guard | 作为 item shape metadata 保留；仅 axis-aware generated 或已知坐标终态路径可开放 |
+| depth boundary policy | application 层最终校验 | application 层最终校验 | 仅在已知坐标存在后做 application 层最终校验 |
+
+## CSV 输入协议（Gurobi 数据集）
+
+当前 `GurobiColumnGenerationTest` 支持两类 CSV 形态：
+
+1. 分组分层格式（以 `group_index`、`layer_index` 作为场景键）。
+2. 物料宽度数量格式（以 `material`、`width`、`amount` 作为场景键）。
+
+### 通用 shape 列
+
+可选形状元数据列：
+
+1. `shape_type`：`cuboid` 或 `vertical_cylinder`（兼容别名：`vertical-cylinder`、`verticalcylinder`、`cylinder`）。
+2. `radius_meter`：固定圆柱半径。
+3. `radius_min` / `radius_min_meter`、`radius_max` / `radius_max_meter`、`radius_step` / `radius_step_meter`：动态半径区间。
+4. `diameter_min` / `diameter_min_meter`、`diameter_max` / `diameter_max_meter`、`diameter_step` / `diameter_step_meter`：动态直径区间。
+5. `radius_weight_function_key`：连续半径选择 key；仅在 `radius_meter` 提供具体选择半径时接受，且不能与离散半径/直径 step 混用。
+6. `axis`：圆柱可选，默认 `Y`，可接受值：`Y`、`AXIS3.Y`、`X`、`AXIS3.X`、`Z`、`AXIS3.Z`。
+
+圆柱行至少需要提供 `radius_meter`、`radius_min` 或 `diameter_min` 之一。`axis = X` / `Z` 是固定/离散半径 axis-aware circle-packing 候选生成的生产输入，也可用于已知坐标最终装箱/渲染路径；两者都必须通过真实 3D 几何校验。material-width-amount CSV 中，X/Z 行的 `width` 会解释为圆柱轴向长度。除 3D 贴地/长方体支撑覆盖检查外，其它支撑路径仍保持门禁。
+
+grouped-layer Gurobi 测试数据可以使用 `width_meter`、`height_meter` 和 `depth_meter` 表达显式 item 尺寸，因此横向圆柱 supported-stack / hanging seed layer 可以验证单支撑、同类重复窄支撑线、同类重复多支撑或异构多支撑长方体覆盖，同时不改变 material-width-amount CSV 中 `width` 表示圆柱轴长的合同。
+
+动态半径/直径当前是离散能力：区间列会展开为固定半径候选，circle packing 最终输出确定半径、确定 placement 和确定 `actualVolume`。`radiusWeightFunctionKey` 只表示已选择半径结果，必须同时具备具体 `radius_meter` / `radius` 且该半径落在声明的半径/直径边界内，并在发出生产 shape 前通过类型化选择结果合同表达；仅区间型连续半径变量会在诊断中给出 `ContinuousCylinderRadiusSolverPrototype`，已选择半径原型会进入列生成 solver 上下文，RMP/final solve info 与 packing snapshot KPI 会暴露共享注册计划和模型注册阻断原因。interval-only 输入仍通过 `ContinuousCylinderRadiusOptimizationGapReport` 拒绝，除非满足 PWL 近似路径条件（isPWLRegisterable），该路径注册连续 `r` 变量、半径上下界约束和 core `UnivariateLinearPiecewiseFunction` 符号（通过 `model.add(pwlSymbol)` 注册），PWL 函数约束属于 core mechanism model 生命周期而不是 application 级模型拼装，使用 `rMax` 保守 envelope 保障几何安全，并将 solver 选出的 `r` 通过 `PWLRadiusSelectionMetadata` 回写，包含 PWL 误差、真实体积（`π·r²·h`）、PWL 近似体积（`π·q·h`）和 envelope 验证信息。
+
+### 深度边界层策略列
+
+可选场景级策略列：
+
+1. `first_layer_allowed_cylinder_axes`
+2. `last_layer_allowed_cylinder_axes`
+3. `first_layer_allowed_cuboid_orientations`
+4. `last_layer_allowed_cuboid_orientations`
+
+这些字段只约束最终收集出的 depth 方向第一个和最后一个 layer。它们是最终 MILP 求解后，或泛型已知坐标终态 bin 构造后的 application 层硬校验，不是 MILP 原生约束，也不会在候选生成阶段提前过滤候选。
+
+字段语义：
+
+1. 列缺失表示对应边界/类型不限制。
+2. 列存在但单元格为空是配置错误，不能解释为“不限制”。
+3. 多个值可用 `|` 或 `;` 分隔。
+4. 轴向值使用与 `axis` 相同的解析规则。
+5. 长方体朝向值使用现有 `Orientation` 标签，例如 `Upright`、`Side`、`Lie`。
+6. 这些值是场景级配置；若同一列在 CSV 多行中出现不一致值，加载器会拒绝该文件。
+
+schema 门禁规则：
+
+1. 如果存在形状元数据列，必须同时存在 `shape_type` 列。
+2. 若 `shape_type` 为空，按 `cuboid` 处理。
+3. 圆柱 `axis` 非法值会被显式拒绝。
+4. depth boundary 的圆柱轴向或长方体朝向策略非法值会被显式拒绝。
+5. CSV 重复列会被显式拒绝。
+6. grouped-layer 或 material-width-amount schema 之外的未知 CSV 列会被显式拒绝。
+7. 可变半径/直径区间必须是离散区间。`*_min` + `*_max` 但缺少 `*_step` 时会被拒绝，除非 `radius_meter` 已给出固定的具体半径。
+8. `radius_weight_function_key` 要求 `radius_meter` 作为具体选择半径，已选择半径必须满足声明的半径/直径边界，且不能与 `radius_step` 或 `diameter_step` 混用；isSolverRegisterable 的区间型连续半径变量直接注册为 `RealVar` solver 变量；isPWLRegisterable（要求 `radiusWeightFunctionKey` 以确保生产回写路径可用，但非 isSolverRegisterable）的区间型连续半径变量通过 PWL 近似路径注册，包含连续 `r` 变量、半径上下界约束和 core `UnivariateLinearPiecewiseFunction` 符号（通过 `model.add(pwlSymbol)` 注册），PWL 路径同时使用 `rMax` 保守 envelope；其余区间型变量通过共享类型化缺口合同拒绝；具备生产级回写闭环的连续半径变量（有具体选择半径且无缺口）注册为 `RealVar` solver 变量，使用约束式上下界和目标等式约束，其 solver 选出值在 RMP/final info 中以 `continuous_radius_solver_selected_*` 键暴露，渲染适配器在有 solver 选出半径时将其回写到 `actualVolume` 和 `radius`/`diameter` DTO 字段；PWL 路径的 `actualVolume` 使用真实 `π·r²·h`（而非近似 `π·q·h`），PWL 诊断信息（pwl_volume、pwl_error、pwl_segments、pwl_within_envelope）写入 renderer item info；注册计划在 RMP/final info 中暴露互斥分类（native、pwl、productionReady、blocked）和 PWL 诊断信息（段数、最大相对误差）。PWL 建模封装在 `ContinuousRadiusModelComponent`（domain-item-context）中，暴露 `register()`、`extractNativeResults()`、`extractPWLResults()`、`extractPWLResultsList()`、`info()` 和 `modelScaleInfo()` 作为稳定扩展点，可在不修改 application solver 层的情况下添加新的连续半径近似策略。
+9. 在 dataset suite 模式下，文件名可声明场景类型：
+   `grouped-layer` / `grouped_layer` => 分组分层 CSV，
+   `material-width-amount` / `material_width_amount` => 物料宽度数量 CSV。
+   文件名声明类型与表头识别类型不一致时会被显式拒绝。
+
+### 分组分层 CSV
+
+必填列：
+
+1. `group_index`
+2. `layer_index`
+3. `item_id`
+4. `material_no`
+5. `material_name`
+6. `material_weight_kg`
+
+样例文件：
+
+1. `bpp3d-application/src/test/resources/gurobi/production-like-dataset.csv`
+2. `bpp3d-application/src/test/resources/gurobi/grouped-layer-cylinder-mixed-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/grouped-layer-depth-boundary-sample.csv`
+4. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-multisupport-sample.csv`
+5. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-multisupport-sample.csv`
+6. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-hanging-multisupport-sample.csv`
+7. `bpp3d-application/src/test/resources/gurobi/grouped-layer-horizontal-z-hanging-multisupport-sample.csv`
+8. `bpp3d-application/src/test/resources/gurobi/grouped-layer-continuous-radius-sample.csv`
+
+### 物料宽度数量 CSV
+
+必填列：
+
+1. `material`
+2. `width`
+3. `amount`
+
+可选列：
+
+1. `material_no`
+2. `material_name`
+3. `material_weight_kg`
+4. 上述通用 shape 列
+
+样例文件：
+
+1. `bpp3d-application/src/test/resources/gurobi/material-width-amount-cylinder-sample.csv`
+2. `bpp3d-application/src/test/resources/gurobi/material-width-amount-dynamic-diameter-sample.csv`
+3. `bpp3d-application/src/test/resources/gurobi/material-width-amount-continuous-radius-sample.csv`
+
+## 示例：固定半径竖直圆柱输入
+
+```kotlin
+val cylinderItem = ActualItem(
+    id = "cyl-1",
+    name = "cyl-1",
+    pack = Package.innerPackage(
+        shape = PackageShape(
+            width = fltX(1.0) * Meter,
+            height = fltX(1.2) * Meter,
+            depth = fltX(1.0) * Meter,
+            weight = fltX(1.0) * Kilogram,
+            packageType = PackageType.CartonContainer,
+            shapeSpec = PackageShapeSpec.VerticalCylinder(
+                radius = fltX(0.5) * Meter,
+                axis = Axis3.Y
+            )
+        ),
+        materials = mapOf(material to UInt64.one)
+    ),
+    enabledOrientations = listOf(Orientation.Upright),
+    batchNo = BatchNo("B-cyl-1"),
+    packageAttribute = packageAttribute,
+    shapeSpecOverride = PackageShapeSpec.VerticalCylinder(
+        radius = fltX(0.5) * Meter,
+        axis = Axis3.Y
+    )
+)
+```
+
+## 示例：圆柱 Renderer DTO 输出
+
+`PackingRendererAdapter` 会在 `RenderLoadingPlanItemDTO` 输出圆柱元数据：
+
+```json
+{
+  "name": "cyl-1",
+  "shapeType": "Cylinder",
+  "renderShapeType": "Cylinder",
+  "algorithmShapeType": "VerticalCylinder",
+  "axis": "Y",
+  "radius": 0.5,
+  "diameter": 1.0,
+  "boundingWidth": 1.0,
+  "boundingHeight": 1.2,
+  "boundingDepth": 1.0,
+  "actualVolume": 0.942477796
+}
+```
+
+字段定义位置：
+`bpp3d-infrastructure/src/main/.../dto/RendererDTO.kt`。
+
+最小 `Cuboid + Axis3.Y Cylinder` 混装 renderer fixture 位于：
+`bpp3d-infrastructure/src/test/resources/renderer/mixed-shape-renderer-schema.json`。
+
+覆盖 `Axis3.X`、`Axis3.Y`、`Axis3.Z` 三种圆柱轴向的 renderer 坐标 fixture 位于：
+`bpp3d-infrastructure/src/test/resources/renderer/cylinder-axis-renderer-schema.json`。
+该 fixture 遵循外部 renderer 的坐标指南：`x` / `y` / `z` 表示外接盒最小角点，X/Z 横向圆柱使用 `boundingHeight = diameter`，且 `y = 0` 表示贴地。
+
+外部 renderer 源码不纳入本仓。renderer 工程已针对原生 X/Y/Z 圆柱渲染通过 `npm run build`、`npx vue-tsc --noEmit`、`cargo check` 和 `cargo test`；后续修改几何语义时，仍应打开本仓 fixture 或实际求解输出核对视觉一致性。

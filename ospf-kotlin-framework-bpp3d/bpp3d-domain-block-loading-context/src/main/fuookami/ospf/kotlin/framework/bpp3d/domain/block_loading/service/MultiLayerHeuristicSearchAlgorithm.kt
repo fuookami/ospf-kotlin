@@ -1,18 +1,23 @@
+/**
+ * 多层启发式搜索算法。
+ * Multi-layer heuristic search algorithm.
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.service
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.combinatorics.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.parallel.*
+import kotlinx.coroutines.channels.Channel
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.Space
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model.*
-
+/**
+ * MultiLayerHeuristicSearchAlgorithm class.
+ * MultiLayerHeuristicSearchAlgorithm类。
+*/
 class MultiLayerHeuristicSearchAlgorithm(
     val config: Config
 ) {
@@ -25,6 +30,10 @@ class MultiLayerHeuristicSearchAlgorithm(
         )
     )
 
+/**
+ * Config data class.
+ * Config数据类。
+*/
     data class Config(
         val layer: UInt64 = UInt64.two,
         val depth: UInt64 = UInt64.two,
@@ -45,18 +54,21 @@ class MultiLayerHeuristicSearchAlgorithm(
             }
         },
         val binComparator: (AbstractContainer3Shape, List<Block>, List<Block>) -> Order = { _, lhs, rhs ->
-            rhs.sumOf { it.volume } ord lhs.sumOf { it.volume }
+            rhs.sumOfQuantity { it.volume } ord lhs.sumOfQuantity { it.volume }
         }
     )
 
     suspend operator fun invoke(
         items: Map<Item, UInt64>,
-        bins: Map<BinType, UInt64>,
+        bins: Map<BinType<FltX>, UInt64>,
         blockTable: List<Block>,
-    ): Pair<List<Bin<Block>>, List<Item>> {
+    ): Pair<List<Bin<Block, FltX>>, List<Item>> {
+        if (requireNoCylinderItemsForCuboidSearch(items = items).failed) {
+            return Pair(emptyList(), items.flatten())
+        }
         val restItems = items.toMutableMap()
         val availableBins = bins.toMutableMap()
-        val usedBins = ArrayList<Bin<Block>>()
+        val usedBins = ArrayList<Bin<Block, FltX>>()
         try {
             coroutineScope {
                 while (!finished(restItems)) {
@@ -65,7 +77,7 @@ class MultiLayerHeuristicSearchAlgorithm(
                     pack(
                         promise = promise,
                         items = restItems,
-                        shape = binType,
+                        shape = binType.asContainer3Shape(),
                         fixedSpaces = emptyList(),
                         blockTable = blockTable
                     )
@@ -75,8 +87,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                             spaces = result
                             break
                         }
-                    } catch (e: ClosedSendChannelException) {
-                        logger.trace { "Block Loading MLHSA was stopped by controller." }
                     } catch (e: CancellationException) {
                         logger.trace { "Block Loading MLHSA was stopped by controller." }
                     } catch (e: Exception) {
@@ -89,8 +99,16 @@ class MultiLayerHeuristicSearchAlgorithm(
                     if (spaces == null) {
                         break
                     }
-                    
-                    val bin = Bin(binType, spaces.map { Placement3(it.block!!.view()!!, it.position) })
+
+                    val bin = blockBinOf(
+                        shape = binType,
+                        units = spaces.map { space ->
+                            blockPlacement3Of(
+                                view = space.block!!.view()!!,
+                                position = point3FltX(space.position)
+                            )
+                        }
+                    )
                     for ((item, amount) in bin.amounts) {
                         restItems[item as Item] = restItems[item]!! - amount
                     }
@@ -107,14 +125,18 @@ class MultiLayerHeuristicSearchAlgorithm(
         return Pair(usedBins, restItems.flatten())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         items: Map<Item, UInt64>,
         shape: Container3Shape,
         blockTable: List<Block>,
         fixedSpaces: List<Space> = emptyList(),
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
+        if (requireNoCylinderItemsForCuboidSearch(items = items).failed) {
+            val promise = Channel<List<Space>>()
+            promise.close()
+            return ChannelGuard(promise)
+        }
         val restItems = items.toMutableMap()
         val promise = Channel<List<Space>>()
         scope.launch(Dispatchers.Default) {
@@ -126,8 +148,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                     fixedSpaces = fixedSpaces,
                     blockTable = blockTable
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Block Loading MLHSA was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Block Loading MLHSA was stopped by controller." }
             } catch (e: Exception) {
@@ -140,6 +160,12 @@ class MultiLayerHeuristicSearchAlgorithm(
         return ChannelGuard(promise)
     }
 
+/**
+ * finished.
+ * finished。
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @return whether all items are packed / 所有货物是否已装完
+*/
     private fun finished(restItems: Map<Item, UInt64>): Boolean {
         for ((_, amount) in restItems) {
             if (amount != UInt64.zero) {
@@ -149,6 +175,13 @@ class MultiLayerHeuristicSearchAlgorithm(
         return true
     }
 
+/**
+ * enough.
+ * enough。
+ * @param restItems remaining item quantities / 剩余物品数量
+ * @param block block to check / 待检查的块
+ * @return whether remaining items are sufficient / 剩余货物是否足够
+*/
     private fun enough(
         restItems: Map<Item, UInt64>,
         block: Block
@@ -161,6 +194,21 @@ class MultiLayerHeuristicSearchAlgorithm(
         return true
     }
 
+    /**
+     * 执行多层启发式搜索装箱。
+     * Perform multi-layer heuristic search packing.
+     *
+     * @param promise 用于发送装箱结果的通道
+     * Channel for sending packing results
+     * @param items 待装箱物品及其数量
+     * Items to be packed and their quantities
+     * @param shape 容器形状
+     * Container shape
+     * @param fixedSpaces 已固定的空间列表
+     * List of fixed spaces already placed
+     * @param blockTable 可用块表
+     * Available block table
+    */
     private suspend fun pack(
         promise: Channel<List<Space>>,
         items: Map<Item, UInt64>,
@@ -206,8 +254,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                             dfsPromise.close()
                                             return@async thisSpaces
                                         }
-                                    } catch (e: ClosedSendChannelException) {
-                                        logger.trace { "Block Loading MLHSA was stopped by controller." }
                                     } catch (e: CancellationException) {
                                         logger.trace { "Block Loading MLHSA was stopped by controller." }
                                     } catch (e: Exception) {
@@ -224,8 +270,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                     break
                                 }
                             }
-                        } catch (e: ClosedSendChannelException) {
-                            logger.trace { "Block Loading MLHSA was stopped by controller." }
                         } catch (e: CancellationException) {
                             logger.trace { "Block Loading MLHSA was stopped by controller." }
                         } catch (e: Exception) {
@@ -237,8 +281,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                         heap = promises.mapNotNull { it.await() }.toMutableList()
                         cancel()
                     }
-                } catch (e: ClosedSendChannelException) {
-                    logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: CancellationException) {
                     logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: Exception) {
@@ -284,8 +326,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                                 dfsPromise.close()
                                                 return@async thisSpaces
                                             }
-                                        } catch (e: ClosedSendChannelException) {
-                                            logger.trace { "Block Loading MLHSA was stopped by controller." }
                                         } catch (e: CancellationException) {
                                             logger.trace { "Block Loading MLHSA was stopped by controller." }
                                         } catch (e: Exception) {
@@ -302,8 +342,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                         break
                                     }
                                 }
-                            } catch (e: ClosedSendChannelException) {
-                                logger.trace { "Block Loading MLHSA was stopped by controller." }
                             } catch (e: CancellationException) {
                                 logger.trace { "Block Loading MLHSA was stopped by controller." }
                             } catch (e: Exception) {
@@ -316,8 +354,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                         heap = promises.mapNotNull { it.await() }.toMutableList()
                         cancel()
                     }
-                } catch (e: ClosedSendChannelException) {
-                    logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: CancellationException) {
                     logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: Exception) {
@@ -345,11 +381,11 @@ class MultiLayerHeuristicSearchAlgorithm(
         )
         try {
             for (bin in dfsPromise) {
-                promise.send(bin)
+                if (promise.trySend(bin).isFailure) {
+                    break
+                }
                 break
             }
-        } catch (e: ClosedSendChannelException) {
-            logger.trace { "Block Loading MLHSA was stopped by controller." }
         } catch (e: CancellationException) {
             logger.trace { "Block Loading MLHSA was stopped by controller." }
         } catch (e: Exception) {

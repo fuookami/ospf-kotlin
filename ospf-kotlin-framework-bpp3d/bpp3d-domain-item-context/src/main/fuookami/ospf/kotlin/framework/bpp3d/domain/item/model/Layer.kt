@@ -1,20 +1,28 @@
+/**
+ * Layer model.
+ * 层模型。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
-import kotlin.reflect.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
+import kotlin.reflect.KClass
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-
+/**
+ * PlaneLayer class.
+ * PlaneLayer类。
+*/
 class PlaneLayer<P : ProjectivePlane>(
     // inherited from Container2<PlaneLayer<P>, P>
     override val shape: AbstractContainer2Shape<P>,
-    override val units: List<ItemPlacement2<P>>
-) : Container2<PlaneLayer<P>, P> {
+    override val units: List<QuantityPlacement2<Item, FltX, P>>
+) : Container2<PlaneLayer<P>, FltX, P> {
     companion object {
         operator fun <P : ProjectivePlane> invoke(
             space: AbstractContainer3Shape,
-            units: List<ItemPlacement2<P>>,
+            units: List<QuantityPlacement2<Item, FltX, P>>,
             plane: P
         ): PlaneLayer<P> {
             return PlaneLayer(
@@ -26,13 +34,17 @@ class PlaneLayer<P : ProjectivePlane>(
             )
         }
 
-        operator fun <P : ProjectivePlane, S : Container3<S>> invoke(
-            container: Container3<S>,
-            units: List<ItemPlacement2<P>>,
+        operator fun <P : ProjectivePlane, S : Container3<S, FltX>> invoke(
+            container: Container3<S, FltX>,
+            units: List<QuantityPlacement2<Item, FltX, P>>,
             plane: P
         ): PlaneLayer<P> {
             return this(
-                space = container.shape,
+                space = Container3Shape(
+                    width = container.shape.width,
+                    height = container.shape.height,
+                    depth = container.shape.depth
+                ),
                 units = units,
                 plane = plane
             )
@@ -45,18 +57,22 @@ class PlaneLayer<P : ProjectivePlane>(
     )
 }
 
+/**
+ * BinLayer class.
+ * BinLayer类。
+*/
 class BinLayer(
     val iteration: Int64,
     val from: KClass<*>,
-    val bin: BinType? = null,
+    val bin: BinType<FltX>? = null,
     // inherited from Container3<BinLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<Placement3<*>>,
+    override val units: List<QuantityPlacement3<*, FltX>>,
 ) : ItemContainer<BinLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
             iteration: Int64,
-            bin: BinType,
+            bin: BinType<FltX>,
             layer: PlaneLayer<Side>
         ): BinLayer {
             return BinLayer(
@@ -74,21 +90,21 @@ class BinLayer(
         operator fun invoke(
             iteration: Int64,
             from: KClass<*>,
-            bin: BinType,
-            units: List<ItemPlacement3>
+            bin: BinType<FltX>,
+            units: List<QuantityPlacement3<Item, FltX>>
         ): BinLayer {
             return BinLayer(
                 iteration = iteration,
                 from = from,
                 bin = bin,
-                shape = Container3Shape(Container2Shape(bin, Side)),
+                shape = Container3Shape(Container2Shape(bin.asContainer3Shape(), Side)),
                 units = units.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
             )
         }
     }
 
     // inherited from Cuboid<BinLayer>
-    override val depth: Flt64 = units.maxOfOrNull { it.maxZ } ?: Flt64.zero
+    override val depth: Quantity<FltX> = units.maxOfOrNullQuantity { it.maxZ } ?: (shape.depth * FltX.zero)
 
     // inherited from ItemContainer<BinLayer>
     override val bottomOnly: Boolean = true
@@ -96,6 +112,7 @@ class BinLayer(
     override fun copy() = BinLayer(
         iteration = iteration,
         from = from,
+        bin = bin,
         shape = shape,
         units = units.map { it.copy() }
     )
@@ -114,12 +131,16 @@ class BinLayer(
     }
 }
 
+/**
+ * PalletLayer class.
+ * PalletLayer类。
+*/
 class PalletLayer(
     val iteration: Int64,
     val from: KClass<*>,
     // inherited from Container3<PalletLayer>
     override val shape: AbstractContainer3Shape,
-    override val units: List<Placement3<*>>,
+    override val units: List<QuantityPlacement3<*, FltX>>,
 ) : ItemContainer<PalletLayer>, ManualIndexed() {
     companion object {
         operator fun invoke(
@@ -140,20 +161,20 @@ class PalletLayer(
         operator fun invoke(
             iteration: Int64,
             from: KClass<*>,
-            bin: BinType,
-            units: List<ItemPlacement3>
+            bin: BinType<FltX>,
+            units: List<QuantityPlacement3<Item, FltX>>
         ): BinLayer {
             return BinLayer(
                 iteration = iteration,
                 from = from,
-                shape = Container3Shape(Container2Shape(bin, Bottom)),
+                shape = Container3Shape(Container2Shape(bin.asContainer3Shape(), Bottom)),
                 units = units.sortedWithThreeWayComparator { lhs, rhs -> lhs ord rhs }
             )
         }
     }
 
     // inherited from Cuboid<PalletLayer>
-    override val height: Flt64 = units.maxOfOrNull { it.maxY } ?: Flt64.zero
+    override val height: Quantity<FltX> = units.maxOfOrNullQuantity { it.maxY } ?: (shape.height * FltX.zero)
 
     // inherited from ItemContainer<PalletLayer>
     override val topFlat: Boolean = true
@@ -178,8 +199,3 @@ class PalletLayer(
         return true
     }
 }
-
-typealias BinLayerView = CuboidView<BinLayer>
-typealias BinLayerPlacement = Placement3<BinLayer>
-typealias PalletLayerView = CuboidView<PalletLayer>
-typealias PalletLayerPlacement = Placement3<PalletLayer>

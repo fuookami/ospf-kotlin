@@ -1,18 +1,40 @@
+/**
+ * 物品模型。
+ * Item model.
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 
 import kotlinx.coroutines.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.Axis3
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 
+/**
+ * 优先级属性，根据提取器从实际物品中获取匹配的优先级值。
+ * Priority attribute that extracts a priority value from an actual item via an extractor.
+ *
+ * @property key 属性键 / attribute key
+ * @property value 优先级值 / priority value
+*/
 data class PriorityAttribute(
     val key: String,
     private val extractor: Extractor<String?, ActualItem>,
     val value: UInt64
 ) {
+
+    /**
+     * 从实际物品中提取属性值。
+     * Extract the attribute value from an actual item.
+     *
+     * @param item 实际物品 / actual item
+     * @return 提取的属性值 / extracted attribute value
+    */
     private fun attribute(item: ActualItem) = extractor(item)
 
     operator fun invoke(item: ActualItem): UInt64? {
@@ -24,6 +46,13 @@ data class PriorityAttribute(
     }
 }
 
+/**
+ * 物品类型，由包装类型和朝向类别组成。
+ * Item type composed of a package type and an orientation category.
+ *
+ * @property packageType 包装类型 / package type
+ * @property orientation 朝向类别 / orientation category
+*/
 open class ItemType(
     val packageType: PackageType,
     val orientation: OrientationCategory = OrientationCategory.Upright
@@ -45,8 +74,19 @@ open class ItemType(
     }
 }
 
+/**
+ * 物品模式，描述物品的形状、朝向和属性。
+ * Item pattern describing the shape, orientation, and attributes of an item.
+ *
+ * @property shape 包装形状 / package shape
+ * @property enabledOrientations 允许的朝向列表 / list of enabled orientations
+ * @property batchNo 批次号 / batch number
+ * @property priorities 优先级映射 / priority map
+ * @property warehouse 仓库 / warehouse
+ * @property packageAttribute 包装属性 / package attribute
+*/
 open class ItemPattern(
-    val shape: PackageShape,
+    val shape: PackageShape<FltX>,
     val enabledOrientations: List<Orientation>,
     val batchNo: BatchNo?,
     val priorities: Map<String, UInt64>,
@@ -78,35 +118,147 @@ open class ItemPattern(
     }
 }
 
-interface Item : Cuboid<Item>, Indexed {
-    val batchNo: BatchNo?
-    val priorities: Map<String, UInt64>
-    val warehouse: String?
-    val packageAttribute: PackageAttribute
+/**
+ * 将 Quantity<*> 转换为 Quantity<FltX>。
+ * Convert Quantity<*> to Quantity<FltX>.
+ *
+ * @param value 待转换的值 / value to convert
+ * @return 转换为 FltX 类型的数量值 / quantity value converted to FltX type
+*/
+@Suppress("UNCHECKED_CAST")
+private fun itemPackQuantityToFltX(value: Quantity<*>): Quantity<FltX> {
+    return when (value.value) {
+        is FltX -> value as Quantity<FltX>
+        else -> Quantity(FltX(value.value.toString().toDouble()), value.unit)
+    }
+}
 
-    val packageType get() = packageAttribute.packageType
-    val packageBottomShape get() = packageShape.bottomShape
-    val packageShape get() = PackageShape(
+/**
+ * 将 Container3Geometry 转换为 AbstractContainer3Shape。
+ * Convert Container3Geometry to AbstractContainer3Shape.
+ *
+ * @return 抽象容器 3D 形状 / abstract container 3D shape
+*/
+private fun Container3Geometry<FltX>.asContainer3Shape(): AbstractContainer3Shape {
+    return this as? AbstractContainer3Shape ?: Container3Shape(
         width = width,
         height = height,
-        depth = depth,
-        weight = weight,
-        packageType = packageType
+        depth = depth
     )
+}
+
+/** 货物合并结果单元。Item merge result unit. */
+sealed interface ItemMergeUnit
+
+/**
+ * 物品接口，定义三维装箱中的物品基本行为。
+ * Item interface defining the basic behavior of items in 3D bin packing.
+*/
+interface Item : Cuboid<Item, FltX>, Indexed, ItemMergeUnit {
+    override val self: Item
+        get() = this
+
+    /** Explicit packing shape override / 显式装载形状覆盖 */
+    val explicitPackingShape: PackingShape3<FltX>?
+        get() = null
+
+    /** Packing shape specification / 装载形状规格 */
+    val packingShapeSpec: PackageShapeSpec?
+        get() = null
+
+    /** Resolved packing shape / 解析后的装载形状 */
+    val packingShape: PackingShape3<FltX>
+        get() = explicitPackingShape
+            ?: packageShape.toPackingShapeOrNull()
+            ?: view().asPackingShape3()
+
+    /** 包围盒（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bounding box derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeBoundingBox: ShapeBoundingBox3<FltX>
+        get() = packingShape.boundingBox
+
+    /** 底面轮廓（从 packingShape 派生，不直接依赖 Cuboid 继承）。Bottom footprint derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeFootprint: ShapeFootprint2<FltX>
+        get() = packingShape.footprint()
+
+    /** 形状实际体积（从 packingShape 派生，不直接依赖 Cuboid 继承）。Shape geometric volume derived from packingShape, not directly from Cuboid inheritance. */
+    val shapeVolume: Quantity<FltX>
+        get() = packingShape.actualVolume
+
+    /** Batch number / 批次号 */
+    val batchNo: BatchNo?
+
+    /** Priority mapping / 优先级映射 */
+    val priorities: Map<String, UInt64>
+
+    /** Warehouse identifier / 仓库标识 */
+    val warehouse: String?
+
+    /** Package attribute / 包装属性 */
+    val packageAttribute: PackageAttribute
+
+    /** Material amounts / 材料用量 */
+    val materialAmounts: Map<MaterialKey, UInt64>
+        get() = emptyMap()
+
+    /** Material weights / 材料重量 */
+    val materialWeights: Map<MaterialKey, Quantity<FltX>>
+        get() = emptyMap()
+
+    /** Package type / 包装类型 */
+    val packageType get() = packageAttribute.packageType
+
+    /** Package bottom shape / 包装底面形状 */
+    val packageBottomShape get() = packageShape.bottomShape
+
+    /** Package shape / 包装形状 */
+    val packageShape
+        get() = PackageShape(
+            width = width,
+            height = height,
+            depth = depth,
+            weight = weight,
+            packageType = packageType,
+            shapeSpec = packingShapeSpec ?: PackageShapeSpec.Cuboid
+        )
     val type: ItemType get() = ItemType(packageType)
+
+    /** Package category / 包装类别 */
     val packageCategory get() = packageType.category
+
+    /** Maximum stacking layer / 最大堆叠层数 */
     val maxLayer get() = packageAttribute.maxLayer
+
+    /** Maximum stacking height / 最大堆叠高度 */
     val maxHeight get() = packageAttribute.maxHeight
+
+    /** Minimum depth / 最小深度 */
     val minDepth get() = packageAttribute.minDepth
+
+    /** Maximum depth / 最大深度 */
     val maxDepth get() = packageAttribute.maxDepth
+
+    /** Over-package types / 上覆包装类型 */
     val overPackageTypes get() = packageAttribute.overPackageTypes
+
+    /** Whether the item must be placed at the bottom / 物品是否必须放置在底部 */
     val bottomOnly get() = packageAttribute.bottomOnly
+
+    /** Whether the top surface is flat / 顶面是否平坦 */
     val topFlat get() = packageAttribute.topFlat
+
+    /** Allowed layer count when placed on side / 侧放时允许的堆叠层数 */
     val sideOnTopLayer get() = packageAttribute.sideOnTopLayer
+
+    /** Allowed layer count when placed lying / 平放时允许的堆叠层数 */
     val lieOnTopLayer get() = packageAttribute.lieOnTopLayer
+
+    /** Whether side-on-top placement is enabled / 是否启用侧放堆叠 */
     val enabledSideOnTop get() = packageAttribute.enabledSideOnTop
+
+    /** Whether lie-on-top placement is enabled / 是否启用平放堆叠 */
     val enabledLieOnTop get() = packageAttribute.enabledLieOnTop
 
+    /** Item pattern / 物品模式 */
     val pattern: ItemPattern
         get() = ItemPattern(
             shape = packageShape,
@@ -117,25 +269,42 @@ interface Item : Cuboid<Item>, Indexed {
             packageAttribute = packageAttribute
         )
 
+    /**
+     * 判断物品是否允许在指定的底部支撑上堆叠。
+     * Check whether this item can be stacked on the specified bottom support.
+     *
+     * @param bottomSupport 底部支撑 / bottom support
+     * @return 是否允许堆叠 / whether stacking is allowed
+    */
     fun enabledStackingOn(bottomSupport: BottomSupport): Boolean {
         return packageAttribute.enabledStackingOn(
-            unit = this,
+            item = view(),
             bottomSupport = bottomSupport
         )
     }
 
+    /**
+     * 判断物品是否允许堆叠在指定底部物品之上。
+     * Check whether this item can be stacked on the specified bottom item.
+     *
+     * @param bottomItem 底部物品 / bottom item
+     * @param layer 层数 / layer number
+     * @param height 高度 / height
+     * @param space 容器空间 / container space
+     * @return 是否允许堆叠 / whether stacking is allowed
+    */
     fun enabledStackingOn(
         bottomItem: Item,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
-        space: AbstractContainer3Shape = Container3Shape()
+        height: Quantity<FltX> = width * FltX.zero,
+        space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
             height = height,
-            space = space
+            space = space.asContainer3Shape()
         )
     }
 
@@ -144,30 +313,75 @@ interface Item : Cuboid<Item>, Indexed {
     }
 }
 
+/**
+ * 实际物品，包含具体的包装信息和属性。
+ * An actual item containing specific packaging information and attributes.
+ *
+ * @property id 物品 ID / item id
+ * @property name 物品名称 / item name
+ * @property packageCode 包装代码 / package code
+ * @property pack 包装信息 / package information
+ * @property priorityAttribute 优先级属性列表 / list of priority attributes
+ * @property shapeSpecOverride 形状规格覆盖 / shape spec override
+ * @property packingShapeOverride 装载形状覆盖 / packing shape override
+ * @property materialAmountsOverride 材料用量覆盖 / material amounts override
+ * @property materialWeightsOverride 材料重量覆盖 / material weights override
+*/
 open class ActualItem(
-    val id: String,
+    open val id: ItemId,
     val name: String,
     val packageCode: PackageCode? = null,
-    val pack: Package? = null,
+    val pack: Package<*>? = null,
     val priorityAttribute: List<PriorityAttribute> = emptyList(),
     // inherited from Cuboid<Item>
-    override val width: Flt64,
-    override val height: Flt64,
-    override val depth: Flt64,
-    override val weight: Flt64,
+    override val width: Quantity<FltX>,
+    override val height: Quantity<FltX>,
+    override val depth: Quantity<FltX>,
+    override val weight: Quantity<FltX>,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
     override val batchNo: BatchNo? = null,
     override val warehouse: String? = null,
-    override val packageAttribute: PackageAttribute
+    override val packageAttribute: PackageAttribute,
+    val shapeSpecOverride: PackageShapeSpec? = null,
+    val packingShapeOverride: PackingShape3<FltX>? = null,
+    val materialAmountsOverride: Map<MaterialKey, UInt64>? = null,
+    val materialWeightsOverride: Map<MaterialKey, Quantity<FltX>>? = null
 ) : Item, ManualIndexed() {
+    override val explicitPackingShape: PackingShape3<FltX>?
+        get() = packingShapeOverride
+    override val packingShapeSpec: PackageShapeSpec?
+        get() = shapeSpecOverride ?: pack?.shape?.shapeSpec
     override val priorities = priorityAttribute.mapNotNull { it(this)?.let { value -> Pair(it.key, value) } }.toMap()
+    override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
+        materialAmountsOverride?.let {
+            return@lazy it
+        }
+        val counter = HashMap<MaterialKey, UInt64>()
+        for ((material, amount) in pack?.materials ?: emptyMap()) {
+            val key = material.key
+            counter[key] = (counter[key] ?: UInt64.zero) + amount
+        }
+        counter
+    }
+    override val materialWeights: Map<MaterialKey, Quantity<FltX>> by lazy {
+        materialWeightsOverride?.let {
+            return@lazy it
+        }
+        val counter = HashMap<MaterialKey, Quantity<FltX>>()
+        for ((material, amount) in pack?.materials ?: emptyMap()) {
+            val key = material.key
+            val weight = material.weight * FltX(amount.toULong().toDouble())
+            counter[key] = (counter[key] ?: (weight * FltX.zero)) + weight
+        }
+        counter
+    }
 
     constructor(
-        id: String,
+        id: ItemId,
         name: String,
-        pack: Package,
+        pack: Package<*>,
         priorityAttribute: List<PriorityAttribute> = emptyList(),
         enabledOrientations: List<Orientation>,
         batchNo: BatchNo,
@@ -179,10 +393,10 @@ open class ActualItem(
         packageCode = pack.code,
         pack = pack,
         priorityAttribute = priorityAttribute,
-        width = pack.width,
-        height = pack.height,
-        depth = pack.depth,
-        weight = pack.weight,
+        width = itemPackQuantityToFltX(pack.width),
+        height = itemPackQuantityToFltX(pack.height),
+        depth = itemPackQuantityToFltX(pack.depth),
+        weight = itemPackQuantityToFltX(pack.weight),
         enabledOrientations = enabledOrientations,
         batchNo = batchNo,
         warehouse = warehouse,
@@ -194,13 +408,19 @@ open class ActualItem(
     }
 }
 
+/**
+ * 由多个 ActualItem 按数量及范围组成的模式化物品。
+ * A patterned item composed of multiple ActualItems with counts and ranges.
+ *
+ * @property actualItems 实际物品列表（物品、数量、数量范围） / list of actual items (item, count, count range)
+*/
 open class PatternedItem(
     private val actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>,
     // inherited from Cuboid<Item>
-    override val width: Flt64,
-    override val height: Flt64,
-    override val depth: Flt64,
-    override val weight: Flt64,
+    override val width: Quantity<FltX>,
+    override val height: Quantity<FltX>,
+    override val depth: Quantity<FltX>,
+    override val weight: Quantity<FltX>,
     // inherited from CuboidItem<Item>
     override val enabledOrientations: List<Orientation>,
     // inherited from Item
@@ -209,23 +429,56 @@ open class PatternedItem(
     override val warehouse: String? = null,
     override val packageAttribute: PackageAttribute
 ) : Item, ManualIndexed() {
-    override val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / actualItems.sumOf { it.second.toFlt64() }
+    override val volume: Quantity<FltX> = run {
+        val totalAmount = actualItems.fold(FltX.zero) { acc, (_, amount, _) -> acc + FltX(amount.toULong().toDouble()) }
+        if (totalAmount eq FltX.zero) {
+            width * height * depth * FltX.zero
+        } else {
+            actualItems.sumOfQuantity { it.first.volume * FltX(it.second.toULong().toDouble()) } / totalAmount
+        }
+    }
+    override val materialAmounts: Map<MaterialKey, UInt64> by lazy {
+        val counter = HashMap<MaterialKey, UInt64>()
+        for ((item, amount, _) in actualItems) {
+            for ((material, thisAmount) in item.materialAmounts) {
+                counter[material] = (counter[material] ?: UInt64.zero) + thisAmount * amount
+            }
+        }
+        counter
+    }
+    override val materialWeights: Map<MaterialKey, Quantity<FltX>> by lazy {
+        val counter = HashMap<MaterialKey, Quantity<FltX>>()
+        for ((item, amount, _) in actualItems) {
+            for ((material, weight) in item.materialWeights) {
+                val thisWeight = weight * FltX(amount.toULong().toDouble())
+                counter[material] = (counter[material] ?: (thisWeight * FltX.zero)) + thisWeight
+            }
+        }
+        counter
+    }
 
     companion object {
         operator fun invoke(
             pattern: ItemPattern,
             actualItems: List<Triple<ActualItem, UInt64, ValueRange<UInt64>>>
         ): Triple<PatternedItem, UInt64, ValueRange<UInt64>> {
-            val amount = actualItems.sumOf { it.second }
-            val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple -> acc + triple.second }
-            val volume = actualItems.sumOf { it.first.volume * it.second.toFlt64() } / amount.toFlt64()
-            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume)
-            return Triple(PatternedItem(
-                actualItems = actualItems,
-                width = pattern.shape.width + deformation.x,
-                height = pattern.shape.height + deformation.y,
-                depth = pattern.shape.depth + deformation.z,
-                weight = actualItems.sumOf { it.first.weight * it.second.toFlt64() } / amount.toFlt64(),
+            val amount = actualItems.fold(UInt64.zero) { acc, (_, thisAmount, _) -> acc + thisAmount }
+            val amountRange = actualItems.fold(ValueRange(UInt64.zero, UInt64.zero).value!!) { acc, triple ->
+                (acc + triple.second)!!
+            }
+            val volume = actualItems.sumOfQuantity {
+                it.first.volume * FltX(it.second.toULong().toDouble())
+            } / FltX(amount.toULong().toDouble())
+            val deformation = pattern.packageAttribute.deformationAttribute.deformationQuantity(volume.value)
+            return Triple(
+                PatternedItem(
+                    actualItems = actualItems,
+                width = pattern.shape.width + deformation[0],
+                height = pattern.shape.height + deformation[1],
+                depth = pattern.shape.depth + deformation[2],
+                weight = actualItems.sumOfQuantity {
+                    it.first.weight * FltX(it.second.toULong().toDouble())
+                } / FltX(amount.toULong().toDouble()),
                 enabledOrientations = Orientation.merge(actualItems.first().first, pattern.enabledOrientations),
                 batchNo = pattern.batchNo,
                 priorities = pattern.priorities,
@@ -250,7 +503,7 @@ open class PatternedItem(
 
     // inherited from CuboidUnit<Item>
     override fun enabledOrientationsAt(
-        space: AbstractContainer2Shape<*>,
+        space: Container2Geometry<*, FltX>,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -285,7 +538,7 @@ open class PatternedItem(
     }
 
     override fun enabledOrientationsAt(
-        space: AbstractContainer3Shape,
+        space: Container3Geometry<FltX>,
         withRotation: Boolean
     ): List<Orientation> {
         val actualOrientations = super.enabledOrientationsAt(
@@ -316,7 +569,8 @@ open class PatternedItem(
                     }
             )
         }
-        actualOrientations.removeAll { packageAttribute.extraOrientationRule?.let { it1 -> it1(space, it) } == false }
+        val containerSpace = space.asContainer3Shape()
+        actualOrientations.removeAll { packageAttribute.extraOrientationRule?.let { it1 -> it1(containerSpace, it) } == false }
         return actualOrientations.toList()
     }
 
@@ -329,10 +583,17 @@ open class PatternedItem(
     }
 }
 
+/**
+ * 物品视图，通过特定朝向观察一个物品。
+ * Item view, observing an item through a specific orientation.
+*/
 open class ItemView(
     unit: Item,
     orientation: Orientation = Orientation.Upright
-) : CuboidView<Item>(unit, orientation) {
+) : CuboidView<Item, FltX>(unit, orientation) {
+
+    /** 放置级装载形状覆盖。Placement-level packing shape override. */
+    open val placementPackingShape: PackingShape3<FltX>? get() = null
     open val type get() = ItemType(unit.packageType, orientation.category)
     val packageType by unit::packageType
     val packageCategory by unit::packageCategory
@@ -364,25 +625,42 @@ open class ItemView(
             }
         }
 
+    /**
+     * 判断该视图物品是否允许在指定的底部支撑上堆叠。
+     * Check whether this item view can be stacked on the specified bottom support.
+     *
+     * @param bottomSupport 底部支撑 / bottom support
+     * @return 是否允许堆叠 / whether stacking is allowed
+    */
     fun enabledStackingOn(bottomSupport: BottomSupport): Boolean {
         return unit.packageAttribute.enabledStackingOn(
-            unit = this,
+            item = this,
             bottomSupport = bottomSupport
         )
     }
 
+    /**
+     * 判断该视图物品是否允许堆叠在指定底部物品之上。
+     * Check whether this item view can be stacked on the specified bottom item.
+     *
+     * @param bottomItem 底部物品视图 / bottom item view
+     * @param layer 层数 / layer number
+     * @param height 高度 / height
+     * @param space 容器空间 / container space
+     * @return 是否允许堆叠 / whether stacking is allowed
+    */
     fun enabledStackingOn(
         bottomItem: ItemView?,
         layer: UInt64 = UInt64.zero,
-        height: Flt64 = Flt64.zero,
-        space: AbstractContainer3Shape = Container3Shape()
+        height: Quantity<FltX> = this.height * FltX.zero,
+        space: Container3Geometry<FltX> = Container3Shape()
     ): Boolean {
         return unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItem = bottomItem,
             layer = layer,
             height = height,
-            space = space
+            space = space.asContainer3Shape()
         )
     }
 
@@ -391,11 +669,11 @@ open class ItemView(
             return super.rotation?.let { ItemView(it.unit, it.orientation) }
         }
 
-    override fun rotationAt(space: AbstractContainer2Shape<*>): ItemView? {
+    override fun rotationAt(space: Container2Geometry<*, FltX>): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
-    override fun rotationAt(space: AbstractContainer3Shape): ItemView? {
+    override fun rotationAt(space: Container3Geometry<FltX>): ItemView? {
         return super.rotationAt(space)?.let { ItemView(it.unit, it.orientation) }
     }
 
@@ -407,105 +685,165 @@ open class ItemView(
     }
 }
 
-typealias ItemProjection<P> = Projection<Item, P>
-typealias MultipleItemProjection<P> = MultiPileProjection<Item, P>
-typealias ItemPlacement2<P> = Placement2<Item, P>
-typealias ItemPlacement3 = Placement3<Item>
+/**
+ * 解析放置级真实装载形状，优先使用 ItemView 携带的候选几何。
+ * Resolve placement-level packing shape, preferring candidate geometry carried by ItemView.
+ *
+ * @return 放置级装载形状 / placement-level packing shape
+*/
+fun QuantityPlacement3<*, FltX>.resolvedPackingShape(): PackingShape3<FltX> {
+    val itemView = view as? ItemView
+    itemView?.placementPackingShape?.let {
+        return it
+    }
+    return when (val placementUnit = unit) {
+        is Item -> placementUnit.packingShape
+        else -> view.asPackingShape3()
+    }
+}
 
 @get:JvmName("itemProjectionType")
-val ItemProjection<*>.type: ItemType
+val Projection<Item, FltX, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement2Type")
-val ItemPlacement2<*>.type: ItemType
+val QuantityPlacement2<Item, FltX, *>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemPlacement3Type")
-val ItemPlacement3.type: ItemType
+val QuantityPlacement3<Item, FltX>.type: ItemType
     get() {
         return (view as ItemView).type
     }
 
 @get:JvmName("itemProjectionPackageType")
-val ItemProjection<*,>.packageType: PackageType
+val Projection<Item, FltX, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement2PackageType")
-val ItemPlacement2<*>.packageType: PackageType
+val QuantityPlacement2<Item, FltX, *>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemPlacement3PackageType")
-val ItemPlacement3.packageType: PackageType
+val QuantityPlacement3<Item, FltX>.packageType: PackageType
     get() {
         return unit.packageType
     }
 
 @get:JvmName("itemProjectionPackageCategory")
-val ItemProjection<*>.packageCategory: PackageCategory
+val Projection<Item, FltX, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemPlacement2PackageCategory")
-val ItemPlacement2<*>.packageCategory: PackageCategory
+val QuantityPlacement2<Item, FltX, *>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
 @get:JvmName("itemPlacement3PackageCategory")
-val ItemPlacement3.packageCategory: PackageCategory
+val QuantityPlacement3<Item, FltX>.packageCategory: PackageCategory
     get() {
         return unit.packageCategory
     }
 
-@get:JvmName("itemProjectionBottomOnly")
-val ItemProjection<*>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
 @get:JvmName("itemPlacement2BottomOnly")
-val ItemPlacement2<*>.bottomOnly: Boolean
+val QuantityPlacement2<Item, FltX, *>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("itemPlacement3BottomOnly")
-val ItemPlacement3.bottomOnly: Boolean
+val QuantityPlacement3<Item, FltX>.bottomOnly: Boolean
     get() {
         return unit.bottomOnly
     }
 
 @get:JvmName("itemProjectionTopFlat")
-val ItemProjection<*>.topFlat: Boolean
+val Projection<Item, FltX, *>.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement2TopFlat")
-val ItemPlacement2<*>.topFlat: Boolean
+val QuantityPlacement2<Item, FltX, *>.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 
 @get:JvmName("itemPlacement3TopFlat")
-val ItemPlacement3.topFlat: Boolean
+val QuantityPlacement3<Item, FltX>.topFlat: Boolean
     get() {
-        return view.topFlat
+        return (view as ItemView).topFlat
     }
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * 将放置转换为水平圆柱支撑几何体。
+ * Convert a placement to a horizontal cylinder support geometry.
+ *
+ * @return 水平圆柱支撑几何体 / horizontal cylinder support geometry
+*/
+private fun QuantityPlacement3<*, FltX>.toHorizontalCylinderSupportGeometry(): HorizontalCylinderSupportGeometry {
+    val shape = resolvedPackingShape()
+    val minX = absoluteX.toDouble()
+    val minY = absoluteY.toDouble()
+    val minZ = absoluteZ.toDouble()
+    return HorizontalCylinderSupportGeometry(
+        minX = minX,
+        maxX = minX + shape.boundingWidth.toDouble(),
+        minY = minY,
+        maxY = minY + shape.boundingHeight.toDouble(),
+        minZ = minZ,
+        maxZ = minZ + shape.boundingDepth.toDouble(),
+        isCylinder = shape is CylinderPackingShape3
+    )
+}
+
+/**
+ * 检查水平圆柱物品在底部物品上是否有足够的支撑覆盖。
+ * Check whether a horizontal cylinder item has sufficient support coverage on bottom items.
+ *
+ * @param item 水平圆柱物品放置 / horizontal cylinder item placement
+ * @param bottomItems 底部物品放置列表 / list of bottom item placements
+ * @return 是否有足够的支撑覆盖 / whether there is sufficient support coverage
+*/
+private fun hasHorizontalCylinderStackingSupportCoverage(
+    item: QuantityPlacement3<Item, FltX>,
+    bottomItems: List<QuantityPlacement3<*, FltX>>
+): Boolean {
+    val cylinder = item.resolvedPackingShape() as? CylinderPackingShape3 ?: return true
+    val axis = cylinder.axis
+    if (axis == Axis3.Y || item.absoluteY eq FltX.zero) {
+        return true
+    }
+
+    return horizontalCylinderCuboidSupportCoverage(
+        cylinder = item.toHorizontalCylinderSupportGeometry(),
+        axis = axis,
+        supports = bottomItems.map { candidate -> candidate.toHorizontalCylinderSupportGeometry() }
+    )
+}
+
+/**
+ * 判断物品在 Side 平面中是否允许堆叠在底部物品之上。
+ * Check whether the item can be stacked on bottom items in the Side plane.
+ *
+ * @param bottomItems 底部物品列表 / list of bottom items
+ * @param space 容器空间 / container space
+ * @return 是否允许堆叠 / whether stacking is allowed
+*/
 @JvmName("itemPlacement2SideEnabledStackingOn")
-suspend fun ItemPlacement2<Side>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Side>>,
+suspend fun QuantityPlacement2<Item, FltX, Side>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Side>>,
     space: AbstractContainer2Shape<Side> = Container2Shape(plane = Side)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -514,19 +852,26 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in toPlacement3()) {
                 promises.add(async(Dispatchers.Default) {
-                    val bottomPlacement = Placement2(item, Bottom)
-                    val thisBottomPlacements = bottomPlacements.filter { Placement2(it, Bottom).overlapped(bottomPlacement) }
+                    val thisBottomPlacements = bottomPlacements.filterBottomOverlapped(item)
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
-                            bottomUnits = thisBottomPlacements
+                            bottomUnits = thisBottomPlacements,
+                            shapeResolver = { placement ->
+                                when (val placementUnit = placement.unit) {
+                                    is Item -> placementUnit.packingShape
+                                    else -> placement.view.asPackingShape3()
+                                }
+                            }
                         )
                     ) && unit.packageAttribute.enabledStackingOn(
                         item = item,
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    listOf(it as ItemPlacement3)
+                                    it.toItemPlacementOrNull()?.let { itemPlacement ->
+                                        listOf(itemPlacement)
+                                    } ?: emptyList()
                                 }
 
                                 is ItemContainer<*> -> {
@@ -536,8 +881,8 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
                                 else -> {
                                     emptyList()
                                 }
-                            }.filter { placement3 ->
-                                it.maxY leq this@enabledStackingOn.y && Placement2(placement3, Bottom).overlapped(bottomPlacement)
+                            }.filter { bottomItem ->
+                                bottomItem.maxY leq this@enabledStackingOn.y && bottomItem.overlappedOnBottom(item)
                             }
                         },
                         space = Container3Shape(space)
@@ -556,10 +901,17 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * 判断物品在 Front 平面中是否允许堆叠在底部物品之上。
+ * Check whether the item can be stacked on bottom items in the Front plane.
+ *
+ * @param bottomItems 底部物品列表 / list of bottom items
+ * @param space 容器空间 / container space
+ * @return 是否允许堆叠 / whether stacking is allowed
+*/
 @JvmName("itemPlacement2FrontEnabledStackingOn")
-suspend fun ItemPlacement2<Front>.enabledStackingOn(
-    bottomItems: List<Placement2<*, Front>>,
+suspend fun QuantityPlacement2<Item, FltX, Front>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement2<*, FltX, Front>>,
     space: AbstractContainer2Shape<Front> = Container2Shape(plane = Front)
 ): Boolean {
     val bottomPlacements = bottomItems.flatMap { it.toPlacement3() }
@@ -568,19 +920,26 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
             val promises = ArrayList<Deferred<Boolean>>()
             for (item in toPlacement3()) {
                 promises.add(async(Dispatchers.Default) {
-                    val bottomPlacement = Placement2(item, Bottom)
-                    val thisBottomPlacements = bottomPlacements.filter { Placement2(it, Bottom).overlapped(bottomPlacement) }
+                    val thisBottomPlacements = bottomPlacements.filterBottomOverlapped(item)
                     (view as ItemView).enabledStackingOn(
                         bottomSupport = bottomSupport(
                             unit = item,
-                            bottomUnits = thisBottomPlacements
+                            bottomUnits = thisBottomPlacements,
+                            shapeResolver = { placement ->
+                                when (val placementUnit = placement.unit) {
+                                    is Item -> placementUnit.packingShape
+                                    else -> placement.view.asPackingShape3()
+                                }
+                            }
                         )
                     ) && unit.packageAttribute.enabledStackingOn(
                         item = item,
                         bottomItems = thisBottomPlacements.flatMap {
                             when (val unit = it.unit) {
                                 is Item -> {
-                                    listOf(it as ItemPlacement3)
+                                    it.toItemPlacementOrNull()?.let { itemPlacement ->
+                                        listOf(itemPlacement)
+                                    } ?: emptyList()
                                 }
 
                                 is ItemContainer<*> -> {
@@ -592,7 +951,7 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
                                 }
                             }
                         }.filter {
-                            it.maxY leq this@enabledStackingOn.y && Placement2(it, Bottom).overlapped(bottomPlacement)
+                            it.maxY leq this@enabledStackingOn.y && it.overlappedOnBottom(item)
                         },
                         space = Container3Shape(space)
                     )
@@ -610,14 +969,53 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
+/**
+ * 判断物品在 3D 空间中是否允许堆叠在底部物品之上。
+ * Check whether the item can be stacked on bottom items in 3D space.
+ *
+ * @param bottomItems 底部物品列表 / list of bottom items
+ * @param space 容器空间 / container space
+ * @return 是否允许堆叠 / whether stacking is allowed
+*/
 @JvmName("itemPlacement3EnabledStackingOn")
-suspend fun ItemPlacement3.enabledStackingOn(
-    bottomItems: List<Placement3<*>>,
+suspend fun QuantityPlacement3<Item, FltX>.enabledStackingOn(
+    bottomItems: List<QuantityPlacement3<*, FltX>>,
     space: AbstractContainer3Shape = Container3Shape()
 ): Boolean {
-    val bottomPlacement = Placement2(this, Bottom)
-    return if (absoluteY eq Flt64.zero) {
+    val shape = resolvedPackingShape()
+    if (shape is CylinderPackingShape3 && shape.axis != Axis3.Y) {
+        if (!hasHorizontalCylinderStackingSupportCoverage(
+                item = this,
+                bottomItems = bottomItems
+            )
+        ) {
+            return false
+        }
+        return unit.packageAttribute.enabledStackingOn(
+            item = this,
+            bottomItems = bottomItems.filter {
+                it.maxY leq this.y && it.overlappedOnBottom(this)
+            }.flatMap {
+                when (val unit = it.unit) {
+                    is Item -> {
+                        it.toItemPlacementOrNull()?.let { itemPlacement ->
+                            listOf(itemPlacement)
+                        } ?: emptyList()
+                    }
+
+                    is ItemContainer<*> -> {
+                        unit.dump(it.position)
+                    }
+
+                    else -> {
+                        emptyList()
+                    }
+                }
+            },
+            space = space
+        )
+    }
+    return if (absoluteY eq FltX.zero) {
         unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = emptyList(),
@@ -627,16 +1025,24 @@ suspend fun ItemPlacement3.enabledStackingOn(
         (view as ItemView).enabledStackingOn(
             bottomSupport = bottomSupport(
                 unit = this,
-                bottomUnits = bottomItems
+                bottomUnits = bottomItems,
+                shapeResolver = { placement ->
+                    when (val placementUnit = placement.unit) {
+                        is Item -> placementUnit.packingShape
+                        else -> placement.view.asPackingShape3()
+                    }
+                }
             )
         ) && unit.packageAttribute.enabledStackingOn(
             item = this,
             bottomItems = bottomItems.filter {
-                it.maxY leq this.y && Placement2(it, Bottom).overlapped(bottomPlacement)
+                it.maxY leq this.y && it.overlappedOnBottom(this)
             }.flatMap {
                 when (val unit = it.unit) {
                     is Item -> {
-                        listOf(it as ItemPlacement3)
+                        it.toItemPlacementOrNull()?.let { itemPlacement ->
+                            listOf(itemPlacement)
+                        } ?: emptyList()
                     }
 
                     is ItemContainer<*> -> {
@@ -648,13 +1054,16 @@ suspend fun ItemPlacement3.enabledStackingOn(
                     }
                 }
             }.filter {
-                Placement2(it, Bottom).overlapped(bottomPlacement)
+                it.overlappedOnBottom(this)
             },
             space = space
         )
     }
 }
 
+/** 将 Map<Item, UInt64> 扁平化为按数量重复的 Item 列表。Flatten Map<Item, UInt64> into a list of Items repeated by count.
+ * @return 扁平化后的物品列表 / flattened item list
+*/
 fun Map<Item, UInt64>.flatten(): List<Item> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
@@ -665,6 +1074,12 @@ fun Map<Item, UInt64>.flatten(): List<Item> {
     }
 }
 
+/**
+ * 将 Pair<Item, UInt64> 的可迭代对象扁平化为按数量重复的 Item 列表。
+ * Flatten an Iterable of Pair<Item, UInt64> into a list of Items repeated by count.
+ *
+ * @return 扁平化后的 Item 列表 / flattened list of Items
+*/
 fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
     return this.flatMap { (item, amount) ->
         if (amount == UInt64.zero) {
@@ -675,28 +1090,71 @@ fun Iterable<Pair<Item, UInt64>>.flatten(): List<Item> {
     }
 }
 
+/**
+ * 计算物品总数量。
+ * Calculate total item count.
+ *
+ * @return 物品总数量 / total item count
+*/
 fun Map<Item, UInt64>.totalCount(): UInt64 {
-    return this.values.sumOf { it }
+    return this.values.fold(UInt64.zero) { acc, value -> acc + value }
 }
 
+/**
+ * 计算物品总数量。
+ * Calculate total item count.
+ *
+ * @return 物品总数量 / total item count
+*/
 fun Iterable<Pair<Item, UInt64>>.totalCount(): UInt64 {
-    return this.sumOf { it.second }
+    return this.fold(UInt64.zero) { acc, (_, value) -> acc + value }
 }
 
+/**
+ * 将物品列表按其相等性分组并计数。
+ * Group items by identity and count occurrences.
+ *
+ * @return 分组后的物品映射 / grouped item map
+*/
 fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<Placement3<*>>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
-    val items = ArrayList<ItemPlacement3>()
+/**
+ * 将容器树扁平化为物品放置列表。
+ * Flatten the container tree into a list of item placements.
+ *
+ * @param offset 偏移量 / offset
+ * @return 物品放置列表 / list of item placements
+*/
+fun List<QuantityPlacement3<*, FltX>>.dump(offset: Point<Dim3, FltX>): List<QuantityPlacement3<Item, FltX>> {
+    return dump(point3FltX(offset))
+}
+
+/**
+ * 将容器树扁平化为物品放置列表。
+ * Flatten the container tree into a list of item placements.
+ *
+ * @param offset 偏移量 / offset
+ * @return 物品放置列表 / list of item placements
+*/
+fun List<QuantityPlacement3<*, FltX>>.dump(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
+    val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
+    val items = ArrayList<QuantityPlacement3<Item, FltX>>()
     for (placement in this) {
         when (val unit = placement.unit) {
-            is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.position + offset))
+            is Container3<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                items.addAll((unit.units as List<QuantityPlacement3<*, FltX>>).dump(placement.position + offsetVector))
             }
 
             is Item -> {
-                items.add(Placement3(placement.view as ItemView, placement.position + offset))
+                items.add(
+                    itemPlacement3Of(
+                        view = placement.view as ItemView,
+                        position = placement.position + offsetVector
+                    )
+                )
             }
 
             else -> {}
@@ -705,16 +1163,41 @@ fun List<Placement3<*>>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
     return items
 }
 
-fun List<Placement3<*>>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
-    val items = ArrayList<ItemPlacement3>()
+/**
+ * 将容器树扁平化为物品放置列表，使用绝对位置。
+ * Flatten the container tree into a list of item placements using absolute positions.
+ *
+ * @param offset 偏移量 / offset
+ * @return 物品放置列表 / list of item placements
+*/
+fun List<QuantityPlacement3<*, FltX>>.dumpAbsolutely(offset: Point<Dim3, FltX>): List<QuantityPlacement3<Item, FltX>> {
+    return dumpAbsolutely(point3FltX(offset))
+}
+
+/**
+ * 将容器树扁平化为物品放置列表，使用绝对位置。
+ * Flatten the container tree into a list of item placements using absolute positions.
+ *
+ * @param offset 偏移量 / offset
+ * @return 物品放置列表 / list of item placements
+*/
+fun List<QuantityPlacement3<*, FltX>>.dumpAbsolutely(offset: QuantityPoint3<FltX> = point3FltX()): List<QuantityPlacement3<Item, FltX>> {
+    val offsetVector = QuantityVector3<FltX>(offset.x, offset.y, offset.z)
+    val items = ArrayList<QuantityPlacement3<Item, FltX>>()
     for (placement in this) {
         when (val unit = placement.unit) {
-            is Container3<*> -> {
-                items.addAll(unit.units.dump(placement.absolutePosition + offset))
+            is Container3<*, *> -> {
+                @Suppress("UNCHECKED_CAST")
+                items.addAll((unit.units as List<QuantityPlacement3<*, FltX>>).dump(placement.absolutePosition + offsetVector))
             }
 
             is Item -> {
-                items.add(Placement3(placement.view as ItemView, placement.absolutePosition + offset))
+                items.add(
+                    itemPlacement3Of(
+                        view = placement.view as ItemView,
+                        position = placement.absolutePosition + offsetVector
+                    )
+                )
             }
 
             else -> {}
@@ -723,142 +1206,15 @@ fun List<Placement3<*>>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlac
     return items
 }
 
-@get:JvmName("cuboidUnitPackageType")
-val Cuboid<*>.packageType: PackageType
-    get() {
-        return when (this) {
-            is Item -> packageType
-            is ItemContainer<*> -> packageType
-            else -> PackageType.CartonContainer
-        }
-    }
+@get:JvmName("projectionBottomOnly")
 
-@get:JvmName("cuboidViewPackageType")
-val CuboidView<*>.packageType: PackageType
+/** 投影底部限定属性。Projection bottom-only constraint. */
+val Projection<*, FltX, *>.bottomOnly: Boolean
     get() {
-        return unit.packageType
-    }
-
-@get:JvmName("cuboidProjectionPackageType")
-val Projection<*, *>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("cuboidPlacement2PackageType")
-val Placement2<*, *>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("cuboidPlacement3PackageType")
-val Placement3<*>.packageType: PackageType
-    get() {
-        return unit.packageType
-    }
-
-@get:JvmName("cuboidPackageCategory")
-val AbstractCuboid.packageCategory: PackageCategory
-    get() {
-        return when (this) {
-            is Item -> packageCategory
-            is ItemContainer<*> -> packageCategory
-            else -> PackageCategory.SoftBox
-        }
-    }
-
-@get:JvmName("cuboidViewPackageCategory")
-val CuboidView<*>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("cuboidProjectionPackageCategory")
-val Projection<*, *>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("cuboidPlacement2PackageCategory")
-val Placement2<*, *>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("cuboidPlacement3PackageCategory")
-val Placement3<*>.packageCategory: PackageCategory
-    get() {
-        return unit.packageCategory
-    }
-
-@get:JvmName("cuboidUnitBottomOnly")
-val Cuboid<*>.bottomOnly: Boolean
-    get() {
-        return when (this) {
-            is Item -> bottomOnly
-            is ItemContainer<*> -> bottomOnly
+        val u = unit
+        return when (u) {
+            is Item -> u.bottomOnly
+            is ItemContainer<*> -> u.bottomOnly
             else -> false
         }
-    }
-
-@get:JvmName("cuboidViewBottomOnly")
-val CuboidView<*>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("cuboidProjectionBottomOnly")
-val Projection<*, *>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("cuboidPlacement2BottomOnly")
-val Placement2<*, *>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("cuboidPlacement3BottomOnly")
-val Placement3<*>.bottomOnly: Boolean
-    get() {
-        return unit.bottomOnly
-    }
-
-@get:JvmName("cuboidUnitTopFlat")
-val Cuboid<*>.topFlat: Boolean
-    get() {
-        return when (this) {
-            is Item -> topFlat
-            is ItemContainer<*> -> topFlat
-            else -> false
-        }
-    }
-
-@get:JvmName("cuboidViewTopFlat")
-val CuboidView<*>.topFlat: Boolean
-    get() {
-        return when (unit) {
-            is Item -> (this as ItemView).topFlat
-            is ItemContainer<*> -> (unit as ItemContainer<*>).topFlat
-            else -> false
-        }
-    }
-
-@get:JvmName("cuboidProjectionTopFlat")
-val Projection<*, *>.topFlat: Boolean
-    get() {
-        return unit.topFlat
-    }
-
-@get:JvmName("cuboidPlacement2TopFlat")
-val Placement2<*, *>.topFlat: Boolean
-    get() {
-        return unit.topFlat
-    }
-
-@get:JvmName("cuboidPlacement3TopFlat")
-val Placement3<*>.topFlat: Boolean
-    get() {
-        return unit.topFlat
     }

@@ -1,0 +1,5 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis,first_layer_allowed_cylinder_axes,last_layer_allowed_cylinder_axes,first_layer_allowed_cuboid_orientations,last_layer_allowed_cuboid_orientations
+0,0,item-boundary-cyl-first,MAT-DB-A,Material-DB-A,1.0,vertical_cylinder,0.40,Y,Y,Y,Upright,Upright
+0,1,item-boundary-cub-last,MAT-DB-B,Material-DB-B,1.1,cuboid,,,Y,Y,Upright,Upright
+1,0,item-boundary-cub-first,MAT-DB-C,Material-DB-C,1.2,cuboid,,,Y,Y,Upright,Upright
+1,1,item-boundary-cyl-last,MAT-DB-D,Material-DB-D,1.3,vertical_cylinder,0.35,AXIS3.Y,Y,Y,Upright,Upright
