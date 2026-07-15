@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
         <artifactId>ospf-kotlin-framework-plugin</artifactId>
-        <version>1.0.72</version>
+        <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -17,6 +17,12 @@
     </properties>
 
     <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
         <!-- MongoDB -->
         <dependency>
             <groupId>org.mongodb</groupId>
@@ -27,5 +33,6 @@
 
     <build>
         <sourceDirectory>src/main</sourceDirectory>
+        <testSourceDirectory>src/test</testSourceDirectory>
     </build>
 </project>

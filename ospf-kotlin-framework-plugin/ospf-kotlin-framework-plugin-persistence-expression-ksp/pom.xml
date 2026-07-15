@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
+        <artifactId>ospf-kotlin-framework-plugin</artifactId>
+        <version>1.1.0</version>
+    </parent>
+
+    <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp</artifactId>
+
+    <properties>
+        <ksp.version>2.2.20-2.0.4</ksp.version>
+        <kotlin-compile-testing.version>0.10.1</kotlin-compile-testing.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.google.devtools.ksp</groupId>
+            <artifactId>symbol-processing-api</artifactId>
+            <version>${ksp.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>dev.zacsweers.kctfork</groupId>
+            <artifactId>ksp</artifactId>
+            <version>${kotlin-compile-testing.version}</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+        <testSourceDirectory>src/test</testSourceDirectory>
+    </build>
+</project>

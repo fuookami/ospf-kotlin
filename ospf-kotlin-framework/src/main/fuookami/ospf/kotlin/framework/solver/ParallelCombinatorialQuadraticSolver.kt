@@ -1,23 +1,45 @@
+/**
+ * 并行组合二次求解器
+ * Parallel Combinatorial Quadratic Solver
+ *
+ * 将多个二次求解器并行运行，取第一个或最优结果。
+ * Runs multiple quadratic solvers in parallel, taking the first or best result.
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.error.SolverNotFoundError
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
 
+/**
+ * 并行组合二次求解器
+ * Parallel combinatorial quadratic solver
+ *
+ * @property solvers 二次求解器列表（懒加载） / Quadratic solver list (lazy loaded)
+ * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
+*/
 class ParallelCombinatorialQuadraticSolver(
     private val solvers: List<Lazy<AbstractQuadraticSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best
-): AbstractQuadraticSolver {
+) : AbstractQuadraticSolver {
     private val logger = logger()
 
     companion object {
+        /**
+         * Construct from an iterable of solvers.
+         * 从求解器可迭代集合构造。
+         *
+         * @param solvers the solvers to combine / 要组合的求解器
+         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
+         * @return the parallel combinatorial solver / 并行组合求解器
+        */
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: Iterable<AbstractQuadraticSolver>,
@@ -40,13 +62,13 @@ class ParallelCombinatorialQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput? = null
+                var result: FeasibleSolverOutput<Flt64>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -86,6 +108,10 @@ class ParallelCombinatorialQuadraticSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${solver.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${solver.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -93,7 +119,7 @@ class ParallelCombinatorialQuadraticSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -141,6 +167,10 @@ class ParallelCombinatorialQuadraticSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${solver.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -153,6 +183,10 @@ class ParallelCombinatorialQuadraticSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -169,7 +203,7 @@ class ParallelCombinatorialQuadraticSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }
@@ -180,13 +214,13 @@ class ParallelCombinatorialQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<FeasibleSolverOutput, List<Solution>>? = null
+                var result: Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -227,6 +261,10 @@ class ParallelCombinatorialQuadraticSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${solver.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${solver.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -234,7 +272,7 @@ class ParallelCombinatorialQuadraticSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -282,6 +320,10 @@ class ParallelCombinatorialQuadraticSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${solver.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -294,6 +336,10 @@ class ParallelCombinatorialQuadraticSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -310,10 +356,12 @@ class ParallelCombinatorialQuadraticSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }
         }
     }
 }
+
+

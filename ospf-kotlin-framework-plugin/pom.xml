@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-parent</artifactId>
-        <version>1.0.72</version>
+        <version>1.1.0</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
@@ -20,6 +20,9 @@
         <module>ospf-kotlin-framework-plugin-persistence-mysql</module>
         <module>ospf-kotlin-framework-plugin-persistence-sqlite</module>
         <module>ospf-kotlin-framework-plugin-persistence-redis</module>
+        <module>ospf-kotlin-framework-plugin-persistence-ktorm</module>
+        <module>ospf-kotlin-framework-plugin-persistence-mybatis</module>
+        <module>ospf-kotlin-framework-plugin-persistence-expression-ksp</module>
     </modules>
 
     <dependencies>
