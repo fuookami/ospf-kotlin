@@ -4,26 +4,26 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-parent</artifactId>
+        <artifactId>ospf-kotlin-parent-jdk8</artifactId>
         <version>1.1.0</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-math</name>
-    <artifactId>ospf-kotlin-math</artifactId>
+    <artifactId>ospf-kotlin-math-jdk8</artifactId>
 
     <description>Mathematical algebra and symbol system for OSPF Kotlin</description>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-utils</artifactId>
+            <artifactId>ospf-kotlin-utils-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-multiarray</artifactId>
+            <artifactId>ospf-kotlin-multiarray-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

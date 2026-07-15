@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin</artifactId>
+        <artifactId>ospf-kotlin-jdk8</artifactId>
         <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-parent</name>
-    <artifactId>ospf-kotlin-parent</artifactId>
+    <artifactId>ospf-kotlin-parent-jdk8</artifactId>
     <packaging>pom</packaging>
 
     <properties>
@@ -34,7 +34,7 @@
         <dependencies>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin</groupId>
-                <artifactId>ospf-kotlin-dependencies</artifactId>
+                <artifactId>ospf-kotlin-dependencies-jdk8</artifactId>
                 <version>${project.version}</version>
                 <type>pom</type>
                 <scope>import</scope>

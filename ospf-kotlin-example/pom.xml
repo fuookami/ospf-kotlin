@@ -4,13 +4,13 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-parent</artifactId>
+        <artifactId>ospf-kotlin-parent-jdk8</artifactId>
         <version>1.1.0</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ospf-kotlin-example</artifactId>
+    <artifactId>ospf-kotlin-example-jdk8</artifactId>
 
     <properties>
         <maven.install.skip>true</maven.install.skip>
@@ -22,32 +22,32 @@
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter</artifactId>
+            <artifactId>ospf-kotlin-starter-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+            <artifactId>ospf-kotlin-starter-gantt-scheduling-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+            <artifactId>ospf-kotlin-starter-csp1d-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+            <artifactId>ospf-kotlin-core-plugin-gurobi-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+            <artifactId>ospf-kotlin-core-plugin-scip-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-            <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+            <artifactId>ospf-kotlin-core-plugin-heuristic-jdk8</artifactId>
             <version>${project.version}</version>
         </dependency>
 <!--        <dependency>-->
