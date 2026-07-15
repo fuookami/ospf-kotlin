@@ -1,8 +1,49 @@
+/**
+ * 渲染器数据传输对象。
+ * Renderer data transfer objects.
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
-import kotlinx.serialization.*
-import fuookami.ospf.kotlin.utils.math.*
+import kotlinx.serialization.Serializable
+import fuookami.ospf.kotlin.math.algebra.number.*
 
+/** 渲染真实形状类型 / Render actual shape type */
+@Serializable
+enum class RenderShapeTypeDTO {
+    /** 长方体 / Cuboid */
+    Cuboid,
+    /** 圆柱 / Cylinder */
+    Cylinder
+}
+
+/** 渲染三维轴向 / Render 3D axis */
+@Serializable
+enum class RenderAxis3DTO {
+    /** X轴 / X axis */
+    X,
+    /** Y轴 / Y axis */
+    Y,
+    /** Z轴 / Z axis */
+    Z
+}
+
+/** 算法侧形状类型 / Algorithm-side shape type */
+@Serializable
+enum class RenderAlgorithmShapeTypeDTO {
+    /** 真实长方体 / Actual cuboid */
+    Cuboid,
+    /** 竖直圆柱 / Vertical cylinder */
+    VerticalCylinder,
+    /** X轴横向圆柱 / X-axis horizontal cylinder */
+    HorizontalCylinderX,
+    /** Z轴横向圆柱 / Z-axis horizontal cylinder */
+    HorizontalCylinderZ
+}
+
+/**
+ * RenderLoadingPlanItemDTO data class.
+ * RenderLoadingPlanItemDTO数据类。
+*/
 @Serializable
 data class RenderLoadingPlanItemDTO(
     val name: String,
@@ -15,9 +56,23 @@ data class RenderLoadingPlanItemDTO(
     val z: FltX,
     val weight: FltX,
     val loadingOrder: UInt64,
+    val shapeType: RenderShapeTypeDTO = RenderShapeTypeDTO.Cuboid,
+    val renderShapeType: RenderShapeTypeDTO = shapeType,
+    val algorithmShapeType: RenderAlgorithmShapeTypeDTO = RenderAlgorithmShapeTypeDTO.Cuboid,
+    val radius: FltX? = null,
+    val diameter: FltX? = null,
+    val axis: RenderAxis3DTO? = null,
+    val boundingWidth: FltX? = null,
+    val boundingHeight: FltX? = null,
+    val boundingDepth: FltX? = null,
+    val actualVolume: FltX? = null,
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * RenderLoadingPlanDTO data class.
+ * RenderLoadingPlanDTO数据类。
+*/
 @Serializable
 data class RenderLoadingPlanDTO(
     val group: List<String> = emptyList(),
@@ -33,6 +88,10 @@ data class RenderLoadingPlanDTO(
     val info: Map<String, String> = emptyMap()
 )
 
+/**
+ * SchemaDTO data class.
+ * SchemaDTO数据类。
+*/
 @Serializable
 data class SchemaDTO(
     val kpi: Map<String, String> = emptyMap(),

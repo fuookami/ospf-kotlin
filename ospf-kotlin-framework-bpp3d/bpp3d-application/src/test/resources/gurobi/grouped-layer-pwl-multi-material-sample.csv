@@ -1,0 +1,9 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis
+0,0,item-g0-l0-pwl-a,MAT-MMA,Material-MMA,1.0,vertical_cylinder,0.35,0.45,cylinder_mma,Y
+0,0,item-g0-l0-cub-b,MAT-MMB,Material-MMB,1.5,cuboid,,,,,
+0,0,item-g0-l0-pwl-c,MAT-MMC,Material-MMC,1.2,vertical_cylinder,0.25,0.35,cylinder_mmc,Y
+0,0,item-g0-l0-cub-d,MAT-MMD,Material-MMD,0.9,cuboid,,,,,
+1,0,item-g1-l0-pwl-e,MAT-MMA,Material-MMA,1.0,vertical_cylinder,0.40,0.50,cylinder_mma2,Y
+1,0,item-g1-l0-cub-f,MAT-MMB,Material-MMB,1.5,cuboid,,,,,
+1,0,item-g1-l0-pwl-g,MAT-MMC,Material-MMC,1.2,vertical_cylinder,0.30,0.40,cylinder_mmc2,Y
+1,0,item-g1-l0-cub-h,MAT-MMD,Material-MMD,0.9,cuboid,,,,,

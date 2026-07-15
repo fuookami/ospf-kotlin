@@ -1,0 +1,450 @@
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+function Assert-True {
+    param(
+        [Parameter(Mandatory = $true)]
+        [bool] $Condition,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Message
+    )
+
+    if (-not $Condition) {
+        throw $Message
+    }
+}
+
+function Assert-Contains {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Text,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Expected,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Message
+    )
+
+    if (-not $Text.Contains($Expected)) {
+        throw "$Message`nExpected: $Expected"
+    }
+}
+
+function New-BenchmarkEntry {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Name,
+
+        [Parameter(Mandatory = $true)]
+        [double] $Score,
+
+        [Parameter(Mandatory = $true)]
+        [double] $Error,
+
+        [Parameter(Mandatory = $true)]
+        [string] $Unit
+    )
+
+    return @{
+        benchmark = $Name
+        mode = "thrpt"
+        threads = 1
+        forks = 1
+        jvmArgs = @()
+        measurementIterations = 2
+        params = @{
+            scale = "smoke"
+        }
+        primaryMetric = @{
+            score = $Score
+            scoreError = $Error
+            scoreUnit = $Unit
+            rawData = @(
+                @($Score),
+                @($Score + 1.0)
+            )
+        }
+    }
+}
+
+function Write-BenchmarkFile {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string] $Path,
+
+        [Parameter(Mandatory = $true)]
+        [double] $Score,
+
+        [string] $Name = "demo.Benchmark.hotPath"
+    )
+
+    $payload = @(
+        New-BenchmarkEntry -Name $Name -Score $Score -Error 0.123456 -Unit "ops/s"
+    )
+    $json = $payload | ConvertTo-Json -Depth 10
+    Set-Content -LiteralPath $Path -Value $json -Encoding UTF8
+}
+
+$compareScript = Join-Path $PSScriptRoot "compare-benchmark-results.ps1"
+Assert-True -Condition (Test-Path -LiteralPath $compareScript) -Message "Missing script: $compareScript"
+
+$tempRoot = Join-Path ([System.IO.Path]::GetTempPath()) ("ospf-kotlin-benchmark-compare-smoke-{0}" -f [Guid]::NewGuid().ToString("N"))
+New-Item -ItemType Directory -Force -Path $tempRoot | Out-Null
+
+try {
+    $explicitDir = Join-Path $tempRoot "explicit"
+    $singleDir = Join-Path $tempRoot "single"
+    $multiDir = Join-Path $tempRoot "multi"
+    $errorDir = Join-Path $tempRoot "error"
+    $mismatchDir = Join-Path $tempRoot "mismatch"
+    $semanticDir = Join-Path $tempRoot "semantic"
+    New-Item -ItemType Directory -Force -Path $explicitDir, $singleDir, $multiDir, $errorDir, $mismatchDir, $semanticDir | Out-Null
+
+    $baselineSmoke = Join-Path $explicitDir "baseline-smoke.json"
+    $currentSmoke = Join-Path $explicitDir "current-smoke.json"
+    Write-BenchmarkFile -Path $baselineSmoke -Score 100.0
+    Write-BenchmarkFile -Path $currentSmoke -Score 110.0
+
+    $explicitOutput = Join-Path $explicitDir "trend-explicit.md"
+    & $compareScript -Baseline $baselineSmoke -Current $currentSmoke -Output $explicitOutput | Out-Null
+    Assert-True -Condition (Test-Path -LiteralPath $explicitOutput) -Message "Explicit-file mode did not generate output."
+
+    $explicitReport = Get-Content -LiteralPath $explicitOutput -Raw
+    Assert-Contains -Text $explicitReport -Expected "Input mode: ``explicit-files``" -Message "Explicit-file report missing input mode."
+    Assert-Contains -Text $explicitReport -Expected "Detected dataset: ``smoke``" -Message "Explicit-file report missing detected dataset."
+    Assert-Contains -Text $explicitReport -Expected "Gate policy: report only (no hard performance gate)" -Message "Explicit-file report missing gate policy."
+
+    $singleBaseline = Join-Path $singleDir "baseline-smoke.json"
+    $singleCurrent = Join-Path $singleDir "current-smoke.json"
+    Copy-Item -LiteralPath $baselineSmoke -Destination $singleBaseline -Force
+    Copy-Item -LiteralPath $currentSmoke -Destination $singleCurrent -Force
+
+    & $compareScript -ResultsDir $singleDir | Out-Null
+    $singleOutput = Join-Path $singleDir "trend-smoke.md"
+    Assert-True -Condition (Test-Path -LiteralPath $singleOutput) -Message "Single-match directory mode did not generate default output."
+
+    $singleReport = Get-Content -LiteralPath $singleOutput -Raw
+    Assert-Contains -Text $singleReport -Expected "Input mode: ``results-dir``" -Message "Directory report missing input mode."
+    Assert-Contains -Text $singleReport -Expected "Detected dataset: ``smoke``" -Message "Directory report missing detected dataset."
+    Assert-Contains -Text $singleReport -Expected "Gate policy: report only (no hard performance gate)" -Message "Directory report missing gate policy."
+
+    $multiBaselineSmoke = Join-Path $multiDir "baseline-smoke.json"
+    $multiCurrentSmoke = Join-Path $multiDir "current-smoke.json"
+    $multiBaselineAlpha = Join-Path $multiDir "baseline-alpha.json"
+    $multiCurrentAlpha = Join-Path $multiDir "current-alpha.json"
+    Copy-Item -LiteralPath $baselineSmoke -Destination $multiBaselineSmoke -Force
+    Copy-Item -LiteralPath $currentSmoke -Destination $multiCurrentSmoke -Force
+    Write-BenchmarkFile -Path $multiBaselineAlpha -Score 50.0
+    Write-BenchmarkFile -Path $multiCurrentAlpha -Score 55.0
+
+    $multiFailureMessage = ""
+    try {
+        & $compareScript -ResultsDir $multiDir | Out-Null
+    } catch {
+        $multiFailureMessage = $_.Exception.Message
+    }
+
+    Assert-True -Condition ($multiFailureMessage.Length -gt 0) -Message "Multi-match directory mode should fail when -Dataset is omitted."
+    Assert-Contains -Text $multiFailureMessage -Expected "Multiple matched datasets found" -Message "Multi-match failure should explain dataset ambiguity."
+    Assert-Contains -Text $multiFailureMessage -Expected "Please specify -Dataset" -Message "Multi-match failure should tell user to provide -Dataset."
+
+    $multiOutput = Join-Path $multiDir "trend-smoke.md"
+    & $compareScript -ResultsDir $multiDir -Dataset smoke -Output $multiOutput | Out-Null
+    Assert-True -Condition (Test-Path -LiteralPath $multiOutput) -Message "Directory mode with explicit dataset did not generate output."
+    $multiReport = Get-Content -LiteralPath $multiOutput -Raw
+    Assert-Contains -Text $multiReport -Expected "Input mode: ``results-dir``" -Message "Multi-dataset explicit report missing input mode."
+    Assert-Contains -Text $multiReport -Expected "Detected dataset: ``smoke``" -Message "Multi-dataset explicit report missing detected dataset."
+    Assert-Contains -Text $multiReport -Expected "Gate policy: report only (no hard performance gate)" -Message "Multi-dataset explicit report missing gate policy."
+
+    $missingBaseline = Join-Path $errorDir "baseline-missing.json"
+    $missingFileMessage = ""
+    try {
+        & $compareScript -Baseline $missingBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingFileMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingFileMessage.Length -gt 0) -Message "Missing baseline file should fail."
+    Assert-Contains -Text $missingFileMessage -Expected "Benchmark result file not found" -Message "Missing file failure message is not readable."
+
+    $invalidBaseline = Join-Path $errorDir "baseline-invalid.json"
+    Set-Content -LiteralPath $invalidBaseline -Value "{ invalid-json" -Encoding UTF8
+    $invalidJsonMessage = ""
+    try {
+        & $compareScript -Baseline $invalidBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $invalidJsonMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($invalidJsonMessage.Length -gt 0) -Message "Invalid JSON input should fail."
+    Assert-Contains -Text $invalidJsonMessage -Expected "Invalid benchmark JSON in file" -Message "Invalid JSON failure should use explicit benchmark JSON message."
+    Assert-Contains -Text $invalidJsonMessage -Expected "$invalidBaseline" -Message "Invalid JSON failure should include file path."
+
+    $missingMetricBaseline = Join-Path $errorDir "baseline-missing-metric.json"
+    $missingMetricPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingMetricBaseline -Value ($missingMetricPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingMetricMessage = ""
+    try {
+        & $compareScript -Baseline $missingMetricBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingMetricMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingMetricMessage.Length -gt 0) -Message "Missing primaryMetric should fail."
+    Assert-Contains -Text $missingMetricMessage -Expected "missing 'primaryMetric'" -Message "Missing metric failure should point to primaryMetric."
+    Assert-Contains -Text $missingMetricMessage -Expected "$missingMetricBaseline" -Message "Missing metric failure should include file path."
+
+    $missingBenchmarkBaseline = Join-Path $errorDir "baseline-missing-benchmark.json"
+    $missingBenchmarkPayload = @(
+        @{
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingBenchmarkBaseline -Value ($missingBenchmarkPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingBenchmarkMessage = ""
+    try {
+        & $compareScript -Baseline $missingBenchmarkBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingBenchmarkMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingBenchmarkMessage.Length -gt 0) -Message "Missing benchmark field should fail."
+    Assert-Contains -Text $missingBenchmarkMessage -Expected "missing 'benchmark'" -Message "Missing benchmark failure should point to benchmark field."
+
+    $missingScoreBaseline = Join-Path $errorDir "baseline-missing-score.json"
+    $missingScorePayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $missingScoreBaseline -Value ($missingScorePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $missingScoreMessage = ""
+    try {
+        & $compareScript -Baseline $missingScoreBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $missingScoreMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($missingScoreMessage.Length -gt 0) -Message "Missing score field should fail."
+    Assert-Contains -Text $missingScoreMessage -Expected "missing 'primaryMetric.score'" -Message "Missing score failure should point to primaryMetric.score."
+
+    $nonNumericScoreBaseline = Join-Path $errorDir "baseline-non-numeric-score.json"
+    $nonNumericScorePayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = "not-a-number"
+                scoreError = 0.1
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $nonNumericScoreBaseline -Value ($nonNumericScorePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nonNumericScoreMessage = ""
+    try {
+        & $compareScript -Baseline $nonNumericScoreBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $nonNumericScoreMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($nonNumericScoreMessage.Length -gt 0) -Message "Non-numeric score should fail."
+    Assert-Contains -Text $nonNumericScoreMessage -Expected "invalid 'primaryMetric.score' value" -Message "Non-numeric score failure should point to primaryMetric.score."
+
+    $nonNumericErrorBaseline = Join-Path $errorDir "baseline-non-numeric-score-error.json"
+    $nonNumericErrorPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = "not-a-number"
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $nonNumericErrorBaseline -Value ($nonNumericErrorPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nonNumericErrorMessage = ""
+    try {
+        & $compareScript -Baseline $nonNumericErrorBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $nonNumericErrorMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($nonNumericErrorMessage.Length -gt 0) -Message "Non-numeric scoreError should fail."
+    Assert-Contains -Text $nonNumericErrorMessage -Expected "invalid 'primaryMetric.scoreError' value" -Message "Non-numeric scoreError failure should point to primaryMetric.scoreError."
+
+    $emptyUnitBaseline = Join-Path $errorDir "baseline-empty-unit.json"
+    $emptyUnitPayload = @(
+        @{
+            benchmark = "demo.Benchmark.hotPath"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = 0.1
+                scoreUnit = "   "
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    Set-Content -LiteralPath $emptyUnitBaseline -Value ($emptyUnitPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $emptyUnitMessage = ""
+    try {
+        & $compareScript -Baseline $emptyUnitBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $emptyUnitMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($emptyUnitMessage.Length -gt 0) -Message "Empty scoreUnit should fail."
+    Assert-Contains -Text $emptyUnitMessage -Expected "missing 'primaryMetric.scoreUnit'" -Message "Empty scoreUnit failure should point to primaryMetric.scoreUnit."
+
+    $duplicateBaseline = Join-Path $errorDir "baseline-duplicate-key.json"
+    $duplicatePayload = @(
+        (New-BenchmarkEntry -Name "demo.Benchmark.duplicate" -Score 100.0 -Error 0.1 -Unit "ops/s"),
+        (New-BenchmarkEntry -Name "demo.Benchmark.duplicate" -Score 105.0 -Error 0.1 -Unit "ops/s")
+    )
+    Set-Content -LiteralPath $duplicateBaseline -Value ($duplicatePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $duplicateMessage = ""
+    try {
+        & $compareScript -Baseline $duplicateBaseline -Current $currentSmoke | Out-Null
+    } catch {
+        $duplicateMessage = $_.Exception.Message
+    }
+    Assert-True -Condition ($duplicateMessage.Length -gt 0) -Message "Duplicate benchmark key should fail."
+    Assert-Contains -Text $duplicateMessage -Expected "duplicate benchmark key" -Message "Duplicate benchmark key failure should be explicit."
+
+    $mismatchBaseline = Join-Path $mismatchDir "baseline-smoke.json"
+    $mismatchCurrent = Join-Path $mismatchDir "current-smoke.json"
+    Write-BenchmarkFile -Path $mismatchBaseline -Name "demo.Benchmark.onlyBaseline" -Score 90.0
+    Write-BenchmarkFile -Path $mismatchCurrent -Name "demo.Benchmark.onlyCurrent" -Score 120.0
+    $mismatchOutput = Join-Path $mismatchDir "trend-smoke.md"
+    & $compareScript -Baseline $mismatchBaseline -Current $mismatchCurrent -Output $mismatchOutput | Out-Null
+    $mismatchReport = Get-Content -LiteralPath $mismatchOutput -Raw
+    Assert-Contains -Text $mismatchReport -Expected "missing in current" -Message "Mismatch report should include missing benchmark notes."
+    Assert-Contains -Text $mismatchReport -Expected "new benchmark in current" -Message "Mismatch report should include new benchmark notes."
+
+    $unitBaseline = Join-Path $semanticDir "baseline-unit.json"
+    $unitCurrent = Join-Path $semanticDir "current-unit.json"
+    $unitBaselinePayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.unitChange" -Score 100.0 -Error 0.1 -Unit "ops/s"
+    )
+    $unitCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.unitChange" -Score 101.0 -Error 0.1 -Unit "ms/op"
+    )
+    Set-Content -LiteralPath $unitBaseline -Value ($unitBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $unitCurrent -Value ($unitCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $unitOutput = Join-Path $semanticDir "trend-unit.md"
+    & $compareScript -Baseline $unitBaseline -Current $unitCurrent -Output $unitOutput | Out-Null
+    $unitReport = Get-Content -LiteralPath $unitOutput -Raw
+    Assert-Contains -Text $unitReport -Expected "unit changed" -Message "Unit-change report should include 'unit changed' note."
+    Assert-Contains -Text $unitReport -Expected "ops/s -> ms/op" -Message "Unit-change report should include both unit symbols."
+
+    $zeroBaseline = Join-Path $semanticDir "baseline-zero.json"
+    $zeroCurrent = Join-Path $semanticDir "current-zero.json"
+    $zeroBaselinePayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.zeroBase" -Score 0.0 -Error 0.1 -Unit "ops/s"
+    )
+    $zeroCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.zeroBase" -Score 1.0 -Error 0.1 -Unit "ops/s"
+    )
+    Set-Content -LiteralPath $zeroBaseline -Value ($zeroBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $zeroCurrent -Value ($zeroCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $zeroOutput = Join-Path $semanticDir "trend-zero.md"
+    & $compareScript -Baseline $zeroBaseline -Current $zeroCurrent -Output $zeroOutput | Out-Null
+    $zeroReport = Get-Content -LiteralPath $zeroOutput -Raw
+    Assert-Contains -Text $zeroReport -Expected "| demo.Benchmark.zeroBase [scale=smoke] |" -Message "Zero-baseline report should include target benchmark row."
+    Assert-Contains -Text $zeroReport -Expected "| n/a |" -Message "Zero-baseline report should render percent delta as n/a."
+
+    $nanBaseline = Join-Path $semanticDir "baseline-nan.json"
+    $nanCurrent = Join-Path $semanticDir "current-nan.json"
+    $nanBaselinePayload = @(
+        @{
+            benchmark = "demo.Benchmark.nanError"
+            mode = "thrpt"
+            threads = 1
+            forks = 1
+            jvmArgs = @()
+            measurementIterations = 2
+            params = @{
+                scale = "smoke"
+            }
+            primaryMetric = @{
+                score = 100.0
+                scoreError = "NaN"
+                scoreUnit = "ops/s"
+                rawData = @(@(100.0))
+            }
+        }
+    )
+    $nanCurrentPayload = @(
+        New-BenchmarkEntry -Name "demo.Benchmark.nanError" -Score 101.0 -Error 0.1 -Unit "ops/s"
+    )
+    Set-Content -LiteralPath $nanBaseline -Value ($nanBaselinePayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    Set-Content -LiteralPath $nanCurrent -Value ($nanCurrentPayload | ConvertTo-Json -Depth 10) -Encoding UTF8
+    $nanOutput = Join-Path $semanticDir "trend-nan.md"
+    & $compareScript -Baseline $nanBaseline -Current $nanCurrent -Output $nanOutput | Out-Null
+    $nanReport = Get-Content -LiteralPath $nanOutput -Raw
+    Assert-Contains -Text $nanReport -Expected "± n/a" -Message "NaN metric should render error as n/a."
+    Assert-Contains -Text $nanReport -Expected "error unavailable" -Message "NaN metric should include error unavailable note."
+
+    Write-Output "compare-benchmark-results smoke passed."
+} finally {
+    if (Test-Path -LiteralPath $tempRoot) {
+        Remove-Item -LiteralPath $tempRoot -Recurse -Force
+    }
+}

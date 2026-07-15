@@ -1,37 +1,66 @@
+/** 连接资源建模：任务间连接的资源消耗 / Connection resource modeling: resource consumption between task connections */
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.max
+import fuookami.ospf.kotlin.utils.min
 
-abstract class ConnectionResource<out C : AbstractResourceCapacity>(
-    override val id: String,
+/**
+ * 连接资源 / Connection resource
+ *
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param id 资源ID / Resource ID
+ * @param name 资源名称 / Resource name
+ * @param capacities 容量列表 / List of capacities
+ * @param initialQuantityValue 初始数量裸值 / Initial quantity raw value
+*/
+abstract class ConnectionResource<C : AbstractResourceCapacity<V>, V>(
+    override val id: ResourceId,
     override val name: String,
     override val capacities: List<C>,
-    override val initialQuantity: Flt64 = Flt64.zero
-) : Resource<C>() {
+    override val initialQuantityValue: V
+) : Resource<C, V>() where V : RealNumber<V>, V : NumberField<V> {
+
+    /**
+     * 计算任务间连接在指定时间范围内的资源消耗量 / Calculate resource consumption of a task connection in the given time range
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @param time 时间范围 / Time range
+     * @return 资源消耗量裸值 / Resource consumption raw value
+    */
     abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: T?,
         task: T?,
         time: TimeRange
-    ): Flt64
+    ): V
 
-    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantity(
-        bunch: AbstractTaskBunch<T, E, A>,
-        time: TimeRange
-    ): Flt64 {
-        var counter = Flt64.zero
+    override fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedQuantityQuantity(
+        bunch: AbstractTaskBunch<T, E, A, V>,
+        time: TimeRange,
+        unit: PhysicalUnit
+    ): ResourceQuantity<V> {
+        var counter = initialQuantityValue.constants.zero
         for (i in bunch.tasks.indices) {
             counter += if (i == 0) {
                 usedBy(
@@ -47,23 +76,46 @@ abstract class ConnectionResource<out C : AbstractResourceCapacity>(
                 )
             }
         }
-        return counter
+        return Quantity(counter, unit)
     }
 }
 
+/**
+ * 连接资源时间槽 / Connection resource time slot
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param origin 原始时间槽 / Origin time slot
+ * @param resource 资源 / Resource
+ * @param resourceCapacity 资源容量 / Resource capacity
+ * @param indexInRule 规则内索引 / Index in rule
+*/
 data class ConnectionResourceTimeSlot<
-    out R : ConnectionResource<C>,
-    out C : AbstractResourceCapacity
->(
+        R : ConnectionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        >(
     override val origin: TimeSlot,
     override val resource: R,
     override val resourceCapacity: C,
     override val indexInRule: UInt64,
-) : ResourceTimeSlot<R, C>, AutoIndexed(ConnectionResourceTimeSlot::class) {
+) : ResourceTimeSlot<R, C, V>, AutoIndexed(ConnectionResourceTimeSlot::class)
+        where V : RealNumber<V>, V : NumberField<V> {
+
+    /**
+     * 计算任务间连接在此时槽的资源消耗量 / Calculate resource consumption of a task connection at this time slot
+     *
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param prevTask 前驱任务 / Previous task
+     * @param task 当前任务 / Current task
+     * @return 资源消耗量裸值 / Resource consumption raw value
+    */
     fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Flt64 {
+    ): V {
         return resource.usedBy(
             prevTask = prevTask,
             task = task,
@@ -74,11 +126,11 @@ data class ConnectionResourceTimeSlot<
     override fun <E : Executor, A : AssignmentPolicy<E>> relationTo(
         prevTask: AbstractTask<E, A>?,
         task: AbstractTask<E, A>?
-    ): Flt64 {
+    ): V {
         return usedBy(prevTask, task)
     }
 
-    override fun subOf(subTime: TimeRange): ConnectionResourceTimeSlot<R, C>? {
+    override fun subOf(subTime: TimeRange): ConnectionResourceTimeSlot<R, C, V>? {
         return origin.subOf(subTime)?.let {
             ConnectionResourceTimeSlot(
                 origin = it,
@@ -94,23 +146,37 @@ data class ConnectionResourceTimeSlot<
     }
 }
 
-typealias ConnectionResourceUsage<R, C> = ResourceUsage<ConnectionResourceTimeSlot<R, C>, R, C>
+/** 连接资源使用类型别名 / Connection resource usage typealias */
+typealias ConnectionResourceUsage<R, C, V> = ResourceUsage<ConnectionResourceTimeSlot<R, C, V>, R, C, V>
 
+/**
+ * 抽象连接资源使用 / Abstract connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+*/
 abstract class AbstractConnectionResourceUsage<
-    out R : ConnectionResource<C>,
-    out C : AbstractResourceCapacity
->(
-    protected val timeWindow: TimeWindow,
+        R : ConnectionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        >(
+    protected val timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval
-) : AbstractResourceUsage<ConnectionResourceTimeSlot<R, C>, R, C>() {
-    final override val timeSlots: List<ConnectionResourceTimeSlot<R, C>>
+) : AbstractResourceUsage<ConnectionResourceTimeSlot<R, C, V>, R, C, V>()
+        where V : RealNumber<V>, V : NumberField<V> {
+    final override val timeSlots: List<ConnectionResourceTimeSlot<R, C, V>>
 
     init {
-        AutoIndexed.flush<ConnectionResourceTimeSlot<R, C>>()
+        AutoIndexed.flush<ConnectionResourceTimeSlot<R, C, V>>()
 
-        val timeSlots = ArrayList<ConnectionResourceTimeSlot<R, C>>()
+        val timeSlots = ArrayList<ConnectionResourceTimeSlot<R, C, V>>()
         for (resource in resources) {
             for (capacity in resource.capacities) {
                 var index = UInt64.zero
@@ -157,25 +223,40 @@ abstract class AbstractConnectionResourceUsage<
     }
 }
 
+/**
+ * 任务调度连接资源使用 / Task scheduling connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+ * @param overEnabled 是否启用超量 / Whether over quantity is enabled
+ * @param lessEnabled 是否启用不足 / Whether less quantity is enabled
+*/
 class TaskSchedulingConnectionResourceUsage<
-    out R : ConnectionResource<C>,
-    out C : AbstractResourceCapacity
-> private constructor(
-    timeWindow: TimeWindow,
+        R : ConnectionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        > private constructor(
+    timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String,
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
-) : AbstractConnectionResourceUsage<R, C>(
+) : AbstractConnectionResourceUsage<R, C, V>(
     timeWindow = timeWindow,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String,
@@ -192,7 +273,7 @@ class TaskSchedulingConnectionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String,
@@ -208,30 +289,46 @@ class TaskSchedulingConnectionResourceUsage<
         lessEnabled = lessEnabled
     )
 
-    override lateinit var quantity: LinearIntermediateSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModel): Try {
-        TODO("NOT IMPLEMENT YET")
+    override fun register(model: MetaModel<Flt64>): Try {
+        return Failed(
+            ErrorCode.ApplicationFailed,
+            "TaskSchedulingConnectionResourceUsage.register 暂未实现，请使用 BunchSchedulingConnectionResourceUsage 或补充任务级连接资源建模。"
+        )
     }
 }
 
+/**
+ * 任务束调度连接资源使用 / Bunch scheduling connection resource usage
+ *
+ * @param R 连接资源类型 / Connection resource type
+ * @param C 资源容量类型 / Resource capacity type
+ * @param V 值类型 / Value type
+ * @param timeWindow 时间窗口 / Time window
+ * @param resources 资源列表 / List of resources
+ * @param times 时间槽列表 / List of time slots
+ * @param interval 时间间隔 / Time interval
+ * @param name 名称 / Name
+*/
 class BunchSchedulingConnectionResourceUsage<
-    out R : ConnectionResource<C>,
-    out C : AbstractResourceCapacity
-> private constructor(
-    timeWindow: TimeWindow,
+        R : ConnectionResource<C, V>,
+        C : AbstractResourceCapacity<V>,
+        V
+        > private constructor(
+    timeWindow: TimeWindow<V>,
     resources: List<R>,
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval,
     override val name: String
-) : AbstractConnectionResourceUsage<R, C>(
+) : AbstractConnectionResourceUsage<R, C, V>(
     timeWindow = timeWindow,
     resources = resources,
     times = times,
     interval = interval
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         times: List<TimeSlot>,
         name: String
@@ -244,7 +341,7 @@ class BunchSchedulingConnectionResourceUsage<
     )
 
     constructor(
-        timeWindow: TimeWindow,
+        timeWindow: TimeWindow<V>,
         resources: List<R>,
         interval: Duration = timeWindow.interval,
         name: String
@@ -259,28 +356,23 @@ class BunchSchedulingConnectionResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override lateinit var quantity: LinearExpressionSymbols1
+    override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
-                quantity = LinearExpressionSymbols1(
+                quantity = LinearExpressionSymbols1<Flt64>(
                     name = "${name}_quantity",
                     shape = Shape1(timeSlots.size)
                 ) { s, _ ->
                     val slot = timeSlots[s]
                     LinearExpressionSymbol(
-                        constant = slot.resource.initialQuantity,
+                        constant = slot.resource.solverInitialQuantity(),
                         name = "${name}_quantity_${slot}"
                     )
                 }
                 for (slot in timeSlots) {
-                    quantity[slot].range.set(
-                        ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
-                        ).value!!
-                    )
+                    quantity[slot].range.set(slot.resourceCapacity.solverValueRange())
                 }
             }
             when (val result = model.add(quantity)) {
@@ -289,21 +381,40 @@ class BunchSchedulingConnectionResourceUsage<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         return ok
     }
 
+    /**
+     * 添加列贡献 / Add column contribution
+     *
+     * 用于列生成场景，在每次迭代中添加新列的资源使用量贡献
+     * Used for column generation, adds resource usage contribution from new columns in each iteration
+     *
+     * @param B 任务束类型 / Task bunch type
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param iteration 当前迭代 / Current iteration
+     * @param bunches 任务束列表 / List of task bunches
+     * @param compilation 编译对象 / Compilation object
+     * @return 成功与否 / Success or failure
+    */
     fun <
-        B : AbstractTaskBunch<T, E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > addColumns(
+            B : AbstractTaskBunch<T, E, A, V>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        compilation: BunchCompilation<B, T, E, A>
+        compilation: BunchCompilation<B, V, T, E, A>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -317,10 +428,10 @@ class BunchSchedulingConnectionResourceUsage<
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(
-                        bunch,
-                        slot.time
-                    ) * xi[bunch]
+                    quantity[slot].asMutable() += LinearMonomial(
+                        slot.resource.usedQuantityQuantity(bunch, slot.time).value.toSolverValue(),
+                        xi[bunch]
+                    )
                 }
             }
         }

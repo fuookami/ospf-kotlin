@@ -1,26 +1,48 @@
+/**
+ * Better layer maximization objective.
+ * 更优层最大化目标。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 
+/**
+ * Better layer maximization objective, maximizes layer-bin matching coefficients.
+ * 更优层最大化目标，最大化层与箱子的匹配系数。
+ *
+ * @property bins 箱子列表 / bin list
+ * @property layers 层列表 / layer list
+ * @property assignment 精确赋值 / precise assignment
+ * @property coefficient 层与箱子的系数函数 / coefficient function for layer and bin
+ * @property name 约束名称 / constraint name
+*/
 class BetterLayerMaximization(
-    private val bins: List<Bin<BinLayer>>,
+    private val bins: List<Bin<BinLayer, FltX>>,
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment,
-    private val coefficient: (BinLayer, Bin<BinLayer>) -> Flt64,
-    override val name: String = "better_layer_maximization"
-) : Pipeline<AbstractLinearMetaModel> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
-        when (val result = model.maximize(
+    private val coefficient: (BinLayer, Bin<BinLayer, FltX>) -> FltX,
+    val name: String = "better_layer_maximization"
+) {
+
+    /**
+     * Add objective to model.
+     * 将目标添加到模型。
+     *
+     * @param model 元模型 / meta model
+     * @return 操作结果 / operation result
+    */
+    fun invoke(model: MetaModel<FltX>): Try {
+        val linearModel = model as AbstractLinearMetaModel<FltX>
+        when (val result = linearModel.maximize(
             polynomial = sum(bins.flatMapIndexed { i, bin ->
                 layers.mapIndexed { j, layer ->
-                    coefficient(layer, bin) * assignment.x[i, j]
+                    LinearMonomial(coefficient(layer, bin), assignment.x[i, j])
                 }
             }),
             name = "better layer"
@@ -29,6 +51,10 @@ class BetterLayerMaximization(
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

@@ -1,27 +1,50 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/**
+ * 任务束模型，表示一组有序任务 / Task bunch model representing an ordered group of tasks
+*/
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import kotlin.time.*
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.sumOf
 
+/**
+ * 抽象任务束，表示分配给同一执行者的一组有序任务 / Abstract task bunch representing an ordered group of tasks assigned to the same executor
+ *
+ * @param T 任务类型 / The task type
+ * @param E 执行者类型 / The executor type
+ * @param A 分配策略类型 / The assignment policy type
+ * @param V 数值类型 / The numeric type for cost values (defaults to Flt64 for backward compatibility)
+ * @property executor 执行者 / The executor
+ * @property time 时间范围 / The time range
+ * @property tasks 任务列表 / The list of tasks
+ * @property cost 成本 / The cost
+ * @property initialUsability 初始可用性 / The initial usability
+ * @property iteration 迭代次数 / The iteration number
+*/
 open class AbstractTaskBunch<
-    out T : AbstractTask<E, A>, 
-    out E : Executor,
-    out A : AssignmentPolicy<E>
-> internal constructor(
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>,
+        V : RealNumber<V>
+        > internal constructor(
     open val executor: E,
     val time: TimeRange,
     open val tasks: List<T>,
-    val cost: Cost,
+    val cost: Cost<V>,
     open val initialUsability: ExecutorInitialUsability<T, E, A>,
     val iteration: Int64 = Int64(-1)
-) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>> {
+) : ManualIndexed(), Eq<AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A, @UnsafeVariance V>> {
     companion object {
         val originIteration = UInt64.maximum
+
+        // DISTANT_FUTURE replacement: represents a far future instant (year 9999)
+        private val DISTANT_FUTURE: Instant = Instant.parse("9999-12-31T23:59:59.999999999Z")
     }
 
     constructor(
@@ -31,9 +54,9 @@ open class AbstractTaskBunch<
         iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
-        time = TimeRange(time, Instant.DISTANT_FUTURE),
+        time = TimeRange(time, DISTANT_FUTURE),
         tasks = emptyList(),
-        cost = Cost(),
+        cost = ImmutableCost<V>(emptyList()),
         initialUsability = initialUsability,
         iteration = iteration,
     )
@@ -42,7 +65,7 @@ open class AbstractTaskBunch<
         executor: E,
         initialUsability: ExecutorInitialUsability<T, E, A>,
         tasks: List<T>,
-        cost: Cost = Cost(),
+        cost: Cost<V> = ImmutableCost<V>(emptyList()),
         iteration: Int64 = Int64(-1)
     ) : this(
         executor = executor,
@@ -53,14 +76,21 @@ open class AbstractTaskBunch<
         iteration = iteration
     )
 
+    /** 任务数量 / Number of tasks */
     open val size get() = tasks.size
+
+    /** 是否为空 / Whether the bunch is empty */
     open val empty get() = tasks.isEmpty()
+
+    /** 上一个任务 / The last task */
     open val lastTask get() = initialUsability.lastTask
 
+    /** 成本密度（成本/任务数）/ Cost density (cost/number of tasks) */
     open val costDensity by lazy {
-        (cost.sum ?: Flt64.zero) / Flt64(size.toDouble())
+        cost.solverCostOrNull(Flt64.zero)!! / Flt64(size.toDouble())
     }
 
+    /** 忙碌时间 / Busy time */
     open val busyTime: Duration by lazy {
         tasks.withIndex().sumOf { (i, task) ->
             val prevTask = if (i > 0) {
@@ -81,24 +111,29 @@ open class AbstractTaskBunch<
         }
     }
 
+    /** 总延迟时间 / Total delay time */
     open val totalDelay: Duration by lazy {
         tasks.sumOf { it.delay }
     }
 
+    /** 总提前时间 / Total advance time */
     open val totalAdvance: Duration by lazy {
         tasks.sumOf { it.advance }
     }
 
+    /** 执行者变更次数 / Number of executor changes */
     open val executorChange: UInt64 by lazy {
         UInt64(tasks.count { it.executorChanged }.toULong())
     }
 
+    /** 任务键到索引的映射 / Mapping from task key to index */
     open val keys: Map<TaskKey, Int> by lazy {
         tasks.withIndex().associate {
             it.value.key to it.index
         }
     }
 
+    /** 完工时间 / Makespan */
     open val makespan: Instant by lazy {
         tasks
             .mapNotNull { it.time?.end }
@@ -106,6 +141,7 @@ open class AbstractTaskBunch<
             ?: initialUsability.enabledTime
     }
 
+    /** 任务连接对列表 / List of task connection pairs */
     open val connections: List<Pair<T?, T?>> by lazy {
         (1..tasks.size).map {
             when (it) {
@@ -128,10 +164,23 @@ open class AbstractTaskBunch<
         return tasks[index]
     }
 
+/**
+ * contains.
+ * contains。
+ * @param task The task to check for membership in the bunch / 要检查是否包含在任务束中的任务
+ * @return Whether the bunch contains the given task / 任务束是否包含给定任务
+*/
     open fun contains(task: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean {
         return keys.contains(task.key)
     }
 
+/**
+ * contains.
+ * contains。
+ * @param prev The preceding task in the pair / 任务对中的前序任务
+ * @param succ The succeeding task in the pair / 任务对中的后续任务
+ * @return Whether the bunch contains both tasks as consecutive entries / 任务束是否包含这两个任务且它们相邻
+*/
     open fun contains(
         prev: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>,
         succ: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>
@@ -145,12 +194,24 @@ open class AbstractTaskBunch<
         }
     }
 
+/**
+ * contains.
+ * contains。
+ * @param taskPair The pair of tasks to check for consecutive membership / 要检查是否相邻包含的任务对
+ * @return Whether the bunch contains both tasks in the pair as consecutive entries / 任务束是否包含该任务对且它们相邻
+*/
     open fun contains(
         taskPair: Pair<AbstractTask<@UnsafeVariance E, @UnsafeVariance A>, AbstractTask<@UnsafeVariance E, @UnsafeVariance A>>
     ): Boolean {
         return contains(taskPair.first, taskPair.second)
     }
 
+/**
+ * get.
+ * get。
+ * @param originTask The task to look up in the bunch / 要在任务束中查找的任务
+ * @return The matching task from the bunch, or null if not found / 任务束中匹配的任务，未找到时为null
+*/
     open fun get(originTask: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): T? {
         val task = keys[originTask.key]
         return if (task != null) {
@@ -160,7 +221,7 @@ open class AbstractTaskBunch<
         }
     }
 
-    override fun partialEq(rhs: AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A>): Boolean? {
+    override fun partialEq(rhs: AbstractTaskBunch<@UnsafeVariance T, @UnsafeVariance E, @UnsafeVariance A, @UnsafeVariance V>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false
 
@@ -176,5 +237,3 @@ open class AbstractTaskBunch<
         return true
     }
 }
-
-typealias TaskBunch<E, A> = AbstractTaskBunch<Task<*, E>, E, A>

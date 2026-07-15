@@ -1,0 +1,701 @@
+/**
+ * 多维数组核心模块
+ * Multi-dimensional Array Core Module
+ *
+ * 本模块提供多维数组的核心实现，包括不可变和可变数组类型。
+ * This module provides core implementations of multi-dimensional arrays,
+ * including both immutable and mutable array types.
+ *
+ * 主要组件：
+ * Main components:
+ * - [AbstractMultiArray]: 多维数组抽象基类
+ *   Abstract base class for multi-dimensional arrays
+ * - [MultiArray]: 不可变多维数组
+ *   Immutable multi-dimensional array
+ * - [MutableMultiArray]: 可变多维数组
+ *   Mutable multi-dimensional array
+ *
+ * 特性：
+ * Features:
+ * - 类型安全的形状系统（Shape1-4, DynShape）
+ *   Type-safe shape system
+ * - 支持行主序和列主序存储
+ *   Support for row-major and column-major storage
+ * - 向量索引和线性索引访问
+ *   Vector index and linear index access
+ * - 视图和切片操作
+ *   View and slice operations
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 创建 2x3 数组
+ * // Create a 2x3 array
+ * val array = MultiArray.newWith(Shape2(2, 3), 0)
+ * array[0, 1] = 10
+ * println(array[0, 1])  // 输出: 10
+ * ```
+ * @see Shape
+ * @see MultiArrayView
+*/
+package fuookami.ospf.kotlin.multiarray
+
+import fuookami.ospf.kotlin.utils.concept.Indexed
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+
+/**
+ * 抽象多维数组基类
+ * Abstract multi-dimensional array base class
+ *
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @property shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
+*/
+sealed class AbstractMultiArray<out T : Any, S : Shape>(
+    val shape: S,
+    ctor: ((Int, IntArray) -> @UnsafeVariance T)? = null
+) : Collection<T> {
+
+    /** 内部元素存储列表 / Internal element storage list */
+    internal lateinit var list: MutableList<@UnsafeVariance T>
+
+    init {
+        if (ctor != null) {
+            init(ctor)
+        } else if (shape.size == 0) {
+            list = mutableListOf()
+        }
+    }
+
+    /**
+     * 维度数量
+     * Number of dimensions
+    */
+    val dimension by shape::dimension
+
+    /**
+     * 存储顺序
+     * Storage order
+    */
+    val storageOrder: StorageOrder get() = shape.storageOrder
+
+    /**
+     * 元素总数
+     * Total number of elements
+    */
+    override val size get() = list.size
+
+    /**
+     * 初始化数组
+     * Initialize the array
+     *
+     * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
+    */
+    protected fun init(ctor: (Int, IntArray) -> @UnsafeVariance T) {
+        if (!::list.isInitialized) {
+            list = (0..<shape.size).map { ctor(it, shape.vectorUnchecked(it)) }.toMutableList()
+        }
+    }
+
+    /**
+     * 验证索引向量并转换为线性索引，维度或越界时抛出异常。
+     * Validate index vector and convert to linear index, throw on dimension mismatch or out of bounds.
+     *
+     * @param vector 索引向量 / Index vector
+     * @return 线性索引 / Linear index
+    */
+    protected fun checkedIndex(vector: IntArray): Int {
+        if (vector.size != shape.dimension) {
+            throw DimensionMismatchingException(shape.dimension, vector.size)
+        }
+        for (i in shape.indices) {
+            val index = vector[i]
+            val length = shape[i]
+            if (index < 0 || index >= length) {
+                throw OutOfShapeException(
+                    dimension = i,
+                    length = length,
+                    vectorIndex = index
+                )
+            }
+        }
+        return shape.indexUnchecked(vector)
+    }
+
+    override fun containsAll(elements: Collection<@UnsafeVariance T>): Boolean {
+        return list.containsAll(elements)
+    }
+
+    override fun contains(element: @UnsafeVariance T): Boolean {
+        return list.contains(element)
+    }
+
+    override fun isEmpty(): Boolean {
+        return list.isEmpty()
+    }
+
+    override fun iterator(): Iterator<T> {
+        return list.iterator()
+    }
+
+    /**
+     * 通过线性索引获取元素
+     * Get element by linear index
+    */
+    operator fun get(i: Int): T {
+        return list[i]
+    }
+
+    /**
+     * 通过 ULong 线性索引获取元素
+     * Get element by ULong linear index
+    */
+    operator fun get(i: ULong): T {
+        return get(i.toInt())
+    }
+
+    /**
+     * 通过 Indexed 接口获取元素
+     * Get element by Indexed interface
+    */
+    operator fun get(e: Indexed): T {
+        return list[e.index]
+    }
+
+    /**
+     * 通过向量索引获取元素
+     * Get element by vector index
+    */
+    @JvmName("getByIntArray")
+    operator fun get(v: IntArray): T {
+        return list[checkedIndex(v)]
+    }
+
+    /**
+     * 通过可变参数获取元素
+     * Get element by vararg
+    */
+    @JvmName("getByInts")
+    operator fun get(vararg v: Int): T {
+        return list[checkedIndex(v)]
+    }
+
+    /**
+     * 通过 ULong 迭代获取元素
+     * Get element by ULong iterable
+    */
+    operator fun get(v: Iterable<ULong>): T {
+        return get(v.map { it.toInt() }.toIntArray())
+    }
+
+    /**
+     * 通过 Indexed 可变参数获取元素
+     * Get element by Indexed vararg
+    */
+    operator fun get(vararg v: Indexed): T {
+        return list[checkedIndex(v.map { it.index }.toIntArray())]
+    }
+
+    /**
+     * 通过任意类型数组创建视图
+     * Create view by any type array
+    */
+    operator fun get(vararg v: Any): MultiArrayView<T, S> {
+        return MultiArrayView(this, shape.dummyVectorUnchecked(*v))
+    }
+
+    /**
+     * 创建视图
+     * Create a view
+     *
+     * @param dummyVector 虚拟向量 / Dummy vector
+     * @return 多维数组视图 / Multi-dimensional array view
+    */
+    fun view(dummyVector: DummyVector): MultiArrayView<T, S> {
+        return MultiArrayView(this, dummyVector)
+    }
+
+    /**
+     * 获取枚举迭代器
+     * Get enumerate iterator
+     *
+     * @return 枚举迭代器，产生 (线性索引, 向量坐标, 元素引用) 三元组 / Enumerate iterator yielding (linear index, vector coordinates, element reference) triples
+    */
+    fun enumerate(): Sequence<Triple<Int, IntArray, T>> = sequence {
+        for (i in 0 until shape.size) {
+            yield(Triple(i, shape.vectorUnchecked(i), list[i]))
+        }
+    }
+}
+
+/**
+ * 不可变多维数组
+ * Immutable multi-dimensional array
+ *
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @param shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
+*/
+open class MultiArray<out T : Any, S : Shape>(
+    shape: S,
+    ctor: ((Int, IntArray) -> T)? = null
+) : AbstractMultiArray<T, S>(shape, ctor) {
+
+    companion object {
+        /**
+         * 使用默认值创建多维数组
+         * Create multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的多维数组 / Multi-array filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> newOrNull(shape: S): MultiArray<T, S>? {
+            val defaultValue = when (T::class) {
+                Int::class -> 0 as T
+                Long::class -> 0L as T
+                Double::class -> 0.0 as T
+                Float::class -> 0.0f as T
+                Boolean::class -> false as T
+                String::class -> "" as T
+                else -> return null
+            }
+            return MultiArray(shape) { _, _ ->
+                defaultValue
+            }
+        }
+
+        /**
+         * 使用默认值安全创建多维数组
+         * Safely create multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的多维数组结果 / Multi-array result filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> newSafe(shape: S): Ret<MultiArray<T, S>> {
+            return newOrNull<T, S>(shape)
+                ?.let { Ok(it) }
+                ?: Failed(ErrorCode.IllegalArgument, "Type ${T::class} does not have a default value")
+        }
+
+        /**
+         * 使用默认值创建多维数组
+         * Create multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的多维数组结果 / Multi-array result filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> new(shape: S): Ret<MultiArray<T, S>> {
+            return newSafe(shape)
+        }
+
+        /**
+         * 使用指定值创建多维数组
+         * Create multi-dimensional array with specified value
+         *
+         * @param shape 数组形状 / Array shape
+         * @param value 填充值 / Fill value
+         * @return 使用指定值填充的多维数组 / Multi-array filled with specified value
+        */
+        fun <T : Any, S : Shape> newWith(shape: S, value: T): MultiArray<T, S> {
+            return MultiArray(shape) { _, _ -> value }
+        }
+
+        /**
+         * 使用生成器创建多维数组
+         * Create multi-dimensional array with generator
+         *
+         * @param shape 数组形状 / Array shape
+         * @param generator 元素生成器，参数为线性索引和向量坐标 / Element generator, parameters are linear index and vector coordinates
+         * @return 使用生成器填充的多维数组 / Multi-array filled with generator
+        */
+        fun <T : Any, S : Shape> newBy(shape: S, generator: (Int, IntArray) -> T): MultiArray<T, S> {
+            return MultiArray(shape, generator)
+        }
+    }
+
+    /**
+     * 转换存储顺序
+     * Convert storage order
+     *
+     * @param order 目标存储顺序 / Target storage order
+     * @return 具有新存储顺序的数组 / Array with new storage order
+    */
+    fun toStorageOrder(order: StorageOrder): MultiArray<T, DynShape> {
+        if (shape.storageOrder == order) {
+            // Same order - no reordering needed / 相同顺序，无需重排
+            val dims = (0 until shape.dimension).map { shape[it] }.toIntArray()
+            val newShape = DynShape.withOrder(dims, order)
+            return MultiArray(newShape) { i, _ -> list[i] }
+        }
+
+        // Different order - need to reorder data / 不同顺序，需要重排数据
+        val dims = (0 until shape.dimension).map { shape[it] }.toIntArray()
+        val newShape = DynShape.withOrder(dims, order)
+
+        return MultiArray(newShape) { newLinearIndex, _ ->
+            // Convert new linear index to vector coordinates / 将新线性索引转换为向量坐标
+            val vector = newShape.vectorUnchecked(newLinearIndex)
+            // Use same vector to access original array (preserves value) / 使用相同向量访问原数组（保持值不变）
+            val oldLinearIndex = shape.indexUnchecked(vector)
+            list[oldLinearIndex]
+        }
+    }
+
+    /**
+     * 重塑数组形状
+     * Reshape array
+     *
+     * @param newShape 新形状 / New shape
+     * @param fillValue 填充值（如果新形状更大）/ Fill value (if new shape is larger)
+     * @return 重塑后的数组 / Reshaped array
+    */
+    fun <NS : Shape> reshape(newShape: NS, fillValue: @UnsafeVariance T): MultiArray<T, NS> {
+        return MultiArray(newShape) { i, _ ->
+            if (i < size) list[i] else fillValue
+        }
+    }
+
+    /**
+     * 重塑数组形状（使用生成器填充）
+     * Reshape array (fill with generator)
+     *
+     * @param NS 新形状类型 / New shape type
+     * @param newShape 新形状 / New shape
+     * @param generator 填充生成器 / Fill generator
+     * @return 重塑后的数组 / Reshaped array
+    */
+    fun <NS : Shape> reshapeBy(newShape: NS, generator: (Int, IntArray) -> @UnsafeVariance T): MultiArray<T, NS> {
+        return MultiArray(newShape) { i, v ->
+            if (i < size) list[i] else generator(i, v)
+        }
+    }
+
+    /**
+     * 转换为可变数组
+     * Convert to mutable array
+     *
+     * @return 可变多维数组 / Mutable multi-array
+    */
+    fun toMutable(): MutableMultiArray<@UnsafeVariance T, S> {
+        return MutableMultiArray(shape) { i, _ -> list[i] }
+    }
+
+    /**
+     * 转换为列表
+     * Convert to list
+     *
+     * @return 元素列表 / Element list
+    */
+    fun toList(): List<T> = list.toList()
+}
+
+/**
+ * 可变多维数组
+ * Mutable multi-dimensional array
+ *
+ * @param T 元素类型 / Element type
+ * @param S 形状类型 / Shape type
+ * @param shape 数组形状 / Array shape
+ * @param ctor 元素构造器，参数为线性索引和向量坐标 / Element constructor, parameters are linear index and vector coordinates
+*/
+open class MutableMultiArray<T : Any, S : Shape>(
+    shape: S,
+    ctor: ((Int, IntArray) -> T)? = null
+) : AbstractMultiArray<T, S>(shape, ctor) {
+
+    companion object {
+        /**
+         * 使用默认值创建可变多维数组
+         * Create mutable multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的可变多维数组 / Mutable multi-array filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> newOrNull(shape: S): MutableMultiArray<T, S>? {
+            val defaultValue = when (T::class) {
+                Int::class -> 0 as T
+                Long::class -> 0L as T
+                Double::class -> 0.0 as T
+                Float::class -> 0.0f as T
+                Boolean::class -> false as T
+                String::class -> "" as T
+                else -> return null
+            }
+            return MutableMultiArray(shape) { _, _ ->
+                defaultValue
+            }
+        }
+
+        /**
+         * 使用默认值安全创建可变多维数组
+         * Safely create mutable multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的可变多维数组结果 / Mutable multi-array result filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> newSafe(shape: S): Ret<MutableMultiArray<T, S>> {
+            return newOrNull<T, S>(shape)
+                ?.let { Ok(it) }
+                ?: Failed(ErrorCode.IllegalArgument, "Type ${T::class} does not have a default value")
+        }
+
+        /**
+         * 使用默认值创建可变多维数组
+         * Create mutable multi-dimensional array with default values
+         *
+         * @param shape 数组形状 / Array shape
+         * @return 使用默认值填充的可变多维数组结果 / Mutable multi-array result filled with default values
+        */
+        inline fun <reified T : Any, S : Shape> new(shape: S): Ret<MutableMultiArray<T, S>> {
+            return newSafe(shape)
+        }
+
+        /**
+         * 使用指定值创建可变多维数组
+         * Create mutable multi-dimensional array with specified value
+         *
+         * @param shape 数组形状 / Array shape
+         * @param value 填充值 / Fill value
+         * @return 使用指定值填充的可变多维数组 / Mutable multi-array filled with specified value
+        */
+        fun <T : Any, S : Shape> newWith(shape: S, value: T): MutableMultiArray<T, S> {
+            return MutableMultiArray(shape) { _, _ -> value }
+        }
+
+        /**
+         * 使用生成器创建可变多维数组
+         * Create mutable multi-dimensional array with generator
+         *
+         * @param shape 数组形状 / Array shape
+         * @param generator 元素生成器，参数为线性索引和向量坐标 / Element generator, parameters are linear index and vector coordinates
+         * @return 使用生成器填充的可变多维数组 / Mutable multi-array filled with generator
+        */
+        fun <T : Any, S : Shape> newBy(shape: S, generator: (Int, IntArray) -> T): MutableMultiArray<T, S> {
+            return MutableMultiArray(shape, generator)
+        }
+    }
+
+    /**
+     * 通过线性索引设置元素
+     * Set element by linear index
+     *
+     * @param i 线性索引 / Linear index
+     * @param value 要设置的值 / Value to set
+    */
+    operator fun set(i: Int, value: T) {
+        list[i] = value
+    }
+
+    /**
+     * 通过 ULong 线性索引设置元素
+     * Set element by ULong linear index
+     *
+     * @param i ULong 线性索引 / ULong linear index
+     * @param value 要设置的值 / Value to set
+    */
+    operator fun set(i: ULong, value: T) {
+        set(i.toInt(), value)
+    }
+
+    /**
+     * 通过 Indexed 接口设置元素
+     * Set element by Indexed interface
+     *
+     * @param e Indexed 索引对象 / Indexed index object
+     * @param value 要设置的值 / Value to set
+    */
+    operator fun set(e: Indexed, value: T) {
+        list[e.index] = value
+    }
+
+    /**
+     * 通过 IntArray 向量索引设置元素
+     * Set element by IntArray vector index
+     *
+     * @param v 向量索引 / Vector index
+     * @param value 要设置的值 / Value to set
+    */
+    @JvmName("setByIntArray")
+    operator fun set(v: IntArray, value: T) {
+        list[checkedIndex(v)] = value
+    }
+
+    /**
+     * 通过 vararg Int 向量索引设置元素
+     * Set element by vararg Int vector index
+     *
+     * @param v 向量索引 / Vector index
+     * @param value 要设置的值 / Value to set
+    */
+    @JvmName("setByInts")
+    operator fun set(vararg v: Int, value: T) {
+        list[checkedIndex(v)] = value
+    }
+
+    /**
+     * 通过 ULong 迭代索引设置元素
+     * Set element by ULong iterable index
+     *
+     * @param v ULong 迭代索引 / ULong iterable index
+     * @param value 要设置的值 / Value to set
+    */
+    operator fun set(v: Iterable<ULong>, value: T) {
+        set(v.map { it.toInt() }.toIntArray(), value)
+    }
+
+    /**
+     * 通过 vararg Indexed 向量索引设置元素
+     * Set element by vararg Indexed vector index
+     *
+     * @param v Indexed 向量索引 / Indexed vector index
+     * @param value 要设置的值 / Value to set
+    */
+    operator fun set(vararg v: Indexed, value: T) {
+        list[checkedIndex(v.map { it.index }.toIntArray())] = value
+    }
+
+    /**
+     * 填充所有元素
+     * Fill all elements
+     *
+     * @param value 填充值 / Fill value
+    */
+    fun fill(value: T) {
+        for (i in 0 until size) {
+            list[i] = value
+        }
+    }
+
+    /**
+     * 使用生成器填充所有元素
+     * Fill all elements with generator
+     *
+     * @param generator 元素生成器，参数为线性索引和向量坐标 / Element generator, parameters are linear index and vector coordinates
+    */
+    fun fillBy(generator: (Int, IntArray) -> T) {
+        for (i in 0 until size) {
+            list[i] = generator(i, shape.vectorUnchecked(i))
+        }
+    }
+
+    /**
+     * 转换为不可变数组
+     * Convert to immutable array
+     *
+     * @return 不可变多维数组 / Immutable multi-array
+    */
+    fun toImmutable(): MultiArray<T, S> {
+        return MultiArray(shape) { i, _ -> list[i] }
+    }
+}
+
+/** 不可变多维数组类型别名 / Immutable multi-dimensional array type aliases */
+typealias MultiArray1<T> = MultiArray<T, Shape1>
+
+/** 二维不可变多维数组类型别名 / 2D immutable multi-dimensional array type alias */
+typealias MultiArray2<T> = MultiArray<T, Shape2>
+
+/** 三维不可变多维数组类型别名 / 3D immutable multi-dimensional array type alias */
+typealias MultiArray3<T> = MultiArray<T, Shape3>
+
+/** 四维不可变多维数组类型别名 / 4D immutable multi-dimensional array type alias */
+typealias MultiArray4<T> = MultiArray<T, Shape4>
+
+/** 动态维度不可变多维数组类型别名 / Dynamic dimension immutable multi-dimensional array type alias */
+typealias DynMultiArray<T> = MultiArray<T, DynShape>
+
+/** 可变多维数组类型别名 / Mutable multi-dimensional array type aliases */
+typealias MutableMultiArray1<T> = MutableMultiArray<T, Shape1>
+
+/** 二维可变多维数组类型别名 / 2D mutable multi-dimensional array type alias */
+typealias MutableMultiArray2<T> = MutableMultiArray<T, Shape2>
+
+/** 三维可变多维数组类型别名 / 3D mutable multi-dimensional array type alias */
+typealias MutableMultiArray3<T> = MutableMultiArray<T, Shape3>
+
+/** 四维可变多维数组类型别名 / 4D mutable multi-dimensional array type alias */
+typealias MutableMultiArray4<T> = MutableMultiArray<T, Shape4>
+
+/** 动态维度可变多维数组类型别名 / Dynamic dimension mutable multi-dimensional array type alias */
+typealias DynMutableMultiArray<T> = MutableMultiArray<T, DynShape>
+
+/**
+ * 便捷函数：创建一维数组
+ * Convenience function: Create 1D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param value 填充值 / Fill value
+ * @return 一维不可变多维数组 / 1D immutable multi-array
+*/
+fun <T : Any> multiArrayOf(d1: Int, value: T): MultiArray1<T> {
+    return MultiArray.newWith(Shape1(d1), value)
+}
+
+/**
+ * 便捷函数：创建二维数组
+ * Convenience function: Create 2D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param value 填充值 / Fill value
+ * @return 二维不可变多维数组 / 2D immutable multi-array
+*/
+fun <T : Any> multiArrayOf(d1: Int, d2: Int, value: T): MultiArray2<T> {
+    return MultiArray.newWith(Shape2(d1, d2), value)
+}
+
+/**
+ * 便捷函数：创建三维数组
+ * Convenience function: Create 3D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param d3 第三维度大小 / Third dimension size
+ * @param value 填充值 / Fill value
+ * @return 三维不可变多维数组 / 3D immutable multi-array
+*/
+fun <T : Any> multiArrayOf(d1: Int, d2: Int, d3: Int, value: T): MultiArray3<T> {
+    return MultiArray.newWith(Shape3(d1, d2, d3), value)
+}
+
+/**
+ * 便捷函数：创建可变一维数组
+ * Convenience function: Create mutable 1D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param value 填充值 / Fill value
+ * @return 一维可变多维数组 / 1D mutable multi-array
+*/
+fun <T : Any> mutableMultiArrayOf(d1: Int, value: T): MutableMultiArray1<T> {
+    return MutableMultiArray.newWith(Shape1(d1), value)
+}
+
+/**
+ * 便捷函数：创建可变二维数组
+ * Convenience function: Create mutable 2D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param value 填充值 / Fill value
+ * @return 二维可变多维数组 / 2D mutable multi-array
+*/
+fun <T : Any> mutableMultiArrayOf(d1: Int, d2: Int, value: T): MutableMultiArray2<T> {
+    return MutableMultiArray.newWith(Shape2(d1, d2), value)
+}
+
+/**
+ * 便捷函数：创建可变三维数组
+ * Convenience function: Create mutable 3D array
+ *
+ * @param d1 第一维度大小 / First dimension size
+ * @param d2 第二维度大小 / Second dimension size
+ * @param d3 第三维度大小 / Third dimension size
+ * @param value 填充值 / Fill value
+ * @return 三维可变多维数组 / 3D mutable multi-array
+*/
+fun <T : Any> mutableMultiArrayOf(d1: Int, d2: Int, d3: Int, value: T): MutableMultiArray3<T> {
+    return MutableMultiArray.newWith(Shape3(d1, d2, d3), value)
+}

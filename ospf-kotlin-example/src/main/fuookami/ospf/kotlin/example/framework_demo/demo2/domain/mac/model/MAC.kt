@@ -1,0 +1,82 @@
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+
+/**
+ * Computes the Mean Aerodynamic Chord (MAC) percentage as a linear intermediate symbol.
+ * 将平均气动弦（MAC）百分比计算为线性中间符号。
+ *
+ * @property mac The linear intermediate symbol representing the MAC percentage / 表示 MAC 百分比的线性中间符号
+*/
+class MAC(
+    private val aircraftModel: AircraftModel,
+    private val formula: Formula,
+    private val totalWeight: TotalWeight,
+    private val torque: Torque
+) {
+    lateinit var mac: LinearIntermediateSymbol<Flt64>
+
+    /**
+     * Registers the MAC symbol into the optimization model.
+     * 将 MAC 符号注册到优化模型中。
+     *
+     * @param model The linear meta-model to register the MAC symbol into / 要注册 MAC 符号的线性元模型
+     * @return [Try] indicating success or failure / 表示成功或失败
+    */
+    fun register(
+        model: AbstractLinearMetaModel<Flt64>
+    ): Try {
+        if (!::mac.isInitialized) {
+            val tow = totalWeight.computedTotalWeight[FlightPhase.TakeOff]
+            mac = if (tow != null) {
+                val index = torque.index[FlightPhase.TakeOff]!!
+                LinearExpressionSymbol(
+                    formula.mac(
+                        Quantity(
+                            LinearPolynomial(
+                                monomials = listOf(LinearMonomial(Flt64.one, index.value)),
+                                constant = Flt64.zero
+                            ),
+                            index.unit
+                        ),
+                        tow
+                    ),
+                    name = "mac"
+                )
+            } else {
+                LinearExpressionSymbol(
+                    Flt64.zero,
+                    name = "mac"
+                )
+            }
+        }
+        when (val result = model.add(mac)) {
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                return Failed(result.error)
+            }
+
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                return Fatal(result.errors)
+            }
+        }
+
+        return ok
+    }
+}

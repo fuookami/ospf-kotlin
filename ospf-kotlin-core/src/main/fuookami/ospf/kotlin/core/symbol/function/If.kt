@@ -1,0 +1,169 @@
+@file:Suppress("unused")
+
+/** 条件函数符号 / If condition function symbol */
+package fuookami.ospf.kotlin.core.symbol.function
+
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.functional.*
+
+/**
+ * 条件函数符号 / If function symbol
+ *
+ * 提供 [IfFunction]，实现 y = (condition > 0 ? 1 : 0) 的线性化建模。
+ *
+ * Provides [IfFunction] for linearized modeling of y = 1 if condition > 0, else y = 0.
+*/
+
+/**
+ * 条件函数：当 condition > 0 时 y = 1，否则 y = 0。
+ * If function: `y = 1 if condition > 0, else y = 0`.
+ *
+ * 使用 Big-M 线性化与正数指示变量。
+ * Uses Big-M linearization with a positive-value indicator.
+ *
+ * @property condition 条件线性多项式 / the condition linear polynomial
+ * @param converter 值类型转换器 / value type converter
+ * @param bigM Big-M 界限（默认从输入范围推导，失败时回退到 1e6）/ Big-M bound (inferred from input range by default, falls back to 1e6)
+ * @param tolerance 零容差（默认 1e-6）/ zero tolerance (default 1e-6)
+ * @param strictBoundary 严格边界值（默认 0.5）/ strict boundary value (default 0.5)
+ * @property name 此函数的唯一名称 / unique name for this function
+ * @property displayName 可选的人类可读显示名称 / optional human-readable display name
+*/
+class IfFunction<V>(
+    val condition: LinearPolynomial<V>,
+    converter: IntoValue<V>,
+    bigM: V? = null,
+    tolerance: V? = null,
+    strictBoundary: V? = null,
+    override var name: String = "if",
+    override var displayName: String? = null
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: condition.defaultBigM(converter)
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+
+    val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_if")
+    val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_if_nz")
+
+    override val helperVariables: List<AbstractVariableItem<*, *>>
+        get() = listOf(resultVar, indicatorVar)
+
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
+    }
+
+    val result: LinearPolynomial<V> get() = resultPolynomial
+
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val condValue = condition.evaluateWith(values) ?: return null
+        return if (condValue gr converter.zero) converter.one else converter.zero
+    }
+
+    override fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    /**
+     * 构建条件指示约束列表。
+     * Build the list of condition indicator constraints.
+     *
+     * @return 线性不等式约束列表 / list of linear inequality constraints
+    */
+    private fun buildConstraints(): List<LinearInequality<V>> {
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+
+        // Positive indicator for condition / 为条件构建正数指示约束
+        allConstraints += positiveIndicatorConstraints(condition, indicatorVar, bigM, tolerance, "${name}_if")
+
+        // result = indicator (if condition > 0, result = 1) / 结果等于指示变量（条件 > 0 时结果为 1）
+        allConstraints += LinearInequality(
+            LinearPolynomial(
+                listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVar)),
+                zero
+            ),
+            LinearPolynomial(emptyList(), zero),
+            Comparison.EQ, "${name}_if_eq"
+        )
+
+        return allConstraints
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
+        addConstraints(model, buildConstraints())?.let { return it }
+        return ok
+    }
+
+    companion object {
+        /**
+         * 创建条件函数实例 / Create an if function instance
+         * @param condition 条件线性多项式 / condition linear polynomial
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return [IfFunction] 实例 / [IfFunction] instance
+        */
+        operator fun <V> invoke(
+            condition: LinearPolynomial<V>,
+            converter: IntoValue<V>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): IfFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            IfFunction(condition, converter, bigM, name = name, displayName = displayName)
+
+        /**
+         * 约束输入工厂：从约束输入提取条件多项式。
+         * Constraint-input factory: extracts the condition polynomial from the constraint input.
+         * @param inequality 约束输入 / constraint input
+         * @param converter 值类型转换器 / value type converter
+         * @param bigM Big-M 界限 / Big-M bound
+         * @param tolerance 零容差 / zero tolerance
+         * @param strictBoundary 严格边界值 / strict boundary value
+         * @param name 函数名称 / function name
+         * @param displayName 可选显示名称 / optional display name
+         * @return 包装后的线性函数符号适配器 / wrapped linear function symbol adapter
+        */
+        fun <V> from(
+            inequality: LinearConstraintInput<V>,
+            converter: IntoValue<V>,
+            bigM: V? = null,
+            tolerance: V? = null,
+            strictBoundary: V? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> {
+            val conditionPoly = LinearPolynomial(
+                inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+                inequality.flattenData.constant
+            )
+            return LinearFunctionSymbolAdapter(
+                IfFunction(
+                    condition = conditionPoly,
+                    converter = converter,
+                    bigM = bigM,
+                    tolerance = tolerance,
+                    strictBoundary = strictBoundary,
+                    name = name,
+                    displayName = displayName
+                ),
+                converter = converter
+            )
+        }
+    }
+}

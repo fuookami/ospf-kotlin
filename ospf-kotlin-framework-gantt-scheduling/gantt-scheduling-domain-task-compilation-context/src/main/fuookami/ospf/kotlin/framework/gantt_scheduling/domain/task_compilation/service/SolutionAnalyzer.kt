@@ -1,28 +1,64 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/** 任务调度解分析器 / Task scheduling solution analyzer */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
-import kotlinx.datetime.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.schedulingSolverValueAdapter
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.IterativeAbstractTask
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingTaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.concept.findOrGet
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import kotlin.time.Instant
 
-data object SolutionAnalyzer {
-    @Suppress("UNCHECKED_CAST")
-    operator fun <
+/**
+ * 将求解流程中的任务对象收敛为目标任务类型。
+ * 任务列表与编译产物来自同一上下文，构建路径保证运行期类型不变量。
+ *
+ * Narrows task objects in the solving flow to the target task type.
+ * The task list and compilation artifacts come from the same context,
+ * so the construction path owns the runtime type invariant.
+*/
+@Suppress("UNCHECKED_CAST")
+private fun <
         T : AbstractTask<E, A>,
         E : Executor,
         A : AssignmentPolicy<E>
-    > invoke(
+        > analyzedTaskOf(task: AbstractTask<E, A>): T {
+    return task as T
+}
+
+/**
+ * SolutionAnalyzer object.
+ * SolutionAnalyzer对象。
+*/
+data object SolutionAnalyzer {
+    operator fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
         tasks: List<T>,
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (executor: E?) -> A?,
-        solution: Solution? = null,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -52,10 +88,14 @@ data object SolutionAnalyzer {
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
             if (assignedTask != null) {
-                assignedTasks.add(assignedTask as T)
+                assignedTasks.add(analyzedTaskOf(assignedTask))
             } else {
                 canceledTasks.add(task)
             }
@@ -63,22 +103,62 @@ data object SolutionAnalyzer {
 
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
-
-    @Suppress("UNCHECKED_CAST")
     operator fun <
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > invoke(
-        timeWindow: TimeWindow,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
+        timeWindow: TimeWindow<*>,
         tasks: List<T>,
         executors: List<E>,
         compilation: TaskCompilation<T, E, A>,
         taskTime: TaskSchedulingTaskTime<T, E, A>,
         results: List<Flt64>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
-        solution: Solution? = null,
+        solution: List<Flt64>? = null,
+    ): Ret<TaskSolution<T, E, A>> {
+        return invoke(
+            timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary()),
+            tasks = tasks,
+            executors = executors,
+            compilation = compilation,
+            taskTime = taskTime,
+            results = results,
+            model = model,
+            assignedPolicyGenerator = assignedPolicyGenerator,
+            solution = solution
+        )
+    }
+
+    /**
+     * 通过 solver 时间窗口边界分析任务调度解 / Analyze task scheduling solution from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param compilation 任务编译结果 / Task compilation result
+     * @param taskTime 任务时间对象 / Task time object
+     * @param results 求解结果 / Solver results
+     * @param model 线性模型 / Linear model
+     * @param assignedPolicyGenerator 分配策略生成器 / Assignment policy generator
+     * @param solution 备选求解向量 / Optional solution vector
+     * @return 任务解 / Task solution
+    */
+    operator fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskSchedulingTaskTime<T, E, A>,
+        results: List<Flt64>,
+        model: AbstractLinearMetaModel<Flt64>,
+        assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -110,12 +190,12 @@ data object SolutionAnalyzer {
                 val index = model.tokens.indexOf(token) ?: continue
                 solution?.get(index) ?: continue
             }
-            assignedEST[task] = timeWindow.instantOf(result)
+            assignedEST[task] = timeBoundary.instantOf(result)
         }
 
         val assignedECT = assignedExecutor.entries.associate { (task, _) ->
-            task to (taskTime.estimateEndTime[task].evaluate(results, model.tokens)?.let {
-                with(timeWindow) { it.instant }
+            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, schedulingSolverValueAdapter)?.let {
+                timeBoundary.instantOf(it)
             } ?: Instant.DISTANT_FUTURE)
         }
 
@@ -139,10 +219,14 @@ data object SolutionAnalyzer {
                     is Failed -> {
                         return Failed(result.error)
                     }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
             }
             if (assignedTask != null) {
-                assignedTasks.add(assignedTask as T)
+                assignedTasks.add(analyzedTaskOf(assignedTask))
             } else {
                 canceledTasks.add(task)
             }
@@ -150,20 +234,18 @@ data object SolutionAnalyzer {
 
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
-
-    @Suppress("UNCHECKED_CAST")
     operator fun <
-        IT : IterativeAbstractTask<E, A>,
-        T : AbstractTask<E, A>,
-        E : Executor,
-        A : AssignmentPolicy<E>
-    > invoke(
+            IT : IterativeAbstractTask<E, A>,
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>
+            > invoke(
         iteration: UInt64,
         originTasks: List<T>,
         tasks: List<List<IT>>,
         compilation: IterativeTaskCompilation<IT, T, E, A>,
-        model: AbstractLinearMetaModel,
-        solution: Solution? = null,
+        model: AbstractLinearMetaModel<Flt64>,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()
@@ -183,7 +265,7 @@ data object SolutionAnalyzer {
                 }.round().toUInt64()
                 if (result geq UInt64.one) {
                     val task = tasks[i].findOrGet(x.index)
-                    assignedTasks.add(task as T)
+                    assignedTasks.add(analyzedTaskOf(task))
                 }
             }
         }

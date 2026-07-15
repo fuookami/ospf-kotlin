@@ -1,9 +1,12 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/** 计划任务束生成器 / Planned task bunch generator */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.service
 
 //import fuookami.ospf.kotlin.utils.functional.Ok
 //import fuookami.ospf.kotlin.utils.functional.Ret
-//import fuookami.ospf.kotlin.utils.math.UInt64
-//import kotlinx.datetime.Instant
+//import fuookami.ospf.kotlin.math.algebra.number.UInt64
+//import kotlin.time.Instant
 //import kotlin.time.Duration
 //
 //open class TaskBunchGenerator<E : Executor, L : Label<E>>(
@@ -140,8 +143,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //        return labels[node]!!
 //    }
 //
-//    @Suppress("UNCHECKED_CAST")
-//    protected open fun generateTaskLabel(prevLabel: L, succNode: Node, shadowPriceMap: ShadowPriceMap<E>): L? {
+//    //    protected open fun generateTaskLabel(prevLabel: L, succNode: Node, shadowPriceMap: ShadowPriceMap<E>): L? {
 //        assert(succNode is TaskNode<*, *>)
 //        succNode as TaskNode<E, *>
 //
@@ -266,8 +268,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //    // calculate the minimum departure time from previous label
 //    // specially, it is the arrival time of last label if the previous label is belongs to root node or succ node is end node
 //    // because there is no connection between virtual node and task node
-//    @Suppress("UNCHECKED_CAST")
-//    private fun getMinStartTime(prevLabel: L, succNode: Node): Instant {
+//    //    private fun getMinStartTime(prevLabel: L, succNode: Node): Instant {
 //        assert(succNode is TaskNode<*, *>)
 //        succNode as TaskNode<E, *>
 //
@@ -292,3 +293,4 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //        }
 //    }
 //}
+

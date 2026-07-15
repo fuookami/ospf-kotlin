@@ -1,18 +1,32 @@
+/**
+ * 串行组合线性求解器
+ * Serial Combinatorial Linear Solver
+ *
+ * 将多个线性求解器串行运行，第一个成功即返回。
+ * Runs multiple linear solvers serially, returning on first success.
+*/
 package fuookami.ospf.kotlin.framework.solver
 
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.error.*
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.error.SolverNotFoundError
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
+import fuookami.ospf.kotlin.core.solver.output.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.*
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
 
+/**
+ * 串行组合线性求解器
+ * Serial combinatorial linear solver
+ *
+ * @property solvers 线性求解器列表（懒加载） / Linear solver list (lazy loaded)
+ * @property stopErrorCode 遇到即停止的错误码 / Error codes that stop execution
+*/
 class SerialCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
     private val stopErrorCode: Set<ErrorCode> = setOf(ErrorCode.ORModelInfeasible, ErrorCode.ORModelUnbounded)
-): AbstractLinearSolver {
+) : AbstractLinearSolver {
     private val logger = logger()
 
     companion object {
@@ -38,7 +52,7 @@ class SerialCombinatorialLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
@@ -52,16 +66,20 @@ class SerialCombinatorialLinearSolver(
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
-        return Failed(ErrorCode.SolverNotFound, "No solver valid.")
+        return Failed(SolverNotFoundError())
     }
 
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {
@@ -75,8 +93,14 @@ class SerialCombinatorialLinearSolver(
                         logger.warn { "Solver ${solver.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                     }
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
-        return Failed(ErrorCode.SolverNotFound, "No solver valid.")
+        return Failed(SolverNotFoundError())
     }
 }
+
+

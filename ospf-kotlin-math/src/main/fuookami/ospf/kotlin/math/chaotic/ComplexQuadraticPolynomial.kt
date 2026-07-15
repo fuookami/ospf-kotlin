@@ -1,0 +1,83 @@
+/**
+ * 复二次多项式
+ * Complex Quadratic Polynomial
+ *
+ * 复二次多项式是复数域上的迭代映射，是 Mandelbrot 集和 Julia 集研究的基础。
+ * 通过迭代复二次多项式可以生成丰富的分形结构，展现出复杂的混沌动力学行为。
+ * 常用于分形几何研究、混沌可视化分析和复动力学理论研究。
+ *
+ * The complex quadratic polynomial is an iterative map on the complex domain, serving as the foundation for Mandelbrot set and Julia set research.
+ * Iterating complex quadratic polynomials generates rich fractal structures, exhibiting complex chaotic dynamical behavior.
+ * Commonly used for fractal geometry research, chaos visualization analysis, and complex dynamics theory research.
+*/
+package fuookami.ospf.kotlin.math.chaotic
+
+import kotlin.random.Random
+import org.kotlinmath.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.nextFlt64
+
+/**
+ * 复二次多项式
+ * Complex Quadratic Polynomial
+ *
+ * @property c 复数常数项（二维点表示复数） / Complex constant term (2D point represents complex number)
+ * @property d 多项式指数 / Polynomial exponent
+*/
+data class ComplexQuadraticPolynomial(
+    val c: Point<Dim2, Flt64> = point2(
+        Random.nextFlt64(-Flt64.one, Flt64.one),
+        Random.nextFlt64(-Flt64.one, Flt64.one)
+    ),
+    val d: Flt64 = Flt64.two
+) : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
+    override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
+        val complexNumber =
+            pow(complex(x[0].value, x[1].value), complex(d.value, 0.0)) + complex(c[0].value, c[1].value)
+        return point2(
+            Flt64(complexNumber.re),
+            Flt64(complexNumber.im)
+        )
+    }
+}
+
+/**
+ * 复二次多项式生成器
+ * Complex Quadratic Polynomial Generator
+*/
+data class ComplexQuadraticPolynomialGenerator(
+    val complexQuadraticPolynomial: ComplexQuadraticPolynomial = ComplexQuadraticPolynomial(),
+    private var _x: Point<Dim2, Flt64> = point2(
+        Random.nextFlt64(-Flt64.one, Flt64.one),
+        Random.nextFlt64(-Flt64.one, Flt64.one)
+    )
+) : Generator<Point<Dim2, Flt64>> {
+    companion object {
+        operator fun invoke(
+            c: Point<Dim2, Flt64> = point2(
+                Random.nextFlt64(-Flt64.one, Flt64.one),
+                Random.nextFlt64(-Flt64.one, Flt64.one)
+            ),
+            d: Flt64 = Flt64.two,
+            x: Point<Dim2, Flt64> = point2(
+                Random.nextFlt64(-Flt64.one, Flt64.one),
+                Random.nextFlt64(-Flt64.one, Flt64.one)
+            )
+        ): ComplexQuadraticPolynomialGenerator {
+            return ComplexQuadraticPolynomialGenerator(
+                ComplexQuadraticPolynomial(c, d),
+                x
+            )
+        }
+    }
+
+    val x by ::_x
+
+    override operator fun invoke(): Point<Dim2, Flt64> {
+        val x = _x.copy()
+        _x = complexQuadraticPolynomial(x)
+        return x
+    }
+}

@@ -1,19 +1,42 @@
+/**
+ * 并行组合列生成求解器
+ * Parallel Combinatorial Column Generation Solver
+ *
+ * 将多个列生成求解器并行运行，取第一个或最优结果。
+ * Runs multiple column generation solvers in parallel, taking the first or best result.
+*/
 package fuookami.ospf.kotlin.framework.solver
 
 import kotlinx.coroutines.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.error.*
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.error.SolverNotFoundError
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.backend.solver.output.*
 
+/**
+ * 并行组合列生成求解器
+ * Parallel combinatorial column generation solver
+ *
+ * @property solvers 列生成求解器列表（懒加载） / Column generation solver list (lazy loaded)
+ * @property mode 并行组合模式，默认 Best / Parallel combinatorial mode, default Best
+*/
 class ParallelCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
     private val mode: ParallelCombinatorialMode = ParallelCombinatorialMode.Best
-): ColumnGenerationSolver {
+) : ColumnGenerationSolver {
     private val logger = logger()
 
     companion object {
+        /**
+         * Construct from an iterable of solvers.
+         * 从求解器可迭代集合构造。
+         *
+         * @param solvers the solvers to combine / 要组合的求解器
+         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
+         * @return the parallel combinatorial solver / 并行组合求解器
+        */
         @JvmName("constructBySolvers")
         operator fun invoke(
             solvers: Iterable<ColumnGenerationSolver>,
@@ -22,6 +45,14 @@ class ParallelCombinatorialColumnGenerationSolver(
             return ParallelCombinatorialColumnGenerationSolver(solvers.map { lazy { it } }, mode)
         }
 
+        /**
+         * Construct from a list of solver provider functions.
+         * 从求解器提供函数列表构造。
+         *
+         * @param solvers the solver provider functions / 求解器提供函数列表
+         * @param mode the combinatorial mode, default Best / 组合模式，默认 Best
+         * @return the parallel combinatorial solver / 并行组合求解器
+        */
         @JvmName("constructBySolverExtractors")
         operator fun invoke(
             solvers: List<() -> ColumnGenerationSolver>,
@@ -35,14 +66,14 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<Flt64FeasibleSolverOutput> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput? = null
+                var result: Flt64FeasibleSolverOutput? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -64,6 +95,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${it.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${it.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -71,7 +106,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -100,6 +135,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${it.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${it.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -112,6 +151,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -128,7 +171,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }
@@ -137,7 +180,7 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -166,6 +209,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                     is Failed -> {
                                         logger.warn { "Solver ${it.value.name} failed with error ${ret.error.code}: ${ret.error.message}" }
                                     }
+
+                                    is Fatal -> {
+                                        logger.error { "Solver ${it.value.name} fatal: ${ret.errors.joinToString { it.message }}" }
+                                    }
                                 }
                             }
                         }
@@ -173,7 +220,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         if (result != null) {
                             Ok(result!!)
                         } else {
-                            Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                            Failed(SolverNotFoundError())
                         }
                     }
                 } catch (e: Exception) {
@@ -202,6 +249,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                                 is Failed -> {
                                     logger.warn { "Solver ${it.value.name} failed with error ${result.error.code}: ${result.error.message}" }
                                 }
+
+                                is Fatal -> {
+                                    logger.error { "Solver ${it.value.name} fatal: ${result.errors.joinToString { it.message }}" }
+                                }
                             }
                             result
                         }
@@ -214,6 +265,10 @@ class ParallelCombinatorialColumnGenerationSolver(
                             }
 
                             is Failed -> {
+                                null
+                            }
+
+                            is Fatal -> {
                                 null
                             }
                         }
@@ -230,7 +285,7 @@ class ParallelCombinatorialColumnGenerationSolver(
                         }
                         Ok(bestResult)
                     } else {
-                        Failed(ErrorCode.SolverNotFound, "No solver valid.")
+                        Failed(SolverNotFoundError())
                     }
                 }
             }

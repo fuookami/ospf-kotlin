@@ -1,0 +1,65 @@
+{
+  "kpi": {
+    "bin_count": "1",
+    "material_count": "2",
+    "fixture": "mixed-shape-renderer-schema"
+  },
+  "loadingPlans": [
+    {
+      "group": [
+        "renderer-fixture"
+      ],
+      "name": "bin-fixture-1",
+      "typeCode": "BIN-A",
+      "width": "3.0",
+      "height": "3.0",
+      "depth": "3.0",
+      "loadingRate": "0.07194362207692363",
+      "weight": "2.0",
+      "volume": "1.9424777960769379",
+      "items": [
+        {
+          "name": "box-1",
+          "packageType": "CartonContainer",
+          "width": "1.0",
+          "height": "1.0",
+          "depth": "1.0",
+          "x": "0.0",
+          "y": "0.0",
+          "z": "0.0",
+          "weight": "1.0",
+          "loadingOrder": 1,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": "1.0",
+          "boundingHeight": "1.0",
+          "boundingDepth": "1.0",
+          "actualVolume": "1.0"
+        },
+        {
+          "name": "cyl-y-1",
+          "packageType": "CartonContainer",
+          "width": "1.0",
+          "height": "1.2",
+          "depth": "1.0",
+          "x": "1.0",
+          "y": "0.0",
+          "z": "0.0",
+          "weight": "1.0",
+          "loadingOrder": 2,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "VerticalCylinder",
+          "radius": "0.5",
+          "diameter": "1.0",
+          "axis": "Y",
+          "boundingWidth": "1.0",
+          "boundingHeight": "1.2",
+          "boundingDepth": "1.0",
+          "actualVolume": "0.9424777960769379"
+        }
+      ]
+    }
+  ]
+}

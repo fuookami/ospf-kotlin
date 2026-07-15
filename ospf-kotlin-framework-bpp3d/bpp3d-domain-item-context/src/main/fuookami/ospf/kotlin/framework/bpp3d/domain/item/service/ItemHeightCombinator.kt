@@ -1,30 +1,45 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.operator.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
+import kotlinx.coroutines.channels.Channel
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import fuookami.ospf.kotlin.utils.functional.Extractor
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.eq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.geq
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.gr
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.leq
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 
+/**
+ * 货物高度组合器，用于在装箱过程中匹配符合高度约束的货物组合。
+ * Item height combinator for matching item combinations that satisfy height constraints during bin packing.
+*/
 data object ItemHeightCombinator {
     private val logger = logger()
-    private val defaultTowSumOffset = Flt64(300.0)
-    private val defaultThreeSumOffset = Flt64(300.0)
+    private val defaultTowSumOffset = FltX(300.0)
+    private val defaultThreeSumOffset = FltX(300.0)
 
+    /**
+     * 二数求和：从高度列表中寻找两个高度，使其和接近但不超过目标高度。
+     * Two-sum: find two heights from the list whose sum is close to but does not exceed the target height.
+     * @param height 目标高度 / target height
+     * @param heights 候选高度列表 / list of candidate heights
+     * @param offset 软约束偏移量 / soft constraint offset
+     * @return 符合条件的二元组列表，按与目标高度差值的升序排列 / list of qualified pairs sorted by distance to target height
+    */
     fun twoSum(
-        height: Flt64,
-        heights: List<Flt64>,
-        offset: Flt64 = defaultTowSumOffset
-    ): List<Pair<Flt64, Flt64>> {
+        height: FltX,
+        heights: List<FltX>,
+        offset: FltX = defaultTowSumOffset
+    ): List<Pair<FltX, FltX>> {
         // todo: use Two Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * Flt64(scale.toDouble())
-            val map = ArrayList<Pair<Flt64, Flt64>>()
+            val heightSoft = offset * FltX(scale.toDouble())
+            val map = ArrayList<Pair<FltX, FltX>>()
             for (i in heights.indices) {
                 for (j in (i + 1) until heights.size) {
                     val sum = heights[i] + heights[j]
@@ -34,22 +49,30 @@ data object ItemHeightCombinator {
                 }
             }
             if (map.isNotEmpty()) {
-                return map.sortedBy { height - (it.first + it.second) }
+                return map.sortedBy { height - it.first - it.second }
             }
         }
         return emptyList()
     }
 
+    /**
+     * 三数求和：从高度列表中寻找三个高度，使其和接近但不超过目标高度。
+     * Three-sum: find three heights from the list whose sum is close to but does not exceed the target height.
+     * @param height 目标高度 / target height
+     * @param heights 候选高度列表 / list of candidate heights
+     * @param offset 软约束偏移量 / soft constraint offset
+     * @return 符合条件的三元组列表，按与目标高度差值的升序排列 / list of qualified triples sorted by distance to target height
+    */
     fun threeSum(
-        height: Flt64,
-        heights: List<Flt64>,
-        offset: Flt64 = defaultThreeSumOffset
-    ): List<Triple<Flt64, Flt64, Flt64>> {
+        height: FltX,
+        heights: List<FltX>,
+        offset: FltX = defaultThreeSumOffset
+    ): List<Triple<FltX, FltX, FltX>> {
         // todo: use Three Sum algorithm
 
         for (scale in 1..2) {
-            val heightSoft = offset * Flt64(scale.toDouble())
-            val map = ArrayList<Triple<Flt64, Flt64, Flt64>>()
+            val heightSoft = offset * FltX(scale.toDouble())
+            val map = ArrayList<Triple<FltX, FltX, FltX>>()
             for (i in heights.indices) {
                 for (j in i until heights.size) {
                     for (k in j until heights.size) {
@@ -65,18 +88,28 @@ data object ItemHeightCombinator {
                 }
             }
             if (map.isNotEmpty()) {
-                return map.sortedBy { height - (it.first + it.second + it.third) }
+                return map.sortedBy { height - it.first - it.second - it.third }
             }
         }
         return emptyList()
     }
 
+    /**
+     * 获取两个货物的组合，满足高度和重量约束。
+     * Get a combination of two items satisfying height and weight constraints.
+     * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
+     * @param itemsAmount 货物数量映射 / map of item amounts
+     * @param heights 两个货物的目标高度 / target heights for the two items
+     * @param restWeight 剩余重量限制 / remaining weight limit
+     * @param averageWeight 平均重量参考值 / average weight reference value
+     * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
+    */
     suspend fun getItemCombination(
-        itemsGroup: Map<Flt64, List<Item>>,
+        itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<Flt64, Flt64>,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null
+        heights: Pair<FltX, FltX>,
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -89,12 +122,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<Flt64, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Pair<Flt64, Flt64>,
+        heights: Pair<FltX, FltX>,
         mapper: Extractor<Item, T>,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -114,11 +147,13 @@ data object ItemHeightCombinator {
                         itemsAmount = itemsAmount,
                         height = heights.second,
                         mapper = mapper,
-                        restWeight = restWeight - mapper(firstItem).weight,
-                        averageWeight = averageWeight?.let { it - mapper(firstItem).weight },
+                        restWeight = restWeight - mapper(firstItem).weight.value,
+                        averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value },
                         scope = this
                     )) {
-                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending { it.weight }
+                        val thisItems = listOf(mapper(firstItem), mapper(secondItem)).sortedByDescending {
+                            it.weight.value.toDouble()
+                        }
                         var flag = true
                         for (i in thisItems.indices) {
                             if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -143,12 +178,22 @@ data object ItemHeightCombinator {
         return items
     }
 
+    /**
+     * 获取三个货物的组合，满足高度和重量约束。
+     * Get a combination of three items satisfying height and weight constraints.
+     * @param itemsGroup 按高度分组的货物映射 / map of items grouped by height
+     * @param itemsAmount 货物数量映射 / map of item amounts
+     * @param heights 三个货物的目标高度 / target heights for the three items
+     * @param restWeight 剩余重量限制 / remaining weight limit
+     * @param averageWeight 平均重量参考值 / average weight reference value
+     * @return 符合条件的货物组合，未找到则返回 null / qualified item combination, or null if not found
+    */
     suspend fun getItemCombination(
-        itemsGroup: Map<Flt64, List<Item>>,
+        itemsGroup: Map<FltX, List<Item>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<Flt64, Flt64, Flt64>,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null
+        heights: Triple<FltX, FltX, FltX>,
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null
     ): List<Item>? {
         return getItemCombination(
             itemsGroup = itemsGroup,
@@ -161,12 +206,12 @@ data object ItemHeightCombinator {
     }
 
     suspend fun <T> getItemCombination(
-        itemsGroup: Map<Flt64, List<T>>,
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        heights: Triple<Flt64, Flt64, Flt64>,
+        heights: Triple<FltX, FltX, FltX>,
         mapper: (T) -> Item,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null,
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null,
     ): List<Item>? {
         var items: List<Item>? = null
 
@@ -187,11 +232,13 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.third,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight - mapper(secondItem).weight,
-                            averageWeight = averageWeight?.let { it - mapper(firstItem).weight - mapper(secondItem).weight },
+                            restWeight = restWeight - mapper(firstItem).weight.value - mapper(secondItem).weight.value,
+                            averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value - mapper(secondItem).weight.value },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                it.weight.value.toDouble()
+                            }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -220,11 +267,13 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.second,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight,
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight) / Flt64.two },
+                            restWeight = restWeight - mapper(firstItem).weight.value,
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) / FltX.two },
                             scope = this
                         )) {
-                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
+                            val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                it.weight.value.toDouble()
+                            }
                             var flag = true
                             for (i in thisItems.indices) {
                                 if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -253,8 +302,8 @@ data object ItemHeightCombinator {
                             itemsAmount = itemsAmount,
                             height = heights.second,
                             mapper = mapper,
-                            restWeight = restWeight - mapper(firstItem).weight,
-                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight) * heights.second / (heights.second + heights.third) },
+                            restWeight = restWeight - mapper(firstItem).weight.value,
+                            averageWeight = averageWeight?.let { (it - mapper(firstItem).weight.value) * heights.second / (heights.second + heights.third) },
                             scope = this
                         )) {
                             for (thirdItem in getItem(
@@ -262,11 +311,13 @@ data object ItemHeightCombinator {
                                 itemsAmount = itemsAmount,
                                 height = heights.third,
                                 mapper = mapper,
-                                restWeight = restWeight - mapper(firstItem).weight - mapper(secondItem).weight,
-                                averageWeight = averageWeight?.let { it - mapper(firstItem).weight - mapper(secondItem).weight },
+                                restWeight = restWeight - mapper(firstItem).weight.value - mapper(secondItem).weight.value,
+                                averageWeight = averageWeight?.let { it - mapper(firstItem).weight.value - mapper(secondItem).weight.value },
                                 scope = this
                             )) {
-                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending { it.weight }
+                                val thisItems = listOf(mapper(firstItem), mapper(secondItem), mapper(thirdItem)).sortedByDescending {
+                                    it.weight.value.toDouble()
+                                }
                                 var flag = true
                                 for (i in thisItems.indices) {
                                     if (!thisItems[i + 1].enabledStackingOn(thisItems[i], UInt64((i + 1)))) {
@@ -293,39 +344,35 @@ data object ItemHeightCombinator {
         return items
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun <T> getItem(
-        itemsGroup: Map<Flt64, List<T>>,
+        private fun <T> getItem(
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: Flt64,
+        height: FltX,
         mapper: (T) -> Item,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null,
-        scope: CoroutineScope = GlobalScope
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null,
+        scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
         val promise = Channel<T>(Channel.UNLIMITED)
         scope.launch(Dispatchers.Default) {
             try {
-                val items = itemsGroup[height]?.toMutableList()
-                if (items != null) {
-                    if (averageWeight != null) {
-                        items.sortBy { abs(mapper(it).weight - averageWeight) }
-                    }
-                    for (item in items) {
-                        if (itemsAmount[mapper(item)]?.let { it >= UInt64.one } == true
-                            && mapper(item).weight leq restWeight
+                    val items = itemsGroup[height]?.toMutableList()
+                    if (items != null) {
+                        if (averageWeight != null) {
+                            items.sortBy { abs(mapper(it).weight.value - averageWeight).toDouble() }
+                        }
+                        for (item in items) {
+                            if (itemsAmount[mapper(item)]?.let { it >= UInt64.one } == true
+                            && mapper(item).weight.value leq restWeight
                         ) {
-                            if (promise.isClosedForSend) {
+                            if (promise.trySend(item).isFailure) {
                                 break
                             }
-                            promise.send(item)
                         }
                     }
                 }
 
                 promise.close()
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Item height combination was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Item height combination was stopped by controller." }
             } catch (e: Exception) {
@@ -337,15 +384,14 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun <T> getItem2(
-        itemsGroup: Map<Flt64, List<T>>,
+        private fun <T> getItem2(
+        itemsGroup: Map<FltX, List<T>>,
         itemsAmount: Map<Item, UInt64>,
-        height: Flt64,
+        height: FltX,
         mapper: (T) -> Item,
-        restWeight: Flt64 = Flt64.infinity,
-        averageWeight: Flt64? = null,
-        scope: CoroutineScope = GlobalScope
+        restWeight: FltX = FltX.maximum,
+        averageWeight: FltX? = null,
+        scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {
         val promise = Channel<Pair<T, T>>(Channel.UNLIMITED)
         scope.launch(Dispatchers.Default) {
@@ -362,22 +408,19 @@ data object ItemHeightCombinator {
                         }
                     }.flatten().toMutableList()
                     if (averageWeight != null) {
-                        list.sortBy { abs(mapper(it).weight - averageWeight) }
+                        list.sortBy { abs(mapper(it).weight.value - averageWeight).toDouble() }
                     }
                     for (i in list.indices) {
                         for (j in (i + 1) until list.size) {
-                            if ((mapper(list[i]).weight + mapper(list[j]).weight) gr restWeight) {
+                            if ((mapper(list[i]).weight.value + mapper(list[j]).weight.value) gr restWeight) {
                                 continue
                             }
-                            if (promise.isClosedForSend) {
+                            if (promise.trySend(Pair(list[i], list[j])).isFailure) {
                                 break
                             }
-                            promise.send(Pair(list[i], list[j]))
                         }
                     }
                 }
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Item height combination was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Item height combination was stopped by controller." }
             } catch (e: Exception) {

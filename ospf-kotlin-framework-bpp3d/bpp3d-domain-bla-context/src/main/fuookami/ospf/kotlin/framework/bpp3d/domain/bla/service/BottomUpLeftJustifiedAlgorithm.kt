@@ -1,25 +1,39 @@
+/**
+ * Bottom-up left-justified algorithm.
+ * 自底向上左对齐算法。
+*/
 package fuookami.ospf.kotlin.framework.bpp3d.domain.bla.service
 
 import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.*
-import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.parallel.*
-import fuookami.ospf.kotlin.utils.operator.*
+import kotlinx.coroutines.channels.Channel
+import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
+import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dValidationError
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 
+/**
+ * Compare the position priority of two 2D points.
+ * 比较两个二维坐标点的位置优先级。
+ *
+ * @param lhs The left-hand side point.
+ * @param rhs The right-hand side point.
+ * @param withManhattanDistance Whether to prioritize sorting by Manhattan distance.
+ * @return The comparison result.
+ * 返回比较结果。
+*/
 private fun compareWithPosition(
-    lhs: Point2,
-    rhs: Point2,
+    lhs: QuantityPoint2<FltX>,
+    rhs: QuantityPoint2<FltX>,
     withManhattanDistance: Boolean = true
 ): Order {
     if (withManhattanDistance) {
-        val lhsManhattanDistance = lhs.distanceBetween(point2(), Distance.Manhattan)
-        val rhsManhattanDistance = rhs.distanceBetween(point2(), Distance.Manhattan)
+        val lhsManhattanDistance = lhs.x + lhs.y
+        val rhsManhattanDistance = rhs.x + rhs.y
         when (val value = lhsManhattanDistance ord rhsManhattanDistance) {
             Order.Equal -> {}
             else -> {
@@ -37,9 +51,18 @@ private fun compareWithPosition(
     return lhs.x ord rhs.x
 }
 
+/**
+ * Compare two projections by shape and weight for placement priority.
+ * 按形状和重量比较两个投影的放置优先级。
+ *
+ * @param lhs The left-hand side projection.
+ * @param rhs The right-hand side projection.
+ * @return The comparison result.
+ * 返回比较结果。
+*/
 fun <P : ProjectivePlane> compareWithShapeAndWeight(
-    lhs: Projection<*, P>,
-    rhs: Projection<*, P>
+    lhs: Projection<*, FltX, P>,
+    rhs: Projection<*, FltX, P>
 ): Order {
     if (lhs.bottomOnly && !rhs.bottomOnly) {
         return Order.Less()
@@ -73,6 +96,14 @@ fun <P : ProjectivePlane> compareWithShapeAndWeight(
     return Order.Equal
 }
 
+/**
+ * Bottom-up left-justified algorithm for solving bin packing on a 2D projection plane.
+ * 自底向上左对齐算法，在二维投影平面上求解装箱问题。
+ *
+ * @property space The 2D shape of the container.
+ * @property plane The projection plane.
+ * @property config The algorithm configuration.
+*/
 class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private val space: Container2Shape<P>,
     private val plane: P,
@@ -80,17 +111,26 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 ) {
     private val logger = logger()
 
-    constructor(length: Flt64, width: Flt64, plane: P, config: Config<P> = Config()) : this(
-        space = Container2Shape(length, width, plane),
+    constructor(length: FltX, width: FltX, plane: P, config: Config<P> = Config()) : this(
+        space = Container2Shape(length * Meter, width * Meter, plane),
         plane = plane,
         config = config
     )
 
+    /**
+     * Configuration for the bottom-up left-justified algorithm.
+     * 自底向上左对齐算法的配置。
+     *
+     * @property withDisplacementX Whether to enable displacement search along the X axis.
+     * @property withDisplacementY Whether to enable displacement search along the Y axis.
+     * @property comparator The three-way comparator for projections, determining placement priority.
+     * @property positionComparator The three-way comparator for positions, determining candidate point priority.
+    */
     data class Config<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,
         val withDisplacementY: Boolean = true,
-        val comparator: ThreeWayComparator<Projection<*, P>> = ::compareWithShapeAndWeight,
-        val positionComparator: ThreeWayComparator<Point2> = { lhs, rhs -> compareWithPosition(lhs, rhs) }
+        val comparator: ThreeWayComparator<Projection<*, FltX, P>> = ::compareWithShapeAndWeight,
+        val positionComparator: ThreeWayComparator<QuantityPoint2<FltX>> = { lhs, rhs -> compareWithPosition(lhs, rhs) }
     ) {
         val withDisplacement = withDisplacementX || withDisplacementY
 
@@ -100,8 +140,8 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 withDisplacementY: Boolean? = null,
                 withDisplacement: Boolean? = null,
                 withManhattanDistance: Boolean? = null,
-                comparator: ThreeWayComparator<Projection<*, P>>? = null,
-                positionComparator: ThreeWayComparator<Point2>? = null
+                comparator: ThreeWayComparator<Projection<*, FltX, P>>? = null,
+                positionComparator: ThreeWayComparator<QuantityPoint2<FltX>>? = null
             ): Config<P> {
                 return Config(
                     withDisplacementX = withDisplacementX ?: withDisplacement ?: true,
@@ -112,25 +152,22 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
     }
-    
-    @OptIn(DelicateCoroutinesApi::class)
+
     operator fun invoke(
-        originProjections: List<Projection<*, P>>,
-        scope: CoroutineScope = GlobalScope
-    ): ChannelGuard<List<Placement2<*, P>?>> {
+        originProjections: List<Projection<*, FltX, P>>,
+        scope: CoroutineScope = bpp3dBlaAsyncScope
+    ): ChannelGuard<List<QuantityPlacement2<*, FltX, P>?>> {
         val projections = config.comparator.let { originProjections.sortedWithThreeWayComparator { lhs, rhs -> it(lhs, rhs) } }
 
-        val promise = Channel<List<Placement2<*, P>?>>()
+        val promise = Channel<List<QuantityPlacement2<*, FltX, P>?>>()
         scope.launch(Dispatchers.Default) {
-            val placements = projections.indices.map { null }.toMutableList<Placement2<*, P>?>()
+            val placements = projections.indices.map { null }.toMutableList<QuantityPlacement2<*, FltX, P>?>()
             try {
                 bla(
                     promise = promise,
                     placements = placements,
                     projections = projections
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "BLA was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "BLA was stopped by controller." }
             } catch (e: Exception) {
@@ -142,61 +179,36 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         return ChannelGuard(promise)
     }
-    
-    @JvmName("invokeT")
-    @Suppress("UNCHECKED_CAST")
-    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
-    operator fun <T : Cuboid<T>> invoke(
-        projections: List<Projection<T, P>>,
-        scope: CoroutineScope = GlobalScope
-    ): ChannelGuard<List<Placement2<T, P>?>> {
-        val promiseWrapper = Channel<List<Placement2<T, P>?>>()
-        scope.launch(Dispatchers.Default) {
-            val promise = invoke(
-                originProjections = projections,
-                scope = scope
-            )
-            try {
-                for (result in promise) {
-                    if (promiseWrapper.isClosedForSend) {
-                        break
-                    }
-                    promiseWrapper.send(result as List<Placement2<T, P>?>)
-                }
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "BLA was stopped by controller." }
-            } catch (e: CancellationException) {
-                logger.trace { "BLA was stopped by controller." }
-            } catch (e: Exception) {
-                e.printStackTrace()
-                logger.debug { "BLA Error ${e.message}" }
-            } finally {
-                promise.close()
-                promiseWrapper.close()
-            }
-        }
-        return ChannelGuard(promiseWrapper)
-    }
-    
-    @OptIn(DelicateCoroutinesApi::class)
+
+    /**
+     * 执行自底向上左对齐算法的核心回溯逻辑。
+     * Core backtracking logic of the bottom-up left-justified algorithm.
+     *
+     * @param promise 用于发送找到的放置方案的通道
+     * @param placements 当前放置方案的可变列表
+     * @param projections 待放置的投影列表（已排序）
+    */
     private suspend fun bla(
-        promise: Channel<List<Placement2<*, P>?>>,
-        placements: MutableList<Placement2<*, P>?>,
-        projections: List<Projection<*, P>>
+        promise: Channel<List<QuantityPlacement2<*, FltX, P>?>>,
+        placements: MutableList<QuantityPlacement2<*, FltX, P>?>,
+        projections: List<Projection<*, FltX, P>>
     ) {
         if (projections.isEmpty()) {
             return
         }
 
-        val stack = ArrayList<Pair<Int, Placement2<*, P>?>>()
+        val stack = ArrayList<Pair<Int, QuantityPlacement2<*, FltX, P>?>>()
         stack.add(Pair(0, null))
         coroutineScope {
-            val promises = ArrayList<Deferred<Placement2<*, P>?>>()
+            val promises = ArrayList<Deferred<QuantityPlacement2<*, FltX, P>?>>()
             val thisFeasiblePoints = feasiblePoints(placements = placements, reverse = true)
             for (feasiblePoint in thisFeasiblePoints) {
                 promises.add(async(Dispatchers.Default) {
-                    val placement = Placement2(projections[0], feasiblePoint)
-                    if (feasible(placement, placements)) {
+                    val placement = placement2Of(
+                        projection = projections[0],
+                        position = feasiblePoint
+                    )
+                    if (feasible(placement, placements).value!!) {
                         placement
                     } else {
                         null
@@ -207,22 +219,17 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
 
         var lastImpossible = false
-        var lastFeasiblePoints: List<Point2> = emptyList()
+        var lastFeasiblePoints: List<QuantityPoint2<FltX>> = emptyList()
         while (stack.isNotEmpty()) {
-            if (promise.isClosedForSend) {
-                return
-            }
-
             val top = stack.removeAt(stack.lastIndex)
             placements[top.first] = top.second
             val i = top.first + 1
             if (top.first == projections.lastIndex) {
-                if (promise.isClosedForSend) {
-                    return
-                }
                 lastImpossible = false
                 lastFeasiblePoints = emptyList()
-                promise.send(placements.toList())
+                if (promise.trySend(placements.toList()).isFailure) {
+                    return
+                }
             } else {
                 stack.add(Pair(i, null))
                 if (lastImpossible
@@ -238,7 +245,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                     // 2. 被上一个放置的物料包住的点
                     val lastAvailablePoints = lastFeasiblePoints.filter {
                         it != lastPlacement.position                                                                // 和上一个放置的物料在相同位置的点
-                                && !lastPlacement.contains(it, withUpperBound = false)                              // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面）
+                                && lastPlacement.contains(it, withUpperBound = false).value != true                 // 被上一个放置的物料包住的点（包括三个坐标轴上距离原点较小的平面）
                     }
                     (lastAvailablePoints + feasiblePoints(
                         targetPlacements = listOf(lastPlacement),
@@ -249,11 +256,14 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                     feasiblePoints(placements = placements, reverse = true)
                 }
                 coroutineScope {
-                    val promises = ArrayList<Deferred<Placement2<*, P>?>>()
+                    val promises = ArrayList<Deferred<QuantityPlacement2<*, FltX, P>?>>()
                     for (feasiblePoint in thisFeasiblePoints) {
                         promises.add(async(Dispatchers.Default) {
-                            val placement = Placement2(projections[i], feasiblePoint)
-                            if (feasible(placement, placements)) {
+                            val placement = placement2Of(
+                                projection = projections[i],
+                                position = feasiblePoint
+                            )
+                            if (feasible(placement, placements).value!!) {
                                 placement
                             } else {
                                 null
@@ -268,27 +278,44 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             }
         }
     }
-    
+
+    /**
+     * 根据已放置的物料计算所有可行放置点（目标放置与固定放置相同）。
+     * Compute all feasible placement points where target and fixed placements are the same.
+     *
+     * @param placements 已放置的物料列表
+     * @param reverse 是否按逆序（从远到近）排列结果
+     * @return 可行放置点列表
+    */
     private suspend fun feasiblePoints(
-        placements: List<Placement2<*, P>?>,
+        placements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
-    ): List<Point2> {
+    ): List<QuantityPoint2<FltX>> {
         return feasiblePoints(
             targetPlacements = placements,
             fixedPlacements = placements,
             reverse = reverse
         )
     }
-    
+
+    /**
+     * 根据已固定的放置计算所有可行放置点。
+     * Compute all feasible placement points based on fixed placements.
+     *
+     * @param targetPlacements 用于生成候选点的放置列表
+     * @param fixedPlacements 用于判断重叠和包含关系的已固定放置列表
+     * @param reverse 是否按逆序（从远到近）排列结果
+     * @return 可行放置点列表
+    */
     private suspend fun feasiblePoints(
-        targetPlacements: List<Placement2<*, P>?>,
-        fixedPlacements: List<Placement2<*, P>?>,
+        targetPlacements: List<QuantityPlacement2<*, FltX, P>?>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>,
         reverse: Boolean = true
-    ): List<Point2> {
-        val ret = HashSet<Point2>()
+    ): List<QuantityPoint2<FltX>> {
+        val ret = HashSet<QuantityPoint2<FltX>>()
         for (placement in targetPlacements) {
             if (placement != null) {
-                val thisPoints = HashSet<Point2>()
+                val thisPoints = HashSet<QuantityPoint2<FltX>>()
 
                 val upperLeftPoint = point2(x = placement.x, y = placement.maxY)
                 val bottomRightPoint = point2(x = placement.maxX, y = placement.y)
@@ -313,7 +340,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
 
                 thisPoints.removeAll {
                     fixedPlacements.any { fixedPlacement ->
-                        fixedPlacement?.contains(it, withUpperBound = false) ?: false
+                        fixedPlacement?.contains(it, withUpperBound = false)?.value ?: false
                     }
                 }
                 ret.addAll(thisPoints)
@@ -321,11 +348,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         ret.removeAll {
             fixedPlacements.any { fixedPlacement ->
-                fixedPlacement?.contains(it, withUpperBound = false) ?: false
+                fixedPlacement?.contains(it, withUpperBound = false)?.value ?: false
             }
         }
         if (ret.isEmpty()) {
-            ret.add(point2())
+            ret.add(point2FltX())
         }
         return if (reverse) {
             ret.sortedWithThreeWayComparator { lhs, rhs -> (!config.positionComparator)(lhs, rhs) }
@@ -333,14 +360,23 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             ret.sortedWithThreeWayComparator { lhs, rhs -> config.positionComparator(lhs, rhs) }
         }
     }
-    
+
+    /**
+     * 从候选点出发，沿 X 和 Y 轴方向递归搜索所有实际可行点。
+     * Recursively search all actual feasible points from a candidate point along X and Y axes.
+     *
+     * @param point 起始候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return 所有可达的实际可行点列表
+    */
     private fun actualFeasiblePoints(
-        point: Point2,
-        placement: Placement2<*, *>,
-        fixedPlacements: List<Placement2<*, *>?>
-    ): List<Point2> {
+        point: QuantityPoint2<FltX>,
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
+    ): List<QuantityPoint2<FltX>> {
         val stack = arrayListOf(point)
-        val points = ArrayList<Point2>()
+        val points = ArrayList<QuantityPoint2<FltX>>()
         while (stack.isNotEmpty()) {
             val thisPoint = stack.removeAt(stack.lastIndex)
             points.add(thisPoint)
@@ -369,22 +405,32 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
         return points
     }
-    
+
+    /**
+     * 沿 X 轴方向寻找实际可行点（向原点方向滑动）。
+     * Find the actual feasible point along the X axis (sliding toward the origin).
+     *
+     * @param point 当前候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return X 轴方向的实际可行点，若已在原点则返回 null
+    */
     private fun actualFeasiblePointOnX(
-        point: Point2,
-        placement: Placement2<*, *>,
-        fixedPlacements: List<Placement2<*, *>?>
-    ): Point2? {
-        if (point.x eq Flt64.zero) {
+        point: QuantityPoint2<FltX>,
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
+    ): QuantityPoint2<FltX>? {
+        if (point.x eq FltX.zero) {
             return null
         }
 
-        var maxX = Flt64.negativeInfinity
+        var maxX = FltX.minimum * point.x.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
             }
-            if (ValueRange(fixedPlacement.y, fixedPlacement.maxY).value!!.contains(point.y)
+            if (point.y geq fixedPlacement.y
+                && point.y leq fixedPlacement.maxY
                 && fixedPlacement.maxX leq point.x
             ) {
                 if (fixedPlacement.maxX geq maxX) {
@@ -392,28 +438,38 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
             }
         }
-        return if (maxX.isNegativeInfinity()) {
-            point2(x = Flt64.zero, y = point.y)
+        return if (maxX eq FltX.minimum) {
+            point2(x = FltX.zero * point.x.unit, y = point.y)
         } else {
             point2(x = maxX, y = point.y)
         }
     }
-    
+
+    /**
+     * 沿 Y 轴方向寻找实际可行点（向原点方向滑动）。
+     * Find the actual feasible point along the Y axis (sliding toward the origin).
+     *
+     * @param point 当前候选点
+     * @param placement 当前放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return Y 轴方向的实际可行点，若已在原点则返回 null
+    */
     private fun actualFeasiblePointOnY(
-        point: Point2,
-        placement: Placement2<*, *>,
-        fixedPlacements: List<Placement2<*, *>?>
-    ): Point2? {
-        if (point.y eq Flt64.zero) {
+        point: QuantityPoint2<FltX>,
+        placement: QuantityPlacement2<*, FltX, *>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, *>?>
+    ): QuantityPoint2<FltX>? {
+        if (point.y eq FltX.zero) {
             return null
         }
 
-        var maxY = Flt64.negativeInfinity
+        var maxY = FltX.minimum * point.y.unit
         for (fixedPlacement in fixedPlacements.filterNotNull()) {
             if (fixedPlacement == placement) {
                 continue
             }
-            if (ValueRange(fixedPlacement.x, fixedPlacement.maxX).value!!.contains(point.x)
+            if (point.x geq fixedPlacement.x
+                && point.x leq fixedPlacement.maxX
                 && fixedPlacement.maxY leq point.y
             ) {
                 if (fixedPlacement.maxY geq maxY) {
@@ -421,67 +477,79 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 }
             }
         }
-        return if (maxY.isNegativeInfinity()) {
-            point2(x = point.x, y = Flt64.zero)
+        return if (maxY eq FltX.minimum) {
+            point2(x = point.x, y = FltX.zero * point.y.unit)
         } else {
             point2(x = point.x, y = maxY)
         }
     }
-    
-    @Suppress("UNCHECKED_CAST")
+
+    /**
+     * 检查放置是否可行（不越界、不重叠、满足堆叠约束）。
+     * Check whether a placement is feasible (within bounds, no overlap, satisfying stacking constraints).
+     *
+     * @param placement 待检查的放置
+     * @param fixedPlacements 已固定的放置列表
+     * @return 可行则返回 Ok(true)，不可行返回 Ok(false)，出错返回 Failed/Fatal
+    */
     private suspend fun feasible(
-        placement: Placement2<*, P>,
-        fixedPlacements: List<Placement2<*, P>?>
-    ): Boolean {
+        placement: QuantityPlacement2<*, FltX, P>,
+        fixedPlacements: List<QuantityPlacement2<*, FltX, P>?>
+    ): Ret<Boolean> {
         if ((placement.maxX gr space.length) || (placement.maxY gr space.width)) {
-            return false
+            return ok(false)
         }
 
         if (plane != Bottom) {
             when (val unit = placement.unit) {
                 is Item -> {
                     if (!when (plane) {
-                            is Side -> (placement as ItemPlacement2<Side>).enabledStackingOn(
-                                bottomItems = fixedPlacements.filterNotNull().map { it as Placement2<*, Side> },
-                                space = space.restSpace(placement.position) as Container2Shape<Side>
-                            )
-
-                            is Front -> (placement as ItemPlacement2<Front>).enabledStackingOn(
-                                fixedPlacements.filterNotNull().map { it as Placement2<*, Front> },
-                                space = space.restSpace(placement.position) as Container2Shape<Front>
+                            is Side, is Front -> placement.enabledItemStackingOnPlane(
+                                bottomItems = fixedPlacements,
+                                space = space
                             )
 
                             else -> true
                         }
                     ) {
-                        return false
+                        return ok(false)
                     }
                 }
 
                 is Block -> {
                     if (!when (plane) {
-                            is Side -> (placement as BlockPlacement2<Side>).enabledStackingOn(
-                                bottomItems = fixedPlacements.filterNotNull().map { it as Placement2<*, Side> },
-                                space = space.restSpace(placement.position) as Container2Shape<Side>
-                            )
-
-                            is Front -> (placement as BlockPlacement2<Front>).enabledStackingOn(
-                                fixedPlacements.filterNotNull().map { it as Placement2<*, Front> },
-                                space = space.restSpace(placement.position) as Container2Shape<Front>
+                            is Side, is Front -> placement.enabledBlockStackingOnPlane(
+                                bottomItems = fixedPlacements,
+                                space = space
                             )
 
                             else -> true
                         }
                     ) {
-                        return false
+                        return ok(false)
                     }
                 }
 
                 else -> {
-                    throw IllegalArgumentException("Invalid unit type: ${unit.javaClass}")
+                    return Failed(Bpp3dValidationError("Invalid unit type: ${unit.javaClass}"))
                 }
             }
         }
-        return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
+        for (fixedPlacement in fixedPlacements.asSequence().filterNotNull()) {
+            when (val result = fixedPlacement.overlapped(placement)) {
+                is Ok -> if (result.value) {
+                    return ok(false)
+                }
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+        return ok(true)
     }
 }

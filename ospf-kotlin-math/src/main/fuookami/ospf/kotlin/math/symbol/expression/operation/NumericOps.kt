@@ -1,0 +1,270 @@
+/**
+ * 数值运算分派层
+ * Numeric Operations Dispatch Layer
+ *
+ * 抽象数值类型的一元和二元运算，替仌EvaluateBoolean.kt 中的硬编码类型分支。
+ * Abstracts numeric operations for unary and binary operators, replacing hardcoded type branches.
+*/
+package fuookami.ospf.kotlin.math.symbol.expression.operation
+
+import kotlin.reflect.KClass
+import fuookami.ospf.kotlin.math.symbol.expression.*
+
+/**
+ * 数值运算接双
+ * Numeric Operations Interface
+ *
+ * 为特定数值类型提供一元和二元运算的实现。
+ * Provides unary and binary operation implementations for a specific numeric type.
+ *
+ * @param T 数值类垌/ Numeric type
+*/
+interface NumericOps<T : Any> {
+
+    /** 类型标记，用于运行时匹配 / Type marker for runtime matching */
+    val type: KClass<T>
+
+    /**
+     * 取反 / Negation
+     *
+     * @param value 原始值 / Original value
+     * @return 取反后的值 / Negated value
+    */
+    fun negate(value: T): T
+
+    /**
+     * 绝对值 / Absolute value
+     *
+     * @param value 原始值 / Original value
+     * @return 绝对值 / Absolute value
+    */
+    fun abs(value: T): T
+
+    /**
+     * 加法 / Addition
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相加结果 / Sum result
+    */
+    fun add(left: T, right: T): T
+
+    /**
+     * 减法 / Subtraction
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相减结果 / Difference result
+    */
+    fun subtract(left: T, right: T): T
+
+    /**
+     * 乘法 / Multiplication
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相乘结果 / Product result
+    */
+    fun multiply(left: T, right: T): T
+
+    /**
+     * 除法 / Division (returns null on division by zero)
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 相除结果，除零时返回 null / Division result, null on division by zero
+    */
+    fun divide(left: T, right: T): T?
+
+    /**
+     * 取模 / Modulo (returns null on division by zero)
+     *
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 取模结果，除零时返回 null / Modulo result, null on division by zero
+    */
+    fun modulo(left: T, right: T): T?
+
+    /**
+     * 幂运算 / Power
+     *
+     * @param left 底数 / Base
+     * @param right 指数 / Exponent
+     * @return 幂运算结果 / Power result
+    */
+    fun power(left: T, right: T): T?
+}
+
+/**
+ * 数值分派器
+ * Numeric Dispatcher
+ *
+ * 管理注册皌NumericOps 实例，根据运行时类型分派运算。
+ * Manages registered NumericOps instances and dispatches operations based on runtime type.
+*/
+object NumericDispatcher {
+    private val registry = mutableMapOf<KClass<out Any>, NumericOps<out Any>>()
+
+    init {
+        registerBuiltInNumericOps()
+    }
+
+    /**
+     * 注册数值运算处理器 / Register a numeric operation handler
+     *
+     * @param ops 数值运算实现 / Numeric operations implementation
+    */
+    fun <T : Any> register(ops: NumericOps<T>) {
+        registry[ops.type] = ops
+    }
+
+    /** 根据运行时类型获取类型化的数值运算处理器 / Get typed numeric operation handler by runtime type */
+    @Suppress("UNCHECKED_CAST")
+    private fun <T : Any> typedOpsFor(type: KClass<out Any>): NumericOps<T>? {
+        // 注册时 key 来自 ops.type，读取时只按同一个运行时 KClass 取回。
+        // The key is ops.type at registration, so lookup by the same runtime KClass preserves T.
+        return registry[type] as NumericOps<T>?
+    }
+
+    /**
+     * 获取指定类型的运算处理器 / Get operation handler for type
+     *
+     * @param type 数值类型 / Numeric type
+     * @return 运算处理器，未注册时返回 null / Operation handler, null if not registered
+    */
+    fun <T : Any> opsFor(type: KClass<T>): NumericOps<T>? {
+        return typedOpsFor(type)
+    }
+
+    /**
+     * 获取值的运算处理器 / Get operation handler for a value's type
+     *
+     * @param value 数值 / Numeric value
+     * @return 运算处理器，未注册时返回 null / Operation handler, null if not registered
+    */
+    fun <T : Any> opsFor(value: T): NumericOps<T>? {
+        return typedOpsFor(value::class)
+    }
+
+    /**
+     * 执行一元运算 / Execute unary operation
+     *
+     * @param operator 一元操作符 / Unary operator
+     * @param operand 操作数 / Operand
+     * @return 运算结果，不支持的类型返回 null / Operation result, null if type not supported
+    */
+    fun evaluateUnary(operator: UnaryOperator, operand: Any): Any? {
+        if (operator == UnaryOperator.Positive) {
+            return operand
+        }
+        val ops = typedOpsFor<Any>(operand::class) ?: return null
+
+        return when (operator) {
+            UnaryOperator.Negate -> ops.negate(operand)
+            UnaryOperator.Positive -> operand
+            UnaryOperator.Abs -> ops.abs(operand)
+        }
+    }
+
+    /**
+     * 执行二元运算 / Execute binary operation
+     *
+     * @param operator 二元操作符 / Binary operator
+     * @param left 左操作数 / Left operand
+     * @param right 右操作数 / Right operand
+     * @return 运算结果，不支持的类型返回 null / Operation result, null if type not supported
+    */
+    fun evaluateBinary(operator: BinaryOperator, left: Any, right: Any): Any? {
+        // 两个操作数必须是相同类型 / Both operands must be of the same type
+        if (left::class != right::class) return null
+        val ops = typedOpsFor<Any>(left::class) ?: return null
+
+        return when (operator) {
+            BinaryOperator.Add -> ops.add(left, right)
+            BinaryOperator.Subtract -> ops.subtract(left, right)
+            BinaryOperator.Multiply -> ops.multiply(left, right)
+            BinaryOperator.Divide -> ops.divide(left, right)
+            BinaryOperator.Modulo -> ops.modulo(left, right)
+            BinaryOperator.Power -> ops.power(left, right)
+        }
+    }
+}
+
+// ============================================================================
+// 内置数值类型实玌/ Built-in Numeric Type Implementations
+// ============================================================================
+
+/**
+ * Numeric operations implementation for Int type.
+ * Int 类型的数值运算实现。
+*/
+private object IntOps : NumericOps<Int> {
+    override val type = Int::class
+    override fun negate(value: Int) = -value
+    override fun abs(value: Int) = kotlin.math.abs(value)
+    override fun add(left: Int, right: Int) = left + right
+    override fun subtract(left: Int, right: Int) = left - right
+    override fun multiply(left: Int, right: Int) = left * right
+    override fun divide(left: Int, right: Int) = if (right != 0) left / right else null
+    override fun modulo(left: Int, right: Int) = if (right != 0) left % right else null
+    override fun power(left: Int, right: Int) = Math.pow(left.toDouble(), right.toDouble()).toInt()
+}
+
+/**
+ * Numeric operations implementation for Long type.
+ * Long 类型的数值运算实现。
+*/
+private object LongOps : NumericOps<Long> {
+    override val type = Long::class
+    override fun negate(value: Long) = -value
+    override fun abs(value: Long) = kotlin.math.abs(value)
+    override fun add(left: Long, right: Long) = left + right
+    override fun subtract(left: Long, right: Long) = left - right
+    override fun multiply(left: Long, right: Long) = left * right
+    override fun divide(left: Long, right: Long) = if (right != 0L) left / right else null
+    override fun modulo(left: Long, right: Long) = if (right != 0L) left % right else null
+    override fun power(left: Long, right: Long) = Math.pow(left.toDouble(), right.toDouble()).toLong()
+}
+
+/**
+ * Numeric operations implementation for Float type.
+ * Float 类型的数值运算实现。
+*/
+private object FloatOps : NumericOps<Float> {
+    override val type = Float::class
+    override fun negate(value: Float) = -value
+    override fun abs(value: Float) = kotlin.math.abs(value)
+    override fun add(left: Float, right: Float) = left + right
+    override fun subtract(left: Float, right: Float) = left - right
+    override fun multiply(left: Float, right: Float) = left * right
+    override fun divide(left: Float, right: Float) = if (right != 0.0f) left / right else null
+    override fun modulo(left: Float, right: Float) = if (right != 0.0f) left % right else null
+    override fun power(left: Float, right: Float) = Math.pow(left.toDouble(), right.toDouble()).toFloat()
+}
+
+/**
+ * Numeric operations implementation for Double type.
+ * Double 类型的数值运算实现。
+*/
+private object DoubleOps : NumericOps<Double> {
+    override val type = Double::class
+    override fun negate(value: Double) = -value
+    override fun abs(value: Double) = kotlin.math.abs(value)
+    override fun add(left: Double, right: Double) = left + right
+    override fun subtract(left: Double, right: Double) = left - right
+    override fun multiply(left: Double, right: Double) = left * right
+    override fun divide(left: Double, right: Double) = if (right != 0.0) left / right else null
+    override fun modulo(left: Double, right: Double) = if (right != 0.0) left % right else null
+    override fun power(left: Double, right: Double) = Math.pow(left, right)
+}
+
+/**
+ * 注册内置数值类垌
+ * Register built-in numeric types
+*/
+fun registerBuiltInNumericOps() {
+    NumericDispatcher.register(IntOps)
+    NumericDispatcher.register(LongOps)
+    NumericDispatcher.register(FloatOps)
+    NumericDispatcher.register(DoubleOps)
+}

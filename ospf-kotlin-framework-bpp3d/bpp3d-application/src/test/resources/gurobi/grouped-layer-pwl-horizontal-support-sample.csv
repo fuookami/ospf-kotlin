@@ -1,0 +1,6 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_min,radius_max,radius_weight_function_key,axis,width_meter,height_meter,depth_meter
+0,0,item-pwl-support-cub-a,MAT-PWL-SA,Material-PWL-SA,1.0,cuboid,,,,0.40,0.50,1.00
+0,0,item-pwl-support-cub-b,MAT-PWL-SB,Material-PWL-SB,1.2,cuboid,,,,0.60,0.50,1.00
+0,0,item-pwl-vert-cyl,MAT-PWL-VC,Material-PWL-VC,1.5,vertical_cylinder,0.45,0.55,cylinder_pwl_vc,Y,1.20,1.20,1.20
+1,0,item-pwl-standalone-cyl,MAT-PWL-SC,Material-PWL-SC,1.0,vertical_cylinder,0.30,0.40,cylinder_pwl_sc,Y,0.80,0.80,0.80
+1,0,item-pwl-standalone-cub,MAT-PWL-SD,Material-PWL-SD,0.8,cuboid,,,,0.50,0.50,0.50

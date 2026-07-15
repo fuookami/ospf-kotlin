@@ -1,0 +1,157 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
+
+import java.util.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure.*
+
+/**
+ * 具有固定飞机、时间和机场的 AOG（飞机停场）计划。An AOG (Aircraft On Ground) plan with fixed aircraft, time, and airport.
+ *
+ * @property airport The airport where the AOG occurs / AOG发生的机场
+ * @property status The set of flight task statuses / 航班任务状态集合
+*/
+class AOGPlan(
+    override val aircraft: Aircraft,
+    override val scheduledTime: TimeRange,
+    val airport: Airport,
+    status: Set<FlightTaskStatus>,
+    actualId: String = UUID.randomUUID().toString()
+) : FlightTaskPlan(
+    id = "${prefix}_${actualId.replace("-", "")}",
+    name = "${aircraft.regNo}_AOG_${scheduledTime.start.toShortString()}",
+    flightTaskStatus = status
+) {
+    companion object {
+        val stableStatus = setOf(
+            FlightTaskStatus.NotCancel,
+            FlightTaskStatus.NotDelay,
+            FlightTaskStatus.NotAdvance,
+            FlightTaskStatus.NotAircraftChange,
+            FlightTaskStatus.NotAircraftTypeChange,
+            FlightTaskStatus.NotAircraftMinorTypeChange
+        )
+
+        private const val prefix = "a"
+
+        /**
+         * 创建具有稳定状态的 [AOGPlan]。Creates an [AOGPlan] with stable status for the given aircraft, time, and airport.
+         *
+         * @param aircraft The aircraft for the AOG / AOG的飞机
+         * @param scheduledTime The scheduled time range / 计划时间范围
+         * @param airport The airport for the AOG / AOG的机场
+         * @return The created AOGPlan / 创建的AOG计划
+        */
+        operator fun invoke(aircraft: Aircraft, scheduledTime: TimeRange, airport: Airport): AOGPlan {
+            val status = stableStatus.toMutableSet()
+            return AOGPlan(
+                aircraft = aircraft,
+                scheduledTime = scheduledTime,
+                airport = airport,
+                status = status
+            )
+        }
+    }
+
+    override val actualId = FlightTaskPlanId(actualId)
+    override val displayName = "AOG"
+    override val enabledAircrafts = setOf(aircraft)
+    override val dep = airport
+    override val arr = airport
+    override fun actualArr(dep: Airport): Airport? {
+        return if (dep == this.dep) {
+            arr
+        } else if (depBackup.contains(dep)) {
+            dep
+        } else {
+            null
+        }
+    }
+
+    override val duration get() = scheduledTime.duration
+    override fun duration(executor: Aircraft) = scheduledTime.duration
+
+    override fun connectionTime(succTask: FlightTask?) = NotFlightStaticConnectionTime
+    override fun connectionTime(aircraft: Aircraft, succTask: FlightTask?) = NotFlightStaticConnectionTime
+}
+
+/** AOG（飞机停场）事件的任务类型对象。Task type object for AOG (Aircraft On Ground) events. */
+object AOGFlightTask : FlightTaskType(FlightTaskCategory.Maintenance, AOGFlightTask::class) {
+    override val type get() = "AOG"
+}
+
+/** 具有可选恢复机场的 AOG 航班任务。An AOG flight task with optional recovery airport. */
+class AOG internal constructor(
+    override val plan: AOGPlan,
+    val recoveryAirport: Airport? = null,
+    origin: AOG? = null
+) : FlightTask(AOGFlightTask, origin) {
+    companion object {
+        /**
+         * 从计划创建 [AOG]。Creates an [AOG] from a plan.
+         *
+         * @param plan The AOG plan / AOG计划
+        */
+        operator fun invoke(plan: AOGPlan) = AOG(plan)
+
+        /**
+         * 创建应用给定恢复策略的已恢复 [AOG]。Creates a recovered [AOG] applying the given recovery policy.
+         *
+         * @param origin The original AOG / 原始AOG
+         * @param recoveryPolicy The recovery policy assignment / 恢复策略分配
+         * @return The recovered AOG instance / 恢复后的AOG实例
+        */
+        operator fun invoke(origin: AOG, recoveryPolicy: FlightTaskAssignment): AOG {
+            val recoveryAirport =
+                if (recoveryPolicy.route == null || (recoveryPolicy.route.dep == origin.dep && recoveryPolicy.route.arr == origin.arr)) {
+                    null
+                } else {
+                    assert(recoveryPolicy.route.dep == recoveryPolicy.route.arr)
+                    recoveryPolicy.route.dep
+                }
+
+            assert(origin.recoveryEnabled(recoveryPolicy))
+            return AOG(
+                plan = origin.plan,
+                recoveryAirport = recoveryAirport,
+                origin = origin
+            )
+        }
+    }
+
+    override val dep get() = recoveryAirport ?: plan.dep
+    override val arr get() = recoveryAirport ?: plan.arr
+
+    override val recovered get() = recoveryAirport != null
+    override val recoveryPolicy get() = FlightTaskAssignment()
+    override fun recoveryEnabled(policy: FlightTaskAssignment): Boolean {
+        if (policy.aircraft != null && aircraft!! != policy.aircraft) {
+            return false
+        }
+        if (policy.time != null && time != policy.time) {
+            return false
+        }
+        if (!routeChangeEnabled && policy.route != null
+            && (policy.route.dep != policy.route.arr)
+            && (dep != policy.route.dep || !depBackup.contains(policy.route.dep))
+        ) {
+            return false
+        }
+        return super.recoveryEnabled(policy)
+    }
+
+    override fun recovery(policy: FlightTaskAssignment): AOG {
+        assert(recoveryEnabled(policy))
+        return AOG(this, recoveryPolicy)
+    }
+
+    override val routeChanged get() = recoveryAirport != null
+    override val routeChange
+        get() = recoveryAirport?.let {
+            RouteChange(
+                Route(plan.airport, plan.airport),
+                Route(it, it)
+            )
+        }
+}

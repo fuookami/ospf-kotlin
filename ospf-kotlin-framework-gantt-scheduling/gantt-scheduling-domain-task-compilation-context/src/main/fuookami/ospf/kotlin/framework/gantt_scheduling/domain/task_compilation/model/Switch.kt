@@ -1,60 +1,201 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/** 切换模型 / Switch model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.utils.functional.*
 
-interface Switch {
-    val switch: LinearIntermediateSymbols3
-    val switchTime: LinearIntermediateSymbols2
+/** 切换时间物理量 / Switch time quantity */
+typealias SwitchTimeQuantity<V> = Quantity<V>
 
-    fun register(model: MetaModel): Try
+/**
+ * 捕获线性约束输入结果，失败时调用回调并返回 null。
+ * Capture linear constraint input result, invoke callback on failure and return null.
+ *
+ * @param result 约束输入结果 / Constraint input result
+ * @param onFailure 失败时的回调函数 / Callback function on failure
+ * @return 成功时返回约束输入，失败时返回 null / Constraint input on success, null on failure
+*/
+private fun captureLinearConstraintInput(
+    result: Ret<LinearConstraintInput<Flt64>>,
+    onFailure: (Try) -> Unit
+): LinearConstraintInput<Flt64>? {
+    return when (result) {
+        is Ok -> result.value
+        is Failed -> {
+            onFailure(Failed(result.error))
+            null
+        }
+
+        is Fatal -> {
+            onFailure(Fatal(result.errors))
+            null
+        }
+    }
 }
 
+/** 切换接口 / Switch interface */
+interface Switch {
+
+    /** Switch indicator between executor, previous task and next task / 执行者、前序任务与后序任务之间的切换指示符号 */
+    val switch: LinearIntermediateSymbols3<Flt64>
+
+    /** Switch time between previous task and next task / 前序任务与后序任务之间的切换时间符号 */
+    val switchTime: LinearIntermediateSymbols2<Flt64>
+
+    /**
+     * 注册切换到模型 / Register switch to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+    */
+    fun register(model: MetaModel<Flt64>): Try
+
+    /**
+     * 读取任务间切换时间物理量 / Read switch time between tasks as a physical quantity
+     *
+     * @param T 任务类型 / Task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param V 目标数值类型 / Target numeric type
+     * @param from 前序任务 / Previous task
+     * @param to 后序任务 / Next task
+     * @param model 元模型 / Meta model
+     * @param adapter solver 数值适配器 / Solver value adapter
+     * @param unit 时间单位 / Time unit
+     * @return 切换时间物理量 / Switch time quantity
+    */
+    fun <
+            T : AbstractTask<E, A>,
+            E : Executor,
+            A : AssignmentPolicy<E>,
+            V : RealNumber<V>
+            > switchTimeQuantity(
+        from: T,
+        to: T,
+        model: MetaModel<Flt64>,
+        adapter: SchedulingSolverValueAdapter<V>,
+        unit: PhysicalUnit = NoneUnit
+    ): SwitchTimeQuantity<V>? {
+        val value = (switchTime[from, to] as IntermediateSymbol<Flt64>).evaluate(
+            tokenTable = model.tokens,
+            converter = schedulingSolverValueAdapter,
+            zeroIfNone = true
+        ) ?: switchTime[from, to].toLinearPolynomial().constant
+        return Quantity(adapter.intoValue(value), unit)
+    }
+}
+
+/**
+ * 任务调度切换 / Task scheduling switch
+ *
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param timeWindow 时间窗口 / Time window
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param compilation 任务编译结果 / Task compilation result
+ * @param taskTime 任务时间对象 / Task time object
+*/
 class TaskSchedulingSwitch<
         out T : AbstractTask<E, A>,
         out E : Executor,
         out A : AssignmentPolicy<E>
         >(
-    private val timeWindow: TimeWindow,
+    private val timeWindow: TimeWindow<Flt64>,
     private val tasks: List<T>,
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
-    private lateinit var frontOf: LinearIntermediateSymbols2
-    private lateinit var betweenIn: LinearIntermediateSymbols3
-    override lateinit var switch: LinearIntermediateSymbols3
-    override lateinit var switchTime: LinearIntermediateSymbols2
 
-    override fun register(model: MetaModel): Try {
+    /**
+     * 通过 solver 时间窗口边界创建任务调度切换 / Create task scheduling switch from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param compilation 任务编译结果 / Task compilation result
+     * @param taskTime 任务时间对象 / Task time object
+    */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        compilation: TaskCompilation<T, E, A>,
+        taskTime: TaskTime? = null
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        compilation = compilation,
+        taskTime = taskTime
+    )
+
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow)
+
+    private lateinit var frontOf: LinearIntermediateSymbols2<Flt64>
+    private lateinit var betweenIn: LinearIntermediateSymbols3<Flt64>
+    override lateinit var switch: LinearIntermediateSymbols3<Flt64>
+    override lateinit var switchTime: LinearIntermediateSymbols2<Flt64>
+
+    override fun register(model: MetaModel<Flt64>): Try {
+        var constructionFailure: Try = ok
+
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
-                frontOf = LinearIntermediateSymbols2(
+                frontOf = LinearIntermediateSymbols2<Flt64>(
                     name = "front_of",
                     shape = Shape2(tasks.size, tasks.size)
                 ) { _, v ->
                     val task1 = tasks[v[0]]
                     val task2 = tasks[v[1]]
-                    if (task1 == task2) {
+                    val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "front_of_${task1}_${task2}"
                         )
                     } else {
-                        IfFunction(
-                            inequality = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
-                            name = "front_of_${task1}_$task2"
-                        )
+                        val input = captureLinearConstraintInput(
+                            LinearConstraintInput.from(
+                                relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
+                                converter = schedulingSolverValueAdapter,
+                                lhsRange = taskTime.estimateStartTime[task1].range.range!!,
+                                rhsConstant = Flt64.zero
+                            )
+                        ) { constructionFailure = it }
+                        if (input == null) {
+                            LinearIntermediateSymbol.empty(
+                                Flt64,
+                                name = "front_of_${task1}_$task2"
+                            )
+                        } else {
+                            IfFunction.from(
+                                inequality = input,
+                                converter = schedulingSolverValueAdapter,
+                                name = "front_of_${task1}_$task2"
+                            )
+                        }
                     }
+                    result
                 }
+            }
+            when (val failure = constructionFailure) {
+                is Ok -> {}
+                is Failed -> return Failed(failure.error)
+                is Fatal -> return Fatal(failure.errors)
             }
             when (val result = model.add(frontOf)) {
                 is Ok -> {}
@@ -62,31 +203,38 @@ class TaskSchedulingSwitch<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         if (taskTime != null) {
             if (!::betweenIn.isInitialized) {
-                betweenIn = LinearIntermediateSymbols3(
+                betweenIn = LinearIntermediateSymbols3<Flt64>(
                     name = "between_in",
                     shape = Shape3(tasks.size, tasks.size, tasks.size)
                 ) { _, v ->
                     val task1 = tasks[v[1]]
                     val task2 = tasks[v[2]]
                     val task3 = tasks[v[3]]
-                    if (task1 == task2 || task1 == task3 || task2 == task3) {
+                    val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2 || task1 == task3 || task2 == task3) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     } else {
-                        AndFunction(
+                        AndFunction.fromLinearPolynomials(
                             polynomials = listOf(
                                 frontOf[task1, task3],
                                 frontOf[task3, task2]
                             ),
+                            converter = schedulingSolverValueAdapter,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
+                    result
                 }
             }
             when (val result = model.add(betweenIn)) {
@@ -95,23 +243,28 @@ class TaskSchedulingSwitch<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         if (!::switch.isInitialized) {
-            switch = LinearIntermediateSymbols3(
+            switch = LinearIntermediateSymbols3<Flt64>(
                 name = "switch",
                 shape = Shape3(executors.size, tasks.size, tasks.size)
             ) { _, v ->
                 val executor = executors[v[0]]
                 val task1 = tasks[v[1]]
                 val task2 = tasks[v[2]]
-                if (task1 == task2) {
+                val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                     LinearIntermediateSymbol.empty(
+                        Flt64,
                         name = "front_of_${task1}_${task2}"
                     )
                 } else if (taskTime != null) {
-                    val conditions: MutableList<ToLinearPolynomial<*>> = mutableListOf(
+                    val conditions: MutableList<LinearIntermediateSymbol<Flt64>> = mutableListOf(
                         compilation.taskAssignment[executor, task1],
                         compilation.taskAssignment[executor, task2],
                         frontOf[task1, task2]
@@ -120,47 +273,67 @@ class TaskSchedulingSwitch<
                         if (task3 == task1 || task3 == task2) {
                             continue
                         }
-                        conditions.add(Flt64.one - betweenIn[task3, task1, task2])
+                        conditions.add(LinearExpressionSymbol(
+                            polynomial = LinearPolynomial(emptyList(), Flt64.one) - betweenIn[task3, task1, task2].toLinearPolynomial(),
+                            name = "not_between_${task3}_${task1}_${task2}"
+                        ))
                     }
-                    AndFunction(
+                    AndFunction.fromLinearPolynomials(
                         polynomials = conditions,
+                        converter = schedulingSolverValueAdapter,
                         name = "switch_${executor}_${task1}_${task2}"
                     )
                 } else {
                     if (task1.time!!.start < task2.time!!.start
                         && !tasks.any { task1.time!!.start < it.time!!.start && it.time!!.start < task2.time!!.start }
                     ) {
-                        AndFunction(
+                        AndFunction.fromLinearPolynomials(
                             polynomials = listOf(
                                 compilation.taskAssignment[executor, task1],
                                 compilation.taskAssignment[executor, task2]
                             ),
+                            converter = schedulingSolverValueAdapter,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     }
                 }
+                result
             }
         }
 
         if (!::switchTime.isInitialized) {
-            switchTime = LinearIntermediateSymbols2(
+            switchTime = LinearIntermediateSymbols2<Flt64>(
                 name = "switch_time",
                 shape = Shape2(tasks.size, tasks.size)
             ) { _, v ->
                 val task1 = tasks[v[0]]
                 val task2 = tasks[v[1]]
-                val thisSwitch = sum(switch[_a, task1, task2])
+                val thisSwitchPoly = sum(switch[_a, task1, task2].map { it.toLinearPolynomial() })
+                val thisSwitch = LinearExpressionSymbol(
+                    polynomial = thisSwitchPoly,
+                    name = "this_switch_${task1}_$task2"
+                )
                 thisSwitch.range.leq(Flt64.one)
-                MaskingFunction(
-                    x = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
-                        ?: LinearPolynomial(
-                            with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }
-                        ),
+                val xPoly = taskTime?.let { it.estimateStartTime[task2].toLinearPolynomial() - it.estimateEndTime[task1].toLinearPolynomial() }
+                    ?: LinearPolynomial(
+                        emptyList(),
+                        timeBoundary.distanceValue(
+                            from = task1.time!!.end,
+                            to = task2.time!!.start
+                        )
+                    )
+                MaskingFunction.fromLinearPolynomials(
+                    x = LinearExpressionSymbol(
+                        polynomial = xPoly,
+                        name = "switch_time_x_${task1}_$task2"
+                    ),
                     mask = thisSwitch,
+                    converter = schedulingSolverValueAdapter,
                     name = "switch_time_${task1}_$task2"
                 )
             }
@@ -169,6 +342,10 @@ class TaskSchedulingSwitch<
 
                 is Failed -> {
                     return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
                 }
             }
         }

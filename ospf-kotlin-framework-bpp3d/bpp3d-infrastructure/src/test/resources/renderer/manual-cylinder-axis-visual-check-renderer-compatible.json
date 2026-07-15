@@ -1,0 +1,146 @@
+{
+  "kpi": {
+    "case": "manual-cylinder-axis-visual-check-renderer-compatible",
+    "purpose": "X/Y/Z cylinder axis visual check with current external renderer DTO enum"
+  },
+  "loadingPlans": [
+    {
+      "group": [
+        "manual-renderer-check"
+      ],
+      "name": "Manual Cylinder Axis Check Renderer Compatible",
+      "typeCode": "BIN-AXIS-CHECK",
+      "width": 1600,
+      "height": 700,
+      "depth": 1200,
+      "loadingRate": 0.0878,
+      "weight": 95,
+      "volume": 117035390.02,
+      "items": [
+        {
+          "name": "Anchor-Box-Origin",
+          "packageType": "Carton",
+          "width": 180,
+          "height": 180,
+          "depth": 180,
+          "x": 0,
+          "y": 0,
+          "z": 0,
+          "weight": 10,
+          "loadingOrder": 0,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": 180,
+          "boundingHeight": 180,
+          "boundingDepth": 180,
+          "actualVolume": 5832000,
+          "info": {
+            "expected": "coordinate anchor at 0,0,0"
+          }
+        },
+        {
+          "name": "Cylinder-X-Floor",
+          "packageType": "Tube",
+          "width": 700,
+          "height": 240,
+          "depth": 240,
+          "x": 240,
+          "y": 0,
+          "z": 0,
+          "weight": 25,
+          "loadingOrder": 1,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "HorizontalCylinderX",
+          "radius": 120,
+          "diameter": 240,
+          "axis": "X",
+          "boundingWidth": 700,
+          "boundingHeight": 240,
+          "boundingDepth": 240,
+          "actualVolume": 31667253.89,
+          "info": {
+            "expected": "horizontal cylinder along X, length 700, bottom tangent on y=0"
+          }
+        },
+        {
+          "name": "Cylinder-Y-Floor",
+          "packageType": "Drum",
+          "width": 260,
+          "height": 520,
+          "depth": 260,
+          "x": 1080,
+          "y": 0,
+          "z": 0,
+          "weight": 30,
+          "loadingOrder": 2,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "VerticalCylinder",
+          "radius": 130,
+          "diameter": 260,
+          "axis": "Y",
+          "boundingWidth": 260,
+          "boundingHeight": 520,
+          "boundingDepth": 260,
+          "actualVolume": 27601767.04,
+          "info": {
+            "expected": "vertical cylinder along Y, standing on y=0"
+          }
+        },
+        {
+          "name": "Cylinder-Z-Floor",
+          "packageType": "Tube",
+          "width": 240,
+          "height": 240,
+          "depth": 650,
+          "x": 0,
+          "y": 0,
+          "z": 360,
+          "weight": 25,
+          "loadingOrder": 3,
+          "shapeType": "Cylinder",
+          "renderShapeType": "Cylinder",
+          "algorithmShapeType": "HorizontalCylinderZ",
+          "radius": 120,
+          "diameter": 240,
+          "axis": "Z",
+          "boundingWidth": 240,
+          "boundingHeight": 240,
+          "boundingDepth": 650,
+          "actualVolume": 29405369.09,
+          "info": {
+            "expected": "horizontal cylinder along Z, length 650, bottom tangent on y=0"
+          }
+        },
+        {
+          "name": "Floating-Reference-Box",
+          "packageType": "Carton",
+          "width": 180,
+          "height": 160,
+          "depth": 180,
+          "x": 1180,
+          "y": 260,
+          "z": 620,
+          "weight": 5,
+          "loadingOrder": 4,
+          "shapeType": "Cuboid",
+          "renderShapeType": "Cuboid",
+          "algorithmShapeType": "Cuboid",
+          "boundingWidth": 180,
+          "boundingHeight": 160,
+          "boundingDepth": 180,
+          "actualVolume": 5184000,
+          "info": {
+            "expected": "raised cuboid used to compare y coordinate display"
+          }
+        }
+      ],
+      "info": {
+        "source": "ospf-kotlin manual renderer confirmation",
+        "compatibility": "Horizontal X/Z cylinders now use native HorizontalCylinderX/HorizontalCylinderZ algorithm shape types; BoundingCuboid compat mapping has been removed."
+      }
+    }
+  ]
+}

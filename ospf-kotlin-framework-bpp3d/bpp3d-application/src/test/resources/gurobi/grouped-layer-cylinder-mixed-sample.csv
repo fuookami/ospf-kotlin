@@ -1,0 +1,6 @@
+group_index,layer_index,item_id,material_no,material_name,material_weight_kg,shape_type,radius_meter,axis
+0,0,item-g0-l0-cyl,MAT-A,Material-A,1.0,vertical_cylinder,0.45,Y
+0,0,item-g0-l0-cub,MAT-B,Material-B,1.2,cuboid,,
+0,1,item-g0-l1-cyl,MAT-C,Material-C,0.9,vertical_cylinder,0.40,AXIS3.Y
+1,0,item-g1-l0-cub,MAT-A,Material-A,1.0,cuboid,,
+1,0,item-g1-l0-cyl,MAT-D,Material-D,1.6,vertical_cylinder,0.50,Y

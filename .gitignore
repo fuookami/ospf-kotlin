@@ -28,6 +28,7 @@ hs_err_pid*
 [Ll]og/
 [Tt]arget/
 .idea/
+*.iml
 .vs/
 .vscode/
 
@@ -39,3 +40,8 @@ dist/
 package-lock.json
 Cargo.lock
 .VSCodeCounter/
+.tmp-*/
+/.codegraph/
+.claude/
+/.supergoal/
+superpowers/

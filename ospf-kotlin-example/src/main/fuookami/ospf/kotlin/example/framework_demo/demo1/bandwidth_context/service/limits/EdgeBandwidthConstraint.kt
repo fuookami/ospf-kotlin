@@ -1,0 +1,47 @@
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.*
+
+/**
+ * Limits edge bandwidth to zero when the associated service is not assigned to that edge.
+ * 当关联服务未分配到该边时将边带宽限制为零。
+ *
+ * @property edges the list of network edges / 网络边列表
+ * @property services the list of services / 服务列表
+ * @property assignment the service-to-node assignment model / 服务到节点的分配模型
+ * @property edgeBandwidth the edge bandwidth model / 边带宽模型
+*/
+class EdgeBandwidthConstraint(
+    private val edges: List<Edge>,
+    private val services: List<Service>,
+    private val assignment: Assignment,
+    private val edgeBandwidth: EdgeBandwidth,
+    override val name: String = "edge_bandwidth_constraint"
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
+        val y = edgeBandwidth.y
+        val assignment = assignment.serviceAssignment
+
+        for (edge in edges.filter(from(normal))) {
+            for (service in services) {
+                model.addConstraint(
+                    (UInt64.one - assignment[service]) * edge.maxBandwidth.toFlt64() + LinearPolynomial(y[edge, service]) leq edge.maxBandwidth.toFlt64(),
+                    name = "${name}_($edge,$service)"
+                )
+            }
+        }
+        return ok
+    }
+}
