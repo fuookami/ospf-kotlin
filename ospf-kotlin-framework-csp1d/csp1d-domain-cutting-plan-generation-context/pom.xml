@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+        <artifactId>ospf-kotlin-framework-csp1d</artifactId>
+        <version>1.1.0</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <name>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context</name>
+    <artifactId>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context</artifactId>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-infrastructure</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-material-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.jetbrains.kotlinx</groupId>
+            <artifactId>kotlinx-coroutines-core</artifactId>
+            <version>${kotlinx-coroutines.version}</version>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+    </build>
+</project>
