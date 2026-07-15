@@ -5,7 +5,7 @@
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
         <artifactId>ospf-kotlin-starters</artifactId>
-        <version>1.0.72</version>
+        <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
@@ -31,6 +31,31 @@
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
             <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-yield-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-length-assignment-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-wasting-minimization-context</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
+            <artifactId>ospf-kotlin-framework-csp1d-application</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
