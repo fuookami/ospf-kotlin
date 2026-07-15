@@ -1,0 +1,313 @@
+/**
+ * FltX 幂策略
+ * FltX Power Strategy
+ *
+ * 为 FltX 高精度浮点数提供幂运算、指数和对数计算的高精度实现。
+ * 使用泰勒级数展开进行数值计算，支持指定精度位数和最大迭代次数。
+ * 自然对数 ln(x)：使用变换 y = (x-1)/(x+1) 收敛到泰勒级数，
+ * 公式：ln(x) = 2 * [y + y^3/3 + y^5/5 + ...]，通过预处理将 x 调整到 [1, 2) 区间优化收敛。
+ * 指数函数 exp(x)：泰勒级数展开 exp(x) = 1 + x + x^2/2! + x^3/3! + ...
+ * 幂函数 pow(base, index)：通过 ln 和 exp 实现，pow(base, index) = exp(index * ln(base))。
+ * 边界情况：ln(x <= 0) 返回 null（对数未定义），负指数幂在整数类型时会抛出异常。
+ * FltXSeriesResult 包含计算结果、迭代次数和收敛状态，便于调试和分析。
+ *
+ * Provides high-precision implementation of power, exponential, and logarithm operations for FltX.
+ * Uses Taylor series expansion for numerical computation with configurable precision and iteration limits.
+ * Natural logarithm ln(x): uses transformation y = (x-1)/(x+1) converging to Taylor series,
+ * formula: ln(x) = 2 * [y + y^3/3 + y^5/5 + ...], pre-processing adjusts x to [1, 2) for optimal convergence.
+ * Exponential function exp(x): Taylor series exp(x) = 1 + x + x^2/2! + x^3/3! + ...
+ * Power function pow(base, index): implemented via ln and exp, pow(base, index) = exp(index * ln(base)).
+ * Boundary cases: ln(x <= 0) returns null (logarithm undefined); negative integer exponent throws exception.
+ * FltXSeriesResult includes computed value, iteration count, and convergence status for debugging and analysis.
+*/
+package fuookami.ospf.kotlin.math.ordinary
+
+import java.math.RoundingMode
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+
+/**
+ * FltX 级数计算结果
+ * FltX series computation result
+ *
+ * @param value 计算结果值 / Computed value
+ * @param iterations 迭代次数 / Number of iterations
+ * @param converged 是否收敛 / Whether the series converged
+*/
+data class FltXSeriesResult(
+    val value: FltX,
+    val iterations: Int,
+    val converged: Boolean
+)
+
+/**
+ * FltX 幂运算策略
+ * FltX power strategy
+ *
+ * 提供 FltX 高精度浮点数的幂运算、指数和对数计算。
+ * Provides high-precision power, exponential, and logarithm operations for FltX.
+*/
+object FltXPowerStrategy {
+
+    /**
+     * 根据精度位数计算默认精度阈值
+     * Compute default precision threshold from digit count
+     *
+     * @param digits 精度位数 / Number of precision digits
+     * @return 默认精度阈值 / Default precision threshold
+    */
+    fun defaultPrecision(digits: Int): FltX {
+        val normalizedDigits = if (digits <= 0) {
+            1
+        } else {
+            digits
+        }
+        val threshold = pow(
+            base = FltX.ten,
+            index = -normalizedDigits,
+            constants = FltX,
+            digits = normalizedDigits + 1
+        )
+        return min(threshold, FltX.epsilon)
+    }
+
+    /**
+     * 计算 FltX 自然对数
+     * Compute FltX natural logarithm
+     *
+     * @param x 真数 / Argument
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 自然对数值，x <= 0 时返回 null / Natural logarithm value, or null if x <= 0
+    */
+    fun ln(
+        x: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltX? = lnWithStats(x, digits, precision, maxIterations)?.value
+
+    /**
+     * 计算 FltX 自然对数，返回包含迭代统计的结果
+     * Compute FltX natural logarithm with iteration statistics
+     *
+     * @param x 真数 / Argument
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 包含结果和迭代统计的 FltXSeriesResult，x <= 0 时返回 null / FltXSeriesResult with value and stats, or null if x <= 0
+    */
+    fun lnWithStats(
+        x: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltXSeriesResult? {
+        if (x <= FltX.zero) {
+            return null
+        }
+        val normalizedDigits = if (digits <= 0) {
+            1
+        } else {
+            digits
+        }
+        val scale = normalizedDigits + 1
+        var m = x.withScale(scale, RoundingMode.HALF_UP)
+        var k = FltX.zero
+        while (m >= FltX.two) {
+            m = (m / FltX.two).withScale(scale, RoundingMode.HALF_UP)
+            k += FltX.one
+        }
+        while (m < FltX.one) {
+            m = (m * FltX.two).withScale(scale, RoundingMode.HALF_UP)
+            k -= FltX.one
+        }
+        val core = lnUnitInterval(m, scale, precision, maxIterations)
+        val value = (core.value + k * FltX.lg2).withScale(scale, RoundingMode.HALF_UP)
+        return FltXSeriesResult(value, core.iterations, core.converged)
+    }
+
+    /**
+     * Compute natural logarithm of FltX in [1, 2) via Taylor series.
+     * 通过泰勒级数计算 [1, 2) 区间内 FltX 的自然对数。
+     *
+     * @param x the value in [1, 2) / [1, 2) 区间内的值
+     * @param scale the decimal scale for intermediate rounding / 中间舍入的小数位数
+     * @param precision the convergence precision threshold / 收敛精度阈值
+     * @param maxIterations the maximum number of iterations / 最大迭代次数
+     * @return the series computation result / 级数计算结果
+    */
+    private fun lnUnitInterval(
+        x: FltX,
+        scale: Int,
+        precision: FltX,
+        maxIterations: Int
+    ): FltXSeriesResult {
+        val y = ((x - FltX.one) / (x + FltX.one)).withScale(scale, RoundingMode.HALF_UP)
+        var yPow = y
+        var value = y
+        var i = FltX.one
+        var iterations = 0
+        while (iterations < maxIterations) {
+            yPow = (yPow * y * y).withScale(scale, RoundingMode.HALF_UP)
+            val denominator = FltX.two * i + FltX.one
+            val term = (yPow / denominator).withScale(scale, RoundingMode.HALF_UP)
+            value = (value + term).withScale(scale, RoundingMode.HALF_UP)
+            iterations += 1
+            if (term.abs() <= precision) {
+                return FltXSeriesResult((value * FltX.two).withScale(scale, RoundingMode.HALF_UP), iterations, true)
+            }
+            i += FltX.one
+        }
+        return FltXSeriesResult((value * FltX.two).withScale(scale, RoundingMode.HALF_UP), iterations, false)
+    }
+
+    /**
+     * 计算 FltX 指数函数
+     * Compute FltX exponential function
+     *
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 指数值 / Exponential value
+    */
+    fun exp(
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltX = expWithStats(index, digits, precision, maxIterations).value
+
+    /**
+     * 计算 FltX 指数函数，返回包含迭代统计的结果
+     * Compute FltX exponential with iteration statistics
+     *
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 包含结果和迭代统计的 FltXSeriesResult / FltXSeriesResult with value and stats
+    */
+    fun expWithStats(
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltXSeriesResult {
+        val normalizedDigits = if (digits <= 0) {
+            1
+        } else {
+            digits
+        }
+        val scale = normalizedDigits + 1
+        var value = FltX.one.withScale(scale, RoundingMode.HALF_UP)
+        var term = FltX.one.withScale(scale, RoundingMode.HALF_UP)
+        var i = FltX.one
+        var iterations = 0
+        while (iterations < maxIterations) {
+            val next = ((term * index.withScale(scale, RoundingMode.HALF_UP)) / i).withScale(scale, RoundingMode.HALF_UP)
+            value = (value + next).withScale(scale, RoundingMode.HALF_UP)
+            iterations += 1
+            if (next.abs() <= precision) {
+                return FltXSeriesResult(value, iterations, true)
+            }
+            term = next
+            i += FltX.one
+        }
+        return FltXSeriesResult(value, iterations, false)
+    }
+
+    /**
+     * 计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值结果 / Power value result
+    */
+    fun pow(
+        base: FltX,
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): Ret<FltX> {
+        return powSafe(
+            base = base,
+            index = index,
+            digits = digits,
+            precision = precision,
+            maxIterations = maxIterations
+        )
+    }
+
+    /**
+     * 安全计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Safely compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值结果 / Power value result
+    */
+    fun powSafe(
+        base: FltX,
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): Ret<FltX> {
+        return powOrNull(
+            base = base,
+            index = index,
+            digits = digits,
+            precision = precision,
+            maxIterations = maxIterations
+        )?.let { ok(it) }
+            ?: Failed(
+                ErrorCode.IllegalArgument,
+                "FltX 幂计算失败：底数的自然对数未定义，base=$base。 / FltX power failed: ln(base) is undefined, base=$base."
+            )
+    }
+
+    /**
+     * 尝试计算 FltX 幂函数，通过 ln 和 exp 实现
+     * Tries to compute FltX power function via ln and exp
+     *
+     * @param base 底数 / Base
+     * @param index 指数 / Exponent
+     * @param digits 精度位数 / Number of precision digits
+     * @param precision 收敛精度阈值 / Convergence precision threshold
+     * @param maxIterations 最大迭代次数 / Maximum iterations
+     * @return 幂函数值，未定义时返回 null / Power value, or null if undefined
+    */
+    fun powOrNull(
+        base: FltX,
+        index: FltX,
+        digits: Int,
+        precision: FltX = defaultPrecision(digits),
+        maxIterations: Int = 8192
+    ): FltX? {
+        if (index.stripTrailingZeros() eq index.round()) {
+            return pow(
+                base = base,
+                index = index.round().toInt32().value,
+                constants = FltX,
+                digits = digits,
+                precision = precision
+            )
+        }
+        val lnBase = ln(base, digits, precision, maxIterations) ?: return null
+        return exp(index * lnBase, digits, precision, maxIterations)
+    }
+}
