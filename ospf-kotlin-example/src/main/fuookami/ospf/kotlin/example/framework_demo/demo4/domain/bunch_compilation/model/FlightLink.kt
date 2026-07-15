@@ -1,0 +1,135 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
+
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.symbol.function.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+
+/**
+ * 航班连接表达式模型，跟踪连续航班任务之间的连接及其关联的松弛变量用于列生成公式。/ Models flight link expressions tracking connections between consecutive flight tasks
+ * and their associated slack variables for the column generation formulation.
+ *
+ * @property links Flight links / 航班连接
+ * @property compilation Compilation model / 编译模型
+*/
+class FlightLink(
+    val links: List<Link>,
+    private val compilation: Compilation
+) {
+    init {
+        ManualIndexed.flush<Link>()
+        for (link in links) {
+            link.setIndexed()
+        }
+    }
+
+    lateinit var link: LinearExpressionSymbols1<Flt64>
+    lateinit var slack: LinearIntermediateSymbols1<Flt64>
+
+    /**
+     * 向模型注册连接和松弛符号。/ Registers link and slack symbols with the model.
+     *
+     * @param model Linear meta model / 线性元模型
+     * @return Registration result / 注册结果
+    */
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
+        if (links.isNotEmpty()) {
+            if (!::link.isInitialized) {
+                link = LinearExpressionSymbols1<Flt64>(
+                    "link",
+                    Shape1(links.size)
+                ) { k, _ ->
+                    LinearExpressionSymbol(
+                        MutableLinearPolynomial(),
+                        name = "link_$k"
+                    )
+                }
+            }
+            when (val result = model.add(link)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+
+            if (!::slack.isInitialized) {
+                slack = LinearIntermediateSymbols1<Flt64>(
+                    "link_slack",
+                    Shape1(links.size)
+                ) { k, _ ->
+                    val poly = MutableLinearPolynomial()
+                    poly += LinearMonomial(Flt64.one, link[k])
+                    poly += LinearMonomial(Flt64(0.5), compilation.y[links[k].prevTask])
+                    poly += LinearMonomial(Flt64(0.5), compilation.y[links[k].succTask])
+                    exampleThresholdSlack(
+                        x = LinearPolynomial(poly.monomials, poly.constant),
+                        threshold = Flt64.one,
+                        withNegative = true,
+                        withPositive = false,
+                        name = "link_slack_$k"
+                    )
+                }
+            }
+            when (val result = model.add(slack)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+
+        return ok
+    }
+
+    /**
+     * 向连接表达式添加新束的列。/ Adds columns for new bunches to the link expressions.
+     *
+     * @param iteration Current iteration index / 当前迭代索引
+     * @param bunches New flight task bunches / 新的航班任务束
+     * @return Column addition result / 列添加结果
+    */
+    fun addColumns(
+        iteration: UInt64,
+        bunches: List<FlightTaskBunch>,
+    ): Try {
+        val xi = compilation.x[iteration.toInt()]
+
+        for (link in links) {
+            val thisBunches = bunches.filter { it.contains(link.prevTask, link.succTask) }
+            if (thisBunches.isNotEmpty()) {
+                val thisLink = this.link[link]
+                thisLink.flush()
+                for (bunch in thisBunches) {
+                    thisLink.asMutable() += LinearMonomial(Flt64.one, xi[bunch])
+                }
+            }
+        }
+
+        return ok
+    }
+}

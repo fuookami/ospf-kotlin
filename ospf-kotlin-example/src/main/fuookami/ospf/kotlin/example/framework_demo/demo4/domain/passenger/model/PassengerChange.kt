@@ -1,0 +1,96 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+
+/**
+ * 跟踪列生成公式的乘客舱位和航班变更变量。Tracks passenger class and flight change variables for the column generation formulation.
+ *
+ * @property flights List of flight tasks / 航班任务列表
+ * @property passengers List of flight-passenger associations / 航班乘客关联列表
+ * @property withFlightChange Whether flight change variables are enabled / 是否启用航班变更变量
+*/
+class PassengerChange(
+    private val flights: List<FlightTask>,
+    private val passengers: List<FlightPassenger>,
+    private val withFlightChange: Boolean = false
+) {
+
+    /** 将每个航班映射到具有相同始发地和目的地的替代航班。Maps each flight to alternative flights with the same origin and destination. */
+    val toFlights: Map<FlightTask, List<FlightTask>> by lazy {
+        val toFlights = HashMap<FlightTask, List<FlightTask>>()
+        for (flight in passengers.map { it.flight }.distinct()) {
+            toFlights[flight] = flights.filter {
+                it != flight && it.dep == flight.dep && it.arr == flight.arr
+            }
+        }
+        toFlights
+    }
+
+    lateinit var passengerClassChange: Map<FlightPassenger, Map<PassengerClass, UIntVar>>
+    lateinit var passengerFlightChange: Map<FlightPassenger, Map<FlightTask, Map<PassengerClass, UIntVar>>>
+
+    /**
+     * 将舱位变更及可选的航班变更变量注册到模型中。Registers class change and optionally flight change variables with the model.
+     *
+     * @param model The linear meta model to register with / 要注册的线性元模型
+     * @return Registration result / 注册结果
+    */
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
+        if (!::passengerClassChange.isInitialized) {
+            passengerClassChange = passengers.associateWith { passenger ->
+                PassengerClass.entries.filter { it != passenger.cls }.associateWith { cls ->
+                    val variable = UIntVar("passenger_class_change_${passenger}_${cls}")
+                    variable.range.leq(passenger.amount)
+                    variable
+                }
+            }
+        }
+        when (val result = model.add(passengerClassChange)) {
+            is Ok -> {}
+
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+        }
+
+        if (withFlightChange) {
+            if (!::passengerFlightChange.isInitialized) {
+                passengerFlightChange = passengers.associateWith { passenger ->
+                    (toFlights[passenger.flight] ?: emptyList()).associateWith { toFlight ->
+                        PassengerClass.entries.associateWith { cls ->
+                            val variable = UIntVar("passenger_class_change_${passenger}_${toFlight}_${cls}")
+                            variable.range.leq(passenger.amount)
+                            variable
+                        }
+                    }
+                }
+            }
+            when (val result = model.add(passengerFlightChange)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+
+        return ok
+    }
+}

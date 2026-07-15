@@ -1,0 +1,230 @@
+package fuookami.ospf.kotlin.example.core_demo
+
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.error.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+    override fun intoValue(value: Flt64) = value
+    override val zero get() = Flt64.zero
+    override val one get() = Flt64.one
+    override fun fromValue(value: Flt64) = value
+}
+
+/**
+ * 生产优化：在物料和产量差异约束下最大化利润。
+ * Production optimization: maximize profit with material and production difference constraints.
+ *
+ * @see     https://fuookami.github.io/ospf/examples/example4.html
+*/
+data object Demo4 {
+
+    /**
+     * 具有可用数量的物料。
+     * A material with an available quantity.
+     *
+     * @property available 可用数量。
+    */
+    data class Material(val available: Flt64) : AutoIndexed(Material::class)
+
+    /**
+     * 具有利润、最大产量和物料使用的产品。
+     * A product with profit, max yield, and material usage.
+     *
+     * @property profit 利润。
+     * @property maxYield 最大产量。
+     * @property use 物料使用。
+    */
+    data class Product(
+        val profit: Flt64,
+        val maxYield: Flt64,
+        val use: Map<Material, Flt64>
+    ) : AutoIndexed(Product::class)
+
+    private val materials = listOf(
+        Material(Flt64(24.0)),
+        Material(Flt64(8.0))
+    )
+    private val products = listOf(
+        Product(
+            Flt64(5.0), Flt64(3.0), mapOf(
+                materials[0] to Flt64(6.0),
+                materials[1] to Flt64(1.0),
+            )
+        ),
+        Product(
+            Flt64(4.0), Flt64(2.0), mapOf(
+                materials[0] to Flt64(4.0),
+                materials[1] to Flt64(2.0),
+            )
+        )
+    )
+
+    private val maxDiff = Int64(1)
+
+    private lateinit var x: RealVariable1
+    private lateinit var profit: LinearIntermediateSymbol<Flt64>
+    private lateinit var use: LinearIntermediateSymbols1<Flt64>
+
+    private val metaModel = LinearMetaModel<Flt64>("demo4", converter = flt64Converter)
+
+    private val subProcesses = listOf(
+        Demo4::initVariable,
+        Demo4::initSymbol,
+        Demo4::initObject,
+        Demo4::initConstraint,
+        Demo4::solve,
+        Demo4::analyzeSolution
+    )
+
+    /**
+     * 顺序运行所有子流程以构建、求解和分析模型。/ Runs all sub-processes sequentially to build, solve, and analyze the model.
+     *
+     * @return 操作结果 / Operation result
+    */
+    suspend operator fun invoke(): Try {
+        for (process in subProcesses) {
+            when (val result = process()) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return result
+                }
+
+                is Fatal -> {
+                    return result
+                }
+            }
+        }
+        return ok
+    }
+
+    /**
+     * 初始化产品数量的实值决策变量。/ Initializes real-valued decision variables for product quantities.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun initVariable(): Try {
+        x = RealVariable1("x", Shape1(products.size))
+        for (p in products) {
+            x[p].name = "${x.name}_${p.index}"
+        }
+        metaModel.add(x)
+        return ok
+    }
+
+    /**
+     * 创建利润和物料使用表达式符号。/ Creates profit and material usage expression symbols.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun initSymbol(): Try {
+        profit = LinearExpressionSymbol(
+            sum(products) { p -> p.profit * x[p] },
+            name = "profit"
+        )
+        metaModel.add(profit)
+
+        use = LinearIntermediateSymbols1<Flt64>("use", Shape1(materials.size)) { m, _ ->
+            val material = materials[m]
+            val ps = products.filter { it.use.contains(material) }
+            LinearExpressionSymbol(
+                sum(ps) { p -> p.use[material]!! * x[p] },
+                name = "use_${m}"
+            )
+        }
+        metaModel.add(use)
+        return ok
+    }
+
+    /**
+     * 设置目标函数以最大化利润。/ Sets the objective to maximize profit.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun initObject(): Try {
+        metaModel.maximize(profit, "profit")
+        return ok
+    }
+
+    /**
+     * 添加物料可用性和生产差异约束。/ Adds material availability and production difference constraints.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun initConstraint(): Try {
+        for (p in products) {
+            x[p].range.ls(p.maxYield)
+        }
+
+        for (m in materials) {
+            metaModel.addConstraint(use[m] leq m.available)
+        }
+
+        for (p1 in products) {
+            for (p2 in products) {
+                if (p1.index == p2.index) {
+                    continue
+                }
+                metaModel.addConstraint((x[p1] - x[p2]) leq maxDiff.toFlt64())
+            }
+        }
+
+        return ok
+    }
+
+    /**
+     * 使用 SCIP 求解器求解线性模型。/ Solves the linear model using the SCIP solver.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun solve(): Try {
+        val solver = ScipLinearSolver()
+        when (val ret = solveLinearMetaModel(solver, metaModel)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(ret.value.solution)
+            }
+
+            is Failed -> {
+                return Failed(ret.error)
+            }
+
+            is Fatal -> {
+                return Fatal(ret.errors)
+            }
+        }
+        return ok
+    }
+
+    /**
+     * 从解中提取产品数量。/ Extracts the product quantities from the solution.
+     *
+     * @return 操作结果 / Operation result
+    */
+    private suspend fun analyzeSolution(): Try {
+        val ret = HashMap<Material, Flt64>()
+        for (token in metaModel.tokens.tokens) {
+            if (token.result!! eq Flt64.one
+                && token.variable.belongsTo(x)
+            ) {
+                ret[materials[token.variable.vectorView[0]]] = token.result!!
+            }
+        }
+        return ok
+    }
+}

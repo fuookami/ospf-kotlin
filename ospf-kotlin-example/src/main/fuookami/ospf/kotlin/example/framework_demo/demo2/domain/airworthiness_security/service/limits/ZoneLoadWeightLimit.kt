@@ -1,0 +1,72 @@
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.quantities.quantity.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+
+/**
+ * 约束每个机身区域内的总载荷重量到最大允许值。Constrains the total load weight within each fuselage zone to the maximum allowed value.
+ *
+ * @property aircraftModel The aircraft model providing unit configuration / 提供单位配置的飞机型号
+ * @property fuselage The fuselage providing liferaft weight data / 提供救生筏重量数据的机身
+ * @property maxZoneLoadWeight The maximum zone load weight limits / 各区域最大载荷重量限制
+ * @property positions The list of cargo positions / 货物位置列表
+ * @property load The load estimation model / 载荷估算模型
+*/
+class ZoneLoadWeightLimit(
+    private val aircraftModel: AircraftModel,
+    private val fuselage: Fuselage,
+    private val maxZoneLoadWeight: MaxZoneLoadWeight,
+    private val positions: List<Position>,
+    private val load: Load,
+    override val name: String = "zone_load_weight_limit",
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        for (zone in maxZoneLoadWeight.limitZones) {
+            if (zone.parts.none { it.position.status.available }) {
+                continue
+            }
+
+            val poly = MutableLinearPolynomial()
+            for (part in zone.parts) {
+                val j = positions.indexOf(part.position)
+                poly += LinearMonomial(
+                    part.weight,
+                    load.estimateLoadWeight[j].value
+                )
+            }
+            if (zone.liferaft != null) {
+                poly += fuselage.liferaft!!.weight.to(aircraftModel.weightUnit)!!.value
+            }
+            when (val result = model.addConstraint(
+                relation = LinearPolynomial(poly.monomials, poly.constant) leq zone.maxLoadWeight.to(aircraftModel.weightUnit)!!.value,
+                name = "${name}_${zone.name}"
+            )) {
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+
+        return ok
+    }
+}
