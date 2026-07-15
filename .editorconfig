@@ -1,0 +1,65 @@
+# EditorConfig for Kotlin project using ktlint
+# 适用于 Kotlin 项目的 EditorConfig 配置文件，与 ktlint 配合使用
+
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+
+[*.{kt,kts}]
+# 缩进风格与大小 / Indentation style and size
+indent_style = space
+indent_size = 4
+continuation_indent_size = 8
+
+# 最大行宽 / Maximum line width
+max_line_length = 120
+
+# 禁用尾逗号（规范 1.6.3） / Disallow trailing commas (rule 1.6.3)
+ktlint_standard_trailing-comma = disabled
+
+# 强制文件末尾换行（规范 1.6.1） / Enforce final newline (rule 1.6.1)
+ktlint_standard_final-newline = enabled
+
+# 禁止 package 前空行（规范 1.6.1） / No blank line before package (rule 1.6.1)
+ktlint_standard_no-blank-line-before-package = enabled
+
+# 禁止连续空行（规范 1.6.1, 1.6.3） / No consecutive blank lines (rule 1.6.1, 1.6.3)
+ktlint_standard_no-consecutive-blank-lines = enabled
+
+# 禁止行尾分号（规范 1.6.2） / No semicolon at end of line (rule 1.6.2)
+ktlint_standard_no-semi = enabled
+
+# 允许通配符导入（规范 1.6.2） / Allow wildcard imports (rule 1.6.2)
+# 默认 ktlint 会禁止通配符导入，此处禁用该规则以允许 *
+ktlint_standard_no-wildcard-imports = disabled
+
+# 参数列表换行（规范 1.5, 1.6.3） / Argument list wrapping (rule 1.5, 1.6.3)
+# 注意：ktlint 无法强制使用命名参数，仅控制换行
+ktlint_standard_argument-list-wrapping = enabled
+ktlint_standard_argument_list_wrapping = multi_line
+
+# 函数签名换行 / Function signature wrapping
+ktlint_standard_function-signature = enabled
+
+# 缩进规则 / Indentation rules
+ktlint_standard_indent = enabled
+
+# import 排序规则（规范 1.6.2） / Import ordering (rule 1.6.2)
+# 注意：完全按照规范实现“首层差异路径段长度升序”需要自定义规则集，
+# 以下配置提供了分组顺序，并尽量贴近依赖层级。
+# 您可以根据项目实际情况调整 ktlint_import_layout 的值。
+ktlint_standard_import-ordering = enabled
+# 自定义 import 分组顺序（按依赖层级从底层到上层）
+ktlint_import_layout = "java, javax, kotlin, kotlinx, *, fuookami.ospf.kotlin.utils, fuookami.ospf.kotlin.multiarray, fuookami.ospf.kotlin.math, fuookami.ospf.kotlin.quantities, fuookami.ospf.kotlin.core, fuookami.ospf.kotlin.framework"
+
+# 整体代码风格 / Overall code style
+ktlint_code_style = ktlint_official
+
+# 基础命名规范（驼峰等）（规范 1.7 部分） / Basic naming conventions (camelCase, etc.) (rule 1.7 partially)
+ktlint_standard_class-naming = enabled
+ktlint_standard_function-naming = enabled
+ktlint_standard_property-naming = enabled
