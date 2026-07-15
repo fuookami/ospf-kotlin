@@ -1,56 +1,81 @@
+﻿/** 消费数量最大化 / Consumption quantity maximization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
+/**
+ * 消费数量最大化 / Consumption quantity maximization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param C 材料类型 / Material type
+ * @param materials 材料列表 / List of materials
+ * @param consumption 消费对象 / Consumption object
+ * @param threshold 阈值函数 / Threshold function
+ * @param coefficient 成本系数函数 / Cost coefficient function
+ * @param name 管道名称 / Pipeline name
+*/
 class ConsumptionQuantityMaximization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>,
-    C : AbstractMaterial
->(
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>,
+        C : AbstractMaterial
+        >(
     private val materials: List<C>,
     private val consumption: Consumption,
     private val threshold: (C) -> Flt64 = { Flt64.zero },
     private val coefficient: (C) -> Flt64 = { Flt64.one },
     override val name: String = "consumption_quantity_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
-        when (val result = model.maximize(
-            polynomial = sum(materials.map {
-                val thresholdValue = threshold(it)
-                if (thresholdValue eq Flt64.zero) {
-                    coefficient(it) * consumption.quantity[it]
-                } else {
-                    val slack = SlackFunction(
-                        x = consumption.quantity[it],
-                        threshold = thresholdValue,
-                        type = UContinuous,
-                        name = "consumption_quantity_maximization_threshold_$it"
-                    )
-                    when (val result = model.add(slack)) {
-                        is Ok -> {}
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
+        for (material in materials) {
+            val thresholdValue = threshold(material)
+            if (thresholdValue eq Flt64.zero) {
+                cost += LinearMonomial(coefficient(material), consumption.quantity[material])
+            } else {
+                val slack = produceSlack(
+                    x = consumption.quantity[material],
+                    threshold = thresholdValue,
+                    type = UContinuous,
+                    withNegative = false,
+                    withPositive = true,
+                    name = "consumption_quantity_maximization_threshold_$material"
+                )
+                when (val result = model.add(slack)) {
+                    is Ok -> {}
 
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
+                    is Failed -> {
+                        return Failed(result.error)
                     }
-                    coefficient(it) * slack
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
                 }
-            }),
+                cost += LinearMonomial(coefficient(material), slack)
+            }
+        }
+        when (val result = model.maximize(
+            polynomial = cost.toLinearPolynomial(),
             name = "consumption quantity"
         )) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
         return ok

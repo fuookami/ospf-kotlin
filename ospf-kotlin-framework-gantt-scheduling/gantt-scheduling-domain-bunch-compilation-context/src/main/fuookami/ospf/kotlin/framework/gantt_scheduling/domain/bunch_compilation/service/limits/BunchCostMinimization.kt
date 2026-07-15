@@ -1,20 +1,35 @@
+/** 任务束成本最小化 / Bunch cost minimization */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 
+/**
+ * 任务束成本最小化 / Bunch cost minimization
+ *
+ * @param Args 影子价格参数类型 / Shadow price arguments type
+ * @param V 业务数值类型 / Business numeric type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param compilation 任务束编译结果 / Bunch compilation result
+ * @param name 管道名称 / Pipeline name
+*/
 class BunchCostMinimization<
-    Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
-    private val compilation: BunchCompilation<*, T, E, A>,
+        Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
+        V : RealNumber<V>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
+    private val compilation: BunchCompilation<*, V, T, E, A>,
     override val name: String = "bunch_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             symbol = compilation.bunchCost,
             name = "bunch cost"
@@ -23,6 +38,10 @@ class BunchCostMinimization<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

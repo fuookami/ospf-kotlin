@@ -1,32 +1,76 @@
+@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+/** 迭代任务编译聚合 / Iterative task compilation aggregation */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
-import kotlin.time.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.ordinary.*
-import fuookami.ospf.kotlin.utils.math.value_range.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.variable.Binary
+import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskSchedulingTaskTime
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Makespan
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.SolverTimeWindowBoundary
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import kotlin.time.Duration
+/**
+ * Compute the next reduced cost cutoff by applying a 2/3 floor-based decay to the current maximum.
+ * 通过对当前最大值应用基于向下取整的 2/3 衰减来计算下一个约简成本截断值。
+ * @param maximumReducedCost Current maximum reduced cost threshold / 当前最大约简成本阈值
+ * @return Next reduced cost cutoff value, at least 5.0 / 下一个约简成本截断值，至少为 5.0
+*/
+private fun nextReducedCostCutoff(maximumReducedCost: Flt64): Flt64 {
+    val reducedCostCutoff = maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)
+    return max(Flt64(reducedCostCutoff.toLong().toDouble()), Flt64(5.0))
+}
 
+/**
+ * 抽象迭代任务编译聚合 / Abstract iterative task compilation aggregation
+ *
+ * @param IT 迭代任务类型 / Iterative task type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockedCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+*/
 abstract class AbstractIterativeTaskCompilationAggregation<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        V : RealNumber<V>,
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     executors: List<E>,
     lockedCancelTasks: Set<T> = emptySet()
 ) {
+
+    /**
+     * 策略 / Policy
+     *
+     * @param IT 迭代任务类型 / Iterative task type
+     * @param E 执行器类型 / Executor type
+     * @param A 分配策略类型 / Assignment policy type
+     * @param cost 成本函数 / Cost function
+     * @param conflict 冲突函数 / Conflict function
+    */
     data class Policy<
-        IT : IterativeAbstractTask<E, A>,
-        out E : Executor,
-        out A : AssignmentPolicy<E>
-    >(
-        val cost: (IT) -> Cost,
+            IT : IterativeAbstractTask<E, A>,
+            V : RealNumber<V>,
+            out E : Executor,
+            out A : AssignmentPolicy<E>
+            >(
+        val cost: (IT) -> Cost<V>,
         val conflict: (IT, IT) -> Boolean
     )
 
@@ -37,29 +81,47 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         executors = executors,
         lockedCancelTasks = lockedCancelTasks
     )
-    abstract val policy: Policy<IT, E, A>
+    abstract val policy: Policy<IT, V, E, A>
 
     val tasksIteration: List<List<IT>> by compilation::tasksIteration
     val tasks: List<IT> by compilation::tasks
     val removedTasks: Set<IT> by compilation::removedTasks
     val lastIterationTasks: List<IT> by compilation::lastIterationTasks
 
-    open fun register(model: MetaModel): Try {
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+    */
+    open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newTasks 新任务列表 / List of new tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 去重后的任务列表 / Deduplicated task list
+    */
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<IT>> {
         val unduplicatedTasks = when (val result = compilation.addColumns(
             iteration = iteration,
@@ -75,18 +137,33 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return Ok(unduplicatedTasks)
     }
 
+    /**
+     * 移除列 / Remove columns
+     *
+     * @param maximumReducedCost 最大约简成本 / Maximum reduced cost
+     * @param maximumColumnAmount 最大列数 / Maximum column amount
+     * @param reducedCost 约简成本函数 / Reduced cost function
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @param keptTasks 保留任务集合 / Set of kept tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 更新后的最大约简成本 / Updated maximum reduced cost
+    */
     open fun removeColumns(
         maximumReducedCost: Flt64,
         maximumColumnAmount: UInt64,
         reducedCost: (IT) -> Flt64,
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Flt64> {
         for (task in tasks) {
             if (removedTasks.contains(task)) {
@@ -107,31 +184,52 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             model.remove(xi[task])
         }
 
-        val remainingAmount = UInt64((tasks.size - removedTasks.size).toULong())
+        val remainingAmount = UInt64(tasks.size.toULong())
         return if (remainingAmount > maximumColumnAmount) {
-            Ok(max((maximumReducedCost.floor().toInt64() * Int64(2L) / Int64(3L)).toFlt64(), Flt64(5.0)))
+            Ok(nextReducedCostCutoff(maximumReducedCost))
         } else {
             Ok(maximumReducedCost)
         }
     }
 
+    /**
+     * 提取固定任务 / Extract fixed tasks
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 固定任务集合 / Set of fixed tasks
+    */
     open fun extractFixedTasks(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it eq Flt64.one }
     }
 
+    /**
+     * 提取保留任务 / Extract kept tasks
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 保留任务集合 / Set of kept tasks
+    */
     open fun extractKeptTasks(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<IT>> {
         return extractTasks(iteration, model) { it gr Flt64.zero }
     }
 
+    /**
+     * 提取隐藏执行器 / Extract hidden executors
+     *
+     * @param executors 执行器列表 / List of executors
+     * @param model 线性元模型 / Linear meta model
+     * @return 隐藏执行器集合 / Set of hidden executors
+    */
     open fun extractHiddenExecutors(
         executors: List<E>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<E>> {
         val z = compilation.z
         val ret = HashSet<E>()
@@ -145,6 +243,12 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return Ok(ret)
     }
 
+    /**
+     * 全局固定 / Globally fix
+     *
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @return 操作结果 / Operation result
+    */
     open fun globallyFix(
         fixedTasks: Set<IT>
     ): Try {
@@ -157,11 +261,20 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+    /**
+     * 局部固定 / Locally fix
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param bar 阈值 / Threshold
+     * @param fixedTasks 固定任务集合 / Set of fixed tasks
+     * @param model 线性元模型 / Linear meta model
+     * @return 新固定的任务集合 / Set of newly fixed tasks
+    */
     open fun locallyFix(
         iteration: UInt64,
         bar: Flt64,
         fixedTasks: Set<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<IT>> {
         var flag = true
         val ret = HashSet<IT>()
@@ -205,8 +318,8 @@ abstract class AbstractIterativeTaskCompilationAggregation<
             }
         }
 
-        // if not fix any one bunch or cancel any task
-        // fix the best if the value greater than 1e-3
+        // if not fix any one bunch or cancel any task / 如果未固定任何任务束或取消任何任务
+        // fix the best if the value greater than 1e-3 / 如果最佳值大于 1e-3 则固定最佳项
         if (flag && ret.isEmpty() && (bestValue geq Flt64(1e-3))) {
             val xi = compilation.x[bestIteration.toInt()][bestIndex]
             ret.add(tasksIteration[bestIteration.toInt()][bestIndex])
@@ -217,9 +330,16 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return Ok(ret)
     }
 
+    /**
+     * 记录结果 / Log result
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+    */
     open fun logResult(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         for (token in model.tokens.tokens) {
             if (token.result!! gr Flt64.zero) {
@@ -234,9 +354,16 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+    /**
+     * 记录任务成本 / Log task cost
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param model 线性元模型 / Linear meta model
+     * @return 操作结果 / Operation result
+    */
     open fun logTaskCost(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         for (token in model.tokens.tokens) {
             if ((token.result!! eq Flt64.one) && token.name.startsWith("x")) {
@@ -245,7 +372,7 @@ abstract class AbstractIterativeTaskCompilationAggregation<
 
                     if (token.variable.belongsTo(xi)) {
                         val task = tasksIteration[i.toInt()][token.variable.index]
-                        logger.debug { "${task.executor} cost: ${policy.cost(task).sum!!}" }
+                        logger.debug { "${task.executor} cost: ${policy.cost(task).costSum!!.value}" }
                         break
                     }
                 }
@@ -255,6 +382,14 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+/**
+ * Reset variable ranges for a new iteration, unlocking cancel variables and restoring binary ranges.
+ * 重置变量范围以开始新一轮迭代，解锁取消变量并恢复二值范围。
+ * @param iteration Current iteration index to flush variables up to / 要刷新变量至的当前迭代索引
+ * @param tasks Original task list whose cancel variables need resetting / 需要重置取消变量的原始任务列表
+ * @param lockCancelTasks Tasks whose cancel variables should remain locked / 取消变量应保持锁定的任务集合
+ * @return Operation result / 操作结果
+*/
     fun flush(
         iteration: UInt64,
         tasks: List<T>,
@@ -287,9 +422,17 @@ abstract class AbstractIterativeTaskCompilationAggregation<
         return ok
     }
 
+/**
+ * Extract tasks from solved model tokens matching a given predicate on their result values.
+ * 从已求解的模型令牌中提取结果值满足给定谓词的任务。
+ * @param iteration Current iteration index / 当前迭代索引
+ * @param model Linear meta model containing solved tokens / 包含已求解令牌的线性元模型
+ * @param predicate Filter predicate applied to token result values / 应用于令牌结果值的过滤谓词
+ * @return Set of iterative tasks matching the predicate / 匹配谓词的迭代任务集合
+*/
     private fun extractTasks(
         iteration: UInt64,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         predicate: (Flt64) -> Boolean
     ): Ret<Set<IT>> {
         val ret = HashSet<IT>()
@@ -312,45 +455,87 @@ abstract class AbstractIterativeTaskCompilationAggregation<
     }
 }
 
+/**
+ * Iterative task compilation aggregation with cost and conflict policies.
+ * 带有成本和冲突策略的迭代任务编译聚合。
+*/
 open class IterativeTaskCompilationAggregation<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
+        V : RealNumber<V>,
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
     tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<IT, E, A>,
+    override val policy: Policy<IT, V, E, A>,
     lockedCancelTasks: Set<T> = emptySet()
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+) : AbstractIterativeTaskCompilationAggregation<V, IT, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockedCancelTasks = lockedCancelTasks
 )
 
+/**
+ * Iterative task compilation aggregation with time-window scheduling support.
+ * 带时间窗口调度支持的迭代任务编译聚合。
+*/
 open class IterativeTaskCompilationAggregationWithTime<
-    IT : IterativeAbstractTask<E, A>,
-    T : AbstractTask<E, A>,
-    E : Executor,
-    A : AssignmentPolicy<E>
->(
-    timeWindow: TimeWindow,
+        V : RealNumber<V>,
+        IT : IterativeAbstractTask<E, A>,
+        T : AbstractTask<E, A>,
+        E : Executor,
+        A : AssignmentPolicy<E>
+        >(
+    timeWindow: TimeWindow<*>,
     tasks: List<T>,
     executors: List<E>,
-    override val policy: Policy<IT, E, A>,
+    override val policy: Policy<IT, V, E, A>,
     lockCancelTasks: Set<T> = emptySet(),
     redundancyRange: Duration? = null,
     makespanExtra: Boolean = false
-) : AbstractIterativeTaskCompilationAggregation<IT, T, E, A>(
+) : AbstractIterativeTaskCompilationAggregation<V, IT, T, E, A>(
     tasks = tasks,
     executors = executors,
     lockedCancelTasks = lockCancelTasks
 ) {
+    private val timeBoundary = SolverTimeWindowBoundary(timeWindow.toFlt64Boundary())
+
     val taskTime: IterativeTaskSchedulingTaskTime<IT, T, E, A> = IterativeTaskSchedulingTaskTime(
-        timeWindow = timeWindow,
+        timeBoundary = timeBoundary,
         tasks = tasks,
         compilation = compilation,
         redundancyRange = redundancyRange
+    )
+
+    /**
+     * 通过 solver 时间窗口边界创建带时间的迭代任务编译聚合 /
+     * Create iterative task compilation aggregation with time from a solver time-window boundary
+     *
+     * @param timeBoundary solver 时间窗口边界 / Solver time-window boundary
+     * @param tasks 任务列表 / List of tasks
+     * @param executors 执行器列表 / List of executors
+     * @param policy 策略 / Policy
+     * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+     * @param redundancyRange 冗余范围 / Redundancy range
+     * @param makespanExtra 是否额外计算完工时间 / Whether to compute makespan extra
+    */
+    constructor(
+        timeBoundary: SolverTimeWindowBoundary,
+        tasks: List<T>,
+        executors: List<E>,
+        policy: Policy<IT, V, E, A>,
+        lockCancelTasks: Set<T> = emptySet(),
+        redundancyRange: Duration? = null,
+        makespanExtra: Boolean = false
+    ) : this(
+        timeWindow = timeBoundary.source,
+        tasks = tasks,
+        executors = executors,
+        policy = policy,
+        lockCancelTasks = lockCancelTasks,
+        redundancyRange = redundancyRange,
+        makespanExtra = makespanExtra
     )
 
     val makespan: Makespan<T, E, A> = Makespan(
@@ -359,12 +544,16 @@ open class IterativeTaskCompilationAggregationWithTime<
         extra = makespanExtra
     )
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -374,6 +563,10 @@ open class IterativeTaskCompilationAggregationWithTime<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         when (val result = makespan.register(model)) {
@@ -381,6 +574,10 @@ open class IterativeTaskCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -390,7 +587,7 @@ open class IterativeTaskCompilationAggregationWithTime<
     override suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<IT>> {
         val unduplicatedBunches = when (val result = super.addColumns(
             iteration = iteration,
@@ -403,6 +600,10 @@ open class IterativeTaskCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -417,6 +618,10 @@ open class IterativeTaskCompilationAggregationWithTime<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 

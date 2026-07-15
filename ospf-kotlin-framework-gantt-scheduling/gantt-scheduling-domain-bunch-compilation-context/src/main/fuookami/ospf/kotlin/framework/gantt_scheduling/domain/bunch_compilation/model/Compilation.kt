@@ -1,27 +1,45 @@
+/** 任务束编译模型 / Bunch compilation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.*
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
-import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.utils.concept.ManualIndexed
+import fuookami.ospf.kotlin.utils.functional.*
 
+/**
+ * 任务束编译 / Bunch compilation
+ *
+ * @param B 任务束类型 / Bunch type
+ * @param V 数值类型 / Numeric type
+ * @param T 任务类型 / Task type
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @param tasks 任务列表 / List of tasks
+ * @param executors 执行器列表 / List of executors
+ * @param lockCancelTasks 锁定取消任务集合 / Set of locked cancel tasks
+ * @param withExecutorLeisure 是否包含执行器空闲 / Whether to include executor leisure
+ * @param bunchAggregation 任务束聚合 / Bunch aggregation
+*/
 open class BunchCompilation<
-    B : AbstractTaskBunch<T, E, A>,
-    out T : AbstractTask<E, A>,
-    out E : Executor,
-    out A : AssignmentPolicy<E>
->(
+        B : AbstractTaskBunch<T, E, A, V>,
+        V : RealNumber<V>,
+        out T : AbstractTask<E, A>,
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
     private val tasks: List<T>,
     private val executors: List<E>,
     private val lockCancelTasks: Set<T> = emptySet(),
-    override val withExecutorLeisure: Boolean = true
+    override val withExecutorLeisure: Boolean = true,
+    bunchAggregation: BunchAggregation<B, V, T, E, A> = BunchAggregation()
 ) : Compilation {
     init {
         if (!executors.all { it.indexed }) {
@@ -40,7 +58,7 @@ open class BunchCompilation<
 
     override val taskCancelEnabled: Boolean = true
 
-    internal val aggregation = BunchAggregation<B, T, E, A>()
+    internal val aggregation: BunchAggregation<B, V, T, E, A> = bunchAggregation
     val bunchesIteration: List<List<B>> by aggregation::bunchesIteration
     val bunches: List<B> by aggregation::bunches
     val removedBunches: Set<B> by aggregation::removedBunches
@@ -52,12 +70,18 @@ open class BunchCompilation<
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
 
-    lateinit var bunchCost: LinearExpressionSymbol
-    override lateinit var taskAssignment: LinearExpressionSymbols2
-    override lateinit var taskCompilation: LinearExpressionSymbols1
-    override lateinit var executorCompilation: LinearExpressionSymbols1
+    lateinit var bunchCost: LinearIntermediateSymbol<Flt64>
+    override lateinit var taskAssignment: LinearIntermediateSymbols2<Flt64>
+    override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
+    override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModel): Try {
+    /**
+     * 注册到模型 / Register to model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+    */
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
             for (task in tasks) {
@@ -74,10 +98,14 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::bunchCost.isInitialized) {
-            bunchCost = LinearExpressionSymbol(name = "bunch_cost")
+            bunchCost = LinearExpressionSymbol(Flt64, name = "bunch_cost")
         }
         when (val result = model.add(bunchCost)) {
             is Ok -> {}
@@ -85,16 +113,21 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = LinearExpressionSymbols2(
+            taskAssignment = LinearIntermediateSymbols2<Flt64>(
                 name = "task_assignment",
                 shape = Shape2(tasks.size, executors.size)
             ) { _, (t, e) ->
                 val task = tasks[t]
                 val executor = executors[e]
                 LinearExpressionSymbol(
+                    Flt64,
                     name = "task_assignment_${task}_${executor}"
                 )
             }
@@ -105,16 +138,21 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = LinearExpressionSymbols1(
+            taskCompilation = LinearIntermediateSymbols1<Flt64>(
                 name = "task_compilation",
                 shape = Shape1(tasks.size)
             ) { i, _ ->
                 val task = tasks[i]
                 LinearExpressionSymbol(
-                    item = y[i],
+                    y[i],
+                    Flt64,
                     name = "task_compilation_${task}"
                 )
             }
@@ -124,6 +162,10 @@ open class BunchCompilation<
 
             is Failed -> {
                 return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
             }
         }
 
@@ -137,20 +179,24 @@ open class BunchCompilation<
                 is Failed -> {
                     return Failed(result.error)
                 }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
             }
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = LinearExpressionSymbols1(
+            executorCompilation = LinearIntermediateSymbols1<Flt64>(
                 name = "executor_compilation",
                 shape = Shape1(executors.size)
             ) { i, _ ->
                 val executor = executors[i]
                 LinearExpressionSymbol(
                     polynomial = if (withExecutorLeisure) {
-                        LinearPolynomial(z[i])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, z[i])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "executor_compilation_${executor}"
                 )
@@ -162,15 +208,27 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
 
         return ok
     }
 
+    /**
+     * 添加列 / Add columns
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newBunches 新任务束列表 / List of new bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 去重后的任务束列表 / Deduplicated bunch list
+    */
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<B>> {
         val unduplicatedBunches = aggregation.addColumns(newBunches)
 
@@ -184,12 +242,19 @@ open class BunchCompilation<
             is Failed -> {
                 return Failed(result.error)
             }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
         }
         _x.add(xi)
 
-        bunchCost.flush()
         for (bunch in unduplicatedBunches) {
-            bunchCost.asMutable() += (bunch.cost.sum ?: Flt64.infinity) * xi[bunch]
+            (bunchCost as LinearExpressionSymbol<Flt64>).flush()
+            (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() += LinearMonomial(
+                bunch.cost.solverCostOrNull(Flt64.infinity)!!,
+                xi[bunch]
+            )
         }
 
         for (task in tasks) {
@@ -198,7 +263,7 @@ open class BunchCompilation<
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
                     assign.flush()
-                    assign.asMutable() += sum(thisBunches.map { xi[it] })
+                    assign.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
                 }
             }
         }
@@ -208,7 +273,7 @@ open class BunchCompilation<
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
                 compilation.flush()
-                compilation.asMutable() += sum(thisBunches.map { xi[it] })
+                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }
 
@@ -217,7 +282,7 @@ open class BunchCompilation<
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
                 compilation.flush()
-                compilation.asMutable() += sum(thisBunches.map { xi[it] })
+                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }
 
