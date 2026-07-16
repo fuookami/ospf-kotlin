@@ -4,7 +4,7 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <modelVersion>4.0.0</modelVersion>
 
-    <artifactId>ospf-kotlin-jdk8</artifactId>
+    <artifactId>ospf-kotlin</artifactId>
     <modules>
         <module>ospf-kotlin-dependencies</module>
         <module>ospf-kotlin-parent</module>
@@ -62,6 +62,7 @@
     <properties>
         <!-- maven -->
         <maven-gpg-plugin.version>3.1.0</maven-gpg-plugin.version>
+        <flatten-maven-plugin.version>1.7.3</flatten-maven-plugin.version>
         <gpg.skip>true</gpg.skip>
         <nexus-staging-maven-plugin.version>1.7.0</nexus-staging-maven-plugin.version>
         <!-- kotlin -->
@@ -71,6 +72,7 @@
         <kotlin.compiler.jvmTarget>17</kotlin.compiler.jvmTarget>
         <kotlin.compiler.daemon>false</kotlin.compiler.daemon>
         <kotlin.version>2.2.20</kotlin.version>
+        <ospf.kotlin.artifact.suffix/>
         <!-- kotlinx -->
         <kotlinx-datetime.version>0.7.1</kotlinx-datetime.version>
         <kotlinx-coroutines.version>1.10.2</kotlinx-coroutines.version>
@@ -88,8 +90,50 @@
         <http4k.version>6.18.1.0</http4k.version>
     </properties>
 
+    <profiles>
+        <profile>
+            <id>jdk8</id>
+            <properties>
+                <ospf.kotlin.artifact.suffix>-jdk8</ospf.kotlin.artifact.suffix>
+                <kotlin.compiler.jvmTarget>1.8</kotlin.compiler.jvmTarget>
+                <maven.compiler.source>8</maven.compiler.source>
+                <maven.compiler.target>8</maven.compiler.target>
+                <maven.compiler.compilerVersion>1.8</maven.compiler.compilerVersion>
+                <maven.compiler.release>8</maven.compiler.release>
+                <http4k.version>5.47.0.0</http4k.version>
+            </properties>
+        </profile>
+    </profiles>
+
     <build>
         <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>flatten-maven-plugin</artifactId>
+                <version>${flatten-maven-plugin.version}</version>
+                <inherited>true</inherited>
+                <configuration>
+                    <flattenMode>ossrh</flattenMode>
+                    <flattenDependencyMode>inherited</flattenDependencyMode>
+                    <updatePomFile>true</updatePomFile>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>flatten</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>flatten</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>flatten-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>clean</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-gpg-plugin</artifactId>

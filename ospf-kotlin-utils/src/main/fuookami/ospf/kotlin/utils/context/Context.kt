@@ -30,9 +30,6 @@ data class ContextKey(
 
             val topStack = stackTree[0]
             val normalizedTopStack = StackTraceElement(
-                topStack.classLoaderName,
-                topStack.moduleName,
-                topStack.moduleVersion,
                 topStack.className,
                 topStack.methodName,
                 topStack.fileName,

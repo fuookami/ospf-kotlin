@@ -4,44 +4,44 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-starters-jdk8</artifactId>
+        <artifactId>ospf-kotlin-starters</artifactId>
         <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-starter</name>
-    <artifactId>ospf-kotlin-starter-jdk8</artifactId>
+    <artifactId>ospf-kotlin-starter${ospf.kotlin.artifact.suffix}</artifactId>
 
     <dependencies>
         <!-- ospf -->
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-utils-jdk8</artifactId>
+            <artifactId>ospf-kotlin-utils${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-multiarray-jdk8</artifactId>
+            <artifactId>ospf-kotlin-multiarray${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-math-jdk8</artifactId>
+            <artifactId>ospf-kotlin-math${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-quantities-jdk8</artifactId>
+            <artifactId>ospf-kotlin-quantities${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-core-jdk8</artifactId>
+            <artifactId>ospf-kotlin-core${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-framework-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>
@@ -51,93 +51,93 @@
             <!-- ospf-core-plugin -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-copt-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-copt${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-cplex-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-cplex${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-gurobi-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-gurobi${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-gurobi11-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-gurobi11${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-hexaly-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-hexaly${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-lingo-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-lingo${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-mindopt-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-mindopt${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-mosek-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-mosek${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-optverse-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-optverse${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-scip-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-scip${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
-                <artifactId>ospf-kotlin-core-plugin-heuristic-jdk8</artifactId>
+                <artifactId>ospf-kotlin-core-plugin-heuristic${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <!-- ospf-framework-plugin -->
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-message-kafka-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-message-kafka${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-ktorm-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-ktorm${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-mongodb-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mongodb${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-mysql-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-mysql${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-sqlite-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-sqlite${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-redis-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-redis${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
             <dependency>
                 <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-                <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp-jdk8</artifactId>
+                <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp${ospf.kotlin.artifact.suffix}</artifactId>
                 <version>${project.version}</version>
             </dependency>
         </dependencies>

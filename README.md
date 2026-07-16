@@ -178,6 +178,19 @@ If you need to use the network scheduling development package, add the dependenc
 </dependency>
 ```
 
+## Building JDK Variants
+
+The default build produces the Java 17 variant. Enabling the `jdk8` profile appends the `-jdk8` suffix to publishable library artifactIds and compiles with JVM target 1.8:
+
+```bash
+mvn clean install -DskipTests -T 0.75C
+mvn clean install -Pjdk8 -DskipTests -T 0.75C
+```
+
+Parent and aggregator POMs keep stable coordinates; only publishable library modules and their internal dependencies use the `-jdk8` coordinates under the `jdk8` profile.
+
+When Maven itself runs on JDK 8, use only JVM options supported by JDK 8. Segmented CodeHeap options such as `NonProfiledCodeHeapSize` require a newer JVM; the repository-level `.mvn/jvm.config` therefore keeps only the cross-version `ReservedCodeCacheSize` option.
+
 
 ## Changelog
 

@@ -1,10 +1,8 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
-import java.net.http.HttpClient
-import java.net.http.HttpRequest
-import java.net.http.HttpResponse
-import java.net.URI
+import java.net.HttpURLConnection
+import java.net.URL
 import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
@@ -728,32 +726,44 @@ data class RemoteSolverHttpResponse(
  * JDK 标准 HTTP 传输实现。
  * JDK standard HTTP transport implementation.
  *
- * @property client JDK HTTP 客户端 / JDK HTTP client
  * @property config HTTP 传输配置 / HTTP transport config
 */
 class JavaNetRemoteSolverHttpTransport(
-    private val client: HttpClient = HttpClient.newHttpClient(),
     private val config: RemoteSolverHttpTransportConfig = RemoteSolverHttpTransportConfig()
 ) : RemoteSolverHttpTransport {
     override fun send(request: RemoteSolverHttpRequest): RemoteSolverHttpResponse {
-        val builder = HttpRequest.newBuilder()
-            .uri(URI.create(request.url))
+        val connection = URL(request.url).openConnection() as HttpURLConnection
+        connection.requestMethod = request.method.uppercase()
         config.requestTimeout?.let {
-            builder.timeout(java.time.Duration.ofMillis(it.inWholeMilliseconds))
+            connection.readTimeout = it.inWholeMilliseconds.toInt()
+        }
+        config.connectTimeout?.let {
+            connection.connectTimeout = it.inWholeMilliseconds.toInt()
         }
         (config.headers + request.headers).forEach { (name, value) ->
-            builder.header(name, value)
+            connection.setRequestProperty(name, value)
         }
-        val bodyPublisher = request.body?.let { HttpRequest.BodyPublishers.ofString(it) }
-            ?: HttpRequest.BodyPublishers.noBody()
-        val response = client.send(
-            builder.method(request.method, bodyPublisher).build(),
-            HttpResponse.BodyHandlers.ofString()
-        )
-        return RemoteSolverHttpResponse(
-            statusCode = response.statusCode(),
-            body = response.body()
-        )
+        request.body?.let {
+            connection.doOutput = true
+            connection.outputStream.use { output ->
+                output.write(it.toByteArray(Charsets.UTF_8))
+            }
+        }
+        return try {
+            val statusCode = connection.responseCode
+            val stream = if (statusCode >= HttpURLConnection.HTTP_BAD_REQUEST) {
+                connection.errorStream
+            } else {
+                connection.inputStream
+            }
+            val body = stream?.use { it.readBytes().toString(Charsets.UTF_8) } ?: ""
+            RemoteSolverHttpResponse(
+                statusCode = statusCode,
+                body = body
+            )
+        } finally {
+            connection.disconnect()
+        }
     }
 }
 

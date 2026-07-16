@@ -4,14 +4,15 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.application.service
 
+import java.nio.file.*
+import java.util.stream.Collectors
 import kotlin.io.path.*
 import kotlin.test.assertTrue
 import org.junit.jupiter.api.Test
-import java.nio.file.*
 
 class Bpp3dMigrationBoundaryTest {
     private fun bpp3dRoot(): Path {
-        val cwd = Path.of("").toAbsolutePath()
+        val cwd = Paths.get("").toAbsolutePath()
         val candidates = generateSequence(cwd) { it.parent }.flatMap { path ->
             sequenceOf(path, path.resolve("ospf-kotlin-framework-bpp3d"))
         }
@@ -50,7 +51,7 @@ class Bpp3dMigrationBoundaryTest {
                         }
                         .stream()
                 }
-                .toList()
+                .collect(Collectors.toList())
         }
 
         assertTrue(

@@ -178,6 +178,19 @@ ospf-kotlin 已经发布到 maven 中央仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
+## 构建 JDK 变体
+
+默认构建生成 Java 17 版本，启用 `jdk8` profile 后会将库模块的 artifactId 添加 `-jdk8` 后缀，并使用 JVM 1.8 目标编译：
+
+```bash
+mvn clean install -DskipTests -T 0.75C
+mvn clean install -Pjdk8 -DskipTests -T 0.75C
+```
+
+父 POM 和聚合 POM 保持固定坐标，只有可发布库模块及其内部依赖在 `jdk8` profile 下使用 `-jdk8` 坐标。
+
+当 Maven 本身运行在 JDK 8 上时，只能使用 JDK 8 支持的 JVM 参数。`NonProfiledCodeHeapSize` 等分段 CodeHeap 参数需要更高版本 JVM，因此仓库级 `.mvn/jvm.config` 仅保留跨版本可用的 `ReservedCodeCacheSize` 参数。
+
 
 ## 版本记录
 

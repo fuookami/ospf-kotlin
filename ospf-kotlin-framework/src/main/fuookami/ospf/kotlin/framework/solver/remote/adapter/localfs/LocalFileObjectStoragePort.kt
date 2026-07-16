@@ -35,7 +35,10 @@ class LocalFileObjectStoragePort(
         objectPath.parent?.createDirectories()
         Files.write(objectPath, bytes)
         if (metadata.isNotEmpty()) {
-            Files.writeString(metadataPath(objectPath), encodeMetadata(metadata))
+            Files.write(
+                metadataPath(objectPath),
+                encodeMetadata(metadata).toByteArray(Charsets.UTF_8)
+            )
         }
         return ObjectRef(
             path = normalizeObjectPath(path),

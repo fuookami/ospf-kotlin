@@ -4,21 +4,21 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-parent-jdk8</artifactId>
+        <artifactId>ospf-kotlin-parent</artifactId>
         <version>1.1.0</version>
         <relativePath>../ospf-kotlin-parent</relativePath>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-quantities</name>
-    <artifactId>ospf-kotlin-quantities-jdk8</artifactId>
+    <artifactId>ospf-kotlin-quantities${ospf.kotlin.artifact.suffix}</artifactId>
 
     <description>Physical quantities and units system for OSPF Kotlin</description>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-math-jdk8</artifactId>
+            <artifactId>ospf-kotlin-math${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

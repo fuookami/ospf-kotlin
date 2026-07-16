@@ -4,23 +4,23 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-        <artifactId>ospf-kotlin-framework-bpp3d-jdk8</artifactId>
+        <artifactId>ospf-kotlin-framework-bpp3d</artifactId>
         <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-framework-bpp3d-domain-block-loading-context</name>
-    <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context-jdk8</artifactId>
+    <artifactId>ospf-kotlin-framework-bpp3d-domain-block-loading-context${ospf.kotlin.artifact.suffix}</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-            <artifactId>ospf-kotlin-framework-bpp3d-infrastructure-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-bpp3d-infrastructure${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.bpp3d</groupId>
-            <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-bpp3d-domain-item-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

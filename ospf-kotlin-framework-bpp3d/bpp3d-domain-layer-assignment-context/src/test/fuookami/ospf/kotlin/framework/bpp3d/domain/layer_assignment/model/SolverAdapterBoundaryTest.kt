@@ -4,6 +4,7 @@
  */
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
+import java.nio.file.*
 import kotlin.test.*
 import org.junit.jupiter.api.Test
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -12,7 +13,6 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.times
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
-import java.nio.file.*
 
 class SolverAdapterBoundaryTest {
     private fun defaultPackageAttribute(type: PackageType = PackageType.CartonContainer): PackageAttribute {
@@ -107,7 +107,7 @@ class SolverAdapterBoundaryTest {
                 Files.isRegularFile(path) && path.toString().endsWith(".kt")
             }.forEach { path ->
                 if (path.fileName.toString() !in allowedFiles) {
-                    val content = Files.readString(path)
+                    val content = Files.readAllBytes(path).toString(Charsets.UTF_8)
                     if (content.contains("toFlt64(")) {
                         offenders.add(path.toString())
                     }

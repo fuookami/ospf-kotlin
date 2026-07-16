@@ -1,6 +1,7 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 package fuookami.ospf.kotlin.utils
 
+import java.time.temporal.ChronoUnit
 import kotlin.time.*
 import kotlin.time.Duration.Companion.days
 import kotlinx.datetime.plus
@@ -91,8 +92,20 @@ fun min(lhs: Duration, rhs: Duration): Duration {
 fun Instant.truncatedTo(unit: DurationUnit): Instant {
     return this
         .toJavaInstant()
-        .truncatedTo(unit.toTimeUnit().toChronoUnit())
+        .truncatedTo(unit.toChronoUnit())
         .toKotlinInstant()
+}
+
+private fun DurationUnit.toChronoUnit(): ChronoUnit {
+    return when (this) {
+        DurationUnit.NANOSECONDS -> ChronoUnit.NANOS
+        DurationUnit.MICROSECONDS -> ChronoUnit.MICROS
+        DurationUnit.MILLISECONDS -> ChronoUnit.MILLIS
+        DurationUnit.SECONDS -> ChronoUnit.SECONDS
+        DurationUnit.MINUTES -> ChronoUnit.MINUTES
+        DurationUnit.HOURS -> ChronoUnit.HOURS
+        DurationUnit.DAYS -> ChronoUnit.DAYS
+    }
 }
 
 /**

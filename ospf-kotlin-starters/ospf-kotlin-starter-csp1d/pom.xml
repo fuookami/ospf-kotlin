@@ -4,58 +4,58 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin</groupId>
-        <artifactId>ospf-kotlin-starters-jdk8</artifactId>
+        <artifactId>ospf-kotlin-starters</artifactId>
         <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-starter-csp1d</name>
-    <artifactId>ospf-kotlin-starter-csp1d-jdk8</artifactId>
+    <artifactId>ospf-kotlin-starter-csp1d${ospf.kotlin.artifact.suffix}</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-starter-jdk8</artifactId>
+            <artifactId>ospf-kotlin-starter${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-infrastructure-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-infrastructure${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-material-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-material-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-produce-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-cutting-plan-generation-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-yield-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-yield-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-length-assignment-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-length-assignment-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-domain-wasting-minimization-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-domain-wasting-minimization-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.csp1d</groupId>
-            <artifactId>ospf-kotlin-framework-csp1d-application-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-csp1d-application${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

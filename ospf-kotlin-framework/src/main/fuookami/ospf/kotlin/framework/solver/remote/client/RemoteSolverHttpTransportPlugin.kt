@@ -4,7 +4,6 @@
 */
 package fuookami.ospf.kotlin.framework.solver.remote.client
 
-import java.net.http.HttpClient
 import java.util.concurrent.ConcurrentHashMap
 import kotlin.time.Duration
 import fuookami.ospf.kotlin.utils.error.*
@@ -53,12 +52,7 @@ object JavaNetRemoteSolverHttpTransportPlugin : RemoteSolverHttpTransportPlugin 
     override val name: String = "jdk"
 
     override fun create(config: RemoteSolverHttpTransportConfig): RemoteSolverHttpTransport {
-        val builder = HttpClient.newBuilder()
-        config.connectTimeout?.let {
-            builder.connectTimeout(java.time.Duration.ofMillis(it.inWholeMilliseconds))
-        }
         return JavaNetRemoteSolverHttpTransport(
-            client = builder.build(),
             config = config
         )
     }

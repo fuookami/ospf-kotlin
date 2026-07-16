@@ -58,7 +58,7 @@ class MetaModelOpmExportTest {
             }
 
             assertTrue(result is Ok)
-            val content = Files.readString(path)
+            val content = Files.readAllBytes(path).toString(Charsets.UTF_8)
             assertContains(content, "purchase_1 >= 400.0")
             assertContains(content, "purchase_upper: purchase_1 <= 500.0")
             assertFalse(content.contains("LinearInequality(lhs="))

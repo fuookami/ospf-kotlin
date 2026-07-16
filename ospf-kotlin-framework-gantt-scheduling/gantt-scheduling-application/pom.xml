@@ -4,28 +4,28 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-        <artifactId>ospf-kotlin-framework-gantt-scheduling-jdk8</artifactId>
+        <artifactId>ospf-kotlin-framework-gantt-scheduling</artifactId>
         <version>1.1.0</version>
     </parent>
     <modelVersion>4.0.0</modelVersion>
 
     <name>ospf-kotlin-framework-gantt-scheduling-application</name>
-    <artifactId>ospf-kotlin-framework-gantt-scheduling-application-jdk8</artifactId>
+    <artifactId>ospf-kotlin-framework-gantt-scheduling-application${ospf.kotlin.artifact.suffix}</artifactId>
 
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-task-compilation-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin.framework.gantt-scheduling</groupId>
-            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework-gantt-scheduling-domain-bunch-compilation-context${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
     </dependencies>

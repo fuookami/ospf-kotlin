@@ -4,6 +4,9 @@
 # Log file
 *.log
 
+# Maven Flatten Plugin
+.flattened-pom.xml
+
 # BlueJ files
 *.ctxt
 

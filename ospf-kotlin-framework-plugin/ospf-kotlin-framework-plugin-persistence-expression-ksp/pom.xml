@@ -5,11 +5,11 @@
     <modelVersion>4.0.0</modelVersion>
     <parent>
         <groupId>io.github.fuookami.ospf.kotlin.framework.plugin</groupId>
-        <artifactId>ospf-kotlin-framework-plugin-jdk8</artifactId>
+        <artifactId>ospf-kotlin-framework-plugin</artifactId>
         <version>1.1.0</version>
     </parent>
 
-    <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp-jdk8</artifactId>
+    <artifactId>ospf-kotlin-framework-plugin-persistence-expression-ksp${ospf.kotlin.artifact.suffix}</artifactId>
 
     <properties>
         <ksp.version>2.2.20-2.0.4</ksp.version>
@@ -19,7 +19,7 @@
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
-            <artifactId>ospf-kotlin-framework-jdk8</artifactId>
+            <artifactId>ospf-kotlin-framework${ospf.kotlin.artifact.suffix}</artifactId>
             <version>${project.version}</version>
         </dependency>
         <dependency>
