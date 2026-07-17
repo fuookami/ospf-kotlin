@@ -481,8 +481,8 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     fun elastic(): QuadraticTetradModelView
 
     /**
-     * 整理对偶解，将非零对偶值映射回原始约束
-     * Tidy dual solution, mapping non-zero dual values back to original constraints
+     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束
+     * Tidy dual solution, mapping complete dual values (including zero) back to original constraints
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
      * @return 原始约束到对偶值的映射 / Mapping from original constraints to dual values

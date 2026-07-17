@@ -97,6 +97,46 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
         get() = _x.toMap()
 
     /**
+     * 当前有效产能列到真实决策变量的权威映射
+     * Authoritative mapping from active capacity columns to their actual decision variables
+     */
+    val variableByColumn: Map<CapacityColumn<E, A, V>, CombinationVariableItem<UInt64, UInteger>>
+        get() = buildMap {
+            for ((executor, columnAggregation) in columnsByExecutor) {
+                val executorVariable = _x[executor] ?: continue
+                for ((iterationIndex, columns) in columnAggregation.columnsIteration.withIndex()) {
+                    for ((columnIndex, column) in columns.withIndex()) {
+                        if (column !in columnAggregation.columns ||
+                            iterationIndex >= executorVariable.shape[0] ||
+                            columnIndex >= executorVariable.shape[1]
+                        ) {
+                            continue
+                        }
+                        put(column, executorVariable[iterationIndex, columnIndex])
+                    }
+                }
+            }
+        }
+
+    /**
+     * 执行器-时隙选列表达式
+     * Executor-slot column selection expressions
+     */
+    val executorSlotCompilation: Map<Pair<E, TimeSlot>, LinearExpressionSymbol<Flt64>> = buildMap {
+        for (executor in executors) {
+            for (slot in slots) {
+                put(
+                    executor to slot,
+                    LinearExpressionSymbol(
+                        Flt64,
+                        name = "capacity_column_selection_${executor.id}_${slots.indexOf(slot)}"
+                    )
+                )
+            }
+        }
+    }
+
+    /**
      * 成本表达式
      * Cost expression
     */
@@ -222,6 +262,14 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
+        }
+
+        for (compilation in executorSlotCompilation.values) {
+            when (val result = model.add(compilation)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
         }
 
         return ok
@@ -383,7 +431,9 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             columnOperationTime += unitOperationTime * timeWindow.fromDouble(amount.toLong().toDouble())
         }
         if (columnOperationTime <= valueZero) {
-            return UInt64.zero
+            // 空列表达设备在时隙内保持空闲，仍必须能被 exactly-one 主问题选择。
+            // An empty column represents executor leisure and must remain selectable by the exactly-one master constraint.
+            return UInt64.one
         }
 
         val available = timeWindow.valueOf(slots[column.slotIndex].duration)
@@ -410,6 +460,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
 
         for ((a, _) in actions.withIndex()) {
             for ((s, _) in slots.withIndex()) {
+                operationTime[a, s].asMutable().clear()
                 operationTime[a, s].flush()
             }
         }
@@ -444,6 +495,7 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
 
         for ((e, executor) in executors.withIndex()) {
             for ((s, _) in slots.withIndex()) {
+                capacity[e, s].asMutable().clear()
                 capacity[e, s].flush()
                 for ((a, action) in actions.withIndex()) {
                     if (action.executor == executor) {
@@ -453,6 +505,22 @@ class IterativeCapacityCompilation<V : RealNumber<V>, E : Executor, A : Producti
             }
         }
 
+        for ((group, compilation) in executorSlotCompilation) {
+            compilation.asMutable().clear()
+            compilation.flush()
+            val (executor, slot) = group
+            val slotIndex = slots.indexOf(slot)
+            if (slotIndex < 0) {
+                continue
+            }
+            for ((column, variable) in variableByColumn) {
+                if (column.executor == executor && column.slotIndex == slotIndex) {
+                    compilation.asMutable() += LinearMonomial(Flt64.one, variable)
+                }
+            }
+        }
+
+        (_cost as LinearExpressionSymbol).asMutable().clear()
         _cost!!.flush()
         for ((executor, columnAgg) in columnsByExecutor) {
             val executorVar = _x[executor] ?: continue

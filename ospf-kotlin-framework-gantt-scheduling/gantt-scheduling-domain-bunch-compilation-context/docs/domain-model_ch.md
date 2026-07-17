@@ -72,7 +72,11 @@
 
 **$slots_{c}$** ：编排中的时间槽集合。
 **$bunchesBySlot_{c}$** ：从时间槽到该槽中批次集合的映射。
-**$xBySlot_{c}$** ：从时间槽到该槽中批次决策变量的映射。
+**$variableByBunch_{c}$** ：每个有效批次到其真实二进制列变量的一一权威映射。
+**$xBySlot_{c}$** ：从时间槽到真实二进制列变量的映射，顺序与 `bunchesBySlot` 完全一致。
+**$executorSlotCompilation_{c}$** ：每个 `(executor, slot)` 的线性表达式。`ExecutorSlotCompilationConstraint` 可约束每对执行器和时隙恰好选择一个显式工作列或空闲列，并提供强类型影子价格键。
+
+移除列后，有效映射视图会同步更新：被移除批次不再出现在 `bunchesBySlot`、`variableByBunch` 或 `xBySlot` 中。
 
 ### 7. 批次解（BunchSolution\<B, V, T, E, A\>）
 

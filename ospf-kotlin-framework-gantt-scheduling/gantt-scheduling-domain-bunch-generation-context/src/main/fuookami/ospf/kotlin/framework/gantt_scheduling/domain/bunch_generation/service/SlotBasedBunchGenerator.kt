@@ -42,6 +42,26 @@ interface SlotBasedBunchGenerator<
         > where V : RealNumber<V>, V : PlusGroup<V> {
 
     /**
+     * 分时隙定价请求，保留入口状态和分支限制以供精确定价器消费。
+     * Slot pricing request carrying entry state and branch restrictions for exact pricing.
+     *
+     * @property iteration 当前迭代 / Current iteration
+     * @property slot 目标时隙 / Target slot
+     * @property constraints 时隙约束 / Slot constraints
+     * @property shadowPrices 影子价格 / Shadow prices
+     * @property entryState 时隙入口状态 / Slot entry state
+     * @property branchRestrictions 分支限制 / Branch restrictions
+     */
+    data class PricingRequest<T, M, R, V>(
+        val iteration: UInt64,
+        val slot: TimeSlot,
+        val constraints: SlotConstraints<M, R, V>,
+        val shadowPrices: Map<T, V>,
+        val entryState: Any? = null,
+        val branchRestrictions: Set<String> = emptySet()
+    ) where V : RealNumber<V>, V : PlusGroup<V>
+
+    /**
      * 支持的执行器列表
      * List of supported executors
     */
@@ -65,25 +85,54 @@ interface SlotBasedBunchGenerator<
     ): Ret<List<B>>
 
     /**
+     * 使用完整定价请求生成 bunch；旧实现默认忽略新增上下文。
+     * Generate bunches with a complete pricing request; legacy implementations ignore added context by default.
+     *
+     * @param request 定价请求 / Pricing request
+     * @return Generated bunches / 生成的 bunch 列表
+     */
+    suspend fun generate(request: PricingRequest<T, M, R, V>): Ret<List<B>> {
+        return generate(
+            iteration = request.iteration,
+            slot = request.slot,
+            constraints = request.constraints,
+            shadowPrices = request.shadowPrices
+        )
+    }
+
+    /**
      * 批量生成所有时隙的 bunch
      * Generate bunches for all slots in batch
      *
      * @param iteration Current iteration number / 当前迭代数
      * @param intermediateValues Capacity intermediate values / 产能中间值
      * @param shadowPrices Task shadow prices / 任务影子价格
+     * @param entryStateProvider Slot entry-state provider / 时隙入口状态提供器
+     * @param branchRestrictionsProvider Slot branch-restriction provider / 时隙分支限制提供器
      * @return Generated bunches / 生成的 bunch 列表
     */
     suspend fun generateAll(
         iteration: UInt64,
         intermediateValues: CapacityIntermediateValues<Action, M, R, V>,
-        shadowPrices: Map<T, V>
+        shadowPrices: Map<T, V>,
+        entryStateProvider: (TimeSlot) -> Any? = { null },
+        branchRestrictionsProvider: (TimeSlot) -> Set<String> = { emptySet() }
     ): Ret<List<B>> {
         val allBunches = mutableListOf<B>()
 
         for (slot in intermediateValues.slots) {
             val constraints = intermediateValues.slotConstraints(slot)
             if (constraints != null) {
-                when (val result = generate(iteration, slot, constraints, shadowPrices)) {
+                when (val result = generate(
+                    PricingRequest(
+                        iteration = iteration,
+                        slot = slot,
+                        constraints = constraints,
+                        shadowPrices = shadowPrices,
+                        entryState = entryStateProvider(slot),
+                        branchRestrictions = branchRestrictionsProvider(slot)
+                    )
+                )) {
                     is Ok -> {
                         allBunches.addAll(result.value)
                     }

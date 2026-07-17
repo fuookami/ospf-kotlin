@@ -7,14 +7,12 @@ package fuookami.ospf.kotlin.framework.bpp3d.application.service
 import kotlin.math.roundToInt
 import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.framework.bpp3d.domain.item.error.Bpp3dCapabilityError
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
@@ -22,51 +20,6 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits.*
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_generation.*
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
-
-/**
- * 将对偶解映射转换为 MetaDualSolution（未经类型检查）。
- * Convert dual solution map to MetaDualSolution (unchecked).
- *
- * @param dualSolution 对偶解映射 / Dual solution map
- * @return 元对偶解 / Meta dual solution
-*/
-private fun dualSolutionToMetaUnchecked(dualSolution: Map<*, *>): Ret<MetaDualSolution> {
-    val constraints = LinkedHashMap<MathConstraint, Any>()
-    val symbols = LinkedHashMap<IntermediateSymbol<*>, MutableList<Pair<Constraint<*, *>, Any>>>()
-
-    for ((key, value) in dualSolution) {
-        val constraint = key as? Constraint<*, *> ?: continue
-        val dual = value ?: continue
-        constraint.origin?.let { constraints[it] = dual }
-        constraint.from?.let { (symbol, _) ->
-            symbols.getOrPut(symbol) { mutableListOf() }.add(constraint to dual)
-        }
-    }
-
-    val ctor = MetaDualSolution::class.java.declaredConstructors
-        .firstOrNull { it.parameterCount == 2 }
-        ?: return Failed(Bpp3dCapabilityError("MetaDualSolution constructor is unavailable"))
-    @Suppress("UNCHECKED_CAST")
-    return ok(ctor.newInstance(
-        constraints,
-        symbols.mapValues { it.value.toList() }
-    ) as MetaDualSolution)
-}
-
-/**
- * 从求解结果中提取对偶解映射。
- * Extract dual solution map from solve result.
- *
- * @param result 求解结果 / Solve result
- * @return 对偶解映射 / Dual solution map
-*/
-private fun extractDualSolutionMap(result: Any): Map<*, *> {
-    return runCatching {
-        result.javaClass.methods
-            .firstOrNull { it.name == "getDualSolution" && it.parameterCount == 0 }
-            ?.invoke(result) as? Map<*, *>
-    }.getOrNull() ?: emptyMap<Any?, Any?>()
-}
 
 /**
  * 列生成标准执行器配置。
@@ -97,6 +50,92 @@ data class ColumnGenerationStandardExecutorConfig(
     val integralityTolerance: FltX = FltX(1e-6),
     val depthBoundaryLayerOrientationPolicy: DepthBoundaryLayerOrientationPolicy? = null
 )
+
+/**
+ * RMP 建模扩展上下文 / RMP modeling extension context
+ *
+ * @property state 当前列生成状态 / Current column-generation state
+ * @property model RMP 元模型 / RMP meta model
+ * @property assignment 不精确分配组件 / Imprecise assignment component
+ * @property load 不精确装载组件 / Imprecise load component
+ * @property demandConstraint 需求约束 / Demand constraint
+ * @property continuousRadiusComponent 连续半径组件 / Continuous-radius component
+ */
+data class ColumnGenerationRmpContext(
+    val state: ColumnGenerationState<FltX>,
+    val model: LinearMetaModel<FltX>,
+    val assignment: ImpreciseAssignment,
+    val load: ImpreciseLoad,
+    val demandConstraint: ItemDemandConstraint,
+    val continuousRadiusComponent: ContinuousRadiusModelComponent
+)
+
+/** RMP 建模扩展 / RMP modeling extension */
+fun interface ColumnGenerationRmpModelExtension {
+    /**
+     * 注册扩展变量、约束或目标 / Register extension variables, constraints, or objectives
+     *
+     * @param context RMP 上下文 / RMP context
+     * @return 操作结果 / Operation result
+     */
+    fun register(context: ColumnGenerationRmpContext): Try
+}
+
+/**
+ * RMP 扩展求解结果 / RMP extension solve result
+ *
+ * @property additionalShadowPrices 扩展影子价格 / Additional shadow prices
+ * @property info 扩展审计信息 / Extension audit information
+ */
+data class ColumnGenerationRmpExtensionResult(
+    val additionalShadowPrices: Map<String, FltX> = emptyMap(),
+    val info: Map<String, String> = emptyMap()
+)
+
+/** RMP 对偶提取扩展 / RMP dual extraction extension */
+fun interface ColumnGenerationRmpSolutionExtension {
+    /**
+     * 提取扩展对偶和审计信息 / Extract extension duals and audit information
+     *
+     * @param context RMP 上下文 / RMP context
+     * @param dualSolution 元对偶解 / Meta dual solution
+     * @return 扩展结果 / Extension result
+     */
+    suspend fun extract(
+        context: ColumnGenerationRmpContext,
+        dualSolution: MetaDualSolution
+    ): Ret<ColumnGenerationRmpExtensionResult>
+}
+
+/**
+ * 最终 MILP 建模扩展上下文 / Final MILP modeling extension context
+ *
+ * @property state 当前列生成状态 / Current column-generation state
+ * @property model 最终 MILP 元模型 / Final MILP meta model
+ * @property bins 候选箱子 / Candidate bins
+ * @property assignment 精确分配组件 / Precise assignment component
+ * @property load 精确装载组件 / Precise load component
+ * @property continuousRadiusComponent 连续半径组件 / Continuous-radius component
+ */
+data class ColumnGenerationFinalModelContext(
+    val state: ColumnGenerationState<FltX>,
+    val model: LinearMetaModel<FltX>,
+    val bins: List<Bin<BinLayer, FltX>>,
+    val assignment: PreciseAssignment,
+    val load: PreciseLoad,
+    val continuousRadiusComponent: ContinuousRadiusModelComponent
+)
+
+/** 最终 MILP 建模扩展 / Final MILP modeling extension */
+fun interface ColumnGenerationFinalModelExtension {
+    /**
+     * 注册最终模型扩展 / Register final-model extensions
+     *
+     * @param context 最终模型上下文 / Final-model context
+     * @return 操作结果 / Operation result
+     */
+    fun register(context: ColumnGenerationFinalModelContext): Try
+}
 
 /**
  * 列生成标准执行器，提供 RMP 求解器、最终 MILP 求解器和请求构建器。
@@ -184,14 +223,35 @@ class ColumnGenerationStandardExecutors(
      * 创建 RMP 求解器。
      * Create RMP solver.
      *
+     * @param modelExtensions RMP 建模扩展 / RMP model extensions
+     * @param solutionExtensions RMP 对偶提取扩展 / RMP solution extensions
      * @return RMP 求解器 / RMP solver
     */
-    fun rmpSolver(): ColumnGenerationRmpSolver<FltX> {
+    fun rmpSolver(
+        modelExtensions: List<ColumnGenerationRmpModelExtension> = emptyList(),
+        solutionExtensions: List<ColumnGenerationRmpSolutionExtension> = emptyList()
+    ): ColumnGenerationRmpSolver<FltX> {
         return ColumnGenerationRmpSolver { state ->
             val artifactsResult = buildRmpArtifacts(state)
             if (artifactsResult is Failed) return@ColumnGenerationRmpSolver Failed(artifactsResult.error)
             if (artifactsResult is Fatal) return@ColumnGenerationRmpSolver Fatal(artifactsResult.errors)
             val artifacts = (artifactsResult as Ok).value
+
+            val context = ColumnGenerationRmpContext(
+                state = state,
+                model = artifacts.model,
+                assignment = artifacts.assignment,
+                load = artifacts.load,
+                demandConstraint = artifacts.demandConstraint,
+                continuousRadiusComponent = artifacts.continuousRadiusComponent
+            )
+            for (extension in modelExtensions) {
+                when (val result = extension.register(context)) {
+                    is Ok -> {}
+                    is Failed -> return@ColumnGenerationRmpSolver Failed(result.error)
+                    is Fatal -> return@ColumnGenerationRmpSolver Fatal(result.errors)
+                }
+            }
 
             val lpResult = solver.solveLPAs(
                 name = "${config.rmpSolveNamePrefix}-${state.iteration}",
@@ -202,11 +262,12 @@ class ColumnGenerationStandardExecutors(
             if (lpResult is Fatal) return@ColumnGenerationRmpSolver Fatal(lpResult.errors)
             val solved = (lpResult as Ok).value
 
+            val dualSolution = solved.dualSolution.toMeta()
             val shadowPriceMap = AbstractBPP3DShadowPriceMap<BPP3DShadowPriceArguments, FltX, Item>()
             val refreshResult = artifacts.demandConstraint.refresh(
                 shadowPriceMap = shadowPriceMap,
                 model = artifacts.model,
-                shadowPrices = dualSolutionToMetaUnchecked(extractDualSolutionMap(solved)).value!!
+                shadowPrices = dualSolution
             )
             if (refreshResult is Failed) return@ColumnGenerationRmpSolver Failed(refreshResult.error)
             if (refreshResult is Fatal) return@ColumnGenerationRmpSolver Fatal(refreshResult.errors)
@@ -222,6 +283,20 @@ class ColumnGenerationStandardExecutors(
                     )
                 }
             }
+            val extensionResults = ArrayList<ColumnGenerationRmpExtensionResult>()
+            for (extension in solutionExtensions) {
+                when (val result = extension.extract(context, dualSolution)) {
+                    is Ok -> extensionResults.add(result.value)
+                    is Failed -> return@ColumnGenerationRmpSolver Failed(result.error)
+                    is Fatal -> return@ColumnGenerationRmpSolver Fatal(result.errors)
+                }
+            }
+            val additionalShadowPrices = LinkedHashMap<String, FltX>()
+            val extensionInfo = LinkedHashMap<String, String>()
+            for (result in extensionResults) {
+                additionalShadowPrices.putAll(result.additionalShadowPrices)
+                extensionInfo.putAll(result.info)
+            }
             Ok(ColumnGenerationLpResult(
                 shadowPrices = shadowPrices,
                 objective = FltX(solved.obj.toDouble()),
@@ -233,11 +308,12 @@ class ColumnGenerationStandardExecutors(
                     "lp_objective" to solved.obj.toString(),
                     "continuous_radius_solver_prototype_count" to state.continuousRadiusSolverPrototypes.size.toString(),
                     "continuous_radius_solver_prototype_variables" to state.continuousRadiusSolverPrototypes.joinToString("|") { it.variableName }
-                ) + artifacts.continuousRadiusComponent.info()
+                ) + extensionInfo + artifacts.continuousRadiusComponent.info()
                     + artifacts.continuousRadiusComponent.modelScaleInfo()
                     + artifacts.continuousRadiusComponent.extractNativeResults(artifacts.model)
                         .mapKeys { (name, _) -> "continuous_radius_solver_selected_$name" }
-                        .mapValues { (_, value) -> value.toString() }
+                        .mapValues { (_, value) -> value.toString() },
+                additionalShadowPrices = additionalShadowPrices
             ))
         }
     }
@@ -246,9 +322,12 @@ class ColumnGenerationStandardExecutors(
      * 创建最终 MILP 求解器。
      * Create final MILP solver.
      *
+     * @param modelExtensions 最终 MILP 建模扩展 / Final MILP model extensions
      * @return 最终 MILP 求解器 / final MILP solver
     */
-    fun finalSolver(): ColumnGenerationFinalSolver<FltX> {
+    fun finalSolver(
+        modelExtensions: List<ColumnGenerationFinalModelExtension> = emptyList()
+    ): ColumnGenerationFinalSolver<FltX> {
         return ColumnGenerationFinalSolver { state ->
             val bins = if (finalBins.isNotEmpty()) {
                 finalBins
@@ -332,6 +411,22 @@ class ColumnGenerationStandardExecutors(
                     bins = bins,
                     capacity = capacity
                 ).invoke(model)) {
+                    is Ok -> {}
+                    is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
+                    is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
+                }
+            }
+
+            val extensionContext = ColumnGenerationFinalModelContext(
+                state = state,
+                model = model,
+                bins = bins,
+                assignment = assignment,
+                load = load,
+                continuousRadiusComponent = continuousRadiusComponent
+            )
+            for (extension in modelExtensions) {
+                when (val result = extension.register(extensionContext)) {
                     is Ok -> {}
                     is Failed -> return@ColumnGenerationFinalSolver Failed(result.error)
                     is Fatal -> return@ColumnGenerationFinalSolver Fatal(result.errors)
@@ -443,6 +538,8 @@ class ColumnGenerationStandardExecutors(
     */
     private data class RmpArtifacts(
         val model: LinearMetaModel<FltX>,
+        val assignment: ImpreciseAssignment,
+        val load: ImpreciseLoad,
         val demandConstraint: ItemDemandConstraint,
         val continuousRadiusComponent: ContinuousRadiusModelComponent,
     )
@@ -537,6 +634,8 @@ class ColumnGenerationStandardExecutors(
 
         return Ok(RmpArtifacts(
             model = model,
+            assignment = assignment,
+            load = load,
             demandConstraint = demandConstraint,
             continuousRadiusComponent = continuousRadiusComponent
         ))

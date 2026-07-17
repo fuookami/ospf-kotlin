@@ -16,6 +16,10 @@ Solve orchestration layer — provides business entry points (APS, MPS, LSP) and
 | `Iteration` | Single iteration state in the solving process |
 | `IterationSnapshot` | Snapshot of iteration data for analysis |
 
+### Slot-based branch-and-price
+
+`BranchAndPriceAlgorithm` keeps the existing batch pricing entry point and adds an explicit executor-slot route through `Policy.bunchGeneratorByExecutorAndSlot` plus the constructor `slots` calendar. When configured, each pricing round invokes the generator once per visible `(executor, slot)` pair and forwards fixed, kept, and hidden sets. This route is intended to be used with `SlotBasedBunchCompilation` and its executor-slot selection constraints; omitting it preserves the legacy global/local pricing behavior.
+
 ## Dependencies
 
 - `gantt-scheduling-infrastructure`

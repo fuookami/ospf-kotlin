@@ -183,7 +183,7 @@ class ColumnGenerationAlgorithmTest {
         assertEquals(0, result.iterationCount)
         assertEquals(0, result.columns.size)
         assertEquals(1, result.lpSolvedTimes)
-        assertTrue(result.finalSolved)
+        assertTrue(!result.finalSolved)
     }
 
     @Test

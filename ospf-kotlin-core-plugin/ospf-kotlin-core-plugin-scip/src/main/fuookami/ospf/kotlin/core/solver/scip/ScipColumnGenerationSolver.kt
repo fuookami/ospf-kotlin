@@ -254,6 +254,7 @@ class ScipColumnGenerationSolver(
                 }
 
                 lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                var dualObject = Flt64.zero
                 val solver = ScipLinearSolver(
                     config = config.copy(
                         threadNum = UInt64.one
@@ -265,9 +266,13 @@ class ScipColumnGenerationSolver(
                             ok
                         }
                         .analyzingSolution { _, scipModel, _, constraints ->
-                            dualSolution = model.tidyDualSolution(constraints.map { constraint ->
+                            val dualValues = constraints.map { constraint ->
                                 Flt64(scipModel.getDual(constraint))
-                            })
+                            }
+                            dualSolution = model.tidyDualSolution(dualValues)
+                            dualObject = model.constraints.rhs.indices.sumOf(Flt64) { index ->
+                                model.constraints.rhs[index] * dualValues[index]
+                            }
                             ok
                         }
                 )
@@ -275,9 +280,6 @@ class ScipColumnGenerationSolver(
                 when (val result = solver(model, solvingStatusCallBack)) {
                     is Ok -> {
                         metaModel.tokens.setSolution(result.value.solution)
-                        val dualObject = dualSolution.sumOf(Flt64) { (constraint, value) ->
-                            constraint.rhs * value
-                        }
                         if (abs(dualObject - result.value.obj) gr Flt64(1e-6)) {
                             // there may bse some configuration is not be properly set, sometimes the dual solution is not accurate, so we need to re-solve the dual problem to get dual solution / 某些配置可能未正确设置，导致对偶解不准确，因此需要重新求解对偶问题以获取对偶解
                             when (val result = solveDual(model, ScipLinearSolver(config))) {

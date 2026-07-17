@@ -18,8 +18,35 @@ import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.SolverRunId
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
+
+/**
+ * 分支分组跟踪器 / Branch group tracker
+ *
+ * 单时域默认一个执行器对应一个分组；分时隙场景可让一个执行器对应多个 `(executor, slot)` 分组。
+ * A single-horizon executor owns one group by default, while slot-based scheduling can expose multiple
+ * `(executor, slot)` groups for the same executor.
+ */
+internal class BranchGroupTracker<B, E>(
+    private val executors: List<E>,
+    private val groupOfBunch: (B) -> Any,
+    private val groupsOfExecutor: (E) -> Set<Any>
+) {
+    val amount: UInt64
+        get() = UInt64(executors.flatMap(groupsOfExecutor).toSet().size.toULong())
+
+    fun notFixedAmount(fixedBunches: Set<B>): UInt64 {
+        val fixedGroups = fixedBunches.map(groupOfBunch).toSet()
+        return amount - UInt64(fixedGroups.size.toULong())
+    }
+
+    fun allGroupsFixed(executor: E, fixedBunches: Set<B>): Boolean {
+        val fixedGroups = fixedBunches.map(groupOfBunch).toSet()
+        return groupsOfExecutor(executor).all { it in fixedGroups }
+    }
+}
 
 /**
  * 分支定价算法 / Branch and price algorithm
@@ -52,7 +79,13 @@ class BranchAndPriceAlgorithm<
     private val initialBunches: List<B>,
     private val solver: ColumnGenerationSolver,
     private val policy: Policy<Map, Args, B, V, T, E, A>,
-    private val configuration: Configuration
+    private val configuration: Configuration,
+    /**
+     * Optional slot calendar used by the executor-slot pricing entry point.
+     * When [Policy.bunchGeneratorByExecutorAndSlot] is configured, one pricing
+     * request is issued for every visible `(executor, slot)` pair.
+     */
+    private val slots: List<TimeSlot> = emptyList()
 ) {
 
     /**
@@ -70,6 +103,10 @@ class BranchAndPriceAlgorithm<
      * @property shadowPriceMap 影子价格映射构建器 / Shadow price map builder
      * @property reducedCost 约简成本标量函数，仅用于 branch-and-price 内部列筛选 / Reduced-cost scalar function used only for internal column filtering
      * @property bunchGenerator 任务束生成器 / Bunch generator
+     * @property bunchGeneratorWithBranchContext 带分支状态的可选任务束生成器 / Optional bunch generator carrying branch state
+     * @property bunchGeneratorByExecutorAndSlot 按执行器和时隙调用的可选定价器 / Optional executor-slot pricing generator
+     * @property branchGroupOfBunch 任务束的分支分组键，默认按执行器 / Branch group key for a bunch, executor by default
+     * @property branchGroupsOfExecutor 一个执行器对应的分支分组键 / Branch groups associated with an executor
     */
     data class Policy<
             Map : AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
@@ -85,6 +122,10 @@ class BranchAndPriceAlgorithm<
         val shadowPriceMap: () -> Map,
         val reducedCost: (Map, AbstractTaskBunch<T, E, A, V>) -> Flt64,
         val bunchGenerator: suspend (UInt64, List<E>, Map) -> Ret<List<B>>,
+        val bunchGeneratorWithBranchContext: (suspend (UInt64, List<E>, Map, Set<B>, Set<B>, Set<E>) -> Ret<List<B>>)? = null,
+        val bunchGeneratorByExecutorAndSlot: (suspend (UInt64, E, TimeSlot, Map, Set<B>, Set<B>, Set<E>) -> Ret<List<B>>)? = null,
+        val branchGroupOfBunch: (B) -> Any = { it.executor },
+        val branchGroupsOfExecutor: (E) -> Set<Any> = { setOf(it) }
     )
 
     /**
@@ -120,7 +161,11 @@ class BranchAndPriceAlgorithm<
     private var subProblemSolvingTime: Duration = Duration.ZERO
 
     private val columnAmount: UInt64 get() = context.columnAmount
-    private val executorAmount: UInt64 get() = UInt64(executors.size)
+    private val branchGroupTracker = BranchGroupTracker(
+        executors = executors,
+        groupOfBunch = policy.branchGroupOfBunch,
+        groupsOfExecutor = policy.branchGroupsOfExecutor
+    )
 
     /**
      * Calculate the number of executors not associated with fixed bunches.
@@ -129,8 +174,9 @@ class BranchAndPriceAlgorithm<
      * @param fixedBunches Set of fixed bunches / 已固定的任务束集合
      * @return Number of non-fixed executors / 未固定的执行器数量
     */
-    private fun notFixedExtractorAmount(fixedBunches: Set<B>): UInt64 =
-        executorAmount - UInt64(fixedBunches.size.toULong())
+    private fun notFixedExtractorAmount(fixedBunches: Set<B>): UInt64 {
+        return branchGroupTracker.notFixedAmount(fixedBunches)
+    }
 
     /**
      * Calculate the minimum column amount requirement per executor in the current state.
@@ -453,7 +499,13 @@ class BranchAndPriceAlgorithm<
                         }
                         if (newFixedBunches.isNotEmpty()) {
                             for (bunch in newFixedBunches) {
-                                freeExecutorList.remove(bunch.executor)
+                                val allGroupsFixed = branchGroupTracker.allGroupsFixed(
+                                    executor = bunch.executor,
+                                    fixedBunches = fixedBunches + newFixedBunches
+                                )
+                                if (allGroupsFixed) {
+                                    freeExecutorList.remove(bunch.executor)
+                                }
                             }
                             fixedBunches.addAll(newFixedBunches)
                         } else {
@@ -709,17 +761,39 @@ class BranchAndPriceAlgorithm<
         shadowPriceMap: Map
     ): Ret<List<B>> {
         val beginTime = Clock.System.now()
-        val newBunches = when (val results = policy.bunchGenerator(iteration.iteration, executors, shadowPriceMap)) {
-            is Ok -> {
-                results.value
+        val slotGenerator = policy.bunchGeneratorByExecutorAndSlot
+        val newBunches = if (slotGenerator != null && slots.isNotEmpty()) {
+            val generated = mutableListOf<B>()
+            for (executor in executors) {
+                for (slot in slots) {
+                    when (val result = slotGenerator.invoke(
+                        iteration.iteration,
+                        executor,
+                        slot,
+                        shadowPriceMap,
+                        fixedBunches.toSet(),
+                        keptBunches.toSet(),
+                        hiddenExecutors.toSet()
+                    )) {
+                        is Ok -> generated += result.value
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
+                }
             }
-
-            is Failed -> {
-                return Failed(results.error)
-            }
-
-            is Fatal -> {
-                return Fatal(results.errors)
+            generated
+        } else {
+            when (val results = policy.bunchGeneratorWithBranchContext?.invoke(
+                iteration.iteration,
+                executors,
+                shadowPriceMap,
+                fixedBunches.toSet(),
+                keptBunches.toSet(),
+                hiddenExecutors.toSet()
+            ) ?: policy.bunchGenerator(iteration.iteration, executors, shadowPriceMap)) {
+                is Ok -> results.value
+                is Failed -> return Failed(results.error)
+                is Fatal -> return Fatal(results.errors)
             }
         }
         subProblemSolvingTimes += UInt64.one
