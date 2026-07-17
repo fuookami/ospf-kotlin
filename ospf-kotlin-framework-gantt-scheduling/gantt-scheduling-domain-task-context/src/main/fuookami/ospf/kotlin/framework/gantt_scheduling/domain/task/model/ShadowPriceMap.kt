@@ -3,11 +3,12 @@
 */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.*
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 
 /**
  * 甘特调度影子价格参数接口 / Gantt scheduling shadow price arguments interface
@@ -60,6 +61,30 @@ open class BunchGanttSchedulingShadowPriceArguments<
     override val task: AbstractTask<E, A>? = null,
     open val prevTask: AbstractTask<E, A>? = null
 ) : AbstractGanttSchedulingShadowPriceArguments<E, A>
+
+/**
+ * 分时隙任务束级影子价格参数 / Slot-based bunch-level shadow price arguments
+ *
+ * @param E 执行器类型 / Executor type
+ * @param A 分配策略类型 / Assignment policy type
+ * @property executor 执行器 / Executor
+ * @property slot 时隙 / Time slot
+ * @property task 任务 / Task
+ * @property prevTask 前一个任务 / Previous task
+ */
+open class SlotBunchGanttSchedulingShadowPriceArguments<
+        out E : Executor,
+        out A : AssignmentPolicy<E>
+        >(
+    override val executor: E,
+    open val slot: TimeSlot,
+    override val task: AbstractTask<E, A>? = null,
+    override val prevTask: AbstractTask<E, A>? = null
+) : BunchGanttSchedulingShadowPriceArguments<E, A>(
+    executor = executor,
+    task = task,
+    prevTask = prevTask
+)
 
 /**
  * 抽象甘特调度影子价格映射 / Abstract Gantt scheduling shadow price map

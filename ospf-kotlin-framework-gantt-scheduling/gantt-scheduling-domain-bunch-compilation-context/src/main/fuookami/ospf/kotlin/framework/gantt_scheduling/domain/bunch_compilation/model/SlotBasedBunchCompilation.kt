@@ -3,11 +3,15 @@
 /** 分时隙任务束编译模型 / Slot-based bunch compilation model */
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.variable.BinVariable1
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 
@@ -64,9 +68,116 @@ open class SlotBasedBunchCompilation<
      * 按时隙分组的 bunch 变量
      * Bunch variables grouped by slot
     */
-    private val _xBySlot = HashMap<TimeSlot, ArrayList<BinVariable1>>()
-    val xBySlot: Map<TimeSlot, List<BinVariable1>>
-        get() = _xBySlot.mapValues { it.value.toList() }
+    private val allVariablesByBunch = LinkedHashMap<B, CombinationVariableItem<UInt8, Binary>>()
+
+    /**
+     * 当前有效 bunch 到真实列变量的映射
+     * Mapping from active bunches to their actual column variables
+     */
+    val variableByBunch: Map<B, CombinationVariableItem<UInt8, Binary>>
+        get() = bunches.mapNotNull { bunch ->
+            allVariablesByBunch[bunch]?.let { variable -> bunch to variable }
+        }.toMap(LinkedHashMap())
+
+    val xBySlot: Map<TimeSlot, List<CombinationVariableItem<UInt8, Binary>>>
+        get() = bunchesBySlot.mapValues { (_, slotBunches) ->
+            slotBunches.mapNotNull { allVariablesByBunch[it] }
+        }
+
+    /**
+     * 执行器-时隙选列表达式
+     * Executor-slot column selection expressions
+     */
+    val executorSlotCompilation: Map<Pair<E, TimeSlot>, LinearExpressionSymbol<Flt64>> = buildMap {
+        for (executor in executors) {
+            for (slot in slots) {
+                put(
+                    executor to slot,
+                    LinearExpressionSymbol(
+                        Flt64,
+                        name = "executor_slot_compilation_${executor}_${slot}"
+                    )
+                )
+            }
+        }
+    }
+
+    /**
+     * 注册分时隙编译模型
+     * Register the slot-based compilation model
+     *
+     * @param model 元模型 / Meta model
+     * @return 操作结果 / Operation result
+     */
+    override fun register(model: MetaModel<Flt64>): Try {
+        when (val result = super.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        for (compilation in executorSlotCompilation.values) {
+            when (val result = model.add(compilation)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return ok
+    }
+
+    /**
+     * 添加列并建立 bunch、时隙和真实变量之间的权威映射
+     * Add columns and establish the authoritative mapping among bunches, slots, and actual variables
+     *
+     * @param iteration 迭代次数 / Iteration count
+     * @param newBunches 新任务束列表 / List of new bunches
+     * @param model 线性元模型 / Linear meta model
+     * @return 去重后的任务束列表 / Deduplicated bunch list
+     */
+    override suspend fun addColumns(
+        iteration: UInt64,
+        newBunches: List<B>,
+        model: AbstractLinearMetaModel<Flt64>
+    ): Ret<List<B>> {
+        val unknownSlotBunch = newBunches.firstOrNull { it.slot !in slots }
+        if (unknownSlotBunch != null) {
+            return Failed(
+                ErrorCode.IllegalArgument,
+                "任务束引用了未登记时隙：${unknownSlotBunch.slot} / Bunch references an unregistered slot: ${unknownSlotBunch.slot}"
+            )
+        }
+
+        val unduplicatedBunches = when (val result = super.addColumns(
+            iteration = iteration,
+            newBunches = newBunches,
+            model = model
+        )) {
+            is Ok -> result.value
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        if (unduplicatedBunches.isEmpty()) {
+            return Ok(emptyList())
+        }
+
+        val xi = x.lastOrNull() ?: return Failed(
+            ErrorCode.ApplicationError,
+            "新增列缺少对应变量容器 / Added columns have no corresponding variable container"
+        )
+        for (bunch in unduplicatedBunches) {
+            val variable = xi[bunch]
+            allVariablesByBunch[bunch] = variable
+
+            val compilation = executorSlotCompilation[bunch.executor to bunch.slot] ?: return Failed(
+                ErrorCode.ApplicationError,
+                "新增列缺少执行器-时隙表达式：${bunch.executor}, ${bunch.slot} / Added column has no executor-slot expression: ${bunch.executor}, ${bunch.slot}"
+            )
+            compilation.flush()
+            compilation.asMutable() += LinearMonomial(Flt64.one, variable)
+        }
+        return Ok(unduplicatedBunches)
+    }
 
     /**
      * 按时隙添加列
@@ -82,31 +193,16 @@ open class SlotBasedBunchCompilation<
         newBunches: List<B>,
         model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<TimeSlot, List<B>>> {
-        // First add columns using parent method
-        val unduplicatedBunches = when (val result = addColumns(iteration, newBunches, model)) {
+        val unduplicatedBunches = when (val result = addColumns(
+            iteration = iteration,
+            newBunches = newBunches,
+            model = model
+        )) {
             is Ok -> result.value
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
-
-        // Group by slot and track variables
-        val bunchesBySlot = HashMap<TimeSlot, MutableList<B>>()
-        for (bunch in unduplicatedBunches) {
-            bunchesBySlot.getOrPut(bunch.slot) { mutableListOf() }.add(bunch)
-        }
-        if (bunchesBySlot.isEmpty()) {
-            return Ok(bunchesBySlot.mapValues { it.value.toList() } as Map<TimeSlot, List<B>>)
-        }
-
-        // Update xBySlot tracking
-        val currentX = x.lastOrNull()
-        for ((slot, _) in bunchesBySlot) {
-            val slotVariables = _xBySlot.getOrPut(slot) { ArrayList() }
-            if (currentX != null && slotVariables.lastOrNull() !== currentX) {
-                slotVariables.add(currentX)
-            }
-        }
-        return Ok(bunchesBySlot.mapValues { it.value.toList() } as Map<TimeSlot, List<B>>)
+        return Ok(unduplicatedBunches.groupBy { it.slot })
     }
 
     /**

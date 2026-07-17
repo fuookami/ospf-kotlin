@@ -155,6 +155,7 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction, V : RealNumb
         if (this.slotIndex != other.slotIndex) return true
         if (this.order != other.order) return true
         if (this.allocations != other.allocations) return true
+        if (this.key != other.key) return true
         return false
     }
 }

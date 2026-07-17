@@ -37,6 +37,7 @@ data class ColumnGenerationConfig(
  * @property columns 当前列集合 / current column set
  * @property bins 最终箱子（可选） / final bins (optional)
  * @property shadowPrices 影子价格映射 / shadow price map
+ * @property additionalShadowPrices 扩展影子价格映射 / extension shadow price map
  * @property continuousRadiusSolverPrototypes 连续半径 solver 变量原型 / continuous-radius solver variable prototypes
  * @property continuousRadiusSolverResults 连续半径 solver 选出结果 / continuous-radius solver selected results
  * @property pwlContinuousRadiusResults PWL 连续半径结果 / PWL continuous-radius results
@@ -49,7 +50,8 @@ data class ColumnGenerationState<V>(
     val continuousRadiusSolverPrototypes: List<ContinuousCylinderRadiusSolverPrototype> = emptyList(),
     val continuousRadiusSolverResults: Map<String, FltX> = emptyMap(),
     // PWL results stored as opaque Map for public API - internal types remain internal
-    val pwlContinuousRadiusResults: Map<String, Map<String, FltX>> = emptyMap()
+    val pwlContinuousRadiusResults: Map<String, Map<String, FltX>> = emptyMap(),
+    val additionalShadowPrices: Map<String, V> = emptyMap()
 )
 
 /**
@@ -102,11 +104,13 @@ fun extractContinuousRadiusSolverResultsFromInfo(
  * @property shadowPrices 影子价格 / shadow prices
  * @property objective 目标值（可选） / objective value (optional)
  * @property info 附加信息 / additional info
+ * @property additionalShadowPrices 扩展影子价格 / extension shadow prices
 */
 data class ColumnGenerationLpResult<V>(
     val shadowPrices: Map<DemandModeKey, V>,
     val objective: V? = null,
-    val info: Map<String, String> = emptyMap()
+    val info: Map<String, String> = emptyMap(),
+    val additionalShadowPrices: Map<String, V> = emptyMap()
 )
 
 /**
@@ -219,6 +223,44 @@ fun interface ColumnGenerationSolutionAnalyzer<V> {
     suspend fun analyze(state: ColumnGenerationState<V>): Try
 }
 
+/** 列生成失败阶段 / Column generation failure stage */
+enum class ColumnGenerationFailureStage {
+    InitialColumns,
+    RestrictedMasterProblem,
+    CandidateFilter,
+    FinalMilp,
+    SolutionAnalysis
+}
+
+/**
+ * 列生成失败上下文 / Column generation failure context
+ *
+ * @param V 数值类型 / Numeric type
+ * @property stage 失败阶段 / Failure stage
+ * @property state 失败时状态 / State at failure
+ * @property errors 原始错误 / Original errors
+ */
+data class ColumnGenerationFailure<V>(
+    val stage: ColumnGenerationFailureStage,
+    val state: ColumnGenerationState<V>,
+    val errors: List<Error<ErrorCode>>
+)
+
+/**
+ * 列生成失败分析器 / Column generation failure analyzer
+ *
+ * @param V 数值类型 / Numeric type
+ */
+fun interface ColumnGenerationFailureAnalyzer<V> {
+    /**
+     * 分析失败状态 / Analyze a failed state
+     *
+     * @param failure 失败上下文 / Failure context
+     * @return 分析结果 / Analysis result
+     */
+    suspend fun analyze(failure: ColumnGenerationFailure<V>): Try
+}
+
 /**
  * 列生成心跳回调。
  * Column generation heartbeat callback.
@@ -272,13 +314,16 @@ fun interface ColumnGenerationLayerRequestBuilder<V> {
  * @property heartbeat 心跳回调（可选） / heartbeat callback (optional)
  * @property layerRequestBuilder 层请求构建器（可选） / layer request builder (optional)
  * @property initialColumns 初始列提供函数 / initial columns provider function
+ * @property initialColumnsWithResult 可失败的初始列提供函数 / fallible initial columns provider
  * @property solveRmpAndExtractShadowPrice RMP 求解并提取影子价格函数 / RMP solve and extract shadow price function
  * @property solveRmpWithResult RMP 求解并返回完整结果函数（可选） / RMP solve with full result function (optional)
  * @property filterByReducedCost 按检验数过滤列函数 / filter columns by reduced cost function
+ * @property filterByReducedCostWithResult 可失败的列过滤函数 / fallible column filter
  * @property deduplicateColumns 列去重函数 / column deduplication function
  * @property solveFinalMilp 最终 MILP 求解函数 / final MILP solve function
  * @property solveFinalMilpWithResult 最终 MILP 求解并返回完整结果函数（可选） / final MILP solve with full result function (optional)
  * @property analyzeSolution 解分析函数 / solution analysis function
+ * @property failureAnalyzer 失败分析器 / failure analyzer
  * @property onIterationHeartbeat 迭代心跳回调函数 / iteration heartbeat callback function
 */
 class ColumnGenerationAlgorithm<V>(
@@ -289,15 +334,36 @@ class ColumnGenerationAlgorithm<V>(
     private val heartbeat: ColumnGenerationHeartbeat<V>? = null,
     private val layerRequestBuilder: ColumnGenerationLayerRequestBuilder<V>? = null,
     private val initialColumns: suspend () -> List<BinLayer> = { emptyList() },
+    private val initialColumnsWithResult: (suspend () -> Ret<List<BinLayer>>)? = null,
     private val solveRmpAndExtractShadowPrice: suspend (ColumnGenerationState<V>) -> Map<DemandModeKey, V> = { emptyMap() },
     private val solveRmpWithResult: (suspend (ColumnGenerationState<V>) -> ColumnGenerationLpResult<V>)? = null,
     private val filterByReducedCost: suspend (ColumnGenerationState<V>, List<Bpp3dLayerGenerationResult<V>>) -> List<Bpp3dLayerGenerationResult<V>> = { _, layers -> layers },
+    private val filterByReducedCostWithResult: (suspend (ColumnGenerationState<V>, List<Bpp3dLayerGenerationResult<V>>) -> Ret<List<Bpp3dLayerGenerationResult<V>>>)? = null,
     private val deduplicateColumns: (List<BinLayer>) -> List<BinLayer> = { it.distinct() },
-    private val solveFinalMilp: suspend (ColumnGenerationState<V>) -> Unit = {},
+    private val solveFinalMilp: (suspend (ColumnGenerationState<V>) -> Unit)? = null,
     private val solveFinalMilpWithResult: (suspend (ColumnGenerationState<V>) -> ColumnGenerationFinalResult<V>)? = null,
     private val analyzeSolution: suspend (ColumnGenerationState<V>) -> Unit = {},
-    private val onIterationHeartbeat: suspend (ColumnGenerationState<V>) -> Unit = {}
+    private val onIterationHeartbeat: suspend (ColumnGenerationState<V>) -> Unit = {},
+    private val failureAnalyzer: ColumnGenerationFailureAnalyzer<V>? = null
 ) {
+
+    private suspend fun <T> failed(
+        stage: ColumnGenerationFailureStage,
+        state: ColumnGenerationState<V>,
+        errors: List<Error<ErrorCode>>
+    ): Ret<T> {
+        return when (val result = failureAnalyzer?.analyze(
+            ColumnGenerationFailure(
+                stage = stage,
+                state = state,
+                errors = errors
+            )
+        ) ?: ok) {
+            is Ok -> if (errors.size == 1) Failed(errors.first()) else Fatal(errors)
+            is Failed -> Fatal(errors + result.error)
+            is Fatal -> Fatal(errors + result.errors)
+        }
+    }
 
     /**
      * 执行列生成求解。
@@ -312,18 +378,36 @@ class ColumnGenerationAlgorithm<V>(
         config: ColumnGenerationConfig = ColumnGenerationConfig()
     ): Ret<ColumnGenerationResult<V>> {
         val startedAt = TimeSource.Monotonic.markNow()
-        var columns = deduplicateColumns(initialColumns.invoke())
+        val continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypesFromItems(items)
+        val initialState = ColumnGenerationState<V>(
+            iteration = 0,
+            columns = emptyList(),
+            continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
+        )
+        var columns = when (val result = initialColumnsWithResult?.invoke() ?: Ok(initialColumns.invoke())) {
+            is Ok -> deduplicateColumns(result.value)
+            is Failed -> return failed(
+                stage = ColumnGenerationFailureStage.InitialColumns,
+                state = initialState,
+                errors = listOf(result.error)
+            )
+            is Fatal -> return failed(
+                stage = ColumnGenerationFailureStage.InitialColumns,
+                state = initialState,
+                errors = result.errors
+            )
+        }
         var terminatedByIterationLimit = false
         var terminatedByTimeLimit = false
         var iterations = 0
         var lpSolvedTimes = 0
         var finalSolved = false
         var latestShadowPrices: Map<DemandModeKey, V> = emptyMap()
+        var latestAdditionalShadowPrices: Map<String, V> = emptyMap()
         val lpObjectives = ArrayList<V?>()
         val lpInfos = ArrayList<Map<String, String>>()
         var finalObjective: V? = null
         var finalInfo: Map<String, String> = emptyMap()
-        val continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypesFromItems(items)
 
         while (iterations < config.iterationLimit) {
             if (startedAt.elapsedNow() >= config.timeLimit) {
@@ -336,13 +420,22 @@ class ColumnGenerationAlgorithm<V>(
                 columns = columns,
                 bins = emptyList(),
                 shadowPrices = latestShadowPrices,
+                additionalShadowPrices = latestAdditionalShadowPrices,
                 continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
             )
             val lpResult = when {
                 rmpSolver != null -> when (val result = rmpSolver.solve(state)) {
                     is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                    is Failed -> return failed(
+                        stage = ColumnGenerationFailureStage.RestrictedMasterProblem,
+                        state = state,
+                        errors = listOf(result.error)
+                    )
+                    is Fatal -> return failed(
+                        stage = ColumnGenerationFailureStage.RestrictedMasterProblem,
+                        state = state,
+                        errors = result.errors
+                    )
                 }
                 solveRmpWithResult != null -> solveRmpWithResult.invoke(state)
                 else -> ColumnGenerationLpResult(
@@ -351,6 +444,7 @@ class ColumnGenerationAlgorithm<V>(
             }
             val shadowPrices = lpResult.shadowPrices
             latestShadowPrices = shadowPrices
+            latestAdditionalShadowPrices = lpResult.additionalShadowPrices
             lpObjectives.add(lpResult.objective)
             lpInfos.add(lpResult.info)
             lpSolvedTimes += 1
@@ -360,6 +454,7 @@ class ColumnGenerationAlgorithm<V>(
                 columns = columns,
                 bins = emptyList(),
                 shadowPrices = shadowPrices,
+                additionalShadowPrices = latestAdditionalShadowPrices,
                 continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
             )
             val request = layerRequestBuilder?.build(
@@ -374,10 +469,22 @@ class ColumnGenerationAlgorithm<V>(
                 maxCandidates = config.maxColumnsPerIteration
             )
             val candidates = layerGenerator.generate(request)
-            val accepted = filterByReducedCost(
+            val accepted = when (val result = filterByReducedCostWithResult?.invoke(
                 shadowPriceRefreshedState,
                 candidates
-            )
+            ) ?: Ok(filterByReducedCost(shadowPriceRefreshedState, candidates))) {
+                is Ok -> result.value
+                is Failed -> return failed(
+                    stage = ColumnGenerationFailureStage.CandidateFilter,
+                    state = shadowPriceRefreshedState,
+                    errors = listOf(result.error)
+                )
+                is Fatal -> return failed(
+                    stage = ColumnGenerationFailureStage.CandidateFilter,
+                    state = shadowPriceRefreshedState,
+                    errors = result.errors
+                )
+            }
             if (accepted.isEmpty()) {
                 break
             }
@@ -389,6 +496,7 @@ class ColumnGenerationAlgorithm<V>(
                     columns = columns,
                     bins = emptyList(),
                     shadowPrices = shadowPrices,
+                    additionalShadowPrices = latestAdditionalShadowPrices,
                     continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
                 )
             )
@@ -398,6 +506,7 @@ class ColumnGenerationAlgorithm<V>(
                     columns = columns,
                     bins = emptyList(),
                     shadowPrices = shadowPrices,
+                    additionalShadowPrices = latestAdditionalShadowPrices,
                     continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
                 )
             )
@@ -413,14 +522,23 @@ class ColumnGenerationAlgorithm<V>(
             columns = columns,
             bins = emptyList(),
             shadowPrices = latestShadowPrices,
+            additionalShadowPrices = latestAdditionalShadowPrices,
             continuousRadiusSolverPrototypes = continuousRadiusSolverPrototypes
         )
         if (config.finalMilpEnabled) {
             val finalResult = when {
                 finalMilpSolver != null -> when (val result = finalMilpSolver.solve(finalState)) {
                     is Ok -> result.value
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                    is Failed -> return failed(
+                        stage = ColumnGenerationFailureStage.FinalMilp,
+                        state = finalState,
+                        errors = listOf(result.error)
+                    )
+                    is Fatal -> return failed(
+                        stage = ColumnGenerationFailureStage.FinalMilp,
+                        state = finalState,
+                        errors = result.errors
+                    )
                 }
                 solveFinalMilpWithResult != null -> solveFinalMilpWithResult.invoke(finalState)
                 else -> null
@@ -437,15 +555,23 @@ class ColumnGenerationAlgorithm<V>(
                     pwlContinuousRadiusResults = finalResult.pwlContinuousRadiusResults
                 )
             } else {
-                solveFinalMilp(finalState)
+                solveFinalMilp?.invoke(finalState)
             }
-            finalSolved = true
+            finalSolved = finalMilpSolver != null || solveFinalMilpWithResult != null || solveFinalMilp != null
         }
         analyzeSolution(finalState)
         when (val result = solutionAnalyzer?.analyze(finalState) ?: ok) {
             is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
+            is Failed -> return failed(
+                stage = ColumnGenerationFailureStage.SolutionAnalysis,
+                state = finalState,
+                errors = listOf(result.error)
+            )
+            is Fatal -> return failed(
+                stage = ColumnGenerationFailureStage.SolutionAnalysis,
+                state = finalState,
+                errors = result.errors
+            )
         }
 
         return Ok(ColumnGenerationResult<V>(

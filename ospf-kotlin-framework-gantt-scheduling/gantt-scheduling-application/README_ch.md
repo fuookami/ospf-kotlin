@@ -16,6 +16,10 @@
 | `Iteration` | 求解过程中的单次迭代状态 |
 | `IterationSnapshot` | 用于分析的迭代数据快照 |
 
+### 分时隙分支定价
+
+`BranchAndPriceAlgorithm` 保留原有批量定价入口，同时可通过 `Policy.bunchGeneratorByExecutorAndSlot` 和构造参数 `slots` 显式启用 `(executor, slot)` 定价。启用后每轮会为可见执行器与时隙逐对调用生成器，并把固定列、保留列和隐藏执行器集合传入，适合与 `SlotBasedBunchCompilation` 的执行器-时隙选列约束配合使用。未提供该入口时，行为与原有全局/局部定价完全兼容。
+
 ## 依赖
 
 - `gantt-scheduling-infrastructure`

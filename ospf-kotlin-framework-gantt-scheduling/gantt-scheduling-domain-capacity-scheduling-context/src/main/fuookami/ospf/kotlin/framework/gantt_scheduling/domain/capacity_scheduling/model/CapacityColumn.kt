@@ -29,13 +29,15 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
  * @property order 顺序位置 / Order position
  * @property allocations 动作分配 / Action allocations
  * @property columnCost 列成本物理量 / Column cost quantity
+ * @property key 下游领域提供的稳定列身份 / Stable column identity supplied by the downstream domain
 */
 data class CapacityColumn<E : Executor, A : ProductionAction, V : RealNumber<V>>(
     val executor: E,
     val slotIndex: Int,
     val order: Int,
     val allocations: Map<A, UInt64>,
-    val columnCost: CapacityCostQuantity<V>
+    val columnCost: CapacityCostQuantity<V>,
+    val key: String? = null
 ) {
 
     /**

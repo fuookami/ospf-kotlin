@@ -50,18 +50,19 @@ abstract class AbstractBunchCompilationAggregation<
         A : AssignmentPolicy<E>
         >(
     protected val tasks: List<T>,
-    protected val executors: List<E>,
-    protected val lockCancelTasks: Set<T> = emptySet(),
-    withExecutorLeisure: Boolean = true
+        protected val executors: List<E>,
+        protected val lockCancelTasks: Set<T> = emptySet(),
+        withExecutorLeisure: Boolean = true,
+        compilation: BunchCompilation<B, V, T, E, A> = BunchCompilation(
+            tasks = tasks,
+            executors = executors,
+            lockCancelTasks = lockCancelTasks,
+            withExecutorLeisure = withExecutorLeisure
+        )
 ) {
     private val logger = org.apache.logging.log4j.kotlin.logger("BunchSchedulingAggregation")
 
-    val compilation: BunchCompilation<B, V, T, E, A> = BunchCompilation(
-        tasks = tasks,
-        executors = executors,
-        lockCancelTasks = lockCancelTasks,
-        withExecutorLeisure = withExecutorLeisure
-    )
+    val compilation: BunchCompilation<B, V, T, E, A> = compilation
 
     val bunchesIteration: List<List<B>> by compilation::bunchesIteration
     val bunches: List<B> by compilation::bunches
@@ -473,15 +474,22 @@ open class BunchCompilationAggregation<
         E : Executor,
         A : AssignmentPolicy<E>
         >(
-    tasks: List<T>,
-    executors: List<E>,
-    lockCancelTasks: Set<T> = emptySet(),
-    withExecutorLeisure: Boolean = true
+        tasks: List<T>,
+        executors: List<E>,
+        lockCancelTasks: Set<T> = emptySet(),
+        withExecutorLeisure: Boolean = true,
+        compilation: BunchCompilation<B, V, T, E, A> = BunchCompilation(
+            tasks = tasks,
+            executors = executors,
+            lockCancelTasks = lockCancelTasks,
+            withExecutorLeisure = withExecutorLeisure
+        )
 ) : AbstractBunchCompilationAggregation<B, V, T, E, A>(
-    tasks = tasks,
-    executors = executors,
-    lockCancelTasks = lockCancelTasks,
-    withExecutorLeisure = withExecutorLeisure
+        tasks = tasks,
+        executors = executors,
+        lockCancelTasks = lockCancelTasks,
+        withExecutorLeisure = withExecutorLeisure,
+        compilation = compilation
 )
 
 /**

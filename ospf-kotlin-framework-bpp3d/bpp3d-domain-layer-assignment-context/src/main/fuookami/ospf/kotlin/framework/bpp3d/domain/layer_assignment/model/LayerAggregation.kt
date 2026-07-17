@@ -67,7 +67,11 @@ class LayerAggregation(
 
         ManualIndexed.flush<BinLayer>()
         for (layer in unduplicatedLayers) {
-            layer.setIndexed()
+            if (layer.indexed) {
+                layer.refreshIndex()
+            } else {
+                layer.setIndexed()
+            }
         }
         layersIteration.add(unduplicatedLayers)
         layers.addAll(unduplicatedLayers)

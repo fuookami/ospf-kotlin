@@ -26,6 +26,16 @@ This repository currently focuses on:
 4. Guarded horizontal cylinder known-coordinate packing (`Axis3.X` / `Axis3.Z`) when final coordinates are already known.
 5. Conservative 3D stacking/hanging support for horizontal cylinders only when they are on the floor or on cuboid support intervals that cover the full cylinder axis and the bottom support line.
 
+## Column-Generation Extension Points
+
+The application layer supports downstream dynamic constraints without copying the standard RMP/final model assembly:
+
+1. `ColumnGenerationApplicationAlgorithmFactory` can replace algorithm assembly while retaining material-demand preparation and packing orchestration.
+2. `ColumnGenerationStandardExecutors.rmpSolver(...)` accepts RMP model and dual-solution extensions. Extensions receive `ColumnGenerationRmpContext`, can register additional model rows before LP solving, and can return typed `additionalShadowPrices` plus audit `info` after dual extraction.
+3. `ColumnGenerationStandardExecutors.finalSolver(...)` accepts final-MILP model extensions through `ColumnGenerationFinalModelContext`.
+4. `ColumnGenerationAlgorithm` provides fallible `initialColumnsWithResult` and `filterByReducedCostWithResult` hooks, propagates additional shadow prices through `ColumnGenerationState`, and reports failed lifecycle stages through `ColumnGenerationFailureAnalyzer`.
+5. `finalSolved` is true only when an actual final solver callback was configured and invoked.
+
 ## Cylinder Geometry Semantics
 
 For the current MVP:

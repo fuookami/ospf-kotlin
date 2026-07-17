@@ -32,7 +32,7 @@ open class AbstractTaskBunch<
         out E : Executor,
         out A : AssignmentPolicy<E>,
         V : RealNumber<V>
-        > internal constructor(
+        > protected constructor(
     open val executor: E,
     val time: TimeRange,
     open val tasks: List<T>,

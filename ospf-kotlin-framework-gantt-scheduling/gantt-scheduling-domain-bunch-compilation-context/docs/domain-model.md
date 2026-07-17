@@ -72,7 +72,11 @@ Extends BunchCompilation with slot-based structure, organizing bunches and varia
 
 **$slots_{c}$** : The set of time slots in the compilation.
 **$bunchesBySlot_{c}$** : Mapping from time slot to the set of bunches in that slot.
-**$xBySlot_{c}$** : Mapping from time slot to the decision variables for bunches in that slot.
+**$variableByBunch_{c}$** : Authoritative one-to-one mapping from each active bunch to its actual binary column variable.
+**$xBySlot_{c}$** : Mapping from time slot to actual binary column variables, in exactly the same order as `bunchesBySlot`.
+**$executorSlotCompilation_{c}$** : Linear expression for each `(executor, slot)` pair. `ExecutorSlotCompilationConstraint` can enforce that exactly one explicit working or idle column is selected for every pair and exposes a typed shadow-price key.
+
+Column removal is reflected by the active mapping views: removed bunches no longer appear in `bunchesBySlot`, `variableByBunch`, or `xBySlot`.
 
 ### 7. BunchSolution\<B, V, T, E, A\>
 

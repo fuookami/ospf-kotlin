@@ -249,15 +249,59 @@ data class ColumnGenerationApplicationResponse(
 )
 
 /**
+ * 列生成算法装配上下文 / Column-generation algorithm assembly context
+ *
+ * @property request 应用请求 / Application request
+ * @property layerGenerator 层生成器 / Layer generator
+ * @property executors 标准执行器 / Standard executors
+ * @property solutionAnalyzer 组合解分析器 / Combined solution analyzer
+ */
+data class ColumnGenerationAlgorithmFactoryContext(
+    val request: ColumnGenerationApplicationRequest,
+    val layerGenerator: Bpp3dLayerGenerator<FltX>,
+    val executors: ColumnGenerationStandardExecutors,
+    val solutionAnalyzer: ColumnGenerationSolutionAnalyzer<FltX>?
+) {
+    /**
+     * 创建默认算法 / Create the default algorithm
+     *
+     * @return 默认列生成算法 / Default column-generation algorithm
+     */
+    fun defaultAlgorithm(): ColumnGenerationAlgorithm<FltX> {
+        return ColumnGenerationAlgorithm(
+            layerGenerator = layerGenerator,
+            rmpSolver = executors.rmpSolver(),
+            finalMilpSolver = executors.finalSolver(),
+            layerRequestBuilder = executors.requestBuilder(),
+            solutionAnalyzer = solutionAnalyzer,
+            initialColumns = { request.initialColumns }
+        )
+    }
+}
+
+/** 列生成算法工厂 / Column-generation algorithm factory */
+fun interface ColumnGenerationApplicationAlgorithmFactory {
+    /**
+     * 创建算法 / Create an algorithm
+     *
+     * @param context 装配上下文 / Assembly context
+     * @return 列生成算法 / Column-generation algorithm
+     */
+    fun create(context: ColumnGenerationAlgorithmFactoryContext): ColumnGenerationAlgorithm<FltX>
+}
+
+/**
  * 列生成应用服务，编排物料装箱和列生成流程。
  * Column generation application service, orchestrates material packing and column generation.
  *
  * @property solver 列生成求解器 / column generation solver
  * @property materialPackingSolverExecutor 物料装箱求解器执行器 / material packing solver executor
-*/
+ * @property algorithmFactory 算法工厂 / Algorithm factory
+ */
 class ColumnGenerationApplicationService(
     private val solver: ColumnGenerationSolver,
-    private val materialPackingSolverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor()
+    private val materialPackingSolverExecutor: MaterialPackingSolverExecutor = ExhaustiveMaterialPackingSolverExecutor(),
+    private val algorithmFactory: ColumnGenerationApplicationAlgorithmFactory? = null
 ) {
     companion object {
         /**
@@ -381,14 +425,13 @@ class ColumnGenerationApplicationService(
             else -> solutionAnalyzer
         }
 
-        val algorithm = ColumnGenerationAlgorithm(
+        val algorithmContext = ColumnGenerationAlgorithmFactoryContext(
+            request = request,
             layerGenerator = layerGenerator,
-            rmpSolver = executors.rmpSolver(),
-            finalMilpSolver = executors.finalSolver(),
-            layerRequestBuilder = executors.requestBuilder(),
-            solutionAnalyzer = combinedAnalyzer,
-            initialColumns = { request.initialColumns }
+            executors = executors,
+            solutionAnalyzer = combinedAnalyzer
         )
+        val algorithm = algorithmFactory?.create(algorithmContext) ?: algorithmContext.defaultAlgorithm()
         val result = when (val solveResult = algorithm.solve(
             items = resolvedItemDemands.map { it.first },
             config = request.cgConfig

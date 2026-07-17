@@ -553,16 +553,16 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
     ): LinearTriadModelView
 
     /**
-     * 整理对偶解，将非零对偶值映射回原始约束
-     * Tidy dual solution, mapping non-zero dual values back to original constraints
+     * 整理对偶解，将完整对偶值（包括零值）映射回原始约束
+     * Tidy dual solution, mapping complete dual values (including zero) back to original constraints
      *
      * @param solution 求解器返回的对偶解向量 / Dual solution vector returned by the solver
-     * @return 非零对偶值到原始约束的映射 / Mapping from non-zero dual values to original constraints
+     * @return 完整对偶值到原始约束的映射 / Mapping from complete dual values to original constraints
     */
     fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
-                if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
+                if (it.dualOrigin != null && solution.size > it.index) {
                     (it.dualOrigin as LinearConstraintImpl<Flt64>) to solution[it.index]
                 } else {
                     null
@@ -570,7 +570,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
             }
         } else {
             constraints.indices.associateNotNull {
-                if (constraints.origins[it] != null && solution.size > it && solution[it] neq Flt64.zero) {
+                if (constraints.origins[it] != null && solution.size > it) {
                     constraints.origins[it]!! to solution[it]
                 } else {
                     null

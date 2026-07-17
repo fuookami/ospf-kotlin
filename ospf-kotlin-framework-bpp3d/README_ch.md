@@ -26,6 +26,16 @@
 4. 在最终坐标已确定的已知坐标装箱/渲染路径中，通过真实几何 guard 支持 `Axis3.X` / `Axis3.Z` 横向圆柱。
 5. 横向圆柱在贴地或下方长方体支撑区间覆盖完整轴向及底部支撑线时，可通过保守的 3D stacking/hanging 支撑检查。
 
+## 列生成扩展点
+
+应用层允许下游接入动态约束，无需复制标准 RMP/final 模型装配：
+
+1. `ColumnGenerationApplicationAlgorithmFactory` 可替换算法装配，同时保留物料需求准备和装箱编排。
+2. `ColumnGenerationStandardExecutors.rmpSolver(...)` 接受 RMP 建模扩展和对偶结果扩展。扩展通过 `ColumnGenerationRmpContext` 在 LP 求解前追加模型行，并可在对偶提取后返回类型化 `additionalShadowPrices` 与审计 `info`。
+3. `ColumnGenerationStandardExecutors.finalSolver(...)` 通过 `ColumnGenerationFinalModelContext` 接受最终 MILP 建模扩展。
+4. `ColumnGenerationAlgorithm` 提供可失败的 `initialColumnsWithResult`、`filterByReducedCostWithResult`，通过 `ColumnGenerationState` 传递扩展影子价格，并用 `ColumnGenerationFailureAnalyzer` 报告失败生命周期阶段。
+5. 只有真实配置并调用了最终求解器回调时，`finalSolved` 才为 `true`。
+
 ## 圆柱几何语义
 
 当前 MVP 的语义约束：
