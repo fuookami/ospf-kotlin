@@ -419,14 +419,16 @@ private class ScipQuadraticSolverImpl(
         scip.setIntParam("parallel/maxnthreads", config.threadNum.toInt())
 
         if (config.notImprovementTime != null || callBack?.nativeCallback != null || statusCallBack != null) {
-            scip.includeEventHandler("solve-monitor-${UUID.randomUUID()}", "native solving callback", object : EventHandler() {
-                override fun getType(): Long {
-                    return callBack?.nativeEventMask ?: (EventMask.LP_EVENT or EventMask.NODE_EVENT or EventMask.SOL_EVENT)
-                }
-
-                override fun execute(solverModel: jscip.Scip, self: EventHandlerRef, event: Event) {
+            object : EventHandler(
+                scip,
+                "solve-monitor-${UUID.randomUUID()}",
+                "native solving callback",
+                callBack?.nativeEventMask ?: (EventMask.LP_EVENT or EventMask.NODE_EVENT or EventMask.SOL_EVENT)
+            ) {
+                override fun execute(event: Event) {
+                    val solverModel = scip
                     try {
-                        callBack?.nativeCallback?.invoke(this, solverModel, self, event)
+                        callBack?.nativeCallback?.invoke(this, solverModel, event)
                     } catch (_: Exception) {
                         solverModel.interruptSolve()
                         return
@@ -490,7 +492,7 @@ private class ScipQuadraticSolverImpl(
                         }
                     }
                 }
-            })
+            }.include()
         }
 
         when (val result = callBack?.execIfContain(

@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 typealias Function = suspend (SolverStatus?, Scip, List<Variable>, List<Constraint>) -> Try
 
 /** SCIP 原生回调函数类型 / SCIP native callback function type */
-typealias NativeCallBack = EventHandler.(Scip, EventHandlerRef, Event) -> Unit
+typealias NativeCallBack = EventHandler.(Scip, Event) -> Unit
 
 /** 求解器回调时机枚举 / Solver callback point enum */
 enum class Point {
